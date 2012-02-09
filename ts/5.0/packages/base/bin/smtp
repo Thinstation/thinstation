@@ -1,0 +1,24 @@
+#! /bin/sh
+
+. $TS_GLOBAL
+
+# If there are errors email them
+
+if [ -n "$NET_SMTP_SERVER" ] && [ -n "$NET_SMTP_EMAIL" ] ; then
+  # Check for errors in log file
+  cat /var/log/messages | grep "\.err" | grep -v SQUASHFS > /tmp/errors_new.txt
+  if [ -s /tmp/errors_new.txt ] ; then
+   SIZEOLD=`ls -l /var/log/errors.txt |sed "s/[	 ][	 ]*/ /g" | cut -f5 -d" "`
+   SIZENEW=`ls -l /tmp/errors_new.txt |sed "s/[	 ][	 ]*/ /g" | cut -f5 -d" "`
+   if [ "$SIZENEW" != "$SIZEOLD" ] ; then
+     cat /tmp/errors_new.txt > /var/log/errors.txt
+     echo -e "Report On:  http://`hostname`\n\n" > /tmp/errors_mail.txt 
+     cat /var/log/errors.txt >> /tmp/errors_mail.txt
+     cat /tmp/errors_mail.txt | smtpclient -s "Error Report on `hostname`" \
+      -f "root@`hostname`" -S $NET_SMTP_SERVER -P 25 $NET_SMTP_EMAIL
+     rm /tmp/errors_mail.txt
+   fi
+  fi
+  rm /tmp/errors_new.txt
+fi
+

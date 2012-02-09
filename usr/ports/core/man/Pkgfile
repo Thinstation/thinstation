@@ -1,0 +1,21 @@
+# Description: The man page suite used to read most of the documentation for Linux
+# URL:         http://primates.ximian.com/~flucifredi/man/
+# Maintainer:  CRUX System Team, core-ports at crux dot nu
+
+name=man
+version=1.6g
+release=1
+source=(http://primates.ximian.com/~flucifredi/man/$name-$version.tar.gz \
+        makewhatis)
+
+build() {
+    cd $name-$version
+    ./configure -prefix=/usr \
+                -confdir=/etc \
+                -mandir=/usr/man \
+                +lang none \
+                -default
+    make
+    make DESTDIR=$PKG install
+    install -D -m 755 $SRC/makewhatis $PKG/etc/cron/daily/makewhatis
+}

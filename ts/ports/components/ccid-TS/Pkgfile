@@ -1,0 +1,31 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+# depends on: pcsc-lite-TS
+
+name=ccid-TS
+pname=${name%-*}
+version=1.4.4
+release=1
+source=(https://alioth.debian.org/frs/download.php/3579/$pname-$version.tar.bz2)
+
+build() {
+	cd $pname-$version
+
+	./configure --prefix=/ \
+			--exec-prefix=/ \
+			--sysconfdir=/etc \
+			--libexecdir=/lib \
+			--mandir=/usr/man \
+
+	make
+	make DESTDIR=$PKG install
+mkdir -p $PKG/etc/udev
+mkdir -p $PKG/{bin,sbin}
+cp src/92_pcscd_ccid.rules $PKG/etc/udev/.
+cp contrib/Kobil_mIDentity_switch/Kobil_mIDentity_switch $PKG/sbin/.
+cp contrib/RSA_SecurID/RSA_SecurID_getpasswd $PKG/bin/.
+rm -rf $PKG/{share,usr/man}
+mkdir -p $PKG/$TSCOMPROOT/$pname
+mv $PKG/{etc,usr,bin,sbin} $PKG/$TSCOMPROOT/$pname/.
+}

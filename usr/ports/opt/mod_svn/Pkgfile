@@ -1,0 +1,25 @@
+# Description: Apache module for the Subversion version control system
+# URL:         http://subversion.tigris.org
+# Maintainer:  Juergen Daubert, jue at crux dot nu
+# Depends on:  subversion apache
+
+name=mod_svn
+version=1.6.17
+release=1
+source=(http://subversion.tigris.org/downloads/subversion-$version.tar.bz2)
+
+build() {
+    cd subversion-$version
+
+    ./configure --prefix=/usr \
+                --mandir=/usr/man \
+                --with-{apr,apr-util,neon}=/usr \
+                --disable-neon-version-check \
+                --disable-mod-activation \
+                --without-swig \
+                --disable-nls \
+                --with-apxs=/usr/sbin/apxs
+
+    make apache-mod
+    make DESTDIR=$PKG install-mods-shared
+}

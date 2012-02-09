@@ -1,0 +1,11 @@
+#! /bin/sh
+
+for filename in `ls /var/log/* | grep -v ".old"`
+do
+	FILESIZE=`ls -s $filename | cut -c1-5`
+	if [ $FILESIZE -ge 100 ] ; then
+		cat $filename > $filename.old
+		cat /dev/null > $filename
+	fi
+done
+

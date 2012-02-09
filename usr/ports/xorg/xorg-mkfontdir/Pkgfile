@@ -1,0 +1,17 @@
+# Description: Create an index of X font files
+# URL: http://xorg.freedesktop.org
+# Maintainer: Tilman Sauerbeck, tilman at crux dot nu
+
+name=xorg-mkfontdir
+version=1.0.6
+release=1
+source=(http://xorg.freedesktop.org/releases/individual/app/mkfontdir-$version.tar.bz2)
+
+build() {
+	cd mkfontdir-$version
+
+	./configure --prefix=/usr --mandir=/usr/man
+
+	make
+	make DESTDIR=$PKG install
+}

@@ -1,0 +1,34 @@
+#! /bin/sh
+
+. $TS_GLOBAL
+
+case "$1" in  
+init)
+  if ! pkg_initialized $PACKAGE; then
+    # Prime entropy pool for random number generation
+    /bin/rngd -r /dev/urandom -t 5 -W 4096 -B 1
+    # Setup SSH Key file
+    if [ ! -e $HOME/.ssh ] ; then
+	    mkdir $HOME/.ssh
+	    if [ -e /etc/.ssh ] ; then
+	      if [ ! -e $HOME/.ssh/known_hosts ] ; then
+	        if [ -e /etc/.ssh/known_hosts ] ; then
+	  	  cp /etc/.ssh/known_hosts $HOME/.ssh
+	        fi
+	      fi
+	      cp /etc/.ssh/id* $HOME/.ssh
+	    fi
+    fi
+    pkg_set_init_flag $PACKAGE
+
+  fi
+  ;;
+help)
+    echo "Usage: $0 init"
+    ;;
+*)
+    exit 1
+    ;;
+esac
+
+exit 0

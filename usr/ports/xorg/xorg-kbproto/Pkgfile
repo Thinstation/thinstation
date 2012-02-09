@@ -1,0 +1,17 @@
+# Description: xorg proto kbproto
+# URL: http://xorg.freedesktop.org
+# Maintainer: Tilman Sauerbeck, tilman at crux dot nu
+
+name=xorg-kbproto
+version=1.0.5
+release=1
+source=(http://xorg.freedesktop.org/releases/individual/proto/kbproto-$version.tar.bz2)
+
+build() {
+	cd kbproto-$version
+
+	./configure --prefix=/usr
+
+	make
+	make DESTDIR=$PKG install
+}

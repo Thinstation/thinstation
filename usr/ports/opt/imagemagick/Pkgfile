@@ -1,0 +1,27 @@
+# Description: Image manipulation wizard
+# URL:         http://www.imagemagick.org/
+# Maintainer:  Juergen Daubert, jue at crux dot nu
+# Packager:    danm, maol, jaeger, sip
+# Depends on:  libtool freetype ghostscript lcms libungif libxml2
+
+name=imagemagick
+version=6.7.2-10
+release=1
+source=(ftp://ftp.imagemagick.org/pub/ImageMagick/ImageMagick-$version.tar.xz)
+
+build () {
+    cd ImageMagick-$version
+
+    ./configure --prefix=/usr \
+                --mandir=/usr/man \
+                --enable-shared \
+                --with-perl
+
+    make
+    make DESTDIR=$PKG install
+
+    rm -r $PKG/usr/share/doc
+    find $PKG -regex '.*\(ChangeLog\|LICENSE\|NEWS\.txt\)$' -delete 
+    find $PKG -regex '.*\(\.packlist\|perllocal.pod\|\.bs\)$' -delete
+    find $PKG -type d -empty -delete
+}

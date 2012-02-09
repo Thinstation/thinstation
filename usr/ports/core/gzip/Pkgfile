@@ -1,0 +1,30 @@
+# Description: GNU compression utility (replacement for compress)
+# URL:         http://www.gzip.org/
+# Maintainer:  CRUX System Team, core-ports at crux dot nu
+
+name=gzip
+version=1.4
+release=1
+source=(http://ftp.gnu.org/gnu/$name/$name-$version.tar.xz)
+
+build() {
+    cd $name-$version
+    ./configure --prefix=/usr --mandir=/usr/man
+    make
+    make DESTDIR=$PKG install
+
+    mkdir -p $PKG/bin
+    mv $PKG/usr/bin/{gzip,gunzip,zcat} $PKG/bin
+    
+    rm $PKG/usr/man/man1/{gunzip.1,zcat.1,zcmp.1}
+    ln -sf gzip.1.gz  $PKG/usr/man/man1/gunzip.1.gz
+    ln -sf gzip.1.gz  $PKG/usr/man/man1/zcat.1.gz
+    ln -sf zdiff.1.gz $PKG/usr/man/man1/zcmp.1.gz
+    
+    # make uncompress a symlink to gunzip, since it will not work
+    # if / and /usr are on different file systems.
+    rm $PKG/usr/bin/uncompress
+    ln -s /bin/gunzip $PKG/usr/bin/uncompress
+
+    rm -r $PKG/usr/share
+}

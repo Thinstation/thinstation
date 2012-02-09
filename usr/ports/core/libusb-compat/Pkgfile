@@ -1,0 +1,21 @@
+# Description: Compatibility library for libusb 1.0
+# URL:         http://libusb.sourceforge.net/
+# Maintainer:  CRUX System Team, core-ports at crux dot nu
+# Depends on:  libusb
+
+name=libusb-compat
+version=0.1.3
+release=2
+source=(http://downloads.sourceforge.net/project/libusb/$name-0.1/$name-$version/$name-$version.tar.bz2)
+
+build () {
+    cd $name-$version
+    
+    ./configure --prefix=/usr 
+    make
+    make DESTDIR=$PKG install
+    
+    install -d $PKG/lib
+    mv $PKG/usr/lib/libusb*.so.* $PKG/lib
+    ln -sf ../../lib/libusb-0.1.so.4.4.4 $PKG/usr/lib/libusb.so
+}

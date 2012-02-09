@@ -1,0 +1,100 @@
+#!/bin/bash
+tempdir=`mktemp -d 2>/dev/null`
+tempfile=$tempdir/selection$$
+#trap "rm -rf $tempdir" 0 1 2 5 15
+
+interface=`iwconfig 2>/dev/null |grep -m 1 -e [0-9] |cut -d " " -f1`
+if [ -z "$interface" ]; then
+	Xdialog --title "Bringing up the Interface" --no-buttons --timeout 40 --infobox "No Interface found. Exiting" 10 40 2>/dev/null
+	exit
+fi
+Xdialog --title "Bringing up the Interface" --no-buttons --timeout 40 --infobox "Using Adapter $interface" 10 40 2>/dev/null &
+iwpriv $interface reset 1
+sleep 1
+ifconfig $interface up
+sleep 1
+/bin/apcollect.sh $interface &
+collectorid=$!
+errorcount=0
+retval=255
+while [ "$retval" == "255" ]; do
+	rm -f $tempdir/sortlist.$$
+	index=0
+	if [ "`find /tmp/apcollect/ap |grep -c -e /`" -gt "1" ]; then 
+		IFS=$'\t\n'
+		for i in `ls -1 /tmp/apcollect/ap/.`; do
+			ESSID[$index]=`echo $i |cut -d "-" -f1`
+			ADDRESS[$index]=`echo $i |cut -d "-" -f2`
+			ENCRYPTIONSTATE[$index]=`echo $i |cut -d "-" -f3`
+			MODE[$index]=`echo $i |cut -d "-" -f4`
+			WPA[$index]=`echo $i |cut -d "-" -f5`
+			WPAMODE[$index]=`echo $i |cut -d "-" -f6`
+			GROUPCIPHER[$index]=`echo $i |cut -d "-" -f7`
+			PAIRWISECIPHER[$index]=`echo $i |cut -d "-" -f8`
+			AUTHSUITE[$index]=`echo $i |cut -d "-" -f9`
+			CHANNEL[$index]=`echo $i |cut -d "-" -f10`
+			QUALITY[$index]=`cat /tmp/apcollect/ap/$i`
+			echo -e "$index\t${ESSID[$index]}" >> $tempdir/sortlist.$$
+			let index=index+1
+		done
+	fi
+	if [ -e $tempdir/sortlist.$$ ]; then
+		option=`cat $tempdir/sortlist.$$ | sort -k 1 -r -n`
+		Xdialog --title "Scan List" --timeout 10 \
+			--menu "Scan List" 20 40 4 ${option} 2>$tempfile
+		retval=$?
+	elif [ "$errorcount" -lt "10" ]; then
+		Xdialog --title "Nothing Yet" --timeout 25 --no-buttons --infobox "Waiting for some ap's to show up" 10 40 2>/dev/null
+		let errorcount=errorcount+1
+	else
+		Xdialog --title "No AP's Found" --timeout 25 --infobox "We tried for a while, but nothing showed up" 10 40 2>/dev/null
+		kill -s SIGTERM $collectorid
+		break
+	fi
+	if [ "$retval" == "1" ]; then
+		kill -s SIGTERM $collectorid
+		break
+	fi
+	if [ "$retval" == "0" ]; then
+		WIRELESS_INDEX=`cat $tempfile |cut -d " " -f 1`
+		kill -s SIGTERM $collectorid
+		break
+	fi
+done
+if [ "$WIRELESS_INDEX" != "" ]; then
+	echo "WIRELESS_ESSID=${ESSID[$WIRELESS_INDEX]}" >> /var/log/net/$interface
+	echo "DEVTYPE=wlan" >> /var/log/net/$interface
+	if [ "${WPA[$WIRELESS_INDEX]}" == "1" ]; then
+		Xdialog --title "Security" --password --inputbox "What is the WPA Passphrase" 0 0 2> $tempfile
+
+		WIRELESS_WPAKEY="`cat $tempfile`"
+		echo "WIRELESS_WPAKEY=$WIRELESS_WPAKEY" >>/var/log/net/$interface
+	elif [ "${ENCRYPTIONSTATE[$WIRELESS_INDEX]}" == "on" ] ; then
+		Xdialog --title "Security" --password --inputbox "What is the WEP Password?\n Please prefix with s: if password is ASCII" 0 0 2> $tempfile
+
+                WIRELESS_KEY="`cat $tempfile`"
+                echo "WIRELESS_KEY=$WIRELESS_KEY" >>/var/log/net/$interface
+	fi
+	echo "NET_USE=BOTH" >> /var/log/net/$interface
+	echo "NET_USE_DHCP=BOTH" >> /var/log/net/$interface
+	WIRELESS_DRIVER="wext"
+	echo "WIRELESS_DRIVER=$WIRELESS_DRIVER" >> /var/log/net/$interface
+	linkupattempt=0
+	INTERFACE=$interface /etc/udev/scripts/net.sh &
+	while [ "$linkupattempt" -lt "10" ]; do
+		if [ "`cat /var/log/net/$interface |grep -c -e TRUE`" -gt "0" ]; then
+			Xdialog --title "Success" --infobox "Success" 10 40 2> /dev/null
+			break
+		elif [ "$linkupattempt" -lt "9" ]; then
+			let linkupattempt=linkupattempt+1
+			sleep 1
+		else
+			Xdialog --title "Fail" --infobox "All kinds of Fail" 10 40 2> /dev/null
+			echo "Failed to get a DHCP address"
+			let linkupattempt=linkupattempt+1
+		fi
+	done
+else
+	echo "failed"
+fi
+rm -rf $tempdir

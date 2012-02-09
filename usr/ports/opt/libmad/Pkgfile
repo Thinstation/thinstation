@@ -1,0 +1,24 @@
+# Description: High-quality MPEG Audio Decoder library
+# URL: http://www.underbit.com/products/mad/
+# Maintainer: Simon Glossner, viper at hometux dot de
+# Packager: Rene Thuemmler, rene dot thuemmler at gmx dot net
+
+name=libmad
+version=0.15.1b
+release=4
+source=(http://download.sourceforge.net/mad/${name}-${version}.tar.gz \
+        mad.pc)
+
+build() {
+    mkdir -p $PKG/usr/lib/pkgconfig/
+    sed "s/#version#/$version/" mad.pc > $PKG/usr/lib/pkgconfig/mad.pc
+
+    cd $name-$version
+
+    # remove -fforce-mem
+    sed -i '19102d' configure
+
+    ./configure --prefix=/usr
+    make
+    make DESTDIR=$PKG install
+}

@@ -1,0 +1,27 @@
+# Description: Miscellaneous system utilities
+# URL:         http://userweb.kernel.org/~kzak/util-linux/
+# Maintainer:  CRUX System Team, core-ports at crux dot nu
+# Depends on:  ncurses zlib
+
+name=util-linux-ng
+version=2.20.1
+release=1
+source=(ftp://ftp.infradead.org/pub/util-linux/v2.20/util-linux-$version.tar.bz2)
+
+build() {
+    cd util-linux-$version
+
+    ./configure --prefix=/usr \
+                --mandir=/usr/man \
+                --disable-{nls,wall,mountpoint} \
+                --enable-{write,raw,kill}
+    make
+    make DESTDIR=$PKG install
+
+    install -d $PKG/{etc,var/{lib/libuuid,run/uuidd}}
+    touch $PKG/etc/adjtime
+
+    rm -r $PKG/usr/{share,man/ru}
+    rm $PKG/sbin/{mkfs.bfs,mkfs.minix,fsck.minix}
+    rm $PKG/usr/man/man8/{fsck.minix,mkfs.bfs,mkfs.minix}.8
+}

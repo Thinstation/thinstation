@@ -1,0 +1,21 @@
+#! /bin/sh
+
+. $TS_GLOBAL
+. /etc/wbar.functions
+
+case "$1" in  
+init)
+    if ! pkg_initialized $PACKAGE; then
+	pkg_set_init_flag $PACKAGE
+	if [ ! -e $HOME/.wbar ] ; then
+	    wbar_icons
+	    wbar_params
+	fi
+    fi
+    ;;
+  *)
+    exit 1
+    ;;
+esac
+
+exit 0

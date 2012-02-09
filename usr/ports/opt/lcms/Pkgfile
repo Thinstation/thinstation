@@ -1,0 +1,19 @@
+# Description: Little CMS. A free color management engine.
+# URL:         http://www.littlecms.com/
+# Maintainer:  Juergen Daubert, jue at crux dot nu
+# Packager:    Daniel Mueller, daniel at danm dot de
+# Depends on:  zlib, libtiff, libjpeg
+
+name=lcms
+version=1.19
+release=1
+source=(http://downloads.sourceforge.net/project/lcms/lcms/$version/lcms-$version.tar.gz)
+
+build() {
+    cd $name-$version
+    ./configure --prefix=/usr \
+                --without-python \
+                --mandir=/usr/man
+    make
+    make DESTDIR=$PKG install
+}

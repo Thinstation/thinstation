@@ -1,0 +1,18 @@
+# Description: Create an index of scalable X font files
+# URL: http://xorg.freedesktop.org
+# Maintainer: Tilman Sauerbeck, tilman at crux dot nu
+# Depends on: xorg-libx11, xorg-libfontenc, freetype
+
+name=xorg-mkfontscale
+version=1.0.9
+release=1
+source=(http://xorg.freedesktop.org/releases/individual/app/mkfontscale-$version.tar.bz2)
+
+build() {
+	cd mkfontscale-$version
+
+	./configure --prefix=/usr --mandir=/usr/man
+
+	make
+	make DESTDIR=$PKG install
+}

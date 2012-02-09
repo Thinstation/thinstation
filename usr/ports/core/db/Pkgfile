@@ -1,0 +1,21 @@
+# Description: Berkeley DB
+# URL:         http://www.oracle.com/database/berkeley-db/index.html
+# Maintainer:  CRUX System Team, core-ports at crux dot nu
+
+name=db
+version=4.8.30
+release=1
+source=(http://download.oracle.com/berkeley-db/$name-$version.tar.gz)
+
+build() {
+    cd $name-$version/build_unix
+    ../dist/configure --prefix=/usr \
+                      --enable-compat185 \
+                      --enable-shared \
+                      --enable-static \
+                      --enable-cxx
+    make
+    make DESTDIR=$PKG install
+    rm -r $PKG/usr/docs
+    chmod -R +w $PKG
+}

@@ -1,0 +1,42 @@
+# Description: Apache HTTP server version 2.2.x
+# Maintainer:  Juergen Daubert, jue at crux dot nu
+# URL:         http://httpd.apache.org/
+# Depends on:  apr libpcre openssl zlib
+# Group:       apache
+
+name=apache
+version=2.2.21
+release=1
+source=(http://www.apache.org/dist/httpd/httpd-$version.tar.bz2 \
+        $name-ssl_cert.patch crux.layout apache)
+
+build(){
+   cd httpd-$version
+
+   patch -p1 < $SRC/$name-ssl_cert.patch
+   cat $SRC/crux.layout >> config.layout
+
+   ./configure --enable-layout=CRUX \
+               --with-apr=/usr \
+               --with-apr-util=/usr \
+               --with-pcre=/usr \
+               --enable-so \
+               --enable-modules=all \
+               --enable-mods-shared=all \
+               --enable-ssl \
+               --enable-proxy \
+               --enable-cache --enable-{disk,file,mem}-cache \
+               --with-mpm=prefork
+   make 
+   make DESTDIR=$PKG install
+
+   mkdir -p $PKG/etc/ssl/{keys,certs}
+   touch $PKG/etc/ssl/keys/apache.key
+   touch $PKG/etc/ssl/certs/apache.crt
+   install -D -m 755 $SRC/apache $PKG/etc/rc.d/apache
+
+   sed -ri '/^(User|Group)/s/daemon/www/' $PKG/etc/apache/httpd.conf
+   sed -i '1s|local/||' $PKG/var/www/cgi-bin/printenv
+   rm -R $PKG/{var/www/htdocs/*,usr/bin}
+   rm $PKG/var/www/{error,icons}/README*
+}

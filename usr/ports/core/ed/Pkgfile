@@ -1,0 +1,21 @@
+# Description: An 8-bit clean, POSIX-compliant line editor
+# URL:         http://www.gnu.org/software/ed/ed.html
+# Maintainer:  CRUX System Team, core-ports at crux dot nu
+
+name=ed
+version=1.5
+release=1
+source=(ftp://ftp.gnu.org/gnu/$name/$name-$version.tar.gz)
+
+build() {
+    cd $name-$version
+
+    ./configure --prefix=/usr \
+                --exec-prefix=/ \
+                --mandir=/usr/man \
+                CFLAGS="$CFLAGS"
+
+    make
+    make DESTDIR=$PKG install
+    rm -r $PKG/usr/share
+}

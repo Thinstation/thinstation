@@ -1,0 +1,15 @@
+#!/bin/sh
+
+choice=`Xdialog --stdout --backtitle "Thinstation Linux $TS_VERSION" \
+	--title "Logout" --icon /usr/icons/poff_32x32.xpm \
+        --radiolist "Shutdown or reboot?" 15 46 2 \
+            "Shutdown"  "Turn off Thinstation." ON \
+            "Reboot"    "Restart Thinstation." off` 2>> $LOGFILE
+if [ "$?" = 0 ] ; then
+  if [ "$choice" = "Shutdown" ] ; then
+    poweroff
+  elif [ "$choice" = "Reboot" ] ; then
+    reboot
+  fi
+fi
+exit 0

@@ -1,0 +1,13 @@
+#!/bin/bash
+
+gzname=`basename $1`
+tarname=`basename $1 .gz`
+filename=`basename $1 .tar.gz`
+INSTALLDIR=./packages/tarantella
+
+tar -C wget_tmp -xf wget_tmp/$gzname
+cp ./wget_tmp/ttwebtop/ttwebtop $INSTALLDIR/bin
+mkdir -p $INSTALLDIR/lib/X11/app-defaults
+cp ./wget_tmp/ttwebtop/Ttwebtop $INSTALLDIR/lib/X11/app-defaults/Ttwebtop
+returnval=$((returnval+$?))
+exit $returnval

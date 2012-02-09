@@ -1,0 +1,24 @@
+# Description: A free and open video compression format from the Xiph.org Foundation.
+# URL: http://www.theora.org/
+# Maintainer: Danny Rawlins, monster dot romster at gmail dot com
+# Packager: Matt Housh, jaeger at crux dot nu
+# Depends on: libvorbis
+
+name=libtheora
+version=1.1.1
+release=1
+source=(http://downloads.xiph.org/releases/theora/$name-$version.tar.xz)
+
+build() {
+	cd $name-$version
+
+	./configure \
+		--prefix=/usr \
+		--mandir=/usr/man \
+		--disable-examples
+
+	make
+	make DESTDIR=$PKG install
+	rm -r $PKG/usr/share/doc
+	rmdir $PKG/usr/share
+}

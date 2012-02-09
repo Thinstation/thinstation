@@ -1,0 +1,31 @@
+# Description: Inetd daemon, FTP and telnet client
+# URL:         http://www.gnu.org/software/inetutils/inetutils.html
+# Maintainer:  CRUX System Team, core-ports at crux dot nu
+# Depends on:  readline ncurses
+
+name=inetutils
+version=1.8
+release=1
+source=(http://ftp.gnu.org/gnu/inetutils/inetutils-$version.tar.gz \
+        inetd.conf inetd)
+
+build() {
+    cd inetutils-$version
+
+    ./configure --prefix=/usr \
+                --libexecdir=/usr/sbin \
+                --mandir=/usr/man \
+                --localstatedir=/var \
+                --sysconfdir=/etc \
+                --disable-{servers,clients} \
+                --enable-{inetd,ftp,telnet}
+    
+    make
+    make DESTDIR=$PKG install
+
+    install -d $PKG/etc/rc.d
+    install -m 644 $SRC/inetd.conf $PKG/etc
+    install -m 755 $SRC/inetd $PKG/etc/rc.d
+
+    rm -r $PKG/usr/share
+}

@@ -1,0 +1,21 @@
+# Description: A tool for automatically generating Makefiles
+# URL:         http://www.gnu.org/software/automake/
+# Maintainer:  CRUX System Team, core-ports at crux dot nu
+# Depends on:  gawk, perl, autoconf
+
+name=automake
+version=1.11.1
+release=1
+source=(http://ftp.gnu.org/gnu/$name/$name-$version.tar.bz2)
+
+build () {
+    cd $name-$version
+
+    ./configure --prefix=/usr --mandir=/usr/man
+
+    make
+    make DESTDIR=$PKG install
+
+    rm -r  $PKG/usr/share/{info,doc}
+    rm $PKG/usr/share/automake-*/texinfo.tex
+}

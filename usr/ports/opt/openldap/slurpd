@@ -1,0 +1,29 @@
+#!/bin/sh
+#
+# /etc/rc.d/slurpd: start/stop Standalone LDAP Update Replication Daemon
+#
+
+SLURPD_PID=/var/openldap/run/slurpd.pid
+
+case $1 in
+start)
+	/usr/sbin/slurpd
+	;;
+stop)
+	if [ -f $SLAPD_PID ]; then
+		kill -INT `head -1 $SLURPD_PID`
+	else
+		killall -q /usr/sbin/slurpd
+	fi
+	;;
+restart)
+	$0 stop
+	sleep 2
+	$0 start
+	;;
+*)
+	echo "usage: $0 [start|stop|restart]"
+	;;
+esac
+
+# End of file

@@ -1,0 +1,28 @@
+#! /bin/sh
+
+. $TS_GLOBAL
+
+case "$1" in  
+init)
+    if ! pkg_initialized $PACKAGE; then
+
+	# Set Default Sound Level
+
+	if check_module soundcore ; then
+		modprobe snd-mixer-oss
+		modprobe snd-pcm-oss
+		cat /etc/amixer.tpl |sed -e "s/\$AUDIO_LEVEL/$AUDIO_LEVEL/g" -e "s/\$MIC_LEVEL/$MIC_LEVEL/g" |amixer -s -q
+	fi
+
+	pkg_set_init_flag $PACKAGE
+    fi
+    ;;
+help)
+    echo "Usage: $0 init"
+    ;;
+  *)
+    exit 1
+    ;;
+esac
+
+exit 0

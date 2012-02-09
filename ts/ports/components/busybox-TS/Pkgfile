@@ -1,0 +1,28 @@
+# Description: Tiny versions of many UNIX utilities into a single executable.
+# URL: http://busybox.net/
+# Maintainer: Donald A. Cupp Jr:doncuppjr at yahoo dot com
+# Depends on:
+
+name=busybox-TS
+pname=${name%-*}
+version=1.19.3
+release=2
+source=(http://busybox.net/downloads/$pname-$version.tar.bz2 ts.config)
+
+build() {
+   cd $pname-$version
+   cp ../ts.config .config
+
+	make \
+	PREFIX=/ busybox
+
+	make CONFIG_PREFIX=$PKG install
+
+# 	mv $PKG/sbin/* $PKG/bin/.
+#	rm -r $PKG/sbin
+#	rm $PKG/bin/{telnetd,httpd,hwclock}
+
+mkdir -p $PKG/$TSCOMPROOT/$pname
+mv $PKG/bin $PKG/$TSCOMPROOT/$pname
+#mv $PKG/linuxrc $PKG/$TSCOMPROOT/$pname
+}

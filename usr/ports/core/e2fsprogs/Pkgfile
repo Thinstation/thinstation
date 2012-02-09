@@ -1,0 +1,32 @@
+# Description: Ext2 Filesystem Utilities
+# URL:         http://e2fsprogs.sourceforge.net/
+# Maintainer:  CRUX System Team, core-ports at crux dot nu
+# Depends on:  util-linux-ng
+
+name=e2fsprogs
+version=1.41.14
+release=1
+source=(http://downloads.sourceforge.net/project/$name/$name/$version/$name-$version.tar.gz)
+
+build() {
+    cd $name-$version
+
+    ./configure --prefix=/usr \
+                --with-root-prefix= \
+                --mandir=/usr/man \
+                --enable-symlink-install \
+                --enable-elf-shlibs \
+                --disable-e2initrd-helper \
+                --disable-nls \
+                --disable-fsck \
+                --disable-libblkid \
+                --disable-libuuid \
+                --disable-uuidd
+
+    make
+    make -j1 DESTDIR=$PKG install install-libs
+
+    rm -r $PKG/usr/share/info
+
+    chmod +w -R $PKG
+}

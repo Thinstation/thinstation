@@ -1,0 +1,15 @@
+# Description: Id mapping library for NFSv4
+# Maintainer:  Juergen Daubert, jue at crux dot nu
+# URL:         http://www.citi.umich.edu/projects/nfsv4/linux/
+
+name=libnfsidmap
+version=0.24
+release=1
+source=(http://www.citi.umich.edu/projects/nfsv4/linux/$name/$name-$version.tar.gz)
+
+build() {
+    cd $name-$version
+    ./configure --prefix=/usr --mandir=/usr/man 
+    make
+    make DESTDIR=$PKG install
+}

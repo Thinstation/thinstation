@@ -1,0 +1,16 @@
+# Description: A package of M4 macros to produce scripts to automatically configure sourcecode
+# URL:         http://www.gnu.org/software/autoconf
+# Maintainer:  CRUX System Team, core-ports at crux dot nu
+
+name=autoconf
+version=2.68
+release=1
+source=(ftp://ftp.gnu.org/gnu/$name/$name-$version.tar.xz)
+
+build () {
+    cd $name-$version
+    ./configure --prefix=/usr --mandir=$PKG/usr/man
+    make
+    make prefix=$PKG/usr install
+    rm -r $PKG/usr/share/info 
+}

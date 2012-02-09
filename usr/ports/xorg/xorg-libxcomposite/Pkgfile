@@ -1,0 +1,18 @@
+# Description: X Composite extension client library
+# URL: http://xorg.freedesktop.org
+# Maintainer: Tilman Sauerbeck, tilman at crux dot nu
+# Depends on: xorg-libx11, xorg-fixesproto, xorg-libxfixes xorg-libxext, xorg-compositeproto
+
+name=xorg-libxcomposite
+version=0.4.3
+release=1
+source=(http://xorg.freedesktop.org/releases/individual/lib/libXcomposite-$version.tar.bz2)
+
+build() {
+	cd libXcomposite-$version
+
+	./configure --prefix=/usr --mandir=/usr/man
+
+	make
+	make DESTDIR=$PKG install
+}

@@ -1,0 +1,106 @@
+#! /bin/sh
+#----------------------------------------------------------------------
+# Usage: appserverclient options
+#    -m: operating mode
+#        2X for 2X Application Server client mode (default)
+#        MS for Microsoft Terminal Server client mode
+#    -s: server[:port] (default port: 3389)
+#    -u: user name
+#    -p: password
+#    -d: domain
+#    -a: application to start
+#    -f: working folder
+#    -w: desktop width (default: 1024)
+#    -h: desktop height (default: 768)
+#    -c: color depth in bits (default: 24 bits)
+#    -e: RDP experience one or more ORed value(s) from:
+#        0x00 to disable nothing (default)
+#        0x01 to disable wallpapers
+#        0x02 to disable full window drag
+#        0x04 to disable menu animations
+#        0x08 to disable theming
+#        0x20 to disable cursor shadow
+#        0x40 to disable cursor blinking
+#    -k: path to keymap file
+#----------------------------------------------------------------------
+#
+
+. /etc/thinstation.functions
+
+if [ -e $HOME/.2x/"$1".2x ] ; then
+. $HOME/.2x/"$1".2x
+fi
+
+if [ ! -z "$OPTIONS" ] ; then
+	CMD="appserverclient $OPTIONS"
+fi
+
+if [ ! -z "$MODE" ] ; then
+	CMD="$CMD -m $MODE"
+fi
+
+if [ ! -z "$USER" ] && [ "$USER" != "root" ]; then
+	CMD="$CMD -u $USER"
+fi
+
+if [ ! -z "$PASSWORD" ] ; then
+	CMD="$CMD -p $PASSWORD"
+fi
+
+if [ ! -z "$DOMAIN" ] ; then
+	CMD="$CMD -d $DOMAIN"
+fi
+
+if is_enabled $FULL_SCREEN ; then
+	CMD="$CMD -m MF"
+else
+	if [ ! -z "$WIDTH" ] ; then
+		CMD="$CMD -w $WIDTH"
+	fi
+	if [ ! -z "$HEIGHT" ] ; then
+		CMD="$CMD -h $HEIGHT"
+	fi
+fi
+
+if [ ! -z "$COLOR_DEPTH" ] ; then
+	CMD="$CMD -c $COLOR_DEPTH"
+fi
+
+if [ ! -z "$KEYMAP_PATH" ] ; then
+	CMD="$CMD -k $KEYMAP_PATH"
+fi
+
+if is_enabled $START_PROGRAM_ENABLED ; then
+	if [ ! -z "$START_PROGRAM" ] ; then
+		CMD="$CMD -a $START_PROGRAM"
+	fi
+	if [ ! -z "$START_PROGRAM_FOLDER" ] ; then
+		CMD="$CMD -f $START_PROGRAM_FOLDER"
+	fi
+fi
+
+if [ ! -z "$PORT" ] && [ ! -z "$SERVER" ]; then
+	SERVER="$SERVER:$PORT"
+fi
+
+if [ ! -z "$EXPERIENCE" ] ; then
+	CMD="$CMD -e $EXPERIENCE"
+fi
+
+if [ ! -z "$SERVER" ] ; then
+	CMD="$CMD -s $SERVER"
+fi
+
+if [ "`echo $CMD |grep -c -e '-s'`" == "0" ] ; then
+	CMD="2XClient"
+fi
+
+echo $CMD > /tmp/CMD.2X
+if [ -e /tmp/CMD.2X ] ; then
+	if is_enabled $LOG_COMMANDS ; then
+		cat /tmp/CMD.2X >> $LOGFILE
+	fi
+	. /tmp/CMD.2X >> $LOGFILE 2>&1
+	sleep .1
+	rm /tmp/CMD.2X
+fi

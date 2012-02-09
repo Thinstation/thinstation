@@ -1,0 +1,19 @@
+# Description: xorg proto damageproto
+# URL: http://xorg.freedesktop.org
+# Maintainer: Tilman Sauerbeck, tilman at crux dot nu
+
+name=xorg-damageproto
+version=1.2.1
+release=1
+source=(http://xorg.freedesktop.org/releases/individual/proto/damageproto-$version.tar.bz2)
+
+build() {
+	cd damageproto-$version
+
+	./configure --prefix=/usr
+
+	make
+	make DESTDIR=$PKG install
+
+	rm -rf $PKG/usr/share
+}

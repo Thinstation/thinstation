@@ -1,0 +1,124 @@
+#!/bin/bash
+
+INSTANCE=$$
+export INSTANCE
+
+state_checks()
+{
+	test $(id -u) -ne 0 && echo "please run as root" && exit 1
+	test ! -e setup-chroot  && echo "This utility must be run in the directory in which it exists." && exit 1
+	test "$PWD" == "/" && echo "You have already started the session." && exit 1
+	test ! -d var/lib/pkg && ts/bin/install_chroot
+}
+
+help()
+{
+	echo -e "
+	This script sets up the environment to work well with build. On it's initial run, it
+	will uncompress all the packages necessary to to develop and build images. It will 
+	aslo poplulate the ts build env with any files that it needs. If the setup is already
+	completed, it will only take you into the chroot env for building. You will need to 'exit'
+	this env when you are done working in it. It takes the following options.
+
+	-h : Show this help message.
+	-i : Install the env only. Don't enter it afterwards.
+	-b : Run build after entering chroot and exit afterwards.
+	-d : Use an alternate build directory. Default = /ts/2.5
+	-o : Options to pass to build. Must be the last option,
+	     as anything after it will be passed to build.
+	-c : Clean the chroot env.
+
+
+	"
+}
+
+get_opts()
+{
+	until [ -z "$1" ] ; do
+		case $1 in
+		-i|--install)	install_only=true ;;
+		-d|--directory)	shift ;build_dir=$1 ;;
+		-b|--build)	build=true ;;
+		-h|--help)	help ;exit 255 ;;
+		-o|--options)	shift ;build_opts=$@ ;shift $# ;;
+		-c|--clean)	unset build ; shift $# ; touch ./CLEAN ;; 
+		esac
+		shift
+	done
+}
+
+first_or_last()
+{
+	sessions="`ps x -o pid,ppid,comm |grep -e 'setup-chroot' |grep -v grep |grep -v $INSTANCE -c`"
+	return $sessions
+}
+
+mounted()
+{
+	if [ "`cat /proc/mounts |grep -e $PWD/$1 -c`" -ne "0" ]; then
+		return 0
+	else
+		return 1
+	fi
+}
+
+do_mounts()
+{
+	if ! mounted dev ; then mount --bind /dev dev ; fi
+	if ! mounted tmp ; then mount --bind /tmp tmp ; fi
+	if ! mounted proc ; then mount -t proc proc proc ; fi
+	if ! mounted sys ; then mount -t sysfs none sys ; fi
+	if ! mounted dev/pts ; then mount -t devpts devpts dev/pts ; fi
+}
+
+launch_chroot()
+{
+	do_mounts
+	cp -f /etc/resolv.conf etc/resolv.conf
+	chroot /$PWD /bin/bash --rcfile ./ts/TS_ENV
+	if first_or_last ; then do_unmounts ; fi
+	if [ -e cleanstage2 ] ; then
+		do_unmounts
+                ts/bin/clean_chroot
+        fi
+}
+
+do_unmounts()
+{
+	for mount in dev/pts dev tmp proc sys ; do
+		while mounted $mount ; do
+			umount $mount
+		done
+	done
+}
+
+set_build()
+{
+	if [ "$build" == "true" ] ; then
+		if [ -z "$build_dir" ] ; then
+			build_dir=/ts/2.5
+		fi
+		echo "cd $build_dir" > BUILD.$INSTANCE
+		echo "./build $build_opts" >> BUILD.$INSTANCE
+	fi
+}
+
+main()
+{
+	get_opts $@
+	state_checks
+	set_build
+	launch_chroot
+	if [ -e installed ] ; then
+		rm installed
+		if [ "$install_only" == "true" ] ; then
+			exit 0
+		else
+			launch_chroot
+		fi
+	fi
+}
+
+main $@
+echo -e "\nGoodbye. \n"
+exit 0

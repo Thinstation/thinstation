@@ -1,0 +1,33 @@
+#!/bin/bash
+# 
+# /etc/rc.d/saslauthd: start/stop sasl authentication daemon
+#
+
+SASLAUTHD_PID=/var/sasl/saslauth/saslauthd.pid
+
+AUTHMECH=shadow
+
+case $1 in
+	start)
+		/usr/sbin/saslauthd -a $AUTHMECH
+		;;
+	stop)
+		if [ -f $SASLAUTHD_PID ]; then
+			kill `head -1 $SASLAUTHD_PID`
+			rm $SASLAUTHD_PID
+		else
+			killall -q /usr/sbin/saslauthd
+		fi
+		;;
+	restart)
+		$0 stop
+		sleep 2
+		$0 start
+		;;
+	*)
+		echo "usage: $0 [start|stop|restart]"
+		;;
+esac
+
+# End of file
+

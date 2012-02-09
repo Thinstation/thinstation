@@ -1,0 +1,18 @@
+# Description: Program for managing utmp/wtmp entries for xdm sessions
+# URL: http://xorg.freedesktop.org
+# Maintainer: Tilman Sauerbeck, tilman at crux dot nu
+# Depends on: xorg-libx11
+
+name=xorg-sessreg
+version=1.0.6
+release=1
+source=(http://xorg.freedesktop.org/releases/individual/app/sessreg-$version.tar.bz2)
+
+build() {
+	cd sessreg-$version
+
+	./configure --prefix=/usr --mandir=/usr/man
+
+	make
+	make DESTDIR=$PKG install
+}

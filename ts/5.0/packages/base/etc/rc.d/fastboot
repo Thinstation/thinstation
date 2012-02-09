@@ -1,0 +1,72 @@
+#!/bin/sh
+. $TS_GLOBAL
+
+modprobe squashfs
+modprobe loop
+
+squash_location=`dirname $initrd`
+if [ "$squash_location" == "." -o "$squash_location" == "/." ]; then
+	unset squash_location
+else
+	squash_location="`echo $squash_location |cut -c 2-`/"
+fi
+
+# Loadlin
+#if [ "$LM" == "1" ]; then
+#fi
+
+# Syslinux
+if [ "$LM" == "2" ]; then
+	initrd_file=`basename $initrd`
+        if [ "$initrd_file" == "initrd-backup" ]; then
+		FILE=/boot/"$squash_location"lib.squash-backup
+        else
+		FILE=/boot/"$squash_location"lib.squash
+		UPDATE=/boot/"$squash_location"lib.update
+	        if [ -e $UPDATE ]; then
+        	        rm $FILE
+        		mv $UPDATE $FILE
+		fi
+        fi
+fi
+
+# Pxelinux
+if [ "$LM" == "3" ]; then
+	MEMORY_CONSTRAINED=TRUE
+	FILE=/tmp/lib.squash
+	cd /tmp
+	if [ "$FASTBOOT_URL" != "" ]; then
+		wget $FASTBOOT_URL/lib.squash
+	else
+		squash_server=`dirname $boot_file`
+		if [ "$squash_server" == "." -o "$squash_server" == "/." ]; then
+			unset squash_server
+		else
+			squash_server="`basename $squash_server`"/
+		fi
+		FILE_NET="$squash_server$squash_location"lib.squash
+		tftp -g -l $FILE -r $FILE_NET -b $TFTP_BLOCKSIZE $SERVER_IP
+	fi
+fi
+
+# Isolinux
+if [ "$LM" == "4" ]; then
+        FILE=/mnt/cdrom0/"$squash_location"lib.squash
+fi
+
+# nbi
+#if [ "$LM" == "5" ]; then
+# MEMORY_CONSTRAINED=TRUE
+#fi
+
+if [ "$FASTBOOT" == "lotsofmem" ] ; then
+	unsquashfs -d / -f $FILE
+	if [ -e /tmp/lib.squash ] ; then
+		rm /tmp/lib.squash
+	fi
+elif is_enabled $MEMORY_CONSTRAINED ; then
+        mount -o ro,loop -t squashfs $FILE /lib
+elif [ ! -e /tmp/lib.squash ] ; then
+	cp $FILE /tmp/lib.squash
+	mount -o ro,loop -t squashfs /tmp/lib.squash /lib
+fi

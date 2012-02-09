@@ -1,0 +1,10 @@
+#!/bin/bash
+# Description: Thinstation Utility to rebuild all Binary Packages
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+for i in `prt-get listinst` ;
+	do prt-get update -fr $i ;
+done
+echo "The following packages failed to rebuild. Please check their logs in /var/log/pkgbuild"
+ls /var/log/pkgbuild |cut -d . -f 1

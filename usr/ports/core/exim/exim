@@ -1,0 +1,26 @@
+#!/bin/sh
+#
+# /etc/rc.d/exim: start/stop exim daemon
+#
+
+case $1 in
+start)
+	/usr/sbin/exim -bd -q15m
+	;;
+stop)
+	killall -q /usr/sbin/exim
+	;;
+restart)
+	$0 stop
+	sleep 2
+	$0 start
+	;;
+reload)
+	kill -s HUP $(pidof exim)
+	;;
+*)
+	echo "usage: $0 [start|stop|restart|reload]"
+	;;
+esac
+
+# End of file

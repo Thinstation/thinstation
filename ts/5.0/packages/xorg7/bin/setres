@@ -1,0 +1,14 @@
+#!/bin/bash
+
+. /etc/thinstation.env
+. $TS_GLOBAL
+
+xrandr -s $1
+
+if [ -f /etc/background.jpg ] ; then
+  wmsetbg /etc/background.jpg 2>/dev/null
+elif [ -f /etc/background-$SCREEN_RESOLUTION.jpg ] ; then
+  wmsetbg /etc/background-$SCREEN_RESOLUTION.jpg 2>/dev/null
+else
+  wmsetbg /etc/background-1024x768.jpg 2>/dev/null
+fi

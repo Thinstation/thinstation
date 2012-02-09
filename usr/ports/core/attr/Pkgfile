@@ -1,0 +1,32 @@
+# Description: Extented attributes library
+# URL:         http://savannah.nongnu.org/projects/attr/
+# Maintainer:  CRUX System Team, core-ports at crux dot nu
+
+name=attr
+version=2.4.46
+release=1
+source=(http://download-mirror.savannah.gnu.org/releases/$name/$name-$version.src.tar.gz)
+
+build() {
+    cd $name-$version
+
+    export DEBUG=-DNDEBUG
+    export OPTIMIZER=$CFLAGS
+
+    ./configure --prefix=/usr \
+                --bindir=/bin \
+                --libexecdir=/usr/lib \
+                --mandir=/usr/man
+    make
+    make DIST_ROOT=$PKG install install-lib install-dev
+
+    install -d $PKG/lib
+    mv $PKG/usr/lib/libattr.so.* $PKG/lib
+    rm $PKG/usr/lib/libattr.so
+    ln -s ../../lib/libattr.so.1.1.0 $PKG/usr/lib/libattr.so
+
+    # category 2 manuals are included in core/man-pages
+    rm -r $PKG/usr/man/man2
+
+    rm -r $PKG/usr/share
+}

@@ -1,0 +1,19 @@
+# Description: A cross-platform, open-source make system.
+# URL: http://www.cmake.org/
+# Maintainer: Jose V Beneyto, sepen at crux dot nu
+# Packager: Mark Rosenstand, mark at borkware dot net
+# Depends on: ncurses
+
+name=cmake
+version=2.8.6
+release=1
+source=(http://www.cmake.org/files/v${version%.*}/cmake-$version.tar.gz)
+
+build() {
+	cd cmake-$version
+	./bootstrap --prefix=/usr
+	make
+	make DESTDIR=$PKG install
+	rm -r $PKG/usr/doc
+}
+

@@ -1,0 +1,18 @@
+# Description: A screen manager with VT100/ANSI terminal emulation 
+# URL:         http://www.gnu.org/software/screen/
+# Maintainer:  Juergen Daubert, jue at crux dot nu
+# Depends on:  ncurses
+
+name=screen
+version=4.0.3
+release=2
+source=(http://ftp.gnu.org/gnu/$name/$name-$version.tar.gz)
+
+build () {
+    cd $name-$version
+    ./configure --prefix=/usr --enable-colors256
+    make
+    make -j1 DESTDIR=$PKG install
+    rm -rf $PKG/usr/info
+    chmod -s $PKG/usr/bin/$name-$version
+}

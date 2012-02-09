@@ -1,0 +1,12 @@
+#!/bin/bash
+
+if [ -e ~/proxy ] ; then
+	. ~/proxy
+	if [ -n "$PROXY_AUTH" ] ; then
+		proxyline="--proxy-server=http://${PROXY_AUTH}@$PROXY_SERVER:$PROXY_PORT"
+	else
+		proxyline="--proxy-server=http://$PROXY_SERVER:$PROXY_PORT"
+	fi
+fi
+
+/opt/google/chrome/google-chrome $proxyline --user-data-dir $@

@@ -1,0 +1,122 @@
+#!/bin/sh
+#Functions
+
+hotplug_icons ()
+{
+    maxy=${SCREEN_RESOLUTION##*x}
+    maxx=${SCREEN_RESOLUTION%%x*}
+    let maxy=maxy-100
+    let maxx=maxx-100
+    let x=maxx-75
+    let y=40
+    if [ -e /etc/idesk ] ; then
+	(echo "`ls $HOME/.hotplug/*`") |
+	while read entry
+	do
+	    title=${entry##*/}
+	    cp $entry $HOME/.idesktop/$title
+    	    echo " X: $x">>$HOME/.idesktop/$title
+    	    echo " Y: $y">>$HOME/.idesktop/$title
+    	    echo "end">>$HOME/.idesktop/$title
+	    let y=y+64
+    	    if [ $y -gt $maxy ]; then
+    		let x=x-100
+    		let y=40
+    	    fi
+	done
+	mkdir $HOME/.idesktop/icons
+	cp /etc/idesk/*.gif $HOME/.idesktop/icons/
+    fi
+}
+
+idesk_params ()
+{
+    idesk_cmd="idesk "
+    wmautostart="$HOME/.xinitrc"
+    if [ ! -e "$wmautostart" ] ; then
+	touch $wmautostart
+    fi
+    echo "$idesk_cmd&">>$wmautostart
+}
+
+idesk_icons ()
+{
+    # Do we want hotplug device icons on the desktop?
+    if [ "`make_caps $ICONHOTPLUG`" == "YES" ] ; then
+      hotplug_icons
+    fi
+
+    IMENU=/tmp/idesk.menu
+    IDESKDIR=$HOME/.idesktop
+    maxy=${SCREEN_RESOLUTION##*x}
+    let maxy=maxy-100
+    let x=75
+    let y=40
+    
+    if [ "`make_caps $ICONMODE`" == "AUTO" ] ; then
+      if [ -e /lib/menu ] ; then
+           cat /lib/menu/* > $IMENU
+      fi
+      (cat $IMENU) |
+      while read entry
+      do
+	case "$entry" in
+		\#*|"") continue ;;
+	esac
+	echo $entry > /tmp/entry
+	. /tmp/entry
+        ICON=/lib/pixmaps/`replace_char $package " " "_"`"_32x32.xpm"
+	LINK=$IDESKDIR/$title.lnk
+	if [ -e $ICON ] ; then
+              echo "table Icon">$LINK
+#              echo " Type: Program">>$LINK
+              echo " Caption: $title">>$LINK
+              echo " Command[0]: $command">>$LINK
+              echo " Icon: $ICON">>$LINK
+              echo " X: $x">>$LINK
+              echo " Y: $y">>$LINK
+              echo "end">>$LINK
+              let y=y+64
+              if [ $y -gt $maxy ]; then
+                 let x=x+100
+                 let y=40
+              fi
+	      echo "y=$y; x=$x" > /tmp/entry
+      	fi
+      done
+
+    fi
+
+    if [ -e /tmp/entry ] ; then
+	    . /tmp/entry
+	    rm /tmp/entry
+    fi
+	  	
+    (cat $WKDIR/session) |
+    while read type title screen position workspace autostart custom icon server options
+    do
+      if [ "$server" = "." ] ; then server= ; fi
+      if [ "$options" = "." ] ; then options= ; fi
+      case "$icon" in
+      ON|SUBMENU)
+        ICON=/lib/pixmaps/`replace_char $type " " "_"`"_32x32.xpm"
+	LINK=$IDESKDIR/$title.lnk
+        if [ -e $ICON ] ; then
+          echo "table Icon">$LINK
+#          echo " Type: Program">>$LINK
+          echo " Caption: $title">>$LINK
+          echo " Command[0]: pkg fullscreen $type \"$server\" \"$options\"">>$LINK
+          echo " Icon: $ICON">>$LINK
+          echo " X: $x">>$LINK
+          echo " Y: $y">>$LINK
+          echo "end">>$LINK
+          let y=y+64
+          if [ $y -gt $maxy ]; then
+            let x=x+100
+            let y=40
+          fi
+        fi
+      ;;
+      esac
+    done
+}

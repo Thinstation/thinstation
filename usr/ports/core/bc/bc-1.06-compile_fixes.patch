@@ -1,0 +1,46 @@
+diff -ru bc-1.06/bc/load.c bc-1.06-new/bc/load.c
+--- bc-1.06/bc/load.c	2000-09-13 20:22:38.000000000 +0200
++++ bc-1.06-new/bc/load.c	2004-05-01 14:25:08.164146592 +0200
+@@ -34,7 +34,7 @@
+ 
+ /* Load variables. */
+ 
+-program_counter load_adr;
++static program_counter load_adr;
+ char load_str;
+ char load_const;
+ 
+diff -ru bc-1.06/bc/scan.l bc-1.06-new/bc/scan.l
+--- bc-1.06/bc/scan.l	2000-09-13 20:25:47.000000000 +0200
++++ bc-1.06-new/bc/scan.l	2004-05-01 14:21:02.765452864 +0200
+@@ -143,7 +143,6 @@
+ 
+ /* Definitions for readline access. */
+ extern FILE *rl_instream;
+-_PROTOTYPE(char *readline, (char *));
+ 
+ /* rl_input puts upto MAX characters into BUF with the number put in
+    BUF placed in *RESULT.  If the yy input file is the same as
+diff -ru bc-1.06/configure bc-1.06-new/configure
+--- bc-1.06/configure	2000-10-03 20:34:24.000000000 +0200
++++ bc-1.06-new/configure	2004-05-01 14:21:27.159744368 +0200
+@@ -2245,7 +2245,7 @@
+ 
+ 
+ if test "$LEX" = "flex" ; then
+- LEX="flex -I8"
++ LEX="flex -I"
+ else
+  if test "$bcrl" = "y" ; then
+   echo "configure: warning: readline works only with flex." 1>&2
+diff -ru bc-1.06/lib/number.c bc-1.06-new/lib/number.c
+--- bc-1.06/lib/number.c	2000-10-03 20:34:25.000000000 +0200
++++ bc-1.06-new/lib/number.c	2004-05-01 14:24:41.028271872 +0200
+@@ -30,6 +30,7 @@
+ *************************************************************************/
+ 
+ #include <stdio.h>
++#include <string.h>
+ #include <config.h>
+ #include <number.h>
+ #include <assert.h>

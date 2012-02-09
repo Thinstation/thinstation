@@ -1,0 +1,136 @@
+#!/bin/bash
+# Description: Thinstation Utility to clean chroot for git push.
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+create_wind()
+{
+	echo -e "\tCreating fast clean cache for $i"
+	echo "#`md5sum .dna`" > /ts/wind_cache/$i.turbo
+        update -c -d $i >> /ts/wind_cache/$i.turbo
+	echo -e "\tCleaning package $i"
+        . /ts/wind_cache/$i.turbo
+}
+
+create_unwind()
+{
+	echo -e "\tCreating fast install cache for $i"
+        echo "#`md5sum .dna`" > /ts/unwind_cache/$i.turbo
+        update -d $i |
+        sed -e 's/^cp \//3:/g' -e 's/mkdir \-/2:/g' -e 's/ln \-/4:/g' -e 's/touch \//5:/g' |
+        sort |
+        uniq |
+        sed -e 's/^2:/mkdir \-/g' -e 's/^3:/cp \//g' -e 's/^4:/ln \-/g' -e 's/^5:/touch \//g' >> /ts/unwind_cache/$i.turbo
+}
+
+stage1()
+{
+	echo "Cleaning ThinStation Build Environment"
+	cd $TSWRKNG
+	./build --removeall
+	cp conf/default/* .
+	cd /
+	mv $TSWRKNG/utils/tools/splash/default/1024x768 /.
+	rm -rf $TSWRKNG/utils/tools/splash/default/*
+	mv /1024x768 $TSWRKNG/utils/tools/splash/default/.
+	for i in \
+		$TSWRKNG/boot-images/initrd/kernel_parameters \
+		$TSWRKNG/tmp-tree \
+                $TSWRKNG/boot-images/iso/source/{isolinux.cfg,vmlinuz,initrd,lib.squash} \
+		$TSWRKNG/boot-images/etherboot/thinstation.nbi \
+		$TSWRKNG/boot-images/initrd/{initrd,lib.squash} \
+		$TSWRKNG/boot-images/iso/thinstation.iso \
+		$TSWRKNG/boot-images/iso/source/modeset.cfg \
+		$TSWRKNG/boot-images/{syslinux,loadlin,pxe}/{lib.squash,initrd,vmlinuz} \
+		$TSWRKNG/boot-images/pkg-packages/* \
+		$TSWRKNG/boot-images/pxe/pxelinux.cfg/default \
+		$TSWRKNG/boot-images/pxe/{module.list,vbe_modes.list,firmware.list} \
+		$TSWRKNG/thinstation.conf.sample \
+		$TSWRKNG/utils/KERNEL_VERSION \
+		$TSWRKNG/boot-images/syslinux/syslinux.cfg ;
+			do
+				if [ -e "$i" ];
+					then rm -rf $i
+				fi
+			done
+	for i in `ls --color=never $TSWRKNG/packages` ;
+		do
+			if [ -e $TSWRKNG/packages/$i/.dna ] ;
+				then
+					cd $TSWRKNG/packages/$i
+					echo -e "\tCleaning package $i"
+					if [ -e /ts/wind_cache/$i.turbo ]; then
+						if cat /ts/wind_cache/$i.turbo |grep -e "#" |cut -d "#" -f2 |md5sum -c --quiet ; then
+							. /ts/wind_cache/$i.turbo
+						else
+							create_wind
+						fi
+					else
+						create_wind
+					fi
+					if [ -e /ts/unwind_cache/$i.turbo ]; then
+						if cat /ts/unwind_cache/$i.turbo|grep -e "#" |cut -d "#" -f2 |md5sum -c --quiet ; then
+							echo "Allready made" >> /dev/null
+						else
+							create_unwind
+						fi
+					else
+						create_unwind
+					fi
+			fi
+		done
+	echo -e "\tCleaning kernel files"
+	update -c -k
+	echo -e "\tCleaning tools"
+	update -c -t
+	echo -e "\tCleaning boot-images"
+	update -c -b
+	echo "Checking Ports Directories for Downloaded Files"
+	for d in /usr/ports/{contrib,core,xorg,opt} /ts/ports/{xorg,gnome,broken,chroot,static-source,components};
+		do
+			if [ -d $d ] ; then
+			cd $d
+			for i in `ls --color=no`;
+				do
+					cd $d/$i
+					f=`find . |grep -e pkg.tar.gz`
+					if [ "$f" != "" ];
+						then
+							mv $f tempfile
+							pkgmk -c
+							mv tempfile $f
+						elif [ "`echo $d |grep -e ts/ports`" != "" ] ; then
+							pkgmk -c
+						else
+							cd $d
+							rm -rf $d/$i
+					fi
+				done
+			fi
+		done
+	touch /cleanstage2
+	if [ ! -e /CLEAN ] ; then
+		echo "Please Type \"exit\" to Finish the Cleaning Process"
+	fi
+}
+
+stage2()
+{
+	for i in share home usr/ROX usr/var man bin boot dev etc lib mnt opt proc root sbin sys tmp var ts/components usr/{swat,private,bin,etc,include,lib,man,sbin,share,src,local} ;
+		do
+			if [ -e $i ] ;
+				then
+					rm -rf $ROOT/$i
+			fi
+		done
+	rm cleanstage2
+}
+
+ROOT=$PWD
+if [ -e $ROOT/cleanstage2 ] ;
+	then
+		stage2
+	else
+		stage1
+fi
+

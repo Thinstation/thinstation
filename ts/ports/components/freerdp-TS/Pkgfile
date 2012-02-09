@@ -1,0 +1,27 @@
+# Description: Free RDP client
+# URL: http://www.freerdp.com/
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+# Depends on: xorg-libx11
+
+name=freerdp-TS
+pname=${name%-*}
+version=1.0-git
+release=1
+source=()
+
+build() {
+	git config --global http.sslVerify false
+	git clone --depth 1 https://github.com/FreeRDP/FreeRDP.git
+	cd FreeRDP
+	cmake .  -DCMAKE_INSTALL_PREFIX=/usr -DWITH_PCSC=ON
+	make
+	make DESTDIR=$PKG install
+rm -rf $PKG/usr/{share/man,lib/pkgconfig,include}
+find $PKG -name *.a -delete
+find $PKG -name *.la -delete
+mkdir -p $PKG/$TSCOMPROOT/$pname
+#read -p "Press any key to continue..."
+mv $PKG/usr/{bin,lib,share} $PKG/$TSCOMPROOT/$pname
+rm -r $PKG/usr
+}
+

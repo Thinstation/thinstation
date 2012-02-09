@@ -1,0 +1,17 @@
+# Description: Tiny ASN.1 library
+# URL: http://josefsson.org/libtasn1/
+# Maintainer: Matt Housh, jaeger at morpheus dot net
+
+name=libtasn1
+version=1.8
+release=1
+source=(http://ftp.gnu.org/gnu/libtasn1/$name-$version.tar.gz)
+
+build() {
+	cd $name-$version
+	./configure --prefix=/usr \
+		--mandir=/usr/man
+	make
+	make DESTDIR=$PKG install
+	rm -rf $PKG/usr/share/info
+}

@@ -1,0 +1,142 @@
+#!/bin/sh
+#               vmsterm
+#               from an original script by Bob Ess
+#               key translations by Erik Ahlefeldt 
+#
+#               Script file using Xterm and telnet to connect to a VMS host
+#               and give a decent vt220 emulation.
+#
+# Usage statement
+Usage(){
+        echo
+        echo " Usage  : vmsterm -options"
+        echo
+        echo " Options: -80   for 80 column terminal"
+        echo "          -132  for 132 column terminal"
+        echo "          -bg colorname"
+        echo "          -fg colorname"
+        echo "          -fn fontname"
+        echo "          -fb bold fontname"
+        echo "          -host [crusher.saltmine.com] [earth] [192.168.7.7]" 
+        echo ""
+        echo " Example: \"vmsterm -80 -fg white -bg black -fn 9x15 -fb 9x15b -host earth\""
+        echo "          Starts a VMS session with an 80 column terminal"
+        echo "          with a black background, white foreground, a normal"
+        echo "          font of 9x15 and a bold font of 9x15b, and connects"
+        echo "          to the node 'earth'"
+        echo ""
+        echo " Example: \"vmsterm -host earth\""
+        echo "          Starts a VMS session with default terminal settings "
+        echo ""
+        echo " Example: \"vmsterm -help\""
+        echo "          Displays vmsterm options "
+        echo
+        exit 1
+}
+
+# Default to a black foreground with a white background.
+# Use the 9x15 and 9x15bold fonts. Connect to 192.168.3.3 by default.
+#
+FG=black
+BG=white
+HOST=192.168.3.3
+FONT=6x13
+BFONT=6x13bold
+COLS=80
+
+# Parse the command line arguments
+#
+while [ $# != 0 ];
+do
+        case $1 in
+                -80)    COLS=80
+                        FONT=spc12x24c
+                        BFONT=spc12x24b
+                        shift
+                        ;;
+                -132)   COLS=132
+                        FONT=6x13
+                        BFONT=6x13b
+                        shift
+                        ;;
+                -fg)    shift
+                        FG=$1
+                        shift;;
+                -bg)    shift
+                        BG=$1
+                        shift;;
+                -fn)    shift
+                        FONT=$1
+                        shift;;
+                -fb)    shift
+                        BFONT=$1
+                        shift;;
+                -host)  shift
+                        HOST=$1
+                        shift;;
+                -help)  Usage;;
+                *)      Usage;;
+        esac
+done
+
+xterm	-title "VMSTERM" -sb -sl 1000 -geo ${COLS}x24 -fg ${FG} -bg ${BG} \
+	-cr blue -fn ${FONT} -fb ${BFONT} -xrm \
+	"XTerm*vt100.translations: #override \n \
+	~Shift	<Key>F1:	string(0x1b)	string("OP") \n \
+	~Shift	<Key>F2:	string(0x1b)	string("OQ") \n \
+	~Shift	<Key>F3:	string(0x1b)	string("OR") \n \
+	~Shift	<Key>F4:	string(0x1b)	string("OS") \n \
+	~Shift	<Key>F5:	string("Break") \n \
+	~Shift	<Key>F6:	string(0x1b)	string("[17~") \n \
+	~Shift	<Key>F7:	string(0x1b)	string("[18~") \n \
+	~Shift	<Key>F8:	string(0x1b)	string("[19~") \n \
+	~Shift	<Key>F9:	string(0x1b)	string("[20~") \n \
+	~Shift	<Key>F10:	string(0x1b)	string("[21~") \n \
+	~Shift	<Key>F11:	string(0x1b)	string("[23~") \n \
+	~Shift	<Key>F12:	string(0x1b)	string("[24~") \n \
+	Shift   <Key>F1:	string(0x1b)	string("[23~") \n \
+	Shift   <Key>F2:	string(0x1b)	string("[24~") \n \
+	Shift   <Key>F3:	string(0x1b)	string("[25~") \n \
+	Shift   <Key>F4:	string(0x1b)	string("[26~") \n \
+	Shift   <Key>F5:	string(0x1b)	string("[28~") \n \
+	Shift   <Key>F6:	string(0x1b)	string("[29~") \n \
+	Shift   <Key>F7:	string(0x1b)	string("[31~") \n \
+	Shift   <Key>F8:	string(0x1b)	string("[32~") \n \
+	Shift   <Key>F9:	string(0x1b)	string("[33~") \n \
+	Shift   <Key>F10:	string(0x1b)	string("[34~") \n \
+	Shift   <Key>F11:	string(0x1b)	string("[28~") \n \
+	Shift   <Key>F12:	string(0x1b)	string("[29~") \n \
+		<Key>Print:	string(0x1b)	string("[28~") \n \
+		<Key>Cancel:	string(0x1b)	string("[29~") \n \
+		<Key>Pause:	string(0x1b)	string("Om") \n \
+		<Key>Insert:	string(0x1b)	string("[2~") \n \
+		<Key>Delete:	string(0x1b)	string("[3~") \n \
+		<Key>Home:	string(0x1b)	string("[1~") \n \
+		<Key>End:	string(0x1b)	string("[4~") \n \
+		<Key>Prior:	string(0x1b)	string("[5~") \n \
+		<Key>Next:	string(0x1b)	string("[6~") \n \
+		<Key>BackSpace:	string(0x7f)	\n \
+                <Key>Num_Lock:	string(0x1b)	string("OP") \n \
+		<Key>KP_Divide:	string(0x1b)	string("OQ") \n \
+		<Key>KP_Multiply: string(0x1b)	string("OR") \n \
+		<Key>KP_Subtract: string(0x1b)	string("OS") \n \
+		<Key>KP_Add:	string(0x1b)	string("Ol") \n \
+		<Key>KP_Enter:	string(0x1b)	string("OM") \n \
+		<Key>KP_Decimal: string(0x1b)	string("On") \n \
+		<Key>KP_0:	string(0x1b)	string("Op") \n \
+		<Key>KP_1:	string(0x1b)	string("Oq") \n \
+		<Key>KP_2:	string(0x1b)	string("Or") \n \
+		<Key>KP_3:	string(0x1b)	string("Os") \n \
+		<Key>KP_4:	string(0x1b)	string("Ot") \n \
+		<Key>KP_5:	string(0x1b)	string("Ou") \n \
+		<Key>KP_6:	string(0x1b)	string("Ov") \n \
+		<Key>KP_7:	string(0x1b)	string("Ow") \n \
+		<Key>KP_8:	string(0x1b)	string("Ox") \n \
+		<Key>KP_9:	string(0x1b)	string("Oy") \n \
+	~Shift	<Key>Up:	string(0x1b)	string("[A") \n \
+	Shift	<Key>Up:	scroll-back(1,lines) \n \
+	~Shift	<Key>Down:	string(0x1b)	string("[B") \n \
+	Shift	<Key>Down:	scroll-forw(1,lines) \n \
+	      	<Key>Right:	string(0x1b)	string("[C") \n \
+	      	<Key>Left:	string(0x1b)	string("[D")" \
+        -e telnet $HOST 

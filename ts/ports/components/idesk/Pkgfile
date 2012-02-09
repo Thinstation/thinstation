@@ -1,0 +1,20 @@
+# Description: iDesk gives users of minimal wm's icons on their desktop
+# URL:         http://idesk.sourceforge.net/
+# Maintainer:  Christopher Dreher, root at schniggie dot de
+# Packager:    Christopher Dreher, root at schniggie dot de
+# Depends on:
+
+name=idesk
+version=0.7.5
+release=1
+source=(https://downloads.sourceforge.net/project/$name/$name/$name-$version/$name-$version.tar.bz2 idesk.patch)
+
+build() {
+	cd $name-$version
+        patch -p1 -i $SRC/idesk.patch
+	./configure
+	make
+	mkdir -p $PKG/usr/bin
+	install -m 755 src/idesk $PKG/usr/bin
+}
+

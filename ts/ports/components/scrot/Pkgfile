@@ -1,0 +1,19 @@
+# Description: Commandline screen capture.
+# URL: http://linuxbrit.co.uk/scrot/
+# Maintainer: Danny Rawlins, monster dot romster at gmail dot com
+# Packager: Mark Rosenstand, mark at borkware dot net
+# Depends on: giblib
+
+name=scrot
+version=0.8
+release=1
+source=(http://linuxbrit.co.uk/downloads/scrot-$version.tar.gz)
+
+build() {
+	cd scrot-$version
+	./configure --prefix=/usr
+	make
+	make DESTDIR=$PKG install
+	rm -r $PKG/usr/doc
+}
+

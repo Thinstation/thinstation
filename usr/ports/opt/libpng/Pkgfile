@@ -1,0 +1,18 @@
+# Description: Library of PNG support functions.
+# URL:         http://www.libpng.org
+# Maintainer:  Tilman Sauerbeck, tilman at crux dot nu
+# Depends on:  zlib
+
+name=libpng
+version=1.4.8
+release=1
+source=(http://download.sourceforge.net/$name/$name-$version.tar.xz)
+
+build() {
+    cd $name-$version
+
+    ./configure --prefix=/usr --mandir=/usr/man
+
+    make
+    make DESTDIR=$PKG install
+}

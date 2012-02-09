@@ -1,0 +1,1 @@
+loadlin vmlinuz initrd=initrd

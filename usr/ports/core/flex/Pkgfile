@@ -1,0 +1,20 @@
+# Description: Fast Lexical Analyzer Generator
+# URL:         http://flex.sourceforge.net/
+# Maintainer:  CRUX System Team, core-ports at crux dot nu
+
+name=flex
+version=2.5.35
+release=2
+source=(http://downloads.sourceforge.net/project/$name/$name/$name-$version/$name-$version.tar.bz2
+        $name-$version-gcc44-1.patch)
+
+build() {
+    cd $name-$version
+    patch -p1 -i $SRC/$name-$version-gcc44-1.patch
+    ./configure --prefix=/usr --disable-nls
+    make
+    make DESTDIR=$PKG install
+    ln -sf flex $PKG/usr/bin/lex
+    ln -sf flex.1.gz $PKG/usr/man/man1/lex.1.gz
+    rm -rf $PKG/usr/info
+}

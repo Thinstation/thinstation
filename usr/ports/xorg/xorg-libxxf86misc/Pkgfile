@@ -1,0 +1,18 @@
+# Description: xorg lib libXxf86misc
+# URL: http://xorg.freedesktop.org
+# Maintainer: Tilman Sauerbeck, tilman at crux dot nu
+# Depends on: xorg-xproto, xorg-libx11, xorg-libxext, xorg-xf86miscproto
+
+name=xorg-libxxf86misc
+version=1.0.3
+release=1
+source=(http://xorg.freedesktop.org/releases/individual/lib/libXxf86misc-$version.tar.bz2)
+
+build() {
+	cd libXxf86misc-$version
+
+	./configure --prefix=/usr --mandir=/usr/man
+
+	make
+	make DESTDIR=$PKG install
+}

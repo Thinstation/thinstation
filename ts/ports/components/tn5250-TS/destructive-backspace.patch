@@ -1,0 +1,70 @@
+--- tn5250-0.17.4/lib5250/display.h.orig	2011-09-22 14:46:27.000000000 +0200
++++ tn5250-0.17.4/lib5250/display.h	2011-09-22 14:47:29.000000000 +0200
+@@ -79,6 +79,7 @@
+ 
+    int indicators_dirty : 1;
+    int pending_insert : 1;
++   int destructive_backspace : 1;
+    int sign_key_hack : 1;
+    int uninhibited : 1;
+    int allow_strpccmd : 1;
+--- tn5250-0.17.4/lib5250/display.c.orig	2011-09-22 14:46:21.000000000 +0200
++++ tn5250-0.17.4/lib5250/display.c	2011-09-22 14:52:07.000000000 +0200
+@@ -62,6 +62,7 @@
+   This->indicators = 0;
+   This->indicators_dirty = 0;
+   This->pending_insert = 0;
++  This->destructive_backspace = 0;
+   This->sign_key_hack = 1;
+   This->field_minus_in_char = 0;
+   This->uninhibited = 0;
+@@ -149,6 +150,13 @@
+     }
+   This->config = config;
+ 
++  /* check if destructive backspace should be enabled */
++  if (tn5250_config_get (config, "destructive_backspace"))
++    {
++      This->destructive_backspace =
++        tn5250_config_get_bool (config, "destructive_backspace");
++    }
++
+   /* check if the +/- sign keyboard hack should be enabled */
+   if (tn5250_config_get (config, "sign_key_hack"))
+     {
+@@ -1564,16 +1572,19 @@
+ 
+ 
+   /* In the case we are in the field exit required state, we inhibit
+-   * on everything except left arrow, backspace, field exit, field+,
+-   * field-, and help */
++   * on everything except left arrow, nondestructive backspace, field exit,
++   * field+, field-, and help */
+   if ((tn5250_display_indicators (This) & TN5250_DISPLAY_IND_FER) != 0)
+     {
+       switch (key)
+ 	{
+ 	case K_LEFT:
+-	case K_BACKSPACE:
+-	  tn5250_display_indicator_clear (This, TN5250_DISPLAY_IND_FER);
+-	  return;
++        case K_BACKSPACE:
++          if (!(This->destructive_backspace))
++            {
++              tn5250_display_indicator_clear (This, TN5250_DISPLAY_IND_FER);
++              return;
++            }
+ 
+ 	case K_UP:
+ 	case K_DOWN:
+@@ -1618,6 +1629,10 @@
+ 
+     case K_BACKSPACE:
+       tn5250_display_kf_backspace (This);
++      if (This->destructive_backspace)
++        {
++          tn5250_display_kf_delete (This);
++        }
+       break;
+ 
+     case K_LEFT:

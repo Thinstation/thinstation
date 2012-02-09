@@ -1,0 +1,23 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=pcsc-lite-TS
+pname=${name%-*}
+version=1.7.4
+release=1
+source=(https://alioth.debian.org/frs/download.php/3598/$pname-$version.tar.bz2)
+
+build() {
+	cd $pname-$version
+
+	./configure --prefix=/usr \
+			--disable-libhal \
+			--sysconfdir=/etc \
+			--mandir=/usr/man \
+			--disable-extras
+
+	make
+	make DESTDIR=$PKG install
+rm -rf $PKG/usr/{share,man}
+}

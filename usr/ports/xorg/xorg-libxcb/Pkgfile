@@ -1,0 +1,20 @@
+# Description: XCB library
+# URL: http://xcb.freedesktop.org
+# Maintainer: Tilman Sauerbeck, tilman at crux dot nu
+# Depends on: xorg-xcb-proto, xorg-libxdmcp, xorg-libxau, libxslt, libpthread-stubs
+
+name=xorg-libxcb
+version=1.7
+release=1
+source=(http://xcb.freedesktop.org/dist/libxcb-$version.tar.bz2)
+
+build() {
+	cd libxcb-$version
+
+	./configure --prefix=/usr
+
+	make
+	make DESTDIR=$PKG install
+
+	rm -rf $PKG/usr/share
+}

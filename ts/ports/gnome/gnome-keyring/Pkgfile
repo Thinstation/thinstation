@@ -1,0 +1,22 @@
+# Description: keeps password and other secrets for users
+# Maintainer: Matt Housh, jaeger at morpheus dot net
+# Depends on: gtk, libgcrypt, libtasn1
+# Group: gnome/desktop
+
+name=gnome-keyring
+version=2.24.1
+release=1
+gnomever=2.24.3
+source=(http://download.gnome.org/desktop/${gnomever%.*}/$gnomever/sources/$name-$version.tar.bz2)
+
+build() {
+	cd $name-$version
+	rm po/*.po
+	sed -i -e 's/USE_NLS=yes/USE_NLS=no/' \
+		-e 's/ENABLE_NLS 1/ENABLE_NLS 0/' configure
+	./configure --prefix=/usr \
+		--libexecdir=/usr/lib/$name
+	make
+	make DESTDIR=$PKG install
+	rm -rf $PKG/usr/share
+}

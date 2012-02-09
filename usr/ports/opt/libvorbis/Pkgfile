@@ -1,0 +1,17 @@
+# Description: Vorbis codec library
+# URL:         http://www.xiph.org/ogg/vorbis/
+# Maintainer:  Tilman Sauerbeck, tilman at crux dot nu
+# Depends on:  libogg
+
+name=libvorbis
+version=1.3.2
+release=1
+source=(http://downloads.xiph.org/releases/vorbis/$name-$version.tar.bz2)
+
+build() {
+    cd $name-$version
+    ./configure --prefix=/usr
+    make
+    make DESTDIR=$PKG install
+    rm -rf $PKG/usr/share/doc
+}

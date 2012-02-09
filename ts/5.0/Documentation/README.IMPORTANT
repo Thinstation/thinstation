@@ -1,0 +1,176 @@
+##############################################################
+
+IMPORTANT!!
+
+Please make sure you read this as it contains important
+information on how to configure Thinstation.
+
+##############################################################
+
+Disclaimer 
+==========
+
+Neither this author nor the project contributors are in any way
+responsible for physical, financial, moral or any other type of damage
+incurred by following the suggestions in this text or using the
+programs. Both this document and the Thinstation program and supporting
+programs are presented "as is" without any warrenty concerning
+functionallity or security. 
+
+Any trademark belongs to the owner.
+
+Introduction
+============
+
+Hello All!
+
+This is the new version of Thinstation, a thin client Linux
+distribution for X, RDP, VNC, SSH, Telnet, ICA, ThinLinc, TN5250 and 
+Tarantella protocols.
+
+
+Minimal hardware requeriments for thin client terminals:
+
+    Processor:	    x86 +100Mhz
+    RAM:	    16MB (min) (8MB using TinyX) 
+    Video card:     All supported by XFree86 3.3.6 SVGA, Xorg, or by
+                    SVGALib.
+    Network cards:  Realtek 8139, NE2000, EEPro100, Davicom 910x,
+                    SiS900, VIA, 3Com 905/ 59x, etc (see build.conf).
+    
+Support
+=======
+
+There are several options available for support:
+
+1. There are many useful contributed docs at
+   http://thinstation.sourceforge.net/wiki/index.php/ThDocs.
+
+2. "The FAQ" is an excellent source of useful information and is
+   regulary updated.  The FAQ is available at
+   http://thinstation.sourceforge.net/faq.html.
+
+3. If the first two options don't help you solve your problem, you can
+   write to the thinstation-general mailing list.  In the email,
+   specify:
+
+   - Which version of Thinstation you are using.  If it is a beta, be
+     sure you are using the LATEST beta available.
+   - Which boot method you are using (e.g. etherboot, pxe, cdrom, etc.).
+   - Thin client specs (e.g. ram, video card, NIC, etc.).
+   - Which software you are using on the server for dhcp/tftp.
+   - Include the relevant details from your "build.conf" file.
+   - Include the relevant details from your "thinstation.conf.network"
+     file.
+
+   You can subscribe to the thinstation-general mailing list here:
+   http://lists.sourceforge.net/lists/listinfo/thinstation-general
+
+Build
+=====
+
+1. Edit "build.conf" file.
+2. Edit the files in conf/ that you'll be using in your Thinstation
+   image.
+3. Run "build".
+
+Note: You can optionally edit packages/base/etc/thinstation.defaults
+for any built-in defaults you want Thinstation to have.
+
+Installation
+============
+
+For installation instructions on the various boot image types, please
+see Documentation/README.IMAGE, where IMAGE is your prefered image type.
+
+PKG packages:
+
+    To select which pkg packages must be loaded after boot, you must set
+    the PKG_PACKAGES variable in the build.conf file.  The .pkg or files
+    must be put in the same directory where the .nbi image resides.
+    This can reside in a directory underneath this if the PKG_PREFEX is
+    set.  See thinstation.conf.example file for details.
+
+    pkg files may now also be stored on a local storage device if used in
+    combination with the PKG_PATH variable.
+
+MOD packages:
+
+    To select which mpkg packages must be loaded after boot, you must
+    set the MOD_PACKAGES variable in the build.conf file.  The .mpkg or
+    files must be put in the same directory where the .nbi image
+    resides.  This can reside in a directory underneath this if the
+    MOD_PREFEX is set.  See thinstation.conf.example file for details.
+
+    mpkg files may now also be storage on a local storage device if used
+    in combination with the PKG_PATH variable.
+    
+
+Configuration Files
+===================
+
+Configuration files used during build time:
+
+Name:  thinstation.conf.buildtime
+Type:  Build time settings.
+Info:  These settings go directly into the image at build time.  Note
+       that if you use local storage for your settings, you will need to
+       define the STORAGE settings in here.
+
+
+These configuration files are used with tftpd and thus must be placed
+in the root tftpd directory (defined in build.conf).  Not all are required.
+
+Name:  thinstation.conf.network
+Type:  General network confirguration file.
+Info:  This is the global configuration file downloaded from a tftp
+       server.  Note that this has replaced thinstation.conf.
+
+Name:  thinstation.conf-<hostname>
+Type:  Per thin client network configuration file.
+Info:  Individual configuration files for specific thin clients.  This
+       file must be used in conjunction with the thinstation.hosts file.
+
+       Example: thinstation.conf-tc1      
+
+Name:  thinstation.conf-<ip address>
+Type:  Per thin client network configuration file.
+Info:  Individual configuration files for specific thin clients.
+       
+       Example: thinstation.conf-172.23.24.101
+ 
+Name:  thinstation.conf-<eth MAC address>
+Type:  Per thin client network configuration file.
+Info:  Individual configuration files for specific thin clients.
+    
+       Example: thinstation.conf-005004AABBCC
+
+Name:  thinstation.conf.<group-xxxxx>
+Type:  Group network configuration file.
+Info:  General configuration settings for a specific group of thin
+       clients.  The groups themselves are defined in the
+       thinstation.hosts file.
+
+       Example: thinstation.conf.group-samba
+
+Name:  thinstation.conf.user
+Type:  Local configuration file.
+Info:  This is stored locally on a permanent storage device, such as a
+       CDROM, HD, FD, etc.
+
+Name:  thinstation.hosts
+Type:  Network configuration file.
+Info:  List individual thin client hostnames, their MAC addresses, group
+       memberships, and comments.  The following files use
+       thinstation.hosts:
+
+       thinstation.conf.<group-xxxx>
+       thinstation.conf-<eth MAC address>
+       thinstation.conf-<hostname>
+
+Name:  ssh_known_hosts
+Type:  Network configuration file
+Info:  If this file exists, it will be download and added to the 
+       known_hosts file for use by ssh.  This file is recommended when
+       using the ThinLinc and NX clients to avoid "The authenticity of 
+       host 'XXX' can't be established" messages.

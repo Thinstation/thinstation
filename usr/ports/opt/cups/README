@@ -1,0 +1,40 @@
+README for cups 1.3.x
+
+REQUIREMENTS
+
+1. This version of cups no longer includes a postscript interpreter. Install 
+   the ghostscript port additionally.
+2. In order to have more printer drivers available, the installation of the 
+   gutenprint port (formerly gimp-print) is recommended. HP DeskJet/LaserJet 
+   users should install the hpijs driver.
+3. Build and install in the following order:
+   - cups
+   - gutenprint (optionally)
+   - ghostscript
+   - foomatic-filters (optionally)
+   - hpijs (optionally)
+
+Most common printers should be supported by the above configuration, if 
+NOT you must have foomatic-filters installed and must generate a PPD file 
+(Postscript Printer Description) for your printer:
+
+1. Select your printer from http://www.linuxprinting.org/printer_list.cgi
+2. Select a driver, be shure the driver is available within ghostscript.
+   You can see all drivers included in ghostscript with a 'gs -h'.
+3. Download the PPD file for your printer.
+4. Save the PPD file to /usr/share/cups/model/<name>.
+5. Restart cups with '/etc/rc.d/cups restart'
+
+
+PRE-INSTALL
+
+1. Remove a installed lprng package.
+   Cups and lprng cannot be installed together.
+
+POST-INSTALL
+
+1. Configure your printer with the web-interface, http://localhost:631.
+
+
+PRECAUTION
+

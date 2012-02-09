@@ -1,0 +1,24 @@
+# Description: Fast merging drop-in replacement for slocate
+# URL:         http://carolina.mff.cuni.cz/~trmac/blog/mlocate/
+# Maintainer:  CRUX System Team, core-ports at crux dot nu
+
+name=mlocate
+version=0.24
+release=1
+source=(https://fedorahosted.org/releases/m/l/$name/$name-$version.tar.xz \
+        mlocate updatedb.conf)
+
+build() {
+    cd $name-$version
+
+    ./configure --prefix=/usr \
+                --mandir=/usr/man \
+                --sysconfdir=/etc \
+                --localstatedir=/var/lib \
+                --disable-nls
+    make
+    make DESTDIR=$PKG install
+
+    install -D -m 0755 $SRC/mlocate $PKG/etc/cron/daily/mlocate
+    install -m 0644 $SRC/updatedb.conf $PKG/etc
+}

@@ -1,0 +1,20 @@
+#! /bin/sh
+
+. $TS_GLOBAL
+
+case "$1" in  
+init)
+    if ! pkg_initialized $PACKAGE; then
+	pkg_set_init_flag $PACKAGE
+	if [ ! -e $HOME/.ssh ] ; then
+		mkdir $HOME/.ssh
+		touch $HOME/.ssh/known_hosts
+	fi
+    fi
+    ;;
+  *)
+    exit 1
+    ;;
+esac
+
+exit 0

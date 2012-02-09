@@ -1,0 +1,44 @@
+README for wpa_supplicant
+
+
+REQUIREMENTS
+
+Kernel driver for your wireless card, e.g. ndiswrapper or ipw2100. 
+See the wpa_supplicant homepage for supported drivers.
+
+
+PRE-INSTALL
+
+
+POST-INSTALL
+
+1. Create a network setup for wpa_supplicant:
+
+   wpa_passphrase <ssid> <your_secret> >> /etc/wpa.conf
+
+   See the sample configuration file wpa_supplicant.conf in the
+   sources for a complete description of the available options 
+   for wpa_supplicant. 
+
+2. Change your wlan start script to use wpa_supplicant.
+
+   Following an example for the centrino ipw2100 driver, no need 
+   to do anything with iwconfig:
+
+   /sbin/modprobe ipw2100
+   /sbin/ifconfig eth1 xxx.xxx.xxx.xxx netmask 255.255.255.xxx
+   /sbin/route add default gw xxx.xxx.xxx.xxx
+   /usr/sbin/wpa_supplicant -B -Dwext -ieth1 -c/etc/wpa.conf
+
+   Note: the above configuration makes use of the generic wext
+         wpa_supplicant driver (Linux wireless extensions), 
+         which is the preferred nowadays. Use this driver for
+         ndiswrapper as well.
+
+
+PRECAUTION
+
+As off version 0.6.8 the -w option of wpa_supplicant was removed.
+See the ChangeLog for more infos. This may cause troubles because
+using the -w option was the recommend way to start wpa_supplicant
+until version 0.6.

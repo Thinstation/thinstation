@@ -1,0 +1,40 @@
+# Description: Simple Authentication and Security Layer
+# URL:         http://asg.web.cmu.edu/sasl/sasl-library.html
+# Maintainer:  Thomas Penteker, tek at serverop dot de
+# Packager:    Daniel Mueller, daniel at danm dot de
+# Depends on: db, openssl
+
+name=cyrus-sasl
+version=2.1.25
+release=1
+source=(ftp://ftp.andrew.cmu.edu/pub/cyrus-mail/$name-$version.tar.gz saslauthd)
+
+build(){
+	cd $name-$version
+
+	./configure \
+	    --prefix=/usr \
+	    --sysconfdir=/etc/sasl \
+	    --with-plugindir=/usr/lib/sasl2 \
+	    --with-saslauthd=/var/sasl/saslauthd \
+	    --with-dbpath=/etc/sasl/sasldb2 \
+	    --with-dblib=berkeley \
+	    --with-bdb-incdir=/usr/include \
+	    --with-bdb-libdir=/usr/lib \
+	    --with-openssl=/usr \
+      --enable-login \
+      --enable-cram \
+      --enable-digest \
+	    --enable-shared \
+      --mandir=/usr/man
+
+	make
+	make DESTDIR=$PKG install
+
+	mkdir -p \
+	    $PKG/usr/lib/sasl2 \
+	    $PKG/var/sasl/saslauthd \
+	    $PKG/etc/rc.d
+	
+	install -m 755 $SRC/saslauthd $PKG/etc/rc.d
+}

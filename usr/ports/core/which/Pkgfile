@@ -1,0 +1,16 @@
+# Description: Show full path of commands
+# URL:         http://www.xs4all.nl/~carlo17/which/
+# Maintainer:  CRUX System Team, core-ports at crux dot nu
+
+name=which
+version=2.20
+release=1
+source=(http://www.xs4all.nl/~carlo17/which/$name-$version.tar.gz)
+
+build() {
+    cd $name-$version
+    ./configure --prefix=/usr --mandir=/usr/man
+    make
+    make DESTDIR=$PKG install
+    rm -r $PKG/usr/share
+}

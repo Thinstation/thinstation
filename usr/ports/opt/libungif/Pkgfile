@@ -1,0 +1,18 @@
+# Description: An uncompressed GIF library compatible with giflib
+# URL: http://libungif.sourceforge.net/doc/
+# Maintainer: Jose V Beneyto, sepen at crux dot nu
+# Packager: Simone Rota, sip at crux dot nu
+# Depends on:
+
+name=libungif
+version=4.1.4
+release=1
+source=(http://crux.nu/files/distfiles/$name-$version.tar.gz)
+
+build() {
+  cd $name-$version
+  ./configure --prefix=/usr
+  make
+  make prefix=$PKG/usr install
+  rm -rf $PKG/usr/bin
+}

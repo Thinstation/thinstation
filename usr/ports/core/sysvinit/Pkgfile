@@ -1,0 +1,18 @@
+# Description: The Linux System V Init
+# URL:         https://savannah.nongnu.org/projects/sysvinit/
+# Maintainer:  CRUX System Team, core-ports at crux dot nu
+
+name=sysvinit
+version=2.88
+release=1
+source=(http://download.savannah.gnu.org/releases/$name/$name-${version}dsf.tar.bz2)
+
+build() {
+    cd $name-${version}dsf
+    make
+    make ROOT=$PKG MANDIR=/usr/man install
+    install -d $PKG/var/log
+    touch $PKG/var/log/wtmp
+    touch $PKG/var/log/btmp
+    chmod 0600 $PKG/var/log/btmp
+}

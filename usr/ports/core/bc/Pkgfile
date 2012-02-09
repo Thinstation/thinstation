@@ -1,0 +1,21 @@
+# Description: An arbitrary precision calculator language
+# URL:         http://www.gnu.org/software/bc/bc.html
+# Maintainer:  CRUX System Team, core-ports at crux dot nu
+# Depends on:  ncurses, readline
+
+name=bc
+version=1.06
+release=3
+source=(http://ftp.gnu.org/gnu/$name/$name-$version.tar.gz \
+        $name-$version-compile_fixes.patch $name-$version-fixes-1.patch)
+
+build() { 
+    cd $name-$version
+    patch -p1 < ../$name-$version-compile_fixes.patch
+    patch -p1 < ../$name-$version-fixes-1.patch
+    
+    ./configure --prefix=/usr --with-readline
+    make
+    make DESTDIR=$PKG install
+    rm -rf $PKG/usr/info
+}

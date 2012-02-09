@@ -1,0 +1,20 @@
+# Description: xorg font font-cronyx-cyrillic
+# URL: http://xorg.freedesktop.org
+# Maintainer: Tilman Sauerbeck, tilman at crux dot nu
+# Depends on: xorg-mkfontdir, xorg-mkfontscale
+
+name=xorg-font-cronyx-cyrillic
+version=1.0.3
+release=1
+source=(http://xorg.freedesktop.org/releases/individual/font/font-cronyx-cyrillic-$version.tar.bz2)
+
+build() {
+	cd font-cronyx-cyrillic-$version
+
+	./configure --prefix=/usr
+
+	make
+	make DESTDIR=$PKG install
+
+	rm $PKG/usr/share/fonts/X11/cyrillic/fonts.dir
+}

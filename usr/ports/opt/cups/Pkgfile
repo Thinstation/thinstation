@@ -1,0 +1,50 @@
+# Description: CUPS - Common UNIX Printing System
+# URL:         http://www.cups.org
+# Maintainer:  Juergen Daubert, jue at crux dot nu
+# Depends on:  acl tcp_wrappers libusb-compat libpng libtiff openssl poppler
+
+name=cups
+version=1.4.8
+release=3
+source=(http://ftp.easysw.com/pub/cups/$version/$name-$version-source.tar.bz2
+        cups-config.patch cups usb-backend-both-usblp-and-libusb.dpatch)
+
+build () {
+    cd $name-$version
+
+    patch -p1 -i $SRC/cups-config.patch
+    patch -p1 -i $SRC/usb-backend-both-usblp-and-libusb.dpatch
+
+    ./configure --prefix=/usr \
+                --sysconfdir=/etc \
+                --libdir=/usr/lib \
+                --mandir=/usr/man \
+                --localstatedir=/var \
+                --with-docdir=/usr/share/cups/doc \
+                --with-logdir=/var/log/cups \
+                --with-cups-user=daemon \
+                --with-cups-group=lp \
+                --with-languages="" \
+                --without-{java,perl,php,python} \
+                --without-rcdir \
+                --with-optim="$CFLAGS" \
+                --with-pdftops=pdftops \
+                --enable-{ssl,openssl} --disable-gnutls \
+                --enable-tcp-wrappers \
+                --enable-acl \
+                --disable-pam \
+                --disable-dbus
+
+    make
+    make {MENU,ICON}DIR="" BUILDROOT=$PKG install
+
+    chmod 0755 $PKG/var/{cache,spool}   
+    chmod -R +w $PKG
+ 
+    install -d $PKG/etc/ssl/{certs,keys}
+    touch $PKG/etc/ssl/certs/cups.crt
+    touch $PKG/etc/ssl/keys/cups.key
+    chmod 0600 $PKG/etc/ssl/{keys/cups.key,certs/cups.crt}
+
+    install -D -m 755 $SRC/cups $PKG/etc/rc.d/cups
+}

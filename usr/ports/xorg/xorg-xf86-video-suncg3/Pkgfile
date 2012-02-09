@@ -1,0 +1,18 @@
+# Description: xorg driver xf86-video-suncg3
+# URL: http://xorg.freedesktop.org
+# Maintainer: Tilman Sauerbeck, tilman at crux dot nu
+# Depends on: xorg-server
+
+name=xorg-xf86-video-suncg3
+version=1.1.1
+release=1
+source=(http://xorg.freedesktop.org/releases/individual/driver/xf86-video-suncg3-$version.tar.bz2)
+
+build() {
+	cd xf86-video-suncg3-$version
+
+	./configure --prefix=/usr
+
+	make
+	make DESTDIR=$PKG install
+}

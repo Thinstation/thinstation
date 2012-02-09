@@ -1,0 +1,27 @@
+#!/bin/sh
+#
+# /etc/rc.d/apache: start/stop/restart apache HTTP server
+#
+
+KEY=/etc/ssl/keys/apache.key
+CRT=/etc/ssl/certs/apache.crt
+
+case $1 in
+start)
+	if [ ! -s $KEY -o ! -s $CRT ]; then 
+		/usr/bin/mksslcert $KEY $CRT
+	fi
+	/usr/sbin/apachectl start 
+	;;
+stop)
+	/usr/sbin/apachectl stop 
+	;;
+restart)
+	/usr/sbin/apachectl restart 
+	;;
+*)
+	echo "usage: $0 [start|stop|restart]"
+	;;
+esac
+
+# End of file

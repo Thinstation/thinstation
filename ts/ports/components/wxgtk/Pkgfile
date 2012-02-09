@@ -1,0 +1,34 @@
+# Description: wxWidgets for GTK+.
+# URL: http://www.wxwidgets.org/
+# Maintainer: Danny Rawlins, monster dot romster at gmail dot com
+# Packager: Antti Nykanen, aon at iki dot fi
+# Depends on: glitz gtk
+
+name=wxgtk
+version=2.8.12
+release=1
+source=(http://downloads.sourceforge.net/project/wxwindows/$version/wxGTK-$version.tar.bz2)
+
+build() {
+	cd wxGTK-$version
+	
+	./configure \
+		--prefix=/usr \
+		--enable-gtk2 \
+		--enable-unicode \
+		--with-opengl
+
+	make
+	make DESTDIR=$PKG install
+
+	cd contrib
+	make
+	make DESTDIR=$PKG install
+	
+	ln -sf /usr/lib/wx/config/gtk2-unicode-release-${version%.*} \
+		$PKG/usr/bin/wx-config
+	
+	rm -r \
+		$PKG/usr/share/locale \
+		$PKG/usr/share/bakefile
+}

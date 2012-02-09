@@ -1,0 +1,27 @@
+# http://code.google.com/p/wvstreams/issues/detail?id=28
+
+diff -Nru wvstreams-4.6.1.orig/ipstreams/wvunixdgsocket.cc wvstreams-4.6.1/ipstreams/wvunixdgsocket.cc
+--- wvstreams-4.6.1.orig/ipstreams/wvunixdgsocket.cc	2010-08-05 18:19:24.572113629 +0200
++++ wvstreams-4.6.1/ipstreams/wvunixdgsocket.cc	2010-08-05 18:19:54.071829657 +0200
+@@ -1,8 +1,6 @@
+ #include "wvunixdgsocket.h"
+-#ifdef MACOS
+ #include <sys/types.h>
+ #include <sys/stat.h>
+-#endif
+ 
+ WvUnixDGSocket::WvUnixDGSocket(WvStringParm filename, bool _server, int perms)
+     : socketfile(filename)
+diff -Nru wvstreams-4.6.1.orig/streams/wvatomicfile.cc wvstreams-4.6.1/streams/wvatomicfile.cc
+--- wvstreams-4.6.1.orig/streams/wvatomicfile.cc	2010-08-05 18:19:24.582113531 +0200
++++ wvstreams-4.6.1/streams/wvatomicfile.cc	2010-08-05 18:20:22.271557390 +0200
+@@ -11,9 +11,7 @@
+ #include "wvfileutils.h"
+ #include "wvstrutils.h"
+ 
+-#ifdef MACOS
+ #include <sys/stat.h>
+-#endif
+ 
+ WvAtomicFile::WvAtomicFile(WvStringParm filename, int flags, mode_t create_mode)
+     : tmp_file(WvString::null)

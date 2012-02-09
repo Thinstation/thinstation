@@ -1,0 +1,48 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=rxvt-TS
+pname=${name%-*}
+version=2.6.4
+release=1
+source=($pname-$version.tar.bz2)
+
+build() {
+	cd $pname-$version
+if [ ! -e /bin/install ] ; then
+ln -sf /usr/bin/install /bin/install
+fi
+if [ ! -e /sbin/sed ] ; then
+ln -sf /usr/bin/sed /sbin/sed
+fi
+if [ ! -e /sbin/awk ] ; then
+ln -sf /usr/bin/awk /sbin/awk
+fi
+if [ ! -e /sbin/cp ] ; then
+ln -sf /bin/cp /sbin/cp
+fi
+if [ ! -e /sbin/cmp ] ; then
+ln -sf /usr/bin/cmp /sbin/cmp
+fi
+if [ ! -e /sbin/echo ] ; then
+ln -sf /bin/echo /sbin/echo
+fi
+if [ ! -e /sbin/rm ] ; then
+ln -sf /bin/rm /sbin/rm
+fi
+
+	./configure --prefix=/ \
+			--exec-prefix=/ \
+			--sysconfdir=/etc \
+			--libexecdir=/lib \
+			--mandir=/usr/man \
+			--disable-extras
+
+	make
+	make DESTDIR=$PKG install
+rm -rf $PKG/usr
+mkdir -p $PKG/$TSCOMPROOT/$pname
+mv $PKG/bin $PKG/$TSCOMPROOT/$pname/.
+}
+

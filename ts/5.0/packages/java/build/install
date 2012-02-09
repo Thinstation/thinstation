@@ -1,0 +1,15 @@
+#!/bin/bash
+
+gzname=`basename $1`
+tarname=`basename $1 .gz`
+filename=`basename $1 .tar.gz`
+INSTALLDIR=./packages/java/jre/
+
+mkdir -p $INSTALLDIR
+cd ./wget_tmp
+chmod 755 ./$gzname
+./$gzname
+cd ..
+cp -Rp ./wget_tmp/jre1*/* $INSTALLDIR
+let returnval=returnval+$?
+exit $returnval

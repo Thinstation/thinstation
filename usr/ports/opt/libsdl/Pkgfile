@@ -1,0 +1,22 @@
+# Description: SDL, Simple DirectMedia Layer 
+# URL: http://www.libsdl.org
+# Maintainer: Jose V Beneyto, sepen at crux dot nu
+# Packager: sten, nick dot steeves at shaw dot ca
+# Depends on: alsa-lib mesa3d
+
+name=libsdl
+version=1.2.14
+release=2
+source=(http://www.libsdl.org/release/SDL-$version.tar.gz \
+        $name.patch)
+
+build () {
+  cd SDL-$version
+  patch -p1 -i $SRC/$name.patch
+
+  ./configure --prefix=/usr \
+              --enable-alsa \
+              --mandir=/usr/man
+  make
+  make DESTDIR=$PKG install
+}

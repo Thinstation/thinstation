@@ -1,0 +1,18 @@
+# Description: Utility to set a display's backlight level
+# URL: http://xorg.freedesktop.org
+# Maintainer: Tilman Sauerbeck, tilman at crux dot nu
+# Depends on: xorg-libxrandr
+
+name=xorg-xbacklight
+version=1.1.2
+release=1
+source=(http://xorg.freedesktop.org/releases/individual/app/xbacklight-$version.tar.bz2)
+
+build() {
+	cd xbacklight-$version
+
+	./configure --prefix=/usr --mandir=/usr/man
+
+	make
+	make DESTDIR=$PKG install
+}

@@ -1,0 +1,32 @@
+# Description: Network utilities
+# URL:         http://www.tazenda.demon.co.uk/phil/net-tools/
+# Maintainer:  CRUX System Team, core-ports at crux dot nu
+
+name=net-tools
+version=1.60
+release=6
+source=(http://www.tazenda.demon.co.uk/phil/net-tools/$name-$version.tar.bz2 \
+	$name-$version-config.patch \
+	$name-$version-compile_fixes.patch \
+	$name-$version-arp.patch \
+	$name-$version-man.patch \
+	$name-$version-nameif.patch \
+	$name-$version-manydevs.patch \
+	$name-$version-virtualname.patch \
+	$name-$version-ipv6.patch \
+	$name-$version-miiioctl.patch)
+
+build() {
+    cd $name-$version
+    patch -p1 < ../$name-$version-config.patch
+    patch -p1 < ../$name-$version-compile_fixes.patch
+    patch -p1 < ../$name-$version-arp.patch
+    patch -p1 < ../$name-$version-man.patch
+    patch -p1 < ../$name-$version-nameif.patch
+    patch -p1 < ../$name-$version-manydevs.patch
+    patch -p1 < ../$name-$version-virtualname.patch
+    patch -p1 < ../$name-$version-ipv6.patch
+    patch -p1 < ../$name-$version-miiioctl.patch
+    make -j1 COPTS="$CFLAGS -D_GNU_SOURCE -Wall"
+    make BASEDIR=$PKG mandir=/usr/man install
+}

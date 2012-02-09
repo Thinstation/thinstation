@@ -1,0 +1,90 @@
+#!/bin/sh
+#Functions
+
+wbar_params ()
+{
+    wbar_cmd="wbar "
+    if [ "`make_caps $WBAR_ABOVE_DESK`" == "YES" ] ; then
+	wbar_cmd="$wbar_cmd -above-desk "
+    fi
+    if [ "`make_caps $WBAR_VBAR`" == "YES" ] ; then
+	wbar_cmd="$wbar_cmd -vbar "
+    fi
+    if [ "`make_caps $WBAR_BPRESS`" != "NO" ] ; then
+	wbar_cmd="$wbar_cmd -bpress "
+    fi
+    if [ -n "$WBAR_ISIZE" ] ; then
+	wbar_cmd="$wbar_cmd -isize $WBAR_ISIZE "
+    fi
+    if [ -n "$WBAR_DBLCLK" ] ; then
+	wbar_cmd="$wbar_cmd -dblclk $WBAR_DBLCLK "
+    fi
+    wbar_pos="top"	# Default to at top
+    if [ -n "$WBAR_POS" ] ; then
+	wbar_pos="`make_lower $WBAR_POS`"
+    fi
+    wbar_cmd="$wbar_cmd -pos $wbar_pos "
+    if [ -n "$WBAR_OPTIONS" ] ; then
+	wbar_cmd="$wbar_cmd $WBAR_OPTIONS "
+    fi
+    wmautostart="$HOME/.xinitrc"
+    if [ ! -e "$wmautostart" ] ; then
+	if [ ! -e "$wmautostart" ] ; then
+	    touch $wmautostart
+	fi
+    fi
+    echo "$wbar_cmd&">>$wmautostart
+}
+
+wbar_icons ()
+{
+    WBARMENU=$HOME/.wbar
+    touch $WBARMENU    
+    echo "# The Bar && Font">>$WBARMENU
+    echo "i: /lib/pixmaps/osxbarback.png">>$WBARMENU
+    echo "t: /etc/wbar/comic/12">>$WBARMENU
+    echo "c:">>$WBARMENU
+    
+    if [ "`make_caps $ICONMODE`" == "AUTO" ] ; then
+      if [ -e /lib/menu ] ; then
+	(cat /lib/menu/*) |
+	while read entry
+	do
+	    case "$entry" in
+		\#*|"") continue ;;
+	    esac
+	    echo $entry > /tmp/entry
+	    . /tmp/entry
+    	    ICON=/lib/pixmaps/`replace_char $package " " "_"`"_32x32.xpm"
+	    if [ -e $ICON ] ; then
+              echo " c: $command">>$WBARMENU
+              echo " i: $ICON">>$WBARMENU
+              echo " t: $title">>$WBARMENU
+      	    fi
+        done
+      fi
+    fi
+
+    if [ -e /tmp/entry ] ; then
+	    . /tmp/entry
+	    rm /tmp/entry
+    fi
+	  	
+    (cat $WKDIR/session) |
+    while read type title screen position workspace autostart custom icon server options
+    do
+      if [ "$server" == "." ] ; then server= ; fi
+      if [ "$options" == "." ] ; then options= ; fi
+      case "$icon" in
+      ON|SUBMENU)
+        ICON=/lib/pixmaps/`replace_char $type " " "_"`"_32x32.xpm"
+        if [ -e $ICON ] ; then
+	      echo " c: pkg fullscreen $type \"$server\" \"$options\"">>$WBARMENU
+              echo " i: $ICON">>$WBARMENU
+              echo " t: $title">>$WBARMENU
+        fi
+      ;;
+      esac
+    done
+    
+}

@@ -1,0 +1,24 @@
+# Description: BSD-like init-scripts
+# URL:         http://crux.nu
+# Maintainer:  CRUX System Team, core-ports at crux dot nu
+
+name=rc
+version=2.26
+release=1
+source=(inittab rc rc.modules rc.single rc.multi rc.local rc.fix rc.shutdown rc.conf)
+
+build() {
+    mkdir -p $PKG/etc/rc.d
+    install -m 644 inittab $PKG/etc
+    install -m 755 rc $PKG/etc
+    install -m 755 rc.modules $PKG/etc
+    install -m 755 rc.single $PKG/etc
+    install -m 755 rc.multi $PKG/etc
+    install -m 755 rc.local $PKG/etc
+    install -m 755 rc.fix $PKG/etc
+    install -m 755 rc.shutdown $PKG/etc
+    install -m 644 rc.conf $PKG/etc
+    mkdir -p $PKG/var/log $PKG/var/lib/urandom
+    touch $PKG/var/log/boot $PKG/var/lib/urandom/seed
+    chmod 640 $PKG/var/log/boot $PKG/var/lib/urandom/seed
+}

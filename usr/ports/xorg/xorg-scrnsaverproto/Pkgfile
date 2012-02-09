@@ -1,0 +1,20 @@
+# Description: xorg proto scrnsaverproto
+# URL: http://xorg.freedesktop.org
+# Maintainer: Tilman Sauerbeck, tilman at crux dot nu
+
+name=xorg-scrnsaverproto
+version=1.2.1
+release=1
+source=(http://xorg.freedesktop.org/releases/individual/proto/scrnsaverproto-$version.tar.bz2)
+
+build() {
+	cd scrnsaverproto-$version
+
+	./configure --prefix=/usr
+
+	make
+	make DESTDIR=$PKG install
+
+	rm $PKG/usr/share/doc/scrnsaverproto/saver.xml
+	find $PKG/usr/share -type d -delete
+}

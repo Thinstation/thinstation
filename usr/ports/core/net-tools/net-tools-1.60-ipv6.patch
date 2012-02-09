@@ -1,0 +1,86 @@
+From Rawhide. Fixes IPV6 Lookup.
+
+diff -Naur net-tools-1.60.orig/lib/inet6.c net-tools-1.60/lib/inet6.c
+--- net-tools-1.60.orig/lib/inet6.c	2000-10-28 11:04:00.000000000 +0000
++++ net-tools-1.60/lib/inet6.c	2003-09-12 22:40:45.000000000 +0000
+@@ -133,28 +133,9 @@
+ }
+ 
+ 
+-static int INET6_getsock(char *bufp, struct sockaddr *sap)
+-{
+-    struct sockaddr_in6 *sin6;
+-
+-    sin6 = (struct sockaddr_in6 *) sap;
+-    sin6->sin6_family = AF_INET6;
+-    sin6->sin6_port = 0;
+-
+-    if (inet_pton(AF_INET6, bufp, sin6->sin6_addr.s6_addr) <= 0)
+-	return (-1);
+-
+-    return 16;			/* ?;) */
+-}
+-
+ static int INET6_input(int type, char *bufp, struct sockaddr *sap)
+ {
+-    switch (type) {
+-    case 1:
+-	return (INET6_getsock(bufp, sap));
+-    default:
+-	return (INET6_resolve(bufp, (struct sockaddr_in6 *) sap));
+-    }
++    return (INET6_resolve(bufp, (struct sockaddr_in6 *) sap));
+ }
+ 
+ 
+diff -Naur net-tools-1.60.orig/lib/inet6_gr.c net-tools-1.60/lib/inet6_gr.c
+--- net-tools-1.60.orig/lib/inet6_gr.c	2001-04-01 14:48:06.000000000 +0000
++++ net-tools-1.60/lib/inet6_gr.c	2003-09-12 22:40:45.000000000 +0000
+@@ -100,7 +100,7 @@
+ 		 addr6p[4], addr6p[5], addr6p[6], addr6p[7]);
+ 	inet6_aftype.input(1, addr6, (struct sockaddr *) &saddr6);
+ 	snprintf(addr6, sizeof(addr6), "%s/%d",
+-		 inet6_aftype.sprint((struct sockaddr *) &saddr6, 1),
++		 inet6_aftype.sprint((struct sockaddr *) &saddr6, numeric),
+ 		 prefix_len);
+ 
+ 	/* Fetch and resolve the nexthop address. */
+@@ -109,7 +109,7 @@
+ 		 naddr6p[4], naddr6p[5], naddr6p[6], naddr6p[7]);
+ 	inet6_aftype.input(1, naddr6, (struct sockaddr *) &snaddr6);
+ 	snprintf(naddr6, sizeof(naddr6), "%s",
+-		 inet6_aftype.sprint((struct sockaddr *) &snaddr6, 1));
++		 inet6_aftype.sprint((struct sockaddr *) &snaddr6, numeric));
+ 
+ 	/* Decode the flags. */
+ 	strcpy(flags, "U");
+diff -Naur net-tools-1.60.orig/lib/inet6_sr.c net-tools-1.60/lib/inet6_sr.c
+--- net-tools-1.60.orig/lib/inet6_sr.c	2000-05-22 21:18:37.000000000 +0000
++++ net-tools-1.60/lib/inet6_sr.c	2003-09-12 22:40:45.000000000 +0000
+@@ -63,7 +63,7 @@
+     if (*args == NULL)
+ 	return (usage());
+ 
+-    strcpy(target, *args++);
++    safe_strncpy(target, *args++, sizeof(target));
+     if (!strcmp(target, "default")) {
+         prefix_len = 0;
+ 	memset(&sa6, 0, sizeof(sa6));
+@@ -112,7 +112,7 @@
+ 		return (usage());
+ 	    if (rt.rtmsg_flags & RTF_GATEWAY)
+ 		return (usage());
+-	    strcpy(gateway, *args);
++	    safe_strncpy(gateway, *args, sizeof(gateway));
+ 	    if (inet6_aftype.input(1, gateway,
+ 				   (struct sockaddr *) &sa6) < 0) {
+ 		inet6_aftype.herror(gateway);
+@@ -152,7 +152,7 @@
+     }
+     if (devname) {
+ 	memset(&ifr, 0, sizeof(ifr));
+-	strcpy(ifr.ifr_name, devname);
++	safe_strncpy(ifr.ifr_name, devname, sizeof(ifr.ifr_name));
+ 
+ 	if (ioctl(skfd, SIOGIFINDEX, &ifr) < 0) {
+ 	    perror("SIOGIFINDEX");

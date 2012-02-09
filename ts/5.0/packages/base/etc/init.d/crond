@@ -1,0 +1,30 @@
+#! /bin/sh
+
+. $TS_GLOBAL
+
+case "$1" in  
+init)
+    if ! pkg_initialized $PACKAGE; then
+	pkg_set_init_flag $PACKAGE
+	crond
+	echo "0  * * * * /bin/checklogs" >> /tmp/crontab
+	for job in 1 2 3 4 5 6 7 8 9
+	do
+	    (eval echo '$CRON_JOB'$job) |
+	    while read cronj
+	    do
+		if [ ! -z "$cronj" ] ; then echo $cronj >> /tmp/crontab ; fi
+	    done
+	done
+	crontab /tmp/crontab
+    fi
+    ;;
+help)
+    echo "Usage: $0 init"
+    ;;
+  *)
+    exit 1
+    ;;
+esac
+
+exit 0

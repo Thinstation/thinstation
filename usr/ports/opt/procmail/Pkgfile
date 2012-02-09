@@ -1,0 +1,17 @@
+# Description: Versatile mail delivery agent/filter
+# URL:         http://www.procmail.org/
+# Maintainer:  Juergen Daubert, jue at crux dot nu
+
+name=procmail
+version=3.22
+release=3
+source=(ftp://ftp.fu-berlin.de/pub/unix/mail/procmail/$name-$version.tar.gz
+        $name-getline.patch)
+
+build() {
+    cd $name-$version
+    patch -p1 -i $SRC/$name-getline.patch
+    make CFLAGS0="$CFLAGS" LOCKINGTEST=/tmp all
+    make BASENAME=$PKG/usr install
+    make BASENAME=$PKG/usr install-suid
+}

@@ -1,0 +1,20 @@
+#!/bin/sh
+#
+# /etc/rc.d/ntpdate: sync time via ntp
+#
+
+case $1 in
+start)
+  /usr/bin/ntpdate pool.ntp.org 1>/dev/null &
+  ;;
+stop)
+  ;;
+restart)
+  $0 start
+  ;;
+*)
+  echo "usage: $0 [start|stop|restart]"
+  ;;
+esac
+
+# End of file

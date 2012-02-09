@@ -1,0 +1,19 @@
+# Description: tools for creating and checking DOS filesystems in linux
+# URL: http://www.daniel-baumann.ch/software/dosfstools/
+# Maintainer: Jose V Beneyto, sepen at crux dot nu
+# Packager: Ryan B. Lynch, rlynch at strozllc dot com
+# Depends on:
+
+name=dosfstools
+version=3.0.11
+release=1
+source=(http://www.daniel-baumann.ch/software/$name/$name-$version.tar.bz2)
+
+build() {
+  cd $name-$version
+  sed -e 's|^install: .*|install: install-bin install-man|' -i Makefile
+  make install DESTDIR=$PKG \
+               PREFIX=/usr \
+               SBINDIR=/sbin \
+               MANDIR=/usr/man
+}

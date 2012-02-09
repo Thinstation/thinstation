@@ -1,0 +1,42 @@
+# Description: Complete solution to record, convert and stream audio and video.
+# URL: http://ffmpeg.org/
+# Maintainer: Danny Rawlins, monster dot romster at gmail dot com
+# Packager: Matt Housh, jaeger at crux dot nu
+# Depends on: faac imlib2 lame libsdl libtheora libxvid x264 opencore-amr speex libva
+
+name=ffmpeg
+version=0.7.8
+release=1
+source=(http://ffmpeg.org/releases/$name-$version.tar.bz2)
+
+build() {
+	cd $name-$version
+
+	./configure \
+		--prefix=/usr \
+		--mandir=/usr/man \
+		--enable-vaapi \
+		--enable-gpl \
+		--enable-version3 \
+		--enable-avfilter \
+		--enable-libopencore-amrnb \
+		--enable-libopencore-amrwb \
+		--enable-libfaac \
+		--enable-libmp3lame \
+		--enable-libspeex \
+		--enable-libtheora \
+		--enable-libvorbis \
+		--enable-libx264 \
+		--enable-libxvid \
+		--enable-shared \
+		--enable-pthreads \
+		--enable-postproc \
+		--enable-x11grab \
+		--enable-nonfree \
+		--disable-debug \
+		--disable-static \
+		--disable-doc
+
+	make SHARED_PP='yes'
+	make DESTDIR=$PKG install install-man
+}

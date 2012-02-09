@@ -1,0 +1,30 @@
+# Description: A collection of core GNU utilities
+# URL:         http://www.gnu.org/software/coreutils/
+# Maintainer:  CRUX System Team, core-ports at crux dot nu
+# Depends on:  libgmp acl libcap
+
+name=coreutils
+version=8.14
+release=1
+source=(http://ftp.gnu.org/pub/gnu/$name/$name-$version.tar.xz
+        coreutils-uname.patch)
+
+build() {
+    cd $name-$version
+
+    patch -p1 -i $SRC/coreutils-uname.patch
+
+    ./configure --prefix=/usr \
+                --libexecdir=/usr/lib \
+                --mandir=/usr/man \
+                --disable-nls \
+                --disable-assert \
+                --enable-no-install-program=uptime,kill,chcon,runcon,groups
+    make
+    make DESTDIR=$PKG install 
+
+    mkdir $PKG/bin
+    mv $PKG/usr/bin/{cat,chgrp,chmod,chown,cp,date,dd,df,echo,false,ln,ls,mkdir,sleep} $PKG/bin
+    mv $PKG/usr/bin/{mknod,mv,pwd,readlink,rm,rmdir,stty,sync,touch,true,uname} $PKG/bin
+    rm -r $PKG/usr/share
+}

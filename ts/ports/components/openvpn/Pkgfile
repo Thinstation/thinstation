@@ -1,0 +1,28 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+# Depends on: lzo-TS
+
+name=openvpn
+pname=${name%-*}
+version=2.2.1
+release=1
+source=(http://swupdate.openvpn.org/community/releases/$pname-$version.tar.gz)
+
+build() {
+	cd $pname-$version
+
+	./configure --prefix=/ \
+			--exec-prefix=/ \
+			--sysconfdir=/etc \
+			--libexecdir=/lib \
+			--mandir=/usr/man \
+			--disable-extras
+
+	make
+	make DESTDIR=$PKG install
+        rm -rf $PKG/usr
+        rm -rf $PKG/share
+        mkdir -p $PKG/$TSCOMPROOT/$pname
+        mv $PKG/sbin $PKG/$TSCOMPROOT/$pname/.
+}

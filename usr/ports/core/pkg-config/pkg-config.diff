@@ -1,0 +1,35 @@
+From 2b86e9b4664fd43622e2cd5ab47713a818758970 Mon Sep 17 00:00:00 2001
+From: Tollef Fog Heen <tfheen@err.no>
+Date: Thu, 19 Aug 2010 06:54:09 +0000
+Subject: Add some []s before dnl
+
+Autoconf 2.66 has some problems with missing []s before dnls, causing
+the expanded text to be garbled.
+
+Fixes #29056
+---
+diff --git a/pkg.m4 b/pkg.m4
+index 9bb3e06..31169b4 100644
+--- a/pkg.m4
++++ b/pkg.m4
+@@ -135,7 +135,7 @@ $$1_PKG_ERRORS
+ Consider adjusting the PKG_CONFIG_PATH environment variable if you
+ installed software in a non-standard prefix.
+ 
+-_PKG_TEXT])dnl
++_PKG_TEXT])[]dnl
+         ])
+ elif test $pkg_failed = untried; then
+      	AC_MSG_RESULT([no])
+@@ -146,7 +146,7 @@ path to pkg-config.
+ 
+ _PKG_TEXT
+ 
+-To get pkg-config, see <http://pkg-config.freedesktop.org/>.])dnl
++To get pkg-config, see <http://pkg-config.freedesktop.org/>.])[]dnl
+         ])
+ else
+ 	$1[]_CFLAGS=$pkg_cv_[]$1[]_CFLAGS
+--
+cgit v0.8.3-6-g21f6
+

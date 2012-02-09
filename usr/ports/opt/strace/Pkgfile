@@ -1,0 +1,15 @@
+# Description: System call tracing utility (like trace, truss, etc)
+# URL:         http://www.liacs.nl/~wichert/strace/
+# Maintainer:  Tilman Sauerbeck, tilman at crux dot nu
+
+name=strace
+version=4.5.20
+release=1
+source=(http://download.sourceforge.net/$name/$name-$version.tar.bz2)
+
+build() {
+    cd $name-$version
+    ./configure --prefix=/usr --mandir=/usr/man
+    make
+    make DESTDIR=$PKG install
+}

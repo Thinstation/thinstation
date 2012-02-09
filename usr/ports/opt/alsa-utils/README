@@ -1,0 +1,40 @@
+
+
+README for alsa-utils
+
+
+In order to facilitate saving and restoring of soundcard mixer levels at
+shutdown and boot, take these two methods as examples:
+
+
+***NOTE***
+BOTH methods require that you store your mixer levels beforehand, use
+'/usr/sbin/alsactl store' first!
+**********
+
+
+Method 1: /etc/modprobe.conf
+
+Add something like the following to /etc/modprobe.conf:
+
+----
+# ALSA mixer settings save/restore
+install snd-emu10k1 /sbin/modprobe --ignore-install \
+	snd-emu10k1 $CMDLINE_OPTS; /usr/sbin/alsactl restore
+remove snd-emu10k1 /usr/sbin/alsactl store; /sbin/modprobe -r \
+	--ignore-remove snd-emu10k1
+----
+
+(As with the other READMEs replace 'snd-emu10k1' with the correct
+ soundcard module for your system.)
+
+(On some hardware it seems the kernel module gets loaded but the
+ soundcard isn't initialized in time for the modprobe.conf install
+ command to succeed. If this is the case for your hardware, try
+ method 2 instead.)
+
+
+Method 2: /etc/rc.d/alsa init script
+
+Add "alsa" to the SERVICES array in /etc/rc.conf.
+

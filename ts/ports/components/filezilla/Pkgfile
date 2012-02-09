@@ -1,0 +1,30 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=filezilla
+version=3.5.3
+release=1
+source=(http://downloads.sourceforge.net/filezilla/FileZilla_${version}_src.tar.bz2 \
+gnutls.patch)
+
+build() {
+	cd $name-$version
+#	patch -p0 <../gnutls.patch
+
+	./configure --prefix=/ \
+			--exec-prefix=/ \
+			--datarootdir=/usr/share \
+			--sysconfdir=/etc \
+			--libexecdir=/lib \
+			--mandir=/usr/man \
+			--with-tinyxml=builtin \
+			--disable-manualupdatecheck \
+			--disable-autoupdatecheck \
+			--without-dbus \
+			--disable-static \
+			--enable-shared
+
+	make
+	make DESTDIR=$PKG install
+}

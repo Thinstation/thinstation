@@ -1,0 +1,50 @@
+#!/bin/sh
+######################################################################
+# acpid: starts/stops ACPI daemon
+######################################################################
+
+daemon="/usr/sbin/acpid"
+options="-c /etc/acpi/events"
+
+######################################################################
+# Start/Stop/Reload/Status Functions
+######################################################################
+start() {
+	if [ -e /proc/acpi ]; then
+		# call acpid with default config/logfiles
+		$daemon $options
+		return $?
+	fi
+}
+stop() {
+        pkill -o -x ${daemon##*/}
+        return $?
+}
+reload() {
+        pkill -HUP -o -x ${daemon##*/}
+        return $?
+}
+status() {
+        base=${daemon##*/}
+        dpid=`pidof -o $$ -o $PPID -o %PPID -x ${base}`
+        if [ "$dpid" != "" ]; then
+           echo "${base} (pid $dpid) is running..."
+        elif [ -s /var/run/${base}.pid ]; then
+           echo "${base} is dead but pid file exists..."
+        else
+           echo "${base} is stopped."
+        fi
+        return
+}
+######################################################################
+# See how we were called
+######################################################################
+case "$1" in
+       start) start      ;;
+        stop) stop       ;;
+      reload) reload     ;;
+     restart) stop;start ;;
+      status) status     ;;
+           *) echo "Usage: $0 {start|stop|reload|restart|status}" ; exit 1
+esac
+exit $?

@@ -1,0 +1,26 @@
+# Description: non-gui part of the library formerly known as gnome-libs
+# URL: http://cvs.gnome.org/lxr/source/libgnome
+# Maintainer: Matt Housh, jaeger at morpheus dot net
+# Depends on: libxml2, libxslt, libbonobo, gnome-vfs, gconf, esound
+# Group: gnome/platform
+
+name=libgnome
+version=2.30.0
+release=1
+source=(http://ftp.gnome.org/pub/gnome/sources/libgnome/2.30/libgnome-$version.tar.bz2)
+
+build() {
+	cd $name-$version
+	rm po/*.po
+	sed -i -e 's/USE_NLS=yes/USE_NLS=no/' \
+		-e 's/ENABLE_NLS 1/ENABLE_NLS 0/' configure
+	./configure --prefix=/usr \
+		--mandir=/usr/man \
+		--disable-debug \
+		--disable-gtk-doc \
+		--disable-schemas-install
+	make
+	export GCONF_DISABLE_MAKEFILE_SCHEMA_INSTALL=1
+	make DESTDIR=$PKG install
+	rm -rf $PKG/usr/share/gtk-doc
+}

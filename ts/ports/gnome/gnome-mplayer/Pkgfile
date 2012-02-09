@@ -1,0 +1,22 @@
+# Description: GTK2 interface to MPlayer (GNOME independent)
+# URL:         http://code.google.com/p/gnome-mplayer/
+# Maintainer:  Bartlomiej Palmowski, rotwang at crux dot org dot pl
+# Packager:    Fredrik Rinnestam, fredrik at obra dot se
+# Depends on:  gtk mplayer dbus-glib
+
+name=gnome-mplayer
+version=1.0.4
+release=1
+source=(http://$name.googlecode.com/files/$name-$version.tar.gz)
+
+build() {
+    cd $name-$version
+    ./configure --prefix=/usr \
+                --mandir=/usr/man \
+                --disable-schemas-install \
+                --without-gconf
+    make
+    make DESTDIR=$PKG install
+    rm -rf $PKG/usr/share/doc
+    rm -rf $PKG/usr/share/locale
+}

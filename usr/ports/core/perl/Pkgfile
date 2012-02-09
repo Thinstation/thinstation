@@ -1,0 +1,47 @@
+# Description: Perl programming language
+# URL:         http://www.perl.org/
+# Maintainer:  CRUX System Team, core-ports at crux dot nu
+# Depends on:  db gdbm
+
+name=perl
+version=5.12.4
+release=1
+source=(http://www.cpan.org/src/5.0/$name-$version.tar.bz2)
+
+build() {
+    cd $name-$version
+
+    ./Configure -des \
+                -Dprefix=/usr \
+                -Dprivlib=/usr/lib/perl5/${version%.*} \
+                -Dsitelib=/usr/lib/perl5/site_perl/${version%.*} \
+                -Darchname=linux \
+                -Dman1ext=1pm \
+                -Dman3ext=3pm \
+                -Dman1dir=/usr/man/man1 \
+                -Dman3dir=/usr/man/man3 \
+                -Di_gdbm \
+                -Di_db \
+                -Duseshrplib \
+                -Dusethreads \
+                -Doptimize="$CFLAGS"
+    make
+    make DESTDIR=$PKG install
+
+    ln -sf perl$version $PKG/usr/bin/perl
+    ln -sf c2ph $PKG/usr/bin/pstruct
+    ln -sf s2p $PKG/usr/bin/psed
+    ln -sf c2ph.1pm $PKG/usr/man/man1/pstruct.1pm
+    ln -sf s2p.1pm $PKG/usr/man/man1/psed.1pm
+
+    find $PKG \
+         -iname 'TODO*' -or \
+         -iname 'Change*' -or \
+         -iname 'README*' -or \
+         -name '*.bs' -or \
+         -name '.packlist' -or \
+         -name 'perllocal.pod' | xargs rm
+    
+    find $PKG -depth -empty -exec rmdir {} \;
+    chmod -R +w $PKG
+}

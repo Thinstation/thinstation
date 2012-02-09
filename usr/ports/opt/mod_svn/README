@@ -1,0 +1,29 @@
+README for mod_svn
+
+REQUIREMENTS
+
+PRE-INSTALL
+
+POST-INSTALL
+
+Add something like this to your apache configuration:
+
+   LoadModule dav_module      lib/apache/mod_dav.so
+   LoadModule dav_svn_module  lib/apache/mod_dav_svn.so
+
+   <Location /svn/repos>
+      DAV svn
+      SVNPath /home/svnroot
+
+      # Limit write permission to list of valid users.
+      <LimitExcept GET PROPFIND OPTIONS REPORT>
+         # Require SSL connection for password protection.
+         # SSLRequireSSL
+
+         AuthType Basic
+         AuthName "Authorization Realm"
+         AuthUserFile /absolute/path/to/passwdfile
+         Require valid-user
+      </LimitExcept>
+   </Location>
+

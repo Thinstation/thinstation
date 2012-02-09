@@ -1,0 +1,154 @@
+#! /bin/sh
+#
+# Thinstation init script
+#
+# Mount Filesystems, must be done before anything else .
+if [ -e /etc/thinstation.global ] ; then . /etc/thinstation.global ; fi
+
+mount -t proc proc /proc
+mount -t sysfs sys /sys
+
+if is_enabled $MEMORY_CONSTRAINED ; then
+	mount -n -t tmpfs -o exec,nosuid,noatime,mode=0755,nr_blocks=128,nr_inodes=1024 tmpfs /tmp
+	mount -n -t devtmpfs -o exec,nosuid,noatime,mode=0755,nr_blocks=128,nr_inodes=1024 dev /dev
+	mkdir /dev/shm
+	mount -n -t tmpfs -o exec,nosuid,noatime,mode=0755,nr_blocks=128,nr_inodes=1024 shm /dev/shm
+else
+	mount -n -t tmpfs tmpfs /tmp
+	mount -n -t devtmpfs dev /dev
+	mkdir /dev/shm
+	mount -n -t tmpfs shm /dev/shm
+fi
+
+mkdir /dev/pts
+mount -t devpts devpts /dev/pts
+mkdir -m 1755 /tmp/ts
+
+# Start setting up the environment
+
+INITLIST=/tmp/initlist
+KERNEL_VERSION=`uname -r`
+
+# Runs packages in init level
+
+init_packages()
+{
+(cat $INITLIST | sort) |
+while read package
+do
+	let progress=progress+1
+	splash_progress $progress
+	if [ -n "$DEBUG_BOOT" ]; then
+	    echo -n `echo "$package -" | cut -c4-`" "
+	fi
+	(
+	    trap - INT QUIT TSTP
+	    if [ -n "$DEBUG_BOOT" ]; then
+	        echo "$package" >> $LOGFILE
+            fi
+	    export CURRENTRC=$1
+	    if [ -z "$DEBUG_PACKAGES" ]; then
+	        /etc/rc$1.d/$package init >> $LOGFILE 2>&1
+	    else
+	        /etc/rc$1.d/$package init >> $LOGFILE
+		sleep 1
+	    fi
+	)
+done
+}
+
+umask 022
+
+echo "Thinstation init script"
+
+if [ -e /etc/DEBUGLEVEL ] ; then
+	. /etc/DEBUGLEVEL
+fi
+get_debug_level $DEBUGLEVEL
+echo "DEBUG_BOOT=$DEBUG_BOOT
+DEBUG_NETWORK=$DEBUG_NETWORK
+DEBUG_INIT=$DEBUG_INIT
+DEBUG_KERNEL=$DEBUG_KERNEL
+DEBUG_MODULES=$DEBUG_MODULES
+DEBUG_PACKAGES=$DEBUG_PACKAGES
+DEBUG_EMAIL=$DEBUG_EMAIL" >> $TS_RUNTIME
+
+# Enable Verbose mode of Debug Package
+
+if [ -n "$DEBUG_BOOT" ] ; then
+	debug="-d"
+fi
+
+if [ -n "$DEBUG_INIT" ]; then
+	set -v
+	echo_log "\nDebug Mode Enabled, echoing commands to screen\n"
+	echo "set -v" >> $TS_RUNTIME
+	sleep 5
+fi
+
+if [ -n "$DEBUG_BOOT" ]; then echo "udev" >> $LOGFILE; fi
+
+# make sure hotplugger is not set
+echo > /proc/sys/kernel/hotplug
+
+# launch udev daemon
+test -z "$(/bin/pidof -s udevd)" && /sbin/udevd --daemon
+
+# coldplug devices and wait for the queue to be processed
+/sbin/udevadm trigger --type=subsystems --action=add
+/sbin/udevadm trigger --type=devices --action=add
+/sbin/udevadm settle
+
+# Setup Splash Progress Bar
+if [ -n "$DEBUG_BOOT" ]; then echo "Setup splash" >> $LOGFILE; fi
+if ! is_disabled $FASTBOOT ; then
+        splash_total=100
+else
+	splash_rc0=`ls /etc/rc0.d | wc -l`
+	splash_rc5=`ls /etc/rc5.d | wc -l`
+	let splash_total=splash_rc0+splash_rc5+50
+fi
+splash
+splash_start
+let progress=25
+splash_progress
+
+# Choose Preferred Network for extra files.
+echo_log -e "\nChoosing Prefered Network... " $debug
+. /etc/rc.d/choose_network
+
+if ! is_disabled $FASTBOOT ; then
+	export FASTBOOT
+	echo_log -e "\nInitializing Fastboot..." $debug
+	. /etc/rc.d/fastboot
+fi
+
+if [ -n "$DEBUG_BOOT" ]; then echo "packages" >> $LOGFILE; fi
+# Packages init
+
+for x in 0 5; do
+	echo_log -e "\nInitializing rc$x packages... " $debug
+	ls /etc/rc$x.d > $INITLIST
+	init_packages $x
+	let progress=progress+splash_rc0
+	echo_log "" $debug
+done
+
+if [ "`make_caps x$RTC_CMOS`" == "XLOCAL" ]; then
+	echo_log -e "\nSetting System Time as Local... " $debug
+	hwclock -s --local
+else
+	echo "System Time should allready be set from hardware clock in utc time storage format" >/dev/null
+fi
+
+rm $INITLIST
+
+if [ -n "$DEBUG_BOOT" ]; then echo "Debug Pause" >> $LOGFILE; fi
+if is_enabled $DEBUGPAUSE ; then
+splash_exit
+    echo_log -d "\n\n\nDebug enabled, Type exit to continue"
+    echo_log -d "If you do not want this to happen, disable the debugpause parameter\n"
+    . $TS_GLOBAL
+    /bin/ash
+fi
+

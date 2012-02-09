@@ -1,0 +1,21 @@
+# Description: CRUX ports system tools
+# URL:         http://crux.nu
+# Maintainer:  CRUX System Team, core-ports at crux dot nu
+
+name=ports
+version=1.5
+release=10
+source=(http://crux.nu/files/tools/ports/$name-$version.tar.gz \
+        core.rsync opt.rsync xorg.rsync contrib.rsync.inactive)
+
+build () {
+    cd $name-$version
+    make
+    make DESTDIR=$PKG install
+
+    install -m 0644 ../core.rsync $PKG/etc/ports/core.rsync
+    install -m 0644 ../opt.rsync $PKG/etc/ports/opt.rsync
+    install -m 0644 ../xorg.rsync $PKG/etc/ports/xorg.rsync
+    install -m 0644 ../contrib.rsync.inactive \
+        $PKG/etc/ports/contrib.rsync.inactive
+}

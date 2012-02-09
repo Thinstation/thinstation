@@ -1,0 +1,58 @@
+# Description: The C library used in the GNU system
+# URL:         http://www.gnu.org/software/libc/
+# Maintainer:  CRUX System Team, core-ports at crux dot nu
+
+name=glibc
+version=2.13
+release=2
+kver=2.6.35.14
+source=(http://ftp.gnu.org/gnu/glibc/glibc-$version.tar.xz
+	http://mirrors.med.harvard.edu/linux/kernel/v2.6/longterm/v2.6.35/linux-2.6.35.14.tar.bz2
+        glibc-fedora_i686.patch
+        glibc-ignore_origin.patch
+        disable-assembler-optimizations.patch
+        Optimize-__getpagesize-a-bit.patch
+        hosts resolv.conf nsswitch.conf host.conf ld.so.conf)
+
+build() {
+export CFLAGS="$SAFECFLAGS"
+    # install kernel headers
+        kernel=$SRC/linux-$kver
+        cd $kernel
+        make distclean
+        make defconfig
+        make prepare
+        make modules_prepare
+        make headers_install
+
+    mkdir $PKG/usr/
+    cp -r $SRC/linux-$kver/usr/include $PKG/usr
+#    ln -sf $PKG/usr/include/asm-generic $PKG/usr/include/asm
+    chown root:root $PKG/usr
+
+cd $SRC
+    patch -p1 -d $name-$version -i $SRC/$name-fedora_i686.patch
+    patch -R -p1 -d $name-$version -i $SRC/Optimize-__getpagesize-a-bit.patch
+    patch -p1 -d $name-$version -i $SRC/$name-ignore_origin.patch
+    patch -p1 -d $name-$version -i $SRC/disable-assembler-optimizations.patch
+    mkdir build
+    cd build
+    ../$name-$version/configure --prefix=/usr \
+                                --libexecdir=/usr/lib \
+                                --with-headers=$PKG/usr/include \
+                                --with-tls \
+                                --enable-kernel=2.6.27 \
+                                --enable-add-ons \
+                                --disable-profile \
+                                --without-gd
+    make 
+    #make check
+    make install_root=$PKG install
+
+    cp $SRC/{hosts,resolv.conf,nsswitch.conf,host.conf,ld.so.conf} $PKG/etc
+    ln -sf ../usr/share/zoneinfo/UTC $PKG/etc/localtime
+    mkdir -p $PKG/etc/ld.so.conf.d $PKG/usr/lib/locale
+    touch $PKG/etc/ld.so.cache
+
+    rm -rf $PKG/usr/share/{info,locale}
+}

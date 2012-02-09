@@ -1,0 +1,20 @@
+# Description: xorg font font-bitstream-100dpi
+# URL: http://xorg.freedesktop.org
+# Maintainer: Tilman Sauerbeck, tilman at crux dot nu
+# Depends on: xorg-bdftopcf, xorg-mkfontdir, xorg-mkfontscale
+
+name=xorg-font-bitstream-100dpi
+version=1.0.3
+release=1
+source=(http://xorg.freedesktop.org/releases/individual/font/font-bitstream-100dpi-$version.tar.bz2)
+
+build() {
+	cd font-bitstream-100dpi-$version
+
+	./configure --prefix=/usr
+
+	make
+	make DESTDIR=$PKG install
+
+	rm $PKG/usr/share/fonts/X11/100dpi/fonts.dir
+}

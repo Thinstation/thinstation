@@ -1,0 +1,33 @@
+#!/bin/sh
+#
+# /etc/rc.d/net: start/stop network
+#
+
+case $1 in
+start)
+	# loopback
+	/sbin/ip addr add 127.0.0.1/8 dev lo broadcast + scope host
+	/sbin/ip link set lo up
+	# ethernet
+	/sbin/ip addr add 192.168.1.100/24 dev eth0 broadcast +
+	/sbin/ip link set eth0 up
+	# default route
+	/sbin/ip route add default via 192.168.1.1
+	;;
+stop)
+	/sbin/ip route del default
+	/sbin/ip link set eth0 down
+	/sbin/ip addr del 192.168.1.100/24 dev eth0
+	/sbin/ip link set lo down
+	/sbin/ip addr del 127.0.0.1/8 dev lo
+	;;
+restart)
+	$0 stop
+	$0 start
+	;;
+*)
+	echo "usage: $0 [start|stop|restart]"
+	;;
+esac
+
+# End of file

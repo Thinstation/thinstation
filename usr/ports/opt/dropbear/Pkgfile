@@ -1,0 +1,22 @@
+# Description: Small and secure SSH2 server and client
+# URL:         http://matt.ucc.asn.au/dropbear/dropbear.html
+# Maintainer:  Juergen Daubert, jue at crux dot nu
+# Depends on:  zlib
+
+name=dropbear
+version=0.53.1
+release=1
+source=(http://matt.ucc.asn.au/$name/releases/$name-$version.tar.bz2 \
+        $name)
+
+build () {
+    cd $name-$version
+    sed -i 's|libexec|lib/ssh|; s|X11R6/bin|bin|; s|bin/X11|bin|' options.h
+    ./configure --prefix=/usr 
+    make
+    make DESTDIR=$PKG install
+    install -d $PKG/{etc/{rc.d,dropbear},usr/man/man{1,8}}
+    install -m 644 dbclient.1 $PKG/usr/man/man1
+    install -m 644 dropbear{.8,key.8} $PKG/usr/man/man8
+    install -m 755 $SRC/dropbear $PKG/etc/rc.d
+}

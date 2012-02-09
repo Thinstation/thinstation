@@ -1,0 +1,17 @@
+# Description: xorg configuration files
+# URL: http://xorg.freedesktop.org
+# Maintainer: Tilman Sauerbeck, tilman at crux dot nu
+
+name=xorg-cf-files
+version=1.0.4
+release=1
+source=(http://xorg.freedesktop.org/releases/individual/util/$name-$version.tar.bz2)
+
+build() {
+	cd $name-$version
+
+	./configure --prefix=/usr
+
+	make
+	make DESTDIR=$PKG install
+}

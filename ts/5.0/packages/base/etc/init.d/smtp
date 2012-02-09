@@ -1,0 +1,29 @@
+#! /bin/sh
+
+. $TS_GLOBAL
+
+case "$1" in  
+init)
+    if ! pkg_initialized $PACKAGE; then
+
+	if [ ! -z "$NET_SMTP_EMAIL" ] || [ ! -z "$NET_SMTP_SERVER" ]; then
+	  echo "*/5 * * * * smtp" >> /tmp/crontab
+	  crontab /tmp/crontab
+	  if [ -n "$DEBUG_EMAIL" ] ; then
+		  cat $LOGFILE | smtpclient -s "Log File on `hostname`" \
+		        -f "root@`hostname`" -S $NET_SMTP_SERVER -P 25 $NET_SMTP_EMAIL
+	  fi
+	fi
+
+	pkg_set_init_flag $PACKAGE
+    fi
+    ;;
+help)
+    echo "Usage: $0 init"
+    ;;
+  *)
+    exit 1
+    ;;
+esac
+
+exit 0

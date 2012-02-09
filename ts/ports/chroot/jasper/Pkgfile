@@ -1,0 +1,23 @@
+# Description:	Codec JPEG-2000 Part-1 standard.
+# URL:		http://www.ece.uvic.ca/~mdadams/jasper/
+# Maintainer:	Oleksiy V. Khilkevich <grim@asu.ntu-kpi.kiev.ua>
+# Packager:	Danny Rawlins, romster at shortcircuit dot net dot au
+# Depends on:	mesa3d
+
+name=jasper
+version=1.900.1
+release=1
+source=(http://www.ece.uvic.ca/~mdadams/jasper/software/jasper-$version.zip)
+
+build() {
+	cd jasper-$version
+
+	./configure \
+		--prefix=/usr \
+		--enable-shared \
+		--disable-static
+
+	make
+	make DESTDIR=$PKG install
+}
+

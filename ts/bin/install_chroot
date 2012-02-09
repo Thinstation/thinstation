@@ -1,0 +1,94 @@
+#!/bin/bash
+# Description: Thinstation Utility to install chroot for Thinstation Development
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+stage1()
+{
+	echo "Chroot not previuosly setup. Doing it NOW!"
+
+	for i in proc sys home dev mnt;
+		do
+			if [ ! -e $i ] ; then
+				mkdir -m 755 $i
+			fi
+		done
+
+	if [ ! -e tmp ] ; then
+		mkdir -m 1777 tmp
+	fi
+	if [ ! -e root ] ; then
+		mkdir -m 750 root
+	fi
+
+	for i in acl libcap coreutils pkgutils glibc bash readline ncurses findutils libpcre grep;
+		do
+			pkg=`find $ROOT/{usr,ts} |grep -e pkg.tar.gz |grep -e $i`
+			echo $pkg | xargs tar -p -o -C $ROOT -xf
+		done
+
+	if [ ! -d $ROOT/var/lib/pkg ]; then
+		mkdir -p $ROOT/var/lib/pkg
+		touch $ROOT/var/lib/pkg/db
+	fi
+
+	if [ -d $ROOT/var/lib/pkg/rejected ]; then
+		rm -rf $ROOT/var/lib/pkg/rejected
+	fi
+
+	touch $ROOT/dostage2
+}
+
+stage2()
+{
+	PKGARGS="-f"
+
+	for PKG_FILE in `find $ROOT/{usr/ports,ts/ports/xorg,ts/ports/gnome,ts/ports/chroot,ts/ports/static-source,ts/ports/components} |grep -e pkg.tar.gz` ;
+        	do
+                	PKG_NAME=${PKG_FILE##*/}
+                	PKG_NAME="`echo $PKG_NAME |cut -d "#" -f1`"
+                	echo "Installing Package $PKG_NAME"
+                	/usr/bin/pkgadd $PKGARGS $PKG_FILE
+        	done
+	rm /dostage2
+	touch /dostage3
+}
+
+stage3()
+{
+	for i in `ls --color=never $TSWRKNG/packages` ;
+		do
+			echo "Populating Package $i"
+			cd $TSWRKNG/packages/$i
+			if [ -e /ts/unwind_cache/$i.turbo ]; then
+				if cat /ts/unwind_cache/$i.turbo |grep -e "#" |cut -d "#" -f2 |md5sum -c --quiet ; then
+					. /ts/unwind_cache/$i.turbo
+				else
+					update $i
+				fi
+			else
+				update $i
+			fi
+		done
+	echo "Installing default kernel"
+	update -k
+	echo "Adding SMP kernel"
+	cp -rf /ts/components/kernel_SMP/kernel/* $TSWRKNG/kernel/.
+	echo "Populating tools"
+	update -t
+	echo "Populating boot-images"
+	update -b
+	cd $TSWRKNG
+	./build --regenconf
+	rm /dostage3
+}
+
+ROOT=$PWD
+if [ -e $ROOT/dostage3 ] ;
+	then
+		stage3
+	elif [ -e $ROOT/dostage2 ] ; then
+		stage2
+	else
+		stage1
+fi

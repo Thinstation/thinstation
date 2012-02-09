@@ -1,0 +1,18 @@
+# Description: Notification library from the Galago project
+# URL: http://www.galago-project.org/news/index.php
+# Packager: Matt Housh, jaeger at morpheus dot net
+# Maintainer: Jose V Beneyto, sepen at crux dot nu
+# Depends on: dbus-glib, gtk
+
+name=libnotify
+version=0.4.5
+release=1
+source=(http://www.galago-project.org/files/releases/source/$name/$name-$version.tar.gz)
+
+build() {
+	cd $name-$version
+	./configure --prefix=/usr
+	make
+	make DESTDIR=$PKG install
+	rm -rf $PKG/usr/share
+}

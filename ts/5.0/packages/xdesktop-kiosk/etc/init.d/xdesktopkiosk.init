@@ -1,0 +1,20 @@
+#! /bin/sh
+
+. $TS_GLOBAL
+
+case "$1" in  
+init)
+    if ! pkg_initialized $PACKAGE; then
+        pkg_set_init_flag $PACKAGE
+        if [ ! -e $HOME/.config/openbox ] ; then
+            mkdir -p $HOME/.config/openbox
+        fi 
+        cat /etc/xdesktopkiosk.tpl > $HOME/.config/openbox/rc.xml
+    fi
+    ;;
+  *)
+    exit 1
+    ;;
+esac
+
+exit 0

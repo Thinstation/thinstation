@@ -1,0 +1,25 @@
+Index: servers/slapd/slapd.conf
+--- servers/slapd/slapd.conf.orig	2003-05-25 01:19:14.000000000 +0200
++++ servers/slapd/slapd.conf	2003-12-05 10:43:58.000000000 +0100
+@@ -64,4 +64,21 @@
+ # Mode 700 recommended.
+ directory	%LOCALSTATEDIR%/openldap-data
+ # Indices to maintain
++
+ index	objectClass	eq
++
++#######################################################################
++# replication via slurpd(8)
++#######################################################################
++
++# master server configuration
++#replogfile      %LOCALSTATEDIR%/openldap-slurp
++#replica-pidfile %LOCALSTATEDIR%/slurpd.pid
++#replica         host=slave.example.com:389
++#                binddn="cn=admin,dc=example,dc=org"
++#                bindmethod=simple credentials=secret
++
++# slave server(s) configuration
++#updatedn        "cn=admin,dc=example,dc=org"
++#updateref       ldap://master.example.org
++

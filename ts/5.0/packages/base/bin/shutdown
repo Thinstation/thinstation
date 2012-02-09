@@ -1,0 +1,14 @@
+#! /bin/sh
+# TS_GLOGAL
+
+UPID=`pidof udhcpc`
+if [ -n "$UPID" ] ; then
+	kill -SIGUSR2 $UPID
+	kill -SIGHUP $UPID
+fi
+
+/bin/umount /dev/loop0 2> /dev/null
+/bin/umount /boot 2> /dev/null
+/bin/umount /mnt/disc/sda/part1 2> /dev/null
+/bin/umount -a -r 2> /dev/null
+/bin/poweroff

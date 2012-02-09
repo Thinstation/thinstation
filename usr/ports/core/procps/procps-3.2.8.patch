@@ -1,0 +1,91 @@
+diff -Nru procps-3.2.8.orig/Makefile procps-3.2.8/Makefile
+--- procps-3.2.8.orig/Makefile	2010-11-07 11:59:17.736493931 +0100
++++ procps-3.2.8/Makefile	2010-11-07 12:24:02.973714246 +0100
+@@ -24,26 +24,26 @@
+ ############ vars
+ 
+ # so you can disable them or choose alternates
+-ldconfig := ldconfig
++ldconfig := true
+ ln_f     := ln -f
+ ln_sf    := ln -sf
+ install  := install -D --owner 0 --group 0
+ 
+ # Lame x86-64 /lib64 and /usr/lib64 abomination:
+-lib64    := lib$(shell [ -d /lib64 ] && echo 64)
++lib64    := lib
+ 
+ usr/bin                  := $(DESTDIR)/usr/bin/
+ bin                      := $(DESTDIR)/bin/
+ sbin                     := $(DESTDIR)/sbin/
+ usr/proc/bin             := $(DESTDIR)/usr/bin/
+-man1                     := $(DESTDIR)/usr/share/man/man1/
+-man5                     := $(DESTDIR)/usr/share/man/man5/
+-man8                     := $(DESTDIR)/usr/share/man/man8/
++man1                     := $(DESTDIR)/usr/man/man1/
++man5                     := $(DESTDIR)/usr/man/man5/
++man8                     := $(DESTDIR)/usr/man/man8/
+ lib                      := $(DESTDIR)/$(lib64)/
+ usr/lib                  := $(DESTDIR)/usr/$(lib64)/
+ usr/include              := $(DESTDIR)/usr/include/
+ 
+-#SKIP     := $(bin)kill $(man1)kill.1
++SKIP     := $(bin)kill $(man1)kill.1
+ 
+ BINFILES := $(usr/bin)uptime $(usr/bin)tload $(usr/bin)free $(usr/bin)w \
+             $(usr/bin)top $(usr/bin)vmstat $(usr/bin)watch $(usr/bin)skill \
+@@ -174,7 +174,8 @@
+ # want this rule first, use := on ALL, and ALL not filled in yet
+ all: do_all
+ 
+--include */module.mk
++-include proc/module.mk
++-include ps/module.mk
+ 
+ do_all:    $(ALL)
+ 
+@@ -222,14 +223,14 @@
+ ###### install
+ 
+ $(BINFILES) : all
+-	$(install) --mode a=rx $(notdir $@) $@
++	$(install) --mode=0755 $(notdir $@) $@
+ 
+ $(MANFILES) : all
+-	$(install) --mode a=r $(notdir $@) $@
++	$(install) --mode=0644 $(notdir $@) $@
+ 
+ install: $(filter-out $(SKIP) $(addprefix $(DESTDIR),$(SKIP)),$(INSTALL))
+-	cd $(usr/bin) && $(ln_f) skill snice
+-	cd $(usr/proc/bin) && $(ln_f) pgrep pkill
++	cd $(usr/bin) && $(ln_sf) skill snice
++	cd $(usr/proc/bin) && $(ln_sf) pgrep pkill
+ 
+ ############ prog.c --> prog.o
+ 
+diff -Nru procps-3.2.8.orig/proc/module.mk procps-3.2.8/proc/module.mk
+--- procps-3.2.8.orig/proc/module.mk	2010-11-07 11:59:17.746493508 +0100
++++ procps-3.2.8/proc/module.mk	2010-11-07 12:29:58.358664876 +0100
+@@ -96,7 +96,7 @@
+ #################### install rules ###########################
+ 
+ $(lib)$(SOFILE) : proc/$(SONAME)
+-	$(install) --mode a=rx $< $@
++	$(install) --mode=0755 $< $@
+ 
+ ifneq ($(SOLINK),$(SOFILE))
+ .PHONY: $(lib)$(SOLINK)
+diff -Nru procps-3.2.8.orig/ps/module.mk procps-3.2.8/ps/module.mk
+--- procps-3.2.8.orig/ps/module.mk	2010-11-07 11:59:17.746493508 +0100
++++ procps-3.2.8/ps/module.mk	2010-11-07 12:26:19.287944149 +0100
+@@ -33,8 +33,8 @@
+ 
+ 
+ $(bin)ps: ps/ps
+-	$(install) --mode a=rx $< $@
++	$(install) --mode=0755 $< $@
+ 
+ $(man1)ps.1 : ps/ps.1
+-	$(install) --mode a=r $< $@
++	$(install) --mode=0644 $< $@
+ 	-rm -f $(DESTDIR)/var/catman/cat1/ps.1.gz $(DESTDIR)/var/man/cat1/ps.1.gz

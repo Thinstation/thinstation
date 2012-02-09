@@ -1,0 +1,27 @@
+# Description: GNU database library for C
+# URL:         http://www.gnu.org/software/gdbm/gdbm.html
+# Maintainer:  CRUX System Team, core-ports at crux dot nu
+
+name=gdbm
+version=1.8.3
+release=3
+source=(http://ftp.gnu.org/gnu/$name/$name-$version.tar.gz
+        $name-$version-compat-linking.patch)
+
+build() {
+    cd $name-$version
+    
+    patch -p1 -i $SRC/$name-$version-compat-linking.patch
+    
+    ./configure --prefix=/usr \
+                --includedir=/usr/include/gdbm 
+    
+    make
+    make -j1 INSTALL_ROOT=$PKG install install-compat
+    ln -sf gdbm/gdbm.h $PKG/usr/include/gdbm.h
+
+    sed -i "/dependency_libs/s|=.*$|='/usr/lib/libgdbm.la'|" $PKG/usr/lib/libgdbm_compat.la
+
+    rm -r $PKG/usr/info
+    chown -R root.root $PKG
+}

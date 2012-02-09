@@ -1,0 +1,27 @@
+#!/bin/sh
+#
+# /usr/sbin/rotatelog: rotate logfile
+#
+
+if [ "$1" = "" ]; then
+    echo "usage : `basename $0` <logfile>"
+    exit 1
+fi
+
+if [ ! -f /var/log/$1 ]; then
+    echo "`basename $0`: /var/log/$1 not found"
+    exit 1
+fi
+
+[ -f /var/log/old/$1.9 ] && rm /var/log/old/$1.9
+[ -f /var/log/old/$1.8 ] && mv /var/log/old/$1.8 /var/log/old/$1.9
+[ -f /var/log/old/$1.7 ] && mv /var/log/old/$1.7 /var/log/old/$1.8
+[ -f /var/log/old/$1.6 ] && mv /var/log/old/$1.6 /var/log/old/$1.7
+[ -f /var/log/old/$1.5 ] && mv /var/log/old/$1.5 /var/log/old/$1.6
+[ -f /var/log/old/$1.4 ] && mv /var/log/old/$1.4 /var/log/old/$1.5
+[ -f /var/log/old/$1.3 ] && mv /var/log/old/$1.3 /var/log/old/$1.4
+[ -f /var/log/old/$1.2 ] && mv /var/log/old/$1.2 /var/log/old/$1.3
+[ -f /var/log/old/$1.1 ] && mv /var/log/old/$1.1 /var/log/old/$1.2
+[ -f /var/log/$1 ] && (cp /var/log/$1 /var/log/old/$1.1; echo -n "" > /var/log/$1)
+
+# End of file

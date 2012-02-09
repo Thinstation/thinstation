@@ -1,0 +1,49 @@
+#! /bin/sh
+
+HTML=0
+
+[ "$1" = "--html" ] && HTML=1
+
+msg()
+{
+	local STR="$*"
+
+	if [ "$HTML" -eq 1 ]
+	then
+		echo "</pre>"
+		echo "<table border=0 width=100%><tr><td bgcolor='#bbbbbb'><font color='black' face='helvetica' size=+1><b>&nbsp;$STR</b></font></td><tr></table>"
+		echo "<pre>"
+	else
+		message "--[ $STR ]---------------------------------------------------------------"
+	fi
+}
+
+msg "cpu"
+cat /proc/cpuinfo
+
+msg "meminfo"
+/bin/cat /proc/meminfo
+
+msg "filesystems"
+/bin/mount
+
+msg "modules"
+/bin/cat /proc/modules
+
+msg "process"
+ps ax
+
+msg "network"
+/bin/hostname
+/sbin/ifconfig eth0
+/sbin/route
+
+if [ -s /var/log/messages ]
+then
+	msg "messages"
+	/bin/tail /var/log/messages
+fi
+
+[ "$HTML" -eq 0 ] && \
+	echo -e '\nYou can scroll up and down with SHIFT+PGUP and SHIFT+PGDW'
+

@@ -1,0 +1,27 @@
+#! /bin/sh
+
+# Dummy init script to enable sh to be called from start-session
+# and thus make it possible to have all VCs drop to a shell without
+# having to rebuild initrd.
+# Tom Davidson 07/10/2002
+
+. $TS_GLOBAL
+
+case "$1" in
+init)
+    if ! pkg_initialized $PACKAGE; then
+        pkg_set_init_flag $PACKAGE
+    fi
+    ;;
+console)
+    exec /bin/sh
+    ;;
+help)
+    echo "Usage: $0 {init|console}"
+    ;;
+  *)
+    exit 1
+    ;;
+esac
+
+exit 0

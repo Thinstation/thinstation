@@ -1,0 +1,59 @@
+# Description: Network Time Protocol software
+# URL:         http://www.ntp.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+# Depends on:  openssl xorg-imake
+
+name=ntp-TS
+pname=${name%-*}
+version=4.2.6p4-beta2
+release=2
+source=(http://www.eecis.udel.edu/~ntp/ntp_spool/ntp4/ntp-4.2/$pname-$version.tar.gz
+        ntpd
+        ntpdate
+        ntp.conf
+        ntp-64bit.diff)
+
+build () {
+   mkdir -p $PKG/etc/{rc.d,ntp} \
+      $PKG/var/log \
+      $PKG/var/run/ntp \
+      $PKG/var/lib/ntp/stats \
+      $PKG/usr/man/{man8,man5}
+
+   cd $pname-$version
+   patch -p1 -i ../ntp-64bit.diff
+
+   ./configure \
+      --prefix=/usr \
+      --mandir=/usr/man \
+      --with-sntp \
+      --with-crypto \
+      --without-ntpsnmpd \
+      --enable-debugging=no \
+      --enable-ntpdate-step \
+      --enable-parse-clocks \
+      --enable-all-clocks \
+      CFLAGS="$CFLAGS" \
+      LDFLAGS="$LDFLAGS" 
+
+   # substitute the default configuration path
+   sed -i -e 's;\(CONFIG_FILE[^"]*"\)/etc/ntp.conf;\1/etc/ntp/ntp.conf;' \
+        include/ntp_config.h ntpdate/ntptime_config.c
+
+   make
+   make DESTDIR=$PKG install
+   touch $PKG/var/log/ntp.log
+
+   install -m 644 $SRC/ntp.conf $PKG/etc/ntp
+   install -m 755 $SRC/ntpd $PKG/etc/rc.d
+   install -m 755 $SRC/ntpdate $PKG/etc/rc.d
+
+   # fix remove unnecessary directory
+   rm -r $PKG/usr/sbin
+
+   # initialize ntp.drift file
+   echo "0.0" > $PKG/var/lib/ntp/ntp.drift
+rm -rf /$PKG/{var,usr/man}
+mkdir -p $PKG/$TSCOMPROOT/$pname
+mv $PKG/{etc,usr} $PKG/$TSCOMPROOT/$pname
+}

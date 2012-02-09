@@ -1,0 +1,26 @@
+#!/bin/sh
+#
+# /etc/rc.d/alsa: store/restore ALSA mixer levels
+#
+
+# location of the alsactl executable
+ALSACTL=/usr/sbin/alsactl
+
+case $1 in
+	start)
+		$ALSACTL restore
+		;;
+	stop)
+		$ALSACTL store
+		;;
+	restart)
+		$0 stop
+		sleep 2
+		$0 start
+		;;
+	*)
+		echo "Usage: $0 [start|stop|restart]"
+		;;
+esac
+
+# End of file

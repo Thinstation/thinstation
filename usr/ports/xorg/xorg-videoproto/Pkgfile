@@ -1,0 +1,20 @@
+# Description: xorg proto videoproto
+# URL: http://xorg.freedesktop.org
+# Maintainer: Tilman Sauerbeck, tilman at crux dot nu
+
+name=xorg-videoproto
+version=2.3.1
+release=1
+source=(http://xorg.freedesktop.org/releases/individual/proto/videoproto-$version.tar.bz2)
+
+build() {
+	cd videoproto-$version
+
+	./configure --prefix=/usr
+
+	make
+	make DESTDIR=$PKG install
+
+	rm $PKG/usr/share/doc/videoproto/xv-protocol-v2.txt
+	rmdir $PKG/usr/share/{doc/videoproto,doc,}
+}

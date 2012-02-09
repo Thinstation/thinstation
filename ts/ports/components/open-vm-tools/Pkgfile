@@ -1,0 +1,41 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=open-vm-tools
+version=2011.09.23-491607
+kver=3.0.9
+release=1
+source=(http://downloads.sourceforge.net/project/$name/$name/${version%-*}/${name}-$version.tar.gz
+ftp://ftp.kernel.org/pub/linux/kernel/v3.x/linux-$kver.tar.bz2
+	/ts/ports/components/kernel-TS_SMP/ts.config)
+
+build() {
+	cd linux-$kver
+	make distclean
+        cp ../ts.config .config
+        make prepare
+        make modules_prepare
+        make headers_install
+	ln -sf . build
+	cd ..
+	mkdir -p /lib/modules/`uname -r`
+	cd $name-$version
+
+	./configure --prefix=/ \
+			--exec-prefix=/ \
+			--sysconfdir=/etc \
+			--libexecdir=/lib \
+			--mandir=/usr/man \
+			--with-kernel-release=$kver-TS_SMP+ \
+			--with-linuxdir=$SRC/linux-$kver \
+			--disable-docs \
+			--with-gtkmm \
+			--without-pam
+
+	make
+	make DESTDIR=$PKG install
+	mkdir -p $PKG/lib/modules/$kver-TS_SMP+
+	mv $PKG/$SRC/linux-$kver/kernel $PKG/lib/modules/$kver-TS_SMP+/.
+	rm -rf $PKG/{ts,share,include} $PKG/lib/{*.a,*.la,pkgconfig} $PKG/lib/open-vm-tools/plugins/common/*.la $PKG/etc/pam.d
+}

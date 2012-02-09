@@ -1,0 +1,39 @@
+#!/bin/sh
+#
+# /etc/rc.d/nfsserver: start/stop nfs server
+#
+
+NFSD=/proc/fs/nfsd
+PIPEFS=/var/lib/nfs/rpc_pipefs
+
+case $1 in
+start)
+	/bin/mount -t nfsd nfsd $NFSD
+	/bin/mount -t rpc_pipefs rpc_pipefs $PIPEFS
+	/usr/sbin/rpc.idmapd
+	/usr/sbin/exportfs -a
+	/usr/sbin/rpc.mountd
+	/usr/sbin/rpc.statd --no-notify
+	/usr/sbin/rpc.nfsd --syslog 8
+	/usr/sbin/sm-notify
+	;;
+stop)
+	killall -q -2 nfsd
+	killall -q /usr/sbin/rpc.statd
+	killall -q /usr/sbin/rpc.mountd
+	/usr/sbin/exportfs -au
+	killall -q /usr/sbin/rpc.idmapd
+	/bin/umount $PIPEFS
+	/bin/umount $NFSD
+	;;
+restart)
+	$0 stop
+	sleep 2
+	$0 start
+	;;
+*)
+	echo "usage: $0 [start|stop|restart]"
+	;;
+esac
+
+# End of file

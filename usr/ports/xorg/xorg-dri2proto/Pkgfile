@@ -1,0 +1,20 @@
+# Description: X DRI2 protocol headers
+# URL: http://xorg.freedesktop.org
+# Maintainer: Tilman Sauerbeck, tilman at crux dot nu
+
+name=xorg-dri2proto
+version=2.6
+release=1
+source=(http://xorg.freedesktop.org/releases/individual/proto/dri2proto-$version.tar.bz2)
+
+build() {
+	cd dri2proto-$version
+
+	./configure --prefix=/usr
+
+	make
+	make DESTDIR=$PKG install
+
+	rm -f $PKG/usr/share/doc/dri2proto/dri2proto.txt
+	rmdir $PKG/usr/share/{doc/dri2proto,doc,}
+}

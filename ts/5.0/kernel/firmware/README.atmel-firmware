@@ -1,0 +1,67 @@
+This package contains firmware images for use with the 
+driver for atmel at76c50x cards in the linux 2.6 kernel it also
+contains firmware images for the USB driver from 
+http://at76c503a.berlios.de/
+
+The prefered way to load these firmware images in to use the
+firmware-loading facility of the Linux hotplug system. Prerequistites
+for this are a kernel compiled with CONFIG_FW_LOADER and the
+Linux hotplug scripts later than 2003_10_07. (Check for the existance
+of /etc/hotplug/firmware.agent to ensure that your hotplug scripts are
+sufficiently up to date.) You will also need to have sysfs mounted:
+add a line like this to /etc/fstab, if it is not already there.
+
+none            /sys            sysfs   defaults                0       0
+ 
+
+If you do not wish to use the hotplug system, this package includes
+a "push" firmware loader, atmel_fwl. You should arrange to run this 
+as root from a network-startup script or PCMCIA script _before_ the 
+interface is brought up. The command is simply
+
+atmel_fwl <interface> /path/to/firmware
+
+for instance
+
+/sbin/atmel_fwl eth0 /usr/lib/hotplug/firmware/atmel_at76c502.bin
+
+
+To install the firmware package, simply run the install.sh script.
+That script will remove any old versions of the package that you have
+installed, and install the files in the correct locations.
+
+
+Selecting the correct firmware image.
+
+There are multiple firmware images in this package and the correct
+one must be used. If the hotplug firmware loading mechansim is in use and
+the driver recognises the card in its internal database, it will automatically
+select the correct firmware image. If the card is not in the database
+the driver will log a message and default to the at76c502 image. If
+this is not correct, the default can be overridden with the "firmware"
+module parameter. Since there is only one firmware image for PCI 
+cards (at76c506) the driver should always select the correct one for
+them.  If you card is not recognised, please send the result of
+running the 'dump_cis' command to simon@thekelleys.org.uk so that it
+can be included in future releases.
+
+If using the "push" firmware loader there is no automatic selection of 
+firmware image, you should ensure that the correct image is given in
+the atmel_fwl command-line.
+
+Note that there are two versions of many of the firmware images, the
+second one with the suffix "-wpa". These are later releases from Atmel
+which support WPA privacy. They are only usable by versions of the
+driver greater than 0.9. If you use hotplug to load your firmware then
+all will be fine, drivers earlier than 0.9 will ignore the
+"-wpa" drivers and drivers after 0.9 will use them if available, or
+default to the non-wpa ones if not. If you have to select a firmware
+image manually, be sure not to use the "-wpa" one unless your in-kernel
+driver code is version 0.9 or better. Sadly, as of version 0.9, the
+in-kernel driver does not actually support the setting of WPA
+passphrases.
+
+
+
+
+

@@ -1,0 +1,17 @@
+# Description: C library for the arithmetic of complex numbers 
+# URL:         http://www.multiprecision.org/
+# Maintainer:  CRUX System Team, core-ports at crux dot nu
+# Depends on:  libmpfr
+
+name=libmpc
+version=0.9
+release=1
+source=(http://www.multiprecision.org/mpc/download/mpc-$version.tar.gz)
+
+build() {
+    cd mpc-$version
+    ./configure --prefix=/usr EGREP=egrep
+    make
+    make DESTDIR=$PKG install
+    rm -r $PKG/usr/share
+}

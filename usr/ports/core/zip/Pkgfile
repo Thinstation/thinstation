@@ -1,0 +1,15 @@
+# Description: Compression and file packaging/archive utility
+# URL:         http://infozip.sourceforge.net/Zip.html
+# Maintainer:  CRUX System Team, core-ports at crux dot nu
+# Depends on:  bzip2
+
+name=zip
+version=3.0
+release=1
+source=(http://downloads.sourceforge.net/sourceforge/infozip/${name}${version//./}.tar.gz)
+
+build() {
+    cd ${name}${version//./}
+    make -f unix/Makefile LOCAL_ZIP="$CFLAGS" prefix=/usr generic
+    make -f unix/Makefile INSTALL=install prefix=$PKG/usr install
+}

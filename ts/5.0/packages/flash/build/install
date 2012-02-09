@@ -1,0 +1,16 @@
+#!/bin/sh
+
+gzname=`basename $1`
+tarname=`basename $1 .gz`
+filename=`basename $1 .tar.gz`
+INSTALLDIR=./packages/flash/lib/firefox/plugins
+
+mkdir -p $INSTALLDIR
+#gunzip ./wget_tmp/$gzname
+#let returnval=$?
+tar -C wget_tmp -zxf wget_tmp/$gzname
+let returnval=$(($returnval+$?))
+chmod -R u+w ./wget_tmp
+cp ./wget_tmp/libflashplayer.so $INSTALLDIR
+let returnval=$(($returnval+$?))
+exit $returnval

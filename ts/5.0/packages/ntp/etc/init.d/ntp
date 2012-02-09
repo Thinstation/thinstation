@@ -1,0 +1,31 @@
+#! /bin/sh
+
+. $TS_GLOBAL
+
+case "$1" in  
+init)
+    if ! pkg_initialized $PACKAGE; then
+
+	if [ ! -z "$NET_TIME_SERVER" ]; then
+	  ntpdate -b $NET_TIME_SERVER >> $LOGFILE 2>&1 &
+	  echo "1 * * * * ntpdate -s $NET_TIME_SERVER" >> /tmp/crontab
+	  if [ "`make_caps x$RTC_CMOS`" == "XLOCAL" ]; then
+		  echo "2 * * * * hwclock -w --local" >> /tmp/crontab
+	  else
+		  echo "2 * * * * hwclock -w --utc" >> /tmp/crontab
+	  fi
+	  crontab /tmp/crontab
+	fi
+
+	pkg_set_init_flag $PACKAGE
+    fi
+    ;;
+help)
+    echo "Usage: $0 init"
+    ;;
+  *)
+    exit 1
+    ;;
+esac
+
+exit 0

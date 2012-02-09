@@ -1,0 +1,24 @@
+# Description: A library that provides a secure layer over a reliable transport layer
+# URL: http://www.gnu.org/software/gnutls/
+# Maintainer: Jose V Beneyto, sepen at crux dot nu
+# Packager: Matt Housh, jaeger at morpheus dot net
+# Depends on: nettle libidn
+
+name=gnutls
+version=3.0.4
+release=1
+source=(http://ftp.gnu.org/pub/gnu/$name/$name-$version.tar.xz)
+
+build() {
+  cd $name-$version
+
+  ./configure --prefix=/usr \
+              --mandir=/usr/man \
+              --without-p11-kit \
+              --disable-guile
+
+  make
+  make DESTDIR=$PKG install
+
+  rm -rf $PKG/usr/share/{info,locale}
+}

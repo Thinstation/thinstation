@@ -1,0 +1,270 @@
+.\" Copyright Andries Brouwer, 2000
+.\"
+.\" This page is distributed under GPL.
+.\" Some fragments of text came from the time-1.7 info file.
+.\" Inspired by kromJx@crosswinds.net.
+.\"
+.TH TIME 1 "11 December 2000" "" ""
+.SH NAME
+time \- time a simple command or give resource usage
+.SH SYNOPSIS
+.BI "time [" options "] " command " [" arguments... "] "
+.SH DESCRIPTION
+The
+.B time
+command runs the specified program
+.I command
+with the given arguments.
+When
+.I command
+finishes,
+.B time
+writes a message to standard output giving timing statistics
+about this program run.
+These statistics consist of (i) the elapsed real time
+between invocation and termination, (ii) the user CPU time
+(the sum of the
+.I tms_utime
+and
+.I tms_cutime
+values in a
+.I "struct tms"
+as returned by
+.BR times (2)),
+and (iii) the system CPU time (the sum of the
+.I  tms_stime
+and
+.I tms_cstime
+values in a
+.I "struct tms"
+as returned by
+.BR times (2)).
+.SH OPTION
+.TP
+.B \-p
+When in the POSIX locale, use the precise traditional format
+.br
+.in +5
+"real %f\enuser %f\ensys %f\en"
+.in -5
+.br
+(with numbers in seconds)
+where the number of decimals in the output for %f is unspecified
+but is sufficient to express the clock tick accuracy, and at least one.
+.SH ENVIRONMENT
+The variables LANG, LC_ALL, LC_CTYPE, LC_MESSAGES, LC_NUMERIC,
+NLSPATH and PATH are used. The last one to search for
+.IR command .
+The remaining ones for the text and formatting of the output.
+.SH "EXIT STATUS"
+If
+.I command
+was invoked, the exit status is that of
+.IR command .
+Otherwise it is 127 if
+.I command
+could not be found, 126 if it could be found but could not be invoked,
+and some other nonzero value (1-125) if something else went wrong.
+.SH "SEE ALSO"
+.BR times (2),
+.sp 2
+.SH "GNU VERSION"
+Below a description of the GNU 1.7 version of
+.BR time .
+Disregarding the name of the utility, GNU makes it output lots of
+useful information, not only about time used, but also on other
+resources like memory, I/O and IPC calls (where available).
+The output is formatted using a format string that can be specified
+using the \-f option or the TIME environment variable.
+.LP
+The default format string is
+.br
+.in +3
+%Uuser %Ssystem %Eelapsed %PCPU (%Xtext+%Ddata %Mmax)k
+.br
+%Iinputs+%Ooutputs (%Fmajor+%Rminor)pagefaults %Wswaps
+.br
+.in -3
+.LP
+When the \-p option is given the (portable) output format
+.br
+.in +3
+real %e
+.br
+user %U
+.br
+sys %S
+.br
+.in -3
+is used.
+.SS "The format string"
+The format is interpreted in the usual printf-like way.
+Ordinary characters are directly copied, tab, newline
+and backslash are escaped using \et, \en and \e\e,
+a percent sign is represented by %%, and otherwise %
+indicates a conversion. The program
+.B time
+will always add a trailing newline itself.
+The conversions follow. All of those used by
+.BR tcsh (1)
+are supported.
+.LP
+.B "Time"
+.TP
+.B %E
+Elapsed real time (in [hours:]minutes:seconds).
+.TP
+.B %e
+(Not in tcsh.) Elapsed real time (in seconds).
+.TP
+.B %S
+Total number of CPU-seconds that the process spent in kernel mode.
+.TP
+.B %U
+Total number of CPU-seconds that the process spent in user mode.
+.TP
+.B %P
+Percentage of the CPU that this job got, computed as (%U + %S) / %E.
+.LP
+.B "Memory"
+.TP
+.B %M
+Maximum resident set size of the process during its lifetime, in Kbytes.
+.TP
+.B %t
+(Not in tcsh.) Average resident set size of the process, in Kbytes.
+.TP
+.B %K
+Average total (data+stack+text) memory use of the process,
+in Kbytes.
+.TP
+.B %D
+Average size of the process's unshared data area, in Kbytes.
+.TP
+.B %p
+(Not in tcsh.) Average size of the process's unshared stack space, in Kbytes.
+.TP
+.B %X
+Average size of the process's shared text space, in Kbytes.
+.TP
+.B %Z
+(Not in tcsh.) System's page size, in bytes.
+This is a per-system constant, but varies between systems.
+.TP
+.B %F
+Number of major page faults that occurred while the process was running.
+These are faults where the page has to be read in from disk.
+.TP
+.B %R
+Number of minor, or recoverable, page faults.
+These are faults for pages that are not valid but which have
+not yet been claimed by other virtual pages.  Thus the data
+in the page is still valid but the system tables must be updated.
+.TP
+.B %W
+Number of times the process was swapped out of main memory.
+.TP
+.B %c
+Number of times the process was context-switched involuntarily
+(because the time slice expired).
+.TP
+.B %w
+Number of waits: times that the program was context-switched voluntarily,
+for instance while waiting for an I/O operation to complete.
+.LP
+.B "I/O"
+.TP
+.B %I
+Number of file system inputs by the process.
+.TP
+.B %O
+Number of file system outputs by the process.
+.TP
+.B %r
+Number of socket messages received by the process.
+.TP
+.B %s
+Number of socket messages sent by the process.
+.TP
+.B %k
+Number of signals delivered to the process.
+.TP
+.B %C
+(Not in tcsh.) Name and command line arguments of the command being timed.
+.TP
+.B %x
+(Not in tcsh.) Exit status of the command.
+.SH "GNU OPTIONS"
+.TP
+.BI "\-f " FORMAT ", \-\-format=" FORMAT
+Specify output format, possibly overriding the format specified
+in the environment variable TIME.
+.TP
+.B "\-p, \-\-portability"
+Use the portable output format.
+.TP
+.BI "\-o " FILE ", \-\-output=" FILE
+Do not send the results to stderr, but overwrite the specified file.
+.TP
+.B "\-a, \-\-append"
+(Used together with \-o.) Do not overwrite but append.
+.TP
+.B "\-v, \-\-verbose"
+Give very verbose output about all the program knows about.
+.SH "GNU STANDARD OPTIONS"
+.TP
+.B "\-\-help"
+Print a usage message on standard output and exit successfully.
+.TP
+.B "\-V, \-\-version"
+Print version information on standard output, then exit successfully.
+.TP
+.B "\-\-"
+Terminate option list.
+.SH BUGS
+Not all resources are measured by all versions of Unix,
+so some of the values might be reported as zero.
+The present selection was mostly inspired by the data
+provided by 4.2 or 4.3BSD.
+.LP
+GNU time version 1.7 is not yet localized.
+Thus, it does not implement the POSIX requirements.
+.LP
+The environment variable TIME was badly chosen.
+It is not unusual for systems like autoconf or make
+to use environment variables with the name of a utility to override
+the utility to be used. Uses like MORE or TIME for options to programs
+(instead of program path names) tend to lead to difficulties.
+.LP
+It seems unfortunate that \-o overwrites instead of appends.
+(That is, the \-a option should be the default.)
+.LP
+Mail suggestions and bug reports for GNU
+.B time
+to
+.br
+.I bug-utils@prep.ai.mit.edu
+.br
+Please include the version of
+.B time ,
+which you can get by running
+.br
+.I time --version
+.br
+and the operating system
+and C compiler you used.
+.SH "SEE ALSO"
+.BR tcsh (1),
+.BR times (2),
+.BR wait3 (2)
+.SH AUTHORS
+.TP
+.IP "David Keppel"
+Original version
+.IP "David MacKenzie"
+POSIXization, autoconfiscation, GNU getoptization,
+documentation, other bug fixes and improvements.
+.IP "Arne Henrik Juul"
+Helped with portability
+.IP "Francois Pinard"
+Helped with portability

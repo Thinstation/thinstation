@@ -1,0 +1,40 @@
+#!/bin/sh
+#
+# /etc/rc.d/sshd: start/stop ssh daemon
+#
+
+case $1 in
+start)
+	if [ ! -f /etc/ssh/ssh_host_key ]; then
+		/usr/bin/ssh-keygen -t rsa1 -N "" -f /etc/ssh/ssh_host_key > /dev/null
+	fi
+	if [ ! -f /etc/ssh/ssh_host_rsa_key ]; then
+		/usr/bin/ssh-keygen -t rsa -N "" -f /etc/ssh/ssh_host_rsa_key > /dev/null
+	fi
+	if [ ! -f /etc/ssh/ssh_host_dsa_key ]; then
+		/usr/bin/ssh-keygen -t dsa -N "" -f /etc/ssh/ssh_host_dsa_key > /dev/null
+	fi
+	if [ ! -f /etc/ssh/ssh_host_ecdsa_key ]; then
+		/usr/bin/ssh-keygen -t ecdsa -N "" -f /etc/ssh/ssh_host_ecdsa_key > /dev/null
+	fi
+	/usr/sbin/sshd
+	;;
+stop)
+	if [ -f /var/run/sshd.pid ]; then
+		kill $(< /var/run/sshd.pid)
+		rm -f /var/run/sshd.pid
+	else
+		killall -q /usr/sbin/sshd
+	fi
+	;;
+restart)
+	$0 stop
+	sleep 2
+	$0 start
+	;;
+*)
+	echo "usage: $0 [start|stop|restart]"
+	;;
+esac
+
+# End of file

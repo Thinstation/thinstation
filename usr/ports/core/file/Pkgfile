@@ -1,0 +1,17 @@
+# Description: File type identification utility
+# URL:         http://www.darwinsys.com/file/
+# Maintainer:  CRUX System Team, core-ports at crux dot nu
+# Depends on:  zlib
+
+name=file
+version=5.09
+release=1
+source=(ftp://ftp.fu-berlin.de/unix/tools/file/$name-$version.tar.gz)
+
+build() {
+    cd $name-$version
+    ./configure --prefix=/usr --mandir=/usr/man --enable-fsect-man5 
+    make
+    make DESTDIR=$PKG install
+    rmdir $PKG/usr/man/man4
+}

@@ -1,0 +1,43 @@
+#!/bin/sh
+#
+# /etc/rc.d/dropbear: start/stop dropbear ssh daemon
+#
+
+CONV=/usr/bin/dropbearconvert
+KEYG=/usr/bin/dropbearkey
+
+RSA=/etc/dropbear/dropbear_rsa_host_key
+DSS=/etc/dropbear/dropbear_dss_host_key
+
+case $1 in
+start)
+	if [ ! -f $RSA ]; then
+	   if [ -f /etc/ssh/ssh_host_rsa_key ]; then
+	      $CONV openssh dropbear /etc/ssh/ssh_host_rsa_key $RSA
+	   else
+	      $KEYG -t rsa -f $RSA
+	   fi
+	fi
+	if [ ! -f $DSS ]; then
+	   if [ -f /etc/ssh/ssh_host_dsa_key ]; then
+	      $CONV openssh dropbear /etc/ssh/ssh_host_dsa_key $DSS
+	   else
+              $KEYG -t dss -f $DSS
+	   fi
+	fi
+	/usr/sbin/dropbear
+	;;
+stop)
+	killall -q /usr/sbin/dropbear
+	;;
+restart)
+	$0 stop
+	sleep 2
+	$0 start
+	;;
+*)
+	echo "usage: $0 [start|stop|restart]"
+	;;
+esac
+
+# End of file

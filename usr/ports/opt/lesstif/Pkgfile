@@ -1,0 +1,30 @@
+# Description: A free replacement for Motif
+# URL: http://www.lesstif.org/
+# Maintainer:  Thomas Penteker, tek at serverop dot de
+# Packager: Antti Nykanen, aon at iki dot fi
+# Depends on: freetype, xorg-libxt
+
+name=lesstif
+version=0.95.2
+release=1
+source=(http://downloads.sourceforge.net/project/$name/$name/$version/$name-$version.tar.bz2)
+
+build() {
+  cd $name-$version
+  ./configure \
+    --prefix=/usr \
+    --enable-nonstandard-conversions \
+    --disable-debug \
+    --with-editres \
+    --with-xdnd \
+    --mandir=/usr/man
+  make
+  make DESTDIR=$PKG install
+
+  # remove xprint stuff
+  rm $PKG/usr/include/Xm/Print{SP,}.h
+  sed -i -e 's/.*Print.h.*//' $PKG/usr/include/Xm/XmAll.h
+
+  rm -rf $PKG/usr/LessTif $PKG/usr/lib/X11/ \
+         $PKG/usr/man/man{1/mwm.1,5/mwmrc.5}
+}

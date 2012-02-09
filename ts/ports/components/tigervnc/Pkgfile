@@ -1,0 +1,17 @@
+# Description: A free remote control software package derived from VNC
+# URL: http://tigervnc.sourceforge.net/
+# Maintainer: 
+# Depends on: xorg, xorg-imake, xorg-gccmakedep (?)
+
+name=tigervnc
+pname=${name%-*}
+version=1.1.0
+release=1
+source=(http://sourceforge.net/projects/tigervnc/files/tigervnc/$version/$pname-$version.tar.gz)
+
+build() { 
+        cd $pname-$version
+        ./configure
+        make
+        make DESTDIR=$PKG install
+}

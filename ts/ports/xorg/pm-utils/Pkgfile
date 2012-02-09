@@ -1,0 +1,30 @@
+# Description: Power management scripts for suspend and hibernate
+# URL: http://pm-utils.freedesktop.org/
+# Maintainer: Jose V Beneyto, sepen at crux dot nu
+# Packager: Andrew Brouwers, abrouwers at gmail dot com
+# Depends on:
+
+name=pm-utils
+version=1.4.1
+release=1
+source=(http://pm-utils.freedesktop.org/releases/$name-$version.tar.gz \
+        http://pm-utils.freedesktop.org/releases/pm-quirks-20100619.tar.gz)
+
+build() {
+  cd $name-$version
+
+  ./configure --prefix=/usr \
+              --sysconfdir=/etc \
+              --mandir=/usr/man
+
+  make
+  make DESTDIR=$PKG install
+  
+  install -m 0644 man/*.1 $PKG/usr/man/man1
+  install -m 0644 man/*.8 $PKG/usr/man/man8
+  rm -rf $PKG/usr/share
+ 
+  # add quirks
+  install -d $PKG/usr/lib/pm-utils/video-quirks
+  cp -a $SRC/video-quirks/*.quirkdb $PKG/usr/lib/pm-utils/video-quirks
+}

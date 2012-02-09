@@ -1,0 +1,21 @@
+# Description: xorg lib libXdmcp
+# URL: http://xorg.freedesktop.org
+# Maintainer: Tilman Sauerbeck, tilman at crux dot nu
+# Depends on: xorg-xproto
+
+name=xorg-libxdmcp
+version=1.1.0
+release=1
+source=(http://xorg.freedesktop.org/releases/individual/lib/libXdmcp-$version.tar.bz2)
+
+build() {
+	cd libXdmcp-$version
+
+	./configure --prefix=/usr
+
+	make
+	make DESTDIR=$PKG install
+
+	rm $PKG/usr/share/doc/libXdmcp/xdmcp.xml
+	find $PKG/usr/share -type d -delete
+}

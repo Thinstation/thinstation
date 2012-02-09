@@ -1,0 +1,16 @@
+#!/bin/sh
+
+INSTALLDIR=./packages/ffmpeg
+EXTRADIR=$INSTALLDIR/build/extra
+TMPDIR=./build-ffmpeg
+
+for i in ffmpeg faac lame libmp4v2 libogg libtheora libvorbis libxvid opencore-amr speex x264 ; do
+	repackage $i $TMPDIR
+	cp -Prf $TMPDIR/$i/* $INSTALLDIR/.
+	rm -rf $TMPDIR
+done
+#cp -Prf $EXTRADIR/* $INSTALLDIR/.
+
+returnval=$?
+
+exit $returnval

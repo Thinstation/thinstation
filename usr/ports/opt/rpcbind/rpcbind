@@ -1,0 +1,23 @@
+#!/bin/sh
+#
+# /etc/rc.d/rpcbind: start/stop rpcbind daemon
+#
+
+case $1 in
+start)
+	/sbin/rpcbind
+	;;
+stop)
+	killall -q /sbin/rpcbind
+	;;
+restart)
+	$0 stop
+	sleep 2
+	$0 start
+	;;
+*)
+	echo "usage: $0 [start|stop|restart]"
+	;;
+esac
+
+# End of file

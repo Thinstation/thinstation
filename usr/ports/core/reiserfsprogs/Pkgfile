@@ -1,0 +1,18 @@
+# Description: Filesystem utilities for ReiserFS
+# URL:         http://www.kernel.org/pub/linux/utils/fs/reiserfs/README
+# Maintainer:  CRUX System Team, core-ports at crux dot nu
+# Depends on:  util-linux-ng
+
+name=reiserfsprogs
+version=3.6.21
+release=1
+source=(http://www.kernel.org/pub/linux/utils/fs/reiserfs/$name-$version.tar.bz2)
+
+build () {
+    cd $name-$version
+    ./configure --prefix=/ --mandir=/usr/man
+    make
+    make DESTDIR=$PKG install
+    ln -s reiserfsck $PKG/sbin/fsck.reiserfs
+    ln -s mkreiserfs $PKG/sbin/mkfs.reiserfs
+}

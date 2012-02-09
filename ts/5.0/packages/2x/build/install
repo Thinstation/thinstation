@@ -1,0 +1,19 @@
+#!/bin/bash
+
+gzname=`basename $1`
+tarname=`basename $1 .bz2`
+filename=`basename $1 .tar.bz2`
+INSTALLDIR=./packages/2x
+
+bzip2 -d ./wget_tmp/$gzname
+let returnval=$?
+tar -C wget_tmp -xf wget_tmp/$tarname
+let returnval=returnval+$?
+chmod -R u+w ./wget_tmp
+cp ./wget_tmp/opt/2X/Client/bin/2XClient $INSTALLDIR/bin
+let returnval=returnval+$?
+cp ./wget_tmp/opt/2X/Client/bin/appserverclient $INSTALLDIR/bin
+let returnval=returnval+$?
+cp ./wget_tmp/opt/2X/Client/lib/lib* $INSTALLDIR/lib
+let returnval=returnval+$?
+exit $returnval

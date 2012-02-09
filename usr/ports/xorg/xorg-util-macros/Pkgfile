@@ -1,0 +1,17 @@
+# Description: xorg m4 macros
+# URL: http://xorg.freedesktop.org
+# Maintainer: Tilman Sauerbeck, tilman at crux dot nu
+
+name=xorg-util-macros
+version=1.15.0
+release=1
+source=(http://xorg.freedesktop.org/releases/individual/util/util-macros-$version.tar.bz2)
+
+build() {
+	cd util-macros-$version
+
+	./configure --prefix=/usr
+
+	make
+	make DESTDIR=$PKG install
+}

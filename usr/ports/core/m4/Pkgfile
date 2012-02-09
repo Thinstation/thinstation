@@ -1,0 +1,16 @@
+# Description: A standard Unix macro processor with extensions
+# URL:         http://www.seindal.dk/rene/gnu/
+# Maintainer:  CRUX System Team, core-ports at crux dot nu
+
+name=m4
+version=1.4.16
+release=1
+source=(ftp://ftp.gnu.org/gnu/$name/$name-$version.tar.xz)
+
+build() {
+    cd $name-$version
+    ./configure --prefix=/usr --mandir=/usr/man
+    make
+    make DESTDIR=$PKG install
+    rm -rf $PKG/usr/share
+}

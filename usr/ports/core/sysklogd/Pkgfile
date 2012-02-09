@@ -1,0 +1,33 @@
+# Description: Kernel and system logging daemons
+# URL:         http://www.infodrom.org/projects/sysklogd/
+# Maintainer:  CRUX System Team, core-ports at crux dot nu
+
+name=sysklogd
+version=1.5
+release=4
+source=(http://www.ibiblio.org/pub/Linux/system/daemons/$name-$version.tar.gz \
+        rotatelog syslog syslog.conf sysklogd)
+
+build() {
+    cd $name-$version
+
+    # don't try to fclose(NULL)
+    sed -i -e '192d' ksym_mod.c
+
+    mkdir -p $PKG/usr/sbin \
+             $PKG/etc/{cron/weekly,rc.d} \
+             $PKG/var/log \
+             $PKG/usr/man/{man5,man8}
+
+    make RPM_OPT_FLAGS="$CFLAGS" all
+    make BINDIR=$PKG/usr/sbin MANDIR=$PKG/usr/man install
+
+    install -m 755 $SRC/rotatelog $PKG/usr/sbin
+    install -m 755 $SRC/syslog $PKG/etc/cron/weekly
+    install -m 644 $SRC/syslog.conf $PKG/etc
+    install -m 755 $SRC/sysklogd $PKG/etc/rc.d
+
+    chmod -R +w $PKG
+    touch $PKG/var/log/{messages,auth,mail,cron,kernel,debug}
+    chmod 640 $PKG/var/log/{messages,auth,mail,cron,kernel,debug}
+}

@@ -1,0 +1,44 @@
+# Description: A screen saver and locker daemon for xorg.
+# URL: http://www.jwz.org/xscreensaver/
+# Maintainer: Danny Rawlins, monster dot romster at gmail dot com
+# Packager: Jay Dolan, jdolan at jdolan dot dyndns dot org
+# Depends on: bc fortune libglade libungif netpbm xorg-libxmu mesa3d
+
+name=xscreensaver
+version=5.15
+release=1
+source=(http://www.jwz.org/$name/$name-$version.tar.gz)
+
+build() {
+	cd $name-$version
+	
+	sed -i configure \
+	-e 's/USE_NLS=yes/USE_NLS=no/' \
+	-e 's/ENABLE_NLS 1/ENABLE_NLS 0/'
+
+	./configure \
+		--prefix=/usr \
+		--libexecdir=/usr/lib \
+		--mandir=/usr/man \
+		--with-x-app-defaults='/etc/X11/app-defaults' \
+		--with-dpms-ext \
+		--with-xinput-ext \
+		--with-xf86vmode-ext \
+		--with-xf86gamma-ext \
+		--with-randr-ext \
+		--with-xinerama-ext \
+		--with-xshm-ext \
+		--with-proc-interrupts \
+		--with-pixbuf \
+		--with-jpeg \
+		--without-motif \
+		--without-gle \
+		--with-image-directory=/etc \
+		--with-xdbe-ext \
+		--without-setuid-hacks
+
+	make
+	make install_prefix=$PKG install
+	rm $PKG/usr/share/xscreensaver/config/README
+	install -d $PKG/usr/share/wallpapers
+}

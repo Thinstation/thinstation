@@ -1,0 +1,14 @@
+# Description: A tool to trace the route of ip packets
+# URL:         http://traceroute.sourceforge.net/
+# Maintainer:  CRUX System Team, core-ports at crux dot nu
+
+name=traceroute
+version=2.0.18
+release=1
+source=(http://downloads.sourceforge.net/project/$name/$name/$name-$version/$name-$version.tar.gz)
+
+build() {
+    cd $name-$version
+    make CFLAGS="$CFLAGS"
+    make DESTDIR=$PKG prefix=/usr mandir=/usr/man install
+}

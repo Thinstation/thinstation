@@ -1,0 +1,17 @@
+# Description: xorg font font-util
+# URL: http://xorg.freedesktop.org
+# Maintainer: Tilman Sauerbeck, tilman at crux dot nu
+
+name=xorg-font-util
+version=1.2.0
+release=1
+source=(http://xorg.freedesktop.org/releases/individual/font/font-util-$version.tar.bz2)
+
+build() {
+	cd font-util-$version
+
+	./configure --prefix=/usr --mandir=/usr/man --with-fc-confdir=/etc/fonts
+
+	make
+	make DESTDIR=$PKG install
+}

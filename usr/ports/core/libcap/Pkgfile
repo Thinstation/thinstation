@@ -1,0 +1,23 @@
+# Description: POSIX.1e capabilities library
+# URL:         http://www.kernel.org/pub/linux/libs/security/linux-privs/libcap2/README
+# Maintainer:  CRUX System Team, core-ports at crux dot nu
+# Depends on:  attr
+
+name=libcap
+version=2.22
+release=1
+source=(ftp://ftp.kernel.org/pub/linux/libs/security/linux-privs/libcap2/libcap-$version.tar.bz2)
+
+build () {
+    cd libcap-$version
+
+    sed -i "/^CFLAGS/s/-O2/$CFLAGS/" Make.Rules 
+
+    make
+    make RAISE_SETFCAP=no DESTDIR=$PKG man_prefix=/usr install
+
+    install -d $PKG/usr/lib
+    mv $PKG/lib/libcap.a $PKG/usr/lib
+    rm $PKG/lib/libcap.so
+    ln -s ../../lib/libcap.so.$version $PKG/usr/lib/libcap.so
+}

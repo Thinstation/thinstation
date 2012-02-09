@@ -1,0 +1,25 @@
+# Description: XSL Transformations library
+# URL: http://xmlsoft.org/XSLT/
+# Maintainer: Tilman Sauerbeck, tilman at crux dot nu
+# Depends on: libxml2
+
+name=libxslt
+version=1.1.26
+release=1
+source=(ftp://xmlsoft.org/libxml2/$name-$version.tar.gz)
+
+build() {
+	cd $name-$version
+	./configure --prefix=/usr --mandir=/usr/man \
+		--without-python
+	make
+	make DESTDIR=$PKG install
+	rm -rf $PKG/usr/doc $PKG/usr/share
+	# move manpages
+	if [ -e $PKG/usr/man/man4/libxslt.4 ]
+	then
+		(cd $PKG/usr/man
+		 mkdir man3
+		 mv man4/libxslt.4 man3/libxslt.3)
+	fi
+}

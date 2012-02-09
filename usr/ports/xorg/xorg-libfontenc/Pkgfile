@@ -1,0 +1,18 @@
+# Description: xorg lib libfontenc
+# URL: http://xorg.freedesktop.org
+# Maintainer: Tilman Sauerbeck, tilman at crux dot nu
+# Depends on: xorg-xproto
+
+name=xorg-libfontenc
+version=1.1.0
+release=1
+source=(http://xorg.freedesktop.org/releases/individual/lib/libfontenc-$version.tar.bz2)
+
+build() {
+	cd libfontenc-$version
+
+	./configure --prefix=/usr
+
+	make
+	make DESTDIR=$PKG install
+}

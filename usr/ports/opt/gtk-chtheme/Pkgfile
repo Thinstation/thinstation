@@ -1,0 +1,17 @@
+# Description: Theme changer for GTK2
+# URL: http://plasmasturm.org/programs/gtk-chtheme
+# Maintainer: Juergen Daubert, jue at crux dot nu
+# Packager: Simone Rota, sip at crux dot nu
+# Depends on: gtk
+
+name=gtk-chtheme
+version=0.3.1
+release=4
+source=(http://plasmasturm.org/programs/$name/$name-$version.tar.bz2)
+
+build() {
+    cd $name-$version
+    sed -i 's/-DGTK_DISABLE_DEPRECATED//' Makefile
+    make
+    make DESTDIR=$PKG MANDIR=/usr/man install
+}

@@ -1,0 +1,16 @@
+# Description: daemon and tools to handle all ARP # aspects
+# URL:         http://arpon.sf.net
+# Maintainer:  Thomas Penteker, tek at serverop dot de
+# Depends on:  libpcap, libnet 
+
+name=libdnet
+version=1.11
+release=1
+source=(http://download.sourceforge.net/$name/$name-$version.tar.gz)
+
+build() {
+    cd  $name-$version
+    ./configure --prefix=/usr
+    make
+    make install DESTDIR=$PKG
+}

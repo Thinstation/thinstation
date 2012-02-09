@@ -1,0 +1,20 @@
+# Description: commandline option parser 
+# URL: http://rpm5.org/files/popt/
+# Packager: Robert McMeekin, viper at mcmeekin dot info
+# Maintainer:  Thomas Penteker, tek at serverop dot de
+# Packager: Matt Housh, jaeger at crux dot nu
+# Depends on: gettext
+
+name=popt
+version=1.16
+release=1
+source=(http://rpm5.org/files/$name/$name-$version.tar.gz)
+
+build() {
+  cd $name-$version
+  ./configure --prefix=/usr \
+    --mandir=/usr/man \
+    --disable-nls
+  make
+  make DESTDIR=$PKG install
+}

@@ -1,0 +1,18 @@
+# Description: X font selector
+# URL: http://xorg.freedesktop.org
+# Maintainer: Tilman Sauerbeck, tilman at crux dot nu
+# Depends on: xorg-libxaw
+
+name=xorg-xfontsel
+version=1.0.3
+release=1
+source=(http://xorg.freedesktop.org/releases/individual/app/xfontsel-$version.tar.bz2)
+
+build() {
+	cd xfontsel-$version
+
+	./configure --prefix=/usr --mandir=/usr/man
+
+	make
+	make DESTDIR=$PKG install
+}

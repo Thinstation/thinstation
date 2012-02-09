@@ -1,0 +1,23 @@
+#!/bin/sh
+#
+# /etc/rc.d/ntpd: start/stop ntp daemon
+#
+
+case $1 in
+start)
+	/usr/bin/ntpd -gqx
+	/usr/bin/ntpd 
+	;;
+stop)
+	/sbin/hwclock -w
+	killall -q /usr/bin/ntpd
+	;;
+restart)
+	$0 stop && sleep 3 && $0 start
+	;;
+*)
+	echo "usage: $0 [start|stop|restart]"
+	;;
+esac
+
+# End of file

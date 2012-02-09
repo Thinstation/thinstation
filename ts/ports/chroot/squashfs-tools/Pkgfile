@@ -1,0 +1,15 @@
+# Description: SquashFS tools
+# URL: http://squashfs.sourceforge.net/
+# Maintainer: Matt Housh, jaeger at morpheus dot net
+ 
+name=squashfs-tools
+version=4.2
+release=1
+source=(http://download.sourceforge.net/squashfs/squashfs${version}.tar.gz)
+
+build() {
+	cd squashfs${version}/$name
+	make
+	install -D -m 0755 mksquashfs ${PKG}/sbin/mksquashfs
+	install -D -m 0755 unsquashfs ${PKG}/sbin/unsquashfs
+}

@@ -1,0 +1,35 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=kernel-TS_SMP
+pname=${name%-*}
+version=3.2.5
+sversion=3.2.5
+release=1
+source=(ftp://ftp.kernel.org/pub/linux/kernel/v3.x/linux-$sversion.tar.bz2 \
+http://dev.gentoo.org/~spock/projects/fbcondecor/archive/fbcondecor-0.9.6-3.0-rc2.patch \
+ts.config)
+
+build() {
+	cd linux-$sversion
+	cp $SRC/ts.config ./.config
+
+	patch -p1 <../fbcondecor-0.9.6-3.0-rc2.patch
+
+	make
+	make INSTALL_PATH=$PKG install
+	make INSTALL_MOD_PATH=$PKG modules_install
+
+	mkdir -p $PKG/$TSCOMPROOT/kernel_SMP/kernel
+	mkdir -p $PKG/$TSCOMPROOT/kernel_SMP/utils
+
+	cd $PKG
+	mv vmlinuz $PKG/$TSCOMPROOT/kernel_SMP/kernel/vmlinuz-${version}TS_SMP
+	mv System.map $PKG/$TSCOMPROOT/kernel_SMP/kernel/System.map-${version}TS_SMP
+	rm lib/modules/${version}TS_SMP/{source,build}
+	mv lib/modules/${version}TS_SMP $PKG/$TSCOMPROOT/kernel_SMP/kernel/modules-${version}TS_SMP
+	rm -rf lib
+	cp $SRC/linux-$sversion/.config $PKG/$TSCOMPROOT/kernel_SMP/kernel/config-${version}TS_SMP
+	echo ${version}TS_SMP >$PKG/$TSCOMPROOT/kernel_SMP/utils/KERNEL_VERSION
+}

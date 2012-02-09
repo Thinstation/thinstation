@@ -1,0 +1,17 @@
+# Description: A compression/decompression Library
+# URL:         http://www.zlib.net/
+# Maintainer:  CRUX System Team, core-ports at crux dot nu
+
+name=zlib
+version=1.2.5
+release=2
+source=(http://www.zlib.net/$name-$version.tar.bz2 \
+        $name-$version-lfs-decls.patch)
+
+build() {
+    cd $name-$version
+    patch -p1 -i $SRC/$name-$version-lfs-decls.patch
+    ./configure --prefix=/usr
+    make
+    make DESTDIR=$PKG mandir=/usr/man install
+}

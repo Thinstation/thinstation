@@ -1,0 +1,18 @@
+# Description: Compositing manager for X
+# URL: http://xorg.freedesktop.org
+# Maintainer: Tilman Sauerbeck, tilman at crux dot nu
+# Depends on: xorg-libxdamage, xorg-libxcomposite, xorg-libxrender
+
+name=xorg-xcompmgr
+version=1.1.5
+release=1
+source=(http://xorg.freedesktop.org/releases/individual/app/xcompmgr-$version.tar.bz2)
+
+build() {
+	cd xcompmgr-$version
+
+	./configure --prefix=/usr --mandir=/usr/man
+
+	make
+	make DESTDIR=$PKG install
+}

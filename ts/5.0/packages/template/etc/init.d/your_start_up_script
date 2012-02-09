@@ -1,0 +1,34 @@
+#! /bin/sh
+
+. /etc/thinstation.global
+
+# note you can replace this package with a symlink to /etc/thinstation.packages
+# for GUI apps, or /etc/thinstation.console for console apps
+# if you do then you will need to create a seperate initilization script for
+# any other parameters which need to be started at bootup
+
+
+case "$1" in  
+init)
+    if ! pkg_initialized $PACKAGE; then
+
+	# Your startup instructions go here
+
+	pkg_set_init_flag $PACKAGE
+    fi
+    ;;
+console)
+;;
+window)
+;;
+fullscreen)
+;;
+help)
+    echo "Usage: $0 init"
+    ;;
+  *)
+    exit 1
+    ;;
+esac
+
+exit 0

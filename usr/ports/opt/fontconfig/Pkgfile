@@ -1,0 +1,29 @@
+# Description: A library for configuring and customizing font access
+# URL:         http://fontconfig.org/wiki/
+# Maintainer:  Tilman Sauerbeck, tilman at crux dot nu
+# Depends on:  freetype, expat
+
+name=fontconfig
+version=2.8.0
+release=1
+source=(http://fontconfig.org/release/$name-$version.tar.gz)
+
+build() {
+    cd $name-$version
+
+    ./configure --prefix=/usr \
+                --sysconfdir=/etc \
+                --mandir=/usr/man \
+                --localstatedir=/var
+
+    make
+    make DESTDIR=$PKG install
+
+    # Enabling autohinting by default
+    pushd $PKG/etc/fonts/conf.d
+    ln -s ../conf.avail/10-autohint.conf
+    popd
+
+    rm -f $PKG/etc/fonts/conf.d/README
+    rm -r $PKG/usr/share
+}

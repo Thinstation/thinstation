@@ -1,0 +1,18 @@
+# Description: xorg driver xf86-video-suntcx
+# URL: http://xorg.freedesktop.org
+# Maintainer: Tilman Sauerbeck, tilman at crux dot nu
+# Depends on: xorg-server
+
+name=xorg-xf86-video-suntcx
+version=1.1.1
+release=1
+source=(http://xorg.freedesktop.org/releases/individual/driver/xf86-video-suntcx-$version.tar.bz2)
+
+build() {
+	cd xf86-video-suntcx-$version
+
+	./configure --prefix=/usr
+
+	make
+	make DESTDIR=$PKG install
+}

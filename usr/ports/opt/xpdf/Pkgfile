@@ -1,0 +1,30 @@
+# Description: PDF viewer
+# URL:         http://foolabs.com/xpdf
+# Maintainer:  Thomas Penteker, tek at serverop dot de
+# Packager:    Robert McMeekin, viper at mcmeekin dot info
+# Depends on: lesstif
+
+name=xpdf
+version=3.03
+release=1
+source=(ftp://ftp.foolabs.com/pub/xpdf/$name-$version.tar.gz)
+
+build() {
+    cd $name-$version
+
+    sed -i 's/\(s = XmStringCreateLocalized(\)/\1(char *)/g' xpdf/XPDFViewer.cc
+
+    ./configure \
+        --prefix=/usr \
+        --with-Xm-library=/usr/lib \
+        --with-Xm-includes=/usr/include/Xm \
+        --with-freetype2-includes=/usr/include/freetype2 \
+        --sysconfdir=/etc \
+        --enable-a4-paper \
+        --enable-opi \
+        --with-t1-library=no \
+        --mandir=/usr/man
+
+    make
+    make install DESTDIR=$PKG
+}

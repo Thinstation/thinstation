@@ -1,0 +1,25 @@
+# Description: The GNU troff text-formatting system
+# URL:         http://www.gnu.org/software/groff/groff.html
+# Maintainer:  CRUX System Team, core-ports at crux dot nu
+
+name=groff
+version=1.21
+release=1
+source=(http://ftp.gnu.org/gnu/$name/$name-$version.tar.gz)
+
+build() {
+    cd $name-$version
+
+    ./configure --prefix=/usr \
+                --mandir=/usr/man \
+                --without-x
+
+    make
+    make DESTDIR=$PKG install
+
+    rm -rf $PKG/usr/share/{info,doc}
+
+    ln -s eqn $PKG/usr/bin/geqn
+    ln -s tbl $PKG/usr/bin/gtbl
+    ln -s soelim $PKG/usr/bin/zsoelim
+}

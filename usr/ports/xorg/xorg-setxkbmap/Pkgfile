@@ -1,0 +1,18 @@
+# Description: Set the keyboard using the X Keyboard Extension
+# URL: http://xorg.freedesktop.org
+# Maintainer: Tilman Sauerbeck, tilman at crux dot nu
+# Depends on: xorg-libx11, xorg-libxkbfile
+
+name=xorg-setxkbmap
+version=1.2.0
+release=1
+source=(http://xorg.freedesktop.org/releases/individual/app/setxkbmap-$version.tar.bz2)
+
+build() {
+	cd setxkbmap-$version
+
+	./configure --prefix=/usr --mandir=/usr/man
+
+	make
+	make DESTDIR=$PKG install
+}

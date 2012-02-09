@@ -1,0 +1,31 @@
+# Description: NFS utilities 
+# URL:         http://nfs.sourceforge.net/
+# Maintainer:  Juergen Daubert, jue at crux dot nu
+# Depends on:  util-linux-ng tcp_wrappers libcap rpcbind libnfsidmap libevent keyutils
+
+name=nfs-utils
+version=1.2.5
+release=1
+source=(http://downloads.sourceforge.net/project/nfs/$name/$version/$name-$version.tar.bz2 \
+        exports idmapd.conf nfs nfsserver)
+
+build () {
+    cd $name-$version
+
+    ./configure --prefix=/usr \
+                --mandir=/usr/man \
+                --sysconfdir=/etc \
+                --with-statedir=/var/lib/nfs \
+                --disable-gss \
+                --with-tcp-wrappers
+    make
+    make DESTDIR=$PKG install
+
+    install -D -m 755 $SRC/nfs $PKG/etc/rc.d/nfs
+    install -D -m 755 $SRC/nfsserver $PKG/etc/rc.d/nfsserver
+    install -D -m 644 $SRC/exports $PKG/etc/exports
+    install -D -m 644 $SRC/idmapd.conf $PKG/etc/idmapd.conf
+
+    install -d $PKG/var/lib/nfs/{rpc_pipefs,v4recovery}
+    install -d $PKG/etc/exports.d
+}

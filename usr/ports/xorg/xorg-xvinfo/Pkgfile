@@ -1,0 +1,18 @@
+# Description: X-Video information utility
+# URL: http://xorg.freedesktop.org
+# Maintainer: Tilman Sauerbeck, tilman at crux dot nu
+# Depends on: xorg-libx11, xorg-libxv
+
+name=xorg-xvinfo
+version=1.1.1
+release=1
+source=(http://xorg.freedesktop.org/releases/individual/app/xvinfo-$version.tar.bz2)
+
+build() {
+	cd xvinfo-$version
+
+	./configure --prefix=/usr --mandir=/usr/man
+
+	make
+	make DESTDIR=$PKG install
+}

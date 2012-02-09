@@ -1,0 +1,14 @@
+#!/bin/sh
+
+gzname=`basename $1`
+INSTALLDIR=../packages/chrome
+
+cd wget_tmp
+ar -x $gzname
+lzma -d data.tar.lzma
+tar -xf data.tar
+mv opt $INSTALLDIR
+chmod 4755 $INSTALLDIR/opt/google/chrome/chrome-sandbox
+returnval=$?
+
+exit $returnval

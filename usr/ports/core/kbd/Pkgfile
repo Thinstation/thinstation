@@ -1,0 +1,27 @@
+# Description: Keytable files and keyboard utilities
+# URL:         ftp://ftp.win.tue.nl/pub/linux-local/utils/kbd/
+# Maintainer:  CRUX System Team, core-ports at crux dot nu
+
+name=kbd
+version=1.15.3
+release=1
+source=(ftp://ftp.altlinux.org/pub/people/legion/kbd/$name-$version.tar.gz)
+
+build() {
+    cd $name-$version
+
+    ./configure --prefix=/usr \
+                --mandir=/usr/man \
+                --datadir=/usr/share/kbd \
+                --disable-nls
+    make
+    make DESTDIR=$PKG install
+
+    ln -sf default8x16.psfu.gz $PKG/usr/share/kbd/consolefonts/default.gz
+
+    rm -r $PKG/usr/share/kbd/keymaps/{ppc,mac,atari,amiga,sun}
+    rm $PKG/usr/bin/{loadunimap,mapscrn,resizecons,psf*table}
+    rm $PKG/usr/man/man8/{loadunimap,mapscrn,resizecons}.8
+    rm $PKG/usr/man/man1/psf*table.1
+    find $PKG/usr/share/kbd/ -type f -name "README*" -delete
+}

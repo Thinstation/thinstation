@@ -1,0 +1,54 @@
+From Rawhide. Allows ARP to display in a Linux style.
+
+diff -Naur net-tools-1.60.orig/arp.c net-tools-1.60/arp.c
+--- net-tools-1.60.orig/arp.c	2001-04-08 17:05:05.000000000 +0000
++++ net-tools-1.60/arp.c	2003-09-12 22:36:51.000000000 +0000
+@@ -619,6 +619,7 @@
+     fprintf(stderr, _("  arp [-v]   [<HW>] [-i <if>] -Ds <hostname> <if> [netmask <nm>] pub      <-''-\n\n"));
+     
+     fprintf(stderr, _("        -a                       display (all) hosts in alternative (BSD) style\n"));
++    fprintf(stderr, _("        -e                       display (all) hosts in default (Linux) style\n"));
+     fprintf(stderr, _("        -s, --set                set a new ARP entry\n"));
+     fprintf(stderr, _("        -d, --delete             delete a specified entry\n"));
+     fprintf(stderr, _("        -v, --verbose            be verbose\n"));
+diff -Naur net-tools-1.60.orig/man/en_US/arp.8 net-tools-1.60/man/en_US/arp.8
+--- net-tools-1.60.orig/man/en_US/arp.8	2000-10-28 10:59:42.000000000 +0000
++++ net-tools-1.60/man/en_US/arp.8	2003-09-12 22:36:51.000000000 +0000
+@@ -3,7 +3,7 @@
+ arp \- manipulate the system ARP cache
+ .SH SYNOPSIS
+ .B arp 
+-.RB [ \-vn ] 
++.RB [ \-evn ] 
+ .RB [ "\-H type" ] 
+ .RB [ "-i if" ] 
+ .B -a 
+@@ -60,7 +60,7 @@
+ shows numerical addresses instead of trying to determine symbolic host, port
+ or user names.
+ .TP
+-.B "\-H type, \-\-hw-type type"
++.B "\-H type, \-\-hw-type type, \-t type"
+ When setting or reading the ARP cache, this optional parameter tells
+ .B arp
+ which class of entries it should check for.  The default value of
+@@ -81,7 +81,8 @@
+ .B hostname
+ parameter is not used,
+ .B all
+-entries will be displayed.
++entries will be displayed.  
++The entries will be displayed in alternate (BSD) style.
+ .TP
+ .B "\-d hostname, \-\-delete hostname"
+ Remove any entry for the specified host.  This can be used if the
+@@ -92,6 +93,9 @@
+ .BR ifa "'s"
+ hardware address.
+ .TP
++.B "\-e"
++Shows the entries in default (Linux) style.
++.TP
+ .B "\-i If, \-\-device If"
+ Select an interface. When dumping the ARP cache only entries matching
+ the specified interface will be printed. When setting a permanent or

@@ -1,0 +1,18 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=novell-ldapext
+version=0.1
+release=1
+source=(https://api.opensuse.org/public/source/DISCONTINUED:openSUSE:11.1/novell-ldapext/novell-ldapext.tar.bz2)
+
+build() {
+	cd novell/sasl/src
+
+	make
+	mkdir $PKG/lib
+	install -m755 -v libldapsdk.so.0.0 $PKG/lib/libldapsdk.so.0.0
+	ln -sf libldapsdk.so.0.0 $PKG/lib/libldapsdk.so.0
+	ln -sf libldapsdk.so.0.0 $PKG/lib/libldapsdk.so
+}

@@ -1,0 +1,23 @@
+# Description: base MIME and Application database for GNOME
+# URL: http://freshmeat.net/projects/gnome-mime-data/
+# Maintainer: Matt Housh, jaeger at morpheus dot net
+# Depends on: shared-mime-info
+# Group: gnome/platform
+
+name=gnome-mime-data
+version=2.18.0
+release=1
+gnomever=2.24.3
+source=(http://download.gnome.org/platform/${gnomever%.*}/$gnomever/sources/$name-$version.tar.bz2)
+
+build() {
+	cd $name-$version
+	rm po/*.po
+	sed -i -e "s/USE_NLS=yes/USE_NLS=no/" \
+		-e "s/ENABLE_NLS 1/ENABLE_NLS 0/" configure
+	./configure --prefix=/usr
+	make
+	make DESTDIR=$PKG install
+	mkdir -p $PKG/usr/lib
+	mv $PKG/usr/share/pkgconfig $PKG/usr/lib/
+}

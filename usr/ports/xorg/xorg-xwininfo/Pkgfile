@@ -1,0 +1,18 @@
+# Description: Window information utility for X
+# URL: http://xorg.freedesktop.org
+# Maintainer: Tilman Sauerbeck, tilman at crux dot nu
+# Depends on: xorg-libxmu, xorg-libx11, xorg-libxext
+
+name=xorg-xwininfo
+version=1.1.1
+release=1
+source=(http://xorg.freedesktop.org/releases/individual/app/xwininfo-$version.tar.bz2)
+
+build() {
+	cd xwininfo-$version
+
+	./configure --prefix=/usr --mandir=/usr/man
+
+	make
+	make DESTDIR=$PKG install
+}

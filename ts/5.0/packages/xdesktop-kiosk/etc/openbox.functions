@@ -1,0 +1,42 @@
+#! /bin/sh
+
+. $TS_GLOBAL
+
+wm_menu ()
+{
+
+    MENU_FILE=/tmp/$WMNAME.menu
+    TMPMENU=/tmp/$WMNAME.tmp
+    echo '<?xml version="1.0" encoding="UTF-8"?>' > $MENU_FILE
+    echo '<openbox_menu xmlns="http://openbox.org/3.4/menu">' >> $MENU_FILE
+    echo '<menu id="root-menu" label="Openbox 3">' >> $MENU_FILE
+
+    echo '  <separator label="System" />' >> $MENU_FILE
+    echo '  <menu id="system-menu"/>' >> $MENU_FILE
+    echo '  <separator />' >> $MENU_FILE
+    if [ "`make_caps x$MENU_SHOWABOUT`" == "XTRUE" ] && [ -e /bin/about ]; then
+        echo '  <item label="About">' >> $MENU_FILE
+        echo '    <action name="Execute">' >> $MENU_FILE
+        echo '      <command>about</command>' >> $MENU_FILE
+        echo '    </action>' >> $MENU_FILE
+        echo '  </item>' >> $MENU_FILE
+    fi
+    echo '  <item label="Power Off">' >> $MENU_FILE
+    echo '    <action name="Execute">' >> $MENU_FILE
+    echo '      <command>poweroff</command>' >> $MENU_FILE
+    echo '      <prompt>Really power off?</prompt>' >> $MENU_FILE
+    echo '    </action>' >> $MENU_FILE
+    echo '  </item>' >> $MENU_FILE
+    echo '  <item label="Restart Computer">' >> $MENU_FILE
+    echo '    <action name="Execute">' >> $MENU_FILE
+    echo '      <command>reboot</command>' >> $MENU_FILE
+    echo '      <prompt>Really reboot?</prompt>' >> $MENU_FILE
+    echo '    </action>' >> $MENU_FILE
+    echo '  </item>' >> $MENU_FILE
+    echo '</menu>' >> $MENU_FILE
+    echo '</openbox_menu>' >> $MENU_FILE
+
+    cat $MENU_FILE > $HOME/.config/openbox/menu.xml
+    rm $MENU_FILE
+}
+

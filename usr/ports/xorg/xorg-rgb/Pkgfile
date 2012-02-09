@@ -1,0 +1,18 @@
+# Description: X Window System RGB database
+# URL: http://xorg.freedesktop.org
+# Maintainer: Tilman Sauerbeck, tilman at crux dot nu
+# Depends on: xorg-xproto
+
+name=xorg-rgb
+version=1.0.4
+release=1
+source=(http://xorg.freedesktop.org/releases/individual/app/rgb-$version.tar.bz2)
+
+build() {
+	cd rgb-$version
+
+	./configure --prefix=/usr --mandir=/usr/man
+
+	make
+	make DESTDIR=$PKG install
+}

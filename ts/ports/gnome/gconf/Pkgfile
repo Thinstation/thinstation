@@ -1,0 +1,31 @@
+# Description: configuration database system
+# URL: http://www.gnome.org/projects/gconf/
+# Maintainer: Matt Housh, jaeger at morpheus dot net
+# Depends on: orbit2, libxml2, gtk, dbus-glib, policykit
+# Group: gnome/platform
+
+name=gconf
+version=2.28.1
+release=1
+source=(http://ftp.gnome.org/pub/GNOME/sources/GConf/2.28/GConf-$version.tar.bz2)
+
+build() {
+	cd GConf-$version
+	rm po/*.po
+	sed -i -e "s/USE_NLS=yes/USE_NLS=no/" \
+		-e "s/ENABLE_NLS 1/ENABLE_NLS 0/" configure
+	cp /usr/include/glib-2.0/{glib.h,glib-object.h} .
+	cp /usr/lib/glib-2.0/include/glibconfig.h .
+	ln -sf /usr/include/glib-2.0/glib glib
+	ln -sf /usr/include/glib-2.0/gobject gobject
+	./configure --prefix=/usr \
+		--mandir=/usr/man \
+		--disable-defaults-service \
+		--enable-debug=no \
+		--libexecdir=/usr/lib/GConf \
+		--enable-gtk \
+		--disable-gtk-doc
+	make
+	make DESTDIR=$PKG install
+	rm -rf $PKG/usr/share/gtk-doc
+}

@@ -1,0 +1,81 @@
+# Description: Root filesystem package
+# URL:         http://crux.nu
+# Maintainer:  CRUX System Team, core-ports at crux dot nu
+
+name=filesystem
+version=2.7
+release=1
+source=(issue motd shells group passwd shadow securetty fstab mime.types)
+
+build() {
+    # Directory structure
+    mkdir $PKG/bin
+    mkdir $PKG/sbin
+    mkdir $PKG/boot
+    mkdir $PKG/dev
+    mkdir $PKG/proc
+    mkdir $PKG/sys
+    mkdir $PKG/etc
+    mkdir $PKG/tmp
+    mkdir $PKG/mnt
+    mkdir $PKG/root
+    mkdir $PKG/lib
+    mkdir $PKG/lib/modules
+    mkdir $PKG/opt
+    mkdir $PKG/opt/bin
+    mkdir $PKG/opt/sbin
+    mkdir $PKG/usr
+    mkdir $PKG/usr/{bin,include,lib,sbin,share,src,man}
+    mkdir $PKG/usr/man/man{1,2,3,4,5,6,7,8}
+    ln -s ../var $PKG/usr/var
+    mkdir $PKG/var
+    mkdir $PKG/var/cache
+    mkdir $PKG/var/lib
+    mkdir $PKG/var/lib/pkg
+    mkdir $PKG/var/lock
+    mkdir $PKG/var/log
+    mkdir $PKG/var/log/old
+    mkdir $PKG/var/run
+    touch $PKG/var/run/utmp
+    mkdir $PKG/var/spool
+    mkdir $PKG/var/spool/mail
+    mkdir $PKG/var/tmp
+    mkdir $PKG/var/ftp
+    mkdir $PKG/var/www
+    mkdir $PKG/var/empty
+    ln -s spool/mail $PKG/var/mail
+    mkdir $PKG/home
+
+    chmod 1777 $PKG/var/spool/mail
+    chmod 1777 $PKG/tmp
+    chmod 1777 $PKG/var/lock
+    chmod 1777 $PKG/var/tmp
+    chmod 0750 $PKG/root
+
+    # /dev
+    mknod $PKG/dev/console c 5 1
+    chmod 0600 $PKG/dev/console
+
+    # /etc
+    cp issue $PKG/etc
+    cp motd $PKG/etc
+    cp shells $PKG/etc
+    cp group $PKG/etc
+    cp passwd $PKG/etc
+    cp shadow $PKG/etc
+    cp securetty $PKG/etc
+    cp fstab $PKG/etc
+    cp mime.types $PKG/etc
+    touch $PKG/etc/mtab
+    chmod 640 $PKG/etc/shadow
+
+    # /usr/bin/crux
+cat > $PKG/usr/bin/crux << EOF
+#!/bin/sh
+
+echo "CRUX version $version"
+
+# End of file
+EOF
+    chmod 755 $PKG/usr/bin/crux
+}

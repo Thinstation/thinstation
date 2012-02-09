@@ -1,0 +1,23 @@
+#!/bin/sh
+#
+# /etc/rc.d/crond: start/stop cron daemon
+#
+
+case $1 in
+start)
+	/usr/sbin/crond -S -l info
+	;;
+stop)
+	killall -q /usr/sbin/crond
+	;;
+restart)
+	$0 stop
+	sleep 2
+	$0 start
+	;;
+*)
+	echo "usage: $0 [start|stop|restart]"
+	;;
+esac
+
+# End of file

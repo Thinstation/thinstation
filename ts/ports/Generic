@@ -1,0 +1,23 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=mdetect-TS
+pname=${name%-*}
+version=0.5.2.3
+release=1
+source=(http://ftp.de.debian.org/debian/pool/main/m/$pname/$pname-$version.tar.bz2)
+
+build() {
+	cd $pname-$version
+
+	./configure --prefix=/ \
+			--exec-prefix=/ \
+			--sysconfdir=/etc \
+			--libexecdir=/lib \
+			--mandir=/usr/man \
+			--disable-extras
+
+	make
+	make DESTDIR=$PKG install
+}

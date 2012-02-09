@@ -1,0 +1,83 @@
+Firmware for at76_usb Linux driver
+==================================
+
+
+Copyright
+---------
+
+The firmware is copyrighted by Atmel Corporation.  Please see file
+COPYRIGHT.
+
+
+Compatibility
+-------------
+
+The included firmware files are intended only for use with Linux
+at76_usb driver for USB devices using at76c503, at76c505 and at76c505a
+chipsets.  This firmware is not intended for any other OS or driver.
+
+This package only includes only the firmware versions known to work best
+with the current at76_usb driver.
+
+
+Installation
+------------
+
+The firmware is loaded by the kernel using hotplug or udev.  Firmware
+download is supported by udev starting with version 066.  If an older
+version of udev is installed, then hotplug is likely responsible for the
+firmware loading.
+
+If you don't have either of udev or hotplug, please install either of
+them, preferably using your distribution's facilities (yum, apt-get,
+urpmi or a similar package manager).
+
+Every supported device need just one firmware file, and the driver knows
+which firmware to load based on the USB ID of the device.  But if you
+don't know which firmware file your device needs, it's a safe bet to
+install them all.
+
+For the firmware to be found and loaded, it should be copied to a
+directory where hotplug or udev can find it.
+
+When udev is used, this directory is normally called /lib/firmware.  If
+hotplug is handling the firmware, if would normally look in following
+directories:
+
+  /lib/hotplug/firmware
+  /usr/local/lib/hotplug/firmware
+  /usr/lib/hotplug/firmware
+
+For example, if you determine that the firmware is loaded from
+/lib/firmware, copy the firmware files there as root:
+
+  cp *.bin /lib/firmware
+
+The firmware download is initiated by the driver after it detects the
+appropriate hardware.  No additional scripts or utilities are needed to
+load the firmware.  See kernel log (using the dmesg command) to make
+sure that the firmware download has succeeded.
+
+
+Contact information
+-------------------
+
+Please don't contact Atmel about this firmware.  Atmel neither wrote the
+at76_usb driver nor packaged this firmware.  Their good will should not
+be punished by misdirected support requests.
+
+Please don't write any individual developers personally.  The driver is
+developed collectively, and the discussion about the driver should be
+open for others.
+
+The mailing list for developers of the at76_usb driver is
+
+  at76c503a-develop@lists.berlios.de
+
+The mailing list for users of the at76_usb driver is
+
+  at76c503a-user@lists.berlios.de
+
+You may also want to download the latest version of the driver and the
+firmware and check the included documentation, which may be more current
+than this document.

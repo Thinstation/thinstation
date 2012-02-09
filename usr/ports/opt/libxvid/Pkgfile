@@ -1,0 +1,18 @@
+# Description: An ISO MPEG-4 compliant video codec
+# URL: http://www.xvid.org/
+# Maintainer: Danny Rawlins, monster dot romster at gmail dot com
+# Packager: Matt Housh, jaeger at crux dot nu
+# Nice to have: yasm
+
+name=libxvid
+version=1.3.2
+release=1
+source=(http://downloads.xvid.org/downloads/xvidcore-$version.tar.bz2)
+
+build() {
+	cd xvidcore/build/generic
+	./configure --prefix=/usr
+	make
+	make DESTDIR=$PKG install
+	ln -s libxvidcore.so.4.3 $PKG/usr/lib/libxvidcore.so
+}

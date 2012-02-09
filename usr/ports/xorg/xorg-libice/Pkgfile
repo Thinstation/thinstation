@@ -1,0 +1,21 @@
+# Description: xorg lib libICE
+# URL: http://xorg.freedesktop.org
+# Maintainer: Tilman Sauerbeck, tilman at crux dot nu
+# Depends on: xorg-xproto, xorg-xtrans
+
+name=xorg-libice
+version=1.0.7
+release=1
+source=(http://xorg.freedesktop.org/releases/individual/lib/libICE-$version.tar.bz2)
+
+build() {
+	cd libICE-$version
+
+	./configure --prefix=/usr --disable-docs
+
+	make
+	make DESTDIR=$PKG install
+
+	rm $PKG/usr/share/doc/libICE/ice.xml
+	find $PKG/usr/share -type d -delete
+}

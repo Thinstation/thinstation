@@ -1,0 +1,277 @@
+# dillorc
+# Sample dillo initialization file.
+#
+# Lines that start with a '#' are comments.
+# "#option=..." shows the built-in default.
+# "# option=..." is an additional example.
+# "option=..." overrides the built-in value.
+
+#-------------------------------------------------------------------------
+#                             FIRST SECTION                             :)
+#-------------------------------------------------------------------------
+
+# Set the desired initial browser size
+# geometry=650x545+0+20
+#geometry=780x580
+
+# Change this if you want to have text-only browsing from the start.
+# (While browsing, this can be changed from the tools/settings menu.)
+#load_images=YES
+
+# Change this if you want to disable loading of CSS stylesheets initially.
+# (While browsing, this can be changed from the tools/settings menu.)
+#load_stylesheets=YES
+
+# Change this if you want to disable parsing of embedded CSS initially.
+# (While browsing, this can be changed from the tools/settings menu.)
+#parse_embedded_css=YES
+
+# How should Dillo restrict automatic requests (e.g., redirections,
+# pages containing images or stylesheets)?
+# allow_all
+# same_domain : Permit www.example.org to load an image from img.example.org,
+#               but not from the unrelated ad.doubleclick.net.
+#filter_auto_requests=same_domain
+
+# Change the buffering scheme for drawing
+# 0 no double buffering - useful for debugging
+# 1 light buffering using a single back buffer for all windows
+# 2 full fltk-based double buffering for all windows
+#buffered_drawing=1
+
+# Set your default directory for download/save operations
+#save_dir=/tmp
+
+#-------------------------------------------------------------------------
+#                           RENDERING SECTION
+#-------------------------------------------------------------------------
+
+# Default fonts:
+#
+# If FLTK has been configured with Xft enabled (the default), you can use
+# scalable fonts such as DejaVu or Liberation (try running
+# "fc-list : family | cut -d ',' -f 2 | sort").
+#font_serif="DejaVu Serif"
+#font_sans_serif="DejaVu Sans"
+#font_cursive="URW Chancery L"
+#font_fantasy="DejaVu Sans"
+#font_monospace="DejaVu Sans Mono"
+#
+# Otherwise, use bitmapped fonts like the following (for a list, try running
+# "xlsfonts -fn *-iso10646-1 | grep -v -e -0-0 | cut -d - -f 3 | sort | uniq").
+# font_serif="times"
+# font_sans_serif="helvetica"
+# font_cursive="helvetica"
+# font_fantasy="helvetica"
+# font_monospace="courier"
+
+# All font sizes are scaled by this value
+# font_factor=1.5
+#font_factor=1.0
+
+# Maximum font size in pixels
+#font_max_size=100
+
+# Minimum font size in pixels
+#font_min_size=6
+
+# Show tooltip popups for UI and for HTML title attributes
+#show_tooltip=YES
+
+# Set this to YES if you want to limit the word wrap width to the viewport
+# width (may be useful for iPAQ)
+#limit_text_width=NO
+
+
+#-------------------------------------------------------------------------
+#                            PARSING SECTION
+#-------------------------------------------------------------------------
+
+# If you prefer more accurate HTML bug diagnosis over better rendering
+# (page authors and webmasters) set the following to "NO".
+#
+#w3c_plus_heuristics=YES
+
+
+#-------------------------------------------------------------------------
+#                            NETWORK SECTION
+#-------------------------------------------------------------------------
+
+# Set the start page.
+# start_page="about:blank"
+# start_page="http://www.dillo.org"
+# start_page="file:/home/jcid/custom_page.html"
+#start_page="about:splash"
+
+# Set the home location
+# home="file:/home/jcid/HomePage/Home.html"
+#home="http://www.dillo.org/"
+
+# Set the URLs used by the web search dialog.
+# "%s" is replaced with the search keywords separated by '+'.
+# Format: search_url="[<label> ]<url>"
+# You can enable multiple search_url strings at once and select from among
+# them at runtime, with the first being the default.
+search_url="Google http://www.google.com/search?ie=UTF-8&oe=UTF-8&q=%s"
+search_url="Scroogle https://ssl.scroogle.org/cgi-bin/nbbwssl.cgi?Gw=%s"
+search_url="Wikipedia http://www.wikipedia.org/w/index.php?search=%s&go=Go"
+search_url="Free Dictionary http://www.thefreedictionary.com/%s"
+
+# If set, dillo will ask web servers to send pages in this language.
+# This setting does NOT change dillo's user interface.
+# Format explained: www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.4
+# Language-REGION values: www.iana.org/assignments/language-subtag-registry
+# (by default, no Accept-Language header is sent)
+# http_language="de"
+# http_language="pt-BR"
+# http_language="vi,de-CH,de;q=0.5,th;q=0.3"
+
+# Maximum number of simultaneous TCP connections to a single server or proxy.
+# http_max_conns=6
+
+# Set the proxy information for http.
+# Note that the http_proxy environment variable overrides this setting.
+# WARNING: FTP and downloads plugins use wget. To use a proxy with them,
+#          you will need to configure wget accordingly. See
+#          http://www.gnu.org/software/wget/manual/html_node/Proxies.html
+# http_proxy="http://localhost:8080/"
+#(by default, no proxy is used)
+
+# If you need to provide a  user/password pair for the proxy,
+# set the proxy user name here and Dillo will ask for the password later.
+# http_proxyuser="joe"
+#(by default, no proxy is used)
+
+# Set the domains to access without proxy
+# no_proxy = ".hola.com .mynet.cl .hi.de"
+#no_proxy="localhost 127.0.0.1"
+
+# Set the HTTP Referer (sic) header.
+# Note that there is no option to reveal the page that you came from because it
+# would endanger your privacy. 'host' and 'path' allow you to pretend that the
+# link you followed was on the same site that you're going to.
+# none  : Don't send any Referer header at all.
+# host  : Send the requested URI's hostname.
+# path  : Send the requested URI's host and path.
+#http_referer=host
+
+# Set the HTTP User-Agent header.
+# This can be useful for privacy and for working around servers who think
+# Dillo is less capable than it really is. However, if you pretend to use a
+# different browser, servers may send you pages that work with the features
+# and bugs of that other browser -- or even disallow access in cases like
+# wget or googlebot. Remember this before submitting bug reports.
+#
+# See http://zytrax.com/tech/web/browser_ids.htm for a compilation of strings.
+#
+# http_user_agent="Mozilla/5.0 (X11; U; Linux x86_64; en-US; rv:1.9.1.6) Gecko/20091201 Firefox/3.5.6"
+# http_user_agent="Wget/1.11.4"
+#The default is Dillo/(current version number)
+
+#-------------------------------------------------------------------------
+#                            COLORS SECTION
+#-------------------------------------------------------------------------
+
+# Set the background color
+# bg_color=gray
+# bg_color=0xd6d6c0
+#bg_color=0xdcd1ba
+
+# If your eyes suffer with white backgrounds, change this.
+#allow_white_bg=YES
+
+# When set to YES, the page author's visited link color may be overridden
+# to allow better contrast with text/links/background
+#contrast_visited_color=YES
+
+
+#-------------------------------------------------------------------------
+#                        USER INTERFACE SECTION
+#-------------------------------------------------------------------------
+
+# UI theme
+# "none" is the default FLTK appearance, which "resembles old Windows...and
+# old GTK/KDE".
+# "plastic" "is inspired by the Aqua user interface on Mac OS X".
+# "gtk+" "is inspired by the Red Hat Bluecurve theme".
+#theme=none
+# theme=gtk+
+# theme=plastic
+
+# Size of dillo panel
+# tiny   : buttons, location, and progress boxes in one row
+# small  : location in one row, buttons + progress boxes in another
+# medium : adds text labels to buttons and boxes
+# panel_size=tiny
+# panel_size=small
+#panel_size=medium
+
+#small_icons=NO
+
+# Here you can choose to hide some widgets of the dillo panel...
+#show_back=YES
+#show_forw=YES
+#show_home=YES
+#show_reload=YES
+#show_save=YES
+#show_stop=YES
+#show_bookmarks=YES
+#show_tools=YES
+#show_filemenu=YES
+#show_clear_url=YES
+#show_url=YES
+#show_search=YES
+#show_help=YES
+#show_progress_box=YES
+
+# Start dillo with the panels hidden?
+#fullwindow_start=NO
+
+# When filling out forms, our default behaviour is to submit on enterpress,
+# but only when there's a single text entry (to avoid incomplete submits).
+# OTOH, if you have to fill out the same form repeatedly, you may find it
+# useful to keep away from the mouse by forcing enter to submit.
+#enterpress_forces_submit=NO
+
+# A mouse's middle click over a link opens a new Tab.
+# If you prefer to open a new Window instead, set it to NO.
+#middle_click_opens_new_tab=YES
+
+# A mouse's middle click over a tab closes the Tab.
+# With mousewheel mouses, right click feels way better (set to YES).
+#right_click_closes_tab=NO 
+
+# Mouse middle click by default drives drag-scrolling.
+# To paste an URL into the window instead of scrolling, set it to NO.
+# Note: You could always paste the URL onto the URL box clear button.
+#middle_click_drags_page=YES
+
+# Focus follows new Tabs.
+# You can hold SHIFT to temporarily revert this behaviour.
+#focus_new_tab=YES
+
+# Ask before quitting Dillo with more than one window or tab open.
+#show_quit_dialog=YES
+
+#-------------------------------------------------------------------------
+#                        DEBUG MESSAGES SECTION
+#-------------------------------------------------------------------------
+
+# Soon we should add the "show_debug_messages=NO" option...
+
+# Generic messages (mainly for debugging specific parts)
+# Change this to disable them.
+#show_msg=YES
+
+
+#-------------------------------------------------------------------------
+#                        HTML BUG MESSAGES SECTION
+#-------------------------------------------------------------------------
+
+# Accepted by the W3C validator but "strongly discouraged" by the SPEC.
+# (Such as "TAB character inside <PRE>").
+#show_extra_warnings=NO
+
+
+# -----------------------------------------------------------------------
+# dillorc ends here.

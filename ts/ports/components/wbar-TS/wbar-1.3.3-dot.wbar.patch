@@ -1,0 +1,109 @@
+diff -pruN wbar-1.3.3.orig/dot.wbar wbar-1.3.3/dot.wbar
+--- wbar-1.3.3.orig/dot.wbar	2008-05-18 20:36:31.000000000 +0200
++++ wbar-1.3.3/dot.wbar	2008-05-18 20:36:41.000000000 +0200
+@@ -1,72 +1,72 @@
+ # The Bar && Font
+-i: iconpack/wbar.osx/osxbarback.png
+-t: iconpack/wbar.osx/font/12
++i: /usr/share/wbar/iconpack/wbar.osx/osxbarback.png
++t: /usr/share/wbar/iconpack/comic/12
+ c:
+ 
+-i: iconpack/wbar.osx/nautilus.png
++i: /usr/share/wbar/iconpack/wbar.osx/nautilus.png
+ c: nautilus --no-desktop --browser
+ t: nautilus
+ 
+-i: iconpack/wbar.osx/cedega.png
++i: /usr/share/wbar/iconpack/wbar.osx/cedega.png
+ c: 
+ t: wine
+ 
+-i: iconpack/wbar.osx/firefox.png
++i: /usr/share/wbar/iconpack/wbar.osx/firefox.png
+ c: firefox
+ t: firefox
+ 
+-i: iconpack/wbar.osx/thunderbird.png
++i: /usr/share/wbar/iconpack/wbar.osx/thunderbird.png
+ c: thunderbird
+ t: thunderbird
+ 
+-i: iconpack/wbar.osx/gearth.png
++i: /usr/share/wbar/iconpack/wbar.osx/gearth.png
+ c: 
+ t: gearth
+ 
+-i: iconpack/wbar.osx/skype.png
++i: /usr/share/wbar/iconpack/wbar.osx/skype.png
+ c: skype
+ t: skype
+ 
+-i: iconpack/wbar.osx/psi.png
++i: /usr/share/wbar/iconpack/wbar.osx/psi.png
+ c: pidgin
+ t: pidgin
+ 
+-i: iconpack/wbar.osx/mlgui.png
++i: /usr/share/wbar/iconpack/wbar.osx/mlgui.png
+ c: 
+ t: sancho
+ 
+-i: iconpack/wbar.osx/ooffice.png
++i: /usr/share/wbar/iconpack/wbar.osx/ooffice.png
+ c: soffice
+ t: ooffice
+ 
+-i: iconpack/wbar.osx/acroread.png
++i: /usr/share/wbar/iconpack/wbar.osx/acroread.png
+ c: acroread
+ t: acroread
+ 
+-i: iconpack/wbar.osx/beagle.png
++i: /usr/share/wbar/iconpack/wbar.osx/beagle.png
+ c: beagle-search
+ t: beagle
+ 
+-i: iconpack/wbar.osx/gimp.png
++i: /usr/share/wbar/iconpack/wbar.osx/gimp.png
+ c: gimp
+ t: gimp
+ 
+-i: iconpack/wbar.osx/picasa.png
++i: /usr/share/wbar/iconpack/wbar.osx/picasa.png
+ c: picasa
+ t: picasa
+ 
+-i: iconpack/wbar.osx/gqview.png
++i: /usr/share/wbar/iconpack/wbar.osx/gqview.png
+ c: gqview
+ t: gqview
+ 
+-i: iconpack/wbar.osx/xmms.png
++i: /usr/share/wbar/iconpack/wbar.osx/xmms.png
+ c: audacious
+ t: audacious
+ 
+-i: iconpack/wbar.osx/gnucash.png
++i: /usr/share/wbar/iconpack/wbar.osx/gnucash.png
+ c: gnucash
+ t: gnucash
+ 
+-i: iconpack/wbar.osx/gmplayer.png
++i: /usr/share/wbar/iconpack/wbar.osx/gmplayer.png
+ c: gmplayer
+ t: gmplayer
+diff -pruN wbar-1.3.3.orig/IconLoader.cc wbar-1.3.3/IconLoader.cc
+--- wbar-1.3.3.orig/IconLoader.cc	2008-05-18 20:36:31.000000000 +0200
++++ wbar-1.3.3/IconLoader.cc	2008-05-18 20:37:52.000000000 +0200
+@@ -24,8 +24,8 @@ IconLoader::IconLoader(const char *cfgFi
+ 	else if( !stat("dot.wbar", &cfg_stat) )
+ 	    configFile = "dot.wbar";
+ 
+-	else if( !stat("/usr/share/wbar/dot.wbar", &cfg_stat) )
+-	    configFile = "/usr/share/wbar/dot.wbar";
++	else if( !stat("/usr/etc/dot.wbar", &cfg_stat) )
++	    configFile = "/usr/etc/dot.wbar";
+ 
+ 	else 
+ 	    throw "Can't stat a config file. Try # make install or -config <cfgfile>";

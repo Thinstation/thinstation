@@ -1,0 +1,62 @@
+
+##
+# --- OpenVPN Options
+#
+# OpenVPN uses X.509 certificates for authentication (packed into pkcs12 format, 
+# see http://openvpn.net/easyrsa.html). Startup script will look for client's 
+# certificate file client.p12 on STORAGE_CONFIG1-8 devices.
+
+# OPENVPN_SERVER		# ip address for openvpn server
+# OPENVPN_PORT 			# openvpn server's port
+# OPENVPN_PROTO 		# udp or tcp-client
+# OPENVPN_PROXY			# ip address for proxy server
+# OPENVPN_PROXY_TYPE 		# http or socks
+# OPENVPN_PROXY_PORT		# proxy port
+
+#Here are a few examples.
+
+# 1. Using OpenVPN on default port 1194/udp.
+
+# Thinstation config:
+# OPENVPN_SERVER="192.168.177.2"
+# OPENVPN_PORT="1194"
+# OPENVPN_PROTO="udp"
+
+# OpenVPN server config:
+# dev tap
+# server 10.8.0.0 255.255.255.0
+# push "route 192.168.17.0 255.255.255.0"
+# keepalive 10 60
+# dh /etc/openvpn/dh.pem
+# pkcs12 /etc/openvpn/server.p12
+# persist-tun
+# persist-key
+# keysize 256
+# comp-lzo
+# verb 3
+
+# 2. Using OpenVPN on port 443/tcp via http proxy
+
+# Thinstation config:
+# OPENVPN_SERVER="192.168.177.2"
+# OPENVPN_PORT="443"
+# OPENVPN_PROTO="tcp-client"
+# OPENVPN_PROXY="10.0.0.10"
+# OPENVPN_PROXY_TYPE="http"
+# OPENVPN_PROXY_PORT="8080"
+
+# OpenVPN server config:
+# proto tcp-server
+# port 443
+# dev tap
+# server 10.8.0.0 255.255.255.0
+# push "route 192.168.17.0 255.255.255.0"
+# keepalive 10 60
+# dh /etc/openvpn/dh.pem
+# pkcs12 /etc/openvpn/server.p12
+# persist-tun
+# persist-key
+# keysize 256
+# comp-lzo
+# verb 3
+

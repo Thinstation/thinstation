@@ -1,0 +1,25 @@
+#!/bin/sh
+
+if [ -e /etc/thinstation.env ] ; then . /etc/thinstation.env ; fi
+if [ -e /proc/cmdline ] ; then . /proc/cmdline ; fi
+if [ -e $TS_DEFAULTS ] ; then . $TS_DEFAULTS ; fi
+if [ -e $TS_BUILDTIME ] ; then . $TS_BUILDTIME ; fi
+if [ -e $TS_NETWORK ] ; then . $TS_NETWORK ; fi
+if [ -e $TS_FUNCTIONS ] ; then . $TS_FUNCTIONS ; fi
+if [ -e $TS_USER ] ; then . $TS_USER ; fi
+if [ -e $TS_RUNTIME ] ; then . $TS_RUNTIME ; fi
+if [ -e $TS_CUSTOM ] ; then . $TS_CUSTOM ; fi
+if [ -n $NET_DEVICE ] ; then . /var/log/net/$NET_DEVICE ; fi
+
+PACKAGE=`basename $0 | cut -c 1`
+if [ "$PACKAGE" = "S" ] ; then
+	PACKAGE=`basename $0 | cut -c 4-`
+else
+	PACKAGE=`basename $0`
+fi
+
+if [ -n "$TIME_ZONE" ] ; then
+	TZ=$TIME_ZONE
+fi
+
+for i in `cat $TS_EXPORTS` ; do	export $i ; done

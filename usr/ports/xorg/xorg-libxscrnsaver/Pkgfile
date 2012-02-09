@@ -1,0 +1,18 @@
+# Description: X Screen Saver extension client library
+# URL: http://xorg.freedesktop.org
+# Maintainer: Tilman Sauerbeck, tilman at crux dot nu
+# Depends on: xorg-libx11, xorg-xextproto, xorg-libxext, xorg-scrnsaverproto
+
+name=xorg-libxscrnsaver
+version=1.2.1
+release=1
+source=(http://xorg.freedesktop.org/releases/individual/lib/libXScrnSaver-$version.tar.bz2)
+
+build() {
+	cd libXScrnSaver-$version
+
+	./configure --prefix=/usr --mandir=/usr/man
+
+	make
+	make DESTDIR=$PKG install
+}

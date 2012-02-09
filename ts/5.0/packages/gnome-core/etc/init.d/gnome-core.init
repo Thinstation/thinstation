@@ -1,0 +1,17 @@
+#! /bin/sh
+
+. /etc/thinstation.global
+
+case "$1" in
+init)
+ if ! pkg_initialized $PACKAGE; then
+	pkg_set_init_flag $PACKAGE
+	if [ ! -e $HOME/.gconf ] && [ -e /etc/gconf/Default ]; then
+		mkdir -p $HOME/.gconf
+		cp -rf /etc/gconf/Default/* $HOME/.gconf/.
+	fi
+ fi
+;;
+esac
+
+exit 0

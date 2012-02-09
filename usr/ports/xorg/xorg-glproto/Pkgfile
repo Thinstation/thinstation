@@ -1,0 +1,17 @@
+# Description: xorg proto glproto
+# URL: http://xorg.freedesktop.org
+# Maintainer: Tilman Sauerbeck, tilman at crux dot nu
+
+name=xorg-glproto
+version=1.4.14
+release=1
+source=(http://xorg.freedesktop.org/releases/individual/proto/glproto-$version.tar.bz2)
+
+build() {
+	cd glproto-$version
+
+	./configure --prefix=/usr
+
+	make
+	make DESTDIR=$PKG install
+}

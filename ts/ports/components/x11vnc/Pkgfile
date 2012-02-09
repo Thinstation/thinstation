@@ -1,0 +1,19 @@
+# Description:	VNC server for real X displays
+# URL:		http://www.karlrunge.com/x11vnc/
+# Maintainer:	Alan Mizrahi, alan at mizrahi dot com dot ve
+# Depends on:	libjpeg xorg-libxdamage xorg-libxinerama xorg-libxrandr xorg-libxtst
+
+name=x11vnc
+version=0.9.13
+release=1
+source=(http://prdownloads.sf.net/libvncserver/$name-$version.tar.gz)
+
+build() {
+	cd $name-$version
+	./configure --prefix=/usr \
+		    --disable-nls \
+		    --mandir=$PKG/usr/man
+	make
+	make prefix=$PKG/usr install
+	rm -rf $PKG/usr/{include,share}
+}

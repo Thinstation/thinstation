@@ -1,0 +1,21 @@
+# Description: GTK+ GUI for Git
+# URL: http://developer.imendio.com/projects/giggle
+# Maintainer: Tilman Sauerbeck, tilman at crux dot nu
+# Depends on: gtk, gtksourceview
+
+name=giggle
+version=0.5
+release=1
+source=(http://ftp.gnome.org/pub/GNOME/sources/$name/0.5/$name-$version.tar.bz2)
+
+build() {
+	cd $name-$version
+
+	sed -i -e 's/USE_NLS=yes/USE_NLS=no/' \
+	       -e 's/ENABLE_NLS 1/ENABLE_NLS 0/' configure
+
+	./configure --prefix=/usr --disable-nls --disable-evolution-data-server
+
+	make
+	make DESTDIR=$PKG install
+}

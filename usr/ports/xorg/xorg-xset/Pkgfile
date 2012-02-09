@@ -1,0 +1,18 @@
+# Description: User preference utility for X
+# URL: http://xorg.freedesktop.org
+# Maintainer: Tilman Sauerbeck, tilman at crux dot nu
+# Depends on: xorg-libxmu, xorg-libx11, xorg-libxext, xorg-libxxf86misc
+
+name=xorg-xset
+version=1.2.1
+release=1
+source=(http://xorg.freedesktop.org/releases/individual/app/xset-$version.tar.bz2)
+
+build() {
+	cd xset-$version
+
+	./configure --prefix=/usr --mandir=/usr/man
+
+	make
+	make DESTDIR=$PKG install
+}

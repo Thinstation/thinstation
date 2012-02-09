@@ -1,0 +1,36 @@
+#! /bin/sh
+
+. $TS_GLOBAL
+
+case "$1" in  
+init)
+ if ! pkg_initialized $PACKAGE ; then
+   if [ ! -z "$SYSLOG_SERVER" ]; then
+	SYSLOG_SERVER=`make_caps $SYSLOG_SERVER`
+
+    	if [ $SYSLOG_SERVER = "LOCAL" ] ; then
+		echo "Starting syslogd locally"
+		syslogd -m 0
+		klogd
+	else
+		echo "Starting syslogd forwarding to $SYSLOG_SERVER"
+		syslogd -m 0 -R $SYSLOG_SERVER
+	fi
+   else
+	echo "Starting syslogd locally"
+	syslogd -m 0
+	klogd
+   fi
+   pkg_set_init_flag $PACKAGE
+ fi
+
+    ;;
+help)
+    echo "Usage: $0 init"
+    ;;
+  *)
+    exit 1
+    ;;
+esac
+
+exit 0

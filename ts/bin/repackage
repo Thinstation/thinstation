@@ -1,0 +1,179 @@
+#!/bin/bash
+# Description: Thinstation Utility to strip out extra files from a binary Package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+# not finished DON'T USE
+
+package=$1
+if [ "$2" != "" ]; then
+	pkgpath="$2/$package"
+else
+	pkgpath="$TSWRKNG/packages/$package"
+fi
+
+for pkg in $package ;
+	do
+		if [ ! -d $pkgpath ]; then
+			mkdir -p $pkgpath
+		fi
+		ppath=`prt-get path $pkg`
+		version=`prt-get current $pkg`
+		archive=$ppath/$pkg#$version.pkg.tar.gz
+		tar -zxf $archive -C $pkgpath
+	done
+for pkg in $package ;
+	do
+		for i in bin lib etc var;
+		do
+			if [ -d $pkgpath/usr/$i ]; then
+				mkdir -p $pkgpath/$i
+				mv -f $pkgpath/usr/$i/* $pkgpath/$i
+				rmdir $pkgpath/usr/$i
+			fi
+			if [ -d $pkgpath/usr/local/$i ]; then
+				mkdir -p $pkgpath/$i
+				mv -f $pkgpath/usr/local/$i/* $pkgpath/$i
+				rmdir $pkgpath/usr/local/$i
+			fi
+		done
+		if [ -d $pkgpath/usr/sbin ]; then
+                       mkdir -p $pkgpath/bin
+                      mv -f $pkgpath/usr/sbin/* $pkgpath/bin
+			rmdir $pkgpath/usr/sbin
+		fi
+		if [ -d $pkgpath/usr/local/sbin ]; then
+                        mkdir -p $pkgpath/bin
+                        mv -f $pkgpath/usr/local/sbin/* $pkgpath/bin
+			rmdir $pkgpath/usr/local/sbin
+                fi
+		if [ -d $pkgpath/usr/share ]; then
+                        mkdir -p $pkgpath/lib
+			for i in `ls --color=never $pkgpath/usr/share` ;
+				do
+					cp -Prfd $pkgpath/usr/share/$i $pkgpath/lib/.
+					rm -rf $pkgpath/usr/share/$i
+				done
+                fi
+		if [ -d $pkgpath/usr/local/share ]; then
+                        mkdir -p $pkgpath/lib
+			for i in `ls --color=never $pkgpath/usr/local/share` ;
+                                do
+                                        cp -Prfd $pkgpath/usr/local/share/$i $pkgpath/lib/.
+                                        rm -rf $pkgpath/usr/local/share/$i
+                                done
+                fi
+		rm -rf $pkgpath/usr/share
+                rm -rf $pkgpath/usr/local/share
+		if [ "$pkg" == "python" ]; then
+			extra_dirs="man pkgconfig applications"
+		else
+			extra_dirs="include man pkgconfig applications"
+		fi
+		for i in $extra_dirs ;
+		do
+			if [ -d $pkgpath/$i ]; then
+				rm -rf $pkgpath/$i
+			fi
+			if [ -d $pkgpath/usr/$i ]; then
+                                rm -rf $pkgpath/usr/$i
+                        fi
+			if [ -d $pkgpath/usr/local$i ]; then
+                                rm -rf $pkgpath/usr/local/$i
+                        fi
+			if [ -d $pkgpath/lib/$i ]; then
+				rm -rf $pkgpath/lib/$i
+			fi
+		done
+		find $pkgpath -name *.a -delete
+                find $pkgpath -name *.la -delete
+		find $pkgpath -empty -delete
+	done
+
+exit 0
+
+for pkg in $@
+do
+echo "Repackaging $pkg for ThinStation"
+CRPD=$PWD/components
+RPD=$PWD/components/$pkg
+mkdir -p $RPD
+find /ts/ports/ -name $pkg#* | xargs bsdtar -p -o -C $RPD -xf 
+
+while [ -e $RPD/usr/bin ] ;
+	do	if [ ! -e $RPD/bin ] ;
+		then mkdir $RPD/bin
+		fi
+	cp -rf $RPD/usr/bin/* $RPD/bin/.
+	rm -rf $RPD/usr/bin
+done
+while [ -e $RPD/usr/etc ] ;
+        do      if [ ! -e $RPD/etc ] ;
+                then mkdir $RPD/etc
+                fi
+        cp -rf $RPD/usr/etc/* $RPD/etc/.
+        rm -rf $RPD/usr/etc
+done
+while [ -e $RPD/usr/sbin ] ;
+        do      if [ ! -e $RPD/bin ] ;
+                then mkdir $RPD/bin
+                fi
+        cp -rf $RPD/usr/sbin/* $RPD/bin/.
+        rm -rf $RPD/usr/sbin
+done
+while [ -e $RPD/sbin ] ;
+        do      if [ ! -e $RPD/bin ] ;
+                then mkdir $RPD/bin
+                fi
+        cp -rf $RPD/sbin/* $RPD/bin/.
+        rm -rf $RPD/sbin
+done
+while [ -e $RPD/usr/lib ] ;
+        do      if [ ! -e $RPD/lib ] ;
+                then mkdir $RPD/lib
+                fi
+        cp -rf $RPD/usr/lib/* $RPD/lib/.
+        rm -rf $RPD/usr/lib
+done
+while [ -e $RPD/usr/share ] ;
+        do      if [ ! -e $RPD/lib ] ;
+                then mkdir $RPD/lib
+                fi
+        cp -rf $RPD/usr/share/* $RPD/lib/.
+        rm -rf $RPD/usr/share
+done
+if [ `find $RPD -name *.o |grep -c -e "\.o"` != 0 ];
+        then rm -rf `find $RPD -name *.o | grep -e "\.o"`
+fi
+if [ -e $RPD/dev ];
+	then rm -rf $RPD/dev
+fi
+if [ `find $RPD -name *.la | grep -c -e "\.la"` != 0 ];
+	then rm -rf `find $RPD -name *.la | grep -e "\.la"`
+fi
+if [ `find $RPD -name *.a | grep -c -e "\.a"` != 0 ];
+        then rm -rf `find $RPD -name *.a | grep -e "\.a"`
+fi
+if [ -e $RPD/usr ] ;
+	then rm -rf $RPD/usr
+fi
+for exfile in `cat /ts/exfile.list`
+do
+        if [ `find $RPD -name $exfile | grep -c -e $exfile` != 0 ];
+         then rm -rf `find $RPD -name $exfile | grep -e $exfile`
+        fi
+done
+for mtdir in `cat /ts/mtdir.list`
+do
+	if [ `find $RPD -mindepth 1 -maxdepth 1 -type d -empty -name $mtdir |grep -c -e "\/"` != 0 ];
+        then find $RPD -mindepth 1 -maxdepth 1 -type d -empty -name $mtdir| xargs rmdir
+	else echo "$mtdir not empty"
+	fi
+done
+
+cd $CRPD
+bsdtar -cjf ../$pkg-TS.tar.bz2 $pkg
+cd ..
+rm -rf $CRPD
+ 
+done
+

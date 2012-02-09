@@ -1,0 +1,32 @@
+#!/bin/sh
+#
+# /etc/rc.d/nfs: start/stop nfs client
+#
+
+PIPEFS=/var/lib/nfs/rpc_pipefs
+
+case $1 in
+start)
+	/bin/mount -t rpc_pipefs rpc_pipefs $PIPEFS
+	/usr/sbin/sm-notify
+	/usr/sbin/rpc.idmapd
+	/usr/sbin/rpc.statd
+	/bin/mount -a -t nfs
+	;;
+stop)
+	/bin/umount -a -t nfs
+	killall -q /usr/sbin/rpc.statd
+	killall -q /usr/sbin/rpc.idmapd
+	/bin/umount $PIPEFS
+	;;
+restart)
+	$0 stop
+	sleep 2
+	$0 start
+	;;
+*)
+	echo "usage: $0 [start|stop|restart]"
+	;;
+esac
+
+# End of file

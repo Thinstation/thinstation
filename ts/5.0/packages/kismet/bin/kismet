@@ -1,0 +1,28 @@
+#!/bin/sh
+
+prefix=/usr
+exec_prefix=${prefix}
+ETC=${prefix}/etc
+BIN=${exec_prefix}/bin
+
+oargs=$*
+
+until test -z "$1"; do
+	if test "$1" = "--help" -o "$1" = "-h"; then
+		exec ${BIN}/kismet_server --help
+	fi
+
+	shift
+done
+
+interface=`iwconfig 2>/dev/null |grep -m 1 -e [0-9] |cut -d " " -f1`
+Xdialog --title "Bringing up the Interface" --no-buttons --timeout 40 --infobox "Using Adapter $interface" 10 40 2>/dev/null &
+iwpriv $interface reset 1
+sleep 1
+ifconfig $interface up
+sleep 1
+
+exec ${BIN}/kismet_server --silent -c $interface $oargs &
+exec ${BIN}/kismet_client $client
+
+

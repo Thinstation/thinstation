@@ -1,0 +1,24 @@
+#!/bin/bash
+#
+# /etc/rc.fix: adjustements startup file (multi-user)
+#
+
+
+#######################################################################
+# X11 font-related checks
+#######################################################################
+if [ -d /usr/share/fonts/X11 ]; then
+    for i in `/bin/ls -d /usr/share/fonts/X11/*`; do
+        if [ ! -f $i/fonts.dir ]; then
+            mkfontdir $i &> /dev/null
+            mkfontscale $i &> /dev/null
+        fi
+    done
+fi
+
+if [ -d /var/cache/fontconfig ] && [ -z "`/bin/ls /var/cache/fontconfig/`" ]; then
+    fc-cache &> /dev/null
+fi
+
+
+# End of file

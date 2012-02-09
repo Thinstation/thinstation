@@ -1,0 +1,15 @@
+# Description: 80x86 assembler
+# URL:         http://www.nasm.us/
+# Maintainer:  CRUX System Team, core-ports at crux dot nu
+
+name=nasm
+version=2.09.10
+release=1
+source=(http://www.nasm.us/pub/nasm/releasebuilds/$version/$name-$version.tar.bz2)
+
+build() {
+    cd $name-$version
+    ./configure --prefix=/usr --mandir=/usr/man
+    make
+    make INSTALLROOT=$PKG install
+}

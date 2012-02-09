@@ -1,0 +1,18 @@
+# Description: Query or set X gamma correction
+# URL: http://xorg.freedesktop.org
+# Maintainer: Tilman Sauerbeck, tilman at crux dot nu
+# Depends on: xorg-libx11, xorg-libxxf86vm
+
+name=xorg-xgamma
+version=1.0.4
+release=1
+source=(http://xorg.freedesktop.org/releases/individual/app/xgamma-$version.tar.bz2)
+
+build() {
+	cd xgamma-$version
+
+	./configure --prefix=/usr --mandir=/usr/man
+
+	make
+	make DESTDIR=$PKG install
+}

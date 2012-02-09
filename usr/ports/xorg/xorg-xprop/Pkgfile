@@ -1,0 +1,18 @@
+# Description: Property displayer for X
+# URL: http://xorg.freedesktop.org
+# Maintainer: Tilman Sauerbeck, tilman at crux dot nu
+# Depends on: xorg-libxmu, xorg-libx11
+
+name=xorg-xprop
+version=1.2.0
+release=1
+source=(http://xorg.freedesktop.org/releases/individual/app/xprop-$version.tar.bz2)
+
+build() {
+	cd xprop-$version
+
+	./configure --prefix=/usr --mandir=/usr/man
+
+	make
+	make DESTDIR=$PKG install
+}

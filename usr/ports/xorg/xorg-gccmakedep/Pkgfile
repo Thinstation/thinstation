@@ -1,0 +1,17 @@
+# Description: creates dependencies in Makefiles
+# URL: http://xorg.freedesktop.org
+# Maintainer: Tilman Sauerbeck, tilman at crux dot nu
+
+name=xorg-gccmakedep
+version=1.0.2
+release=1
+source=(http://xorg.freedesktop.org/releases/individual/util/gccmakedep-$version.tar.bz2)
+
+build() {
+	cd gccmakedep-$version
+
+	./configure --prefix=/usr
+
+	make
+	make DESTDIR=$PKG install
+}

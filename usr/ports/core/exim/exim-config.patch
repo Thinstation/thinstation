@@ -1,0 +1,184 @@
+diff -Nru exim-4.77.orig/src/EDITME exim-4.77/src/EDITME
+--- exim-4.77.orig/src/EDITME	2011-10-10 08:45:22.282617774 +0200
++++ exim-4.77/src/EDITME	2011-10-10 08:45:36.068785496 +0200
+@@ -72,7 +72,7 @@
+ # this would be wanted.
+ ###############################################################################
+ 
+-
++CFLAGS=#CFLAGS#
+ 
+ ###############################################################################
+ #                    THESE ARE THINGS YOU MUST SPECIFY                        #
+@@ -98,7 +98,7 @@
+ # /usr/local/sbin. The installation script will try to create this directory,
+ # and any superior directories, if they do not exist.
+ 
+-BIN_DIRECTORY=/usr/exim/bin
++BIN_DIRECTORY=/usr/sbin
+ 
+ 
+ #------------------------------------------------------------------------------
+@@ -114,7 +114,7 @@
+ # don't exist. It will also install a default runtime configuration if this
+ # file does not exist.
+ 
+-CONFIGURE_FILE=/usr/exim/configure
++CONFIGURE_FILE=/etc/exim/exim.conf
+ 
+ # It is possible to specify a colon-separated list of files for CONFIGURE_FILE.
+ # In this case, Exim will use the first of them that exists when it is run.
+@@ -131,7 +131,7 @@
+ # deliveries. (Local deliveries run as various non-root users, typically as the
+ # owner of a local mailbox.) Specifying these values as root is not supported.
+ 
+-EXIM_USER=
++EXIM_USER=ref:mail
+ 
+ # If you specify EXIM_USER as a name, this is looked up at build time, and the
+ # uid number is built into the binary. However, you can specify that this
+@@ -241,7 +241,7 @@
+ # MBX, is included only when requested. If you do not know what this is about,
+ # leave these settings commented out.
+ 
+-# SUPPORT_MAILDIR=yes
++SUPPORT_MAILDIR=yes
+ # SUPPORT_MAILSTORE=yes
+ # SUPPORT_MBX=yes
+ 
+@@ -284,8 +284,8 @@
+ LOOKUP_LSEARCH=yes
+ LOOKUP_DNSDB=yes
+ 
+-# LOOKUP_CDB=yes
+-# LOOKUP_DSEARCH=yes
++LOOKUP_CDB=yes
++LOOKUP_DSEARCH=yes
+ # LOOKUP_IBASE=yes
+ # LOOKUP_LDAP=yes
+ # LOOKUP_MYSQL=yes
+@@ -355,7 +355,7 @@
+ # files are defaulted in the OS/Makefile-Default file, but can be overridden in
+ # local OS-specific make files.
+ 
+-EXIM_MONITOR=eximon.bin
++# EXIM_MONITOR=eximon.bin
+ 
+ 
+ #------------------------------------------------------------------------------
+@@ -550,10 +550,10 @@
+ # included in the Exim binary. You will then need to set up the run time
+ # configuration to make use of the mechanism(s) selected.
+ 
+-# AUTH_CRAM_MD5=yes
++AUTH_CRAM_MD5=yes
+ # AUTH_CYRUS_SASL=yes
+ # AUTH_DOVECOT=yes
+-# AUTH_PLAINTEXT=yes
++AUTH_PLAINTEXT=yes
+ # AUTH_SPA=yes
+ 
+ 
+@@ -653,10 +653,10 @@
+ # leave these settings commented out.
+ 
+ # This setting is required for any TLS support (either OpenSSL or GnuTLS)
+-# SUPPORT_TLS=yes
++SUPPORT_TLS=yes
+ 
+ # Uncomment this setting if you are using OpenSSL
+-# TLS_LIBS=-lssl -lcrypto
++TLS_LIBS=-lssl -lcrypto
+ 
+ # Uncomment these settings if you are using GnuTLS
+ # USE_GNUTLS=yes
+@@ -720,7 +720,7 @@
+ # %s. This will be replaced by one of the strings "main", "panic", or "reject"
+ # to form the final file names. Some installations may want something like this:
+ 
+-# LOG_FILE_PATH=/var/log/exim_%slog
++LOG_FILE_PATH=/var/log/exim/exim_%slog
+ 
+ # which results in files with names /var/log/exim_mainlog, etc. The directory
+ # in which the log files are placed must exist; Exim does not try to create
+@@ -769,7 +769,7 @@
+ # files. Both the name of the command and the suffix that it adds to files
+ # need to be defined here. See also the EXICYCLOG_MAX configuration.
+ 
+-COMPRESS_COMMAND=/usr/bin/gzip
++COMPRESS_COMMAND=/bin/gzip
+ COMPRESS_SUFFIX=gz
+ 
+ 
+@@ -777,7 +777,7 @@
+ # If the exigrep utility is fed compressed log files, it tries to uncompress
+ # them using this command.
+ 
+-ZCAT_COMMAND=/usr/bin/zcat
++ZCAT_COMMAND=/bin/zcat
+ 
+ 
+ #------------------------------------------------------------------------------
+@@ -887,9 +887,9 @@
+ # You may well also have to specify a local "include" file and an additional
+ # library for TCP wrappers, so you probably need something like this:
+ #
+-# USE_TCP_WRAPPERS=yes
++USE_TCP_WRAPPERS=yes
+ # CFLAGS=-O -I/usr/local/include
+-# EXTRALIBS_EXIM=-L/usr/local/lib -lwrap
++EXTRALIBS_EXIM=-lwrap
+ #
+ # but of course there may need to be other things in CFLAGS and EXTRALIBS_EXIM
+ # as well.
+@@ -922,7 +922,7 @@
+ # aliases). The following setting can be changed to specify a different
+ # location for the system alias file.
+ 
+-SYSTEM_ALIASES_FILE=/etc/aliases
++SYSTEM_ALIASES_FILE=/etc/exim/aliases
+ 
+ 
+ #------------------------------------------------------------------------------
+@@ -968,13 +968,13 @@
+ # haven't got Perl, Exim will still build and run; you just won't be able to
+ # use those utilities.
+ 
+-# CHOWN_COMMAND=/usr/bin/chown
+-# CHGRP_COMMAND=/usr/bin/chgrp
+-# CHMOD_COMMAND=/usr/bin/chmod
+-# MV_COMMAND=/bin/mv
+-# RM_COMMAND=/bin/rm
+-# TOUCH_COMMAND=/usr/bin/touch
+-# PERL_COMMAND=/usr/bin/perl
++CHOWN_COMMAND=/bin/chown
++CHGRP_COMMAND=/bin/chgrp
++CHMOD_COMMAND=/bin/chmod
++MV_COMMAND=/bin/mv
++RM_COMMAND=/bin/rm
++TOUCH_COMMAND=/bin/touch
++PERL_COMMAND=/usr/bin/perl
+ 
+ 
+ #------------------------------------------------------------------------------
+@@ -1168,7 +1168,7 @@
+ # (process id) to a file so that it can easily be identified. The path of the
+ # file can be specified here. Some installations may want something like this:
+ 
+-# PID_FILE_PATH=/var/lock/exim.pid
++PID_FILE_PATH=/var/run/exim.pid
+ 
+ # If PID_FILE_PATH is not defined, Exim writes a file in its spool directory
+ # using the name "exim-daemon.pid".
+diff -Nru exim-4.77.orig/src/configure.default exim-4.77/src/configure.default
+--- exim-4.77.orig/src/configure.default	2011-10-10 08:45:22.279284561 +0200
++++ exim-4.77/src/configure.default	2011-10-10 08:45:36.068785496 +0200
+@@ -54,7 +54,7 @@
+ # +local_domains, +relay_to_domains, and +relay_from_hosts, respectively. They
+ # are all colon-separated lists:
+ 
+-domainlist local_domains = @
++domainlist local_domains = @ : localhost
+ domainlist relay_to_domains =
+ hostlist   relay_from_hosts = 127.0.0.1
+ 

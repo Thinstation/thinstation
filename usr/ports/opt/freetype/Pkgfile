@@ -1,0 +1,18 @@
+# Description: A free and portable TrueType font rendering engine
+# URL:         http://www.freetype.org
+# Maintainer:  Tilman Sauerbeck, tilman at crux dot nu
+# Depends on:  zlib
+
+name=freetype
+version=2.4.4
+release=1
+source=(http://download.savannah.gnu.org/releases/$name/$name-$version.tar.bz2)
+
+build() {
+    cd freetype-$version
+    ./configure --prefix=/usr \
+		--with-zlib \
+		--disable-nls
+    make
+    make DESTDIR=$PKG install
+}

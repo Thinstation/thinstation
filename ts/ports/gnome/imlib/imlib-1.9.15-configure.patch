@@ -1,0 +1,87 @@
+diff -pruN imlib-1.9.15.orig/configure.in imlib-1.9.15/configure.in
+--- imlib-1.9.15.orig/configure.in	2008-10-23 21:34:03.904349217 +1100
++++ imlib-1.9.15/configure.in	2008-10-23 21:35:56.881224111 +1100
+@@ -5,6 +5,7 @@ AC_INIT(gdk_imlib/gdk_imlib.h)
+ cflags_set=${CFLAGS+set}
+ 
+ AC_CONFIG_HEADERS(config.h)
++AC_CONFIG_MACRO_DIR([m4])
+ 
+ AM_INIT_AUTOMAKE(imlib, 1.9.15)
+ AC_PROG_CC
+@@ -17,11 +18,26 @@ dnl Give the user an option to compile w
+ dnl incase it is broken for example.
+ AC_ARG_ENABLE(shm, [  --enable-shm            support shared memory if available [default=yes]], echo $enable_shm, enable_shm="yes")
+ 
++AC_ARG_ENABLE(gdk, [  --enable-gdk            enable gdk_imlib compilation [default=yes]],[
++  if test x$enableval = xyes; then
++    disable_gdk="no"
++  else
++    disable_gdk="yes"
++  fi],disable_gdk=no)
++
++if test x$disable_gdk = xno; then
++ AC_MSG_RESULT(no)
++
+ AM_PATH_GTK(1.2.1,[
+   GDK_IMLIB="gdk_imlib utils"],[
+   GDK_IMLIB="" 
+   AC_MSG_WARN([*** gdk_imlib will not be built ***])])
+ 
++else
++  AC_MSG_RESULT(yes)
++  GDK_IMLIB=""
++fi
++
+ AC_MSG_CHECKING(whether to build gmodulized imlib)
+ 
+ AC_ARG_ENABLE(modules, [  --disable-modules       Disables dynamic module loading],[
+diff -pruN imlib-1.9.15.orig/imlib-config.in imlib-1.9.15/imlib-config.in
+--- imlib-1.9.15.orig/imlib-config.in	2008-10-23 21:34:03.904349217 +1100
++++ imlib-1.9.15/imlib-config.in	2008-10-23 21:34:28.226349920 +1100
+@@ -46,15 +46,9 @@ while test $# -gt 0; do
+       echo @VERSION@
+       ;;
+     --cflags)
+-      if test @includedir@ != /usr/include ; then
+-        includes=-I@includedir@
+-      fi
+       echo $includes @X_CFLAGS@ 
+       ;;
+     --cflags-gdk)
+-      if test @includedir@ != /usr/include ; then
+-        includes=-I@includedir@
+-      fi
+       echo `@GTK_CONFIG@ --cflags` $includes @X_CFLAGS@
+       ;;
+     --libs)
+diff -pruN imlib-1.9.15.orig/imlib.m4 imlib-1.9.15/imlib.m4
+--- imlib-1.9.15.orig/imlib.m4	2008-10-23 21:34:03.901349273 +1100
++++ imlib-1.9.15/imlib.m4	2008-10-23 21:34:28.227349890 +1100
+@@ -6,7 +6,7 @@
+ dnl AM_PATH_IMLIB([MINIMUM-VERSION, [ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]]])
+ dnl Test for IMLIB, and define IMLIB_CFLAGS and IMLIB_LIBS
+ dnl
+-AC_DEFUN(AM_PATH_IMLIB,
++AC_DEFUN([AM_PATH_IMLIB],
+ [dnl 
+ dnl Get the cflags and libraries from the imlib-config script
+ dnl
+@@ -164,7 +164,7 @@ int main ()
+ ])
+ 
+ # Check for gdk-imlib
+-AC_DEFUN(AM_PATH_GDK_IMLIB,
++AC_DEFUN([AM_PATH_GDK_IMLIB],
+ [dnl 
+ dnl Get the cflags and libraries from the imlib-config script
+ dnl
+diff -pruN imlib-1.9.15.orig/Makefile.am imlib-1.9.15/Makefile.am
+--- imlib-1.9.15.orig/Makefile.am	2008-10-23 21:34:03.901349273 +1100
++++ imlib-1.9.15/Makefile.am	2008-10-23 21:38:28.168099386 +1100
+@@ -1,3 +1,5 @@
++ACLOCAL_AMFLAGS= -I m4
++
+ SUBDIRS = @GDK_IMLIB@ Imlib config doc
+ bin_SCRIPTS = imlib-config
+ 

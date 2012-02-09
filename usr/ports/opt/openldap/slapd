@@ -1,0 +1,29 @@
+#!/bin/sh
+#
+# /etc/rc.d/slapd: start/stop Stand-alone LDAP Daemon
+#
+
+SLAPD_PID=/var/openldap/run/slapd.pid
+
+case $1 in
+start)
+	/usr/sbin/slapd
+	;;
+stop)
+	if [ -f $SLAPD_PID ]; then
+		kill -INT `head -1 $SLAPD_PID`
+	else
+		killall -q /usr/sbin/slapd
+	fi
+	;;
+restart)
+	$0 stop
+	sleep 2
+	$0 start
+	;;
+*)
+	echo "usage: $0 [start|stop|restart]"
+	;;
+esac
+
+# End of file

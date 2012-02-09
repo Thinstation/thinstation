@@ -1,0 +1,27 @@
+# Description: Collection of boot loaders for the Linux operating system
+# URL: http://syslinux.zytor.com/
+# Maintainer: Jose V Beneyto, sepen at crux dot nu
+# Packager: Jose V Beneyto, sepen at crux dot nu
+# Depends on: mtools perl
+
+name=syslinux
+version=4.04
+release=2
+source=(http://www.kernel.org/pub/linux/utils/boot/$name/$name-$version.tar.bz2)
+
+build() {
+  cd $name-$version
+
+  # compilation will fail with LDFLAGS
+  unset LDFLAGS
+
+  # fix to install extlinux in /usr/bin
+  sed -i Makefile -e 's|SBINDIR|BINDIR|g'
+
+  make clean
+  make OPTFLAGS="$CFLAGS" installer
+  make OPTFLAGS="$CFLAGS" INSTALLROOT=$PKG install
+
+  # fix perms when building with fakeroot
+  find $PKG/usr/share/$name/com32 -type d -perm -g+s -exec chmod -v g-s {} \;
+}

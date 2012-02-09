@@ -1,0 +1,17 @@
+# Description: Utility for viewing/manipulating the MAC address of network interfaces
+# URL: http://www.alobbs.com/macchanger/
+# Maintainer: Jose V Beneyto, sepen at users dot sourceforge dot net
+# Packager: Antonio Bonifati, ant at venus dot deis dot unical dot it
+
+name=macchanger
+version=1.5.0
+release=1
+source=(ftp://ftp.gnu.org/gnu/macchanger/$name-$version.tar.gz)
+
+build () {
+  cd $name-$version
+  ./configure --prefix=/usr
+  make
+  make DESTDIR=$PKG install
+  rm -rf $PKG/usr/info
+}

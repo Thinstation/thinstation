@@ -1,0 +1,20 @@
+# Description: X Render extension client library
+# URL: http://xorg.freedesktop.org
+# Maintainer: Tilman Sauerbeck, tilman at crux dot nu
+# Depends on: xorg-libx11, xorg-renderproto
+
+name=xorg-libxrender
+version=0.9.6
+release=1
+source=(http://xorg.freedesktop.org/releases/individual/lib/libXrender-$version.tar.bz2)
+
+build() {
+	cd libXrender-$version
+
+	./configure --prefix=/usr
+
+	make
+	make DESTDIR=$PKG install
+
+	rm -rf $PKG/usr/share
+}

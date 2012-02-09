@@ -1,0 +1,20 @@
+# Description: xorg proto fontsproto
+# URL: http://xorg.freedesktop.org
+# Maintainer: Tilman Sauerbeck, tilman at crux dot nu
+
+name=xorg-fontsproto
+version=2.1.1
+release=1
+source=(http://xorg.freedesktop.org/releases/individual/proto/fontsproto-$version.tar.bz2)
+
+build() {
+	cd fontsproto-$version
+
+	./configure --prefix=/usr
+
+	make
+	make DESTDIR=$PKG install
+
+	rm $PKG/usr/share/doc/fontsproto/fsproto.xml
+	find $PKG/usr/share -type d -delete
+}

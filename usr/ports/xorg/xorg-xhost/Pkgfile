@@ -1,0 +1,18 @@
+# Description: x server access control program
+# URL: http://xorg.freedesktop.org
+# Maintainer: Tilman Sauerbeck, tilman at crux dot nu
+# Depends on: xorg-libxmu
+
+name=xorg-xhost
+version=1.0.4
+release=1
+source=(http://xorg.freedesktop.org/releases/individual/app/xhost-$version.tar.bz2)
+
+build() {
+	cd xhost-$version
+
+	./configure --prefix=/usr --mandir=/usr/man
+
+	make
+	make DESTDIR=$PKG install
+}

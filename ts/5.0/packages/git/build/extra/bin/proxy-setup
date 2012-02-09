@@ -1,0 +1,89 @@
+#!/bin/bash
+
+exit_status=0
+configure=$1
+get_proxy ()
+{
+if [ -e /tmp/.dialog_proxy_server ] ; then
+  PROXY_SERVER=$(cat /tmp/.dialog_proxy_server)
+else
+  touch /tmp/.dialog_proxy_server
+  PROXY_SERVER="type server name here"
+fi
+if [ -e /tmp/.dialog_proxy_port ] ; then
+  PROXY_PORT=$(cat /tmp/.dialog_proxy_port)
+else
+  touch /tmp/.dialog_proxy_port
+  PROXY_PORT=3128
+fi
+if [ -e /tmp/.dialog_proxy_auth ] ; then
+  PROXY_AUTH=$(cat /tmp/.dialog_proxy_auth)
+else
+  touch /tmp/.dialog_proxy_auth
+  PROXY_AUTH="username:password"
+fi
+
+# Now to business:
+DIALOG_RESPONSE=`Xdialog --stdout --title "Proxy Setup" --left --3inputsbox "Please tell me about your proxy." \
+                18 55 "Server name or IP number - No Protocol" "$PROXY_SERVER" "Port" "$PROXY_PORT" "Authorization" "$PROXY_AUTH"` 2>>/logfile
+exit_status=$?
+if [ "$exit_status" -lt "1" ] && [ ! -z "$DIALOG_RESPONSE" ] ; then
+    PROXY_SERVER=`echo "$DIALOG_RESPONSE" |cut -d "/" -f1`
+    PROXY_PORT=`echo "$DIALOG_RESPONSE" |cut -d "/" -f2`
+    PROXY_AUTH=`echo "$DIALOG_RESPONSE" |cut -d "/" -f3`
+
+    # preserve settings
+    echo "$PROXY_SERVER" > /tmp/.dialog_proxy_server
+    echo "$PROXY_PORT" > /tmp/.dialog_proxy_port
+    echo "$PROXY_AUTH" > /tmp/.dialog_proxy_auth
+
+    if [ "$PROXY_SERVER" == "type server name here" ]; then
+    PROXY_SERVER=""
+    PROXY_PORT=""
+    fi
+    if [ "$PROXY_AUTH" == "username:password" ]; then
+    PROXY_AUTH=""
+    fi
+else
+    PROXY_SERVER=""
+    PROXY_PORT=""
+    PROXY_AUTH=""
+fi
+configure=done
+}
+
+if [ -e ~/proxy ] ; then
+	. ~/proxy
+fi
+if [ -e /tmp/proxy ] ; then
+	. /tmp/proxy
+fi
+if [ "$configure" == "setup" ]; then
+	get_proxy
+fi
+
+while [ -z $PROXY_SERVER -o -z $PROXY_PORT ] && [ "$exit_status" -lt "1" ] ; do
+	get_proxy
+done
+
+if [ ! -z "$PROXY_SERVER" ] && [ ! -z "$PROXY_PORT" ] ; then
+	if [ -z "$PROXY_AUTH" ]; then
+		echo "PROXY_SERVER=$PROXY_SERVER" > ~/proxy
+		echo "PROXY_PORT=$PROXY_PORT" >> ~/proxy
+		cp ~/proxy /tmp/.
+		echo "http_proxy=http://$PROXY_SERVER:$PROXY_PORT" > ~/.wgetrc
+		git config --global core.gitproxy gitproxy
+		git config --global http.sslVerify false
+	else
+		echo "PROXY_SERVER=$PROXY_SERVER" > ~/proxy
+                echo "PROXY_PORT=$PROXY_PORT" >>~/proxy
+		echo "PROXY_AUTH=$PROXY_AUTH" >>~/proxy
+		cp ~/proxy /tmp/.
+		echo "http_proxy=http://${PROXY_AUTH}@$PROXY_SERVER:$PROXY_PORT" > ~/.wgetrc
+		git config --global core.gitproxy gitproxy
+		git config --global http.sslVerify false
+	fi
+fi
+
+sleep 1
+exit 0

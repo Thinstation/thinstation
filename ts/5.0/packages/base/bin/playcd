@@ -1,0 +1,29 @@
+#!/bin/sh
+
+case $1 in
+	eject)
+		dcd -e
+	;;
+	back)
+		dcd -b
+	;;
+	forward)
+		dcd -f
+	;;
+	pause)
+		dcd -p
+	;;
+	start)
+	  while true
+	  do
+            if ! dcd -i 2>/dev/null | grep "Unable to open" > /dev/null; then
+              if ! dcd -d 2>/dev/null | grep "Data" > /dev/null; then
+                if dcd -i 2>/dev/null | grep "Not playing" > /dev/null; then
+                  dcd > /dev/null 2>&1
+                fi
+              fi
+            fi
+            sleep 5
+	  done
+	;;
+esac

@@ -1,0 +1,27 @@
+#!/bin/sh
+#
+# /etc/ports/drivers/httpup: httpup driver script for ports(8)
+# 
+
+if [ $# -ne 1 ]; then
+        echo "usage: $0 <file>" >&2
+        exit 1
+fi
+
+. $1
+
+if [ -z "$ROOT_DIR" ]; then
+	echo "ROOT_DIR not set in '$1'" >&2
+	exit 2
+fi
+if [ -z "$URL" ]; then
+	echo "URL not set in '$1'" >&2
+	exit 2
+fi
+
+for REPO in $URL; do
+    PORT=`echo $REPO | sed -n '/#.*$/s|^.*#||p'`
+    httpup sync $REPO $ROOT_DIR/$PORT
+done
+
+# End of file.

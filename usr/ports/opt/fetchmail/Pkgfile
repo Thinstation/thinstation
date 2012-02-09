@@ -1,0 +1,21 @@
+# Description: A remote-mail retrieval utility
+# URL:         http://fetchmail.berlios.de/
+# Maintainer:  Juergen Daubert, jue at crux dot nu
+# Depends on:  openssl
+
+name=fetchmail
+version=6.3.21
+release=1
+source=(http://download.berlios.de/$name/$name-$version.tar.xz)
+
+build() {
+    cd $name-$version
+
+    ./configure --prefix=/usr \
+                --mandir=/usr/man \
+                --with-ssl=/usr \
+                --disable-nls \
+                PYTHON=:
+    make
+    make DESTDIR=$PKG install
+}

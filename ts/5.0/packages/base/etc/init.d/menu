@@ -1,0 +1,220 @@
+#! /bin/sh
+
+. $TS_GLOBAL
+
+main_menu()
+{
+      echo -e "s/\$TS_VERSION/$TS_VERSION/g\n \
+    	       s/\$CLIENT_IP/$CLIENT_IP/g\n \
+               s/\$CLIENT_NAME/$CLIENT_NAME/g" >> /tmp/script
+
+      cat $REPLIMENU/main.tpl | sed -f /tmp/script  > $REPLIMENU/main.menu
+      rm /tmp/script
+
+      # Build main menu
+      let x=0 
+      let y=0 
+      (cat $WKDIR/session) |
+      while read type title screen position workspace autostart custom icon server options
+      do
+	autostart=`make_caps $autostart`
+	case $autostart in
+	OFF)
+	  if [ "$server" = "." ] ; then server= ; fi
+	  if [ "$options" = "." ] ; then options= ; fi
+	  let x=x+1
+	  let y=x-1
+	  if [ "$custom" != "ON" ] ; then
+	    echo -e "begin item\n\
+              name = item$x\n\
+	      label = $title\n\
+	      bullet =\n\
+	      command = DISPLAY=:$screen; DISPLAY_NUMBER=$screen; POSITION=$position; \
+	      export DISPLAY DISPLAY_NUMBER POSITION ; \
+	      pkg menu $type \"$server\" \"$options\" ; sleep 1\n\
+	      end" >> $REPLIMENU/main.menu
+	  else
+	    if [ -e /var/sessions/SESSION$y ] ; then
+	      let altkey=$y+3
+	      sessionname=" * SESSION $y `eval echo '$SESSION_'$y'_ICA_APPSRV_USERNAME'` [press ALT-F'$altkey'] *"
+	      echo -e "begin item\n\
+                name = item$x\n\
+	        label = $title $sessionname\n\
+	        icaption = This session is in use!!!\n\
+	        bullet =\n\
+		type = msgbox\n\
+	      end" >> $REPLIMENU/main.menu
+      	    else
+	      echo -e "begin item\n\
+                name = item$x\n\
+	        label = $title \n\
+	        bullet =\n\
+	        command = DISPLAY=:$screen; DISPLAY_NUMBER=$screen; POSITION=$position; \
+	        SESSION_NUMBER=$y; \
+	        export DISPLAY DISPLAY_NUMBER POSITION SESSION_NUMBER ; \
+	        touch /var/sessions/SESSION$y ; \
+	        pkg custom menu ; \
+	        pkg forceinit $type.init  ; \
+	        pkg menu $type \"$server\" \"$options\" ; \
+		sleep 1\n\
+	      end" >> $REPLIMENU/main.menu
+	    fi
+	  fi
+	  ;;
+	esac
+      done
+      echo -e "
+      br  ----------\n
+      begin item\n
+        name = QUIT\n
+        label = Reboot
+        bullet =\n
+        command = touch /tmp/shutdown; clear ; reboot\n
+	end\n
+      begin item\n
+      	name = QUIT\n
+	label = Shutdown
+	bullet =\n
+	command = touch /tmp/shutdown; clear ; poweroff\n
+	end" >> $REPLIMENU/main.menu
+
+      echo "br" >> $REPLIMENU/main.menu
+
+}
+
+case "$1" in  
+init)
+    if ! pkg_initialized $PACKAGE; then
+
+      if [ ! -e /var/sessions ]; then
+	      mkdir /var/sessions 
+      fi
+      pkg_set_init_flag $PACKAGE
+    fi
+    ;;
+console)
+    main_menu
+    replimenu -c $MENUCOLOUR -f $REPLIMENU/main.menu
+    ;;
+custom)
+ set | sort -r | grep -e "|" -e "*" | grep -e SESSION_"$SESSION_NUMBER"_ > /tmp/custom_$SESSION_NUMBER.tmp
+
+ if [ -s /tmp/custom_$SESSION_NUMBER.tmp ] ; then
+   let y=0
+   cat $REPLIMENU/customize.tpl > $REPLIMENU/customize.menu
+
+   (cat /tmp/custom_$SESSION_NUMBER.tmp ) |
+   while read variable
+   do
+      # Grab out variables
+      let y=y+1
+      clientname=""
+      options=""
+      name=`echo "$variable" | cut -f 1 -d=`
+      list=`echo "$variable" | cut -f 2 -d= | cut -f 2 -d"'"`
+      default=`echo "$list" | cut -f 1 -d"|"`
+
+      if [ "$y" -eq 1 ] ; then
+	      options="| auto | hidden"
+      fi
+      if [ "$y" -ge 2 ] ; then
+	      options="| hidden"
+      fi
+
+      if [ "`echo $name | cut -f 1 -d_`" = "SESSION" ] ; then
+          shortname=`echo "$name" | cut -f 3- -d_`
+      else
+	  shortname="$name"
+      fi
+
+      if [ "$list" != "*" ] ; then
+        echo "$name=$default" >> $TS_CUSTOM
+	echo "$list" | sed -e 's/|/\
+/g' > /tmp/options
+
+	# Build Customize menu
+	ITEM="begin item\n\
+            name = item$y\n\
+	    label = $shortname\n\
+	    bullet =\n\
+	    type = chain $options\n\
+	    command = replimenu -c $MENUCOLOUR -f $REPLIMENU/$name.menu \n\
+	    end"
+	echo -e $ITEM >> $REPLIMENU/customize.menu
+	# Build Options Menus
+	let x=0
+      	cat $REPLIMENU/options.tpl > $REPLIMENU/$name.menu
+	(cat /tmp/options) |
+	while read line
+	do
+	   let x=x+1
+	   if [ "$line" = "*" ] ; then
+	     echo -e "begin item\n\
+               name = item$x\n\
+	       label = USER DEFINED\n\
+	       bullet =\n\
+	       type = input | notempty \n\
+	       command = echo "$name=\\\"\$RM_INPUT\\\"" >> $TS_CUSTOM \n\
+	       end" >> $REPLIMENU/$name.menu
+           else
+	     echo -e "begin item\n\
+               name = item$x\n\
+	       label = $line\n\
+	       bullet =\n\
+	       type = ask \n\
+	       command = echo \"$name='"$line"'\" >> $TS_CUSTOM \n\
+	       end" >> $REPLIMENU/$name.menu
+           fi
+	done
+   	rm /tmp/options
+      else
+	if echo $name | grep PASSWORD > /dev/null ; then
+		shortname="Enter Password:"
+		options="$options | password"
+	elif echo $name | grep USERNAME > /dev/null ; then
+		shortname="Enter Username:"
+		clientname='; echo "ICA_WFCLIENT_CLIENTNAME=$RM_INPUT" >> '$TS_CUSTOM
+	fi
+
+	echo -e "begin item\n\
+               name = item$y\n\
+	       label = $shortname \n\
+	       bullet =\n\
+	       type = input | notempty | chain $options \n\
+	       command = echo "$name=\\\"\$RM_INPUT\\\"" >> $TS_CUSTOM \
+	       $clientname \n\
+	       end" >> $REPLIMENU/customize.menu
+      fi	
+   done
+
+   echo -e "begin item\n\
+               name = QUIT
+	       label = Quit
+	       bullet = 
+	       type = chain | hidden \n\
+	       command = exit 0 \n\
+	       end" >> $REPLIMENU/customize.menu
+
+   if [ -e $HOME/appsrv.ini ] ; then
+      rm $HOME/appsrv.ini
+   fi
+   if [ -e $HOME/wfclient.ini ] ; then
+      rm $HOME/wfclient.ini
+   fi
+
+   REPLIMENU_AFTERTEXT=""
+   replimenu -c $MENUCOLOUR -f $REPLIMENU/customize.menu < $CONSOLE > $CONSOLE
+   
+
+ fi
+ rm /tmp/custom_$SESSION_NUMBER.tmp
+ ;;
+help)
+    echo "Usage: $0 init|console|custom"
+    ;;
+  *)
+    exit 1
+    ;;
+esac
+
+exit 0

@@ -1,0 +1,21 @@
+# Description: xorg lib libXmu
+# URL: http://xorg.freedesktop.org
+# Maintainer: Tilman Sauerbeck, tilman at crux dot nu
+# Depends on: xorg-libxt, xorg-xextproto, xorg-libxext, xorg-libx11
+
+name=xorg-libxmu
+version=1.1.0
+release=1
+source=(http://xorg.freedesktop.org/releases/individual/lib/libXmu-$version.tar.bz2)
+
+build() {
+	cd libXmu-$version
+
+	./configure --prefix=/usr
+
+	make
+	make DESTDIR=$PKG install
+
+	rm $PKG/usr/share/doc/libXmu/{Xmu.xml,xlogo.svg}
+	find $PKG/usr/share -type d -delete
+}

@@ -1,0 +1,15 @@
+#!/bin/sh
+# echo Thinstation Linux version $TS_VERSION
+KERNEL=`exec uname -r`
+X_VER=`grep ^"X.Org" /var/log/boot.log`
+TOTAL_MEM=`free | grep -e Mem | sed -r 's/[[:space:]]+/ /g' |cut -d" " -f2`
+USED_MEM=`free |grep -e Mem | sed -r 's/[[:space:]]+/ /g' |cut -d" " -f3`
+FREE_MEM=`free | grep -e Mem | sed -r 's/[[:space:]]+/ /g' |cut -d" " -f4`
+Xdialog --icon /lib/pixmaps/information_32x32.xpm --left --title "Thinstation Linux" \
+        --msgbox "Thinstation version: $TS_VERSION
+Linux kernel version: $KERNEL
+$X_VER
+Client IP: $CLIENT_IP
+Total memory: $TOTAL_MEM bytes
+Used memory: $USED_MEM bytes
+Free memory: $FREE_MEM bytes" 12 45 2>&1

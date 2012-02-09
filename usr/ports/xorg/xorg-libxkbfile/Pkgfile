@@ -1,0 +1,18 @@
+# Description: xorg lib libxkbfile
+# URL: http://xorg.freedesktop.org
+# Maintainer: Tilman Sauerbeck, tilman at crux dot nu
+# Depends on: xorg-libx11, xorg-kbproto
+
+name=xorg-libxkbfile
+version=1.0.7
+release=1
+source=(http://xorg.freedesktop.org/releases/individual/lib/libxkbfile-$version.tar.bz2)
+
+build() {
+	cd libxkbfile-$version
+
+	./configure --prefix=/usr
+
+	make
+	make DESTDIR=$PKG install
+}

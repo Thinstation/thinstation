@@ -1,0 +1,15 @@
+# Description: GNU patch
+# URL:         http://www.gnu.org/software/patch/patch.html
+# Maintainer:  CRUX System Team, core-ports at crux dot nu
+
+name=patch
+version=2.6.1
+release=1
+source=(http://ftp.gnu.org/gnu/$name/$name-$version.tar.xz)
+
+build() {
+    cd $name-$version
+    ./configure --prefix=/usr --mandir=/usr/man
+    make
+    make DESTDIR=$PKG install
+}

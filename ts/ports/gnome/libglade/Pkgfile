@@ -1,0 +1,26 @@
+# Description: library to load glade interface files in a program at runtime
+# URL: http://glade.gnome.org/
+# Maintainer: Jose V Beneyto, sepen at crux dot nu
+# Packager: Matt Housh, jaeger at morpheus dot net
+# Depends on: gtk pkg-config xorg-libxdamage
+
+name=libglade
+version=2.6.4
+release=1
+source=(http://download.gnome.org/sources/$name/2.6/$name-$version.tar.bz2)
+
+build() {
+	install -d -m 0755 $PKG/etc/xml/dtd/$name/2.0
+	xmlcatalog --noout --create $PKG/etc/xml/dtd/$name/2.0/catalog
+	cd $name-$version
+	sed -i -e 's/USE_NLS=yes/USE_NLS=no/' \
+		-e 's/ENABLE_NLS 1/ENABLE_NLS 0/' configure
+	sed -i -e "s|/etc/xml/catalog|$PKG/etc/xml/dtd/$name/2.0/catalog|" \
+		-e 's|$(datadir)/xml/libglade|$(datadir)/xml/dtd/libglade/2.0|' Makefile.in
+	./configure --prefix=/usr \
+		--disable-debug \
+		--disable-gtk-doc
+	make
+	make DESTDIR=$PKG install
+	rm -rf $PKG/usr/share/gtk-doc
+}

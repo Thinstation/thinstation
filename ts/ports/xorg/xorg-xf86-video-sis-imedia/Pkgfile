@@ -1,0 +1,51 @@
+# Description: xorg driver xf86-video-sis
+# URL: http://xorg.freedesktop.org
+# Maintainer: Tilman Sauerbeck, tilman at crux dot nu
+# Depends on: xorg-server
+
+name=xorg-xf86-video-sis-imedia
+version=0.9.1
+release=1
+source=(http://cekirdek.pardus.org.tr/~fatih/dist/xorg/xf86-video-sisimedia-0.9.1_20091203.tar.bz2
+https://svn.pardus.org.tr/pardus/2011/devel/x11/driver/xorg-video-sisimedia/files/xf86-video-sis-0.9.1-20102701.patch
+https://svn.pardus.org.tr/pardus/2011/devel/x11/driver/xorg-video-sisimedia/files/0002-Remove-XFree86-Misc-PassMessage-support.patch
+https://svn.pardus.org.tr/pardus/2011/devel/x11/driver/xorg-video-sisimedia/files/0003-Fix-build-with-Werror-format-security.patch
+https://svn.pardus.org.tr/pardus/2011/devel/x11/driver/xorg-video-sisimedia/files/0005-Fix-backlight-off-on-SiS30x.-video-bridges.patch
+https://svn.pardus.org.tr/pardus/2011/devel/x11/driver/xorg-video-sisimedia/files/0006-Add-IgnoreHotkeyFlag-driver-option.patch
+https://svn.pardus.org.tr/pardus/2011/devel/x11/driver/xorg-video-sisimedia/files/xf86-video-sis-0.9.1-dump-regs-after-video-init.patch
+https://svn.pardus.org.tr/pardus/2011/devel/x11/driver/xorg-video-sisimedia/files/0007-Remove-useless-loader-symbol-lists.patch
+https://svn.pardus.org.tr/pardus/2011/devel/x11/driver/xorg-video-sisimedia/files/0008-update-to-xextproto-7-1-support.patch
+https://svn.pardus.org.tr/pardus/2011/devel/x11/driver/xorg-video-sisimedia/files/0009-update-for-rac-removal.patch
+https://svn.pardus.org.tr/pardus/2011/devel/x11/driver/xorg-video-sisimedia/files/0010-change-to-use-abi-version-check.patch
+https://svn.pardus.org.tr/pardus/2011/devel/x11/driver/xorg-video-sisimedia/files/0011-more-rac-removal.patch
+https://svn.pardus.org.tr/pardus/2011/devel/x11/driver/xorg-video-sisimedia/files/sis/0001-Remove-xorgconfig-xorgcfg-from-See-Also-list-in-man-.patch
+https://svn.pardus.org.tr/pardus/2011/devel/x11/driver/xorg-video-sisimedia/files/sis/0004-Make-sisRegs3D4-big-enough-to-hold-all-values-writte.patch
+https://svn.pardus.org.tr/pardus/2011/devel/x11/driver/xorg-video-sisimedia/files/sis/0005-Correct-bounds-check-of-blitClip-array-access.patch
+https://svn.pardus.org.tr/pardus/2011/devel/x11/driver/xorg-video-sisimedia/files/xserver19.patch
+https://svn.pardus.org.tr/pardus/2011/devel/x11/driver/xorg-video-sisimedia/files/sisimedia.ids)
+
+build() {
+	cd xf86-video-sis-0.9.1
+patch -p1 <../xf86-video-sis-0.9.1-20102701.patch
+patch -p1 <../0002-Remove-XFree86-Misc-PassMessage-support.patch
+patch -p1 <../0003-Fix-build-with-Werror-format-security.patch
+patch -p1 <../0005-Fix-backlight-off-on-SiS30x.-video-bridges.patch
+patch -p1 <../0006-Add-IgnoreHotkeyFlag-driver-option.patch
+patch -p1 <../xf86-video-sis-0.9.1-dump-regs-after-video-init.patch
+patch -p1 <../0007-Remove-useless-loader-symbol-lists.patch
+patch -p1 <../0008-update-to-xextproto-7-1-support.patch
+patch -p1 <../0009-update-for-rac-removal.patch
+patch -p1 <../0010-change-to-use-abi-version-check.patch
+patch -p1 <../0011-more-rac-removal.patch
+patch -p1 <../0001-Remove-xorgconfig-xorgcfg-from-See-Also-list-in-man-.patch
+patch -p1 <../0004-Make-sisRegs3D4-big-enough-to-hold-all-values-writte.patch
+patch -p1 <../0005-Correct-bounds-check-of-blitClip-array-access.patch
+patch -p1 <../xserver19.patch
+
+	./configure --prefix=/usr --mandir=/usr/man
+
+	make
+	make DESTDIR=$PKG/$TSCOMPROOT/$name install
+	mkdir -p $PKG/$TSCOMPROOT/$name/usr/share/X11/pci/
+	cp ../sisimedia.ids $PKG/$TSCOMPROOT/$name/usr/share/X11/pci/.
+}

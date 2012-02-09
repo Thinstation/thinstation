@@ -1,0 +1,21 @@
+# Description: xorg lib libXtst
+# URL: http://xorg.freedesktop.org
+# Maintainer: Tilman Sauerbeck, tilman at crux dot nu
+# Depends on: xorg-libx11, xorg-libxext, xorg-libxi, xorg-recordproto
+
+name=xorg-libxtst
+version=1.2.0
+release=1
+source=(http://xorg.freedesktop.org/releases/individual/lib/libXtst-$version.tar.bz2)
+
+build() {
+	cd libXtst-$version
+
+	./configure --prefix=/usr --mandir=/usr/man
+
+	make
+	make DESTDIR=$PKG install
+
+	rm $PKG/usr/share/doc/libXtst/{record,xtest}lib.xml
+	find $PKG/usr/share -type d -delete
+}

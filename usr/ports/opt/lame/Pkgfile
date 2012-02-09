@@ -1,0 +1,21 @@
+# Description: MP3 encoder
+# URL:         http://lame.sourceforge.net/
+# Maintainer:  Juergen Daubert, jue at crux dot nu
+# Depends on:  ncurses
+
+name=lame
+version=3.99.2
+release=1
+source=(http://downloads.sourceforge.net/project/$name/$name/${version%.*}/$name-$version.tar.gz)
+
+build () {
+    cd $name-$version
+    ./configure --prefix=/usr \
+                --mandir=/usr/man \
+                --disable-analyzer-hooks \
+                --disable-gtktest \
+                --enable-nasm
+    make
+    make DESTDIR=$PKG install
+    rm -r $PKG/usr/share
+}

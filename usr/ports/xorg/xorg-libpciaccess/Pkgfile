@@ -1,0 +1,17 @@
+# Description: Generic PCI access library
+# URL: http://xorg.freedesktop.org
+# Maintainer: Tilman Sauerbeck, tilman at crux dot nu
+
+name=xorg-libpciaccess
+version=0.12.1
+release=1
+source=(http://xorg.freedesktop.org/releases/individual/lib/libpciaccess-$version.tar.bz2)
+
+build() {
+	cd libpciaccess-$version
+
+	./configure --prefix=/usr
+
+	make
+	make DESTDIR=$PKG install
+}

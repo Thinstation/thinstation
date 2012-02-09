@@ -1,0 +1,27 @@
+# Description: GNOME media tools
+# URL: http://www.prettypeople.org/~iain/gnome-media/
+# Maintainer: Matt Housh, jaeger at morpheus dot net
+# Depends on: esound, libgnomeui, gst-plugins-good, nautilus-cd-burner, rarian
+# Group: gnome/desktop
+
+name=gnome-media
+version=2.32.0
+release=1
+gnomever=2.32.1
+source=(http://download.gnome.org/desktop/${gnomever%.*}/$gnomever/sources/$name-$version.tar.bz2)
+
+build() {
+	cd $name-$version
+	rm po/*.po
+	sed -i -e 's/USE_NLS=yes/USE_NLS=no/' \
+		-e 's/ENABLE_NLS 1/ENABLE_NLS 0/' configure
+	./configure --prefix=/usr \
+		--libexecdir=/usr/lib/$name \
+		--disable-schemas-install \
+		--disable-pulseaudio \
+		--with-help-formats="NONE" \
+		--disable-scrollkeeper \
+
+	make
+	make DESTDIR=$PKG install
+}

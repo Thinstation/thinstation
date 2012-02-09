@@ -1,0 +1,23 @@
+#!/bin/sh
+#
+# /etc/rc.d/sysklogd: start/stop sysklogd logging daemons
+#
+
+case $1 in
+start)
+	/usr/sbin/syslogd
+	/usr/sbin/klogd -c 4
+	;;
+stop)
+	/usr/bin/killall syslogd
+	/usr/bin/killall klogd
+	;;
+restart)
+	$0 stop
+	sleep 2
+	$0 start
+	;;
+*)
+	echo "usage: $0 [start|stop|restart]"
+	;;
+esac

@@ -1,0 +1,125 @@
+#!/bin/bash
+#
+# cpuspeed      Start / stop dynamic CPU speed daemon
+#
+# Author: Carl Thompson
+#         Trevor Batley - modofied for Thinstation usage
+#
+
+#       The CPUSpeed daemon dynamically changes clock speeds
+#       and / or voltages of CPUs supported by the kernel cpufreq
+#       driver to minimize power consumption and temperature while
+#       still allowing the CPU to run at full speed when needed.
+#       The daemon can monitor CPU temperature and lower the CPU's
+#       speed if it gets too hot. The daemon can monitor a mobile
+#       system's AC adapter and minimize speed if it is disconnected
+#       or maximize speed if it is connected.
+#
+#       This program is very useful for prolonging battery life on
+#       mobile systems and preventing system lockups and shutdowns
+#       on systems without adequate cooling.
+
+. /etc/thinstation.global
+
+PRG=/bin/cpuspeed
+OPTS=""
+CONF=/etc/cpuspeed.conf
+
+[ -x $PRG ] || exit 0
+
+# get config.
+[ -f $CONF ] && . $CONF
+
+start()
+{
+    [ -n "`pidof $PRG`" ] && exit
+
+    if [ ! -f /sys/devices/system/cpu/cpu0/cpufreq/scaling_driver ]
+    then
+        if  [ -n "$DRIVER" ]
+        then
+            # attempt to load scaling_driver if not loaded but it is specified in config
+            /bin/modprobe -q $DRIVER
+        else
+            # if driver not loaded and not specified in config try to load default list
+            #FIXME
+            for i in powernow-k8 powernow-k7 acpi_cpufreq speedstep-centrino speedstep-ich
+            do
+                /bin/modprobe -q $i 2> /dev/null && break
+            done
+        fi
+    fi
+
+    #abort cpuspeed without FAILED message if unable to load a driver
+    [ ! -f /sys/devices/system/cpu/cpu0/cpufreq/scaling_driver ] && return 0
+
+    # make sure the userspace CPUFreq governor module is used
+    /bin/modprobe -q cpufreq_userspace
+    for i in /sys/devices/system/cpu/*/cpufreq/scaling_governor
+    do
+        [ -f "$i" ] && echo "userspace" > $i
+    done
+
+    #abort cpuspeed without FAILED message if unable to load userspace governor
+    [ ! `cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor` = "userspace" ] && return 0
+
+    echo "$OPTS" | grep -q -- "-a" && modprobe -q ac
+    echo "$OPTS" | grep -q -- "-t" && modprobe -q thermal
+
+    # make sure scaling is in sane state
+    for cpudir in /sys/devices/system/cpu/cpu*/cpufreq
+    do
+        cat $cpudir/cpuinfo_min_freq > $cpudir/scaling_min_freq
+        cat $cpudir/cpuinfo_max_freq > $cpudir/scaling_max_freq
+    done
+
+    echo_log "Starting cpuspeed:"
+    start-stop-daemon --start --quiet --exec $PRG -- -d $OPTS && touch /var/lock/cpuspeed
+    RETVAL=$?
+    echo_log -n $RETVAL
+    return $RETVAL
+}
+
+stop()
+{
+    RETVAL=0
+    echo_log "Stopping cpuspeed:"
+    rm -f /var/lock/cpuspeed && killall $PRG 2> /dev/null
+    RETVAL=$?
+    echo_log -n $RETVAL
+    return $RETVAL
+}
+
+case "$1" in
+        init)
+            start
+	    if ! pkg_initialized $PACKAGE; then
+		pkg_set_init_flag $PACKAGE
+		cat /etc/cpuspeed/cpuspeed.tpl > /etc/cpuspeed.conf
+	    fi
+            ;;
+
+        start)
+            start
+            ;;
+
+        stop)
+            stop
+            ;;
+
+        restart)
+            stop
+            start
+            ;;
+        condrestart)
+            if [ -n "`pidof $PRG`" ]
+	    then
+                stop
+                start
+            fi
+            ;;
+
+        *)
+            echo $"Usage: $0 {init|start|stop|restart|condrestart}"
+            exit 1
+esac

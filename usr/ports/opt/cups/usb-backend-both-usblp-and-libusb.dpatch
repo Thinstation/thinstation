@@ -1,0 +1,574 @@
+#! /bin/sh /usr/share/dpatch/dpatch-run
+## usb-backend-both-usblp-and-libusb.dpatch by  <till.kamppeter@gmail.com>
+##
+## DP: http://www.cups.org/str.php?L3357
+
+@DPATCH@
+diff -urNad cups-1.4.3~/backend/Makefile cups-1.4.3/backend/Makefile
+--- cups-1.4.3~/backend/Makefile	2010-04-09 15:56:03.735720821 +0200
++++ cups-1.4.3/backend/Makefile	2010-04-09 15:56:04.335705387 +0200
+@@ -267,7 +267,7 @@
+ 	echo Linking $@...
+ 	$(CC) $(LDFLAGS) -o usb usb.o libbackend.a $(LIBUSB) \
+ 		$(BACKLIBS) $(LIBS)
+-usb.o:	usb.c usb-darwin.c usb-libusb.c usb-unix.c
++usb.o:	usb.c usb-darwin.c usb-hybrid.c usb-libusb.c usb-unix.c
+ 
+ 
+ #
+diff -urNad cups-1.4.3~/backend/ieee1284.c cups-1.4.3/backend/ieee1284.c
+--- cups-1.4.3~/backend/ieee1284.c	2009-12-08 03:13:42.000000000 +0100
++++ cups-1.4.3/backend/ieee1284.c	2010-04-09 15:56:04.335705387 +0200
+@@ -255,6 +255,7 @@
+     cups_option_t	*values;	/* Keys and values in device ID */
+     const char		*mfg,		/* Manufacturer */
+ 			*mdl,		/* Model */
++			*des,		/* Description */
+ 			*sern;		/* Serial number */
+     char		temp[256],	/* Temporary manufacturer string */
+ 			*tempptr;	/* Pointer into temp string */
+@@ -285,10 +286,20 @@
+     }
+     else
+     {
+-      strlcpy(temp, make_model, sizeof(temp));
++      /*
++       * No manufacturer?  Use the model string or description...
++       */
++
++      if (mdl)
++	_ppdNormalizeMakeAndModel(mdl, temp, sizeof(temp));
++      else if ((des = cupsGetOption("DESCRIPTION", num_values, values)) != NULL ||
++	       (des = cupsGetOption("DES", num_values, values)) != NULL)
++	_ppdNormalizeMakeAndModel(des, temp, sizeof(temp));
++      else
++	strlcpy(temp, "Unknown", sizeof(temp));
+ 
+       if ((tempptr = strchr(temp, ' ')) != NULL)
+-        *tempptr = '\0';
++	*tempptr = '\0';
+ 
+       mfg = temp;
+     }
+diff -urNad cups-1.4.3~/backend/usb-hybrid.c cups-1.4.3/backend/usb-hybrid.c
+--- cups-1.4.3~/backend/usb-hybrid.c	1970-01-01 01:00:00.000000000 +0100
++++ cups-1.4.3/backend/usb-hybrid.c	2010-04-09 15:56:04.345707078 +0200
+@@ -0,0 +1,87 @@
++/*
++ * "$Id: usb-hybrid.c 8807 2009-08-31 18:45:43Z mike $"
++ *
++ *   USB port backend for the Common UNIX Printing System (CUPS).
++ *
++ *   This file is included from "usb.c" when compiled on Linux.
++ *
++ *   Copyright 2007-2008 by Apple Inc.
++ *   Copyright 1997-2007 by Easy Software Products, all rights reserved.
++ *
++ *   These coded instructions, statements, and computer programs are the
++ *   property of Apple Inc. and are protected by Federal copyright
++ *   law.  Distribution and use rights are outlined in the file "LICENSE.txt"
++ *   "LICENSE" which should have been included with this file.  If this
++ *   file is missing or damaged, see the license at "http://www.cups.org/".
++ *
++ *   This file is subject to the Apple OS-Developed Software exception.
++ *
++ * Contents:
++ *
++ *   print_device() - Print a file to a USB device.
++ *   list_devices() - List all USB devices.
++ */
++
++/*
++ * Include necessary headers.
++ */
++
++#include <sys/select.h>
++
++/*
++ * Include the two USB implementations used under Linux ...
++ */
++
++#include "usb-libusb.c"
++#include "usb-unix.c"
++
++/*
++ * 'print_device()' - Print a file to a USB device.
++ */
++
++int					/* O - Exit status */
++print_device(const char *uri,		/* I - Device URI */
++             const char *hostname,	/* I - Hostname/manufacturer */
++             const char *resource,	/* I - Resource/modelname */
++	     char       *options,	/* I - Device options/serial number */
++	     int        print_fd,	/* I - File descriptor to print */
++	     int        copies,		/* I - Copies to print */
++	     int	argc,		/* I - Number of command-line arguments (6 or 7) */
++	     char	*argv[])	/* I - Command-line arguments */
++{
++  int result;
++  for(;;)
++  {
++    result = print_device_unix(uri, hostname, resource, options, print_fd,
++			       copies, argc, argv);
++    if (result == -1)
++    {
++      result = print_device_libusb(uri, hostname, resource, options, print_fd,
++				   copies, argc, argv);
++      if (result == -1)
++	sleep(5);
++      else
++	return(result);
++    }
++    else
++      return(result);
++  }
++}
++
++/*
++ * 'list_devices()' - List all USB devices.
++ */
++
++void
++list_devices(void)
++{
++  /* Try both discovery methods, each device will appear only under one
++     of them */
++  list_devices_libusb();
++  list_devices_unix();
++}
++
++
++/*
++ * End of "$Id: usb-hybrid.c 8807 2009-08-31 18:45:43Z mike $".
++ */
+diff -urNad cups-1.4.3~/backend/usb-libusb.c cups-1.4.3/backend/usb-libusb.c
+--- cups-1.4.3~/backend/usb-libusb.c	2009-09-11 22:03:31.000000000 +0200
++++ cups-1.4.3/backend/usb-libusb.c	2010-04-09 15:56:04.345707078 +0200
+@@ -13,16 +13,16 @@
+  *
+  * Contents:
+  *
+- *   list_devices()    - List the available printers.
+- *   print_device()    - Print a file to a USB device.
++ *   list_devices_libusb()    - List the available printers.
++ *   print_device_libusb()    - Print a file to a USB device.
+  *   close_device()    - Close the connection to the USB printer.
+  *   find_device()     - Find or enumerate USB printers.
+  *   get_device_id()   - Get the IEEE-1284 device ID for the printer.
+  *   list_cb()         - List USB printers for discovery.
+  *   make_device_uri() - Create a device URI for a USB printer.
+- *   open_device()     - Open a connection to the USB printer.
++ *   open_device_libusb()     - Open a connection to the USB printer.
+  *   print_cb()        - Find a USB printer for printing.
+- *   side_cb()         - Handle side-channel requests.
++ *   side_cb_libusb()         - Handle side-channel requests.
+  */
+ 
+ /*
+@@ -65,30 +65,30 @@
+ static char		*make_device_uri(usb_printer_t *printer,
+ 			                 const char *device_id,
+ 					 char *uri, size_t uri_size);
+-static int		open_device(usb_printer_t *printer, int verbose);
++static int		open_device_libusb(usb_printer_t *printer, int verbose);
+ static int		print_cb(usb_printer_t *printer, const char *device_uri,
+ 			         const char *device_id, const void *data);
+-static ssize_t		side_cb(usb_printer_t *printer, int print_fd);
++static ssize_t		side_cb_libusb(usb_printer_t *printer, int print_fd);
+ 
+ 
+ /*
+- * 'list_devices()' - List the available printers.
++ * 'list_devices_libusb()' - List the available printers.
+  */
+ 
+ void
+-list_devices(void)
++list_devices_libusb(void)
+ {
+-  fputs("DEBUG: list_devices\n", stderr);
++  fputs("DEBUG: list_devices_libusb\n", stderr);
+   find_device(list_cb, NULL);
+ }
+ 
+ 
+ /*
+- * 'print_device()' - Print a file to a USB device.
++ * 'print_device_libusb()' - Print a file to a USB device.
+  */
+ 
+ int					/* O - Exit status */
+-print_device(const char *uri,		/* I - Device URI */
++print_device_libusb(const char *uri,		/* I - Device URI */
+              const char *hostname,	/* I - Hostname/manufacturer */
+              const char *resource,	/* I - Resource/modelname */
+ 	     char       *options,	/* I - Device options/serial number */
+@@ -105,19 +105,23 @@
+   struct pollfd	pfds[2];		/* Poll descriptors */
+ 
+ 
+-  fputs("DEBUG: print_device\n", stderr);
++  fputs("DEBUG: print_device_libusb\n", stderr);
+ 
+  /*
+   * Connect to the printer...
+   */
+ 
++#if defined(__linux) || defined(__sun) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__DragonFly__) || defined(__FreeBSD_kernel__)
++  if ((printer = find_device(print_cb, uri)) == NULL)
++    return(-1);
++#else
+   while ((printer = find_device(print_cb, uri)) == NULL)
+   {
+     _cupsLangPuts(stderr,
+ 		  _("INFO: Waiting for printer to become available...\n"));
+     sleep(5);
+   }
+-
++#endif
+ 
+  /*
+   * If we are printing data from a print driver on stdin, ignore SIGTERM
+@@ -189,7 +193,7 @@
+ 
+       if (pfds[1].revents & (POLLIN | POLLHUP))
+       {
+-        if ((bytes = side_cb(printer, print_fd)) < 0)
++        if ((bytes = side_cb_libusb(printer, print_fd)) < 0)
+ 	  pfds[1].events = 0;		/* Filter has gone away... */
+ 	else
+           tbytes += bytes;
+@@ -359,7 +363,7 @@
+ 	    printer.iface  = iface;
+ 	    printer.handle = NULL;
+ 
+-            if (!open_device(&printer, data != NULL))
++            if (!open_device_libusb(&printer, data != NULL))
+ 	    {
+ 	      if (!get_device_id(&printer, device_id, sizeof(device_id)))
+ 	      {
+@@ -583,6 +587,14 @@
+     mfg = tempmfg;
+   }
+ 
++  if (!strncasecmp(mdl, mfg, strlen(mfg)))
++  {
++    mdl += strlen(mfg);
++
++    while (isspace(*mdl & 255))
++      mdl ++;
++    }
++
+  /*
+   * Generate the device URI from the manufacturer, model, serial number,
+   * and interface number...
+@@ -611,11 +623,11 @@
+ 
+ 
+ /*
+- * 'open_device()' - Open a connection to the USB printer.
++ * 'open_device_libusb()' - Open a connection to the USB printer.
+  */
+ 
+ static int				/* O - 0 on success, -1 on error */
+-open_device(usb_printer_t *printer,	/* I - Printer */
++open_device_libusb(usb_printer_t *printer,	/* I - Printer */
+             int           verbose)	/* I - Update connecting-to-device state? */
+ {
+   int	number;				/* Configuration/interface/altset numbers */
+@@ -733,16 +745,73 @@
+          const char    *device_id,	/* I - IEEE-1284 device ID */
+          const void    *data)		/* I - User data (make, model, S/N) */
+ {
+-  return (!strcmp((char *)data, device_uri));
++  char *uri = (char *)data,
++       *str1,
++       *str2,
++       buf[255],
++       requested_uri[1024];
++
++  /* Work on a copy of uri */
++  strncpy(requested_uri, uri, sizeof(requested_uri));
++  requested_uri[sizeof(requested_uri) - 1] = '\0';
++
++  /*
++   * libusb-discovered URIs can have an "interface" specification and this
++   * never happens for usblp-discovered URIs, so remove the "interface"
++   * specification from the URI which we are checking currently. This way a
++   * queue for a usblp-discovered printer can now be accessed via libusb
++   */
++  if (((str1 = strstr(requested_uri, "interface=")) == NULL) &&
++      ((str2 = strstr(device_uri, "interface=")) != NULL))
++  {
++    *(str2 - 1) = '\0';
++  }
++
++  /*
++   * Old URI with "serial=?". Cut this part off and consider this as
++   * an URI without serial number
++   */
++  if ((str1 = strstr(requested_uri, "serial=?")) != NULL)
++   *(str1 - 1) = '\0';
++
++  /*
++   * Old URI without serial number. Match it also with URIs with serial
++   * number
++   */
++  if (((str1 = strstr(requested_uri, "serial=")) == NULL) &&
++      ((str2 = strstr(device_uri, "serial=")) != NULL))
++    *(str2 - 1) = '\0';
++
++  /*
++   * libusb-discovered URIs can have a "serial" specification when the
++   * usblp-discovered URI for the same printer does not have one, as
++   * with libusb we can discover serial numbers also with other methods
++   * than only via the device ID. Therefore we accept also a
++   * usblp-discovered printer without serial number as a match. This we
++   * do by removing the serial number from the queue's (libusb-discovered)
++   * URI before comparing. Also warn the user because of the incapability
++   * of the usblp-based access to distinguish printers by the serial
++   * number.
++   */
++  if (((str1 = strstr(requested_uri, "serial=")) == NULL) &&
++      ((str2 = strstr(device_uri, "serial=")) != NULL))
++  {
++    *(str2 - 1) = '\0';
++    if (backendGetMakeModel(device_id, buf, sizeof(buf)) == 0)
++      fprintf(stderr, "WARNING: If you have more than one %s printer connected to this machine, please make sure that the \"usblp\" kernel module is always unloaded (and blacklisted) and re-create the queues for these printers. Otherwise CUPS will not be able to distinguish them.\n",
++	    buf);
++  }
++
++  return (!strcmp(requested_uri, device_uri));
+ }
+ 
+ 
+ /*
+- * 'side_cb()' - Handle side-channel requests.
++ * 'side_cb_libusb()' - Handle side-channel requests.
+  */
+ 
+ static ssize_t				/* O - Number of bytes written */
+-side_cb(usb_printer_t *printer,		/* I - Printer */
++side_cb_libusb(usb_printer_t *printer,		/* I - Printer */
+         int           print_fd)		/* I - File to print */
+ {
+   ssize_t		bytes,		/* Bytes read/written */
+diff -urNad cups-1.4.3~/backend/usb-unix.c cups-1.4.3/backend/usb-unix.c
+--- cups-1.4.3~/backend/usb-unix.c	2009-12-08 03:13:42.000000000 +0100
++++ cups-1.4.3/backend/usb-unix.c	2010-04-09 15:56:30.799666933 +0200
+@@ -18,10 +18,10 @@
+  *
+  * Contents:
+  *
+- *   print_device() - Print a file to a USB device.
+- *   list_devices() - List all USB devices.
+- *   open_device()  - Open a USB device...
+- *   side_cb()      - Handle side-channel requests...
++ *   print_device_unix() - Print a file to a USB device.
++ *   list_devices_unix() - List all USB devices.
++ *   open_device_unix()  - Open a USB device...
++ *   side_cb_unix()      - Handle side-channel requests...
+  */
+ 
+ /*
+@@ -35,17 +35,17 @@
+  * Local functions...
+  */
+ 
+-static int	open_device(const char *uri, int *use_bc);
+-static int	side_cb(int print_fd, int device_fd, int snmp_fd,
++static int	open_device_unix(const char *uri, int *use_bc);
++static int	side_cb_unix(int print_fd, int device_fd, int snmp_fd,
+ 		        http_addr_t *addr, int use_bc);
+ 
+ 
+ /*
+- * 'print_device()' - Print a file to a USB device.
++ * 'print_device_unix()' - Print a file to a USB device.
+  */
+ 
+ int					/* O - Exit status */
+-print_device(const char *uri,		/* I - Device URI */
++print_device_unix(const char *uri,		/* I - Device URI */
+              const char *hostname,	/* I - Hostname/manufacturer */
+              const char *resource,	/* I - Resource/modelname */
+ 	     char       *options,	/* I - Device options/serial number */
+@@ -102,7 +102,7 @@
+              strncasecmp(hostname, "Minolta", 7);
+ #endif /* __FreeBSD__ || __NetBSD__ || __OpenBSD__ || __DragonFly__ */
+ 
+-    if ((device_fd = open_device(uri, &use_bc)) == -1)
++    if ((device_fd = open_device_unix(uri, &use_bc)) == -1)
+     {
+       if (getenv("CLASS") != NULL)
+       {
+@@ -132,6 +132,10 @@
+ 	              _("INFO: Printer busy; will retry in 10 seconds...\n"));
+ 	sleep(10);
+       }
++#ifdef HAVE_USB_H
++      else
++	return (-1);
++#else
+       else if (errno == ENXIO || errno == EIO || errno == ENOENT ||
+                errno == ENODEV)
+       {
+@@ -147,6 +151,7 @@
+ 			resource, strerror(errno));
+ 	return (CUPS_BACKEND_FAILED);
+       }
++#endif
+     }
+   }
+   while (device_fd < 0);
+@@ -190,7 +195,7 @@
+     tbytes = backendRunLoop(print_fd, device_fd, -1, NULL, use_bc, 1, NULL);
+ 
+ #else
+-    tbytes = backendRunLoop(print_fd, device_fd, -1, NULL, use_bc, 1, side_cb);
++    tbytes = backendRunLoop(print_fd, device_fd, -1, NULL, use_bc, 1, side_cb_unix);
+ #endif /* __sun */
+ 
+     if (print_fd != 0 && tbytes >= 0)
+@@ -214,11 +219,11 @@
+ 
+ 
+ /*
+- * 'list_devices()' - List all USB devices.
++ * 'list_devices_unix()' - List all USB devices.
+  */
+ 
+ void
+-list_devices(void)
++list_devices_unix(void)
+ {
+ #ifdef __linux
+   int	i;				/* Looping var */
+@@ -320,11 +325,11 @@
+ 
+ 
+ /*
+- * 'open_device()' - Open a USB device...
++ * 'open_device_unix()' - Open a USB device...
+  */
+ 
+ static int				/* O - File descriptor or -1 on error */
+-open_device(const char *uri,		/* I - Device URI */
++open_device_unix(const char *uri,		/* I - Device URI */
+             int        *use_bc)		/* O - Set to 0 for unidirectional */
+ {
+   int	fd;				/* File descriptor */
+@@ -357,9 +362,12 @@
+     char	device[255],		/* Device filename */
+ 		device_id[1024],	/* Device ID string */
+ 		make_model[1024],	/* Make and model */
+-		device_uri[1024];	/* Device URI string */
+-
++		device_uri[1024],	/* Device URI string */
++		requested_uri[1024],	/* Device URI string */
++		*str1,
++		*str2;
+ 
++    
+    /*
+     * Find the correct USB device...
+     */
+@@ -407,7 +415,55 @@
+ 	  device_uri[0] = '\0';
+         }
+ 
+-        if (!strcmp(uri, device_uri))
++	/* Work on a copy of uri */
++	strncpy(requested_uri, uri, sizeof(requested_uri));
++	requested_uri[sizeof(requested_uri) - 1] = '\0';
++
++	/*
++	 * libusb-discovered URIs can have an "interface" specification and this
++	 * never happens for usblp-discovered URIs, so remove the "interface"
++	 * specification from the URI of the print queue. This way a queue for
++	 * a libusb-discovered printer can now be accessed via the usblip kernel
++	 * module
++	 */
++	if ((str1 = strstr(requested_uri, "interface=")) != NULL)
++	  *(str1 - 1) = '\0';
++
++	/*
++	 * Old URI with "serial=?". Cut this part off and consider this as
++	 * an URI without serial number
++	 */
++	if ((str1 = strstr(requested_uri, "serial=?")) != NULL)
++	 *(str1 - 1) = '\0';
++
++	/*
++	 * Old URI without serial number. Match it also with URIs with serial
++	 * number
++	 */
++	if (((str1 = strstr(requested_uri, "serial=")) == NULL) &&
++	    ((str2 = strstr(device_uri, "serial=")) != NULL))
++	    *(str2 - 1) = '\0';
++
++	/*
++	 * libusb-discovered URIs can have a "serial" specification when the
++	 * usblp-discovered URI for the same printer does not have one, as
++	 * with libusb we can discover serial numbers also with other methods
++	 * than only via the device ID. Therefore we accept also a
++	 * usblp-discovered printer without serial number as a match. This we
++	 * do by removing the serial number from the queue's (libusb-discovered)
++	 * URI before comparing. Also warn the user because of the incapability
++	 * of the usblp-based access to distinguish printers by the serial
++	 * number.
++	 */
++	if (((str1 = strstr(requested_uri, "serial=")) != NULL) &&
++	    ((str2 = strstr(device_uri, "serial=")) == NULL))
++	{
++	  *(str1 - 1) = '\0';
++	  fprintf(stderr, "WARNING: If you have more than one %s printer connected to this machine, please unload (and blacklist) the \"usblp\" kernel module as otherwise CUPS will not be able to distinguish your printers.\n",
++		  make_model);
++	}
++
++        if (!strcmp(requested_uri, device_uri))
+ 	{
+ 	 /*
+ 	  * Yes, return this file descriptor...
+@@ -433,10 +489,14 @@
+       */
+ 
+       if (busy)
++      {
+ 	_cupsLangPuts(stderr,
+ 	              _("INFO: Printer busy; will retry in 5 seconds...\n"));
+ 
+-      sleep(5);
++	sleep(5);
++      }
++      else
++	return -1;
+     }
+   }
+ #elif defined(__sun) && defined(ECPPIOC_GETDEVID)
+@@ -557,11 +617,11 @@
+ 
+ 
+ /*
+- * 'side_cb()' - Handle side-channel requests...
++ * 'side_cb_unix()' - Handle side-channel requests...
+  */
+ 
+ static int				/* O - 0 on success, -1 on error */
+-side_cb(int         print_fd,		/* I - Print file */
++side_cb_unix(int         print_fd,		/* I - Print file */
+         int         device_fd,		/* I - Device file */
+         int         snmp_fd,		/* I - SNMP socket (unused) */
+ 	http_addr_t *addr,		/* I - Device address (unused) */
+diff -urNad cups-1.4.3~/backend/usb.c cups-1.4.3/backend/usb.c
+--- cups-1.4.3~/backend/usb.c	2008-06-24 03:28:36.000000000 +0200
++++ cups-1.4.3/backend/usb.c	2010-04-09 15:56:04.345707078 +0200
+@@ -56,7 +56,7 @@
+  */
+ 
+ #ifdef HAVE_USB_H
+-#  include "usb-libusb.c"
++#  include "usb-hybrid.c"
+ #elif defined(__APPLE__)
+ #  include "usb-darwin.c"
+ #elif defined(__linux) || defined(__sun) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__DragonFly__) || defined(__FreeBSD_kernel__)

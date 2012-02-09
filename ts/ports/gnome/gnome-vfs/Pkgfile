@@ -1,0 +1,32 @@
+# Description: virtual filesystem abstraction library for GNOME2
+# URL: http://developer.gnome.org/doc/API/gnome-vfs/
+# Maintainer: Matt Housh, jaeger at morpheus dot net
+# Depends on: gamin, libbonobo, gconf, libxml2, gnome-mime-data, dbus, dbus-glib, hal, desktop-file-utils, avahi, samba
+# Group: gnome/platform
+
+name=gnome-vfs
+version=2.24.4
+release=1
+source=(http://ftp.gnome.org/pub/GNOME/sources/gnome-vfs/2.24/$name-$version.tar.bz2)
+
+build() {
+	cd $name-$version
+	rm po/*.po
+	sed -i -e 's/USE_NLS=yes/USE_NLS=no/' \
+		-e 's/ENABLE_NLS 1/ENABLE_NLS 0/' configure
+	./configure --prefix=/usr \
+		--libexecdir=/usr/lib/$name \
+		--disable-schemas-install \
+		--enable-openssl \
+		--disable-gnutls \
+		--disable-gtk-doc \
+		--enable-ipv6 \
+		--with-gtk=no \
+		--enable-hal \
+		--enable-avahi \
+		--disable-howl
+	make
+	export GCONF_DISABLE_MAKEFILE_SCHEMA_INSTALL=1
+	make DESTDIR=$PKG install
+	rm -rf $PKG/usr/share/gtk-doc
+}

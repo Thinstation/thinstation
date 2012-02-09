@@ -1,0 +1,23 @@
+# Description: A utility to simplify ports searching/installing
+# URL:         http://jw.smts.ch/files/crux/prt-get_quickstart.html
+# Maintainer:  CRUX System Team, core-ports at crux dot nu
+
+name=prt-get
+version=5.18
+release=2
+source=(http://jw.smts.ch/files/crux/prt-get-$version.tar.gz
+        prt-get.conf prt-get.aliases prt-get.diff)
+
+build() {
+    cd ${name}-${version}
+
+    patch -p1 -i $SRC/$name.diff
+
+    ./configure --prefix=/usr \
+                --mandir=/usr/man
+    make
+    make DESTDIR=$PKG install
+
+    install -m 644 $SRC/prt-get.conf $PKG/etc/
+    install -D -m 644 $SRC/prt-get.aliases $PKG/var/lib/pkg/prt-get.aliases
+}
