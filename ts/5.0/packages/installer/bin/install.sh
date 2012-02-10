@@ -102,5 +102,5 @@ cp /boot/lib.update /boot/lib.squash-backup
 cd /thinstation
 rm -rf *
 echo "Gitting thinstation repo"
-git clone --depth 1 git://thinstation.git.sourceforge.net/gitroot/thinstation/thinstation-2.5 /thinstation
+git clone --depth 1 git://thinstation.git.sourceforge.net/gitroot/thinstation/thinstation /thinstation
 ./setup-chroot -i
