@@ -9,10 +9,10 @@ mount -t proc proc /proc
 mount -t sysfs sys /sys
 
 if is_enabled $MEMORY_CONSTRAINED ; then
-	mount -n -t tmpfs -o exec,nosuid,noatime,mode=0755,nr_blocks=128,nr_inodes=1024 tmpfs /tmp
-	mount -n -t devtmpfs -o exec,nosuid,noatime,mode=0755,nr_blocks=128,nr_inodes=1024 dev /dev
+	mount -n -t tmpfs tmpfs /tmp
+	mount -n -t devtmpfs -o exec,nosuid,noatime,mode=0755,nr_blocks=128 dev /dev
 	mkdir /dev/shm
-	mount -n -t tmpfs -o exec,nosuid,noatime,mode=0755,nr_blocks=128,nr_inodes=1024 shm /dev/shm
+	mount -n -t tmpfs -o exec,nosuid,noatime,mode=0755,nr_blocks=128 shm /dev/shm
 else
 	mount -n -t tmpfs tmpfs /tmp
 	mount -n -t devtmpfs dev /dev

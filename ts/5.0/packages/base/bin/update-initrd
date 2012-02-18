@@ -5,30 +5,25 @@
 init()
 {
 LPATH=""
-        while getopts plswh o ;
-                do
-                        case "$o" in
-                                p)      LPATH="$2"
-                                        ;;
-                                l)      LOCAL="1"
-                                        ;;
-                                h)      HELP="1"
-                                        ;;
-                                w)      WEB="1"
-                                        ;;
-				s)	SERVER="1"
-					;;
-                        esac
-                done
-        shift $(( $OPTIND - 1 ))
+        until [ -z "$1" ] ; do
+		case $1 in
+			-p|--path)	LPATH="$2" ;;
+			-l|--local)     LOCAL="1" ;;
+			-h|--help)	HELP="1" ;;
+			-w|--web)	WEB="1" ;;
+			-s|--server)	SERVER="1" ;;
+			*)		echo "Invalid Option: $1" ;;
+                esac
+		shift $#
+	done
 }
 init $@
 
 if [ "$LOCAL" == "1" ]; then
-	cp /thinstation/ts/2.5/boot-images/initrd/initrd /boot/initrd
-	cp /thinstation/ts/2.5/boot-images/initrd/vmlinuz /boot/vmlinuz
-	if [ -e /thinstation/ts/2.5/boot-images/initrd/lib.squash ]; then
-		cp /thinstation/ts/2.5/boot-images/initrd/lib.squash /boot/lib.update
+	cp /thinstation/ts/5.0/boot-images/initrd/initrd /boot/initrd
+	cp /thinstation/ts/5.0/boot-images/initrd/vmlinuz /boot/vmlinuz
+	if [ -e /thinstation/ts/5.0/boot-images/initrd/lib.squash ]; then
+		cp /thinstation/ts/5.0/boot-images/initrd/lib.squash /boot/lib.update
 	fi
 elif [ "$SERVER" == "1" ]; then
 	cd /boot
