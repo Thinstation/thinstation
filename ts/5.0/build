@@ -413,7 +413,22 @@ if [ ! -z "$ts_bootresolution" ] ;then
         if [ `make_caps X"$ts_fbnocrtc"` == "XTRUE" ] ;then
 	        uvesafb="$uvesafb,nocrtc"
         fi
-        if [ ! -z "$ts_fbsm" ] ;then 
+	if [ `make_caps X"$ts_fbnoedid"` == "XTRUE" ] ; then
+		uvesafb="$uvesafb,noedid"
+	fi
+	if [ ! -z "$ts_fbvtotal" ] ; then
+		uvesafb="$uvesafb,vtotal:$ts_fbvtotal"
+	fi
+	if [ ! -z "$ts_fbmaxhf" ] ; then
+		uvesafb="$uvesafb,maxhf:$ts_fbmaxhf"
+	fi
+	if [ ! -z "$ts_fbmaxvf" ] ; then
+                uvesafb="$uvesafb,maxvf:$ts_fbmaxvf"
+        fi
+	if [ ! -z "$ts_fbmaxclk" ] ; then
+                uvesafb="$uvesafb,maxclk:$ts_fbmaxclk"
+        fi
+        if [ ! -z "$ts_fbsm" ] ;then
 	        uvesafb="$uvesafb,$ts_fbsm"
         fi
 	if [ "$ts_modesetfb" == "enable" ]; then
@@ -1137,7 +1152,7 @@ fi
 
 
 # Check for ACPI Support
-if [ "$ts_acpisupport" != "enable" ]; then
+if [ "$ts_acpisupport" == "disable" ]; then
 	echo -e "\nAdvanced Configuration and Power Interface support disabled\n"
 	kernel_acpi_support=false
 else

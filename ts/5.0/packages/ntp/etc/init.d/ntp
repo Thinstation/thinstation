@@ -7,7 +7,7 @@ init)
     if ! pkg_initialized $PACKAGE; then
 
 	if [ ! -z "$NET_TIME_SERVER" ]; then
-	  ntpdate -b $NET_TIME_SERVER >> $LOGFILE 2>&1 &
+	  ntpdate -b $NET_TIME_SERVER 1>> $LOGFILE &
 	  echo "1 * * * * ntpdate -s $NET_TIME_SERVER" >> /tmp/crontab
 	  if [ "`make_caps x$RTC_CMOS`" == "XLOCAL" ]; then
 		  echo "2 * * * * hwclock -w --local" >> /tmp/crontab

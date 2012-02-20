@@ -1,0 +1,18 @@
+if [ -n "$DEBUG_INIT" ] ; then
+        echo_log "Starting Splash"
+fi
+
+# Setup Splash Progress Bar
+
+if ! is_disabled $FASTBOOT ; then
+	splash_rc2=20
+	splash_rc5=5
+else
+	splash_rc2=`ls /etc/rc2.d | wc -l`
+	splash_rc5=`ls /etc/rc5.d | wc -l`
+fi
+let splash_total=splash_rc2+splash_rc5+50
+splash
+splash_start
+let progress=25
+splash_progress

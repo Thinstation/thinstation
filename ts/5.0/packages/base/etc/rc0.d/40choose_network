@@ -1,0 +1,73 @@
+#! /bin/sh
+. $TS_GLOBAL
+
+# Choose Preferred Network for extra files.
+if [ -n "$DEBUG_INIT" ] ; then
+        echo_log "Choosing Network"
+fi
+#PICK ADAPTER
+
+network_break()
+{
+if is_disabled $HALTONERROR ; then
+	echo_log "Error, Network not initialized. Halt Overrided, Continuing..."
+else
+        echo_log "Error, Network not initialized. Halting..."
+	#sleep 1
+	force_splash_exit
+fi
+for i in `ls --color=never /sys/class/net/`; do
+	if [ "`cat /sys/class/net/$i/carrier`" != "1" ]; then
+	        echo_log "No cable for $device,"
+		echo_log "or you don't have the firmware loaded."
+	else
+        echo_log "DHCP server not found for $lan! Network not initialized."
+        echo_log "This error has probably occured because you haven't got the corrrect"
+        echo_log "module loaded for you network card."
+	fi
+done
+if pkg_initialized debug ; then
+	echo_log "Debug enabled...continuing boot."
+else
+	echo_log "Debug not enabled, boot halted."
+	force_splash_exit
+	halt
+fi
+}
+
+devicelist="`grep -e NETWORKUP=TRUE /var/log/net/* |cut -d : -f1`"
+if [ "`echo $devicelist |wc -l`" -lt "1" ]; then
+	network_break
+fi
+if [ "`echo $devicelist |wc -l`" -gt "1" ]; then
+	for i in "$devicelist" ; do
+		if [ "`cat $i |grep -e lan |grep -c -v wlan`" -gt "0" ]; then
+			lan=`basename $i`
+		elif [ "`cat $i |grep -c -e wlan`" -gt "0" ]; then
+			wlan=`basename $i`
+		fi
+	done
+	if [ -n $lan ] && [ -n $wlan ]; then
+		device=$lan
+		if [ "$NET_USE" != "BOTH" ] || [ "$NET_USE" != "WLAN" ]; then
+				ifconfig $wlan down
+		fi
+	elif [ "$lan" == "" ] && [ -n $wlan ]; then
+		device=$wlan
+	else
+		device=$lan
+	fi
+else
+	device=`basename $devicelist`
+fi
+
+#. /var/log/net/$device
+
+#echo "CLIENT_IP=$CLIENT_IP" >> $TS_RUNTIME
+#echo "SERVER_IP=$SERVER_IP" >> $TS_RUNTIME
+echo "NET_DEVICE=$device" >> $TS_RUNTIME
+#echo "CLIENT_MAC=$CLIENT_MAC" >> $TS_RUNTIME
+#echo "CLIENT_NAME=$CLIENT_NAME" >> $TS_RUNTIME
+#echo "NET=$device" >> $TS_RUNTIME
+#echo "boot_file=$boot_file" >> $TS_RUNTIME
+#hostname $CLIENT_NAME

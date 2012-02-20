@@ -1,0 +1,26 @@
+if [ -n "$DEBUG_INIT" ] ; then
+        echo_log "Doing Mounts"
+fi
+
+mount -t proc proc /proc
+mount -t sysfs sys /sys
+echo 100 > /proc/sys/vm/swappiness
+if is_enabled $MEMORY_CONSTRAINED ; then
+	echo 100 > /proc/sys/vm/swappiness
+        mount -n -t tmpfs tmpfs /tmp
+        mount -n -t devtmpfs -o exec,nosuid,noatime,mode=0755,nr_blocks=128 dev /dev
+        mkdir /dev/shm
+        mount -n -t tmpfs -o exec,nosuid,noatime,mode=0755,nr_blocks=128 shm /dev/shm
+else
+	echo 0 > /proc/sys/vm/swappiness
+        mount -n -t tmpfs tmpfs /tmp
+        mount -n -t devtmpfs dev /dev
+        mkdir /dev/shm
+        mount -n -t tmpfs shm /dev/shm
+fi
+
+mkdir /dev/pts
+mount -t devpts devpts /dev/pts
+mkdir -m 1755 /tmp/ts
+
+

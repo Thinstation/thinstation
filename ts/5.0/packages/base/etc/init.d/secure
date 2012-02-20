@@ -6,7 +6,9 @@ case "$1" in
 init)
   if ! pkg_initialized $PACKAGE; then
     # Prime entropy pool for random number generation
-    /bin/rngd -r /dev/urandom -t 5 -W 4096 -B 1
+    if ! is_disabled $RNGD ; then
+	/bin/rngd -r /dev/urandom -t 5 -W 4096 -B 1
+    fi
     # Setup SSH Key file
     if [ ! -e $HOME/.ssh ] ; then
 	    mkdir $HOME/.ssh

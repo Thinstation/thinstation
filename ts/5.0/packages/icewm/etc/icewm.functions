@@ -89,13 +89,12 @@ if is_enabled $MENU_SHOWAPPS ; then
     fi
 fi
 
-    if is_enabled $MENU_SHOWRES && [ -e /sys/devices/platform/uvesafb.0/vbe_modes ]; then
+    if is_enabled $MENU_SHOWRES && [ -e /sys/devices/platform/uvesafb.0/vbe_modes ] ; then
         echo "menu Resolution" "resolution_menu {" >> $MENU_FILE
-	for i in `cat /sys/devices/platform/uvesafb.0/vbe_modes |cut -d "-" -f1 |sort -n |uniq`
-		do
-			echo "prog \"$i\" \"$i\" setres $i" >> $MENU_FILE
-		done
-        echo "}" >> $MENU_FILE
+	for i in `cat /sys/devices/platform/uvesafb.0/vbe_modes |cut -d "-" -f1 |sort -n |uniq` ; do
+		echo "prog \"$i\" \"$i\" setres $i" >> $MENU_FILE
+	done
+	echo "}" >> $MENU_FILE
     fi
     if is_enabled $MENU_SHOWABOUT && [ -e /bin/about ]; then
 	echo "prog \"About\" \"about\" about" >> $MENU_FILE

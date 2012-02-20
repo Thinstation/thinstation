@@ -2,6 +2,8 @@
 
 . /etc/thinstation.env
 . $TS_GLOBAL
+. /etc/splash.functions
+
 echo "Starting X"
 XAUTHHOME=$HOME
 HOME=/tmp
@@ -375,8 +377,9 @@ start)
 	  fi
 	  X_CMD="$X_CMD -nolisten tcp"
 	  echo $X_CMD >> $LOGFILE
-	  splash_exit
 	  $X_CMD >> $LOGFILE 2>&1 &
+	  sleep .5
+	  splash_exit
 	else
 	  echo "XSERVER variable is not defined, error!!!"
 	  echo "X aborted, starting shell instead."
@@ -404,7 +407,7 @@ console|menu)
 	 	 X_CMD="$X_CMD $3 $2" 
 	  fi
 	  echo $X_CMD >> $LOGFILE
-	splash_exit
+#	splash_exit
 	  exec $X_CMD >> $LOGFILE 2>&1
  	else
 	  echo "XSERVER variable is not defined, error!!!"

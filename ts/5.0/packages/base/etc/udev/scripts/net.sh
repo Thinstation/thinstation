@@ -71,10 +71,10 @@ echo "CLIENT_NAME=localhost" >> /var/log/net/$INTERFACE
 echo "CLIENT_IP=127.0.0.1" >> /var/log/net/$INTERFACE
 echo "NETMASK=255.0.0.0" >>/var/log/net/$INTERFACE
 echo "NET${IFINDEX}=$INTERFACE" >> $TS_RUNTIME
-echo_dev
+#echo_dev
 exit
 fi
-echo_dev
+#echo_dev
 
 if [ "$DEVTYPE" == "wlan" ]; then
 	if [ -n "$WIRELESS_WPAKEY" ];  then
@@ -207,7 +207,7 @@ if is_disabled $NET_USE_DHCP ; then
 	echo_log "Booting with manually configured network..." $debug
 	manual_config
 else
-	udhcpc -R -b -A $NET_DHCP_TIMEOUT -H $CLIENT_NAME -t 20 -T 3 -i $INTERFACE -C -s /etc/rc.d/lease_dhcp -p /var/run/udhcpc-$INTERFACE.pid
+	udhcpc -R -b -A $NET_DHCP_TIMEOUT -H $CLIENT_NAME -t 20 -T 3 -i $INTERFACE -C -s /etc/udev/scripts/lease_dhcp -p /var/run/udhcpc-$INTERFACE.pid
 fi
 
 # Kernel Network setting
