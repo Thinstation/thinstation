@@ -1,0 +1,14 @@
+#
+# Replacement CIS for dual-serial-port IO card
+#
+vers_1 4.1, "PCMCIA", "RS-COM 2P"
+funcid serial_port [post]
+config base 0x0100 mask 0x0001 last_index 0x03
+cftable_entry 0x01 [default]
+  [mwait]
+  io 0x03e8-0x03ef, 0x02e8-0x02ef [lines=10] [8bit] [range]
+  irq mask 0x9eb8 [level]
+cftable_entry 0x02
+  io 0x0250-0x0257, 0x0258-0x025f [lines=10] [8bit] [range]
+cftable_entry 0x03
+  io 0x0260-0x0267, 0x0268-0x026f [lines=10] [8bit] [range]

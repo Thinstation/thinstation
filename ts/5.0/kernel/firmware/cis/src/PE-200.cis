@@ -1,0 +1,11 @@
+#
+# Replacement CIS for PE-200 ethernet card
+#
+vers_1 4.1, "PMX   ", "PE-200", "ETHERNET", "R01"
+funcid network_adapter [post] [rom]
+config base 0x0100 mask 0x0001 last_index 0x01
+cftable_entry 0x1 [default]
+  [mwait]
+  Vcc Vnom 5V
+  irq mask 0xffff [level]
+  io 0x0000-0x000f, 0x0010-0x001f [8bit] [16bit]

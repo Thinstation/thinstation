@@ -1,0 +1,24 @@
+#
+# This CIS is for cards based on the National Semiconductor
+# DP83903 Multiple Function Interface Chip
+#
+vers_1 4.1, "Multifunction Card", "", "", "NSC MF LAN/Modem"
+manfid 0x0175, 0x0000
+funcid 0
+
+mfc {
+  funcid network_adapter
+  config base 0x1020 mask 0x277 last_index 0x17
+  cftable_entry 0x17
+    Vcc Vnom 5V
+    irq mask 0xffff [level]
+    io  0x0000-0x001f [8bit] [16bit]
+    memory 0x0000-0x3fff @ 0x0000
+}, {
+  funcid serial_port
+  config base 0x1040 mask 0x0277 last_index 0x07
+  cftable_entry 0x07
+    Vcc Vnom 5V
+    irq mask 0xffff [level]
+    io  0x0000-0x0007 [8bit]
+}

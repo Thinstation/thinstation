@@ -1,0 +1,17 @@
+#
+# Replacement CIS for Surecom, Tamarack NE2000 cards
+#
+dev_info
+  fn_specific 100ns, 512b
+attr_dev_info
+  EEPROM 250ns, 512b
+vers_1 4.1, "TAMARACK", "Ethernet", "A", "004743118001"
+funcid network_adapter
+config base 0x03f8 mask 0x0003 last_index 0x20
+cftable_entry 0x20 [default]
+  [mwait]
+  Vcc Vnom 5V Vmin 4500mV Vmax 5500mV Istatic 100mA
+    Iavg 170mA Ipeak 200mA
+  timing wait 15us
+  io 0x0000-0x000f, 0x0010-0x001f [lines=5] [8bit] [16bit]
+  irq mask 0xffff [level]
