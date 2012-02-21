@@ -36,6 +36,15 @@ get_debug_level ()
     done
 }
 
+free_memory()
+{
+          if is_enabled $MEMORY_CONSTRAINED ; then
+                rm -rf /lib/modules/*
+                sync
+                echo 3 > /proc/sys/vm/drop_caches
+          fi
+}
+
 # If thinstation.network/user is a dos file, converts it to unix
 
 cleanup ()
