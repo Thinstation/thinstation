@@ -44,7 +44,30 @@ if [ "$LM" == "3" ]; then
 	FILE=/tmp/lib.squash
 	cd /tmp
 	if [ "$FASTBOOT_URL" != "" ]; then
-		wget $FASTBOOT_URL/lib.squash
+                wget $FASTBOOT_URL/lib.squash 2>&1 |tee /var/log/wget_progress &
+		if [ "`readlink /bin/wget`" == "/bin/busybox" ]; then
+			OLDPROGRESS=$progress
+			while [ "$WPROGRESS" != "100" ] && [ ! -z "`pidof wget`" ]; do
+				sleep .5
+				WPROGRESS=`catv /var/log/wget_progress |sed -e 's/\^M/\n/g'|tail -n 1 |cut -c 22-24`
+				if [ -z "$WPROGRESS" ]; then WPROGRESS=0 ; fi
+				let progress=WPROGRESS+OLDPROGRESS
+				splash_progress
+			done
+			let progress=OLDPROGRESS+100
+			splash_progress
+		else
+			OLDPROGRESS=$progress
+			while [ "$WPROGRESS" != "100" ] && [ ! -z "`pidof wget`" ]; do
+				sleep .5
+        			WPROGRESS=`catv /var/log/wget_progress |grep -e "%" |tail -n 1 |cut -c 63-65`
+				if [ -z "$WPROGRESS" ]; then WPROGRESS=0 ; fi
+				let progress=WPROGRESS+OLDPROGRESS
+				splash_progress
+			done
+			let progress=OLDPROGRESS+100
+			splash_progress
+		fi
 	else
 		squash_server=`dirname $boot_file`
 		if [ "$squash_server" == "." -o "$squash_server" == "/." ]; then
@@ -53,7 +76,17 @@ if [ "$LM" == "3" ]; then
 			squash_server="`basename $squash_server`"/
 		fi
 		FILE_NET="$squash_server$squash_location"lib.squash
-		tftp -g -l $FILE -r $FILE_NET -b $TFTP_BLOCKSIZE $SERVER_IP
+		tftp -g -l $FILE -r $FILE_NET -b $TFTP_BLOCKSIZE $SERVER_IP 2>&1 |tee /var/log/tftp_progress &
+		OLDPROGRESS=$progress
+		while [ "$TPROGRESS" != "100" ] && [ ! -z "`pidof tftp`" ]; do
+			sleep .5
+			TPROGRESS=`catv /var/log/tftp_progress |sed -e 's/\^M/\n/g'|tail -n 1 |cut -c 22-24`
+			if [ -z "$TPROGRESS" ]; then TPROGRESS=0 ; fi
+			let progress=TPROGRESS+OLDPROGRESS
+			splash_progress
+		done
+		let progress=OLDPROGRESS+100
+		splash_progress
 	fi
 fi
 
@@ -68,7 +101,17 @@ fi
 #fi
 
 if [ "$FASTBOOT" == "lotsofmem" ] ; then
-	unsquashfs -d / -f $FILE
+	unsquashfs -d / -f $FILE |tee /var/log/expand_progress &
+	OLDPROGRESS=$progress
+	while [ "$DPROGRESS" != "100" ] && [ ! -z "`pidof unsquashfs`" ] ; do
+		sleep .5
+        	DPROGRESS=`catv /var/log/expand_progress |grep -e "=" |sed -e 's/\^M/\n/g' |tail -n 1 |cut -c 76-78`
+		if [ -z "$DPROGRESS" ]; then DPROGRESS=0 ; fi
+		let progress=DPROGRESS+OLDPROGRESS
+		splash_progress
+	done
+	let progress=OLDPROGRESS+100
+	splash_progress
 	if [ -e /tmp/lib.squash ] ; then
 		rm /tmp/lib.squash
 	fi
