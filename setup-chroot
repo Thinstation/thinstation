@@ -37,11 +37,12 @@ get_opts()
 	until [ -z "$1" ] ; do
 		case $1 in
 		-i|--install)	install_only=true ;;
-		-d|--directory)	shift ;build_dir=$1 ;;
+		-d|--directory)	shift ; build_dir=$1 ;;
 		-b|--build)	build=true ;;
-		-h|--help)	help ;exit 255 ;;
-		-o|--options)	shift ;build_opts=$@ ;shift $# ;;
-		-c|--clean)	unset build ; shift $# ; touch ./CLEAN ;; 
+		-h|--help)	help ; exit 255 ;;
+		-o|--options)	shift ; build_opts=$@ ; shift $# ;;
+		-c|--clean)	unset build ; shift $# ; touch ./CLEAN ;;
+		*)		echo "Invalid Argument: $1" ; help ; exit 255 ;;
 		esac
 		shift
 	done
@@ -76,11 +77,12 @@ launch_chroot()
 	do_mounts
 	cp -f /etc/resolv.conf etc/resolv.conf
 	chroot /$PWD /bin/bash --rcfile ./ts/TS_ENV
-	if first_or_last ; then do_unmounts ; fi
-	if [ -e cleanstage2 ] ; then
+	if first_or_last ; then
 		do_unmounts
-                ts/bin/clean_chroot
-        fi
+		if [ -e cleanstage2 ] ; then
+                	ts/bin/clean_chroot
+        	fi
+	fi
 }
 
 do_unmounts()

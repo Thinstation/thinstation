@@ -24,7 +24,7 @@ stage1()
 	for i in acl libcap coreutils pkgutils glibc bash readline ncurses findutils libpcre grep;
 		do
 			pkg=`find $ROOT/{usr,ts} |grep -e pkg.tar.gz |grep -e $i`
-			echo $pkg | xargs tar -p -o -C $ROOT -xf
+			tar -p -o -C $ROOT -xf $pkg 2> /dev/null
 		done
 
 	if [ ! -d $ROOT/var/lib/pkg ]; then
