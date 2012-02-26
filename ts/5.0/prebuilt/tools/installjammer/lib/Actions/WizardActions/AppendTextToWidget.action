@@ -1,0 +1,57 @@
+## $Id$
+##
+## BEGIN LICENSE BLOCK
+##
+## Copyright (C) 2002  Damon Courtney
+## 
+## This program is free software; you can redistribute it and/or
+## modify it under the terms of the GNU General Public License
+## version 2 as published by the Free Software Foundation.
+## 
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License version 2 for more details.
+## 
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the
+##     Free Software Foundation, Inc.
+##     51 Franklin Street, Fifth Floor
+##     Boston, MA  02110-1301, USA.
+##
+## END LICENSE BLOCK
+
+Action AppendTextToWidget
+
+Property AutoScroll boolean "Auto Scroll" "Yes"
+Help AutoScroll "If this property is true, the text widget will be\
+    automatically scrolled to the bottom once the text is inserted"
+
+Property ClearWidget boolean "Clear Widget" "No"
+Help ClearWidget "If this property is true, the text widget will be\
+    cleared of any text before the new text is inserted"
+
+Property Widget widget "Widget"
+Help Widget "The name of the text widget to append text to"
+
+Text Text
+
+proc ::InstallJammer::actions::AppendTextToWidget { obj } {
+    global info
+
+    set id [$obj id]
+
+    $obj properties props -subst 1
+
+    set parent [$obj parent]
+    set widget [::InstallAPI::GetWidgetPath -window [$obj parent] \
+        -widget $props(Widget)]
+    if {[winfo exists $widget]} {
+        set state [$widget cget -state]
+        $widget configure -state normal
+        if {$props(ClearWidget)} { $widget delete 1.0 end }
+        $widget insert end [::InstallJammer::GetText $id Text]
+        $widget configure -state $state
+        if {$props(AutoScroll)} { $widget yview moveto 1.0 }
+    }
+}

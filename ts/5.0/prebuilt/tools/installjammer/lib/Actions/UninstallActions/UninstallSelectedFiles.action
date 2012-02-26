@@ -1,0 +1,415 @@
+## $Id$
+##
+## BEGIN LICENSE BLOCK
+##
+## Copyright (C) 2002  Damon Courtney
+## 
+## This program is free software; you can redistribute it and/or
+## modify it under the terms of the GNU General Public License
+## version 2 as published by the Free Software Foundation.
+## 
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License version 2 for more details.
+## 
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the
+##     Free Software Foundation, Inc.
+##     51 Franklin Street, Fifth Floor
+##     Boston, MA  02110-1301, USA.
+##
+## END LICENSE BLOCK
+
+Action UninstallSelectedFiles "Uninstall Selected Files"
+
+Property ShowConsoleProgress boolean "Show Console Progress" "Yes"
+
+proc ::InstallJammer::actions::UninstallSelectedFiles {obj {forceUninstall 0}} {
+    global conf
+    global info
+
+    if {[string is true -strict $info(Testing)]} { return }
+
+    set id     [$obj id]
+    set parent [$obj parent]
+
+    set info(Errors)                ""
+    set info(ErrorDirs)             ""
+    set info(ErrorFiles)            ""
+    set info(FileBeingUninstalled)  ""
+    set info(GroupBeingUninstalled) ""
+    set info(Status)                ""
+
+    set conf(ShowConsoleProgress) [$obj get ShowConsoleProgress]
+
+    ::InstallAPI::SetUpdateWidgets -widgets \
+        [::InstallJammer::FindUpdateWidgets {Status FileBeingUninstalled \
+                GroupBeingUninstalled UninstallPercentComplete}]
+
+    if {!$forceUninstall} {
+        set info(Status) "<%UninstallPrepareText%>"
+
+        ::InstallJammer::GetUninstallInfo
+
+	upvar #0 ::uninstall array
+
+        if {[info exists conf(AddToUninstall)]} {
+            foreach line $conf(AddToUninstall) {
+                lappend array([lindex $line 0]) [lrange $line 1 end]
+            }
+        }
+    } else {
+	upvar #0 ::leftovers array
+    }
+
+    foreach x {:DIR :FILE :REGISTRY} {
+        if {![info exists array($x)]} { set array($x) {} }
+    }
+
+    set dirLen  [llength $array(:DIR)]
+    set fileLen [llength $array(:FILE)]
+    set regLen  [llength $array(:REGISTRY)]
+    set conf(total) [expr $fileLen + $dirLen + $regLen]
+
+    set checkRemove 0
+    if {[info exists conf(RemoveFromUninstall)]} {
+        set checkRemove 1
+        set pattern [join $conf(RemoveFromUninstall) |]
+    }
+
+    if {$fileLen} {
+        set info(GroupBeingUninstalled) "<%String.files%>"
+        set info(Status) "<%FileBeingUninstalledText%>"
+
+        for {set i [expr $fileLen -1]} {$i >= 0} {incr i -1} {
+            set list [lindex $array(:FILE) $i]
+            set file [lindex $list 0]
+            set tail [file tail $file]
+
+            if {![file exists $file]} { continue }
+            if {[file type $file] eq "directory"} { continue }
+
+            set info(FileBeingUninstalled) $tail
+            ::InstallJammer::UpdateUninstallProgress
+
+            if {$checkRemove && [regexp $pattern $file]} {
+                if {$::verbose} {
+                    debug "$file removed from uninstall by action."
+                }
+                continue
+            }
+
+            if {$::verbose} {
+                debug "Uninstalling file $file."
+            }
+
+            if {[catch {::InstallJammer::UninstallFile $file} error]} {
+                debug "Failed to delete $file."
+                lappend ::leftovers(:FILE) $list
+                append info(Errors) "$error\n"
+                lappend info(ErrorFiles) $file
+            }
+        }
+    }
+
+    ## If we successfully removed all of the files, we want to
+    ## go ahead and delete our uninstaller now before the
+    ## directories start being deleted, or we'll end up thinking
+    ## a directory is not empty.
+    if {$info(Errors) eq ""} {
+        set conf(UninstallRemoved) 1
+        set tmpuninstall [::InstallJammer::TmpDir uninstall$info(Ext)]
+        catch {file rename -force $conf(uninstall) $tmpuninstall}
+        set conf(UninstallRenamed) [expr {![file exists $conf(uninstall)]}]
+        if {$conf(UninstallRenamed)} { set conf(uninstall) $tmpuninstall }
+    }
+
+    if {$dirLen} {
+        set notEmptyDirs ""
+        set info(GroupBeingUninstalled) "<%String.directories%>"
+        ::InstallJammer::UpdateWidgets -update 1
+
+        set p $::tcl_platform(platform)
+        set installdir [::InstallJammer::Normalize $info(InstallDir)]
+        foreach list [lsort -index 0 -decreasing $array(:DIR)] {
+            lassign $list dir force
+
+            if {![file exists $dir]} { continue }
+            if {[file type $dir] ne "directory"} { continue }
+
+            if {$checkRemove && [regexp $pattern $dir]} {
+                if {$::verbose} {
+                    debug "$dir removed from uninstall by action."
+                }
+                continue
+            }
+
+            set forceDelete $forceUninstall
+            if {$force ne ""} { set forceDelete 1 }
+            if {$forceDelete} { set force -force }
+
+            set info(FileBeingUninstalled) [file tail $dir]
+            ::InstallJammer::UpdateUninstallProgress
+
+            if {!$forceDelete && ![::InstallJammer::DirIsEmpty $dir]} {
+                ## Make a special case for directories named after
+                ## the Company.  This is a common thing on Windows,
+                ## and we don't want to blow away the whole company
+                ## directory even if our program was the one who
+                ## installed it.
+                if {[lindex [file split $dir] end] eq $info(Company)} {
+                    set conf(cleanupCompanyDir) $dir
+                } else {
+                    lappend ::leftovers(:DIR) $list
+                    lappend info(ErrorDirs) [file normalize $dir]
+                    lappend notEmptyDirs [file normalize $dir]
+                }
+
+                debug "Skipping non-empty directory $dir."
+
+                continue
+            }
+
+            if {$::verbose} {
+                if {$forceDelete} {
+                    debug "Forcefully deleting directory $dir."
+                } else {
+                    debug "Deleting directory $dir."
+                }
+            }
+
+            if {[catch {::InstallJammer::UninstallDirectory $dir $force} err]} {
+                debug "Failed to delete directory $dir."
+                append info(Errors) "$err\n"
+                lappend info(ErrorDirs) [file normalize $dir]
+            }
+        }
+
+        ## Look through our list of non-empty directories and see if one
+        ## is a result of our uninstaller not being renamed out of the way.
+        ## If so, we don't actually want to report that directory as having
+        ## failed since our exit cleanup script should take care of it.
+        set uninstallDir [file normalize [file dirname $conf(uninstall)]]
+        foreach dir $notEmptyDirs {
+            if {!$conf(UninstallRenamed) && $dir eq $uninstallDir} {
+                ## If this is the directory the uninstaller was in, and it
+                ## only has a single file remaining, it's our uninstaller,
+                ## so we don't want to report it as an error.
+                set files [glob -nocomplain -dir $dir *]
+                eval lappend files [glob -nocomplain -dir $dir -type hidden *]
+                if {[llength $files] == 1} { continue }
+            }
+            set info(Dir) [::InstallJammer::Normalize $dir $p]
+            append info(Errors) [sub "<%DirectoryNotEmptyText%>"]
+        }
+    }
+
+    if {[info exists array(:ENV)]} {
+        set info(GroupBeingUninstalled) "<%String.environment.variables%>"
+        ::InstallJammer::UpdateWidgets -update 1
+
+        if {$conf(windows)} {
+            foreach list [lreverse $array(:ENV)] {
+                set conf(UpdateWindowsRegistry) 1
+
+                lassign $list var level
+                set key "<%REG_[string toupper $level]_ENV%>"
+                set key [::InstallJammer::SubstText $key]
+
+                if {[llength $list] == 3} {
+                    set value [lindex $list 2]
+		    debug "Restoring environment variable $var to $value"
+                    catch { registry set $key $var $value expand_sz }
+                } else {
+		    debug "Deleting environment variable $var."
+                    catch { registry delete $key $var }
+                }
+            }
+        } else {
+            set ids $conf(UninstallIDs)
+
+            foreach list $array(:ENV) {
+                lappend vars   [lindex $list 0]
+                lappend levels [lindex $list 1]
+            }
+
+	    set    pat {; # ADDED BY INSTALLER - DO NOT EDIT OR DELETE}
+	    append pat { THIS COMMENT - ([A-Z0-9-]+) ([A-Z0-9-]+)}
+
+            foreach level [lsort -unique $levels] {
+                set files $conf([string toupper $level 0]RCFiles)
+
+                foreach file $files {
+                    if {![file exists $file]} { continue }
+                    if {[catch { read_file $file } contents]} { continue }
+
+                    if {[string match "*csh*" $file]} {
+                        set varpat {^setenv ([^ ]+)}
+                    } else {
+                        set varpat {^(.*)=}
+                    }
+
+                    set lines {}
+                    foreach line [split $contents \n] {
+                        if {[regexp $pat $line -> appid instid]
+                            && [lsearch -exact $ids $instid] > -1
+                            && [regexp $varpat $line -> var]
+                            && [lsearch -exact $vars $var] > -1} { continue }
+
+                        ## If the line before the one we just found
+                        ## is a blank, go ahead and remove it too.
+                        if {[lindex $lines end] eq ""} {
+                            set lines [lreplace $lines end end]
+                        }
+                        lappend lines $line
+                    }
+
+                    if {![catch { open $file w } fp]} {
+                        puts  $fp [join $lines \n]
+                        close $fp
+                    }
+                }
+            }
+        }
+    }
+
+    if {[info exists array(:PATH)]} {
+        ## Paths are specific to Windows.  On UNIX they are treated
+        ## as normal environment variables.
+        set info(GroupBeingUninstalled) "<%String.environment.variables%>"
+        ::InstallJammer::UpdateWidgets -update 1
+
+        foreach list [lreverse $array(:PATH)] {
+            set conf(UpdateWindowsRegistry) 1
+
+            lassign $list var dirs level sep
+            if {$sep eq ""} { set sep \; }
+
+            set key   "<%REG_[string toupper $level]_ENV%>"
+            set key   [::InstallJammer::SubstText $key]
+            set path  [::installkit::Windows::GetKey $key $var]
+            set list  [split $path $sep]
+            set lower [split [string tolower $path] $sep]
+
+            set indexes {}
+            foreach dir [split $dirs $sep] {
+                set dir [::InstallJammer::Normalize $dir windows]
+                set chk [string tolower $dir]
+
+                eval lappend indexes [lsearch -exact -all $lower $chk]
+            }
+
+            if {[llength $indexes]} {
+                foreach x [lsort -integer -decreasing $indexes] {
+                    set list [lreplace $list $x $x]
+                }
+
+                set path [join $list $sep]
+
+                registry set $key $var $path expand_sz
+            }
+        }
+    }
+
+    if {$conf(windows)} {
+        if {$regLen} {
+            set info(GroupBeingUninstalled) "<%String.registry.entries%>"
+            ::InstallJammer::UpdateWidgets -update 1
+
+            set command ::InstallJammer::UninstallRegistryKey
+            for {set i [expr $regLen -1]} {$i >= 0} {incr i -1} {
+                set list [lindex $array(:REGISTRY) $i]
+                lassign $list key value
+                ::InstallJammer::UpdateUninstallProgress
+
+                if {[catch {eval $command $list} error]} {
+                    lappend ::leftovers(:REGISTRY) $list
+                    append info(Errors) "Could not remove $list: $error\n"
+                }
+            }
+        }
+    } elseif {[info exists array(:XDGRESOURCE)]} {
+        set info(GroupBeingUninstalled) "<%String.shortcuts%>"
+        ::InstallJammer::UpdateWidgets -update 1
+
+        foreach list [lreverse $array(:XDGRESOURCE)] {
+            set which [lindex $list 0]
+            set files [lindex $list 1]
+            set mode  [lindex $list 2]
+            if {$mode eq ""} { set mode "user" }
+            if {$which eq "desktop"} {
+                catch { eval exec xdg-desktop-icon uninstall --novendor $files }
+            } elseif {$which eq "menu"} {
+                set dirfiles  [list]
+                set deskfiles [list]
+                foreach file $files {
+                    if {[string match "*.directory" $file]} {
+                        lappend dirfiles $file
+                    } else {
+                        lappend deskfiles $file
+                    }
+                }
+
+                lappend menuUninstall($mode,$dirfiles) $deskfiles
+            }
+        }
+
+        foreach {dirfiles deskfiles} [array get menuUninstall] {
+            set list     [split $dirfiles ,]
+            set mode     [lindex $list 0]
+            set dirfiles [join [lrange $list 1 end] ,]
+            set files    [concat $dirfiles $deskfiles]
+            catch { eval exec xdg-desktop-menu uninstall \
+                --novendor --mode $mode $files } res
+        }
+    }
+
+    set script [::InstallJammer::TmpDir install-cleanup]
+
+    set fp [open $script w 0755]
+    puts $fp "#!/bin/sh\n"
+
+    if {[info exists array(:RPM)]} {
+        foreach list [lreverse $array(:RPM)] {
+            set db RPM
+            set package [lindex $list 0]
+            if {![file exists /tmp/.installjammer.rpm.$package]} {
+                puts $fp "rpm -e $package"
+            }
+        }
+    }
+
+    if {[info exists array(:DPKG)]} {
+        foreach list [lreverse $array(:DPKG)] {
+            set db DPKG
+            set package [lindex $list 0]
+            puts $fp "dpkg -P $package"
+        }
+    }
+
+    close $fp
+
+    if {[info exists db]} {
+        set info(FileBeingUninstalled)  "$db <%String.database.entries%>"
+        set info(GroupBeingUninstalled) "<%String.package.entries%>"
+        ::InstallJammer::UpdateWidgets -update 1
+
+        if {!$info(UserIsRoot)} {
+            ::InstallJammer::ExecAsRoot [list $script] -wait 1
+        } else {
+            catch { exec $script } error
+        }
+    }
+
+    set conf(RestartGnomePanel) 1
+
+    ## Cleanup the install registry.
+    ::InstallJammer::CleanupInstallInfoDirs
+
+    set info(ErrorsOccurred) [expr {[string length $info(Errors)] > 0}]
+
+    ::InstallAPI::SetUpdateWidgets -widgets {}
+
+    return 1
+}

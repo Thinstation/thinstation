@@ -1,0 +1,59 @@
+## $Id$
+##
+## BEGIN LICENSE BLOCK
+##
+## Copyright (C) 2002  Damon Courtney
+## 
+## This program is free software; you can redistribute it and/or
+## modify it under the terms of the GNU General Public License
+## version 2 as published by the Free Software Foundation.
+## 
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License version 2 for more details.
+## 
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the
+##     Free Software Foundation, Inc.
+##     51 Franklin Street, Fifth Floor
+##     Boston, MA  02110-1301, USA.
+##
+## END LICENSE BLOCK
+
+Condition CommandLineTestCondition
+
+Property Operator choice "Operator" "exists" {"exists" "does not exist" "was passed on the command line" "was not passed on the command line"}
+
+Property Option short "Option"
+Help Option "The command line option to check"
+
+proc ::InstallJammer::conditions::CommandLineTestCondition { obj } {
+    variable ::InstallJammer::CommandLineOptions
+    variable ::InstallJammer::PassedCommandLineOptions
+
+    $obj properties props -subst 1
+
+    debug "Checking to see if $props(Option) $props(Operator)"
+
+    set passed [::InstallAPI::CommandLineAPI -do check  -option $props(Option)]
+    set exists [::InstallAPI::CommandLineAPI -do exists -option $props(Option)]
+
+    switch -- $props(Operator) {
+        "exists" {
+            return $exists
+        }
+
+        "does not exist" {
+            return [expr {!$exists}]
+        }
+
+        "was passed on the command line" {
+            return $passed
+        }
+
+        "was not passed on the command line" {
+            return [expr {!$passed}]
+        }
+    }
+}

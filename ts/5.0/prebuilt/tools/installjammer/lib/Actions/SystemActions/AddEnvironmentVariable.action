@@ -1,0 +1,114 @@
+## $Id$
+##
+## BEGIN LICENSE BLOCK
+##
+## Copyright (C) 2002  Damon Courtney
+## 
+## This program is free software; you can redistribute it and/or
+## modify it under the terms of the GNU General Public License
+## version 2 as published by the Free Software Foundation.
+## 
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License version 2 for more details.
+## 
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the
+##     Free Software Foundation, Inc.
+##     51 Franklin Street, Fifth Floor
+##     Boston, MA  02110-1301, USA.
+##
+## END LICENSE BLOCK
+
+Action AddEnvironmentVariable
+
+Property AddToUninstall boolean "Add to Uninstall" "Yes"
+Help AddToUninstall "If this is true, the environment will automatically\
+                        be removed during uninstallation"
+
+Property Level choice "Level" "user" {system user}
+Help Level "Whether to add this environment variable for all users or just\
+                for this user.  The user must be root on UNIX systems to add\
+                at the system level"
+
+Property RestoreOnUninstall boolean "Restore on Uninstall" "No"
+Help RestoreOnUninstall "If this is true, the environment variable will be\
+                            restored to its previous value if it already\
+                            existed during installation (valid only on Windows)"
+
+Property Value short "Value"
+Help Value "The value to give to the environment variable"
+
+Property Variable short "Variable"
+Help Variable "The name of the environment variable to add"
+
+proc ::InstallJammer::actions::AddEnvironmentVariable { obj } {
+    global conf
+    global info
+
+    $obj properties props -subst 1
+
+    if {$props(Variable) eq ""} {
+        return -code error "Error in Add Environment Variable:\
+            Variable is empty"
+    }
+
+    set val $props(Value)
+    set var $props(Variable)
+
+    set ::env($var) $val
+
+    if {$conf(windows)} {
+        set conf(UpdateWindowsRegistry) 1
+
+        set lvl $props(Level)
+        set key "<%REG_[string toupper $props(Level)]_ENV%>"
+        set key [::InstallJammer::SubstText $key]
+
+        if {$props(RestoreOnUninstall)} {
+            if {[catch { registry get $key $var } oldval]} {
+                ::InstallJammer::InstallLog [list :ENV $var $lvl]
+            } else {
+                ::InstallJammer::InstallLog [list :ENV $var $lvl $oldval]
+            }
+        } elseif {$props(AddToUninstall)} {
+            ::InstallJammer::InstallLog [list :ENV $var $lvl]
+        }
+
+        registry set $key $props(Variable) $props(Value)
+    } else {
+        set files $conf([string toupper $props(Level) 0]RCFiles)
+
+        set line "\; # ADDED BY INSTALLER -\
+                    DO NOT EDIT OR DELETE THIS COMMENT -\
+                    $info(ApplicationID) $info(InstallID)"
+
+        set found 0
+        foreach file $files {
+            if {[file exists $file] && ![catch { open $file a+ } fp]} {
+                set found 1
+
+                puts $fp ""
+
+                if {[string match "*csh*" $file]} {
+                    if {[$obj get CSHValue cshval]} {
+                        puts -nonewline $fp "setenv $var $cshval"
+                    } else {
+                        puts -nonewline $fp "setenv $var $val"
+                    }
+                } else {
+                    puts -nonewline $fp "$var=$val\;export $var"
+                }
+                
+                puts $fp $line
+
+                close $fp
+            }
+        }
+
+        if {$found && $props(AddToUninstall)} {
+            ::InstallJammer::InstallLog [list :ENV $var $props(Level)]
+        }
+    }
+}

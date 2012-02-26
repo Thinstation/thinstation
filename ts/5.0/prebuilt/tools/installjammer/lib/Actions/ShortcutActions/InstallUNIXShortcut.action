@@ -1,0 +1,161 @@
+## $Id$
+##
+## BEGIN LICENSE BLOCK
+##
+## Copyright (C) 2002  Damon Courtney
+## 
+## This program is free software; you can redistribute it and/or
+## modify it under the terms of the GNU General Public License
+## version 2 as published by the Free Software Foundation.
+## 
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License version 2 for more details.
+## 
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the
+##     Free Software Foundation, Inc.
+##     51 Franklin Street, Fifth Floor
+##     Boston, MA  02110-1301, USA.
+##
+## END LICENSE BLOCK
+
+Action InstallUNIXShortcut "Install UNIX Shortcut"
+
+Require xdg-utils/xdg-desktop-icon
+Require xdg-utils/xdg-desktop-menu
+
+Property AdditionalArguments longtext "Additional Arguments"
+Help AdditionalArguments "If this property is specified, the value of the\
+    property is appended directly to the .desktop file that is created on\
+    the target system.  This can be used to add extra lines of data to the\
+    file if you know the format of a .desktop file."
+
+Property CommandLineArguments short "Command Line Arguments"
+Help CommandLineArguments "These arguments are directly appended to the\
+    Target File Name to create a command line for the shortcut."
+
+Property FileName short "File Name" ""
+
+Property IconPath installedfile "Icon Path"
+
+Property ProgramFolderName short "Program Folder Name" "<%ProgramFolderName%>"
+
+Property ShortcutDirectory installedfile "Shortcut Directory"
+
+Property ShortcutLocation choice "Shortcut Location" "Directory" \
+  {Desktop Directory "Program Folder"}
+
+Property ShortcutName shorttext "Shortcut Name"
+
+Property ShortcutType choice "Shortcut Type" "Application" {Link Application}
+
+Property TargetFileName installedfile "Target File Name"
+
+Property VendorID short "Vendor ID" "<%ApplicationID%>"
+
+proc ::InstallJammer::actions::InstallUNIXShortcut { obj } {
+    global conf
+    global info
+
+    if {![string match "Linux*" $info(Platform)]
+        && ![string match "FreeBSD*" $info(Platform)]} { return }
+
+    $obj properties props -subst 1
+
+    if {$props(ShortcutLocation) eq "Directory"} {
+        set file [file join $props(ShortcutDirectory) $props(ShortcutName)]
+
+        if {![file exists $props(ShortcutDirectory)]} {
+            ::InstallJammer::CreateDir $props(ShortcutDirectory)
+        }
+
+        ::InstallJammer::LogFile $file
+    } else {
+        if {$props(FileName) eq ""} {
+            return -code error "File Name property must not be empty"
+        }
+
+        set file [::InstallJammer::TmpDir $props(FileName)]
+    }
+
+    if {![string match *.desktop $file]} { append file .desktop }
+
+    set fp [open $file w]
+
+    puts $fp {[Desktop Entry]}
+    puts $fp "Version=1.0"
+    puts $fp "Type=$props(ShortcutType)"
+    puts $fp "Name=$props(ShortcutName)"
+
+    if {$props(TargetFileName) ne ""} {
+        if {$props(ShortcutType) eq "Link"} {
+            set target $props(TargetFileName)
+            if {![regexp {[a-z]+://} $target]} { set target "file://$target" }
+            puts $fp "URL=$target"
+        } else {
+            set target $props(TargetFileName)
+            if {[string first " " $target] > -1} { set target \"$target\" }
+            if {[info exists props(CommandLineArguments)]} {
+                append target " $props(CommandLineArguments)"
+            }
+            puts $fp "Exec=$target"
+        }
+    }
+
+    if {$props(IconPath) ne ""}  {
+        puts $fp "Icon=$props(IconPath)"
+    }
+
+    if {$props(AdditionalArguments) ne ""} {
+        puts $fp $props(AdditionalArguments)
+    }
+
+    close $fp
+
+    if {$props(ShortcutLocation) eq "Desktop"} {
+        catch { exec xdg-desktop-icon install --novendor $file }
+        set tail [file tail $file]
+        ::InstallJammer::InstallLog [list :XDGRESOURCE desktop $tail]
+    } elseif {$props(ShortcutLocation) eq "Program Folder"} {
+        set files [list]
+        foreach folder [file split $props(ProgramFolderName)] {
+            set uuid    $props(VendorID)-[join $folder ""]
+            set dirfile [::InstallJammer::TmpDir $uuid.directory]
+
+            if {![file exists $dirfile]} {
+                set fp [open $dirfile w]
+                puts $fp {[Desktop Entry]}
+                puts $fp "Version=1.0"
+                puts $fp "Type=Directory"
+                puts $fp "Name=$folder"
+                close $fp
+            }
+
+            lappend files $dirfile
+        }
+
+        if {![llength $files]
+            && ![regexp {Categories\s*=} $props(AdditionalArguments)]} {
+            return -code error "You must specify Program Folder Name or\
+                include Categories in the Additional Arguments"
+        }
+
+        lappend files $file
+
+        set mode user
+        if {$info(UserIsRoot)} { set mode system }
+        catch {
+            eval exec xdg-desktop-menu install --mode $mode --novendor $files
+        }
+
+        foreach file $files {
+            lappend logfiles [file tail $file]
+        }
+
+        ::InstallJammer::InstallLog [list :XDGRESOURCE menu $logfiles $mode]
+    }
+
+    set conf(RestartGnomePanel) 1
+}

@@ -1,0 +1,399 @@
+## $Id$
+##
+## BEGIN LICENSE BLOCK
+##
+## Copyright (C) 2002  Damon Courtney
+## 
+## This program is free software; you can redistribute it and/or
+## modify it under the terms of the GNU General Public License
+## version 2 as published by the Free Software Foundation.
+## 
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License version 2 for more details.
+## 
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the
+##     Free Software Foundation, Inc.
+##     51 Franklin Street, Fifth Floor
+##     Boston, MA  02110-1301, USA.
+##
+## END LICENSE BLOCK
+
+Action AddWidget "Add Widget"
+
+Property Action short "Action"
+Help Action "An action to execute when a button is pressed or a checkbutton\
+                or radiobutton is changed"
+
+Property Background color "Background" "system"
+Help Background "The background color of the widget (system means use default)"
+
+Property BrowseType choice "Browse Type" "directory" \
+    {directory "open file" "save file"}
+
+Property Checked nullboolean "Checked" ""
+Help Checked "Whether or not this widget should be checked by default\
+                (only valid for radio and check buttons)"
+
+Property Editable boolean "Editable" "Yes"
+Help Editable "Whether or not the combobox should be editable so that a value\
+                other than the given Values can be entered"
+
+Property FileTypes short "File Types"
+Help FileTypes "A list of pairs describing the file types to allow in when\
+                the user is browsing for files or directories.  Each type\
+                must be a description followed by a list of extensions"
+Property Foreground color "Foreground" "system"
+Help Foreground "The foreground color of the widget (system means use default)"
+
+Property Height integer "Height"
+Help Height "The pixel height of the widget"
+
+Property LabelJustify choice "Label Justify" "left" {center left right}
+Help LabelJustify "Which side to justify the labels on"
+
+Property LabelSide choice "Label Side" "top" {left top}
+Help LabelSide "The side of the widget the label should appear on"
+
+Property LabelWidth short "Label Width" "0"
+Help LabelWidth "The width of the label, in characters, if a label is present\
+                    (0 means to be as wide as needed)"
+
+Property OffValue short "Off Value" "0"
+Help OffValue "The value of the virtual text for a checkbutton when the\
+        checkbutton is not checked or off"
+
+Property OnValue short "On Value" "1"
+Help OffValue "The value of the virtual text for a checkbutton when the\
+        checkbutton is checked or on"
+
+Property Type addwidgettype "Type" "label" \
+  {button "browse entry" checkbutton combobox entry label "label frame"
+    "password entry" radiobutton text}
+Help Type "The type of widget to add"
+
+Property ValidateEntryOn editchoice "Validate On" "" \
+    {Create Focus FocusIn FocusOut Key Select}
+Help ValidateEntryOn "This property tells InstallJammer when to execute the\
+    associated Action property when validating an entry widget."
+
+Property Value short "Value"
+Help Value "The value stored in Virtual Text when the radiobutton is selected"
+
+Property Values short "Values"
+Help Values "A list of values to display in the dropdown of the combobox"
+
+Property VirtualText short "Virtual Text"
+Help VirtualText "The Virtual Text field to store results in"
+
+Property Width integer "Width"
+Help Width "The pixel width of the widget"
+
+Property X integer "X"
+Help X "The X coordinate to place this widget at"
+
+Property Y integer "Y"
+Help Y "The Y coordinate to place this widget at"
+
+Text Text
+
+proc ::InstallJammer::actions::AddWidget { obj } {
+    global info
+
+    set id     [$obj id]
+    set parent [$obj parent]
+    if {![$parent ispane]} { set parent $info(CurrentPane) }
+    set window [$parent window]
+    set widget $window.[$obj name]
+
+    if {![info exists ::InstallJammer]} {
+        variable ::InstallJammer::UserWidgets
+        if {[info exists UserWidgets($id)]} { return }
+        set UserWidgets($id) $widget
+    }
+
+    $id window $widget
+
+    $obj properties props -subst 1
+
+    set opts {}
+
+    set ttk        1
+    set type       ttk::$props(Type)
+    set text       [::InstallJammer::GetText $id Text -subst 0]
+    set style      T[string totitle $props(Type)]
+    set boolean    0
+    set command    ""
+    set validate   ""
+    set varName    ::info($props(VirtualText))
+    set setWidget  $widget
+    set widgetType text
+    set virtualText "<%$props(VirtualText)%>"
+
+    set value $props(Value)
+
+    if {$props(Action) ne ""} {
+        set command [list ::InstallJammer::ExecuteActions $props(Action)]
+    }
+
+    switch -- $props(Type) {
+        "button" {
+            lappend opts -command $command
+        }
+
+        "browse entry" {
+            set type       ttk::entry
+            set style      TEntry
+            set browse     1
+            set varopt     -textvariable
+            set widgetType entry
+            set validate   $props(ValidateEntryOn)
+
+            if {$text ne ""} { set label $text }
+            if {$value ne ""} { set varval $value }
+        }
+
+        "checkbutton" {
+            set varopt -variable
+
+            set onval   $props(OnValue)
+            set offval  $props(OffValue)
+            set boolean 1
+
+            lappend opts -onvalue  $onval
+            lappend opts -offvalue $offval
+
+            lappend opts -command $command
+
+            if {$props(Checked) ne ""} {
+                if {$props(Checked)} {
+                    set varval $onval
+                } else {
+                    set varval $offval
+                }
+            }
+        }
+
+        "combobox" {
+            set type       ttk::combobox
+            set style      TEntry
+            set varopt     -textvariable
+            set widgetType entry
+            set validate   $props(ValidateEntryOn)
+
+            lappend opts -values $props(Values)
+
+            if {!$props(Editable)} {
+                lappend opts -state readonly
+            }
+
+            if {$text ne ""} { set label $text }
+            if {$value ne ""} { set varval $value }
+        }
+
+        "entry" - "password entry" {
+            set type       ttk::entry
+            set style      TEntry
+            set varopt     -textvariable
+            set widgetType entry
+            set validate   $props(ValidateEntryOn)
+
+            if {$props(Type) eq "password entry"} {
+                lappend opts -show *
+            }
+
+            if {$text ne ""} { set label $text }
+            if {$value ne ""} { set varval $value }
+        }
+
+        "label frame" {
+            set ttk  0
+            set type labelframe
+        }
+
+        "radiobutton" {
+            set varopt -variable
+
+            lappend opts -value $value
+            lappend opts -command $command
+
+            if {[string is true -strict $props(Checked)]} {
+                set varval $value
+            }
+        }
+
+        "text" {
+            set ttk        0
+            set type       Text
+            set varopt     -textvariable
+            set widgetType usertext
+
+            if {$text ne ""} { set label $text }
+            if {$value ne ""} { set varval $value }
+        }
+    }
+
+    if {[info exists varopt]} {
+        lappend opts $varopt $varName
+        if {[info exists varval]} {
+            set $varName $varval
+        }
+
+        ## Always default the variable to something, even if
+        ## it's just a 0 or an empty string.
+        if {![info exists $varName]} {
+            if {$boolean} {
+                set $varName $props(OffValue)
+            } else {
+                set $varName ""
+            }
+        } elseif {$boolean && $onval eq "1" && $offval eq "0"} {
+            set $varName [string is true [set $varName]]
+        }
+    }
+
+    ::InstallJammer::SetVirtualText $info(Language) $parent $id $text
+    $parent set $id,subst $props(Text,subst)
+
+    set bg $props(Background)
+    if {$bg ne "system"} {
+        if {$ttk} {
+            lappend newStyleOpts -background $bg
+        } else {
+            lappend opts -background $bg
+        }
+    }
+
+    set fg $props(Foreground)
+    if {$fg ne "system"} {
+        if {$ttk} {
+            lappend newStyleOpts -foreground $fg
+        } else {
+            lappend opts -foreground $fg
+        }
+    }
+
+    if {[info exists newStyleOpts]} {
+        eval lappend opts -style $id
+        eval [list ::InstallJammer::NewStyle $id $style] $newStyleOpts
+    }
+    
+    set events {}
+    foreach event [split $validate \;] {
+        lappend events [string trim $event]
+    }
+    set validate $events
+        
+    if {[info exists label] || [info exists browse]} {
+        set xopts [list]
+        if {$bg ne "system"} {
+            ::InstallJammer::NewStyle $id-frame TFrame -background $bg
+            lappend xopts -style $id-frame
+        }
+
+        eval [list ttk::frame $widget] $xopts
+        grid rowconfigure    $widget 1 -weight 1
+        grid columnconfigure $widget 1 -weight 1
+
+        set row 0
+        set col 0
+
+        if {[info exists label]} {
+            set widgetType text
+	    set width      $props(LabelWidth)
+
+            switch -- $props(LabelSide) {
+                "bottom" { set row 2; set col 1; set opt -pady }
+                "top"    { set row 0; set col 1; set opt -pady }
+                "left"   { set row 1; set col 0; set opt -padx }
+                "right"  { set row 1; set col 2; set opt -padx }
+            }
+
+	    set anchor center
+	    switch -- $props(LabelJustify) {
+	    	"left"  { set anchor w }
+		"right" { set anchor e }
+ 	    }
+
+	    set justify $props(LabelJustify)
+
+            set xopts [list -anchor $anchor -justify $justify \
+	    		-text $label -width $width]
+
+            if {$bg ne "system"} {
+                ::InstallJammer::NewStyle $id-label TLabel -background $bg
+                lappend xopts -style $id-label
+            }
+            eval [list ttk::label $widget.l] $xopts
+            grid $widget.l -row $row -column $col -sticky w $opt 2
+        }
+
+        eval [list $type $widget.x] $opts
+        grid $widget.x -row 1 -column 1 -sticky news
+        set bindWidget $widget.x
+
+        if {[info exists browse]} {
+            set text [::InstallJammer::SubstText <%Browse%>]
+
+            if {$props(BrowseType) eq "directory"} {
+                set cmd [list ::InstallJammer::ChooseDirectory]
+            } else {
+                set cmd "::InstallJammer::ChooseFile"
+                lappend cmd -type [lindex $props(BrowseType) 0]
+                if {$props(FileTypes) ne ""} {
+                    set filetypes {}
+                    foreach {ext desc} $props(FileTypes) {
+                        lappend filetypes [list $ext $desc]
+                    }
+                    lappend cmd -filetypes $filetypes
+                }
+            }
+            lappend cmd -variable $varName
+            if {$command ne ""} {
+                set x [lsearch -exact $validate "Select"]
+                if {$x != -1} {
+                    lappend cmd -command $command
+                    set validate [lreplace $validate $x $x]
+                }
+            }
+
+            ttk::button $widget.b -text $text -command $cmd
+            grid $widget.b -row 1 -column 2 -padx 2
+
+            $parent widget set $id -widget $widget.b
+        }
+    } else {
+        set bindWidget $widget
+        eval [list $type $widget] $opts
+    }
+
+    place $widget -in $window -x $props(X) -y $props(Y) \
+        -width $props(Width) -height $props(Height)
+
+    bind $widget <Destroy> \
+        "+unset -nocomplain ::InstallJammer::UserWidgets($id)"
+
+    if {[llength $validate] && $command ne ""} {
+        foreach event $validate {
+            if {$event eq "Create"} {
+                eval $command
+            } else {
+                if {$event eq "Select"} {
+                    set event "<<ComboboxSelected>>"
+                } else {
+                    set event <$event>
+                }
+                set cmd [list after idle $command]
+                if {[catch {bind $bindWidget $event $cmd} err]} {
+                    return -code error "invalid Validate On event \"$event\""
+                }
+            }
+        }
+    }
+
+    $parent widget set $id -widget $setWidget -type $widgetType
+
+    ::InstallJammer::UpdateWidgets -widgets $id -step $parent
+}

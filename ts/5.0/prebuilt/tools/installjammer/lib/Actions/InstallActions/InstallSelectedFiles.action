@@ -1,0 +1,211 @@
+## $Id$
+##
+## BEGIN LICENSE BLOCK
+##
+## Copyright (C) 2002  Damon Courtney
+## 
+## This program is free software; you can redistribute it and/or
+## modify it under the terms of the GNU General Public License
+## version 2 as published by the Free Software Foundation.
+## 
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License version 2 for more details.
+## 
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the
+##     Free Software Foundation, Inc.
+##     51 Franklin Street, Fifth Floor
+##     Boston, MA  02110-1301, USA.
+##
+## END LICENSE BLOCK
+
+Action InstallSelectedFiles "Install Selected Files"
+
+Property ShowConsoleProgress boolean "Show Console Progress" "Yes"
+Property UpdateFileText boolean "Update File Text" "No"
+Property UpdateFilePercentage boolean "Update File Percentage" "No"
+
+proc ::InstallJammer::actions::InstallSelectedFiles { obj } {
+    global info
+    global conf
+
+    update
+
+    if {[string is true -strict $info(Testing)]} { return }
+
+    set setups [SetupTypes children]
+
+    ## If we have no setup types, we have nothing to do.
+    if {![llength $setups]} { return }
+
+    set setuptype [::InstallJammer::FindObjByName $info(InstallType) $setups]
+
+    if {$setuptype eq ""} {
+        return -code error "Install Selected Files failed:\
+            could not find current Setup Type in list of available Setup Types"
+    }
+
+    set conf(stop)  [::InstallJammer::TmpDir .stop]
+    set conf(pause) [::InstallJammer::TmpDir .pause]
+
+    set id     [$obj id]
+    set parent [$obj parent]
+
+    set conf(InstallID) $parent
+
+    set total 0
+
+    set info(FileBeingInstalled)  ""
+    set info(GroupBeingInstalled) ""
+
+    set info(Status) "<%InstallPrepareText%>"
+
+    set groups [list]
+    foreach component [$setuptype get Components] {
+        if {![$component active]} {
+            debug "Skipping component $component - [$component name] -\
+                        component is inactive" $component
+            continue
+        }
+
+        if {[info exists done($component)]} { continue }
+        set done($component) 1
+
+        foreach filegroup [$component get FileGroups] {
+            if {![$filegroup active]} {
+                debug "Skipping file group $filegroup - [$filegroup name] -\
+                            filegroup is inactive" $component
+                continue
+            }
+
+            if {[info exists done($filegroup)]} { continue }
+            set done($filegroup) 1
+
+            lappend groups $filegroup
+
+            if {$::verbose} {
+                debug "Adding file group [$filegroup name] for installation..."
+            }
+
+            foreach file [$filegroup children] {
+                if {![$file active]} {
+                    debug "Skipping file $file - [$file name] -\
+                                file is inactive" $component
+                    continue
+                }
+
+                if {[info exists done($file)]} { continue }
+                set done($file) 1
+
+                set total [expr {wide($total) + [$file size]}]
+
+                if {$::verbose} {
+                    debug "Adding file [$file name] for installation..."
+                }
+
+                lappend files($filegroup) $file
+            }
+	}
+    }
+
+    if {![llength $groups]} {
+        ## We didn't find any groups.  We're done.
+        set info(InstallFinished) 1
+        return
+    }
+
+    set info(TotalSize) $total
+
+    if {$info(InstallHasSolidArchives) && !$info(SolidArchivesExtracted)} {
+        ::InstallJammer::UnpackSolidArchives 0
+        set info(InstallPercentComplete) 0
+        set info(Status) "<%InstallPrepareText%>"
+    }
+
+    set conf(InstallLog) [file join $info(InstallDir) install.log]
+
+    set unpackBin    [::installkit::base]
+    set unpackInf    [::InstallJammer::BuildUnpackInfo $groups files]
+    set unpackScript [::InstallJammer::BuildUnpack]
+
+    set info(Installing)     1
+    set info(InstallErrors)  ""
+    set info(InstallStarted) 1
+
+    set conf(LastPercent)          0
+    set conf(UpdateFileText)       [$obj get UpdateFileText]
+    set conf(UpdateFilePercent)    [$obj get UpdateFilePercentage]
+    set conf(directoryPermissions) {}
+    set conf(ShowConsoleProgress)  [$obj get ShowConsoleProgress]
+
+    if {!$info(GuiMode)} {
+        set conf(UpdateFileText)       0
+        set conf(UpdateFilePercentage) 0
+    }
+
+    if {$conf(UpdateFileText)} {
+        set info(Status) "<%FileBeingInstalledText%>"
+    } else {
+        set info(Status) "<%GroupBeingInstalledText%>"
+    }
+
+    if {[threaded]} {
+        set tid [installkit::newThread thread::wait]
+        thread::errorproc ::InstallJammer::HandleThreadError
+
+        set conf(UnpackThread) $tid
+        thread::send $tid [list set ::argv [list $unpackInf]]
+        thread::send -async $tid [list source $unpackScript]
+    } else {
+        set cmd "|[list $unpackBin] [list $unpackScript] -- [list $unpackInf]"
+        set conf(UnpackBin) $unpackBin
+        set conf(UnpackFp)  [open $cmd]
+
+        fconfigure $conf(UnpackFp) -blocking 0
+        fileevent  $conf(UnpackFp) readable \
+            [list ::InstallJammer::ReadUnpack $parent]
+    }
+
+    vwait ::info(Installing)
+
+    set info(Installing)      0
+    set info(InstallFinished) 1
+
+    if {$info(InstallErrors) ne ""} {
+        set info(InstallStopped) 1
+        if {![$obj get IgnoreErrors]} {
+            ::InstallAPI::ErrorMessage -subst 1 -message "<%InstallErrorText%>"
+        }
+    }
+
+    if {$info(InstallStopped)} { return }
+
+    if {$conf(windows)} {
+	## Broadcast a message telling Windows that the environment
+	## has changed.  This forces any environment variables
+	## changed during installation to be updated in all running
+	## Windows applications.
+        set conf(UpdateWindowsRegistry) 1
+    }
+
+    ## If we saved files for rollback, we need to clean them up now.
+    ## If the install was stopped in the middle, we don't want to do
+    ## anything.  The cleanup routines will take care of that.
+    if {$conf(rollback) && $info(InstallStarted)} {
+        set info(Status)  "<%CleanupInstallText%>"
+
+	foreach {dir perms} $conf(directoryPermissions) {
+	    ::InstallJammer::SetPermissions $dir $perms
+	}
+
+        foreach file $conf(rollbackFiles) {
+            set roll [::InstallJammer::RollbackName $file]
+            if {[file exists $roll]} { file delete -force $roll }
+        }
+    }
+
+    set info(FileBeingInstalled)  ""
+    set info(GroupBeingInstalled) ""
+}

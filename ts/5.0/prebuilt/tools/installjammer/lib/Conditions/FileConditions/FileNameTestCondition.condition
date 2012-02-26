@@ -1,0 +1,45 @@
+## $Id$
+##
+## BEGIN LICENSE BLOCK
+##
+## Copyright (C) 2002  Damon Courtney
+## 
+## This program is free software; you can redistribute it and/or
+## modify it under the terms of the GNU General Public License
+## version 2 as published by the Free Software Foundation.
+## 
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License version 2 for more details.
+## 
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the
+##     Free Software Foundation, Inc.
+##     51 Franklin Street, Fifth Floor
+##     Boston, MA  02110-1301, USA.
+##
+## END LICENSE BLOCK
+
+Condition FileNameTestCondition
+
+Property Filename installedfile "Filename" ""
+Property Operator choice        "Operator" "name is valid" \
+  {"name is valid" "name is not valid" "path is valid" "path is not valid"}
+
+proc ::InstallJammer::conditions::FileNameTestCondition { obj } {
+    $obj properties props -subst {Filename}
+    
+    debug "Checking to see if $props(Filename) $props(Operator)"
+    
+    if {[string match "path*" $props(Operator)]} {
+        set valid [::InstallJammer::IsValidPath $props(Filename)]
+    } else {
+        set valid [::InstallJammer::IsValidFilename $props(Filename)]
+    }
+
+    if {[string match "* not *" $props(Operator)]} {
+        return [expr {!$valid}]
+    }
+    return $valid
+}

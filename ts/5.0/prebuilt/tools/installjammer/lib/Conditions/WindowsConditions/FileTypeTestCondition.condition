@@ -1,0 +1,43 @@
+## $Id$
+##
+## BEGIN LICENSE BLOCK
+##
+## Copyright (C) 2002  Damon Courtney
+## 
+## This program is free software; you can redistribute it and/or
+## modify it under the terms of the GNU General Public License
+## version 2 as published by the Free Software Foundation.
+## 
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License version 2 for more details.
+## 
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the
+##     Free Software Foundation, Inc.
+##     51 Franklin Street, Fifth Floor
+##     Boston, MA  02110-1301, USA.
+##
+## END LICENSE BLOCK
+
+Condition FileTypeTestCondition
+
+Property FileType short "File Type"
+
+Property Operator choice "Operator" "exists" {"exists" "does not exist"}
+
+proc ::InstallJammer::conditions::FileTypeTestCondition { obj } {
+    $obj properties props -subst 1
+
+    set type   $props(FileType)
+    set exists [::installkit::Windows::FileType exists $type]
+
+    debug "Checking to see if file type $type $props(Operator)"
+
+    if {$props(Operator) eq "exists"} {
+        return $exists
+    } else {
+        return [expr {!$exists}]
+    }
+}

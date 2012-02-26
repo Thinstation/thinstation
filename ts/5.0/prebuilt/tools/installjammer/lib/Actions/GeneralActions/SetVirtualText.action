@@ -1,0 +1,61 @@
+## $Id$
+##
+## BEGIN LICENSE BLOCK
+##
+## Copyright (C) 2002  Damon Courtney
+## 
+## This program is free software; you can redistribute it and/or
+## modify it under the terms of the GNU General Public License
+## version 2 as published by the Free Software Foundation.
+## 
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License version 2 for more details.
+## 
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the
+##     Free Software Foundation, Inc.
+##     51 Franklin Street, Fifth Floor
+##     Boston, MA  02110-1301, USA.
+##
+## END LICENSE BLOCK
+
+Action SetVirtualText "Set Virtual Text"
+
+Property AutoUpdate      nullboolean "Auto Update"      ""
+Help AutoUpdate "If Auto Update is true, InstallJammer will automatically\
+    update the screen whenever this virtual text is modified"
+
+Property Language        language "Language"         "None"
+Help Language "The language catalog to set this virtual text in"
+
+Property SubstituteValue boolean  "Substitute Value" "No"
+Help SubstituteValue "If this is true, InstallJammer will substitute the\
+    value for other virtual text before setting the new virtual text"
+
+Property Value           text     "Value"            ""
+Help Value "The value to set the virtual text variable to"
+
+Property VirtualText     short    "Virtual Text"     ""
+Help VirtualText "The name of a virtual text variable (without the <% %>)"
+
+proc ::InstallJammer::actions::SetVirtualText { obj } {
+    $obj properties props -subst {SubstituteValue VirtualText}
+
+    set value $props(Value)
+    if {$props(SubstituteValue)} {
+        set value [::InstallJammer::SubstText $value]
+    }
+
+    set args [list -subst 0]
+    lappend args -language $props(Language)
+    lappend args -virtualtext $props(VirtualText)
+    lappend args -value $value
+
+    if {$props(AutoUpdate) ne ""} {
+        lappend args -autoupdate $props(AutoUpdate)
+    }
+
+    eval ::InstallAPI::SetVirtualText $args
+}

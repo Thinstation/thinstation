@@ -1,0 +1,11 @@
+Action SkipPane
+
+Property Pane window "Pane"
+Help Pane "The Alias or ID of the pane to be skipped.  If this property is\
+    left blank (the default), it means to stop processing any further actions\
+    for the current pane and skip forward to the next pane"
+
+proc ::InstallJammer::actions::SkipPane { obj } {
+    $obj properties props -subst 1
+    ::InstallAPI::SkipPane -pane $props(Pane)
+}

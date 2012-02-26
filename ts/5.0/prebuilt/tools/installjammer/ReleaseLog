@@ -1,0 +1,59 @@
+1.2.15 (October 29th, 2010)
+
+This release contains minor bug fixes and enhancements.
+
+
+Minor Bug Fixes
+Fixed a bug in building separate archives that would cause a non-numeric string error.
+Fixed a bug where non-ASCII strings would not display properly in the uninstaller.
+Fixed a bug where using the Delete button on the keyboard to delete from the file group, component or setup type tree would popup two confirmation dialogs.
+Fixed a bug where a Company directory would not get cleaned up during uninstallation even if the directory was left empty.
+Fixed a bug where a user's umask could mess up file permissions when installing files on non-Windows platforms.
+Fixed a bug where copy would not work in readonly text widgets.
+Fixed a bug that allowed illegal characters in the installer executable name.
+Made /tmp the default TempRoot instead of /usr/tmp.
+Fixed a hard-coded error title string in the condition failure popups.
+Make sure the install information is updated before we redraw the setup type description.  This fixes a bug where a setup type description that includes space required would not show properly because the space had not been updated before the text was changed.
+Fixed a bug in the chmod of the installkit on startup that could cause errors if the root user owned the installation.
+Fixed a bug in the builder where text would show up blank if the system language was not a language supported by InstallJammer.
+Fixed a bug in launching the file explorer on UNIX with no selected group.
+Fixed a bug in dragging and dropping files on UNIX with no selected group.
+Fixed a bug where non-ASCII filenames were not supported in the installer.  This could produce an incompatibility with anyone using a custom UTF-8 message catalog.
+Fixed a bug in the uninstaller where a permissions error could happen on Windows if the installation wasn't cleaned up completely.
+Fixed a bug where the GetSelectedFiles API was appending an extra directory tail onto each directory object returned.
+Fix a bug where the exit dialog on Linux was not modal enough.  The dialog will not be completely modal in the sense that people are used to on Windows, but the user shouldn't be able to click the X a second time and cause an error.
+Fixed a bug in building archives where it would fail on some platforms.
+Fixed the movement keys for text widgets in a readonly state so that they scroll properly.
+Fixed a bug where the Copy Value from the right-click menu would copy a blank value and clear the buffer.
+Fixed a bug where nested action groups would cause an error when executed.
+Fixed a bug in uninstall cleanup where a permissions error could occur on some systems as the uninstaller exits.
+Add a Description field to the Windows shortcut actions.  This sets the Comments field and tooltip of the shortcut created on Windows.
+Changed build and quick build shortcuts.  Control-b is now quick build and Control-Shift-b is a full build.  Moved the menu around a bit to reflect the changes.
+Fixed a bug in the Add Widget action where browse entry widgets did not fire an action when Select was chosen as a validate option.  When Select is part of the validate list, the action will now fire after the user has chosen the file or directory from the dialog.
+Fixed a bug where saved install components would sometimes include a bogus -command option.  This option is no longer used and it just serves to add garbage to the project file.
+Fixed a bug where the uninstaller would fail with an error trying to delete a directory like a file.  Added safety checks to make sure what we are deleting is what it's supposed to be.
+Fixed a bug in saving projects with unmatched braces.
+Fixed a bug where running an uninstall without calling Uninstall Selected
+Fixed a bug where the uninstall cleanup might error after finish because it
+
+Minor Enhancements
+Fixed a bug where kdesu was not found under KDE4.
+Debugging output in the console is now enabled by default if the ShowConsole is true.
+Added a new Directory Test Condition for testing directories.
+Modifed the ReadInstallInfo API to be more like the Check for Previous Install action.  The API now has a -prefix option and always sets the common properties.  See the docs for the new behavior if you're using this API.
+The Check for Previous Install action no longer caches its information with the first run.  This means that subsequent calls to this action will rebuild the virtual text variables, but it will not delete variables set by previous invocations.
+Added a new Add to Uninstall property to the Create File Link action.  The default is yes, which is slightly incompatible with the older version since the link will now automatically be part of the uninstaller where it wasn't before.
+Added a new Stop action to stop movement of the wizard and stop actions from executing.
+Added a new Skip Pane action to skip the current pane or add some other pane to a list of panes to be skipped in the future.
+Added a new Stop API call.
+Added a new SkipPane API call.
+Added a new DecodeURL API call.
+Fixed a bug with file URLs dropped from Nautilus not being decoded, so the builder doesn't recognize files with spaces because they show up as %20.
+Modifying the title of an object nows sets the alias to that title if the alias is currently empty or equal to the current title.
+Added a new Display Name property to file groups.
+Added a new GetDisplayText API call.
+Made the default text widget for all text panes readonly instead of them being editable and then turning disabled when they're first updated.
+If a Move to Pane action attempts to move to the current pane it's already on, the pane will reload and rerun its actions instead of just doing nothing.
+Added a new -separator option to the PropertyFileAPI.  Defaults to =.
+Added a "show hidden directories" checkbutton to the choose file dialog on platforms that don't use a native dialog.
+Hitting space in the component tree during installation will now toggle the current component.

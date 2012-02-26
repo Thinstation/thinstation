@@ -1,0 +1,86 @@
+## $Id$
+##
+## BEGIN LICENSE BLOCK
+##
+## Copyright (C) 2002  Damon Courtney
+## 
+## This program is free software; you can redistribute it and/or
+## modify it under the terms of the GNU General Public License
+## version 2 as published by the Free Software Foundation.
+## 
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License version 2 for more details.
+## 
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the
+##     Free Software Foundation, Inc.
+##     51 Franklin Street, Fifth Floor
+##     Boston, MA  02110-1301, USA.
+##
+## END LICENSE BLOCK
+
+Condition DirectoryTestCondition
+
+Property Directory installedfile "Directory"
+Help Directory "The path of the directory to be tested"
+
+Property Test choice "Test" "exists" \
+    {"exists" "does not exist"
+     "is empty" "is not empty"
+     "is readable" "is not readable"
+     "is writable" "is not writable"
+     "can be created" "cannot be created"}
+Help Test "This property specifies what to test the directory for.\
+    Please see the documentation for more information about what each test
+    does."
+
+proc ::InstallJammer::conditions::DirectoryTestCondition { obj } {
+    global conf
+    global info
+
+    $obj properties props -subst 1
+
+    debug "Checking to see if $props(Directory) $props(Test)"
+
+    set res   0
+    set dir   $props(Directory)
+    set isdir [file isdirectory $dir]
+    switch -glob -- $props(Test) {
+        "*exist*" {
+            set res $isdir
+        }
+
+        "is*empty" {
+            set res [expr {$isdir && [::InstallJammer::DirIsEmpty $dir]}]
+        }
+
+        "is*readable" {
+            set res [expr {$isdir && [file readable $dir]}]
+        }
+
+        "is*writable" {
+            set res [expr {$isdir && [::InstallJammer::DirIsWritable $dir]}]
+        }
+
+        "can*created" {
+            set info(Dir) [file nativename $dir]
+            while {[llength [file split $info(Dir)]]} {
+                if {[file isdirectory $info(Dir)]} {
+                    set res [::InstallJammer::DirIsWritable $info(Dir)]
+                    break
+                }
+
+                set dir [file dirname $info(Dir)]
+
+                if {$dir eq $info(Dir)} { break }
+
+                set info(Dir) $dir
+            }
+        }
+    }
+
+    if {[string match "*not*" $props(Test)]} { set res [expr {!$res}] }
+    return $res
+}

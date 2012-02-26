@@ -1,0 +1,70 @@
+## $Id$
+##
+## BEGIN LICENSE BLOCK
+##
+## Copyright (C) 2002  Damon Courtney
+## 
+## This program is free software; you can redistribute it and/or
+## modify it under the terms of the GNU General Public License
+## version 2 as published by the Free Software Foundation.
+## 
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License version 2 for more details.
+## 
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the
+##     Free Software Foundation, Inc.
+##     51 Franklin Street, Fifth Floor
+##     Boston, MA  02110-1301, USA.
+##
+## END LICENSE BLOCK
+
+Action InstallDesktopShortcut "Install Desktop Shortcut"
+
+Include InstallUNIXShortcut
+Include InstallWindowsShortcut
+
+Property Description shorttext "Description"
+Help Description "Specifies the description of the shortcut.  This is the\
+    tooltip the user will see over the shortcut and is stored in the Comments\
+    field of the shortcut properties. (Windows only)"
+
+Property FileName short "File Name" "<%ShortAppName%>-desktop"
+
+Property ShortcutName shorttext "Shortcut Name"
+Property ShortcutType choice "Shortcut Type" "Application" {Link Application}
+Property TargetFileName installedfile "Target File Name"
+Property IconPath installedfile "Icon Path"
+Property IconPathIndex shorttext "Icon Path Index" "0"
+Property WorkingDirectory installedfile "Working Directory"
+Property CommandLineArguments shorttext "Command Line Arguments"
+Property AdditionalArguments longtext "Additional Arguments"
+
+Property InstallForAllUsers editboolean "Install for All Users" \
+        "<%ProgramFolderAllUsers%>"
+
+Property VendorID short "Vendor ID" "<%ApplicationID%>"
+
+Property WindowState choice "Window State" "normal" \
+    {hidden maximized minimized normal}
+
+proc ::InstallJammer::actions::InstallDesktopShortcut { obj } {
+    global conf
+
+    set allusers [::InstallJammer::SubstText [$obj get InstallForAllUsers]]
+
+    if {$conf(windows)} {
+        $obj set ShortcutDirectory <%DESKTOP%>
+
+        if {[string is true -strict $allusers]} {
+            $obj set ShortcutDirectory <%COMMON_DESKTOP%>
+        }
+
+        ::InstallJammer::actions::InstallWindowsShortcut $obj
+    } else {
+        $obj set ShortcutLocation Desktop
+        ::InstallJammer::actions::InstallUNIXShortcut $obj
+    }
+}

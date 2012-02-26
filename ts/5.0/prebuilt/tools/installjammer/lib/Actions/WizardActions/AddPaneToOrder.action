@@ -1,0 +1,51 @@
+## $Id$
+##
+## BEGIN LICENSE BLOCK
+##
+## Copyright (C) 2002  Damon Courtney
+## 
+## This program is free software; you can redistribute it and/or
+## modify it under the terms of the GNU General Public License
+## version 2 as published by the Free Software Foundation.
+## 
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License version 2 for more details.
+## 
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the
+##     Free Software Foundation, Inc.
+##     51 Franklin Street, Fifth Floor
+##     Boston, MA  02110-1301, USA.
+##
+## END LICENSE BLOCK
+
+Action AddPaneToOrder
+
+Property Index short "Index" "end"
+Help Index "Where in the order to add the pane (end means to append to the end)"
+
+Property Pane window "Pane"
+Help Pane "The ID or alias of the pane to be add to the Wizard order"
+
+proc ::InstallJammer::actions::AddPaneToOrder { obj } {
+    global info
+
+    $obj properties props -subst 1
+
+    set id  [::InstallJammer::ID $props(Pane)]
+    set idx $props(Index)
+
+    if {![string match "end*" $idx] && ![string is integer -strict $idx]} {
+        set idx [::InstallJammer::ID $props(Index)]
+        if {[::InstallJammer::ObjExists $idx]} {
+            set idx [$info(Wizard) index $idx]
+        }
+    }
+
+    set order [$info(Wizard) order]
+    set order [linsert $order $idx $id]
+
+    $info(Wizard) order $order
+}

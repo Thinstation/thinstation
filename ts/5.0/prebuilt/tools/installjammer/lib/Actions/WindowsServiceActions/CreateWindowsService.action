@@ -1,0 +1,97 @@
+## $Id$
+##
+## BEGIN LICENSE BLOCK
+##
+## Copyright (C) 2002  Damon Courtney
+## 
+## This program is free software; you can redistribute it and/or
+## modify it under the terms of the GNU General Public License
+## version 2 as published by the Free Software Foundation.
+## 
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License version 2 for more details.
+## 
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the
+##     Free Software Foundation, Inc.
+##     51 Franklin Street, Fifth Floor
+##     Boston, MA  02110-1301, USA.
+##
+## END LICENSE BLOCK
+
+Action CreateWindowsService
+
+Property Account shorttext "Account"
+Property Command shorttext "Command"
+Property Database short "Database"
+Property Dependencies shorttext "Dependencies"
+Property Description text "Description"
+Property DisplayName shorttext "Display Name"
+Property ErrorControl choice "Error Control" "Normal" \
+  {"Critical" "Ignore" "Normal" "Severe"}
+Property Interactive boolean "Interactive" "No"
+Property LoadOrderGroup shorttext "Load Order Group"
+Property Password short "Password"
+Property ServiceName shorttext "Service Name"
+Property ServiceType choice "Service Type" "Own Process" \
+  {"Own Process" "Shared Process" "File System Driver" "Kernel Driver"}
+Property StartType choice "Start Type" "Auto Start" \
+  {"Auto Start" "Boot Start" "Demand Start" "Disabled" "System Start"}
+Property System short "System"
+
+proc ::InstallJammer::actions::CreateWindowsService { obj } {
+    global conf
+
+    if {!$conf(windows)} { return }
+
+    $obj properties props -subst 1
+
+    set cmd [list twapi::create_service $props(ServiceName) $props(Command)]
+
+    if {$props(System) ne ""} { lappend cmd -system $props(System) }
+    if {$props(Database) ne ""} { lappend cmd -database $props(Database) }
+
+    lappend cmd -interactive $props(Interactive)
+
+    lappend cmd -servicetype
+    if {[string match "*Process*" $props(ServiceType)]} {
+        set type [string map {Shared Share} $props(ServiceType)]
+        lappend cmd win32_[string tolower [join $type _]]
+    } else {
+        lappend cmd [string tolower [join $props(ServiceType) _]]
+    }
+
+    lappend cmd -starttype [string tolower [join $props(StartType) _]]
+    
+    lappend cmd -errorcontrol [string tolower $props(ErrorControl)]
+
+    if {$props(DisplayName) ne ""} {
+        lappend cmd -displayname $props(DisplayName)
+    }
+
+    if {$props(LoadOrderGroup) ne ""} {
+        lappend cmd -loadordergroup $props(LoadOrderGroup)
+    }
+
+    if {$props(Dependencies) ne ""} {
+        lappend cmd -dependencies $props(Dependencies)
+    }
+
+    if {$props(Account) ne ""} {
+        lappend cmd -account $props(Account)
+    }
+
+    if {$props(Password) ne ""} {
+        lappend cmd -password $props(Password)
+    }
+
+    eval $cmd
+
+    if {$props(Description) ne ""} {
+        set key "HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Services"
+        append key "\\$props(ServiceName)"
+        registry set $key Description $props(Description)
+    }
+}

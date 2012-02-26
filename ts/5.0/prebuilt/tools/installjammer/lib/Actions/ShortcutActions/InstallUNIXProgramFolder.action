@@ -1,0 +1,121 @@
+## $Id$
+##
+## BEGIN LICENSE BLOCK
+##
+## Copyright (C) 2002  Damon Courtney
+## 
+## This program is free software; you can redistribute it and/or
+## modify it under the terms of the GNU General Public License
+## version 2 as published by the Free Software Foundation.
+## 
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License version 2 for more details.
+## 
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the
+##     Free Software Foundation, Inc.
+##     51 Franklin Street, Fifth Floor
+##     Boston, MA  02110-1301, USA.
+##
+## END LICENSE BLOCK
+
+Action InstallUNIXProgramFolder "Install UNIX Program Folder"
+
+Require xdg-utils/xdg-desktop-menu
+
+Property AdditionalArguments longtext "Additional Arguments"
+Help AdditionalArguments "Any additional arguments are appended as lines\
+    directly to the .directory file created by the action.  The lines are\
+    appended after the main properties have been added to the file"
+
+Property FolderDirectory installedfile "Folder Directory"
+Help FolderDirectory "If this folder is being created in a directory instead\
+    of within the Program Folder, the Folder Directory specifies which\
+    directory the .directory file should be created in."
+
+Property FolderLocation choice "Folder Location" "Program Folder" \
+  {Directory "Program Folder"}
+Help FolderLocation "Whether to create the program folder in the standard\
+    Program Folder location or in a directory"
+
+Property FolderName short "Folder Name" "<%ProgramFolderName%>"
+Help FolderName "The name of the folder to create.  If the folder contains\
+    multiple directories in the path, each folder will be created with all\
+    of the same properties and arguments"
+
+Property IconPath installedfile "Icon Path"
+Help IconPath "The full path to the icon image file to use for this folder"
+
+Property VendorID short "Vendor ID" "<%ApplicationID%>"
+Help VendorID "Your Vendor ID will be prefixed to every .directory file\
+    created for your folder.  Using a common Vendor ID is a good way to\
+    put multiple applications from multiple installers into the same folders\
+    during installation."
+
+proc ::InstallJammer::actions::InstallUNIXProgramFolder { obj } {
+    global conf
+    global info
+
+    if {![string match "Linux*" $info(Platform)]
+        && ![string match "FreeBSD*" $info(Platform)]} { return }
+
+    $obj properties props -subst 1
+
+    if {$props(FolderLocation) eq "Directory"
+        && ![file exists $props(FolderDirectory)]} {
+        ::InstallJammer::CreateDir $props(FolderDirectory)
+        ::InstallJammer::LogFile $props(FolderDirectory)
+    }
+
+    set files {}
+    foreach folder [file split $props(FolderName)] {
+        set uuid $props(VendorID)-[join $folder ""]
+        set file [::InstallJammer::TmpDir $uuid.directory]
+
+        set fp [open $file w]
+        puts $fp {[Desktop Entry]}
+        puts $fp "Version=1.0"
+        puts $fp "Type=Directory"
+        puts $fp "Name=$folder"
+
+        if {$props(IconPath) ne ""}  {
+            puts $fp "Icon=$props(IconPath)"
+        }
+
+        if {$props(AdditionalArguments) ne ""} {
+            puts $fp "$props(AdditionalArguments)"
+        }
+
+        close $fp
+
+        lappend files $file
+    }
+
+    if {[llength $files]} {
+        set uuid $props(VendorID)-dummy.desktop
+        set fp [open [::InstallJammer::TmpDir $uuid] w]
+        puts $fp {[Desktop Entry]}
+        puts $fp "Version=1.0"
+        puts $fp "Type=Application"
+        puts $fp "NoDisplay=true"
+        close $fp
+
+        lappend files [::InstallJammer::TmpDir $uuid]
+
+        set mode user
+        if {$info(UserIsRoot)} { set mode system }
+        catch {
+            eval exec xdg-desktop-menu install --mode $mode --novendor $files
+        }
+
+        foreach file $files {
+            lappend logfiles [file tail $file]
+        }
+
+        ::InstallJammer::InstallLog [list :XDGRESOURCE menu $logfiles $mode]
+    }
+
+    set conf(RestartGnomePanel) 1
+}

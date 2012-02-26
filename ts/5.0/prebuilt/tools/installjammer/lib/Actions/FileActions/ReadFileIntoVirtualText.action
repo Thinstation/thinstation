@@ -1,0 +1,50 @@
+## $Id$
+##
+## BEGIN LICENSE BLOCK
+##
+## Copyright (C) 2002  Damon Courtney
+## 
+## This program is free software; you can redistribute it and/or
+## modify it under the terms of the GNU General Public License
+## version 2 as published by the Free Software Foundation.
+## 
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License version 2 for more details.
+## 
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the
+##     Free Software Foundation, Inc.
+##     51 Franklin Street, Fifth Floor
+##     Boston, MA  02110-1301, USA.
+##
+## END LICENSE BLOCK
+
+Action ReadFileIntoVirtualText
+
+Property Encoding short "Encoding"
+Help Encoding "The encoding to read this file in (defaults to system encoding)"
+
+Property File short "File"
+Help File "The name of the file to read into the virtual text variable"
+
+Property TrimString boolean "Trim String" "Yes"
+Help TrimString "Trim any whitespace from the front and back of the string\
+                    before setting it in the virtual text"
+
+Property VirtualText short "Virtual Text"
+Help VirtualText "The virtual text variable to store the file in"
+
+proc ::InstallJammer::actions::ReadFileIntoVirtualText { obj } {
+    $obj properties props -subst 1
+    set file [::InstallJammer::RelativeFile $props(File)]
+
+    set opts {}
+    if {$props(Encoding) ne ""} { lappend opts -encoding $props(Encoding) }
+
+    set data [eval [list read_file $file] $opts]
+
+    if {$props(TrimString)} { set data [string trim $data] }
+    set ::info($props(VirtualText)) $data
+}

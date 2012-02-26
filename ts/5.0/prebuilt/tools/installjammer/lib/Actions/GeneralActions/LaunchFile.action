@@ -1,0 +1,80 @@
+## $Id$
+##
+## BEGIN LICENSE BLOCK
+##
+## Copyright (C) 2002  Damon Courtney
+## 
+## This program is free software; you can redistribute it and/or
+## modify it under the terms of the GNU General Public License
+## version 2 as published by the Free Software Foundation.
+## 
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License version 2 for more details.
+## 
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the
+##     Free Software Foundation, Inc.
+##     51 Franklin Street, Fifth Floor
+##     Boston, MA  02110-1301, USA.
+##
+## END LICENSE BLOCK
+
+Action LaunchFile
+
+Require xdg-utils/xdg-open
+
+Property Arguments text "Arguments"
+Help Arguments "Any command-line arguments to pass after the file name"
+
+Property FileName text "File Name"
+Help FileName "The name of a file or URL to launch"
+
+Property WaitForProgram boolean "Wait for Program to Finish Running" "No"
+Help WaitForProgram "Whether or not to proceed with the rest of the install\
+        or wait for the external program to finish"
+
+Property WorkingDirectory installedfile "Working Directory"
+Help WorkingDirectory "The directory to change to before launching this file"
+
+proc ::InstallJammer::actions::LaunchFile { obj } {
+    global conf
+
+    $obj properties props -subst {FileName}
+
+    ::InstallJammer::UpdateWidgets -update 1
+
+    set workdir [::InstallJammer::SubstText $props(WorkingDirectory)]
+    if {[string length $workdir] && [file exists $workdir]} {
+        set pwd [pwd]
+        cd $workdir
+    }
+
+    set args [::InstallJammer::SubstForEval $props(Arguments)]
+
+    if {$conf(windows)} {
+        if {!$props(WaitForProgram)} {
+            set cmd [list $::env(COMSPEC) /c start $props(FileName)]
+        } else {
+            set cmd [list $::env(COMSPEC) /c start /WAIT $props(FileName)]
+        }
+        eval lappend cmd $args
+    } else {
+        set cmd [list xdg-open $props(FileName)]
+        eval lappend cmd $args
+
+        if {!$props(WaitForProgram)} { lappend cmd & }
+    }
+
+    debug "Executing Command Line: $cmd"
+    set result [catch { eval exec $cmd } error]
+
+    ::InstallJammer::UpdateWidgets -updateidletasks 1
+
+    if {[info exists pwd]} { cd $pwd }
+
+    if {$result} {
+        return -code error $error
+    }
+}

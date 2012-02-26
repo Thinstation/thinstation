@@ -1,0 +1,55 @@
+## $Id$
+##
+## BEGIN LICENSE BLOCK
+##
+## Copyright (C) 2002  Damon Courtney
+## 
+## This program is free software; you can redistribute it and/or
+## modify it under the terms of the GNU General Public License
+## version 2 as published by the Free Software Foundation.
+## 
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License version 2 for more details.
+## 
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the
+##     Free Software Foundation, Inc.
+##     51 Franklin Street, Fifth Floor
+##     Boston, MA  02110-1301, USA.
+##
+## END LICENSE BLOCK
+
+Pane SelectDestination "Select Destination"
+
+Order 8
+
+Include CustomBlankPane2
+
+Condition ScriptCondition CheckCondition "Before Pane is Displayed" \
+    Comment "Do not display this pane if this is an upgrade install\
+                unless there is more than one installation present" \
+    Script "!<%UpgradeInstall%> || <%PreviousInstallCount%> != 1"
+
+Condition FilePermissionCondition Filename {<%InstallDir%>} \
+    CheckCondition "Before Next Pane is Displayed" Permission "can create" \
+    FailureMessage "<%DirectoryPermissionText%>"
+
+Property Buttons buttons "Buttons" "Back/Next/Cancel"
+
+Property Icon image "Icon" "<%Icon%>"
+
+Property VirtualText short "Virtual Text" "InstallDir"
+
+Text Title
+Text Subtitle
+Text Caption
+Text Message
+Text Destination
+Text BrowseText   "Browse Text"
+Text NextButton   "Next Button"   1
+Text BackButton   "Back Button"   1
+Text CancelButton "Cancel Button" 1
+Text BrowseButton "Browse Button" 1
+Text DestinationLabel "Destination Label" 0

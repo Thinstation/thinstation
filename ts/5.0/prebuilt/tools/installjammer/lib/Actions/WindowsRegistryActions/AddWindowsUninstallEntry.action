@@ -1,0 +1,93 @@
+## $Id$
+##
+## BEGIN LICENSE BLOCK
+##
+## Copyright (C) 2002  Damon Courtney
+## 
+## This program is free software; you can redistribute it and/or
+## modify it under the terms of the GNU General Public License
+## version 2 as published by the Free Software Foundation.
+## 
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License version 2 for more details.
+## 
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the
+##     Free Software Foundation, Inc.
+##     51 Franklin Street, Fifth Floor
+##     Boston, MA  02110-1301, USA.
+##
+## END LICENSE BLOCK
+
+Action AddWindowsUninstallEntry "Add Windows Uninstall Entry"
+
+Property RegistryKeyName shorttext "Registry Key Name" "<%ApplicationID%>"
+Property UninstallString installedfile "Uninstall String" "<%Uninstaller%>"
+Property QuietUninstallString installedfile "Quiet Uninstall String" \
+    "<%Uninstaller%> -S"
+Property DisplayName shorttext "Display Name" "<%AppName%>"
+Property DisplayIcon installedfile "Display Icon" "<%ProgramExecutable%>"
+Property DisplayVersion shorttext "Display Version" "<%Version%>"
+Property Comments text "Comments"
+Property Contact shorttext "Contact"
+Property HelpLink shorttext "Help Link"
+Property HelpTelephone shorttext "Help Telephone"
+Property InstallDate shorttext "Install Date" "<%Date %Y%m%d%>"
+Property InstallLocation installedfile "Install Location" "<%InstallDir%>"
+Property InstallSource shorttext "Install Source" "<%InstallSource%>"
+Property Publisher shorttext "Publisher" "<%Company%>"
+Property Readme installedfile "Readme" "<%ProgramReadme%>"
+Property URLInfoAbout shorttext "URL Info About" "<%ApplicationURL%>"
+Property URLUpdateInfo shorttext "URL Update Info" "<%ApplicationURL%>"
+
+proc ::InstallJammer::actions::AddWindowsUninstallEntry { obj } {
+    global conf
+
+    if {!$conf(windows)} { return }
+
+    set properties {
+        UninstallString
+        QuietUninstallString
+        DisplayName
+        DisplayIcon
+        DisplayVersion
+        Comments
+        Contact
+        HelpLink
+        HelpTelephone
+        InstallDate
+        InstallLocation
+        InstallSource
+        Publisher
+        Readme
+        URLInfoAbout
+        URLUpdateInfo
+    }
+
+    eval $obj properties props -subst 1 [lsort $properties]
+
+    set appkey [::InstallJammer::SubstText [$obj get RegistryKeyName]]
+    set key {HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion}
+    append key "\\Uninstall\\$appkey"
+
+    ## Try to insert this first value.  If it fails, it's probably
+    ## because we don't have permission to write to the Uninstall registry
+    ## for the local machine.  We want to switch over and try to write to
+    ## the current user's Uninstall registry instead.
+    if {[catch { registry set $key NoModify 1 dword } error]} {
+        set key {HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion}
+        append key "\\Uninstall\\$appkey"
+
+        registry set $key NoModify 1 dword
+    }
+
+    registry set $key NoRepair 1 dword
+
+    foreach var [array names props] {
+	registry set $key $var $props($var)
+    }
+
+    ::InstallJammer::LogRegistry $key
+}

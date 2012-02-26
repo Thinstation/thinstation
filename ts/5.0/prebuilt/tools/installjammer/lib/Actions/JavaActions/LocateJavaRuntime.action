@@ -1,0 +1,231 @@
+## $Id$
+##
+## BEGIN LICENSE BLOCK
+##
+## Copyright (C) 2002  Damon Courtney
+## 
+## This program is free software; you can redistribute it and/or
+## modify it under the terms of the GNU General Public License
+## version 2 as published by the Free Software Foundation.
+## 
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License version 2 for more details.
+## 
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the
+##     Free Software Foundation, Inc.
+##     51 Franklin Street, Fifth Floor
+##     Boston, MA  02110-1301, USA.
+##
+## END LICENSE BLOCK
+
+Action LocateJavaRuntime "Locate Java Runtime"
+
+Property SearchPath text "Search Path" "Default Search Path\;Prompt User"
+Help SearchPath "A list of paths to search separated by ;.
+Default Search Path tells InstallJammer to look in the most common places.
+Prompt User will ask the user if all else fails."
+
+Property MinimumVersion short "Minimum Version"
+Help MinimumVersion "The lowest version of Java that is acceptable"
+
+Property MaximumVersion short "Maximum Version"
+Help MinimumVersion "The highest version of Java that is acceptable"
+
+Property RequireJDK boolean "Require JDK" "No"
+Help RequireJDK "This property tells InstallJammer to look specifically for\
+    an installed JDK and not just a JRE.  This is indicated by the presence\
+    of the javac binary."
+
+Text PromptMessage
+Text StatusMessage
+
+proc ::InstallJammer::actions::LocateJavaRuntime { obj } {
+    global conf
+    global info
+
+    $obj properties props -subst 1
+
+    set info(Status) [$obj get StatusMessage]
+
+    set info(JavaFound)        0
+    set info(JavaHome)         ""
+    set info(JavaVersion)      ""
+    set info(JavaVersionMajor) ""
+    set info(JavaExecutable)   ""
+    set info(JavawExecutable)  ""
+    set info(JavacExecutable)  ""
+
+    set id [$obj id]
+
+    set minver $props(MinimumVersion)
+    set maxver $props(MaximumVersion)
+
+    if {$minver eq ""} { set minver 0 }
+    if {$maxver eq ""} { set maxver 100 }
+
+    set paths [list]
+    foreach path [split $props(SearchPath) \;] {
+        set path [string trim $path]
+
+        if {$path eq "Default Search Path"} {
+            if {[info exists ::env(JAVA_HOME)]} {
+                lappend paths $::env(JAVA_HOME)
+            }
+
+            if {[info exists ::env(JAVAHOME)]} {
+                lappend paths $::env(JAVAHOME)
+            }
+
+            if {[info exists ::env(JDK_HOME)]} {
+                lappend paths $::env(JDK_HOME)
+            }
+
+            if {[info exists ::env(JRE_HOME)]} {
+                lappend paths $::env(JRE_HOME)
+            }
+
+            if {[info exists ::env(JAVA_ROOT)]} {
+                lappend paths $::env(JAVA_ROOT)
+            }
+
+            if {[info exists ::env(JAVA_BINDIR)]} {
+                lappend paths [file dirname $::env(JAVA_BINDIR)]
+            }
+
+            set which [auto_execok java]
+            if {[string length $which]} {
+                ## Strip the bin/java off.
+                lappend paths [file dirname [file dirname $which]]
+            }
+
+            if {$conf(windows)} {
+                set root {HKEY_LOCAL_MACHINE\Software\JavaSoft}
+
+                set keys {"Java Development Kit" "Java Runtime Environment"}
+                foreach key $keys {
+                    if {[catch { registry keys $root\\$key } keys]} { continue }
+                    foreach subkey [lsort -dict -decreasing $keys] {
+                        set ver [lindex [split $subkey _-] 0]
+                        set key $root\\$key\\$subkey
+
+                        if {[vercmp $ver $minver] >= 0
+                            && ![catch {registry get $key JavaHome} path]} {
+                            lappend paths $path
+                        }
+                    }
+                }
+
+                foreach dirname {jdk jre} {
+                    set dir [::InstallJammer::WindowsDir PROGRAM_FILES]
+                    set dir [file join $dir Java]
+                    eval lappend paths [glob -nocomplain -dir $dir $dirname*]
+                }
+            } else {
+                lappend paths \
+                    /usr/java/jdk \
+                    /usr/lib/java \
+                    /usr/lib/jvm \
+                    /usr/lib/jvm/jre \
+                    /usr/lib/java-1.4.0 \
+                    /usr/lib/java-1.4.1 \
+                    /usr/lib/java-1.4.2 \
+                    /usr/lib/java-1.5.0
+
+
+                if {[vercmp 1.4.1 $minver] >= 0} {
+                    lappend paths /opt/IBMJava2-141
+                }
+
+                if {[vercmp 1.4 $minver] >= 0} {
+                    lappend paths /opt/IBMJava2-14
+                }
+
+                if {[vercmp 1.3.1 $minver] >= 0} {
+                    lappend paths /opt/IBMJava2-131
+                }
+
+                if {[vercmp 1.3 $minver] >= 0} {
+                    lappend paths /opt/IBMJava2-13 /opt/java-1.3
+                }
+
+                if {[vercmp 1.2.2 $minver] >= 0} {
+                    lappend paths /usr/local/jdk1.2.2 /usr/lib/java/jdk1.2.2
+                }
+
+                if {[vercmp 1.2 $minver] >= 0} {
+                    lappend paths /usr/jdk1.2
+                }
+            }
+        } else {
+            lappend paths $path
+        }
+    }
+
+    set versions [list]
+
+    foreach path $paths {
+        if {[info exists done($path)]} { continue }
+        set done($path) 1
+
+        if {$path eq "Prompt User" && $info(GuiMode)} {
+            set path [::InstallJammer::ChooseDirectory -message \
+                [::InstallJammer::GetText $id PromptMessage]]
+            update
+            if {![string length $path]} { continue }
+        }
+
+        set java [file join $path bin java]
+        if {$conf(windows)} { append java .exe }
+
+        set javac [file join $path bin javac]
+        if {$conf(windows)} { append javac .exe }
+
+        debug "Looking for $java."
+
+        if {[file exists $java]
+            && (!$props(RequireJDK) || [file exists $javac])} {
+            debug "Found $java.  Checking -version."
+            catch { exec $java -version } output
+            if {![string match "java version*" $output]} {
+                debug "Bad output from $java."
+                continue
+            }
+
+            set ver [lindex [lindex [split $output \n] 0] end]
+            set mver [lindex [split $ver _-] 0]
+            lappend versions $ver
+            if {[vercmp $ver $minver] >= 0 && [vercmp $ver $maxver] <= 0} {
+                debug "Version $ver matched."
+                set found $path
+                break
+            }
+            debug "Version $ver did not match."
+        }
+    }
+
+    set info(JavaAvailableVersions) [lsort -dict -unique $versions]
+
+    if {[info exists found]} {
+        set info(JavaFound)        1
+        set info(JavaHome)         [file dirname [file dirname $java]]
+        set info(JavaVersion)      $ver
+        set info(JavaVersionMajor) [join [lrange [split $mver .] 0 1] .]
+        set info(JavaVersionMinor) $mver
+        set info(JavaExecutable)   $java
+        set info(JavawExecutable)  $java
+
+        set javaw [file join [file dirname $java] javaw]
+        if {$conf(windows)} { append javaw .exe }
+
+        if {[file exists $javaw]} {
+            set info(JavawExecutable) $javaw
+        }
+
+        if {[file exists $javac]} {
+            set info(JavacExecutable) $javac
+        }
+    }
+}

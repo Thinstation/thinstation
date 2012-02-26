@@ -1,0 +1,138 @@
+## $Id$
+##
+## BEGIN LICENSE BLOCK
+##
+## Copyright (C) 2002  Damon Courtney
+## 
+## This program is free software; you can redistribute it and/or
+## modify it under the terms of the GNU General Public License
+## version 2 as published by the Free Software Foundation.
+## 
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License version 2 for more details.
+## 
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the
+##     Free Software Foundation, Inc.
+##     51 Franklin Street, Fifth Floor
+##     Boston, MA  02110-1301, USA.
+##
+## END LICENSE BLOCK
+
+Action FetchURL "Fetch URL"
+
+Property ProxyHost short "Proxy Host"
+Help ProxyHost "The hostname to use as a proxy server if required"
+
+Property ProxyPort short "Proxy Port"
+Help ProxyPort "The port to use on the proxy server if required"
+
+Property SaveTo choice "Save To" "file" {file virtualtext}
+Help SaveTo "Whether to save the URL to a file or virtual text"
+
+Property Target installedfile "Target" "<%Temp%>"
+Help Target "The name of the file or virtual text to store the URL contents in"
+
+Property Timeout short "Timeout" "10000"
+Help Timeout "The amount of time to wait for a connection (in milliseconds)"
+
+Property URL shorttext "URL"
+Help URL "The full URL path to fetch"
+
+Property ProgressVirtualText short "Progress Virtual Text"
+Help ProgressVirtualText "The name of a virtual text variable to track the\
+                        progress of the download"
+
+proc ::InstallJammer::actions::FetchURL { obj } {
+    global conf
+    global info
+
+    package require http
+
+    $obj properties props -subst 1
+
+    ::http::config -proxyhost $props(ProxyHost) -proxyport $props(ProxyPort)
+
+    set list  [split $props(URL) \;]
+    set len   [llength $list]
+    set total 0
+
+    if {$props(ProgressVirtualText) ne ""} {
+        ::InstallAPI::SetVirtualText \
+            -virtualtext $props(ProgressVirtualText) -value 0 -autoupdate 1
+
+        foreach url $list {
+            set tok [::http::geturl $url -validate 1]
+            upvar #0 $tok state
+            incr total $state(totalsize)
+            ::http::cleanup $tok
+        }
+
+        ::InstallJammer::StartProgress \
+            ::info($props(ProgressVirtualText)) $total
+    }
+
+    set i 0
+    foreach url $list {
+        incr i
+        set url  [string trim $url]
+        set opts [list -blocksize 8192]
+
+        if {[string length $props(Timeout)]} {
+            #lappend opts -timeout $props(Timeout)
+        }
+
+        if {$props(SaveTo) eq "file" && $props(Target) ne ""} {
+            set filename [string trim $props(Target)]
+
+            if {[file isdirectory $filename]} {
+                set dirname  $filename
+                set filename [file join $dirname [::InstallJammer::uuid].part]
+            }
+
+            set fp [open $filename w]
+            fconfigure $fp -translation binary
+
+            lappend opts -channel $fp
+        }
+
+        if {$total > 0} {
+            ::InstallJammer::ResetProgress
+            lappend opts -progress ::InstallJammer::UpdateProgress
+        }
+
+        if {$len == 1} {
+            set info(Status) "<%DownloadingFilesText%>"
+        } else {
+            set info(Status) "<%DownloadingFilesText%> ($i/$len)"
+        }
+
+        if {[catch { eval ::http::geturl [list $url] $opts } token]} {
+            if {[info exists fp]} { close $fp }
+            if {[info exists filename]} { file delete -force $filename }
+            return -code error $token
+        }
+
+        upvar #0 $token state
+
+        if {$props(SaveTo) eq "file"} {
+            close $fp
+
+            if {[info exists dirname]} {
+                set name [file join $dirname [file tail $state(url)]]
+                file rename -force $filename $name
+                unset dirname filename
+            }
+        }
+
+        if {$props(SaveTo) eq "virtualtext" && $props(Target) ne ""} {
+            set ::info($props(Target)) $state(body)
+        }
+
+        ::http::cleanup $token
+    }
+
+    if {[info exists var]} { set $var 100 }
+}

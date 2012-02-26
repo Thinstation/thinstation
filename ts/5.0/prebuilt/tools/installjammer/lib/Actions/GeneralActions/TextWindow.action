@@ -1,0 +1,113 @@
+## $Id$
+##
+## BEGIN LICENSE BLOCK
+##
+## Copyright (C) 2002  Damon Courtney
+## 
+## This program is free software; you can redistribute it and/or
+## modify it under the terms of the GNU General Public License
+## version 2 as published by the Free Software Foundation.
+## 
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License version 2 for more details.
+## 
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the
+##     Free Software Foundation, Inc.
+##     51 Franklin Street, Fifth Floor
+##     Boston, MA  02110-1301, USA.
+##
+## END LICENSE BLOCK
+
+Action TextWindow "Text Window"
+
+Property Anchor anchor "Anchor" center
+Property Font short "Font" ""
+Property Width short "Width" 400
+Property Height short "Height" 300
+Property TextFile installedfile "Text File"
+Property TextWrap choice "Text Wrap" "word" {char none word}
+Property GrabFocus boolean "Grab Focus" "Yes"
+Property WaitOnWindow boolean "Wait on Window" "Yes"
+
+Text Title
+Text Caption
+Text Message
+Text CloseButton "Close Button" 1
+
+proc ::InstallJammer::actions::TextWindow { obj } {
+    global info
+
+    if {!$info(GuiMode)} { return }
+
+    set wizard [::InstallJammer::Wizard]
+
+    set id [$obj id]
+
+    $id window .[$id name]
+    set top [$id window]
+
+    $obj properties props -subst {Font}
+
+    toplevel     $top
+    wm withdraw  $top
+    wm title     $top [::InstallJammer::GetText $id Title]
+    wm transient $top [::InstallJammer::TransientParent]
+    wm geometry  $top $props(Width)x$props(Height)
+
+    grid rowconfigure    $top 1 -weight 1
+    grid columnconfigure $top 0 -weight 1
+
+    if {$props(GrabFocus)} {
+        ::InstallJammer::Grab $top
+        bind $top <Destroy> [list ::InstallJammer::Grab release $top]
+    }
+
+    ::InstallJammer::PlaceWindow $id -width $props(Width) -height $props(Height)
+
+    if {[string length [::InstallJammer::GetText $id Caption]]} {
+        label $top.caption -anchor w
+        grid $top.caption -row 0 -column 0 -padx 5 -pady [list 5 10] -sticky w
+        $id widget set Caption -widget $top.caption
+    }
+
+    text $top.message -bg #FFFFFF -bd 2 -relief sunken -wrap $props(TextWrap) \
+        -yscrollcommand [list $top.vs set] -xscrollcommand [list $top.hs set]
+
+    if {$props(Font) ne ""} {
+        $top.message configure -font $props(Font)
+    }
+
+    grid $top.message -row 1 -column 0 -padx [list 5 0] -sticky news
+    $id widget set Message -widget $top.message
+
+    ttk::scrollbar $top.vs -command [list $top.message yview]
+    grid $top.vs -row 1 -column 1 -sticky ns -padx [list 0 5]
+
+    ttk::scrollbar $top.hs -command [list $top.message xview] -orient horizontal
+    grid $top.hs -row 2 -column 0 -sticky ew -padx [list 5 0] -pady [list 0 5]
+
+    set width [string length [::InstallJammer::GetText $id CloseButton]]
+    if {$width < 12} { set width 12 }
+
+    ttk::button $top.close -width $width -command [list destroy $top]
+    grid $top.close -row 3 -column 0 -padx 5 -pady 5 -sticky e -columnspan 2
+    $id widget set CloseButton -widget $top.close
+
+    set file [::InstallJammer::SubstText $props(TextFile)]
+    if {[file exists $file]} {
+        $id set Message,subst 0
+        ::InstallJammer::SetVirtualText $info(Language) \
+            $id Message [read_file $file]
+    }
+
+    ::InstallJammer::UpdateWidgets -step $id -updateidletasks 1
+
+    focus $top.message
+
+    wm deiconify $top
+
+    if {$props(WaitOnWindow)} { tkwait window $top }
+}

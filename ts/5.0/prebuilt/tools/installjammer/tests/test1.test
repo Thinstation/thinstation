@@ -1,0 +1,41 @@
+test test-1.0 {Build a basic installer} -body {
+    buildInstaller
+    file exists $::env(IJTEST_INSTALLER)
+} -result {1}
+
+test test-1.1 {Test a basic installer} -body {
+    runInstallerTest {
+        inject after Welcome {
+            test_pressButton "Next >"
+        }
+
+        inject after SelectDestination {
+            test_pressButton "Next >"
+        }
+
+        inject after SetupType {
+            test_pressButton "Next >"
+        }
+
+        inject after StartCopyingFiles {
+            test_pressButton "Next >"
+        }
+
+        inject after SetupComplete {
+            test_pressButton "Finish"
+        }
+    }
+
+    if {![file exists $info(InstallInfoDir)]} {
+        return -code error "Registry directory not created"
+    }
+
+    cd $info(InstallInfoDir)
+    if {![file exists $info(ApplicationID).info]} {
+        return -code error ".info file not created"
+    }
+
+    if {![file exists $info(ApplicationID).log]} {
+        return -code error ".log file not created"
+    }
+}

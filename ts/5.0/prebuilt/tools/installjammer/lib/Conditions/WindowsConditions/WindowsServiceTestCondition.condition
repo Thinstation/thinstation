@@ -1,0 +1,60 @@
+## $Id$
+##
+## BEGIN LICENSE BLOCK
+##
+## Copyright (C) 2002  Damon Courtney
+## 
+## This program is free software; you can redistribute it and/or
+## modify it under the terms of the GNU General Public License
+## version 2 as published by the Free Software Foundation.
+## 
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License version 2 for more details.
+## 
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the
+##     Free Software Foundation, Inc.
+##     51 Franklin Street, Fifth Floor
+##     Boston, MA  02110-1301, USA.
+##
+## END LICENSE BLOCK
+
+Condition WindowsServiceTestCondition
+
+Property Database short "Database"
+Property ServiceName short "Service Name"
+Property System short "System"
+Property Operator choice "Operator" "exists" \
+  {"exists" "does not exist" "is paused" "is running" "is stopped"}
+
+proc ::InstallJammer::conditions::WindowsServiceTestCondition { obj } {
+    $obj properties props -subst 1
+
+    set service $props(ServiceName)
+    if {[catch { twapi::get_service_internal_name $service } service]} {
+    	if {$props(Operator) eq "does not exist"} { return 1 }
+	return 0
+    }
+
+    set opts [list]
+    if {$props(System) ne ""} { lappend opts -system $props(System) }
+    if {$props(Database) ne ""} { lappend opts -database $props(Database) }
+
+    switch -- $props(Operator) {
+        "exists" - "does not exist" {
+            set exists [eval [list twapi::service_exists $service] $opts]
+            if {$props(Operator) eq "exists"} {
+                return $exists
+            } else {
+                return [expr {!$exists}]
+            }
+        }
+
+        "is paused" - "is running" - "is stopped" {
+            array set s [eval [list twapi::get_service_status $service] $opts]
+            return [string equal $s(state) [lindex $props(Operator) 1]]
+        }
+    }
+}

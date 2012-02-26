@@ -1,0 +1,77 @@
+## $Id$
+##
+## BEGIN LICENSE BLOCK
+##
+## Copyright (C) 2002  Damon Courtney
+## 
+## This program is free software; you can redistribute it and/or
+## modify it under the terms of the GNU General Public License
+## version 2 as published by the Free Software Foundation.
+## 
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License version 2 for more details.
+## 
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the
+##     Free Software Foundation, Inc.
+##     51 Franklin Street, Fifth Floor
+##     Boston, MA  02110-1301, USA.
+##
+## END LICENSE BLOCK
+
+Action BackupFile
+
+Property Files short "Files"
+Help Files "A list of file patterns separated by \; (example: */*.txt\;*/*.sh)"
+
+Property FileExtension short "File Extension" ".bak%d"
+Help FileExtension "The extension to append to each file to be backed up.\
+                        %d is substituted with a number"
+
+Property OverwriteFiles boolean "Overwrite Files" "No"
+Help OverwriteFiles "If this is true, the action will overwrite a file that\
+                        already exists instead of skipping to the next one."
+
+Property RenameFiles boolean "Rename Files" "No"
+Help RenameFiles "If this is true, the files to be backed up will be moved\
+                        to their new file instead of copied.  This is helpful\
+                        if you want the original file out of the way."
+
+Property StartingBackup short "Starting Backup" "1"
+Help StartingBackup "The number to start at when backing up files"
+
+proc ::InstallJammer::actions::BackupFile { obj } {
+    $obj properties props -subst {
+        FileExtension OverwriteFiles RenameFiles StartingBackup
+    }
+
+    set ext   $props(FileExtension)
+    set force $props(OverwriteFiles)
+
+    foreach file [::InstallJammer::GetFilesForPattern $props(Files)] {
+        set i $props(StartingBackup)
+        set lastfile ""
+        while {1} {
+            set newfile $file[format $ext $i]
+
+            if {!$force && $newfile eq $lastfile} {
+                return -code error \
+                    "Could not backup file '$newfile': file already exists"
+            }
+
+            if {$force || ![file exists $newfile]} {
+                if {$props(RenameFiles)} {
+                    file rename -force $file $newfile
+                } else {
+                    file copy -force $file $newfile
+                }
+                break
+            }
+
+            set lastfile $newfile
+            incr i
+        }
+    }
+}

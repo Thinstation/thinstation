@@ -1,0 +1,48 @@
+## $Id$
+##
+## BEGIN LICENSE BLOCK
+##
+## Copyright (C) 2002  Damon Courtney
+## 
+## This program is free software; you can redistribute it and/or
+## modify it under the terms of the GNU General Public License
+## version 2 as published by the Free Software Foundation.
+## 
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License version 2 for more details.
+## 
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the
+##     Free Software Foundation, Inc.
+##     51 Franklin Street, Fifth Floor
+##     Boston, MA  02110-1301, USA.
+##
+## END LICENSE BLOCK
+
+Condition StringMatchCondition "String Match Condition"
+
+Property MatchCase boolean "Match Case" "Yes"
+Property Operator  choice  "Operator"   "matches" {matches "does not match"}
+Property String    text    "String"
+Property Pattern   text    "Pattern"
+
+proc ::InstallJammer::conditions::StringMatchCondition { obj } {
+    $obj properties props
+
+    debug "Checking to see if $props(String) $props(Operator) $props(Pattern)"
+
+    set string  [::InstallJammer::SubstText $props(String)]
+    set pattern [::InstallJammer::SubstText $props(Pattern)]
+
+    set cmd [list string match]
+    if {!$props(MatchCase)} { lappend cmd -nocase }
+    lappend cmd $pattern $string
+
+    if {$props(Operator) eq "matches"} {
+        return [eval $cmd]
+    } else {
+        return [expr {![eval $cmd]}]
+    }
+}

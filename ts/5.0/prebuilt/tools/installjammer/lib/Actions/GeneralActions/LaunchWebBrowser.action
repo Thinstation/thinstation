@@ -1,0 +1,44 @@
+## $Id$
+##
+## BEGIN LICENSE BLOCK
+##
+## Copyright (C) 2002  Damon Courtney
+## 
+## This program is free software; you can redistribute it and/or
+## modify it under the terms of the GNU General Public License
+## version 2 as published by the Free Software Foundation.
+## 
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License version 2 for more details.
+## 
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the
+##     Free Software Foundation, Inc.
+##     51 Franklin Street, Fifth Floor
+##     Boston, MA  02110-1301, USA.
+##
+## END LICENSE BLOCK
+
+Action LaunchWebBrowser "Launch Web Browser"
+
+Require xdg-utils/xdg-open
+
+Property URL shorttext "URL"
+
+proc ::InstallJammer::actions::LaunchWebBrowser { obj } {
+    global conf
+
+    $obj properties props -subst 1
+
+    set url [::InstallAPI::EncodeURL -url $props(URL)]
+
+    debug "Launching web browser with URL $url"
+
+    if {$conf(windows)} {
+        installkit::Windows::shellExecute open $url
+    } else {
+        exec xdg-open $url &
+    }
+}

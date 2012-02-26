@@ -1,0 +1,171 @@
+# Makefile.in --
+#
+#	This file is a Makefile for the BLE executable.
+#
+# Copyright (c) 1999-2000 Ajuba Solutions.
+#
+# See the file "license.terms" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+# RCS: @(#) $Id: Makefile.in,v 1.8 2004/01/28 16:51:08 rmax Exp $
+
+
+BWIDGET_SOURCES = \
+	arrow.tcl \
+	bitmap.tcl \
+	button.tcl \
+	buttonbox.tcl \
+	color.tcl \
+	combobox.tcl \
+	dialog.tcl \
+	dragsite.tcl \
+	dropsite.tcl \
+	dynhelp.tcl \
+	entry.tcl \
+	font.tcl \
+	init.tcl \
+	label.tcl \
+	labelentry.tcl \
+	labelframe.tcl \
+	listbox.tcl \
+	mainframe.tcl \
+	messagedlg.tcl \
+	notebook.tcl \
+	pagesmgr.tcl \
+	panedw.tcl \
+	passwddlg.tcl \
+	progressbar.tcl \
+	progressdlg.tcl \
+	scrollframe.tcl \
+	scrollview.tcl \
+	scrollw.tcl \
+	separator.tcl \
+	spinbox.tcl \
+	titleframe.tcl \
+	tree.tcl \
+	utils.tcl \
+	widget.tcl \
+	xpm2image.tcl
+
+PKGINDEX_TCL = \
+	$(srcdir)/pkgIndex.tcl
+
+#STARTUP_SCRIPT = src/bwidget.tcl
+
+#========================================================================
+# Executable name for creating a wrapped application
+# We don't currently build a wrapped bwidgets.
+#========================================================================
+
+#BWIDGET	= bwidget$(EXEEXT)
+
+#========================================================================
+# Nothing of the variables below this line need to be changed.
+#========================================================================
+
+SHELL = @SHELL@
+EXEEXT	= @EXEEXT@
+
+DESTDIR =
+
+srcdir = @srcdir@
+top_srcdir = @top_srcdir@
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+bindir = @bindir@
+
+libdir = @libdir@
+pkglibdir = $(libdir)/@PACKAGE@@VERSION@
+
+top_builddir = .
+
+INSTALL = @INSTALL@
+INSTALL_PROGRAM = @INSTALL_PROGRAM@
+INSTALL_DATA = @INSTALL_DATA@
+INSTALL_SCRIPT = @INSTALL_SCRIPT@
+
+PACKAGE = @PACKAGE@
+VERSION = @VERSION@
+PROWRAP = @PROWRAP@
+AUTOCONF = autoconf
+CYGPATH=@CYGPATH@
+CONFIGDIR = @CONFIGDIR@
+mkinstalldirs = $(SHELL) $(CONFIGDIR)/mkinstalldirs
+
+#========================================================================
+# TEA TARGETS.  Please note that the "libraries:" target refers to platform
+# independent files, and the "binaries:" target inclues executable programs and
+# platform-dependent libraries.  Modify these targets so that they install
+# the various pieces of your package.  The make and install rules
+# for the BINARIES that you specified above have already been done.
+#========================================================================
+
+all: binaries libraries doc
+
+binaries:
+
+libraries:
+
+doc:
+
+install: all install-binaries install-libraries install-doc
+
+test:
+
+depend:
+
+install-binaries:
+
+install-libraries:
+	$(mkinstalldirs) $(DESTDIR)$(pkglibdir)
+	@echo "Installing script files in $(DESTDIR)$(pkglibdir)"
+	@for i in $(BWIDGET_SOURCES) ; do \
+	    $(INSTALL_DATA) $(srcdir)/$$i $(DESTDIR)$(pkglibdir) ; \
+	done;
+	@echo "Installing language files in $(DESTDIR)$(pkglibdir)/lang"
+	$(mkinstalldirs) $(DESTDIR)$(pkglibdir)/lang
+	@for i in $(srcdir)/lang/*.rc ; do \
+	    $(INSTALL_DATA) $$i $(DESTDIR)$(pkglibdir)/lang ; \
+	done;
+	@echo "Installing image files in $(DESTDIR)$(pkglibdir)/images"
+	$(mkinstalldirs) $(DESTDIR)$(pkglibdir)/images
+	@for i in $(srcdir)/images/*.gif $(srcdir)/images/*.xbm ; do \
+	    $(INSTALL_DATA) $$i $(DESTDIR)$(pkglibdir)/images ; \
+	done;
+	$(INSTALL_DATA) $(PKGINDEX_TCL) $(DESTDIR)$(pkglibdir)
+
+install-doc:
+	$(mkinstalldirs) $(DESTDIR)$(pkglibdir)/htmldoc
+	@echo "Installing html documentation in $(DESTDIR)$(pkglibdir)/htmldoc"
+	@for i in $(srcdir)/BWman/*.html ; do \
+	    $(INSTALL_DATA) $$i $(DESTDIR)$(pkglibdir)/htmldoc ; \
+	done;
+
+clean:  
+	-test -z "$(BINARIES)" || rm -f $(BINARIES)
+	-rm -f *.o core *.core
+	-rm -f *.$(OBJEXT)
+	-test -z "$(CLEANFILES)" || rm -f $(CLEANFILES)
+
+distclean: clean
+	-rm -f *.tab.c
+	-rm -f Makefile $(CONFIG_CLEAN_FILES)
+	-rm -f config.cache config.log stamp-h stamp-h[0-9]*
+	-rm -f config.status
+
+Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status
+	cd $(top_builddir) \
+	  && CONFIG_FILES=$@ CONFIG_HEADERS= $(SHELL) ./config.status
+
+#config.status: $(srcdir)/configure
+#	$(SHELL) ./config.status --recheck
+
+#$(srcdir)/configure: $(srcdir)/configure.in
+#	cd $(srcdir) && $(AUTOCONF) -l $(srcdir)/../../../sampleextension
+
+.PHONY: all binaries clean depend distclean doc install installdirs \
+libraries test
+
+# Tell versions [3.59,3.63) of GNU make to not export all variables.
+# Otherwise a system limit (for SysV at least) may be exceeded.
+.NOEXPORT:

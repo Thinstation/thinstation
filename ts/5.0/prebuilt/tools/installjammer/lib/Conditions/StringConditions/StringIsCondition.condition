@@ -1,0 +1,43 @@
+## $Id$
+##
+## BEGIN LICENSE BLOCK
+##
+## Copyright (C) 2002  Damon Courtney
+## 
+## This program is free software; you can redistribute it and/or
+## modify it under the terms of the GNU General Public License
+## version 2 as published by the Free Software Foundation.
+## 
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License version 2 for more details.
+## 
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the
+##     Free Software Foundation, Inc.
+##     51 Franklin Street, Fifth Floor
+##     Boston, MA  02110-1301, USA.
+##
+## END LICENSE BLOCK
+
+Condition StringIsCondition "String Is Condition"
+
+Property Operator choice "Operator" "true" {empty false "not empty" true}
+Property String   text   "String"   ""
+
+proc ::InstallJammer::conditions::StringIsCondition { obj } {
+    $obj properties props
+
+    debug "Checking to see if $props(String) is $props(Operator)"
+
+    set string [::InstallJammer::SubstText $props(String)]
+
+    if {$props(Operator) eq "empty"} {
+        return [expr {[string trim $string] eq ""}]
+    } elseif {$props(Operator) eq "not empty"} {
+        return [expr {[string trim $string] ne ""}]
+    } else {
+        return [string is $props(Operator) -strict $string]
+    }
+}

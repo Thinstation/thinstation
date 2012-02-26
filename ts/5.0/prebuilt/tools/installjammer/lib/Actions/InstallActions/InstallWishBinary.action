@@ -1,0 +1,61 @@
+## $Id$
+##
+## BEGIN LICENSE BLOCK
+##
+## Copyright (C) 2002  Damon Courtney
+## 
+## This program is free software; you can redistribute it and/or
+## modify it under the terms of the GNU General Public License
+## version 2 as published by the Free Software Foundation.
+## 
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License version 2 for more details.
+## 
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the
+##     Free Software Foundation, Inc.
+##     51 Franklin Street, Fifth Floor
+##     Boston, MA  02110-1301, USA.
+##
+## END LICENSE BLOCK
+
+Action InstallWishBinary "Install WISH Binary"
+
+Property BinaryName installedfile "Binary Name" "<%InstallDir%>/wish<%Ext%>"
+Property WindowsIcon windowsicon "Windows Icon"
+
+proc ::InstallJammer::actions::InstallWishBinary { obj } {
+    global conf
+    global info
+
+    $obj properties props
+
+    set binary [::InstallJammer::SubstText $props(BinaryName)]
+
+    set info(FileBeingInstalled) $binary
+    set info(Status) "<%BuildFileText%>"
+
+    set opts [list -noinstall -o $binary -w [::installkit::base]]
+
+    if {$conf(windows)} {
+        lappend opts -company "InstallJammer.com"
+        lappend opts -fileversion $::tk_patchLevel.0
+        lappend opts -filedescription "Installkit WISH Shell"
+
+        if {[string length $props(WindowsIcon)]} {
+            set icon [file tail $props(WindowsIcon)]
+            file copy -force [file join $::installkit::root support $icon] \
+                [::InstallJammer::TmpDir]
+            lappend opts -icon [::InstallJammer::TmpDir $icon]
+        }
+    }
+
+    ::InstallJammer::CreateDir [file dirname $binary]
+    eval ::InstallJammer::Wrap $opts
+
+    ::InstallJammer::LogFile        $binary
+    ::InstallJammer::SetVersionInfo $binary
+    ::InstallJammer::SetPermissions $binary 00755
+}

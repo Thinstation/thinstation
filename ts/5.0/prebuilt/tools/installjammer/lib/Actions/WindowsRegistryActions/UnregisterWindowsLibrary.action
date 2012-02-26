@@ -1,0 +1,58 @@
+## $Id$
+##
+## BEGIN LICENSE BLOCK
+##
+## Copyright (C) 2002  Damon Courtney
+## 
+## This program is free software; you can redistribute it and/or
+## modify it under the terms of the GNU General Public License
+## version 2 as published by the Free Software Foundation.
+## 
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License version 2 for more details.
+## 
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the
+##     Free Software Foundation, Inc.
+##     51 Franklin Street, Fifth Floor
+##     Boston, MA  02110-1301, USA.
+##
+## END LICENSE BLOCK
+
+Action UnregisterWindowsLibrary
+
+Property CallDLLUninstall boolean "Call DLL Uninstall" "No"
+Help CallDLLUninstall "Optionally call the CallDLLUninstall function when\
+        unregistering the library."
+
+Property CallDLLUnregisterServer boolean "Call DLL Unregister Server" "Yes"
+Help CallDLLUnregisterServer "Whether or not to call the DLLUnregisterServer\
+        function when unregistering the library.  If this option is false,\
+        then Call DLL Uninstall must be true"
+
+Property LibraryFile installedfile "Library File"
+Help LibraryFile "The path to the DLL or other library to unregister"
+
+proc ::InstallJammer::actions::UnregisterWindowsLibrary { obj } {
+    global conf
+
+    if {!$conf(windows)} { return }
+
+    $obj properties props -subst 1
+
+    set cmd [list [auto_execok regsvr32] /s /u]
+
+    if {$props(CallDLLUninstall)} {
+        lappend cmd /i
+    }
+
+    if {!$props(CallDLLUnregisterServer)} {
+        lappend cmd /n
+    }
+
+    lappend cmd $props(LibraryFile)
+
+    eval exec $cmd
+}

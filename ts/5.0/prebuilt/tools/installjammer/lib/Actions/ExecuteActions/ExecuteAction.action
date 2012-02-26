@@ -1,0 +1,73 @@
+## $Id$
+##
+## BEGIN LICENSE BLOCK
+##
+## Copyright (C) 2002  Damon Courtney
+## 
+## This program is free software; you can redistribute it and/or
+## modify it under the terms of the GNU General Public License
+## version 2 as published by the Free Software Foundation.
+## 
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License version 2 for more details.
+## 
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the
+##     Free Software Foundation, Inc.
+##     51 Franklin Street, Fifth Floor
+##     Boston, MA  02110-1301, USA.
+##
+## END LICENSE BLOCK
+
+Action ExecuteAction "Execute Action"
+
+Property "Action" action "Action"
+Help Action "The ID of the action you want to execute"
+
+Property EvaluateConditions boolean "Evaluate Conditions" Yes
+Help EvaluateConditions "Whether or not to evaluate the conditions of the\
+        target action"
+
+proc ::InstallJammer::actions::ExecuteAction { obj } {
+    set id [$obj id]
+
+    $obj properties props -subst 1
+
+    if {$props(Action) eq ""} {
+        return -code error "Error in Execute Action: Action is empty"
+    }
+
+    set eval   $props(EvaluateConditions)
+    set action [::InstallJammer::ID $props(Action)]
+
+    if {![::InstallJammer::ObjExists $action]} {
+        return -code error "Error in Execute Action:\
+                Action \"$action\" does not exist"
+    }
+
+    if {![$action is action actiongroup]} {
+        return -code error "Error in Execute Action:\
+                \"$action\" is not an action or action group"
+    }
+
+    if {[$action is action]} {
+        ::InstallJammer::ExecuteActions $action -parent $id -conditions $eval
+        return
+    }
+
+    ## This is an action group.
+
+    set when "Before Action is Executed"
+    if {$eval && ![$action checkConditions $when]} {
+        debug "Skipping action group $id - [$id title] - conditions failed"
+        return
+    }
+
+    set when "Before Next Action is Executed"
+    while {1} {
+        ::InstallJammer::ExecuteActions $action -parent $id -conditions $eval
+        if {!$eval || [$action checkConditions $when]} { break }
+    }
+}

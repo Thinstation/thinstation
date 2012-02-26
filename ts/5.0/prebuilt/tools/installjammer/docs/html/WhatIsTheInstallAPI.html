@@ -1,0 +1,128 @@
+<!-- saved from url=(0014)about:internet -->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head><TITLE>What is the Install API?</TITLE><meta name="generator" content="Fast-Help"><meta name="keywords" content="What is the Install API?">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+#FHNonScroll
+{padding: 6px 6px 0px 6px; border-bottom: none; background: #D1D1D1; vertical-align: top;z-index: 2; visibility: visible; position: absolute; left: 0; top: 0; width: 100%; }
+#FHScroll
+{left: 0; top: 0px; position: absolute; margin: 0; padding: 10px; z-index: 1; background-repeat: no-repeat; background-position: bottom right; background-attachment: fixed; }
+
+
+
+
+
+/* ========== Text Styles ========== */
+hr { color: #000000}
+body, table /* Normal */
+{
+ font-size: 10pt;
+ font-family: 'Arial';
+ font-style: normal;
+ font-weight: normal;
+ color: #000000;
+ text-decoration: none;
+}
+span.rvts1
+{
+ font-family: 'Arial Unicode MS';
+}
+span.rvts2
+{
+ font-family: 'Verdana';
+ color: #000000;
+}
+span.rvts3
+{
+ font-family: 'Verdana';
+ font-weight: bold;
+ color: #000000;
+}
+span.rvts4
+{
+ font-family: 'Courier New';
+ color: #993366;
+}
+span.rvts5
+{
+ font-family: 'Verdana';
+ color: #ff0000;
+}
+a.rvts6, span.rvts6
+{
+ font-family: 'Verdana';
+ color: #0000ff;
+ text-decoration: underline;
+}
+a.rvts6:hover { color: #0000ff; }
+a.rvts7, span.rvts7
+{
+ font-family: 'Verdana';
+ color: #0000ff;
+ text-decoration: underline;
+}
+a.rvts7:hover { color: #0000ff; }
+/* ========== Para Styles ========== */
+p,ul,ol /* Left */
+{
+ text-align: left;
+ text-indent: 0px;
+ padding: 0px 0px 0px 0px;
+ margin: 0px 0px 0px 0px;
+}
+.rvps1
+{
+}
+--></style>
+<script type="text/javascript" language="JavaScript" src="FHUtilities.js"></script>
+<script type="text/JavaScript" language="JavaScript">
+<!-- If this page is displayed outside of the Website Help Frameset, then reload in the Frame set
+if (parent.location.href == self.location.href)
+{location.href = "index.html?"+extractFileNameWithoutKnownExtension(location.href);}
+//--></script>
+<script type="text/javascript" language="JavaScript" src="FHNonscroll.js"></script><script type="text/javascript" language="JavaScript" src="FHUtilities.js"></script></HEAD>
+<body bgcolor="#FFFFFF" scroll="no"><div id="FHNonScroll"><table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td width="100%" align="left">
+<font size=2 color="#000000" face="Arial">
+<div><font size=5 color="#333333" face="Verdana"><b>What is the Install API?</b></font></div>
+</font>
+</TD><td width="120" align="right" nowrap><font face="Verdana" size="2"><a href="SetPlatformProperty.html"><img src="Images/BrowseBlueLeft.png" border="0" alt="Previous Topic"></a>&nbsp;&nbsp;<a href="AddInstallInfo1.html"><img src="Images/BrowseBlueRight.png" border="0" alt="Next Topic"></a>&nbsp;</font></td></tr></table></div><div id="FHScroll">
+
+<p class=rvps1><span class=rvts2>The Install API is a set of functions that can be used in your installer to create more complex installers than is normally available through the standard actions and conditions.&nbsp; Some of the actions and conditions in InstallJammer even use pieces of the Install API to do the real work.</span></p>
+<p class=rvps1><span class=rvts2><br></span></p>
+<p class=rvps1><span class=rvts2>The Install API is loaded with procs that you can call from </span><a class=rvts6 href="ExecuteScript.html">Execute Script</a><span class=rvts2> actions or </span><a class=rvts7 href="ScriptCondition.html">Script Condition</a><span class=rvts2> conditions that give you program-level access to the inner workings of InstallJammer.</span></p>
+<p class=rvps1><span class=rvts2><br></span></p>
+<div class=rvps1><table border=0 cellpadding=1 cellspacing=2 style="border-width: 0px;">
+<tr valign=top>
+<td width=20>
+<p class=rvps1><img border="0" src="Images/detail.jpg" alt="Technical Detail" width="32" height="32"></p>
+</td>
+<td width=606>
+<p class=rvps1><span class=rvts5>It is important to know that the Install API is built on-the-fly as your installer is packaged.&nbsp; Only procs that you actually use in your installer will be included in the packaged installer.&nbsp; This really only means that you cannot make API calls from a running console unless you are already using that API somewhere in your installer since the API call would not have been built into your installer.</span></p>
+</td>
+</tr>
+</table>
+</div>
+<p class=rvps1><span class=rvts2><br></span></p>
+<p class=rvps1><span class=rvts2><br></span></p>
+<p class=rvps1><span class=rvts3>Calling an Install API proc</span></p>
+<p class=rvps1><span class=rvts2>All of the procs in the Install API are in the ::InstallAPI namespace.&nbsp; To call a proc in the Install API, simply use the fully-qualified name of the proc in your code.&nbsp; All arguments passed to an Install API proc are non-positional key-value pairs.&nbsp; That means that it doesn't matter what order you pass the arguments in since each argument is specified as a -option with a value.</span></p>
+<p class=rvps1><span class=rvts2><br></span></p>
+<p class=rvps1><span class=rvts2>For example, let's say we had an Execute Script action where we wanted to do some checking and then set a virtual text variable.&nbsp; It might look something like this:</span>
+<br><span class=rvts2><br></span></p>
+<p class=rvps1><span class=rvts4>if {![::InstallAPI::VirtualTextExists -virtualtext Foo]} {</span></p>
+<p class=rvps1><span class=rvts4>&nbsp;&nbsp;&nbsp; ::InstallAPI::SetVirtualText -virtualText Foo -value Bar</span></p>
+<p class=rvps1><span class=rvts4>}</span></p>
+<p class=rvps1><span class=rvts2><br></span></p>
+<p class=rvps1><span class=rvts2>As you can see from the example, we make two calls to procs in the ::InstallAPI namespace.&nbsp; This code uses ::InstallAPI::VirtualTextExists to check and see if the virtual text Foo exists, and if it doesn't already exist, we're going to use ::InstallAPI::SetVirtualText to set it to Bar.</span></p>
+<p class=rvps1><span class=rvts2><br></span></p>
+<p class=rvps1><span class=rvts2>The arguments -virtualtext Foo passed to ::InstallAPI::VirtualTextExists tells the call that we want to check if the virtual text variable Foo exists.&nbsp; The arguments -virtualtext Foo -value Bar tell ::InstallAPI::SetVirtualText that we want to set the virtual text variable Foo to the value Bar.</span></p>
+<p class=rvps1><span class=rvts2><br></span></p>
+<p class=rvps1><span class=rvts2><br></span></p>
+<p class=rvps1><span class=rvts3>Finding the arguments to an API call</span></p>
+<p class=rvps1><span class=rvts2>All API calls are loaded into the install builder when it loads, so you can easily go into the console (through the Help-&gt;Show Debug Console menu) and type an Install API call to see what it can do.&nbsp; To see the usage for an API call, type the name of the call and the argument -? into the console.&nbsp; Like this:</span>
+<br><span class=rvts2><br></span></p>
+<p class=rvps1><span class=rvts4>::InstallAPI::SetVirtualText -?</span></p>
+<p class=rvps1><span class=rvts2><br></span></p>
+<p class=rvps1><span class=rvts2>This will dump the usage information, including all possible arguments, for the ::InstallAPI::SetVirtualText API call.&nbsp; Of course, you can always read the documentation for each call as well, but this might be quicker for some people.</span><span class=rvts1></span></p>
+
+</div></body></html>

@@ -1,0 +1,104 @@
+## $Id$
+##
+## BEGIN LICENSE BLOCK
+##
+## Copyright (C) 2002  Damon Courtney
+## 
+## This program is free software; you can redistribute it and/or
+## modify it under the terms of the GNU General Public License
+## version 2 as published by the Free Software Foundation.
+## 
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License version 2 for more details.
+## 
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the
+##     Free Software Foundation, Inc.
+##     51 Franklin Street, Fifth Floor
+##     Boston, MA  02110-1301, USA.
+##
+## END LICENSE BLOCK
+
+Action InstallWrappedScript "Install Wrapped Script"
+
+Property BinaryName installedfile "Binary Name" "<%InstallDir%>/"
+
+Property IncludeTWAPI boolean "Include TWAPI" "No"
+Help IncludeTWAPI "If this property is true, InstallJammer will wrap the\
+        Tcl Windows API (TWAPI) extension in with the target executable\
+        on the Windows platform"
+
+Property Installkit projectfile "Installkit" ""
+Help Installkit "If this property is specified, it points to the location\
+    of an installkit binary to use as the basis for this wrapped script. \
+    The default is to use the current installer that is already running."
+
+Property TclStartupScript projectfile "Tcl Startup Script" "<%InstallDir%>/"
+
+Property WindowsIcon windowsicon "Windows Icon"
+
+Property Company shorttext "Company"
+Property FileVersion version "File Version"
+Property ProductName shorttext "Product Name"
+Property ProductVersion shorttext "Product Version"
+Property FileDescription shorttext "File Description"
+
+proc ::InstallJammer::actions::InstallWrappedScript { obj } {
+    global conf
+    global info
+
+    $obj properties props -subst 1
+
+    set binary $props(BinaryName)
+    set script $props(TclStartupScript)
+    if {![file exists $script]} { return }
+
+    set info(FileBeingInstalled) $binary
+    set info(Status) "<%BuildFileText%>"
+
+    set opts [list -noinstall -o $binary -w [::installkit::base]]
+    if {$props(Installkit) ne ""} { lappend opts -w $props(Installkit) }
+
+    if {$conf(windows)} {
+        set x {Company FileVersion ProductName ProductVersion FileDescription}
+        foreach prop $x {
+            if {[string length $props($prop)]} {
+                lappend opts -[string tolower $prop] $props($prop)
+            }
+        }
+
+        if {[string length $props(WindowsIcon)]} {
+            set icon [file tail $props(WindowsIcon)]
+            file copy -force [file join $::installkit::root support $icon] \
+                [::InstallJammer::TmpDir]
+            lappend opts -icon [::InstallJammer::TmpDir $icon]
+        }
+
+        if {$props(IncludeTWAPI)} {
+            set pkgdir [file join $::installkit::root lib twapi]
+            if {[file exists $pkgdir]} {
+                lappend opts -package $pkgdir
+
+                set tmp [::InstallJammer::TmpDir [file tail $script]]
+                set fp  [open $tmp w]
+                puts $fp {namespace eval ::starkit {}}
+                puts $fp {set ::starkit::topdir $::installkit::root}
+                puts $fp {package require twapi}
+                puts $fp ""
+                puts $fp [read_file $script]
+                close $fp
+
+                set script $tmp
+            }
+        }
+    }
+
+    ::InstallJammer::CreateDir [file dirname $binary]
+    eval ::InstallJammer::Wrap $opts [list $script]
+
+    ::InstallJammer::LogFile        $binary
+    ::InstallJammer::SetVersionInfo $binary
+    ::InstallJammer::SetPermissions $binary 00755
+}

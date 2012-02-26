@@ -1,0 +1,51 @@
+## $Id$
+##
+## BEGIN LICENSE BLOCK
+##
+## Copyright (C) 2002  Damon Courtney
+## 
+## This program is free software; you can redistribute it and/or
+## modify it under the terms of the GNU General Public License
+## version 2 as published by the Free Software Foundation.
+## 
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License version 2 for more details.
+## 
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the
+##     Free Software Foundation, Inc.
+##     51 Franklin Street, Fifth Floor
+##     Boston, MA  02110-1301, USA.
+##
+## END LICENSE BLOCK
+
+Condition PackageTestCondition
+
+Property Operator choice "Operator" "is installed" \
+  {"is installed" "is not installed"}
+Property Package  short  "Package"
+
+proc ::InstallJammer::conditions::PackageTestCondition { obj } {
+    $obj properties props -subst 1
+
+    set package $props(Package)
+
+    set rpm  [auto_execok rpm]
+    set dpkg [auto_execok dpkg]
+
+    if {$rpm ne ""} {
+        debug "Checking RPM database to see if $package $props(Operator)"
+        set result [catch { exec rpm -q $package }]
+    } elseif {$dpkg ne ""} {
+        debug "Checking DPKG database to see if $package $props(Operator)"
+        set result [catch { exec dpkg -s $package }]
+    }
+
+    if {$props(Operator) eq "is not installed"} {
+        return $result
+    } else {
+        return [expr !$result]
+    }
+}

@@ -1,0 +1,81 @@
+## $Id$
+##
+## BEGIN LICENSE BLOCK
+##
+## Copyright (C) 2002  Damon Courtney
+## 
+## This program is free software; you can redistribute it and/or
+## modify it under the terms of the GNU General Public License
+## version 2 as published by the Free Software Foundation.
+## 
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License version 2 for more details.
+## 
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the
+##     Free Software Foundation, Inc.
+##     51 Franklin Street, Fifth Floor
+##     Boston, MA  02110-1301, USA.
+##
+## END LICENSE BLOCK
+
+Action AddWindowsRegistryKey "Add Windows Registry Key"
+
+Property AddToUninstall boolean "Add to Uninstall" "Yes"
+Help AddToUninstall "Whether this new key should be added to the uninstaller"
+
+Property RootKey choice "Root Key" "HKEY_CURRENT_USER" \
+    {HKEY_CLASSES_ROOT HKEY_CURRENT_USER HKEY_LOCAL_MACHINE HKEY_USERS}
+Property Key shorttext "Key" "<%GUID%>"
+Property Name shorttext "Name"
+Property Value shorttext "Value"
+Property DataType choice "Data Type" "String" \
+    {"Binary Data" "String" "Expand String" "String Array" "Number"
+     "Big Endian Number" "Symbolic Link" "Resource List"}
+
+Property RestoreOnUninstall boolean "Restore on Uninstall" "No"
+Help RestoreOnUninstall "If this is true, the registry value will be\
+                            restored to its previous value if it already\
+                            existed during installation"
+
+proc ::InstallJammer::actions::AddWindowsRegistryKey { obj } {
+    global conf
+
+    if {!$conf(windows)} { return }
+
+    $obj properties props -subst 1
+
+    set key $props(Key)
+    if {![string match "HKEY*" $key]} { set key $props(RootKey)\\$key }
+
+    set name $props(Name)
+
+    switch -- $props(DataType) {
+	"None"		    { set type none }
+	"Binary Data"	    { set type binary }
+	"String"    	    { set type sz }
+	"Expand String"	    { set type expand_sz }
+	"String Array"	    { set type multi_sz }
+	"Number"	    { set type dword }
+	"Big Endian Number" { set type dword_big_endian }
+	"Symbolic Link"     { set type link }
+	"Resource List"     { set type resource_list }
+	default		    { set type none }
+    }
+
+    set conf(UpdateWindowsRegistry) 1
+
+    if {$props(RestoreOnUninstall) && ![catch { registry get $key }]} {
+        if {[catch { registry get $key $name } oldval]} {
+            ::InstallJammer::LogRegistry $key $name
+        } else {
+            ::InstallJammer::LogRegistry $key $name $oldval
+        }
+    } elseif {$props(AddToUninstall)} {
+        ::InstallJammer::LogRegistry $key $name
+    }
+
+    registry set $key $name $props(Value) $type
+}

@@ -1,0 +1,72 @@
+## $Id$
+##
+## BEGIN LICENSE BLOCK
+##
+## Copyright (C) 2002  Damon Courtney
+## 
+## This program is free software; you can redistribute it and/or
+## modify it under the terms of the GNU General Public License
+## version 2 as published by the Free Software Foundation.
+## 
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License version 2 for more details.
+## 
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the
+##     Free Software Foundation, Inc.
+##     51 Franklin Street, Fifth Floor
+##     Boston, MA  02110-1301, USA.
+##
+## END LICENSE BLOCK
+
+Action ConsoleAskYesOrNo
+
+Property Default choice "Default" "None" {No None Yes}
+
+Property Prompt short "Prompt"
+
+Property VirtualText short "Virtual Text" "Answer"
+
+proc ::InstallJammer::actions::ConsoleAskYesOrNo { obj } {
+    $obj properties props -subst 1
+
+    set prompt \n$props(Prompt)
+
+    if {$props(Default) eq "" || $props(Default) eq "None"} {
+        append prompt { [y/n]}
+    } elseif {$props(Default) eq "Yes"} {
+        append prompt { [n/Y]}
+    } else {
+        append prompt { [y/N]}
+    }
+
+    append prompt " "
+
+    while {1} {
+        puts -nonewline stdout [::InstallJammer::WrapText $prompt]
+        flush stdout
+
+        set ans [string trim [string tolower [gets stdin]]]
+
+        puts  stdout ""
+        flush stdout
+
+        if {$ans eq "" && $props(Default) ne "None"} {
+            set ans $props(Default)
+            break
+        }
+
+        if {$ans eq "n"} { set ans "no" }
+        if {$ans eq "y"} { set ans "yes" }
+
+        if {$ans eq "yes" || $ans eq "no"} { break }
+    }
+
+    if {$props(VirtualText) ne ""} {
+        set ::info($props(VirtualText)) $ans
+    }
+
+    return $ans
+}

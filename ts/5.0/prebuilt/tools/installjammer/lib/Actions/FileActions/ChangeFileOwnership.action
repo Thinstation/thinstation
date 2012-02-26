@@ -1,0 +1,52 @@
+## $Id$
+##
+## BEGIN LICENSE BLOCK
+##
+## Copyright (C) 2002  Damon Courtney
+## 
+## This program is free software; you can redistribute it and/or
+## modify it under the terms of the GNU General Public License
+## version 2 as published by the Free Software Foundation.
+## 
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License version 2 for more details.
+## 
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the
+##     Free Software Foundation, Inc.
+##     51 Franklin Street, Fifth Floor
+##     Boston, MA  02110-1301, USA.
+##
+## END LICENSE BLOCK
+
+Action ChangeFileOwnership
+
+Property Files short "Files"
+Help Files "A list of file patterns separated by \; (example: */*.txt\;*/*.sh)"
+
+Property Owner short "Owner"
+Help Owner "The name or user id of the owner to change to"
+
+Property Group short "Group"
+Help GrouP "The name or group id of the group to change to"
+
+proc ::InstallJammer::actions::ChangeFileOwnership { obj } {
+    global conf
+
+    ## This is a UNIX-only action.  Ignore on Windows.
+    if {$conf(windows)} { return }
+
+    $obj properties props -subst {Owner Group}
+
+    set opts [list]
+    if {[string length $props(Owner)]} { lappend opts -owner $props(Owner) }
+    if {[string length $props(Group)]} { lappend opts -group $props(Group) }
+
+    if {![llength $opts]} { return }
+
+    foreach file [::InstallJammer::GetFilesForPattern $props(Files) -type f] {
+        eval file attributes [list $file] $opts
+    }
+}

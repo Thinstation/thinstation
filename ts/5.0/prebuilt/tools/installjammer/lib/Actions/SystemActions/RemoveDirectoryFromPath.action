@@ -1,0 +1,77 @@
+## $Id$
+##
+## BEGIN LICENSE BLOCK
+##
+## Copyright (C) 2002  Damon Courtney
+## 
+## This program is free software; you can redistribute it and/or
+## modify it under the terms of the GNU General Public License
+## version 2 as published by the Free Software Foundation.
+## 
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License version 2 for more details.
+## 
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the
+##     Free Software Foundation, Inc.
+##     51 Franklin Street, Fifth Floor
+##     Boston, MA  02110-1301, USA.
+##
+## END LICENSE BLOCK
+
+Action RemoveDirectoryFromPath
+
+Property Directory installedfile "Directory"
+Help Directory "A full directory path to remove from the PATH on the\
+                target system"
+
+Property Level choice "Level" "user" {system user}
+Help Level "Whether to remove this directory from the system PATH or the PATH\
+                just for this user"
+
+Property Separator short "Separator" "<%PathSeparator%>"
+Help Separator "The path separator to use when removing from the specified path"
+
+Property Variable editchoice "Variable" "PATH" {"CLASSPATH" "PATH"}
+
+proc ::InstallJammer::actions::RemoveDirectoryFromPath { obj } {
+    global conf
+
+    ## Windows-only for now.  We'll add UNIX support later.
+    if {!$conf(windows)} { return }
+
+    $obj properties props -subst 1
+
+    set dir $props(Directory)
+    set sep $props(Separator)
+
+    if {$conf(windows)} {
+        set key   "<%REG_[string toupper $props(Level)]_ENV%>"
+        set key   [::InstallJammer::SubstText $key]
+        set path  [::installkit::Windows::GetKey $key $props(Variable)]
+        set list  [split $path $sep]
+        set lower [string tolower $list]
+
+        set indexes {}
+        foreach dir [split $props(Directory) \;] {
+            set dir [::InstallJammer::Normalize $dir windows]
+            set chk [string tolower $dir]
+
+            eval lappend indexes [lsearch -exact -all $lower $chk]
+        }
+
+        if {[llength $indexes]} {
+            foreach x [lsort -integer -decreasing $indexes] {
+                set list [lreplace $list $x $x]
+            }
+
+            set path [join $list $sep]
+
+            registry set $key $props(Variable) $path expand_sz
+
+            set conf(UpdateWindowsRegistry) 1
+        }
+    }
+}

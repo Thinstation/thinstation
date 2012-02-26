@@ -1,0 +1,130 @@
+## $Id$
+##
+## BEGIN LICENSE BLOCK
+##
+## Copyright (C) 2002  Damon Courtney
+## 
+## This program is free software; you can redistribute it and/or
+## modify it under the terms of the GNU General Public License
+## version 2 as published by the Free Software Foundation.
+## 
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License version 2 for more details.
+## 
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the
+##     Free Software Foundation, Inc.
+##     51 Franklin Street, Fifth Floor
+##     Boston, MA  02110-1301, USA.
+##
+## END LICENSE BLOCK
+
+Action AddDirectoryToPath
+
+Include AddEnvironmentVariable
+
+Property AddToUninstall boolean "Add to Uninstall" "Yes"
+Help AddToUninstall "If this is true, the directory will be removed\
+        automatically from the path during uninstallation"
+
+Property Directory installedfile "Directory"
+Help Directory "A full directory path to add to the PATH on the target system"
+
+Property Level choice "Level" "user" {system user}
+Help Level "Whether to add this directory to the system PATH or the PATH just\
+                for this user.  The user must be root on UNIX systems to\
+                add at the system level"
+
+Property Location choice "Location" "end" {beginning end}
+Help Location "Whether to add this directory to the end or the beginning of\
+                the PATH"
+
+Property NormalizePaths boolean "Normalize Paths" "Yes"
+Help NormalizePaths "Whether or not each path should be normalized before\
+                        being added to the specified path"
+
+Property Separator short "Separator" "<%PathSeparator%>"
+Help Separator "The path separator to use when adding to the specified path"
+
+Property Variable editchoice "Variable" "PATH" {"CLASSPATH" "PATH"}
+Help Variable "The environment path variable to add this directory to"
+
+proc ::InstallJammer::actions::AddDirectoryToPath { obj } {
+    global conf
+
+    $obj properties props -subst 1
+
+    set var $props(Variable)
+    set sep $props(Separator)
+
+    if {$conf(windows)} {
+        set conf(UpdateWindowsRegistry) 1
+
+        set key   "<%REG_[string toupper $props(Level)]_ENV%>"
+        set key   [::InstallJammer::SubstText $key]
+        set path  [::installkit::Windows::GetKey $key $var]
+        set list  [split $path $sep]
+        set check [split [string tolower $path] $sep]
+    } else {
+        set list  {}
+        set path  $::env(PATH)
+        set check [split $path $sep]
+    }
+
+    set added {}
+    foreach dir [split $props(Directory) \;] {
+        if {$props(NormalizePaths)} {
+            set dir [::InstallJammer::Normalize $dir platform]
+        }
+
+        set chk $dir
+        if {$conf(windows)} { set chk [string tolower $dir] }
+
+        if {[lsearch -exact $check $chk] < 0} {
+            lappend added $dir
+            lappend check $chk
+
+            if {$props(Location) eq "end"} {
+                lappend list $dir
+                if {![info exists ::env($var)]} {
+                    set ::env($var) $dir
+                } else {
+                    append ::env($var) "$sep$dir"
+                }
+            } else {
+                set list [linsert $list 0 $dir]
+                if {![info exists ::env($var)]} {
+                    set ::env($var) $dir
+                } else {
+                    set ::env($var) "$dir$sep$::env($var)"
+                }
+            }
+        }
+    }
+
+    if {[llength $added]} {
+        if {$conf(windows)} {
+            registry set $key $var [join $list $sep] expand_sz
+
+            if {$props(AddToUninstall)} {
+                ::InstallJammer::InstallLog [list :PATH $var \
+                    [join $added $sep] $props(Level) $sep]
+            }
+        } else {
+            if {$props(Location) eq "end"} {
+                $obj set Value "\$$var$sep[join $list $sep]"
+                $obj set CSHValue "`printenv $var`$sep[join $list $sep]"
+            } else {
+                $obj set Value "[join $list $sep]${sep}\$$var"
+                $obj set CSHValue "[join $list $sep]${sep}`printenv $var`"
+            }
+
+            set save $::env($var)
+            ::InstallJammer::actions::AddEnvironmentVariable $obj
+            set ::env($var) $save
+
+        }
+    }
+}

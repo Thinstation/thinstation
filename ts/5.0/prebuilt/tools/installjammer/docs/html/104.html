@@ -1,0 +1,116 @@
+<!-- saved from url=(0014)about:internet -->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head><TITLE>1.0.4</TITLE><meta name="generator" content="Fast-Help"><meta name="keywords" content="1.0.4">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+#FHNonScroll
+{padding: 6px 6px 0px 6px; border-bottom: none; background: #D1D1D1; vertical-align: top;z-index: 2; visibility: visible; position: absolute; left: 0; top: 0; width: 100%; }
+#FHScroll
+{left: 0; top: 0px; position: absolute; margin: 0; padding: 10px; z-index: 1; background-repeat: no-repeat; background-position: bottom right; background-attachment: fixed; }
+
+
+
+
+
+/* ========== Text Styles ========== */
+hr { color: #000000}
+body, table /* Normal */
+{
+ font-size: 10pt;
+ font-family: 'Arial';
+ font-style: normal;
+ font-weight: normal;
+ color: #000000;
+ text-decoration: none;
+}
+span.rvts1
+{
+ font-family: 'Arial Unicode MS';
+}
+span.rvts2
+{
+ font-family: 'Verdana';
+ color: #000000;
+}
+span.rvts3
+{
+ font-family: 'Verdana';
+ font-weight: bold;
+ color: #000000;
+}
+a.rvts4, span.rvts4
+{
+ font-family: 'Verdana';
+ font-weight: bold;
+ color: #0000ff;
+ text-decoration: underline;
+}
+a.rvts4:hover { color: #0000ff; }
+/* ========== Para Styles ========== */
+p,ul,ol /* Left */
+{
+ text-align: left;
+ text-indent: 0px;
+ padding: 0px 0px 0px 0px;
+ margin: 0px 0px 0px 0px;
+}
+.rvps1
+{
+}
+--></style>
+<script type="text/javascript" language="JavaScript" src="FHUtilities.js"></script>
+<script type="text/JavaScript" language="JavaScript">
+<!-- If this page is displayed outside of the Website Help Frameset, then reload in the Frame set
+if (parent.location.href == self.location.href)
+{location.href = "index.html?"+extractFileNameWithoutKnownExtension(location.href);}
+//--></script>
+<script type="text/javascript" language="JavaScript" src="FHNonscroll.js"></script><script type="text/javascript" language="JavaScript" src="FHUtilities.js"></script></HEAD>
+<body bgcolor="#FFFFFF" scroll="no"><div id="FHNonScroll"><table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td width="100%" align="left">
+<font size=2 color="#000000" face="Arial">
+<div><font size=5 color="#333333" face="Verdana"><b>1.0.4</b></font></div>
+</font>
+</TD><td width="120" align="right" nowrap><font face="Verdana" size="2"><a href="11b1.html"><img src="Images/BrowseBlueLeft.png" border="0" alt="Previous Topic"></a>&nbsp;&nbsp;<a href="103.html"><img src="Images/BrowseBlueRight.png" border="0" alt="Next Topic"></a>&nbsp;</font></td></tr></table></div><div id="FHScroll">
+
+<p class=rvps1><span class=rvts3>1.0.4 (October 25th, 2006)</span></p>
+<p class=rvps1><span class=rvts2><br></span></p>
+<p class=rvps1><span class=rvts2>This release fixes quite a few bugs that have been reported by users (thank you all!), and it adds some new actions and a lot of debugging changes.&nbsp; This release could be called the debug release for all the changes that have gone in to support debugging.&nbsp; This should make it a lot easier for developers and testers alike to track down problems in an installer.&nbsp; The debug output should be very thorough now, but I always like suggestions.&nbsp; If there's something missing, don't hesitate to ask.</span></p>
+<p class=rvps1><span class=rvts2><br></span></p>
+<p class=rvps1><span class=rvts3><br></span></p>
+<p class=rvps1><span class=rvts3>Bugs</span></p>
+<ul style="text-indent: 0px; margin-left: 24px; list-style-position: outside;">
+<li class=rvps1><span class=rvts3>*** POTENTIAL INCOMPATIBILITY ***</span><span class=rvts2>&nbsp; Fixed a bug where mismatched []'s in virtual text could cause an error when substituting the text.&nbsp; This was causing installation errors on Japanese systems where the characters were being interpreted as [ in directory paths.&nbsp; This is potentially incompatible if you are using [] inside of virtual text to substitute Tcl commands.&nbsp; </span><span class=rvts3>*NOTE</span><span class=rvts2>: This does not affect Script actions and conditions like Execute Script and Script Condition where the scripts are properly substituted and eval'd as Tcl commands. [</span><span class=rvts3>Bug #1578013</span><span class=rvts2>]</span></li>
+<li class=rvps1><span class=rvts2>Fixed a bug in the installjammer script that would cause startup to fail on 64 bit systems because the MACH was not recognized.</span></li>
+<li class=rvps1><span class=rvts2>Fixed a bug where extra \'s on a registry key would cause a lookup failure.&nbsp; We now strip any extra \'s from the key before looking in the registry.</span></li>
+<li class=rvps1><span class=rvts2>Fixed a bug where Launch Web Browser would fail on error.&nbsp; Now, if we're running under KDE or Gnome, the action will attempt to use the default method for launching a URL under those environments.&nbsp; If that fails, or if we're using a different window manager, the action will attempt to find a suitable browser based on environment and known browsers.</span></li>
+<li class=rvps1><span class=rvts2>Fixed a bug in the Add Widget action that would cause errors if a radiobutton was added with values that looked like booleans.&nbsp; The Value property is now converted to 0 or 1 if it looks like a boolean before creating the radiobuttons. [</span><span class=rvts3>Bug #1583094</span><span class=rvts2>]</span></li>
+<li class=rvps1><span class=rvts2>Fixed a bug in the Choose Directory dialog where clicking the X on the window would cause an error. [</span><span class=rvts3>Bug #1565652</span><span class=rvts2>]</span></li>
+<li class=rvps1><span class=rvts2>Fixed a bug in the Choose Directory dialog where choosing a root-level directory (like C:/) would not work. [</span><span class=rvts3>Bug #1565665</span><span class=rvts2>]</span></li>
+<li class=rvps1><span class=rvts2>Fixed a bug in Windows shortcut creation where long paths could not be used and would end up looking like a path with some junk characters at the end. [</span><span class=rvts3>Bug #1565654</span><span class=rvts2>]</span></li>
+<li class=rvps1><span class=rvts2>Fixed a bug where a user could accidentally delete an entire Company directory on Windows without knowing it.&nbsp; Now, we check to see if the directory looks like our &lt;%Company%&gt;, and if it does, we don't delete unless it's totally empty. [</span><span class=rvts3>Bug #1575801</span><span class=rvts2>]</span></li>
+<li class=rvps1><span class=rvts2>Fixed a bug where installing the Windows uninstall registry entry could fail if we don't have permission to write to HKEY_LOCAL_MACHINE.&nbsp; If it fails, we'll try and write to the HKEY_CURRENT_USER uninstall registry instead. [</span><span class=rvts3>Bug #1578278</span><span class=rvts2>]</span></li>
+</ul>
+<p class=rvps1><span class=rvts2><br></span></p>
+<p class=rvps1><span class=rvts2><br></span></p>
+<p class=rvps1><span class=rvts3>Enhancements</span></p>
+<ul style="text-indent: 0px; margin-left: 24px; list-style-position: outside;">
+<li class=rvps1><span class=rvts2>Added a lot of new debugging output throughout installation.&nbsp; This will provide more information when running in debug mode.</span></li>
+<li class=rvps1><span class=rvts2>Added new variable to specify that debug output should go to the console.&nbsp; When running in debug mode, this will mimic what goes out to the debug log.&nbsp; If not in debug mode, you will still see the debug output but with no debug log.</span></li>
+<li class=rvps1><span class=rvts2>&nbsp;&nbsp;&nbsp; With an open console, type: </span><span class=rvts3>set ::debug 1</span><span class=rvts2> upon startup.</span></li>
+<li class=rvps1><span class=rvts2>When debugging, any comment on an object is output along with the regular debug output.&nbsp; This allows developers to comment an object for other developers to see when running in debug mode.</span></li>
+<li class=rvps1><span class=rvts2>Added </span><span class=rvts3>new Brazilian Portugese translations</span><span class=rvts2> (thanks to Alan Carvalho de Assis!)</span></li>
+<li class=rvps1><span class=rvts2>Added </span><span class=rvts3>new </span><a class=rvts4 href="LogDebugMessage.html">Log Debug Message</a><span class=rvts3> </span><span class=rvts2>action.</span></li>
+<li class=rvps1><span class=rvts2>Added </span><span class=rvts3>new </span><a class=rvts4 href="ModifyObject.html">Modify Object</a><span class=rvts3> </span><span class=rvts2>action.</span></li>
+<li class=rvps1><span class=rvts2>Added </span><span class=rvts3>new </span><a class=rvts4 href="AddDirectoryToPath.html">Add Directory to Path</a><span class=rvts3> </span><span class=rvts2>action.</span></li>
+<li class=rvps1><span class=rvts2>Added </span><span class=rvts3>new </span><a class=rvts4 href="RemoveDirectoryFromPath.html">Remove Directory from Path</a><span class=rvts2> action.</span></li>
+<li class=rvps1><span class=rvts2>Added </span><span class=rvts3>new </span><a class=rvts4 href="AddPaneToOrder.html">Add Pane to Order</a><span class=rvts2> action.</span></li>
+<li class=rvps1><span class=rvts2>Added </span><span class=rvts3>new </span><a class=rvts4 href="RemovePaneFromOrder.html">Remove Pane from Order</a><span class=rvts2> action.</span></li>
+<li class=rvps1><span class=rvts2>Added </span><span class=rvts3>new Window State property</span><span class=rvts2> for </span><a class=rvts4 href="InstallWindowsShortcut.html">Install Windows Shortcut</a><span class=rvts2> action.</span></li>
+<li class=rvps1><span class=rvts2>Added </span><span class=rvts3>new Add to Uninstall</span><span class=rvts2> </span><span class=rvts3>property</span><span class=rvts2> for </span><a class=rvts4 href="UnpackStoredFile.html">Unpack Stored File</a><span class=rvts2> action.</span></li>
+<li class=rvps1><span class=rvts2>Added </span><span class=rvts3>new Add to Uninstall</span><span class=rvts2> </span><span class=rvts3>property</span><span class=rvts2> for </span><a class=rvts4 href="AddWindowsRegistryKey.html">Add Windows Registry Key</a><span class=rvts2> action.</span></li>
+<li class=rvps1><span class=rvts2>The </span><a class=rvts4 href="MoveToPane.html">Move to Pane</a><span class=rvts2> action now appends the specified pane to the back order of the wizard.</span></li>
+<li class=rvps1><span class=rvts2>Added entry widget as a possible type for </span><a class=rvts4 href="AddWidget.html">Add Widget</a><span class=rvts2> actions.</span></li>
+<li class=rvps1><span class=rvts2>Panes marked as inactive will be skipped.</span></li>
+<li class=rvps1><span class=rvts2>Files marked as inactive will be skipped when building the list of files to install.</span><span class=rvts1></span></li>
+</ul>
+
+</div></body></html>

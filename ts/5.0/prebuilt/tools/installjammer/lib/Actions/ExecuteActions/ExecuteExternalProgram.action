@@ -1,0 +1,371 @@
+## $Id$
+##
+## BEGIN LICENSE BLOCK
+##
+## Copyright (C) 2002  Damon Courtney
+## 
+## This program is free software; you can redistribute it and/or
+## modify it under the terms of the GNU General Public License
+## version 2 as published by the Free Software Foundation.
+## 
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License version 2 for more details.
+## 
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the
+##     Free Software Foundation, Inc.
+##     51 Franklin Street, Fifth Floor
+##     Boston, MA  02110-1301, USA.
+##
+## END LICENSE BLOCK
+
+Action ExecuteExternalProgram "Execute External Program"
+
+Property ExecuteAsRoot boolean "Execute as Root" "No"
+Help ExecuteAsRoot "If true, this program will be executed as the root user\
+                        if the user is not already root (UNIX only)"
+
+Property ClearProgressiveWidget boolean "Clear Progressive Widget" "Yes"
+Help ClearProgressiveWidget "If this property is true, the progressive\
+	widget when showing progressive output will be cleared before the\
+	external program is executed"
+
+Property ConsoleTitle short "Console Title" "<%AppName%> Setup"
+Help ConsoleTitle "If not null, specifies the title to use for the console\
+                        when Execute In Console is true"
+
+Property ExecuteInConsole boolean "Execute In Console" "No"
+Help ExecuteInConsole "Whether or not this program should be executed in\
+                        a console window"
+
+Property IncludeStderr boolean "Include Stderr" "No"
+Help IncludeStderr "Whether output from the stderr channel should be included\
+                        along with stdout"
+
+Property ProgramCommandLine text "Program Command Line"
+Help ProgramCommandLine "The actual command and arguments to be executed"
+
+Property ProgressiveOutputWidget widget "Progressive Output Widget" ""
+Help ProgressiveOutputWidget "A text box widget on the pane to update with\
+        the progressive output of the external command"
+
+Property ResultVirtualText short "Result Virtual Text" "ExternalProgramResult"
+Help ResultVirtualText "A virtual text variable to hold the result output\
+        from the external program"
+
+Property ShowProgressiveOutput boolean "Show Progressive Output" "No"
+Help ShowProgressiveOutput "Output will update progressively instead of all\
+        at once when the command finishes"
+
+Property StatusVirtualText short "Status Virtual Text" "ExternalProgramStatus"
+Help StatusVirtualText "A virtual text variable to hold the exit code from\
+        the external program"
+
+Property WatchProgressiveOutput boolean "Watch Progressive Output" "No"
+Help WatchProgressiveOutput "If Show Progressive Output is true, this property\
+        tells InstallJammer to watch the output for special text to signal\
+        changes in InstallJammer's virtual text"
+
+Property WatchRegularExpression short "Watch Regular Expression" \
+    {^:([^ ]+) (.*):$}
+Help WatchRegularExpression "This defines the regular expression that\
+        InstallJammer uses to find special meaning when watching progressive\
+        output.\nThe regular expression must have two sub matches.  The first\
+        for the virtual text variable and the second for the value.\nIf less\
+        than two sub matches are found, the Watch Virtual Text variable will\
+        be used to hold the matching data"
+
+Property WatchVirtualText short "Watch Virtual Text" "Status"
+Help WatchVirtualText "If the Watch Regular Expression only matches a single\
+        sub match or an entire line of text, the Watch Virtual Text variable\
+        will be used to hold the match"
+
+Property WaitForProgram boolean "Wait for Program to Finish Running" "Yes"
+Help WaitForProgram "Whether or not to proceed with the rest of the install\
+        or wait for the external program to finish"
+
+Property WorkingDirectory installedfile "Working Directory"
+Help WorkingDirectory "If not null, the install will change to this directory\
+                        before executing the command line"
+
+
+proc ::InstallJammer::actions::ExecuteExternalProgram { obj } {
+    global conf
+    global info
+
+    set id [$obj id]
+
+    $obj properties props -subst {ConsoleTitle}
+
+    set resultVarName [::InstallJammer::SubstText $props(ResultVirtualText)]
+    set statusVarName [::InstallJammer::SubstText $props(StatusVirtualText)]
+
+    set resultVar ::conf(ExternalResult)
+    if {[string length $resultVarName]} { set resultVar ::info($resultVarName) }
+
+    set statusVar ::conf(ExternalStatus)
+    if {[string length $statusVarName]} { set statusVar ::info($statusVarName) }
+
+    set $statusVar 0
+    set $resultVar ""
+
+    ::InstallJammer::UpdateWidgets -update 1
+
+    set workdir [::InstallJammer::SubstText $props(WorkingDirectory)]
+    if {$workdir ne "" && [file exists $workdir]} {
+        debug "Changing to working directory $workdir"
+        set pwd [pwd]
+        cd $workdir
+    }
+
+    set cmdline $props(ProgramCommandLine)
+
+    if {$props(ShowProgressiveOutput)} {
+        debug "Executing with progressive output"
+
+        set proc   ::ReadOutput${id}
+        set watch  $props(WatchProgressiveOutput)
+        set widget $props(ProgressiveOutputWidget)
+        set widget [::InstallAPI::GetWidgetPath -widget $widget]
+
+        if {!$info(GuiMode) || ![winfo exists $widget]
+            || [winfo class $widget] ne "Text"} {
+            set widget ""
+        } else {
+            ## We have a valid text widget.  Blank its contents to start.
+            if {$props(ClearProgressiveWidget)} { $widget delete 1.0 end }
+
+            ## This is kind of lame, but we need to attach something
+            ## to this widget to tell the updater not to overwrite
+            ## its data.  We're going to use the -maxundo option of
+            ## the text widget since we'll never use it otherwise.
+            $widget configure -maxundo 1
+        }
+
+        if {$watch} {
+            debug "Watching progressive output for special syntax."
+        }
+
+        proc ::CloseProgressive { fp statusVar resultVar } {
+            unset -nocomplain ::conf(update)
+            fconfigure $fp -blocking 1
+            if {[catch { close $fp } error]} {
+                if {[lindex $::errorCode 0] eq "CHILDSTATUS"} {
+                    set $statusVar [lindex $::errorCode 2]
+                } else {
+                    set $statusVar 1
+                }
+
+                set $resultVar $error
+            } else {
+                set $statusVar 0
+            }
+        }
+
+        proc $proc { fp statusVar resultVar widget watch } {
+            set ::conf(update) 0
+            if {[llength $watch]} {
+                gets $fp data
+
+                if {[fblocked $fp]} { return }
+
+                if {$::conf(windows)} {
+                    set data [string map [list \r ""] $data]
+                }
+
+                if {[eof $fp]} {
+                    CloseProgressive $fp $statusVar $resultVar
+                    return
+                }
+
+                lassign $watch pattern var
+                set matches [regexp -inline -- $pattern $data]
+                set len [llength $matches]
+                if {$len == 1 || $len == 2} {
+                    set val [lindex $matches end]
+                } elseif {$len == 3} {
+                    set var [lindex $matches 1]
+                    set val [lindex $matches 2]
+                }
+
+                if {$len && $var ne ""} {
+                    ## This is status text output from the program.
+                    set ::info($var) [::InstallJammer::SubstText $val]
+                    ::InstallJammer::UpdateWidgets
+                    return
+                }
+
+                append data \n
+            } else {
+                set data [read $fp]
+
+                if {$::conf(windows)} {
+                    set data [string map [list \r ""] $data]
+                }
+
+                if {[eof $fp]} {
+                    CloseProgressive $fp $statusVar $resultVar
+                    return
+                }
+            }
+
+	    set data [::InstallJammer::SubstText $data]
+
+            append $resultVar $data
+
+            if {$::info(ConsoleMode)} {
+                puts -nonewline stdout $data
+                flush stdout
+            } elseif {$widget ne ""} {
+                set auto [expr {[lindex [$widget yview] 1] == 1}]
+
+                $widget configure -state normal
+                $widget insert end $data
+                $widget configure -state disabled
+
+                ## If the user is all the way at the bottom of the text,
+                ## we want to keep auto-scrolling to the bottom. 
+                if {$auto} { $widget yview moveto 1.0 }
+
+                update idletasks
+            }
+        }
+
+        set cmd [::InstallJammer::SubstForPipe $cmdline]
+
+        if {$props(IncludeStderr)} { lappend cmd "2>@1" }
+
+        debug "Executing Command Line: $cmd"
+
+        if {[catch { open "|$cmd" } fp]} {
+            set $statusVar 1
+            set $resultVar $fp
+            if {[lindex $::errorCode 0] eq "CHILDSTATUS"} {
+                set $statusVar [lindex $::errorCode 2]
+            }
+
+            return -code error [set $resultVar]
+        } else {
+            if {$watch} {
+                debug "Watching progressive output for matches"
+                set watch [list $props(WatchRegularExpression) \
+                                $props(WatchVirtualText)]
+            } else {
+                set watch ""
+            }
+
+            fconfigure $fp -buffering none -blocking 0 -translation lf
+            fileevent $fp readable \
+                [list $proc $fp $statusVar $resultVar $widget $watch]
+
+            if {$props(WaitForProgram)} { vwait $statusVar }
+        }
+    } else {
+        set cmd [::InstallJammer::SubstForPipe $cmdline]
+
+        if {$props(ExecuteInConsole)} {
+            debug "Executing in console"
+
+            if {$conf(windows)} {
+                set cmd [linsert $cmd 0 $::env(COMSPEC) /c]
+            } else {
+                set title Console
+                if {$props(ConsoleTitle) ne ""} {
+                    set title $props(ConsoleTitle)
+                }
+
+                set konsole   0
+                set gnometerm 0
+                set desktop   [::InstallJammer::GetDesktopEnvironment]
+
+                if {$desktop eq "KDE" && [auto_execok konsole] ne ""} {
+                    set konsole 1
+                    set term konsole
+                } elseif {$desktop eq "Gnome"
+                    && [auto_execok gnome-terminal] ne ""} {
+                    set gnometerm 1
+                    set term gnome-terminal
+                } elseif {[info exists ::env(COLORTERM)]} {
+                    set term $::env(COLORTERM)
+                } elseif {[info exists ::env(TERM)]} {
+                    set term $::env(TERM)
+                } else {
+                    set term xterm
+                }
+
+                if {[auto_execok $term] eq ""} {
+                    return -code error "Execute External Program failled:\
+                                        Cannot execute program in console\
+                                        because a suitable terminal program\
+                                        could not be found."
+                }
+
+                set cmd [join $cmd]
+                set tmpfile [::InstallJammer::TmpFile].sh
+                set fp [open $tmpfile w 00755]
+                puts $fp "#!/bin/sh"
+                puts $fp $cmd
+                close $fp
+
+                if {$props(ExecuteAsRoot) && !$info(UserIsRoot)} {
+                    set sutmpfile [::InstallJammer::TmpFile].sh
+                    set fp [open $sutmpfile w 00755]
+                    puts $fp "#!/bin/sh"
+                    puts $fp "echo [sub "<%PromptForRootText%>"]"
+                    puts $fp "su -c '$tmpfile'"
+                    close $fp
+                    set tmpfile $sutmpfile
+                }
+                set cmd $tmpfile
+
+                if {$gnometerm} {
+                    set cmd [list $term -t $title -e $cmd]
+                } else {
+                    set cmd [list $term -e $cmd]
+                }
+            }
+
+            if {!$props(WaitForProgram)} { lappend cmd & }
+
+            debug "Executing Command Line: $cmd"
+
+            if {[catch { eval exec $cmd } $resultVar]} {
+                debug "Error while executing: [set $resultVar]"
+
+                set $statusVar 1
+                if {[lindex $::errorCode 0] eq "CHILDSTATUS"} {
+                    set $statusVar [lindex $::errorCode 2]
+                }
+            }
+        } elseif {$props(ExecuteAsRoot) && !$info(UserIsRoot)
+                    && !$conf(windows)} {
+            debug "Executing as root"
+            set cmd [::InstallJammer::SubstForPipe $cmdline]
+
+            if {$props(IncludeStderr)} { lappend cmd "2>@1" }
+
+            debug "Executing Command Line: $cmd"
+            ::InstallJammer::ExecAsRoot $cmd -wait $props(WaitForProgram)
+        } else {
+            if {$props(IncludeStderr)} { lappend cmd "2>@1" }
+
+            if {!$props(WaitForProgram)} { lappend cmd & }
+
+            debug "Executing Command Line: $cmd"
+            if {[catch { eval exec $cmd } $resultVar]} {
+                debug "Error while executing: [set $resultVar]"
+
+                set $statusVar 1
+                if {[lindex $::errorCode 0] eq "CHILDSTATUS"} {
+                    set $statusVar [lindex $::errorCode 2]
+                }
+            }
+        }
+    }
+
+    ::InstallJammer::UpdateWidgets -updateidletasks 1
+
+    if {[info exists pwd]} { cd $pwd }
+}

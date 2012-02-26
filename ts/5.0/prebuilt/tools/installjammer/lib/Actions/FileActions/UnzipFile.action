@@ -1,0 +1,130 @@
+## $Id$
+##
+## BEGIN LICENSE BLOCK
+##
+## Copyright (C) 2002  Damon Courtney
+## 
+## This program is free software; you can redistribute it and/or
+## modify it under the terms of the GNU General Public License
+## version 2 as published by the Free Software Foundation.
+## 
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License version 2 for more details.
+## 
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the
+##     Free Software Foundation, Inc.
+##     51 Franklin Street, Fifth Floor
+##     Boston, MA  02110-1301, USA.
+##
+## END LICENSE BLOCK
+
+Action UnzipFile
+
+Property AddToUninstall boolean "Add to Uninstall" "Yes"
+Help AddToUninstall "Added files and directories created to the uninstaller"
+
+Property Destination installedfile "Destination"
+Help FileName "The name of the destination directory on the target system"
+
+Property ProgressVirtualText short "Progress Virtual Text" \
+                                        "InstallPercentComplete"
+Help ProgressVirtualText "The name of a virtual text variable to track the\
+                                progress while unzipping."
+
+Property StatusVirtualText short "Status Virtual Text" ""
+Help StatusVirtualText "The name of a virtual text variable to update with\
+                        the status while unzipping."
+
+Property ZipFile installedfile "Zip File"
+Help FileName "The name of the zip file to unzip on the target system"
+
+Text StatusText
+
+proc ::InstallJammer::actions::UnzipFile { obj } {
+    global info
+
+    $obj properties props -subst 1
+
+    set zip [::InstallJammer::RelativeFile $props(ZipFile)]
+    set dst [::InstallJammer::RelativeFile $props(Destination)]
+
+    set mnt [::InstallJammer::TmpMount]
+    set map [list $mnt/ ""]
+
+    zvfs::mount $zip $mnt
+
+    set count    0
+    set lastpct  0
+    set status   [string length $props(StatusVirtualText)]
+    set progress [string length $props(ProgressVirtualText)]
+
+    set virtualtext {}
+    if {$status} { lappend virtualtext $props(StatusVirtualText) }
+    if {$progress} { lappend virtualtext $props(ProgressVirtualText) }
+
+    set info(Status) "<%UnpackingFilesText%>"
+    if {$status} {
+        set info($props(StatusVirtualText)) "<%UnpackingFilesText%>"
+    }
+    
+    if {$progress} {
+        set info($props(ProgressVirtualText)) 0
+    }
+
+    ::InstallJammer::UpdateWidgets -updateidletasks 1
+
+    set files [recursive_glob $mnt *]
+    set total [llength $files]
+
+    if {$status} {
+        set info($props(StatusVirtualText)) \
+            [::InstallJammer::GetText [$obj id] StatusText -subst 0]
+    }
+
+    ::InstallAPI::SetUpdateWidgets -widgets \
+        [::InstallJammer::FindUpdateWidgets $virtualtext]
+    
+    foreach file $files {
+        set update 0
+
+        set new [file join $dst [string map $map $file]]
+        set dir [file dirname $new]
+        if {![file exists $dir]} {
+            if {$props(AddToUninstall)} {
+                ::InstallJammer::CreateDir $dir
+            } else {
+                file mkdir $dir
+            }
+        }
+
+        if {$status} {
+            set update 1
+            set info(FileBeingInstalled) $new
+        }
+
+        if {$progress} {
+            set pct [expr {([incr count] * 100) / $total}]
+            if {$pct != $lastpct} {
+                set update  1
+                set lastpct $pct
+                set info($props(ProgressVirtualText)) $pct
+            }
+        }
+
+        if {$update} {
+            ::InstallJammer::UpdateSelectedWidgets
+            update
+        }
+
+        file copy -force $file $new
+
+        if {$props(AddToUninstall)} { ::InstallJammer::LogFile $new }
+    }
+
+    zvfs::unmount $mnt
+
+    ::InstallAPI::SetUpdateWidgets -widgets {}
+}

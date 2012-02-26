@@ -1,0 +1,350 @@
+#!/bin/sh
+#---------------------------------------------
+#   xdg-open
+#
+#   Utility script to open a URL in the registered default application.
+#
+#   Refer to the usage() function below for usage.
+#
+#   Copyright 2006, Kevin Krammer <kevin.krammer@gmx.at>
+#   Copyright 2006, Jeremy White <jwhite@codeweavers.com>
+#
+#   LICENSE:
+#
+#   Permission is hereby granted, free of charge, to any person obtaining a
+#   copy of this software and associated documentation files (the "Software"),
+#   to deal in the Software without restriction, including without limitation
+#   the rights to use, copy, modify, merge, publish, distribute, sublicense,
+#   and/or sell copies of the Software, and to permit persons to whom the
+#   Software is furnished to do so, subject to the following conditions:
+#
+#   The above copyright notice and this permission notice shall be included
+#   in all copies or substantial portions of the Software.
+#
+#   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+#   OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+#   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+#   THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+#   OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+#   ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+#   OTHER DEALINGS IN THE SOFTWARE.
+#
+#---------------------------------------------
+
+#@xdg-utils-common@
+
+#----------------------------------------------------------------------------
+#   Common utility functions included in all XDG wrapper scripts
+#----------------------------------------------------------------------------
+
+DEBUG()
+{
+  [ -z "${XDG_UTILS_DEBUG_LEVEL}" ] && return 0;
+  [ ${XDG_UTILS_DEBUG_LEVEL} -lt $1 ] && return 0;
+  shift
+  echo "$@" >&2
+}
+
+#-------------------------------------------------------------
+# Exit script on successfully completing the desired operation
+
+exit_success()
+{
+    if [ $# -gt 0 ]; then
+        echo "$@"
+        echo
+    fi
+
+    exit 0
+}
+
+
+#-----------------------------------------
+# Exit script on malformed arguments, not enough arguments
+# or missing required option.
+# prints usage information
+
+exit_failure_syntax()
+{
+    if [ $# -gt 0 ]; then
+        echo "xdg-open: $@" >&2
+        echo "Try 'xdg-open --help' for more information." >&2
+    else
+        echo "Use 'man xdg-open' or 'xdg-open --manual' for additional info."
+    fi
+
+    exit 1
+}
+
+#-------------------------------------------------------------
+# Exit script on missing file specified on command line
+
+exit_failure_file_missing()
+{
+    if [ $# -gt 0 ]; then
+        echo "xdg-open: $@" >&2
+    fi
+
+    exit 2
+}
+
+#-------------------------------------------------------------
+# Exit script on failure to locate necessary tool applications
+
+exit_failure_operation_impossible()
+{
+    if [ $# -gt 0 ]; then
+        echo "xdg-open: $@" >&2
+    fi
+
+    exit 3
+}
+
+#-------------------------------------------------------------
+# Exit script on failure returned by a tool application
+
+exit_failure_operation_failed()
+{
+    if [ $# -gt 0 ]; then
+        echo "xdg-open: $@" >&2
+    fi
+
+    exit 4
+}
+
+#------------------------------------------------------------
+# Exit script on insufficient permission to read a specified file
+
+exit_failure_file_permission_read()
+{
+    if [ $# -gt 0 ]; then
+        echo "xdg-open: $@" >&2
+    fi
+
+    exit 5
+}
+
+#------------------------------------------------------------
+# Exit script on insufficient permission to read a specified file
+
+exit_failure_file_permission_write()
+{
+    if [ $# -gt 0 ]; then
+        echo "xdg-open: $@" >&2
+    fi
+
+    exit 6
+}
+
+check_input_file()
+{
+    if [ ! -e "$1" ]; then
+        exit_failure_file_missing "file '$1' does not exist"
+    fi
+    if [ ! -r "$1" ]; then
+        exit_failure_file_permission_read "no permission to read file '$1'"
+    fi
+}
+
+check_vendor_prefix()
+{
+    file_label="$2"
+    [ -n "$file_label" ] || file_label="filename"
+    file=`basename "$1"`
+    case "$file" in
+       [a-zA-Z]*-*)
+         return
+         ;;
+    esac
+
+    echo "xdg-open: $file_label '$file' does not have a proper vendor prefix" >&2
+    echo 'A vendor prefix consists of alpha characters ([a-zA-Z]) and is terminated' >&2
+    echo 'with a dash ("-"). An example '"$file_label"' is '"'example-$file'" >&2
+    echo "Use --novendor to override or 'xdg-open --manual' for additional info." >&2
+    exit 1
+}
+
+check_output_file()
+{
+    # if the file exists, check if it is writeable
+    # if it does not exists, check if we are allowed to write on the directory
+    if [ -e "$1" ]; then
+        if [ ! -w "$1" ]; then
+            exit_failure_file_permission_write "no permission to write to file '$1'"
+        fi
+    else
+        DIR=`dirname "$1"`
+        if [ ! -w "$DIR" -o ! -x "$DIR" ]; then
+            exit_failure_file_permission_write "no permission to create file '$1'"
+        fi
+    fi
+}
+
+#----------------------------------------
+# Checks for shared commands, e.g. --help
+
+check_common_commands()
+{
+    while [ $# -gt 0 ] ; do
+        parm="$1"
+        shift
+
+        case "$parm" in
+            --version)
+            echo "xdg-open 1.0.1"
+            exit_success
+            ;;
+        esac
+    done
+}
+
+check_common_commands "$@"
+
+[ -z "${XDG_UTILS_DEBUG_LEVEL}" ] && unset XDG_UTILS_DEBUG_LEVEL;
+if [ ${XDG_UTILS_DEBUG_LEVEL-0} -lt 1 ]; then
+    # Be silent
+    xdg_redirect_output=" > /dev/null 2> /dev/null"
+else
+    # All output to stderr
+    xdg_redirect_output=" >&2"
+fi
+
+#--------------------------------------
+# Checks for known desktop environments
+# set variable DE to the desktop environments name, lowercase
+
+detectDE()
+{
+    if [ x"$KDE_FULL_SESSION" = x"true" ]; then DE=kde;
+    elif [ x"$GNOME_DESKTOP_SESSION_ID" != x"" ]; then DE=gnome;
+    elif xprop -root _DT_SAVE_MODE | grep ' = \"xfce4\"$' >/dev/null 2>&1; then DE=xfce;
+    fi
+}
+
+#----------------------------------------------------------------------------
+# kfmclient exec/openURL can give bogus exit value in KDE <= 3.5.4
+# It also always returns 1 in KDE 3.4 and earlier
+# Simply return 0 in such case
+
+kfmclient_fix_exit_code()
+{
+    version=`kde-config --version 2>/dev/null | grep KDE`
+    major=`echo $version | sed 's/KDE: \([0-9]\).*/\1/'`
+    minor=`echo $version | sed 's/KDE: [0-9]*\.\([0-9]\).*/\1/'`
+    release=`echo $version | sed 's/KDE: [0-9]*\.[0-9]*\.\([0-9]\).*/\1/'`
+    test "$major" -gt 3 && return $1
+    test "$minor" -gt 5 && return $1
+    test "$release" -gt 4 && return $1
+    return 0
+}
+
+open_kde()
+{
+    kfmclient exec "$1"
+    kfmclient_fix_exit_code $?
+
+    if [ $? -eq 0 ]; then
+        exit_success
+    else
+        exit_failure_operation_failed
+    fi
+}
+
+open_gnome()
+{
+    gnome-open "$1"
+
+    if [ $? -eq 0 ]; then
+        exit_success
+    else
+        exit_failure_operation_failed
+    fi
+}
+
+open_xfce()
+{
+    exo-open "$1"
+
+    if [ $? -eq 0 ]; then
+        exit_success
+    else
+        exit_failure_operation_failed
+    fi
+}
+
+open_generic()
+{
+    IFS=":"
+    for browser in $BROWSER; do
+        if [ x"$browser" != x"" ]; then
+
+            browser_with_arg=`echo "$browser" | sed s#%s#"$1"#`
+
+            if [ x"$browser_with_arg" = x"$browser" ]; then "$browser" "$1";
+            else $browser_with_arg;
+            fi
+
+            if [ $? -eq 0 ]; then exit_success;
+            fi
+        fi
+    done
+
+    exit_failure_operation_impossible "no method available for opening '$1'"
+}
+
+[ x"$1" != x"" ] || exit_failure_syntax
+
+url=
+while [ $# -gt 0 ] ; do
+    parm="$1"
+    shift
+
+    case "$parm" in
+      -*)
+        exit_failure_syntax "unexpected option '$parm'"
+        ;;
+
+      *)
+        if [ -n "$url" ] ; then
+            exit_failure_syntax "unexpected argument '$parm'"
+        fi
+        url="$parm"
+        ;;
+    esac
+done
+
+if [ -z "${url}" ] ; then
+    exit_failure_syntax "file or URL argument missing"
+fi
+
+detectDE
+
+if [ x"$DE" = x"" ]; then
+    # if BROWSER variable is not set, check some well known browsers instead
+    if [ x"$BROWSER" = x"" ]; then
+        BROWSER=firefox:mozilla:netscape:opera:konqueror:galeon
+    fi
+    DE=generic
+fi
+
+case "$DE" in
+    kde)
+    open_kde "$url"
+    ;;
+
+    gnome)
+    open_gnome "$url"
+    ;;
+
+    xfce)
+    open_xfce "$url"
+    ;;
+
+    generic)
+    open_generic "$url"
+    ;;
+
+    *)
+    exit_failure_operation_impossible "no method available for opening '$url'"
+    ;;
+esac

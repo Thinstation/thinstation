@@ -1,0 +1,84 @@
+## $Id$
+##
+## BEGIN LICENSE BLOCK
+##
+## Copyright (C) 2002  Damon Courtney
+## 
+## This program is free software; you can redistribute it and/or
+## modify it under the terms of the GNU General Public License
+## version 2 as published by the Free Software Foundation.
+## 
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License version 2 for more details.
+## 
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the
+##     Free Software Foundation, Inc.
+##     51 Franklin Street, Fifth Floor
+##     Boston, MA  02110-1301, USA.
+##
+## END LICENSE BLOCK
+
+Condition AskYesOrNo "Ask Yes or No"
+
+Include ConsoleAskYesOrNo
+
+Property Icon choice "Icon" "info" {error info question warning}
+Help Icon "The icon to display on the message box"
+
+Property DefaultButton choice "Default Button" "Yes" {Yes No}
+Help DefaultButton "Which button will have focus by default"
+
+Property ResultVirtualText short "Result Virtual Text" "Answer"
+Help ResultVirtualText "A virtual text variable to hold the user's answer"
+
+Property TrueValue choice "True Value" "Yes" {Yes No}
+Help TrueValue "Which answer will return a true result for this condition"
+
+Text Title
+Text Message
+
+proc ::InstallJammer::conditions::AskYesOrNo { obj } {
+    global info
+
+    $obj properties props
+
+    if {$info(SilentMode)} {
+        debug "Ask Yes or No condition not valid in Silent mode."
+        debug "Skipping condition and returning $props(TrueValue)."
+        return $props(TrueValue)
+    }
+
+    set id [$obj id]
+
+    if {$info(ConsoleMode)} {
+        debug "Using Console Ask Yes or No action in place of\
+                Ask Yes or No condition for console install."
+
+        $obj set Default     $props(DefaultButton)
+        $obj set Prompt      [::InstallJammer::GetText $id Message -subst 0]
+        $obj set VirtualText $props(ResultVirtualText)
+
+        set result [::InstallJammer::actions::ConsoleAskYesOrNo $obj]
+        return [string equal -nocase $result $props(TrueValue)]
+    }
+
+    set title   [::InstallJammer::GetText $id Title]
+    set message [::InstallJammer::GetText $id Message]
+
+    set args [list -type yesno -title $title -message $message]
+    lappend args -icon $props(Icon)
+    lappend args -default [string tolower $props(DefaultButton)]
+    lappend args -parent [::InstallJammer::TransientParent]
+
+    set result [eval ::InstallJammer::MessageBox $args]
+
+    if {[string length $props(ResultVirtualText)]} {
+        global info
+        set info($props(ResultVirtualText)) $result
+    }
+
+    return [string equal -nocase $result $props(TrueValue)]
+}

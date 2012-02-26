@@ -1,0 +1,67 @@
+## $Id$
+##
+## BEGIN LICENSE BLOCK
+##
+## Copyright (C) 2002  Damon Courtney
+## 
+## This program is free software; you can redistribute it and/or
+## modify it under the terms of the GNU General Public License
+## version 2 as published by the Free Software Foundation.
+## 
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License version 2 for more details.
+## 
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the
+##     Free Software Foundation, Inc.
+##     51 Franklin Street, Fifth Floor
+##     Boston, MA  02110-1301, USA.
+##
+## END LICENSE BLOCK
+
+Condition ObjectTestCondition
+
+Property ObjectID short "Object ID"
+Help ObjectID "The alias or ID of an object"
+
+Property Operator choice "Operator" "is active" \
+  {"does not exist" "exists" "is active" "is not active"}
+
+proc ::InstallJammer::conditions::ObjectTestCondition { obj } {
+    $obj properties props
+
+    $obj get ObjectID oid
+    set id [::InstallJammer::ID [::InstallJammer::SubstText $oid]]
+
+    if {$id eq ""} {
+        return -code error "Object is Active condition failed:\
+                            invalid object '$oid'"
+    }
+
+    debug "Checking to see if object $oid $props(Operator)"
+
+    set exists [::InstallJammer::ObjExists $id]
+    
+    if {$props(Operator) eq "exists"} {
+        return $exists
+    }
+
+    if {$props(Operator) eq "does not exist"} {
+        return [expr {!$exists}]
+    }
+
+    if {!$exists} {
+        debug "Object $oid does not exist.  Cannot check if it $props(Operator)"
+        return 0 
+    }
+
+    if {$props(Operator) eq "is active"} {
+        return [$id active]
+    }
+
+    if {$props(Operator) eq "is not active"} {
+        return [expr {![$id active]}]
+    }
+}

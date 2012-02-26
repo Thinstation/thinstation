@@ -1,0 +1,55 @@
+## $Id$
+##
+## BEGIN LICENSE BLOCK
+##
+## Copyright (C) 2002  Damon Courtney
+## 
+## This program is free software; you can redistribute it and/or
+## modify it under the terms of the GNU General Public License
+## version 2 as published by the Free Software Foundation.
+## 
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License version 2 for more details.
+## 
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the
+##     Free Software Foundation, Inc.
+##     51 Franklin Street, Fifth Floor
+##     Boston, MA  02110-1301, USA.
+##
+## END LICENSE BLOCK
+
+Condition VirtualTextTestCondition
+
+Property Language language "Language" "None"
+
+Property Operator choice "Operator" "exists" {"does not exist" "exists" "was set from the command line"}
+
+Property VirtualText short "Virtual Text"
+Help VirtualText "The virtual text variable to check for existence"
+
+proc ::InstallJammer::conditions::VirtualTextTestCondition { obj } {
+    $obj properties props -subst 1
+
+    debug "Checking to see if virtual text $props(VirtualText) $props(Operator)"
+
+    set operator    $props(Operator)
+    set virtualtext $props(VirtualText)
+
+    if {$operator eq "was set from the command line"} {
+        variable ::InstallJammer::VirtualTextSetByCommandLine
+        set exists   [info exists VirtualTextSetByCommandLine($virtualtext)]
+        set operator "exists"
+    } else {
+        set exists [::InstallAPI::VirtualTextExists \
+            -virtualtext $virtualtext -language $props(Language)]
+    }
+
+    if {$operator eq "exists"} {
+        return $exists
+    } else {
+        return [expr {!$exists}]
+    }
+}

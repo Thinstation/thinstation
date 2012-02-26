@@ -1,0 +1,98 @@
+## $Id$
+##
+## BEGIN LICENSE BLOCK
+##
+## Copyright (C) 2002  Damon Courtney
+## 
+## This program is free software; you can redistribute it and/or
+## modify it under the terms of the GNU General Public License
+## version 2 as published by the Free Software Foundation.
+## 
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License version 2 for more details.
+## 
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the
+##     Free Software Foundation, Inc.
+##     51 Franklin Street, Fifth Floor
+##     Boston, MA  02110-1301, USA.
+##
+## END LICENSE BLOCK
+
+Action WriteTextToFile
+
+Property AddToUninstall boolean "Add to Uninstall" "No"
+Help AddToUninstall "If this property is true, any file appended or\
+        written by this action will be added to the list of files to be
+        uninstalled."
+
+Property AppendNewline boolean "Append Newline" "Yes"
+Help AppendNewline "If this property is true, a newline character will be\
+    written out at the end of the text to write"
+
+Property Encoding short "Encoding"
+Help Encoding "Specifies an encoding to use when writing data to the file"
+
+Property Files short "Files"
+Help Files "A list of file names separated by \;\
+                (example: foo.txt\;<%Temp%>/bar.txt)"
+
+Property FileOpenAction choice "File Open Action" "Overwrite existing file" \
+    {"Append to file" "Overwrite existing file"}
+
+Property LineFeed choice "Line Feed" "Auto" {Auto Unix Windows}
+Help LineFeed "The end-of-line character to use when outputting lines"
+
+Text TextToWrite "Text to Write"
+
+proc ::InstallJammer::actions::WriteTextToFile { obj } {
+    global info
+
+    $obj properties props -subst 1
+
+    set mode w
+    if {$props(FileOpenAction) eq "Append to file"} { set mode a }
+
+    set translation auto
+    if {$props(LineFeed) eq "Unix"} {
+        set translation lf
+    } elseif {$props(LineFeed) eq "Windows"} {
+        set translation crlf
+    }
+
+    foreach file [split $props(Files) \;] {
+        set file [string trim $file]
+        if {[file pathtype $file] eq "relative"} {
+            set file [file join $info(InstallDir) $file]
+        }
+
+        set dir [file dirname $file]
+        if {![file exists $dir]} {
+            if {$props(AddToUninstall)} {
+                ::InstallJammer::CreateDir $dir
+            } else {
+                file mkdir $dir
+            }
+        }
+
+        set data [::InstallJammer::GetText [$obj id] TextToWrite]
+
+        set fp [open $file $mode]
+        fconfigure $fp -translation $translation
+        if {$props(Encoding) ne ""} {
+            fconfigure $fp -encoding $props(Encoding)
+        }
+
+        if {$props(AppendNewline)} {
+            puts $fp $data
+        } else {
+            puts -nonewline $fp $data
+        }
+
+        close $fp
+
+        if {$props(AddToUninstall)} { ::InstallJammer::LogFile $file }
+    }
+}

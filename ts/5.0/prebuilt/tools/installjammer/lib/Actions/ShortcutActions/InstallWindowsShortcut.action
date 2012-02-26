@@ -1,0 +1,96 @@
+## $Id$
+##
+## BEGIN LICENSE BLOCK
+##
+## Copyright (C) 2002  Damon Courtney
+## 
+## This program is free software; you can redistribute it and/or
+## modify it under the terms of the GNU General Public License
+## version 2 as published by the Free Software Foundation.
+## 
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License version 2 for more details.
+## 
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the
+##     Free Software Foundation, Inc.
+##     51 Franklin Street, Fifth Floor
+##     Boston, MA  02110-1301, USA.
+##
+## END LICENSE BLOCK
+
+Action InstallWindowsShortcut "Install Windows Shortcut"
+
+Property CommandLineArguments shorttext "Command Line Arguments"
+Property Description shorttext "Description"
+Help Description "Specifies the description of the shortcut.  This is the\
+    tooltip the user will see over the shortcut and is stored in the Comments\
+    field of the shortcut properties."
+Property IconPath installedfile "Icon Path"
+Property IconPathIndex shorttext "Icon Path Index" "0"
+Property ShortcutName shorttext "Shortcut Name"
+Property ShortcutDirectory installedfile "Shortcut Directory" \
+    "<%ProgramFolder%>"
+Property TargetFileName installedfile "Target File Name"
+Property WindowState choice "Window State" "normal" \
+    {hidden maximized minimized normal}
+Property WorkingDirectory installedfile "Working Directory"
+
+proc ::InstallJammer::actions::InstallWindowsShortcut { obj } {
+    global conf
+
+    if {!$conf(windows)} { return }
+
+    $obj properties props -subst 1
+
+    set a(path) $props(TargetFileName)
+    if {![regexp {[a-zA-Z0-9]+://} $a(path)]} {
+        set a(path) [file nativename $a(path)]
+    }
+
+    if {$props(WorkingDirectory) ne ""} {
+        set a(work) $props(WorkingDirectory)
+    }
+
+    if {$props(IconPath) ne ""} {
+        set a(icon) $props(IconPath)
+        set a(idx) $props(IconPathIndex)
+    }
+
+    if {$props(CommandLineArguments) ne ""} {
+        set a(args) $props(CommandLineArguments)
+    }
+
+    set a(show) $props(WindowState)
+
+    set linkPath [file join $props(ShortcutDirectory) $props(ShortcutName)]
+    if {![string match *.lnk $linkPath]} { append linkPath .lnk }
+
+    set dir [file dirname $linkPath]
+    if {![file exists $dir]} { ::InstallJammer::CreateDir $dir }
+
+    if {$conf(twapi)} {
+        if {$a(path) eq ""} { set a(path) "C:/" }
+        set args [list $linkPath -path $a(path) -showcmd $a(show)]
+        if {[info exists a(args)]} { lappend args -args $a(args) }
+        if {[info exists a(work)]} { lappend args -workdir $a(work) }
+        if {$props(Description) ne ""} {
+            lappend args -desc $props(Description)
+        }
+        if {[info exists a(icon)]} {
+            lappend args -iconpath $a(icon) -iconindex $a(idx)
+        }
+        debug "Creating shortcut $linkPath with these options: $args"
+        eval twapi::write_shortcut $args
+    } else {
+        set args [list $linkPath -objectpath $a(path) -showcommand $a(show)]
+        if {[info exists a(args)]} { lappend args -arguments $a(args) }
+        if {[info exists a(work)]} { lappend args -workingdirectory $a(work) }
+        if {[info exists a(icon)]} { lappend args -icon $a(icon) $a(idx) }
+        debug "Creating shortcut $linkPath with these options: $args"
+        eval ::installkit::Windows::createShortcut $args
+    }
+    ::InstallJammer::LogFile $linkPath
+}

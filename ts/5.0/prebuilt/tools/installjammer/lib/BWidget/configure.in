@@ -1,0 +1,46 @@
+AC_INIT(init.tcl)
+
+AC_CONFIG_AUX_DIR(config)
+CONFIGDIR=${srcdir}/config
+AC_SUBST(CONFIGDIR)
+
+PACKAGE=bwidget
+
+MAJOR_VERSION=1
+MINOR_VERSION=7
+PATCHLEVEL=
+
+VERSION=${MAJOR_VERSION}.${MINOR_VERSION}${PATCHLEVEL}
+NODOT_VERSION=${MAJOR_VERSION}${MINOR_VERSION}
+
+AC_SUBST(PACKAGE)
+AC_SUBST(VERSION)
+eval AC_DEFINE_UNQUOTED(VERSION, "${VERSION}")
+
+AC_PROG_INSTALL
+
+#--------------------------------------------------------------------
+# "cygpath" is used on windows to generate native path names for include
+# files.
+# These variables should only be used with the compiler and linker since
+# they generate native path names.
+#
+# Unix tclConfig.sh points SRC_DIR at the top-level directory of
+# the Tcl sources, while the Windows tclConfig.sh points SRC_DIR at
+# the win subdirectory.  Hence the different usages of SRC_DIR below.
+#
+# This must be done before calling SC_PUBLIC_TCL_HEADERS
+#--------------------------------------------------------------------
+
+case "`uname -s`" in
+    *win32* | *WIN32* | *CYGWIN_NT*|*CYGWIN_98*|*CYGWIN_95*)
+	CYGPATH="cygpath -w"
+    ;;
+    *)
+	CYGPATH=echo
+    ;;
+esac
+
+AC_SUBST(CYGPATH)
+
+AC_OUTPUT([Makefile])

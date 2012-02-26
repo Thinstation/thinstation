@@ -1,0 +1,89 @@
+## $Id$
+##
+## BEGIN LICENSE BLOCK
+##
+## Copyright (C) 2002  Damon Courtney
+## 
+## This program is free software; you can redistribute it and/or
+## modify it under the terms of the GNU General Public License
+## version 2 as published by the Free Software Foundation.
+## 
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License version 2 for more details.
+## 
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the
+##     Free Software Foundation, Inc.
+##     51 Franklin Street, Fifth Floor
+##     Boston, MA  02110-1301, USA.
+##
+## END LICENSE BLOCK
+
+Action ConsoleGetUserInput
+
+Property EchoInput boolean "Echo Input" "Yes"
+Help EchoInput "Echo the input as the user types.  If this property is set\
+        to no, the input will not be echoed.  This is good for password input."
+
+Property Prompt short "Prompt"
+Help Prompt "A string of text to prompt the user for their input"
+
+Property RequireResponse boolean "Require Response" "No"
+Help RequireResponse "If this property is true, the user will not be able to\
+        enter an empty response.  They must enter something."
+
+Property TrimResult boolean "Trim Result" "Yes"
+Help TrimResult "If this property is true, the input from the user will be\
+        trimmed of whitespace before being set in the virtual text."
+
+Property VirtualText short "Virtual Text"
+Help VirtualText "The virtual text variable (without <% and %>) to store the\
+        input into.  If this virtual text has a value when the action\
+        executes, that text will be the default response."
+
+proc ::InstallJammer::actions::ConsoleGetUserInput { obj } {
+    $obj properties props -subst 1
+
+    fconfigure stdin -buffering line
+
+    set prompt \n$props(Prompt)
+
+    set virtual "<%$props(VirtualText)%>"
+    set default [::InstallJammer::SubstText $virtual]
+    if {$default ne $virtual} { append prompt " \[$default\]" }
+
+    append prompt " "
+
+    while {1} {
+        puts -nonewline stdout [::InstallJammer::WrapText $prompt]
+        flush stdout
+
+        if {!$props(EchoInput)} {
+            catch { exec stty -echo }
+        }
+
+        gets stdin result
+
+        if {!$props(EchoInput)} {
+            catch { exec stty echo }
+        }
+
+        puts  stdout ""
+        flush stdout
+
+        if {$props(RequireResponse) && [string trim $result] eq ""} { continue }
+        break
+    }
+
+    if {$props(TrimResult)} { set result [string trim $result] }
+
+    if {$default ne $virtual && $result eq ""} {
+        set result $default
+    }
+
+    if {$result ne ""} {
+        set ::info($props(VirtualText)) $result
+    }
+}

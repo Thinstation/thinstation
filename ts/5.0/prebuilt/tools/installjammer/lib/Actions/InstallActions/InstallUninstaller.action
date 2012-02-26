@@ -1,0 +1,128 @@
+## $Id$
+##
+## BEGIN LICENSE BLOCK
+##
+## Copyright (C) 2002  Damon Courtney
+## 
+## This program is free software; you can redistribute it and/or
+## modify it under the terms of the GNU General Public License
+## version 2 as published by the Free Software Foundation.
+## 
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License version 2 for more details.
+## 
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the
+##     Free Software Foundation, Inc.
+##     51 Franklin Street, Fifth Floor
+##     Boston, MA  02110-1301, USA.
+##
+## END LICENSE BLOCK
+
+Action InstallUninstaller "Install Uninstaller"
+
+Property Message shorttext "Message" "<%BuildUninstallText%>"
+Property UninstallFilename short "Uninstall Filename" "uninstall<%Ext%>"
+Property UninstallDirectory installedfile "Uninstall Directory" "<%InstallDir%>"
+
+proc ::InstallJammer::actions::InstallUninstaller { obj } {
+    global info
+    global conf
+
+    $obj properties props -subst 1
+
+    set info(Status) [$obj get Message]
+
+    set uninstallBin [file join $props(UninstallDirectory) \
+        $props(UninstallFilename)]
+
+    set conf(uninstall)   $uninstallBin
+    set info(Uninstaller) $uninstallBin
+
+    if {[file exists $uninstallBin]} {
+        ## An uninstaller already exists, so we want to check
+        ## and see if there are any logs already stored within
+        ## it and save those off for later.
+
+        set tmp [::InstallJammer::TmpDir]
+        set dir [::InstallJammer::TmpMount]
+
+        if {![catch { installkit::Mount $uninstallBin $dir } error]} {
+            foreach pattern {*.info *.log} {
+                foreach file [glob -nocomplain -dir $dir $pattern] {
+                    file copy -force $file $tmp
+                }
+            }
+
+            installkit::Unmount $dir
+        }
+    }
+
+    ::InstallJammer::CreateDir [file dirname $uninstallBin]
+
+    set arrays {
+        info
+        ::InstallJammer::Properties
+        ::InstallJammer::languagecodes
+    }
+
+    cd [::InstallJammer::TmpDir]
+    set uninstall uninstall.tcl
+    set main uninstallMain.tcl
+
+    set fp [open_text $uninstall w -translation lf -encoding utf-8]
+    puts $fp "namespace eval ::InstallAPI {}"
+    puts $fp "namespace eval ::InstallJammer {}"
+
+    puts $fp "set conf(version) [list $conf(version)]"
+
+    puts $fp "set info(Uninstaller) [list $info(Uninstaller)]"
+    
+    foreach array $arrays {
+        puts $fp "array set $array [list [array get $array]]"
+    }
+
+    set filedata [array get ::InstallJammer::files gui.tcl]
+    if {!$conf(windows)} {
+        eval lappend filedata [array get ::InstallJammer::files console.tcl]
+    }
+
+    puts $fp "array set ::InstallJammer::files [list $filedata]"
+
+    foreach file {common.tcl uninstall.tcl} {
+        puts $fp $::InstallJammer::files($file)
+    }
+
+    close $fp
+
+    set opts [list -noinstall -o $uninstallBin -w [::installkit::base]]
+
+    if {$conf(windows)} {
+        set desc "Uninstall <%AppName%> <%Version%>"
+        lappend opts -filedescription [::InstallJammer::SubstText $desc]
+    }
+
+    set dirs [glob -nocomplain -type d -tails -dir [file join $conf(vfs) lib] *]
+    set rem  [list installkit itcl tcl tk thread tile]
+    set dirs [eval lremove [list $dirs] $rem]
+
+    foreach dir $dirs {
+        lappend opts -package [file join $conf(vfs) lib $dir]
+    }
+
+    lappend opts -catalog [file join $conf(vfs) catalogs messages]
+
+    set fp [open $main w]
+    puts $fp {encoding system utf-8}
+    puts $fp {source [file join $::installkit::root uninstall.tcl]}
+    close $fp
+
+    ## Create the uninstall binary.
+    eval ::InstallJammer::Wrap $opts [list $main $uninstall]
+
+    ::InstallJammer::SetPermissions $uninstallBin 00755
+
+    return 1
+}

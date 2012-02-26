@@ -1,0 +1,106 @@
+## $Id$
+##
+## BEGIN LICENSE BLOCK
+##
+## Copyright (C) 2002  Damon Courtney
+## 
+## This program is free software; you can redistribute it and/or
+## modify it under the terms of the GNU General Public License
+## version 2 as published by the Free Software Foundation.
+## 
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License version 2 for more details.
+## 
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the
+##     Free Software Foundation, Inc.
+##     51 Franklin Street, Fifth Floor
+##     Boston, MA  02110-1301, USA.
+##
+## END LICENSE BLOCK
+
+Action PopulateComponents
+
+proc ::InstallJammer::actions::PopulateComponents { obj } {
+    global conf
+    global info
+
+    set step [$obj parent]
+
+    set tree [$step widget get ComponentTree]
+    set text [$step widget get DescriptionText]
+
+    if {[lsearch -exact $conf(ComponentTrees) $tree] < 0} {
+        lappend conf(ComponentTrees) $tree
+    }
+
+    $tree clear
+
+    set setuptype $info(InstallTypeID)
+
+    set new 0
+    if {![info exists conf(PopulatedSetupType)]
+        || $conf(PopulatedSetupType) ne $setuptype} {
+        set new 1
+        array unset ::InstallJammer::Components $tree,*
+    }
+
+    set conf(PopulatedSetupType) $setuptype
+
+    foreach id [$setuptype get Components] {
+        if {![$id get ShowComponent]} { continue }
+
+        set parent [$id parent]
+        set group  [$id get ComponentGroup]
+        if {$parent eq "Components"} { set parent root }
+
+        ## If our parent doesn't exist in the tree, it's
+        ## possible that the parent is not being shown.
+        if {![$tree exists $parent]} { continue }
+
+        set varName ::InstallJammer::Components($tree,$id)
+        if {$group ne ""} {
+            set varName ::InstallJammer::Components($tree,$group)
+            if {![info exists $varName]} { set $varName "" }
+        }
+
+        set checked  [string is true [$id get Checked]]
+        set required [$id get RequiredComponent]
+
+        if {$required} { set checked 1 }
+
+        if {$new} { $id active $checked }
+
+        set text [::InstallAPI::GetDisplayText -object $id]
+
+        if {![$id get Selectable]} {
+            ## Draw with no check or radio button.  This is a heading.
+            $tree insert end $parent $id -text $text -type none -open 1 \
+                -command [list ::InstallJammer::ToggleComponent %W $step %n]
+        } elseif {$group eq ""} {
+            ## Draw as a checkbutton.
+            if {$new} { set $varName $checked }
+            $tree insert end $parent $id -text $text -type checkbutton \
+                -command [list ::InstallJammer::ToggleComponent %W $step %n] \
+                -variable $varName -open 1
+        } else {
+            ## Draw as a radiobutton.
+            $tree insert end $parent $id -text $text -type radiobutton \
+                -command [list ::InstallJammer::ToggleComponent %W $step %n] \
+                -variable $varName -value $id -open 1
+            lappend ::InstallJammer::Components($tree,$group,others) $id
+
+            if {$new && $checked} { set $varName $id }
+        }
+
+        if {$required} { $tree itemconfigure $id -state disabled }
+    }
+
+    bind $tree <<TreeSelect>> [list ::InstallJammer::SelectComponent $step]
+
+    ## Select the first component in the tree.
+    $tree selection set [lindex [$tree nodes root] 0]
+    ::InstallJammer::SelectComponent $step
+}

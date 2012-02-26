@@ -1,0 +1,49 @@
+## $Id$
+##
+## BEGIN LICENSE BLOCK
+##
+## Copyright (C) 2002  Damon Courtney
+## 
+## This program is free software; you can redistribute it and/or
+## modify it under the terms of the GNU General Public License
+## version 2 as published by the Free Software Foundation.
+## 
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License version 2 for more details.
+## 
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the
+##     Free Software Foundation, Inc.
+##     51 Franklin Street, Fifth Floor
+##     Boston, MA  02110-1301, USA.
+##
+## END LICENSE BLOCK
+
+Action ImportWindowsRegistryFile "Import Windows Registry File"
+
+Property PromptUser boolean "Prompt User" "No"
+Help PromptUser "If Prompt User is true, the user will be asked by\
+                 Windows if they want to import the registry file"
+
+Property RegistryFile installedfile "Registry File"
+Help RegistryFile "A Windows .reg file to import on the target system"
+
+proc ::InstallJammer::actions::ImportWindowsRegistryFile { obj } {
+    global conf
+
+    if {!$conf(windows)} { return }
+
+    set file [::InstallJammer::SubstText [$obj get RegistryFile]]
+
+    if {[file exists $file]} {
+        if {[$obj get PromptUser]} {
+            exec [auto_execok regedit] $file &
+        } else {
+            exec [auto_execok regedit] /s $file &
+        }
+    }
+
+    set conf(UpdateWindowsRegistry) 1
+}

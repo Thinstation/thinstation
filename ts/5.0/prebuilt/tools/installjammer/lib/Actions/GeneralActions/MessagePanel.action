@@ -1,0 +1,88 @@
+## $Id$
+##
+## BEGIN LICENSE BLOCK
+##
+## Copyright (C) 2002  Damon Courtney
+## 
+## This program is free software; you can redistribute it and/or
+## modify it under the terms of the GNU General Public License
+## version 2 as published by the Free Software Foundation.
+## 
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License version 2 for more details.
+## 
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the
+##     Free Software Foundation, Inc.
+##     51 Franklin Street, Fifth Floor
+##     Boston, MA  02110-1301, USA.
+##
+## END LICENSE BLOCK
+
+Action MessagePanel "Message Panel"
+
+Property Image image "Image" "<%Icon%>"
+Property Anchor anchor "Anchor" center
+Property Width short "Width" 400
+Property Height short "Height" 60
+Property Timeout short "Timeout" 0
+Property GrabFocus boolean "Grab Focus" "Yes"
+Property LabelAnchor anchor "Label Anchor" w
+Property ImagePadX short "Image Pad X" "2 0"
+Property ImagePadY short "Image Pad Y" 0
+Property LabelPadX short "Label Pad X" 5
+Property LabelPadY short "Label Pad Y" 0
+
+Text Message
+
+proc ::InstallJammer::actions::MessagePanel { obj } {
+    global info
+
+    if {!$info(GuiMode)} { return }
+
+    set id [$obj id]
+
+    $id window .[$id name]
+    set top [$id window]
+
+    $obj properties props
+
+    toplevel     $top -borderwidth 2 -relief raised
+    wm withdraw  $top
+    wm resizable $top 0 0
+    wm transient $top [::InstallJammer::TransientParent]
+    wm geometry  $top $props(Width)x$props(Height)
+    wm override  $top 1
+
+    if {$props(GrabFocus)} {
+        ::InstallJammer::Grab $top
+        bind $top <Destroy> [list ::InstallJammer::Grab release $top]
+        bind $top <Destroy> "+::InstallJammer::TransientParent $top 1"
+    }
+
+    ::InstallJammer::TransientParent $top
+    ::InstallJammer::PlaceWindow $id -width $props(Width) -height $props(Height)
+
+    if {[string length $props(Image)]} {
+        label $top.image
+        pack  $top.image -side left \
+            -padx $props(ImagePadX) -pady $props(ImagePadY)
+        ::InstallJammer::SetImage $top.image $id Image
+    }
+
+    label $top.message -anchor $props(LabelAnchor)
+    pack  $top.message -side left -expand 1 -fill both \
+        -padx $props(LabelPadX) -pady $props(LabelPadY)
+    ::InstallJammer::SetText $top.message $id Message
+
+    focus $top.message
+
+    wm deiconify $top
+    update
+
+    if {$props(Timeout) > 0} {
+        after [expr {$props(Timeout) * 1000}] [list destroy $top]
+    }
+}

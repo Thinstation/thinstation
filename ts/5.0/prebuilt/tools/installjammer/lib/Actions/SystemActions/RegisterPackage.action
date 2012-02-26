@@ -1,0 +1,234 @@
+## $Id$
+##
+## BEGIN LICENSE BLOCK
+##
+## Copyright (C) 2002  Damon Courtney
+## 
+## This program is free software; you can redistribute it and/or
+## modify it under the terms of the GNU General Public License
+## version 2 as published by the Free Software Foundation.
+## 
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License version 2 for more details.
+## 
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the
+##     Free Software Foundation, Inc.
+##     51 Franklin Street, Fifth Floor
+##     Boston, MA  02110-1301, USA.
+##
+## END LICENSE BLOCK
+
+Action RegisterPackage
+
+Property PackageName text "Package Name" "<%PackageName%>"
+
+Property PackageDatabases text "Package Databases" "all"
+
+Property DPKGChangelogFile file "DPKG Changelog File"
+
+Property DPKGControlScript text "DPKG Control Script" {Package: <%Property PackageName%>
+Version: <%PackageVersion%>-<%PackageRelease%>
+Priority: optional
+Architecture: all
+Maintainer: <%PackageMaintainer%>
+Description: <%PackageSummary%>
+<%FormatDescription <%PackageDescription%>%>}
+
+Property DPKGCopyrightFile file "DPKG Copyright File"
+
+Property DPKGDebianChangelogFile file "DPKG Debian Changelog File"
+
+Property DPKGPreInstallScript text "DPKG Pre Install Script"
+
+Property DPKGPreUninstallScript text "DPKG Pre Uninstall Script" {#!/bin/sh
+set -e
+# Automatically added by dh_installdocs
+if [ \( "$1" = "upgrade" -o "$1" = "remove" \) -a -L /usr/doc/parted ]; then
+  rm -f /usr/doc/parted
+fi
+# End automatically added section}
+
+Property DPKGPostInstallScript text "DPKG Post Install Script" {#!/bin/sh
+set -e
+# Automatically added by dh_installdocs
+if [ "$1" = "configure" ]; then
+  if [ -d /usr/doc -a ! -e /usr/doc/parted -a -d /usr/share/doc/parted ]; then
+    ln -sf ../share/doc/parted /usr/doc/parted
+  fi
+fi
+# End automatically added section}
+
+Property DPKGPostUninstallScript text "DPKG Post Uninstall Script" {#!/bin/sh
+## Exit if we're being run from another install.
+if test -f /tmp/.installjammer.dpkg.<%Property PackageName%>; then
+  exit
+fi
+
+if test -f "<%Uninstaller%>"; then
+  <%Uninstaller%>
+fi}
+
+Property RPMSpecScript text "RPM Spec Script" {Name: <%Property PackageName%>
+Version: <%PackageVersion%>
+Release: <%PackageRelease%>
+Group: Applications
+Summary: <%PackageSummary%>
+License: <%PackageLicense%>
+Packager: <%PackagePackager%>
+
+%description
+<%PackageDescription%>
+
+%postun
+if test -f "<%Uninstaller%>"; then
+  ## Tell InstallJammer that we're removing this package.
+  touch /tmp/.installjammer.rpm.<%Property PackageName%>
+  <%Uninstaller%>
+  rm -f /tmp/.installjammer.rpm.<%Property PackageName%>
+fi
+
+%files}
+
+proc ::InstallJammer::actions::RegisterPackage { obj } {
+    global info
+
+    $obj properties props -subst 1
+
+    set package   $props(PackageName)
+    set databases [string trim [string tolower $props(PackageDatabases)]]
+
+    if {$databases eq "all"} {
+        set databases [list dpkg rpm]
+    } else {
+        set databases {}
+        foreach db [split $props(PackageDatabases) \;] {
+            lappend databases [string trim [string tolower $db]]
+        }
+    }
+
+    if {[lsearch -exact $databases "rpm"] > -1} {
+        set rpmbuild [auto_execok rpmbuild]
+
+        if {$rpmbuild ne ""} {
+            set info(Status) "Registering package with RPM database..."
+
+            set dir [::InstallJammer::TmpDir]
+
+            set specfile [::InstallJammer::TmpDir tmp.spec]
+
+            set fp [open $specfile w]
+            puts  $fp $props(RPMSpecScript)
+            close $fp
+
+            catch { exec $rpmbuild --define "_rpmdir $dir" \
+                        --define "_rpmfilename tmp.rpm" --bb $specfile } result
+
+            if {![regexp {Wrote: (.+rpm)} $result -> rpm]} {
+                return -code error "Failed to build RPM: $result"
+            }
+
+            set cmd [list rpm -i $rpm]
+
+            if {!$info(UserIsRoot)} {
+                ::InstallJammer::ExecAsRoot $cmd -wait 1
+            } else {
+                eval exec $cmd
+            }
+
+            ::InstallJammer::InstallLog [list :RPM $package]
+        }
+    }
+
+    if {[lsearch -exact $databases "dpkg"] > -1} {
+        set dpkg [auto_execok dpkg]
+
+        if {$dpkg ne ""} {
+            array set files {
+                DPKGChangelogFile       changelog.gz
+                DPKGCopyrightFile       copyright.gz
+                DPKGDebianChangelogFile changelog.Debian.gz
+            }
+
+            array set scripts {
+                DPKGPreInstallScript    preinst
+                DPKGPreUninstallScript  postinst
+                DPKGPostInstallScript   prerm
+                DPKGPostUninstallScript postrm
+            }
+
+            set info(Status) "Registering package with DPKG database..."
+
+            set dir [InstallJammer::TmpDir dpkg]
+            file mkdir $dir
+
+            set doc [file join $dir usr share doc $package]
+            file mkdir $doc
+            
+            foreach x [array names files] {
+                set file [file join $doc $files($x)]
+                if {[file exists $props($x)]} {
+                    if {![string match "*.gz" $props($x)]} {
+                        miniarc::gzip $props($x) $file
+                    } else {
+                        file copy -force $props($x) $file
+                    }
+                } else {
+                    close [open $file w]
+                }
+            }
+
+            set control [file join $dir DEBIAN]
+            file mkdir $control
+
+            foreach x [array names scripts] {
+                if {$props($x) ne ""} {
+                    set file [file join $control $scripts($x)]
+                    set fp [open $file w 0755]
+                    puts $fp $props($x)
+                    close $fp
+                }
+            }
+
+            set controlfile [file join $control control]
+
+            set fp [open $controlfile w]
+            puts  $fp $props(DPKGControlScript)
+            close $fp
+
+            set debfile    [::InstallJammer::TmpDir dpkg.deb]
+            set scriptfile [::InstallJammer::TmpDir install-debian-package]
+            set fp [open $scriptfile w 0777]
+
+            puts $fp "#!/bin/sh"
+            puts $fp ""
+            puts $fp "chown -R root.root $dir"
+            puts $fp ""
+            puts $fp "dpkg --build $dir"
+            puts $fp ""
+            puts $fp "if test -f $debfile\; then"
+            puts $fp "    dpkg -i $debfile"
+            puts $fp "fi"
+            puts $fp ""
+            puts $fp "rm -rf $dir $debfile"
+
+            close $fp
+
+            close [open /tmp/.installjammer.dpkg.$package w]
+
+            catch { 
+                if {!$info(UserIsRoot)} {
+                    ::InstallJammer::ExecAsRoot [list $scriptfile] -wait 1
+                } else {
+                    exec $scriptfile
+                }
+            }
+
+            file delete -force /tmp/.installjammer.dpkg.$package
+
+            ::InstallJammer::InstallLog [list :DPKG $package]
+        }
+    }
+}

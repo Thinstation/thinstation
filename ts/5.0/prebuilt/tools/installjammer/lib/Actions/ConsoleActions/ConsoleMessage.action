@@ -1,0 +1,59 @@
+## $Id$
+##
+## BEGIN LICENSE BLOCK
+##
+## Copyright (C) 2002  Damon Courtney
+## 
+## This program is free software; you can redistribute it and/or
+## modify it under the terms of the GNU General Public License
+## version 2 as published by the Free Software Foundation.
+## 
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License version 2 for more details.
+## 
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the
+##     Free Software Foundation, Inc.
+##     51 Franklin Street, Fifth Floor
+##     Boston, MA  02110-1301, USA.
+##
+## END LICENSE BLOCK
+
+Action ConsoleMessage
+
+Property AllowQuit boolean "Allow Quit" "Yes"
+Help AllowQuit "Allow the user to quit pagination of the message"
+
+Property PaginateMessage boolean "Paginate Message" "Yes"
+Help PaginateMessage "Whether to display the message in pages instead of\
+                        all at once (like the more command)"
+
+Property WrapText boolean "Wrap Text" "Yes"
+Help WrapText "Whether the text should be wrapped at the width of the console"
+
+Text Message
+
+proc ::InstallJammer::actions::ConsoleMessage { obj } {
+    global conf
+
+    $obj properties props
+    set message [::InstallJammer::GetText [$obj id] Message]
+
+    if {$props(PaginateMessage)} {
+        set command [list ::more -allowquit $props(AllowQuit)]
+
+        if {$props(WrapText)} {
+            lappend command -width $conf(ConsoleWidth)
+        }
+    } else {
+        set command [list puts stdout]
+
+        if {$props(WrapText)} {
+            set message [::InstallJammer::WrapText $message]
+        }
+    }
+
+    eval $command [list $message]
+}

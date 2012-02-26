@@ -1,0 +1,73 @@
+## $Id$
+##
+## BEGIN LICENSE BLOCK
+##
+## Copyright (C) 2002  Damon Courtney
+## 
+## This program is free software; you can redistribute it and/or
+## modify it under the terms of the GNU General Public License
+## version 2 as published by the Free Software Foundation.
+## 
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License version 2 for more details.
+## 
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the
+##     Free Software Foundation, Inc.
+##     51 Franklin Street, Fifth Floor
+##     Boston, MA  02110-1301, USA.
+##
+## END LICENSE BLOCK
+
+Condition FilePermissionCondition
+
+Property Filename installedfile "Filename"
+Property Permission choice "Permission" "is readable" \
+    {"can create" "cannot create" "is readable" "is writable"
+     "is not readable" "is not writable"}
+
+proc ::InstallJammer::conditions::FilePermissionCondition { obj } {
+    global conf
+    global info
+
+    $obj properties props
+
+    if {[string match "can*create" $props(Permission)]} {
+        debug "Checking to see if we $props(Permission) $props(Filename)"
+    } else {
+        debug "Checking to see if $props(Filename) $props(Permission)"
+    }
+
+    set res  0
+    set file [::InstallJammer::SubstText $props(Filename)]
+    switch -glob -- $props(Permission) {
+        "is*readable" {
+            set res [file readable $file]
+        }
+
+        "is*writable" {
+            set res [::InstallJammer::DirIsWritable $file]
+        }
+
+        "can*create" {
+            set info(Dir) [file nativename $file]
+            while {[llength [file split $info(Dir)]]} {
+                if {[file exists $info(Dir)]} {
+                    set res [::InstallJammer::DirIsWritable $info(Dir)]
+                    break
+                }
+
+                set dir [file dirname $info(Dir)]
+
+                if {$dir eq $info(Dir)} { break }
+
+                set info(Dir) $dir
+            }
+        }
+    }
+
+    if {[string match "*not*" $props(Permission)]} { set res [expr {!$res}] }
+    return $res
+}

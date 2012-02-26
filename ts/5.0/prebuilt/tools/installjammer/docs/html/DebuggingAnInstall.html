@@ -1,0 +1,105 @@
+<!-- saved from url=(0014)about:internet -->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head><TITLE>Debugging an Install</TITLE><meta name="generator" content="Fast-Help"><meta name="keywords" content="Debugging an Install">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+#FHNonScroll
+{padding: 6px 6px 0px 6px; border-bottom: none; background: #D1D1D1; vertical-align: top;z-index: 2; visibility: visible; position: absolute; left: 0; top: 0; width: 100%; }
+#FHScroll
+{left: 0; top: 0px; position: absolute; margin: 0; padding: 10px; z-index: 1; background-repeat: no-repeat; background-position: bottom right; background-attachment: fixed; }
+
+
+
+
+
+/* ========== Text Styles ========== */
+hr { color: #000000}
+body, table /* Normal */
+{
+ font-size: 10pt;
+ font-family: 'Arial';
+ font-style: normal;
+ font-weight: normal;
+ color: #000000;
+ text-decoration: none;
+}
+span.rvts1
+{
+ font-family: 'Arial Unicode MS';
+}
+span.rvts2
+{
+ font-family: 'Verdana';
+ color: #ff0000;
+}
+span.rvts3
+{
+ font-family: 'Verdana';
+ color: #000000;
+}
+span.rvts4
+{
+ font-family: 'Verdana';
+ font-weight: bold;
+ color: #000000;
+}
+/* ========== Para Styles ========== */
+p,ul,ol /* Left */
+{
+ text-align: left;
+ text-indent: 0px;
+ padding: 0px 0px 0px 0px;
+ margin: 0px 0px 0px 0px;
+}
+.rvps1
+{
+}
+--></style>
+<script type="text/javascript" language="JavaScript" src="FHUtilities.js"></script>
+<script type="text/JavaScript" language="JavaScript">
+<!-- If this page is displayed outside of the Website Help Frameset, then reload in the Frame set
+if (parent.location.href == self.location.href)
+{location.href = "index.html?"+extractFileNameWithoutKnownExtension(location.href);}
+//--></script>
+<script type="text/javascript" language="JavaScript" src="FHNonscroll.js"></script><script type="text/javascript" language="JavaScript" src="FHUtilities.js"></script></HEAD>
+<body bgcolor="#FFFFFF" scroll="no"><div id="FHNonScroll"><table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td width="100%" align="left">
+<font size=2 color="#000000" face="Arial">
+<div><font size=5 color="#333333" face="Verdana"><b>Debugging an Install</b></font></div>
+</font>
+</TD><td width="120" align="right" nowrap><font face="Verdana" size="2"><a href="VirtualDirectoryDefinitions.html"><img src="Images/BrowseBlueLeft.png" border="0" alt="Previous Topic"></a>&nbsp;&nbsp;<a href="WhatIsTheBuilderAPI.html"><img src="Images/BrowseBlueRight.png" border="0" alt="Next Topic"></a>&nbsp;</font></td></tr></table></div><div id="FHScroll">
+
+<p class=rvps1><span class=rvts3>InstallJammer provides several different ways and helpful tools to help debug installs.&nbsp; Most installs are fairly simple and don't really require complex debugging, but some installs can get very elaborate and require the ability to peek into what InstallJammer is really doing in the background.</span></p>
+<p class=rvps1><span class=rvts3><br></span></p>
+<p class=rvps1><span class=rvts4>Commands for debugging</span></p>
+<p class=rvps1><span class=rvts3>InstallJammer provides two commands to assist with debugging: </span><span class=rvts4>debug</span><span class=rvts3> and </span><span class=rvts4>debugging</span><span class=rvts3>.&nbsp; The debug command will output a debug message and can be used in scripts or in the console to output debugging information.&nbsp; The debugging command is the command that controls what debugging is taking place during installation.</span></p>
+<p class=rvps1><span class=rvts3><br></span></p>
+<p class=rvps1><span class=rvts3>The following is the usage for the debugging command:</span></p>
+<p class=rvps1><span class=rvts3><br></span></p>
+<p class=rvps1><span class=rvts4>debugging level &lt;0, 1, 2 or 3&gt;</span></p>
+<p class=rvps1><span class=rvts3>This command sets the level of debugging output to show.&nbsp; 0 means no output, and 3 means very verbose output.&nbsp; The default level when not specified is 1.</span></p>
+<p class=rvps1><span class=rvts3><br></span></p>
+<p class=rvps1><span class=rvts4>debugging &lt;on | off&gt;</span></p>
+<p class=rvps1><span class=rvts3>This command will simply turn debugging on or off.</span></p>
+<p class=rvps1><span class=rvts3><br></span></p>
+<p class=rvps1><span class=rvts4>debugging &lt;file | console&gt; &lt;on | off&gt; ?filename?</span></p>
+<p class=rvps1><span class=rvts3>This command will turn debugging on or off specifically for outputing debug information to a file or to the console.&nbsp; If a filename is given, file output will be directed to that file.&nbsp; If no filename is given, and debug output to a file is turned on, the file &lt;%Temp%&gt;/debug.log will be used.</span></p>
+<p class=rvps1><span class=rvts3><br></span></p>
+<p class=rvps1><span class=rvts3>In any case, when you use the debugging command, it will tell you exactly what and how it is logging.&nbsp; Calling the debugging command with no arguments will tell you the current state of debugging in the installer.</span></p>
+<p class=rvps1><span class=rvts3><br></span></p>
+<p class=rvps1><span class=rvts3><br></span></p>
+<div class=rvps1><table border=0 cellpadding=1 cellspacing=2 style="border-width: 0px;">
+<tr valign=top>
+<td width=33>
+<p class=rvps1><img border="0" src="Images/detail.jpg" alt="Technical Detail" width="32" height="32"></p>
+</td>
+<td width=608>
+<p class=rvps1><span class=rvts2>Debug output to the console is controlled by the ::debug variable.</span></p>
+<p class=rvps1><span class=rvts2>Debug output to a file is controlled by the ::info(Debugging) variable.</span></p>
+<p class=rvps1><span class=rvts2>The ::debugfp variable is the open file pointer to the debug log file if it is open.&nbsp; The variable will be an empty string if file logging is turned off.</span></p>
+</td>
+</tr>
+</table>
+</div>
+<p class=rvps1><span class=rvts1></span></p>
+
+</div></body></html>

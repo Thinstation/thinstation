@@ -1,0 +1,68 @@
+## $Id$
+##
+## BEGIN LICENSE BLOCK
+##
+## Copyright (C) 2002  Damon Courtney
+## 
+## This program is free software; you can redistribute it and/or
+## modify it under the terms of the GNU General Public License
+## version 2 as published by the Free Software Foundation.
+## 
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License version 2 for more details.
+## 
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the
+##     Free Software Foundation, Inc.
+##     51 Franklin Street, Fifth Floor
+##     Boston, MA  02110-1301, USA.
+##
+## END LICENSE BLOCK
+
+Action SetObjectProperty
+
+Property ObjectID short "Object ID"
+Help ObjectID "The ID or alias of the object to set this property for"
+
+Property Property short "Property"
+Help Property "The name of a property to set on the specified object"
+
+Property SubstituteValue boolean  "Substitute Value" "Yes"
+Help SubstituteValue "If this is true, InstallJammer will substitute the\
+    value for virtual text before setting property value"
+
+Property Value text "Value"
+Help Value "The value to set the property to"
+
+proc ::InstallJammer::actions::SetObjectProperty { obj } {
+    $obj properties props -subst {SubstituteValue ObjectID Property}
+
+    set id [::InstallJammer::ID $props(ObjectID)]
+
+    set value $props(Value)
+    if {$props(SubstituteValue)} {
+        set value [::InstallJammer::SubstText $value]
+    }
+
+    if {$id eq ""} {
+        return -code error "Error in Set Object Property:\
+            Object ID is blank"
+    }
+
+    if {$props(Property) eq ""} {
+        return -code error "Error in Set Object Property:\
+            Property is blank"
+    }
+
+    if {![::InstallJammer::ObjExists $id]} {
+        return -code error "Error in SetObjectProperty: Object \"$id\" does\
+                            not exist"
+    }
+
+    debug "Setting $props(Property) property on object $id to $value"
+
+    ::InstallAPI::SetObjectProperty -object $id -property $props(Property) \
+        -value $value
+}

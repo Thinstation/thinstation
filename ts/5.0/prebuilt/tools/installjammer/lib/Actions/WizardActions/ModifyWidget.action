@@ -1,0 +1,128 @@
+## $Id$
+##
+## BEGIN LICENSE BLOCK
+##
+## Copyright (C) 2002  Damon Courtney
+## 
+## This program is free software; you can redistribute it and/or
+## modify it under the terms of the GNU General Public License
+## version 2 as published by the Free Software Foundation.
+## 
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License version 2 for more details.
+## 
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the
+##     Free Software Foundation, Inc.
+##     51 Franklin Street, Fifth Floor
+##     Boston, MA  02110-1301, USA.
+##
+## END LICENSE BLOCK
+
+Action ModifyWidget "Modify Widget"
+
+Property Widget widget    "Widget" ""
+
+Property State  choice    "State"  "" {disabled hidden normal readonly}
+Help State "Modify the state of the given widget (readonly on applies to\
+                entry and text widgets)."
+
+Property Text   shorttext "Text"   ""
+
+proc ::InstallJammer::actions::ModifyWidget { obj } {
+    global conf
+    global info
+
+    variable hidden
+
+    set id     [$obj id]
+    set parent [$obj parent]
+
+    if {![$parent ispane]} {
+        set parent $info(CurrentPane)
+    }
+
+    $obj properties props
+
+    if {![string length $props(Widget)]} { return }
+
+    set allArgs   {}
+    set labelArgs {}
+
+    if {$props(Text) ne ""}  {
+    	lappend labelArgs -text $props(Text)
+    }
+
+    if {$props(State) ne "" && $props(State) ne "hidden"} {
+        lappend allArgs -state $props(State)
+    }
+
+    set widgets [split $props(Widget) \;]
+
+    for {set i 0} {$i < [llength $widgets]} {incr i} {
+        set name [string trim [lindex $widgets $i]]
+        set name [::InstallJammer::ID $name]
+        set w [join $name ""]
+        set widget $w
+
+        set button 0
+        if {[lsearch -exact $conf(ButtonWidgets) $widget] > -1} {
+            set button 1
+            set w [string tolower [string map {Button ""} $widget]]
+        }
+
+        if {$button} {
+            set w [$info(Wizard) widget get $w]
+        } else {
+            set w [$parent widget get $widget]
+        }
+
+        if {$w eq ""} {
+            return -code error "bad widget \"$name\""
+        }
+
+        if {$props(Text) ne ""} {
+            ::InstallJammer::SetVirtualText all $parent $widget $props(Text)
+        }
+
+	set class [winfo class $w]
+	if {$class eq "Frame" || $class eq "TFrame"} {
+	    foreach child [winfo children $w] {
+		set class [winfo class $child]
+		if {$class eq "Label" || $class eq "TLabel"} {
+		    eval [list $child configure] $labelArgs
+		}
+		eval [list $child configure] $allArgs
+	    }
+	} else {
+            if {$class eq "Text"} {
+                eval [list $w configure] $allArgs
+                if {[llength $labelArgs]} {
+                    set state [$w cget -state]
+                    $w configure -state normal
+                    $w delete 1.0
+                    $w insert end $props(Text)
+                    $w configure -state $state
+                }
+            } else {
+                eval [list $w configure] $allArgs $labelArgs
+            }
+	}
+
+        if {$props(State) eq "hidden" && ![info exists hidden($w)]} {
+            set manager [winfo manager $w]
+            set options [$manager info $w]
+            set hidden($w) [concat $manager configure $w $options]
+            $manager forget $w
+        } elseif {$props(State) eq "normal" && [info exists hidden($w)]} {
+            eval $hidden($w)
+            unset hidden($w)
+        }
+    }
+
+    if {$props(Text) ne ""} {
+        ::InstallJammer::UpdateWidgets -buttons 1 -updateidletasks 1
+    }
+}
