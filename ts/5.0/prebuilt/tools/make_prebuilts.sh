@@ -53,8 +53,7 @@ if [ -z "$typelist" ] ; then
     typelist="LiveCD"
 fi
 if [ -z "$catlist" ] ; then
-#    catlist="desktop OSS vmview"
-    catlist="desktop"
+    catlist="desktop OSS vmview"
 fi
 
 # Check if installjammer present - if needed
@@ -65,8 +64,6 @@ if [ -z "$noinstaller" ] ; then
 	read CHOICE
 	if [ `make_caps $CHOICE` == "Y" ] ; then
 	    echo "Installing InstallJammer in prebuilt/tools/installjammer"
-#	    mkdir prebuilt/tools/installjammer
-#	    exec ./prebuilt/tools/InstallJammer-1.2.14-Linux-x86-Install --prefix $basedir/prebuilt/tools/installjammer --mode silent
 	    tar zxf installjammer-1.2.15.tar.gz .
 	    echo "InstallJammer installed"
 	else
