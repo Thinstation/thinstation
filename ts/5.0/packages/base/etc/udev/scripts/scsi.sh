@@ -3,6 +3,12 @@
 # Mount Hotplug Device
 #
 
+echo "1 $DEVPATH" >> /var/log/scsi
+echo "2 $ACTION" >> /var/log/scsi
+echo "3 $ID_BUS" >> /var/log/scsi
+echo "4 $ID_FS_TYPE" >> /var/log/scsi
+echo "4 $ID_CDROM_MEDIA" >> /var/log/scsi
+
 devpath=`basename $DEVPATH`
 name=`echo $devpath | sed -e "s/[0-9]*//g"`
 node=`echo $devpath | sed -e "s/[a-z]*//g"`
@@ -63,10 +69,12 @@ do_mounts()
 {
 	mkdir -p $mtpath
 	if [ -n "$mount_opts" ] ; then
-        	mount -t $ID_FS_TYPE -o $mount_opts /dev/$devpath $mtpath
+        	MT_CMD="mount -t $ID_FS_TYPE -o $mount_opts /dev/$devpath $mtpath"
 	else
-        	mount -t $ID_FS_TYPE /dev/$devpath $mtpath
+        	MT_CMD="mount -t $ID_FS_TYPE /dev/$devpath $mtpath"
 	fi
+	echo "5 $MT_CMD" >> /var/log/scsi
+	$MT_CMD 2>> /var/log/scsi
 	index=0
         while [ -n "`eval echo '$BIND_MOUNT'$index`" ] ; do
         	MOUNT=`eval echo '$BIND_MOUNT'$index`
@@ -75,6 +83,7 @@ do_mounts()
 		if [ "$ID_FS_LABEL" == "$FS_LABEL" ]; then
 			mkdir -p $MT_PATH
 			mount --bind $mtpath $MT_PATH
+			echo "6 $mtpath $MT_PATH" >> /var/log/scsi
 		fi
 		let index=index+1
 	done
