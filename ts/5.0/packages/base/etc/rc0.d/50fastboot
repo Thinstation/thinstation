@@ -45,6 +45,7 @@ if [ "$LM" == "3" ]; then
 	cd /tmp
 	if [ "$FASTBOOT_URL" != "" ]; then
                 wget $FASTBOOT_URL/lib.squash 2>&1 |tee /var/log/wget_progress &
+		sleep .2
 		if [ "`readlink /bin/wget`" == "/bin/busybox" ]; then
 			OLDPROGRESS=$progress
 			while [ "$WPROGRESS" != "100" ] && [ ! -z "`pidof wget`" ]; do
@@ -77,6 +78,7 @@ if [ "$LM" == "3" ]; then
 		fi
 		FILE_NET="$squash_server$squash_location"lib.squash
 		tftp -g -l $FILE -r $FILE_NET -b $TFTP_BLOCKSIZE $SERVER_IP 2>&1 |tee /var/log/tftp_progress &
+		sleep .2
 		OLDPROGRESS=$progress
 		while [ "$TPROGRESS" != "100" ] && [ ! -z "`pidof tftp`" ]; do
 			sleep .5
@@ -102,6 +104,7 @@ fi
 
 if [ "$FASTBOOT" == "lotsofmem" ] ; then
 	unsquashfs -d / -f $FILE |tee /var/log/expand_progress &
+	sleep .2
 	OLDPROGRESS=$progress
 	while [ "$DPROGRESS" != "100" ] && [ ! -z "`pidof unsquashfs`" ] ; do
 		sleep .5
