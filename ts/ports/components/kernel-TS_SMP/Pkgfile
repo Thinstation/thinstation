@@ -4,14 +4,15 @@
 
 name=kernel-TS_SMP
 pname=${name%-*}
-version=3.2.6
-sversion=3.2.6
+version=3.2.8
+sversion=3.2.8
 release=1
 source=(ftp://ftp.kernel.org/pub/linux/kernel/v3.x/linux-$sversion.tar.bz2 \
 http://dev.gentoo.org/~spock/projects/fbcondecor/archive/fbcondecor-0.9.6-3.0-rc2.patch \
 ts.config)
 
 build() {
+export MAKEFLAGS="-j5"
 	cd linux-$sversion
 	cp $SRC/ts.config ./.config
 
