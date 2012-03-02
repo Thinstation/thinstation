@@ -7,7 +7,7 @@ name=coreutils
 version=8.14
 release=1
 source=(http://ftp.gnu.org/pub/gnu/$name/$name-$version.tar.xz
-        coreutils-uname.patch)
+        coreutils-uname.patch uname-arch.patch)
 
 build() {
     cd $name-$version
@@ -27,4 +27,7 @@ build() {
     mv $PKG/usr/bin/{cat,chgrp,chmod,chown,cp,date,dd,df,echo,false,ln,ls,mkdir,sleep} $PKG/bin
     mv $PKG/usr/bin/{mknod,mv,pwd,readlink,rm,rmdir,stty,sync,touch,true,uname} $PKG/bin
     rm -r $PKG/usr/share
+    mv $PKG/bin/uname $PKG/bin/uname-auto
+    install $SRC/uname-arch.patch $PKG/bin/uname
+
 }
