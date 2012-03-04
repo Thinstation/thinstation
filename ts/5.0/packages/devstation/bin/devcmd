@@ -5,6 +5,17 @@ x_echo()
         Xdialog --title "$1" --msgbox "$2" 0 0 2> /dev/null
 }
 
+do_update()
+{
+	$XTERM_CMD -T "Update initrd" -e update-initrd -w
+	case $? in
+		0) x_echo Update "Update Complete" ;;
+		1) x_echo Update "No Update Needed" ;;
+		2) e_echo Update "Error! Could not check md5" ;;
+		3) e_echo Update "Error! No initrd or vmlinuz found" ;;
+	esac
+}
+
 toggle_smp()
 {
 	if [ ! -e /thinstation/ts/5.0/SMP ]; then
@@ -96,7 +107,7 @@ case $1 in
 		do_reset
 		;;
 	update)
-		$XTERM_CMD -T "Update initrd" -e update-initrd -w
+		do_update
 		;;
 esac
 exit 0

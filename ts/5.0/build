@@ -221,6 +221,9 @@ make_initrd()
 		echo -e "\nMaking initramfs - Fastboot Enabled"
 		../fastboot/fastboot-mangle $INITDIR $ts_fastboot
 	else
+		if [ -e $INITDIR/lib.squash ] ; then
+			rm $INITDIR/lib.squash
+		fi
 		echo -e "\nMaking initramfs"
 	fi
 	echo -e "\tFixing-Up usr links"
@@ -1519,6 +1522,23 @@ fi
 if [ ! -e ./boot-images/initrd/vmlinuz ]; then
 	ln -sf ../../kernel/vmlinuz ./boot-images/initrd/vmlinuz
 fi
+cd boot-images/initrd
+md5sum vmlinuz > image.md5
+md5sum initrd >> image.md5
+if [ -e lib.squash ]; then
+	md5sum lib.squash >> image.md5
+fi
+cd ../..
+
+image_fastboot()
+{
+	if [ "$ts_fastboot" == "true" ] || [ "$ts_fastboot" == "lotsofmem" ] ; then
+		cp -p $INITDIR/lib.squash $IMAGEDIR
+	elif [ -e $IMAGEDIR/lib.squash ]; then
+		rm $IMAGEDIR/lib.squash
+	fi
+}
+
 # Skips Images if NOIMAGES is set, useful for TS-O-Matic
 if [ -z "$NOIMAGES" ] ; then
  for image in loadlin syslinux pxe iso nbi
@@ -1530,9 +1550,8 @@ if [ -z "$NOIMAGES" ] ; then
     cat $IMAGEDIR/ts.bat.tpl | sed -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS LM=1/g"> $IMAGEDIR/ts.bat
     cp kernel/vmlinuz $IMAGEDIR
     cp -p $INITDIR/initrd $IMAGEDIR
-    if [ "$ts_fastboot" == "true" ] || [ "$ts_fastboot" == "lotsofmem" ] ; then
-          cp -p $INITDIR/lib.squash $IMAGEDIR
-    fi
+    cp $INITDIR/image.md5 $IMAGEDIR
+    image_fastboot
     addpkgs $IMAGEDIR
     ;;
   syslinux)
@@ -1540,9 +1559,8 @@ if [ -z "$NOIMAGES" ] ; then
     cat $IMAGEDIR/syslinux.cfg.tpl |sed -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS LM=2/g"> $IMAGEDIR/syslinux.cfg
     cp kernel/vmlinuz $IMAGEDIR
     cp -p $INITDIR/initrd $IMAGEDIR
-    if [ "$ts_fastboot" == "true" ] || [ "$ts_fastboot" == "lotsofmem" ] ; then
-          cp -p $INITDIR/lib.squash $IMAGEDIR
-    fi
+    cp $INITDIR/image.md5 $IMAGEDIR
+    image_fastboot
     addpkgs $IMAGEDIR
     ;;
   pxe)
@@ -1550,9 +1568,8 @@ if [ -z "$NOIMAGES" ] ; then
     cat $IMAGEDIR/pxelinux.cfg/default.tpl | sed -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS LM=3/g"> $IMAGEDIR/pxelinux.cfg/default
     cp kernel/vmlinuz $IMAGEDIR
     cp -p $INITDIR/initrd $IMAGEDIR
-    if [ "$ts_fastboot" == "true" ] || [ "$ts_fastboot" == "lotsofmem" ] ; then
-          cp -p $INITDIR/lib.squash $IMAGEDIR
-    fi
+    cp $INITDIR/image.md5 $IMAGEDIR
+    image_fastboot
     addpkgs $IMAGEDIR
     ;;
   iso)
@@ -1574,8 +1591,11 @@ if [ -z "$NOIMAGES" ] ; then
     if [ ! -e $IMAGEDIR/source/initrd ]; then
 	ln -sf ../../initrd/initrd $IMAGEDIR/source/initrd
     fi
+    cp $INITDIR/image.md5 $IMAGEDIR/source/.
     if [ "$ts_fastboot" == "true" ] || [ "$ts_fastboot" == "lotsofmem" ] ; then
           ln -sf ../../initrd/lib.squash $IMAGEDIR/source/lib.squash
+    elif [ -e $IMAGEDIR/source/lib.squash ]; then
+	rm $IMAGEDIR/source/lib.squash
     fi
     addpkgs $IMAGEDIR/source
 
