@@ -30,9 +30,9 @@ stage1()
 	./build --removeall
 	cp conf/default/* .
 	cd /
-	mv $TSWRKNG/utils/tools/splash/default/1024x768 /.
-	rm -rf $TSWRKNG/utils/tools/splash/default/*
-	mv /1024x768 $TSWRKNG/utils/tools/splash/default/.
+	for dir in `ls $TSWRKNG/utils/tools/splash/default |grep -v "1024x768"` ; do
+		rm -rf $TSWRKNG/utils/tools/splash/default/$dir
+	done
 	for i in \
 		$TSWRKNG/boot-images/initrd/kernel_parameters \
 		$TSWRKNG/tmp-tree \
