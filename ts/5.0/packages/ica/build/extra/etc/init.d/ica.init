@@ -228,6 +228,17 @@ if ! pkg_initialized $PACKAGE; then
      ICA_WFCLIENT_DefaultPrinter=$PRINTER_0_NAME
   fi
 
+  if [ "`make_caps "$ICA_BROWSER_PROTOCOL"`" == "UDP" ]; then
+     ICA_WFCLIENT_BrowserProtocol="UDP"
+     ICA_WFCLIENT_SSLEnable="Off"
+  elif [ "`make_caps "$ICA_BROWSER_PROTOCOL"`" == "HTTPSonSSL" ]; then
+     ICA_WFCLIENT_BrowserProtocol="HTTPonTCP"
+     ICA_WFCLIENT_SSLEnable="On"
+  else
+     ICA_WFCLIENT_BrowserProtocol="HTTPonTCP"
+     ICA_WFCLIENT_SSLEnable="Off"
+  fi
+
   cat /dev/null > /tmp/script
   (set | grep "ICA_WFCLIENT_" ) |
   while read session; do
