@@ -1,12 +1,31 @@
 
 # -- Citrix ICA Options
-#
-#                       GLOBAL Settings
+# These settings control the creation of wfclient.ini and appsrv.ini
+# Users with complicated configurations may place manually generated ones in $HOME/.ICAClient
+# --- Global Settings [written to wfclient.ini]
 #ICA_USE_SERVER_KEYBOARD    Use default server keyboard, otherwise use KEYBOARD_MAP
 #                           variable
-#ICA_BROWSER_PROTOCOL       Broswer protocol, can be HTTPonTCP or UDP
+#ICA_PRINTER                This will turn on ICA autocreate printers, see printer section
+#                           for details, On/Off
 #
-#                           APPLICATION SET settings
+#                           NOTE: You must have the lpr package included for this option
+#                           to work.
+#ICA_BROWSER_PROTOCOL       Broswer protocol, can be HTTPonTCP, UDP, or HTTPSonSSL
+#ICA_WFCLIENT_<option>      This allows you to specify specific config file details for global ica
+#                           parameters. This can be applied to any of the possible settings located
+#                           under the [WFClient] section of wfclient.ini
+#                           Use the correct case instead of all upper case on the option
+#
+#                           An example of this is
+#                           ICA_WFCLIENT_ClientDrive="On"
+#
+#                           See your application manual for documentation on the settings which
+#                           can be used.
+#ICA_THINWIRE_<option>      This is similar to the above parameter except that it applies to
+#                           and of the possible settings located under the [Thinwire3.0] section of
+#                           wfclient.ini
+
+# --- Default application settings; Apply to all sessions unless overridden by session specific one
 #ICA_ENCRYPTION             Encryption level for ICA
 #                           Valid Settings Below
 #                           "Basic"
@@ -20,22 +39,20 @@
 #                                                                     reader package for this
 #                                                                     option to work).
 #ICA_AUDIO_QUALITY          Audio Quality, Low, Medium, High
-#ICA_PRINTER                This will turn on ICA autocreate printers, see printer section
-#                           for details, On/Off
-#
-#                           NOTE: You must have the lpr package included for this option
-#                           to work.
-#
+#ICA_SEAMLESS_WINDOW        Unknown, relevant to older versions of Citrix
+#ICA_DISABLECTRLALTDEL      Disable the use of Ctrl-Alt-Del, On/Off
+
+#  --- Session specific parameters (ie SESSION_#_<param>); Session can override above parameters
 #ICA_APPLICATION_SET        Published Application (Not needed if using
 #                           ICA_SERVER)
 #ICA_SERVER                 Server to Connect to (Not needed if using
 #                           ICA_APPLICATION_SET, but needed if the ICA-Masterbrowser
 #                           is not on the local network.)
-#ICA_WFCLIENT_type_specific This allows you to specify specific config file details for global ica
-#                           parameters any parameter can be changed with this setting. An example of this is
-#                           ICA_WFCLIENT_CLIENTDRIVE="On"
-#                           See your application manual for documentation on the settings which
-#                           can be used.
+#ICA_APPSRV_<option>        Specify specific session parameters that are not altered by any of
+#                           the above session parameters
+#
+#                           An example:
+#                           SESSION_1_ICA_APPSRV_ProxyUseDefault=Off
 
 #ICA_USE_SERVER_KEYBOARD=Off
 #ICA_BROWSER_PROTOCOL=HTTPonTCP
