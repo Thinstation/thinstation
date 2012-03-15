@@ -15,8 +15,10 @@ modprobe loop
 squash_location=`dirname $initrd`
 if [ "$squash_location" == "." -o "$squash_location" == "/." ]; then
 	unset squash_location
-else
+elif [ "`echo $squash_location |cut -c 1`" == "/" ]; then
 	squash_location="`echo $squash_location |cut -c 2-`/"
+elif [ "`echo $squash_location |cut -c 1`" == "." ]; then
+        squash_location="`echo $squash_location |cut -c 3-`/"
 fi
 
 # Loadlin
