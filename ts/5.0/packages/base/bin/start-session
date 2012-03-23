@@ -5,7 +5,6 @@
 . /etc/splash.functions
 
 echo_log "\n\nWelcome to Thinstation Linux $TS_VERSION"
-echo
 
 no_package()
 {
@@ -18,116 +17,74 @@ no_package()
 	done
 }
 
-runasuser ()
-{
-    # The $TSUSER needs to write to these directories/files
-
-    # Set Permissions
-    chown $TSUSER:users $TS_RUNTIME
-    chown $TSUSER:users /etc/replimenu
-    chmod -R 666 /var/log/boot.log
-    chmod -R 777 /tmp
-    if [ -e /etc/blackbox ] ; then
-	chmod -R 777 /etc/blackbox
-    fi
-    chmod -R 777 /var/packages
-    chown -R $TSUSER:users $HOME
-    umask 002
-}
-
 case $1 in
-  0)
-     # Start each session
-
-     # Cleanup files if already existing
-    if [ -e $WKDIR/windowapps ] ; then
-     	rm $WKDIR/windowapps
-    fi
-    if [ -e $WKDIR/consoleapps ] ; then
-     	rm $WKDIR/consoleapps
-    fi
-    if [ -e $WKDIR/*.autostart ] ; then
-     	rm $WKDIR/*.autostart
-    fi
-
-    (cat $WKDIR/session) |
-    while read type title screen position workspace autostart custom icon server options
-    do
-	if [ -e /etc/cmd/$type.wm ] && [ -z "$WMNAME" ] ; then
-	  export WMSCREEN=$screen
-	  export WMNAME=$type
-	  echo "WMNAME"="$type" >> $TS_RUNTIME
+	0)
+	# Start each session
+	# Cleanup files if already existing
+	if [ -e $WKDIR/windowapps ] ; then
+		rm $WKDIR/windowapps
 	fi
-	autostart=`make_caps $autostart`
-	case $autostart in
-	ON)
-         	if [ -e /etc/init.d/$type ] ; then
-		  # Set screen variables
-          	  export DISPLAY=:$screen.0
-          	  export DISPLAY_NUMBER=$screen
-          	  export WMWORKSPACE=$workspace
-          	  export POSITION=$position
-		  if [ "$server" = "." ] ; then server= ; fi
-		  if [ "$options" = "." ] ; then options= ; fi
-	  	  if [ ! -e /etc/console/$type ] ; then
-		     if [ -n "$WMNAME" ] && [ "$type" != "$WMNAME" ] && [ "$screen" == "$WMSCREEN" ] ; then
-	    	    	 echo "pkg auto $type \"$server\" \"$options\" \"$WMWORKSPACE\" &" >> $WKDIR/$WMNAME.autostart
-			 echo "sleep .2" >> $WKDIR/$WMNAME.autostart
-		     else
-			 echo "export DISPLAY=$DISPLAY" >> $WKDIR/windowapps
-			 echo "export DISPLAY_NUMBER=$DISPLAY_NUMBER" >> $WKDIR/windowapps
-	    	    	 echo "pkg console $type \"$server\" \"$options\" &" >> $WKDIR/windowapps
-	     	     fi
-		  else
-	    	     echo "pkg console $type \"$server\" \"$options\"" >> $WKDIR/consoleapps
-		  fi
-		else
-			no_package
+	if [ -e $WKDIR/consoleapps ] ; then
+		rm $WKDIR/consoleapps
+	fi
+	if [ -e $WKDIR/*.autostart ] ; then
+		rm $WKDIR/*.autostart
+	fi
+
+	(cat $WKDIR/session) |
+	while read type title screen position workspace autostart custom icon server options ; do
+		if [ -e /etc/cmd/$type.wm ] && [ -z "$WMNAME" ] ; then
+			export WMSCREEN=$screen
+			export WMNAME=$type
+			echo "WMNAME"="$type" >> $TS_RUNTIME
 		fi
-		;;
-	*)
-		touch /tmp/BOOTMENU
-		;;
-	esac
-    done
-
-#   If we are using a non-root user do it with su - <user>
-    if [ -n "$TSUSER" ] ; then
-#	set permissions etc
-	echo_log "runasuser TSUSER=$TSUSER"
-	runasuser $TSUSER
+		autostart=`make_caps $autostart`
+		case $autostart in
+			ON)
+				if [ -e /etc/init.d/$type ] ; then
+					# Set screen variables
+					export DISPLAY=:$screen.0
+					export DISPLAY_NUMBER=$screen
+					export WMWORKSPACE=$workspace
+					export POSITION=$position
+					if [ "$server" = "." ] ; then server= ; fi
+					if [ "$options" = "." ] ; then options= ; fi
+					if [ ! -e /etc/console/$type ] ; then
+						if [ -n "$WMNAME" ] && [ "$type" != "$WMNAME" ] && [ "$screen" == "$WMSCREEN" ] ; then
+							echo "pkg auto $type \"$server\" \"$options\" \"$WMWORKSPACE\" &" >> $WKDIR/$WMNAME.autostart
+							echo "sleep .2" >> $WKDIR/$WMNAME.autostart
+						else
+							echo "export DISPLAY=$DISPLAY" >> $WKDIR/windowapps
+							echo "export DISPLAY_NUMBER=$DISPLAY_NUMBER" >> $WKDIR/windowapps
+							echo "pkg console $type \"$server\" \"$options\" &" >> $WKDIR/windowapps
+						fi
+					else
+						echo "pkg console $type \"$server\" \"$options\"" >> $WKDIR/consoleapps
+					fi
+				else
+					no_package
+				fi
+			;;
+			*)
+				touch /tmp/BOOTMENU
+			;;
+		esac
+	done
 	if [ -e $WKDIR/windowapps ] ; then
-    	    /bin/su - $TSUSER -c ". $WKDIR/windowapps"
+		. $WKDIR/windowapps
 	fi
 	if [ -e $WKDIR/consoleapps ] ; then
-    	    /bin/su - $TSUSER -c ". $WKDIR/consoleapps"
+		. $WKDIR/consoleapps
 	fi
-    else
-	if [ -e $WKDIR/windowapps ] ; then
-    	    . $WKDIR/windowapps
+	# Start Menu session
+	if [ ! -e $WKDIR/windowapps ] && [ -e /tmp/BOOTMENU ] ; then
+		splash_exit
+		while [ ! -e /tmp/shutdown ] ; do
+			pkg console menu
+			. $TS_GLOBAL
+		done
+		rm /tmp/BOOTMENU
 	fi
-	if [ -e $WKDIR/consoleapps ] ; then
-	    . $WKDIR/consoleapps
-	fi
-    fi
-
-    # Start Menu session
-
-    if [ ! -e $WKDIR/windowapps ] && [ -e /tmp/BOOTMENU ] ; then
-	splash_exit
-       while [ ! -e /tmp/shutdown ] ; do
-	if [ -n "$TSUSER" ] ; then
-	    echo_log "menu TSUSER=$TSUSER"
-    	    /bin/su - $TSUSER -c "pkg console menu"
-	else
-    	    pkg console menu
-	fi
-	. $TS_GLOBAL
-       done
-       rm /tmp/BOOTMENU
-    fi
-
-    wait
-
-  ;;
+	wait
+	;;
 esac
