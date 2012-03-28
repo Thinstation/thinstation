@@ -27,7 +27,9 @@ help()
 	-o : Options to pass to build. Must be the last option,
 	     as anything after it will be passed to build.
 	-c : Clean the chroot env.
-
+	-e : Execute a command after entering chroot. Must
+	     be the last option, as anything after it will be
+	     executed in the chroot, including arguments.
 
 	"
 }
@@ -42,6 +44,7 @@ get_opts()
 		-h|--help)	help ; exit 255 ;;
 		-o|--options)	shift ; build_opts=$@ ; shift $# ;;
 		-c|--clean)	unset build ; shift $# ; touch ./CLEAN ;;
+		-e|--exec)	shift ; exec_cmd=$@ ; shift $# ;;
 		*)		echo "Invalid Argument: $1" ; help ; exit 255 ;;
 		esac
 		shift
@@ -94,6 +97,13 @@ do_unmounts()
 	done
 }
 
+set_cmd()
+{
+	if [ ! -z "$exec_cmd" ]; then
+		echo "$exec_cmd" > BUILD.$INSTANCE
+	fi
+}
+
 set_build()
 {
 	if [ "$build" == "true" ] ; then
@@ -110,6 +120,7 @@ main()
 	get_opts $@
 	state_checks
 	set_build
+	set_cmd
 	launch_chroot
 	if [ -e installed ] ; then
 		rm installed
