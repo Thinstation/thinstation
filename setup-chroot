@@ -80,6 +80,7 @@ launch_chroot()
 	do_mounts
 	cp -f /etc/resolv.conf etc/resolv.conf
 	chroot /$PWD /bin/bash --rcfile ./ts/TS_ENV
+	howdiditgo=$?
 	if first_or_last ; then
 		do_unmounts
 		if [ -e cleanstage2 ] ; then
@@ -133,5 +134,5 @@ main()
 }
 
 main $@
-echo -e "\nGoodbye. \n"
+if [ "$howdiditgo" == "0" ] ; then echo -e "\nGoodbye. \n" ; fi
 exit 0
