@@ -188,19 +188,7 @@ fi
 cleanup
 }
 
-# Checks for booting without dhcp/tftp server
-
-NET_FILE_ENABLED=`make_caps $NET_FILE_ENABLED`
-
-#Bring up Network
-
-# If Manually configured network interface and still
-#  wanting to use a tftp server for files
-if [ -n "$NET_FILE_ALTERNATE" ] ; then
-	SERVER_IP=$NET_FILE_ALTERNATE
-	echo "SERVER_IP=$SERVER_IP" >> $TS_RUNTIME
-fi
-if [ "$NET_FILE_ENABLED" != "OFF" ] ; then
+if is_enabled $NET_FILE_ENABLED ; then
 	get_global_file
 	get_hosts_file
 	. /var/log/net/$NET_DEVICE
@@ -208,22 +196,6 @@ if [ "$NET_FILE_ENABLED" != "OFF" ] ; then
 	get_ssh_known_hosts
 fi
 
-# Checks for booting without dhcp/tftp server
-
-#NET_USE_DHCP=`make_caps $NET_USE_DHCP`
-#
-#if [ "$NET_USE_DHCP" != "OFF" ] ; then
-#	get_hostname
-#fi
-
-#. $TS_GLOBAL
-
-#echo "127.0.0.1 localhost $NET_HOSTNAME" > /etc/hosts
-#if [ -n "$CLIENT_IP" ] ; then
-#	echo "$CLIENT_IP $CLIENT_NAME" >> /etc/hosts
-#else
-#	echo "127.0.0.1 $CLIENT_NAME" >> /etc/hosts
-#fi
 for adapter in `ls /var/log/net`; do
 	. /var/log/net/$adapter
 	echo "$CLIENT_IP $CLIENT_NAME" >> /etc/hosts

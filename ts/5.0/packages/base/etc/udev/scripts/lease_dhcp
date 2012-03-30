@@ -36,6 +36,9 @@ case $1 in
                 else
                         SERVER_IP=$tftp
                 fi
+		if [ -n "$NET_FILE_ALTERNATE" ] ; then
+			SERVER_IP=$NET_FILE_ALTERNATE
+		fi
                 echo "SERVER_IP=$SERVER_IP" >> /var/log/net/$INTERFACE
                 echo "NETWORKUP=TRUE" >> /var/log/net/$INTERFACE
 		echo "NETMASK_SIZE=$mask" >> /var/log/net/$INTERFACE
