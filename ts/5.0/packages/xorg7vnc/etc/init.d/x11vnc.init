@@ -5,6 +5,8 @@
 case "$1" in  
 init)
   if ! pkg_initialized $PACKAGE; then
+
+         # delay start of x11vnc till X is ready
          echo  "*/1 * * * * /bin/check_x11vnc" >> /tmp/crontab
          crontab /tmp/crontab
 
@@ -19,11 +21,8 @@ init)
 	fi
 
 	echo s\@\$NET_REMOTE_ACCESS_FROM@$NET_REMOTE_ACCESS_FROM@g >> /tmp/script
-#	cat /etc/wwwx11vnc.tpl | sed -f /tmp/script > /etc/xinetd.d/wwwx11vnc
-
 	echo s/\${XORGVNC}/$XORGVNC/g >> /tmp/script
 	cat $WEB/x11vnc/index.vnc.tpl |sed -f /tmp/script >$WEB/x11vnc/index.vnc
-
 	rm /tmp/script
 
 	pkg_set_init_flag $PACKAGE
