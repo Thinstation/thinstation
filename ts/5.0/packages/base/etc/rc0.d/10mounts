@@ -3,8 +3,10 @@ if [ -n "$DEBUG_INIT" ] ; then
 fi
 
 mount -t proc proc /proc
-#mount -t sysfs sys /sys
-echo 100 > /proc/sys/vm/swappiness
+if [ ! -e /sys/bus ] ; then
+	mount -t sysfs sys /sys
+fi
+
 if is_enabled $MEMORY_CONSTRAINED ; then
 	echo 100 > /proc/sys/vm/swappiness
         mount -n -t tmpfs tmpfs /tmp
