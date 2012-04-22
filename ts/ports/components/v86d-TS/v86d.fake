@@ -1,34 +1,42 @@
 #!/bin/bash
-KERNEL=`uname -r`
 
+mount -t sysfs sys /sys
+
+KERNEL=`uname -r`
 RADEON_VENDORS="1002"
 RADEON_DEVICES=`cat /lib/modules/$KERNEL/modules.alias |grep -e radeon |cut -c 25-28`
 i915_VENDORS="8086"
 i915_DEVICES=`cat /lib/modules/$KERNEL/modules.alias |grep -e i915 |cut -c 25-28`
 NOUVEAU_VENDORS="12D2 10DE"
 
-mount -t sysfs sys /sys
+disqualify()
+{
+	if [ "$VENDOR" == "$RADEON_VENDORS" ] ; then
+		for i in $RADEON_DEVICES ; do
+			if [ "$DEVICE" == "$i" ]; then
+				exit 255
+			fi
+		done
+	fi
+	if [ "$VENDOR" == "$i915_VENDORS" ]; then
+		for i in $i915_DEVICES ; do
+			if [ "$DEVICE" == "$i" ]; then
+				exit 255
+			fi
+		done
+	fi
+	for i in $NOUVEAU_VENDORS ; do
+		if [ "$VENDOR" == "$i" ]; then
+			exit 255
+		fi
+	done
+}
 DEVICE=`cat /sys/devices/pci0000:00/0000:00:01.0/device |cut -c 3-6`
 VENDOR=`cat /sys/devices/pci0000:00/0000:00:01.0/vendor |cut -c 3-6`
+disqualify
 
-if [ "$VENDOR" == "$RADEON_VENDORS" ] ; then
-	for i in $RADEON_DEVICES ; do
-		if [ "$DEVICE" == "$i" ]; then
-			exit 255
-		fi
-	done
-fi
-if [ "$VENDOR" == "$i915_VENDORS" ]; then
-	for i in $i915_DEVICES ; do
-		if [ "$DEVICE" == "$i" ]; then
-			exit 255
-		fi
-	done
-fi
-for i in $NOUVEAU_VENDORS ; do
-	if [ "$VENDOR" == "$i" ]; then
-		exit 255
-	fi
-done
+DEVICE=`cat /sys/devices/pci0000:00/0000:00:02.0/device |cut -c 3-6`
+VENDOR=`cat /sys/devices/pci0000:00/0000:00:02.0/vendor |cut -c 3-6`
+disqualify
 
 /bin/v86d.real
