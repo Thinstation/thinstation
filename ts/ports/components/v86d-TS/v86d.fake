@@ -39,8 +39,8 @@ disqualify()
 for i in 01 02 03 04 05 ; do
 	if [ -e /sys/devices/pci0000:00/0000:00:$i.0/device ] &&
 	   [ -e /sys/devices/pci0000:00/0000:00:$i.0/vendor ]; then
-		DEVICE=`cat /sys/devices/pci0000:00/0000:00:$i.0/device |cut -c 3-6`
-		VENDOR=`cat /sys/devices/pci0000:00/0000:00:$i.0/vendor |cut -c 3-6`
+		DEVICE=`cat /sys/devices/pci0000:00/0000:00:$i.0/device |cut -c 3-6 |tr "[a-z]" "[A-Z]"`
+		VENDOR=`cat /sys/devices/pci0000:00/0000:00:$i.0/vendor |cut -c 3-6 |tr "[a-z]" "[A-Z]"`
 		disqualify
 	fi
 done
