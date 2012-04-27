@@ -36,13 +36,10 @@ disqualify()
 	done
 }
 
-for i in 01 02 03 04 05 ; do
-	if [ -e /sys/devices/pci0000:00/0000:00:$i.0/device ] &&
-	   [ -e /sys/devices/pci0000:00/0000:00:$i.0/vendor ]; then
-		DEVICE=`cat /sys/devices/pci0000:00/0000:00:$i.0/device |cut -c 3-6 |tr "[a-z]" "[A-Z]"`
-		VENDOR=`cat /sys/devices/pci0000:00/0000:00:$i.0/vendor |cut -c 3-6 |tr "[a-z]" "[A-Z]"`
-		disqualify
-	fi
+for i in `/bin/busybox lspci |cut -d " " -f 4` ; do
+	DEVICE=`echo $i |cut -d ":" -f2 |tr "[a-z]" "A-Z"`
+	VENDOR=`echo $i |cut -d ":" -f1 |tr "[a-z]" "A-Z"`
+	disqualify
 done
 
 /bin/v86d.real

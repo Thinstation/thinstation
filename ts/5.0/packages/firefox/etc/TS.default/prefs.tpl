@@ -25,7 +25,7 @@ user_pref("browser.rights.3.shown", true);
 user_pref("browser.search.update", false);
 user_pref("browser.shell.checkDefaultBrowser", false);
 user_pref("browser.startup.homepage_override.buildID", "20120312181643");
-user_pref("browser.startup.homepage_override.mstone", "rv:11.0");
+user_pref("browser.startup.homepage_override.mstone", "rv:12.0");
 user_pref("browser.tabs.warnOnClose", false);
 user_pref("browser.tabs.warnOnOpen", false);
 user_pref("extensions.blocklist.pingCountVersion", 0);
