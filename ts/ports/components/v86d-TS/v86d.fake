@@ -36,8 +36,8 @@ disqualify()
 	done
 }
 
-for i in `/bin/busybox lspci -m |grep -e ".0 " |cut -d '"' -f 4-6 |tr "[a-z]" "[A-Z]"` ; do
-	DEVICE=`echo $i |cut -c 8-11`
+for i in `/bin/busybox lspci -m |grep -e ".0 " |cut -d '"' -f 4-6 |sed -e 's/\"//g' -e 's/ //g' |tr "[a-z]" "[A-Z]"` ; do
+	DEVICE=`echo $i |cut -c 5-8`
 	VENDOR=`echo $i |cut -c 1-4`
 	disqualify
 done
