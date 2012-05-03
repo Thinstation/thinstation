@@ -22,12 +22,12 @@ init $@
 case $METHOD in
 	LOCAL)
 		cd /boot
-		cp /thinstation/ts/5.0/boot-images/initrd/image.md5 check.md5
+		cp /thinstation/ts/$TS_VERSION/boot-images/initrd/image.md5 check.md5
 		if ! md5sum -c check.md5 ; then
-			cp /thinstation/ts/5.0/boot-images/initrd/initrd /boot/initrd
-			cp /thinstation/ts/5.0/boot-images/initrd/vmlinuz /boot/vmlinuz
-			if [ -e /thinstation/ts/5.0/boot-images/initrd/lib.squash ]; then
-				cp /thinstation/ts/5.0/boot-images/initrd/lib.squash /boot/lib.update
+			cp /thinstation/ts/$TS_VERSION/boot-images/initrd/initrd /boot/initrd
+			cp /thinstation/ts/$TS_VERSION/boot-images/initrd/vmlinuz /boot/vmlinuz
+			if [ -e /thinstation/ts/$TS_VERSION/boot-images/initrd/lib.squash ]; then
+				cp /thinstation/ts/$TS_VERSION/boot-images/initrd/lib.squash /boot/lib.update
 			fi
 			echo "Update Complete"
 			exit 0
