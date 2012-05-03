@@ -252,7 +252,6 @@ dialog_get_value ()
 
 check_reconnect ()
 {
-  unset choice_error choice
   if [ -e /tmp/.X11-unix/X$DISPLAY_NUMBER ] ; then
 	prompt="`make_caps $RECONNECT_PROMPT | cut -c1-4`" 
 	NO_SESSION=`make_lower $NO_SESSION`
@@ -267,6 +266,7 @@ check_reconnect ()
 			echo "$kill_time  * * * * /bin/$NO_SESSION" >> /tmp/shutdown
 			crontab /tmp/shutdown
 		fi
+		unset choice_error
 		while [ "$choice_error" != "0" ] ; do
 	        	choice=$(Xdialog --stdout --title "Reconnect/Shutdown?" --clear --no-cancel --combobox "Choose option then OK to continue." 10 60 Reconnect Shutdown)
 			choice_error=$?
