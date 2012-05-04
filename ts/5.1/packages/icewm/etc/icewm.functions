@@ -1,0 +1,121 @@
+#! /bin/sh
+
+# . $TS_GLOBAL
+
+wm_workspaces ()
+{
+	local wmworkspace
+	if [ "$2" -gt 1 ] ; then
+		let wmworkspace=$2-1
+		CMD="icesh -window root setWorkspace $wmworkspace ; $1"
+	fi
+}
+
+wm_menu ()
+{
+if is_disabled $MENU_SHOWCLOCK ; then
+	echo "TaskBarShowClock=0" >> /etc/icewm/prefoverride
+fi
+if is_enabled $HIDE_CONTROLS ; then
+	echo "TitleBarHeight=0" >> /etc/icewm/prefoverride
+	echo "ShowWorkspaceStatus=0"  >> /etc/icewm/prefoverride
+	echo "UseRootButtons=0"  >> /etc/icewm/prefoverride
+	echo "ShowTaskBar=0"  >> /etc/icewm/prefoverride
+	echo "ShowSettingsMenu=0"  >> /etc/icewm/prefoverride
+	echo "ShowThemesMenu=0"  >> /etc/icewm/prefoverride
+        echo "BorderSizeX=0"  >> /etc/icewm/prefoverride
+        echo "BorderSizeY=0"  >> /etc/icewm/prefoverride
+        echo "DlgBorderSizeX=0"  >> /etc/icewm/prefoverride
+        echo "DlgBorderSizeY=0"  >> /etc/icewm/prefoverride
+        echo "CornerSizeX=0"  >> /etc/icewm/prefoverride
+        echo "CornerSizeY=0"  >> /etc/icewm/prefoverride
+fi
+
+    MENU_FILE=/tmp/$WMNAME.menu
+    TMPMENU=/tmp/$WMNAME.tmp
+
+    MENU_ICONS="/etc/icewm/winoptions"
+    cat /dev/null > $MENU_FILE
+if is_enabled $MENU_SHOWAPPS ; then
+    (cat $WKDIR/session | sort ) |
+    while read type title screen position workspace autostart custom icon server options
+    do
+	if [ "$server" == "." ] ; then server="" ; fi
+	if [ "$options" == "." ] ; then options="" ; fi
+	case "$icon" in
+	ON)
+	 echo "$type.icon: $type" >> $MENU_ICONS
+	 echo "prog \"$title\" \"$type\" pkg fullscreen $type \"$server\" \"$options\"" >> $MENU_FILE
+	;;
+	SUBMENU)
+	 if [ "$lasttype" != "$type" ] ; then
+		lasttype=$type
+	 	echo $type >> /tmp/typelist
+	 fi
+	 echo "prog \"$title\" \"$type\" pkg fullscreen $type \"$server\" \"$options\"" >> /tmp/"$type"_menu
+	;;
+	esac
+    done
+
+    if [ -e /tmp/typelist ] ; then
+      (cat /tmp/typelist ) |
+      while read type
+      do
+	echo "menu \"`make_caps $type` Connections\" "$type"_menu {" >> $MENU_FILE
+	cat /tmp/"$type"_menu >> $MENU_FILE
+	echo "}" >> $MENU_FILE
+    	rm /tmp/"$type"_menu
+      done
+      rm /tmp/typelist
+    fi
+
+    if [ "`make_caps $ICONMODE`" == "AUTO" ] ; then
+      touch $TMPMENU
+      if [ -e /lib/menu ] ; then
+           cat /lib/menu/* > $TMPMENU
+      fi
+      if [ "`make_caps x$MENU_EXTRA`" == "XONLY" ] ; then
+		if [ -e $MENU_EXTRA_DIR/* ] ; then
+			cat $MENU_EXTRA_DIR/* > $TMPMENU
+      		fi
+      elif [ -e $MENU_EXTRA_DIR/* ] ; then
+		cat $MENU_EXTRA_DIR/* >> $TMPMENU
+      fi
+      (cat $TMPMENU) |
+      while read entry
+      do
+	case "$entry" in
+		\#*|"") continue ;;
+	esac
+	echo $entry > /tmp/entry
+	. /tmp/entry
+
+	echo "$package.icon: $package" >> $MENU_ICONS
+	echo "prog \"$title\" \"$package\" $command" >> $MENU_FILE
+      done
+      rm /tmp/entry
+      rm $TMPMENU
+    fi
+fi
+
+    if is_enabled $MENU_SHOWRES && [ -e /sys/devices/platform/uvesafb.0/vbe_modes ] ; then
+        echo "menu Resolution" "resolution_menu {" >> $MENU_FILE
+	for i in `cat /sys/devices/platform/uvesafb.0/vbe_modes |cut -d "-" -f1 |sort -n |uniq` ; do
+		echo "prog \"$i\" \"$i\" setres $i" >> $MENU_FILE
+	done
+	echo "}" >> $MENU_FILE
+    fi
+    if is_enabled $MENU_SHOWABOUT && [ -e /bin/about ]; then
+	echo "prog \"About\" \"about\" about" >> $MENU_FILE
+    fi
+    if is_enabled $MENU_SHOWLOGOUT ; then
+	echo "menu Logout" "logout_menu {" >> $MENU_FILE
+	echo "prog \"Logout\" \"logout\" logout" >> $MENU_FILE
+	echo "prog \"Shutdown\" \"shutdown\" poweroff" >> $MENU_FILE
+	echo "prog \"Reboot\" \"reboot\" reboot" >> $MENU_FILE
+	echo "}" >> $MENU_FILE
+    fi
+    cat $MENU_FILE > /etc/icewm/menu
+    rm $MENU_FILE
+}
+

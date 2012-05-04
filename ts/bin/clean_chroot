@@ -30,8 +30,10 @@ stage1()
 	./build --removeall
 	cp conf/default/* .
 	cd /
-	for dir in `ls $TSWRKNG/utils/tools/splash/default |grep -v "1024x768"` ; do
-		rm -rf $TSWRKNG/utils/tools/splash/default/$dir
+	for res in `ls $TSWRKNG/utils/tools/splash/default |grep -v "1024x768"` ; do
+		if [ ! -z "$res" ] ; then
+			rm -rf $TSWRKNG/utils/tools/splash/default/$res
+		fi
 	done
 	for i in \
 		$TSWRKNG/boot-images/initrd/kernel_parameters \
@@ -47,14 +49,16 @@ stage1()
 		$TSWRKNG/boot-images/pxe/{module.list,vbe_modes.list,firmware.list} \
 		$TSWRKNG/thinstation.conf.sample \
 		$TSWRKNG/utils/KERNEL_VERSION \
-		$TSWRKNG/boot-images/syslinux/syslinux.cfg ;
-			do
-				if [ -e "$i" ];
-					then rm -rf $i
-				fi
+		$TSWRKNG/boot-images/syslinux/syslinux.cfg ; do
+			if [ -e $i ];
+				then rm -rf $i
+			fi
 	done
-	find $TSWRKNG/boot-images -name image.md5 |xargs rm
-
+	for checksum in `find $TSWRKNG/boot-images -name image.md5` ; do
+		if [ -n "$checksum" ]; then
+			rm $checksum
+		fi
+	done
 	for i in `ls --color=never $TSWRKNG/packages` ;
 		do
 			if [ -e $TSWRKNG/packages/$i/.dna ] ;
