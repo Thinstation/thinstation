@@ -16,7 +16,9 @@ un_mount()
 {
         for i in `mount |grep -e $disk |cut -d " " -f3`; do
                 while mounted $i; do
-                        umount $i
+			sync
+                        umount -f $i
+			sleep 1
                 done
         done
         swapoff -a
@@ -25,25 +27,34 @@ un_mount()
 
 do_mounts()
 {
+	sleep 1
 	while ! mounted /boot ; do
 		mount -t vfat /dev/${disk}1 /boot
+		sleep 1
 	done
 	while ! mounted /root ; do
 		mount -t ext4 /dev/${disk}2 /root
+		sleep 1
 	done
 	while ! mounted /thinstation ; do
 		mount -t ext4 /dev/${disk}4 /thinstation
+		sleep 1
 	done
+}
+
+read_pt()
+{
+	sync
+	blockdev --rereadpt $disk
+	sleep 1
 }
 
 echo "Starting Partioner"
 touch /tmp/nomount
 un_mount
 dd if=/dev/zero of=$disk bs=1M count=32
-sleep 1
+read_pt
 parted -s $disk mklabel msdos
-blockdev --rereadpt $disk
-un_mount
 if [ "$buggybios" == "true" ]; then
 	parted -s $disk mkpart primary fat32 "2s 2101247s" 1>/dev/null
 else
@@ -53,21 +64,22 @@ parted -s $disk set 1 boot on
 parted -s $disk mkpart primary ext4 "2101248s 4202495s"
 parted -s $disk mkpart primary linux-swap "4202496s 6303743s"
 parted -s $disk mkpart primary ext4 "6303744s -0"
-sleep 1
-blockdev --rereadpt $disk
-sleep 1
+read_pt
 un_mount
 echo "Making filesystems"
 mkdosfs -n boot -F 32 -R 32 ${disk}1
+sleep 1
 #progress "Made boot Filesystem" 30
 mkfs.ext4 ${disk}2
+sleep 1
 #progress "Made home Filesystem" 35
 mkfs.ext4 ${disk}4
+sleep 1
 #progress "Made Dev Filesystem" 40
 mkswap -L swap ${disk}3
 sleep 1
 #progress "Made swap Fileystem" 45
-blockdev --rereadpt $disk
+read_pt
 un_mount
 e2label ${disk}2 home
 e2label ${disk}4 tsdev
@@ -75,8 +87,7 @@ sleep 1
 #progress 50
 echo "Remounting"
 rm /tmp/nomount
-blockdev --rereadpt $disk
-sleep 4
+read_pt
 do_mounts
 sleep 1
 cd /boot

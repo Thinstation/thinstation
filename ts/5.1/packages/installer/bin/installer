@@ -42,6 +42,15 @@ test_internet()
 	fi
 	kill -KILL $prettybox
 }
+
+Xdialog --title "Install to HD" --textbox /README 30 120
+retval=$?
+if [ "$retval" -lt "1" ]; then
+	continue
+else
+	exit 1
+fi
+
 test_internet
 
 if [ "$internet" == "Fail!" ] ; then
