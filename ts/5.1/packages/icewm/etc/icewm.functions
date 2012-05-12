@@ -45,14 +45,14 @@ if is_enabled $MENU_SHOWAPPS ; then
 	case "$icon" in
 	ON)
 	 echo "$type.icon: $type" >> $MENU_ICONS
-	 echo "prog \"$title\" \"$type\" pkg fullscreen $type \"$server\" \"$options\"" >> $MENU_FILE
+	 echo "prog \"$title\" \"$type\" pkg $MAXIMIZE_DEFAULT $type \"$server\" \"$options\"" >> $MENU_FILE
 	;;
 	SUBMENU)
 	 if [ "$lasttype" != "$type" ] ; then
 		lasttype=$type
 	 	echo $type >> /tmp/typelist
 	 fi
-	 echo "prog \"$title\" \"$type\" pkg fullscreen $type \"$server\" \"$options\"" >> /tmp/"$type"_menu
+	 echo "prog \"$title\" \"$type\" pkg $MAXIMIZE_DEFAULT $type \"$server\" \"$options\"" >> /tmp/"$type"_menu
 	;;
 	esac
     done
