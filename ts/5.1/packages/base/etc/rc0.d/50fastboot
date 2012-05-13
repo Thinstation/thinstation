@@ -32,8 +32,10 @@ if [ "$LM" == "2" ]; then
 	initrd_file=`basename $initrd`
         if [ "$initrd_file" == "initrd-backup" ]; then
 		FILE=/boot/"$squash_location"lib.squash-backup
+		while [ ! -e $FILE ]; do sleep .1 ; done
         else
 		FILE=/boot/"$squash_location"lib.squash
+		while [ ! -e $FILE ]; do sleep .1 ; done
 		UPDATE=/boot/"$squash_location"lib.update
 	        if [ -e $UPDATE ]; then
         	        rm $FILE

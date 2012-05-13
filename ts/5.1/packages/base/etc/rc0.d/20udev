@@ -11,6 +11,11 @@ test -z "$(/bin/pidof -s udevd)" && /sbin/udevd --daemon
 # coldplug devices and wait for the queue to be processed
 /sbin/udevadm trigger --type=subsystems --action=add
 /sbin/udevadm trigger --type=devices --action=add
-/sbin/udevadm settle
+
+if is_enabled $UDEV_NO_WAIT ; then
+	continue
+else
+	/sbin/udevadm settle
+fi
 
 

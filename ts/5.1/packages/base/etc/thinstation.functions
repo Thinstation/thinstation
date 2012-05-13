@@ -38,7 +38,7 @@ get_debug_level ()
 
 free_memory()
 {
-          if is_enabled $MEMORY_CONSTRAINED ; then
+          if is_enabled $FREE_MEMORY ; then
                 rm -rf /lib/modules/*
                 sync
                 echo 3 > /proc/sys/vm/drop_caches
@@ -378,8 +378,12 @@ check_NX ()
 start_x ()
 {
 	if [ -e /etc/init.d/x ] && [ ! -e /tmp/.X11-unix/X$DISPLAY_NUMBER ]; then
-		clear
-		chvt 4
+		if is_enabled $X_NO_CLEAR; then
+			continue
+		else
+			clear
+			chvt 4
+		fi
 		/etc/init.d/x start
 	elif [ ! -e /etc/init.d/x ] ; then
 		echo "Can't find X" >> $LOGFILE
