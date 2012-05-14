@@ -7,70 +7,11 @@ x_echo()
 	Xdialog --title "$1" --msgbox "$2" 18 60 2> /dev/null
 }
 
-pretty_box()
-{
-	COUNT=10
-	(while test $COUNT != 110 ; do
-	echo $COUNT
-	COUNT=`expr $COUNT + 1`
-	sleep 1
-	done
-	) |
-	Xdialog --title "Testing Connection" --progress "Checking Internet Connectivity" 10 60 0 &
-	prettybox=$!
-}
-
-test_internet()
-{
-	pretty_box
-	if ! wget -t 2 -T 5 http://www.doncuppjr.net/index.php ; then
-			http="Fail!"
-	else
-		http="Success!"
-		rm index.php
-	fi
-	if ! git clone git://thinstation.git.sourceforge.net/gitroot/thinstation/test ; then
-		git="Fail!"
-	else
-		git="Success!"
-		rm -rf test
-	fi
-	if [ "$http" == "Fail!" -o "$git" == "Fail!" ] ; then
-        	internet="Fail!"
-	else
-		internet="Success!"
-	fi
-	kill -KILL $prettybox
-}
-
 Xdialog --title "Install to HD" --textbox /README 30 120
 retval=$?
 if [ "$retval" -lt "1" ]; then
 	continue
 else
-	exit 1
-fi
-
-test_internet
-
-if [ "$internet" == "Fail!" ] ; then
-	Xdialog --title "Setup Proxy" --yesno "\
-Internet Connectivity Test Failed! \n\
-\n\
-    HTTP: $http  GIT: $git \n\
-\n\
- Would you like to setup a Proxy?" 15 50
-	retval=$?
-	if [ "$retval" -lt "1" ]; then
-		proxy-setup setup
-		use_proxy=Yes
-		test_internet
-		export use_proxy
-	fi
-fi
-
-if [ "$internet" == "Fail!" ] ; then
-	x_echo "Broken Internet" "No Internet Connectivity. Exiting. \n HTTP: $http  GIT: $git "
 	exit 1
 fi
 
@@ -182,6 +123,8 @@ install_it()
 		$XTERM_CMD -e /bin/install.sh $disk $buggybios
 	fi
 }
+
+if proxy-setup ; then continue ; else exit $? ; fi
 disk_setup
 set_res
 timezone_locale
