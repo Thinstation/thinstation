@@ -1,11 +1,13 @@
 #!/bin/bash
 
-if [ -e ~/proxy ] ; then
-	. ~/proxy
-	if [ -n "$PROXY_AUTH" ] ; then
-		proxyline="--proxy-server=http://${PROXY_AUTH}@$PROXY_SERVER:$PROXY_PORT"
-	else
-		proxyline="--proxy-server=http://$PROXY_SERVER:$PROXY_PORT"
+if [ -e ~/.proxy ] ; then
+	. ~/.proxy
+	if [ "$PROXY_HTTP" == "TRUE" ] ; then
+		if [ -n "$PROXY_AUTH" ] ; then
+			proxyline="--proxy-server=http://${PROXY_AUTH}@$PROXY_SERVER:$PROXY_PORT"
+		else
+			proxyline="--proxy-server=http://$PROXY_SERVER:$PROXY_PORT"
+		fi
 	fi
 fi
 

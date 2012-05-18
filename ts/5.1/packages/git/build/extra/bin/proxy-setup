@@ -2,25 +2,9 @@
 
 configure=$1
 exit_status=0
-debug()
-{
-echo "
-internet=$internet
-http=$http
-git=$git
-PROXY_HTTP=$PROXY_HTTP
-PROXY_GIT=$PROXY_GIT
-PROXY_SERVER=$PROXY_SERVER
-PROXY_PORT=$PROXY_PORT
-PROXY_AUTH=$PROXY_AUTH
-"
-}
-
 
 pretty_box()
 {
-echo $FUNCNAME
-debug
         COUNT=10
         (while test $COUNT != 110 ; do
         echo $COUNT
@@ -34,8 +18,6 @@ debug
 
 test_internet()
 {
-echo $FUNCNAME
-debug
         pretty_box
         if ! wget -t 2 -T 5 http://www.doncuppjr.net/index.php ; then
                 http="Fail!"
@@ -55,15 +37,10 @@ debug
                 internet="Success!"
         fi
         kill -KILL $prettybox
-echo $FUNCNAME
-debug
-
 }
 
 proxy_dialog()
 {
-echo $FUNCNAME
-debug
 	if [ -e /tmp/.dialog_proxy_server ] ; then
 		PROXY_SERVER=$(cat /tmp/.dialog_proxy_server)
 	else
@@ -111,76 +88,29 @@ debug
 		PROXY_PORT=""
 		PROXY_AUTH=""
 	fi
-echo $FUNCNAME
-debug
 }
 
 get_existing()
 {
-echo $FUNCNAME
-debug
 	if [ -e ~/.proxy ] ; then
 		. ~/.proxy
 	fi
 	if [ -e /tmp/.proxy ] ; then
 		. /tmp/.proxy
 	fi
-echo $FUNCNAME
-debug
-}
-
-proxy_decision()
-{
-echo $FUNCNAME
-debug
-	if [ "$internet" != "Success!" ] || [ "$configure" == "setup" ] ; then
-		test_internet
-		if [ "$internet" == "Fail!" ] ; then
-        		if [ -z $PROXY_HTTP ] ; then
-                        	if [ "$http" == "Success!" ] ; then
-                                	PROXY_HTTP=FALSE
-                        	else
-                                	PROXY_HTTP=TRUE
-                        	fi
-                	fi
-                	if [ -z $PROXY_GIT ] ; then
-                        	if [ "$git" == "Success!" ] ; then
-                                	PROXY_GIT=FALSE
-                        	else
-                                	PROXY_GIT=TRUE
-                        	fi
-                	fi
-			if get_proxy ; then
-				test_internet
-				if [ "$PROXY_HTTP" == "TRUE" ] && [ "$http" == "Fail!" ] ; then
-					unset PROXY_HTTP
-				fi
-				if [ "$PROXY_GIT" == "TRUE" ] && [ "$git" == "Fail!" ] ; then
-                                	unset PROXY_GIT
-                        	fi
-			fi
-		fi
-		if [ "$internet" == "Fail!" ] ; then
-                	exit 1
-        	fi
-	fi
-echo $FUNCNAME
-debug
 }
 
 set_proxy()
 {
-echo $FUNCNAME
-debug
-	if [ ! -z "$PROXY_SERVER" ] && [ ! -z "$PROXY_PORT" ] ; then
-		echo "internet=$internet" > ~/.proxy
-		echo "PROXY_SERVER=$PROXY_SERVER" >> ~/.proxy
-		echo "PROXY_PORT=$PROXY_PORT" >> ~/.proxy
-		echo "PROXY_AUTH=$PROXY_AUTH" >> ~/.proxy
-		echo "PROXY_HTTP=$PROXY_HTTP" >> ~/.proxy
+                echo "internet=$internet" > ~/.proxy
 		echo "http=$http" >> ~/.proxy
-		echo "PROXY_GIT=$PROXY_GIT" >> ~/.proxy
 		echo "git=$git" >> ~/.proxy
+                echo "PROXY_SERVER=$PROXY_SERVER" >> ~/.proxy
+                echo "PROXY_PORT=$PROXY_PORT" >> ~/.proxy
+                echo "PROXY_AUTH=$PROXY_AUTH" >> ~/.proxy
+                echo "PROXY_HTTP=$PROXY_HTTP" >> ~/.proxy
+                echo "PROXY_GIT=$PROXY_GIT" >> ~/.proxy
+	if [ ! -z "$PROXY_SERVER" ] && [ ! -z "$PROXY_PORT" ] ; then
 		if [ "$PROXY_HTTP" == "TRUE" ] ; then
 			if [ -z $PROXY_AUTH ] ; then
 				echo "http_proxy=http://$PROXY_SERVER:$PROXY_PORT" > ~/.wgetrc
@@ -194,14 +124,10 @@ debug
 		fi
 		cp ~/.proxy /tmp/.
 	fi
-echo $FUNCNAME
-debug
 }
 
 get_proxy()
 {
-echo $FUNCNAME
-debug
        	Xdialog --title "Setup Proxy" --yesno "\
 Internet Connectivity Test Failed! \n\
 \n\
@@ -215,13 +141,65 @@ Internet Connectivity Test Failed! \n\
 			set_proxy
 		done
 	fi
-echo $FUNCNAME
-debug
 	return $retval
 }
 
-debug=debug
+unset_http()
+{
+	unset http
+	unset PROXY_HTTP
+	if [ -e ~/.wgetrc ] ; then
+        	rm ~/.wgetrc
+	fi
+
+}
+
+unset_git()
+{
+	unset PROXY_GIT
+	git config --global --unset core.gitproxy
+	git config --global --unset http.sslVerify
+}
+
 get_existing
-proxy_decision
-sleep 1
+if [ "$configure" == "setup" ] ; then
+	unset internet
+	unset git
+	unset_git
+	unset http
+	unset_http
+fi
+if [ "$internet" != "Success!" ] ; then
+	test_internet
+	if [ "$internet" == "Fail!" ] ; then
+		if [ -z $PROXY_HTTP ] ; then
+			if [ "$http" == "Success!" ] ; then
+				PROXY_HTTP=FALSE
+			else
+				PROXY_HTTP=TRUE
+			fi
+		fi
+		if [ -z $PROXY_GIT ] ; then
+			if [ "$git" == "Success!" ] ; then
+				PROXY_GIT=FALSE
+			else
+				PROXY_GIT=TRUE
+			fi
+		fi
+		if get_proxy ; then
+			test_internet
+			if [ "$PROXY_HTTP" == "TRUE" ] && [ "$http" == "Fail!" ] ; then
+				unset_http 
+			fi
+			if [ "$PROXY_GIT" == "TRUE" ] && [ "$git" == "Fail!" ] ; then
+				unset_git
+			fi
+		fi
+	fi
+	if [ "$internet" == "Fail!" ] ; then
+		exit 1
+	fi
+fi
+set_proxy
+
 exit 0
