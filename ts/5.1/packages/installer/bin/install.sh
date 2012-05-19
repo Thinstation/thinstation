@@ -94,9 +94,7 @@ cd /boot
 cp /install/* .
 ./syslinux -s ${disk}1
 ./syslinux ${disk}1
-if [ "$use_proxy" == "Yes" ] ; then
-	proxy-setup
-fi
+proxy-setup
 if [ -e /mnt/cdrom0/initrd-dev ]; then
 	cp /mnt/cdrom0/initrd-dev /boot/initrd
 	cp /mnt/cdrom0/vmlinuz-dev /boot/vmlinuz
