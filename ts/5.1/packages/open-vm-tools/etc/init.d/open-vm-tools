@@ -79,6 +79,11 @@ case "${1}" in
 
 		echo_log "Starting open-vm guest daemon - vmware-guestd"
 		vmtoolsd --background /var/run/vmtoolsd.pid
+		echo_log "Mounting VM Shares"
+		for share in `vmware-hgfsclient` ; do
+			mkdir -p /mnt/$share
+			mount -t vmhgfs .host:/$share/ /mnt/$share
+		done
 		;;
 
 	stop)
