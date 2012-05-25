@@ -62,7 +62,8 @@ case "${1}" in
 
 		echo_log "Mounting vmblock device filesystem"
 		echo_log "vmblock"; modprobe vmblock
-#		mount -t vmblock none /proc/fs/vmblock/mountPoint
+		mkdir -m 1777 /tmp/VMwareDnD
+		mount -t vmblock none /proc/fs/vmblock/mountPoint
 
 		echo_log "Loading open-vm-tools modules"
 		echo_log "vmhgfs"; modprobe vmhgfs
@@ -83,8 +84,8 @@ case "${1}" in
 		OLDIFS=$IFS
 		IFS=$'\t\n'
 		for share in `vmware-hgfsclient` ; do
-			mkdir -p "/mnt/$share"
-			mount -t vmhgfs ".host:/$share/" "/mnt/$share"
+			mkdir -p "/mnt/vm/$share"
+			mount -t vmhgfs ".host:/$share/" "/mnt/vm/$share"
 		done
 		IFS=$OLDIFS
 		;;
