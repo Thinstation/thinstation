@@ -4,7 +4,7 @@
 
 name=open-vm-tools
 version=2012.03.13-651368
-kver=3.2.16
+kver=3.2.18
 release=1
 source=(http://downloads.sourceforge.net/project/$name/$name/${version%-*}/${name}-$version.tar.gz
 ftp://ftp.kernel.org/pub/linux/kernel/v3.x/linux-$kver.tar.bz2
@@ -27,7 +27,7 @@ build() {
 			--sysconfdir=/etc \
 			--libexecdir=/lib \
 			--mandir=/usr/man \
-			--with-kernel-release=$kver-TS_SMP+ \
+			--with-kernel-release=$kver-TS_SMP \
 			--with-linuxdir=$SRC/linux-$kver \
 			--disable-docs \
 			--with-gtkmm \
@@ -35,7 +35,7 @@ build() {
 
 	make
 	make DESTDIR=$PKG install
-	mkdir -p $PKG/lib/modules/$kver-TS_SMP+
-	mv $PKG/$SRC/linux-$kver/kernel $PKG/lib/modules/$kver-TS_SMP+/.
+	mkdir -p $PKG/lib/modules/$kver-TS_SMP
+	mv $PKG/$SRC/linux-$kver/kernel $PKG/lib/modules/$kver-TS_SMP/.
 	rm -rf $PKG/{ts,share,include} $PKG/lib/{*.a,*.la,pkgconfig} $PKG/lib/open-vm-tools/plugins/common/*.la $PKG/etc/pam.d
 }
