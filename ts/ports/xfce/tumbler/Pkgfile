@@ -1,0 +1,23 @@
+# Description: Tumbler is a D-Bus service for applications to request thumbnails
+# URL: http://git.xfce.org/xfce/tumbler/tree/README
+# Maintainer: Jose V Beneyto, sepen at crux dot nu
+# Packager: Jose V Beneyto, sepen at crux dot nu
+#Depends on: dbus-glib gdk-pixbuf freetype libpng libjpeg
+# Group: xfce4
+
+name=tumbler
+version=0.1.25
+release=1
+source=(http://archive.xfce.org/src/xfce/$name/${version%.*}/$name-$version.tar.bz2)
+
+build() {
+  cd $name-$version
+
+  ./configure --prefix=/usr \
+              --disable-nls
+
+  make
+  make DESTDIR=$PKG install
+
+  rm -rf $PKG/usr/share/{gtk-doc,locale}
+}

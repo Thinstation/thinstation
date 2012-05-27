@@ -1,0 +1,18 @@
+# Description: Startup notification library.
+# URL: http://freedesktop.org/wiki/Software/startup-notification
+# Maintainer: Jose V Beneyto, sepen at crux dot nu
+# Packager: Simone Rota, sip at crux dot nu
+# Depends on: xorg-libsm, xorg-libx11, xorg-libxt, xorg-xcb-util
+
+name=startup-notification
+version=0.12
+release=1
+
+source=(http://www.freedesktop.org/software/$name/releases/$name-$version.tar.gz)
+
+build() {
+	cd $name-$version
+	./configure	--prefix=/usr
+	make
+	make DESTDIR=$PKG install
+}
