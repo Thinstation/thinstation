@@ -1,0 +1,22 @@
+# Description: Alternative to cdrecord tools
+# URL: http://libburnia.pykix.org/
+# Maintainer: Jose V Beneyto, sepen at crux dot nu
+# Packager: Jose V Beneyto, sepen at crux dot nu
+# Depends on:
+# Group: xfce4
+
+name=libburn
+version=1.1.6
+release=1
+source=(http://files.libburnia-project.org/releases/$name-$version.tar.gz)
+
+build() {
+  cd $name-$version
+
+  ./configure --prefix=/usr \
+              --mandir=/usr/man \
+              --disable-debug
+
+  make
+  make DESTDIR=$PKG install
+}

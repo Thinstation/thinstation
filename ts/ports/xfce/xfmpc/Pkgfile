@@ -1,0 +1,23 @@
+# Description: A graphical GTK+ MPD client focusing on low footprint.
+# URL: http://goodies.xfce.org/projects/applications/xfmpc
+# Maintainer: Jose V Beneyto, sepen at crux dot nu
+# Packager: Jose V Beneyto, sepen at crux dot nu
+# Depends on: libxfcegui4 xfce-utils libmpd
+# Group: xfce4
+
+name=xfmpc
+version=0.2.2
+release=1
+source=(http://archive.xfce.org/src/apps/$name/${version%.*}/$name-$version.tar.bz2)
+
+build() {
+  cd $name-$version
+  ./configure --prefix=/usr \
+              --disable-static \
+              --disable-debug
+  make
+  install -D -m 0755 src/$name $PKG/usr/bin/$name
+  install -D -m 0644 $name.desktop $PKG/usr/share/applications/$name.desktop
+  sed -r '/\[.+\]=/d' -i $PKG/usr/share/applications/$name.desktop
+}
+

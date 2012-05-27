@@ -1,0 +1,22 @@
+# Description: Theme engine for XFce4 
+# URL: http://www.xfce.org
+# Maintainer: Jose V Beneyto, sepen at crux dot nu
+# Packager: Juergen Daubert, juergen dot daubert at t-online dot de
+# Depends on: gtk
+# Group: xfce4
+
+name=gtk-xfce-engine
+version=2.9.0
+release=1
+source=(http://archive.xfce.org/src/xfce/$name/${version%.*}/$name-$version.tar.bz2)
+
+build () {
+  cd $name-$version
+
+  ./configure --prefix=/usr \
+              --disable-static \
+              --disable-debug 
+
+  make
+  make DESTDIR=$PKG install
+}

@@ -1,0 +1,33 @@
+# Description: Utilities for XFce4
+# URL: http://www.xfce.org
+# Maintainer: Jose V Beneyto, sepen at crux dot nu
+# Packager: Juergen Daubert, juergen dot daubert at t-online dot de
+# Depends on: libxfce4ui xorg-xinit
+# Group: xfce4
+
+name=xfce-utils
+version=4.8.3
+release=1
+source=(http://archive.xfce.org/src/xfce/$name/${version%.*}/$name-$version.tar.bz2)
+
+build () {
+  cd $name-$version
+
+  rm po/*.po
+  sed -i configure \
+      -e 's/USE_NLS=yes/USE_NLS=no/' \
+      -e 's/ENABLE_NLS 1/ENABLE_NLS 0/' \
+      -e 's/useit=yes/useit=no/'
+
+  ./configure --prefix=/usr \
+	      --libexecdir=/usr/lib \
+              --disable-static \
+              --disable-debug
+
+  make
+  make DESTDIR=$PKG install
+
+  rm -rf $PKG/usr/share/doc
+  find $PKG/usr -type f -name '*.desktop' \
+    -exec sed -r '/\[.+\]=/d' -i {} \;
+}

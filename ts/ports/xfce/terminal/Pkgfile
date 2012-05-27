@@ -1,0 +1,30 @@
+# Description: Terminal emulator for Xfce4
+# URL: http://www.xfce.org/projects/terminal
+# Maintainer: Jose V Beneyto, sepen at crux dot nu
+# Packager: Juergen Daubert, juergen dot daubert at t-online dot de
+# Depends on: exo vte dbus-glib
+# Group: xfce4
+
+name=terminal
+version=0.4.8
+release=1
+source=(http://archive.xfce.org/src/apps/$name/${version%.*}/Terminal-$version.tar.bz2)
+
+build () {
+  cd Terminal-$version
+
+  ./configure --prefix=/usr \
+              --mandir=/usr/man \
+              --libexecdir=/usr/bin \
+              --docdir=/usr/share/Terminal/doc \
+              --disable-static \
+              --disable-debug 
+
+  make
+  make DESTDIR=$PKG install
+
+  mv $PKG/usr/share/pixmaps/{terminal.xpm,Terminal.xpm}
+  rm -rf $PKG/usr/share/locale
+  rm -rf $PKG/usr/share/Terminal/doc/{??,??_??}
+  rm -rf $PKG/usr/man/{??,??_??}
+}

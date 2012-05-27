@@ -1,0 +1,24 @@
+# Description: Xfce's unified widgets library
+# URL: http://www.xfce.org
+# Maintainer: Jose V Beneyto, sepen at crux dot nu
+# Packager: Jose V Beneyto, sepen at crux dot nu
+# Depends on: gtk xfconf startup-notification
+# Group: xfce4
+
+name=libxfce4ui
+version=4.8.0
+release=1
+source=(http://archive.xfce.org/xfce/${version%.*}/src/$name-$version.tar.bz2)
+
+build () {
+  cd $name-$version
+
+  ./configure --prefix=/usr \
+              --disable-static \
+              --disable-debug
+
+  make
+  make DESTDIR=$PKG install
+
+  rm -r $PKG/usr/share/{locale,gtk-doc}
+}

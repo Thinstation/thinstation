@@ -1,0 +1,28 @@
+# Description: Volume control plugin for the Xfce 4 panel 
+# URL: http://www.xfce.org/projects/xfce4-mixer
+# Maintainer: Jose V Beneyto, sepen at crux dot nu
+# Packager: Juergen Daubert, juergen dot daubert at t-online dot de
+# Depends on: xfce4-panel gst-plugins-base
+# Group: xfce4
+
+name=xfce4-mixer
+version=4.8.0
+release=1
+source=(http://archive.xfce.org/src/apps/$name/${version%.*}/$name-$version.tar.bz2)
+
+build () {
+  cd $name-$version
+
+  ./configure --prefix=/usr \
+              --libexecdir=/usr/lib \
+              --disable-static \
+              --disable-debug
+
+  make -j1
+  make DESTDIR=$PKG install
+
+  rm -rf $PKG/usr/share/locale
+  find $PKG/usr/share -type f -name '*.desktop' \
+    -exec sed -r '/\[.+\]=/d' -i {} \;
+  sed -e 's|local/libexec|lib|' -i $PKG/usr/share/applications/$name.desktop 
+}

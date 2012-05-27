@@ -1,0 +1,29 @@
+# Description: Settings manager for XFce4
+# URL: http://www.xfce.org
+# Maintainer: Jose V Beneyto, sepen at crux dot nu
+# Packager: Jose V Beneyto, sepen at crux dot nu
+# Depends on: libxfce4ui exo libnotify libxklavier
+# Group: xfce4
+
+name=xfce4-settings
+version=4.8.3
+release=1
+source=(http://archive.xfce.org/src/xfce/$name/${version%.*}/$name-$version.tar.bz2) 
+
+build () {
+  cd $name-$version
+  
+  ./configure --prefix=/usr \
+              --enable-xrandr \
+              --enable-sound-settings \
+              --enable-libnotify \
+              --enable-libxklavier \
+              --enable-xcursor \
+              --enable-pluggable-dialogs \
+              --disable-debug
+
+  make
+  make DESTDIR=$PKG install
+
+  rm -rf $PKG/usr/share/{locale,doc}
+}

@@ -1,0 +1,14 @@
+. /etc/thinstation.env
+. $TS_GLOBAL
+
+startxfce4 & >> $LOGFILE 2>&1
+use_xrandr
+#use_wallpaper
+wmautostart="$HOME/.xinitrc"
+if [ -e $wmautostart ] ; then
+    . $wmautostart
+fi
+if [ -e $WKDIR/$WMNAME.autostart ] ; then
+    . $WKDIR/$WMNAME.autostart
+fi
+wait

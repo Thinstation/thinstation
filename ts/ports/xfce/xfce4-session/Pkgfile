@@ -1,0 +1,26 @@
+# Description: Session manager for XFce4
+# URL: http://www.xfce.org
+# Maintainer: Jose V Beneyto, sepen at crux dot nu
+# Packager: Juergen Daubert, juergen dot daubert at t-online dot de
+# Depends on: libxfce4ui p5-xml-parser libwnck xorg-iceauth dbus sudo
+# Group: xfce4
+
+name=xfce4-session
+version=4.8.2
+release=1
+source=(http://archive.xfce.org/src/xfce/$name/${version%.*}/$name-$version.tar.bz2)
+
+build () {
+  cd $name-$version
+
+  ./configure --prefix=/usr \
+              --mandir=/usr/man \
+              --libexecdir=/usr/lib/xfce4 \
+              --disable-static \
+              --disable-debug
+
+  make
+  make DESTDIR=$PKG install
+
+  rm -rf $PKG/usr/share/{locale,doc}
+}

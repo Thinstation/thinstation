@@ -27,18 +27,18 @@ for pkg in $package ;
 		do
 			if [ -d $pkgpath/usr/$i ]; then
 				mkdir -p $pkgpath/$i
-				mv -f $pkgpath/usr/$i/* $pkgpath/$i
-				rmdir $pkgpath/usr/$i
+				cp -Prf $pkgpath/usr/$i $pkgpath/.
+				rm -rf $pkgpath/usr/$i
 			fi
 			if [ -d $pkgpath/usr/local/$i ]; then
 				mkdir -p $pkgpath/$i
-				mv -f $pkgpath/usr/local/$i/* $pkgpath/$i
-				rmdir $pkgpath/usr/local/$i
+				cp -Prf $pkgpath/usr/local/$i $pkgpath/.
+				rm -rf $pkgpath/usr/local/$i
 			fi
 		done
 		if [ -d $pkgpath/usr/sbin ]; then
-                       mkdir -p $pkgpath/bin
-                      mv -f $pkgpath/usr/sbin/* $pkgpath/bin
+			mkdir -p $pkgpath/bin
+			mv -f $pkgpath/usr/sbin/* $pkgpath/bin
 			rmdir $pkgpath/usr/sbin
 		fi
 		if [ -d $pkgpath/usr/local/sbin ]; then
@@ -48,6 +48,11 @@ for pkg in $package ;
                 fi
 		if [ -d $pkgpath/usr/share ]; then
                         mkdir -p $pkgpath/lib
+			if [ -d $pkgpath/usr/share/dbus-1 ] ;then
+				mkdir -p $pkgpath/etc
+                                cp -Prf $pkgpath/usr/share/dbus-1 $pkgpath/etc/.
+                                rm -rf $pkgpath/usr/share/dbus-1
+                        fi
 			for i in `ls --color=never $pkgpath/usr/share` ;
 				do
 					cp -Prfd $pkgpath/usr/share/$i $pkgpath/lib/.
@@ -55,6 +60,10 @@ for pkg in $package ;
 				done
                 fi
 		if [ -d $pkgpath/usr/local/share ]; then
+			if [ -d $pkgpath/usr/local/share/dbus-1 ] ;then
+				cp $pkgpath/usr/local/share/dbus-1 $pkgpath/etc/.
+				rm -rf $pkgpath/usr/local/share/dbus-1
+			fi
                         mkdir -p $pkgpath/lib
 			for i in `ls --color=never $pkgpath/usr/local/share` ;
                                 do
@@ -65,9 +74,9 @@ for pkg in $package ;
 		rm -rf $pkgpath/usr/share
                 rm -rf $pkgpath/usr/local/share
 		if [ "$pkg" == "python" ]; then
-			extra_dirs="man pkgconfig applications"
+			extra_dirs="man pkgconfig"
 		else
-			extra_dirs="include man pkgconfig applications"
+			extra_dirs="include man pkgconfig"
 		fi
 		for i in $extra_dirs ;
 		do

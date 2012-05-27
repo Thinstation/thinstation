@@ -1,0 +1,21 @@
+# Description: CPU frequency plugin for the xfce panel.
+# URL: http://goodies.xfce.org/projects/panel-plugins/xfce4-cpufreq-plugin
+# Maintainer: Jose V Beneyto, sepen at crux dot nu
+# Packager: Jose V Beneyto, sepen at crux dot nu
+# Depends on: xfce4-panel
+# Group: xfce4
+
+name=xfce4-cpufreq-plugin
+version=0.0.1
+release=1
+source=(http://archive.xfce.org/src/panel-plugins/$name/${version%.*}/$name-$version.tar.gz)
+
+build() {
+  cd xfce4-cpu-freq-plugin-$version
+  ./configure --prefix=/usr \
+              --libexecdir=/usr/lib \
+              --disable-debug
+  make
+  make DESTDIR=$PKG install
+  rm -rf $PKG/usr/share/locale
+}

@@ -1,0 +1,30 @@
+# Description: Extension library for Xfce4
+# URL: http://www.os-cillation.de/
+# Maintainer: Jose V Beneyto, sepen at crux dot nu
+# Packager: Juergen Daubert, juergen dot daubert at t-online dot de
+# Depends on: gtk libxfce4util p5-uri
+# Group: xfce4
+
+name=exo
+version=0.6.2
+release=1
+source=(http://archive.xfce.org/src/xfce/$name/${version%.*}/$name-$version.tar.bz2)
+
+build () {
+  cd $name-$version
+
+  ./configure --prefix=/usr \
+              --mandir=/usr/man \
+              --libexecdir=/usr/lib/exo \
+              --disable-python \
+              --disable-static \
+              --disable-debug \
+              --disable-nls
+
+  make
+  make DESTDIR=$PKG install
+
+  rm -r $PKG/usr/share/{locale,doc,gtk-doc}
+  find $PKG/usr/share -type f -name '*.desktop' \
+    -exec sed -r '/\[.+\]=/d' -i {} \;
+}

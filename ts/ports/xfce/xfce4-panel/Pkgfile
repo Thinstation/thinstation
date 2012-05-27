@@ -1,0 +1,26 @@
+# Description: Panel for XFce4
+# URL: http://www.xfce.org
+# Maintainer: Jose V Beneyto, sepen at crux dot nu
+# Packager: Juergen Daubert, juergen dot daubert at t-online dot de
+# Depends on: libxfce4ui exo libwnck garcon
+# Group: xfce4
+
+name=xfce4-panel
+version=4.8.6
+release=1
+source=(http://archive.xfce.org/src/xfce/$name/${version%.*}/$name-$version.tar.bz2)
+
+build () {
+  cd $name-$version
+
+  ./configure --prefix=/usr \
+              --libexecdir=/usr/lib \
+              --disable-debug
+
+  make
+  make DESTDIR=$PKG install
+
+  rm -rf $PKG/usr/share/{locale,doc,gtk-doc}
+  find $PKG/usr/share/xfce4/panel/plugins -type f -name '*.desktop' \
+    -exec sed -r '/\[.+\]=/d' -i {} \;
+}

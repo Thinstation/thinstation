@@ -1,0 +1,21 @@
+# Description: A collection of GTK+ widgets that extend the standard widgets
+# URL: http://www.chipx86.com/wiki/Libsexy
+# Maintainer: Jose V Beneyto, sepen at crux dot nu
+# Packager: Matt Housh, jaeger at morpheus dot net
+# Depends on: gtk
+# Group: xfce4
+
+name=libsexy
+version=0.1.11
+release=1
+source=(http://releases.chipx86.com/$name/$name/$name-$version.tar.bz2)
+
+build() {
+  cd $name-$version
+  sed -e '/^SUBDIRS = /s/docs //' -i Makefile.in
+  ./configure --prefix=/usr \
+              --disable-static
+  make
+  make DESTDIR=$PKG install
+  rm -rf $PKG/usr/share
+}

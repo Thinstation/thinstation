@@ -1,0 +1,28 @@
+# Description: New configuration system for Xfce 4.6, replacing the old MCS system
+# URL: http://www.xfce.org
+# Maintainer: Jose V Beneyto, sepen at crux dot nu
+# Packager: Jose V Beneyto, sepen at crux dot nu
+# Depends on: libxfce4util dbus-glib
+# Group: xfce4
+
+name=xfconf
+version=4.8.0
+release=1
+source=(http://archive.xfce.org/xfce/${version%.*}/src/$name-$version.tar.bz2)
+
+build () {
+  cd $name-$version
+
+  ./configure --prefix=/usr \
+              --libexecdir=/usr/bin \
+              --disable-static \
+              --disable-debug
+
+  make
+  make DESTDIR=$PKG install
+
+  install -d $PKG/usr/bin
+  ln -sf /usr/lib/xfce4/xfconf/xfconfd $PKG/usr/bin/xfconfd
+
+  rm -r $PKG/usr/share/{gtk-doc,locale}
+}

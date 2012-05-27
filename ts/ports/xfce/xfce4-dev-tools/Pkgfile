@@ -1,0 +1,20 @@
+# Description: Xfce development files need for xfce core desktop components.
+# URL: http://www.foo-projects.org/~benny/projects/xfce4-dev-tools/index.html
+# Maintainer: Jose V Beneyto, sepen at crux dot nu
+# Packager: Jose V Beneyto, sepen at crux dot nu
+# Depends on:
+# Group: xfce4
+
+name=xfce4-dev-tools
+version=4.9.0
+release=1
+source=(http://archive.xfce.org/src/xfce/$name/${version%.*}/$name-$version.tar.bz2)
+
+build() {
+  cd $name-$version
+
+  ./configure --prefix=/usr
+
+  make
+  make DESTDIR=$PKG install
+}
