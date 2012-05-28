@@ -5,10 +5,13 @@
 name=hicolor-icon-theme
 version=0.11
 release=1
-source=(http://icon-theme.freedesktop.org/releases/$name-$version.tar.gz)
+source=(http://icon-theme.freedesktop.org/releases/$name-$version.tar.gz
+	http://art.gnome.org/download/themes/icon/1100/ICON-DroplineNeu.tar.bz2
+)
 
 build() {
 	cd $name-$version
 	./configure --prefix=/usr
 	make DESTDIR=$PKG install
+	cp -Prf $SRC/Neu/* $PKG/usr/share/icons/hicolor/.
 }

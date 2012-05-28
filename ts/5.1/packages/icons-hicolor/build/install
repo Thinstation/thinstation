@@ -1,0 +1,14 @@
+#!/bin/sh
+
+INSTALLDIR=./packages/icons-hicolor
+TMPDIR=./build-icons-hicolor
+
+for i in hicolor-icon-theme ; do
+	repackage $i $TMPDIR
+	cp -Prf $TMPDIR/$i/* $INSTALLDIR/.
+	rm -rf $TMPDIR
+done
+
+returnval=$?
+
+exit $returnval
