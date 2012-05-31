@@ -18,9 +18,23 @@ export MAKEFLAGS="-j5"
 
 	patch -p1 <../fbcondecor-0.9.6-3.0-rc2.patch
 
+	make modules_prepare
+	mkdir -p $PKG/usr/src/kernels/${version}TS_SMP
+	cp --parents `find -type f -name "Makefile*" -o -name "Kconfig*"` $PKG/usr/src/kernels/${version}TS_SMP
+	rm -rf $PKG/usr/src/kernels/${version}TS_SMP/Documentation
+	cp -a {include,scripts,.config} $PKG/usr/src/kernels/${version}TS_SMP
+	cp -a arch/x86/include $PKG/usr/src/kernels/${version}TS_SMP/arch/x86
+	rm $PKG/usr/src/kernels/${version}TS_SMP/scripts/{mod,kconfig}/*.o
+
+	mkdir -p $PKG/lib/modules/${version}TS_SMP
+	ln -s /usr/src/kernels/${version}TS_SMP $PKG/lib/modules/${version}TS_SMP/build
+	ln -s build $PKG/lib/modules/${version}TS_SMP/source
+
 	make
 	make INSTALL_PATH=$PKG install
 	make INSTALL_MOD_PATH=$PKG modules_install
+
+	cp -a Module.symvers System.map $PKG/usr/src/kernels/${version}TS_SMP
 
 	mkdir -p $PKG/$TSCOMPROOT/kernel_SMP/kernel
 	mkdir -p $PKG/$TSCOMPROOT/kernel_SMP/utils
