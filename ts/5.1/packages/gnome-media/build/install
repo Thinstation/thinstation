@@ -1,0 +1,16 @@
+#!/bin/sh
+
+INSTALLDIR=./packages/gnome-media
+EXTRADIR=$INSTALLDIR/build/extra
+TMPDIR=./build-gnome-media
+
+for i in gnome-media ; do
+	repackage $i $TMPDIR
+	cp -Prf $TMPDIR/$i/* $INSTALLDIR/.
+	rm -rf $TMPDIR
+done
+cp -Prf $EXTRADIR/* $INSTALLDIR/.
+
+returnval=$?
+
+exit $returnval
