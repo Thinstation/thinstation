@@ -4,25 +4,21 @@
 # Depends on: lzo-TS
 
 name=openvpn
-pname=${name%-*}
 version=2.2.1
 release=1
-source=(http://swupdate.openvpn.org/community/releases/$pname-$version.tar.gz)
+source=(http://swupdate.openvpn.org/community/releases/$name-$version.tar.gz)
 
 build() {
-	cd $pname-$version
+	cd $name-$version
 
-	./configure --prefix=/ \
-			--exec-prefix=/ \
-			--sysconfdir=/etc \
+	./configure --prefix=/usr \
+			--enable-password-save \
+			--enable-iproute2 \
+			--disable-pf \
+			--disable-selinux \
 			--libexecdir=/lib \
-			--mandir=/usr/man \
-			--disable-extras
+			--mandir=/usr/man
 
 	make
 	make DESTDIR=$PKG install
-        rm -rf $PKG/usr
-        rm -rf $PKG/share
-        mkdir -p $PKG/$TSCOMPROOT/$pname
-        mv $PKG/sbin $PKG/$TSCOMPROOT/$pname/.
 }
