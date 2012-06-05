@@ -1,8 +1,9 @@
 #! /bin/sh
 
 . $TS_GLOBAL
+. /etc/thinstation.functions
 
-  DISKMNT="/mnt/disc/hda"
+  DISKMNT="/mnt/disc/sda"
   PARTITION_LIST="1 2 3 4"
   let progress=0
   let splash_total=20
@@ -142,7 +143,8 @@ init)
 		;;
 		WGET)
 		        TYPE_RETURN=0
-			( wget -P ${TEMPFILE} ${HDUPDATE_SERVER}/${SOURCEFILE} ; echo $? > /tmp/return ) &
+			( wget -O ${TEMPFILE} ${HDUPDATE_SERVER}/${SOURCEFILE} ; echo $? > /tmp/return ) &
+			sleep .2
 			while pidof wget > /dev/null; do
 				echo_log "." -n $debug
 				let progress=progress+1
