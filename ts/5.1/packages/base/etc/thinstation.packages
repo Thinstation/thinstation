@@ -10,6 +10,10 @@ pkg_set_init_flag $PACKAGE
 
 if [ "$SERVER" == "." ] ; then SERVER="" ; fi
 if [ "$OPTIONS" == "." ] ; then OPTIONS="" ; fi
+
+# getfreescreen must be called before $PACKAGE.* because XNEST_NUMBER has to be defined before
+if [ "$PACKAGE" = "xnest" ] ; then getfreescreen ; fi
+
 if [ -e /etc/cmd/$PACKAGE.console ] ; then . /etc/cmd/$PACKAGE.console ; fi
 if [ -e /etc/cmd/$PACKAGE.window ] ; then . /etc/cmd/$PACKAGE.window ; fi
 if [ -e /etc/cmd/$PACKAGE.menu ] ; then . /etc/cmd/$PACKAGE.menu ; fi
@@ -27,7 +31,6 @@ if [ -e /etc/cmd/$PACKAGE.wm ] ; then wm_menu; fi
 if [ -e /etc/cmd/$PACKAGE.change_server_type ] ; then SERVER="\"$2\"" ; elif [ ! -z "$2" ] ; then SERVER=$2 ; fi
 if [ ! -z "$3" ] ; then OPTIONS=$3 ; fi
 if [ -e /etc/cmd/$PACKAGE.server_first ] ; then	REVERSE_ORDER=TRUE ; fi
-if [ "$PACKAGE" = "xnest" ] ; then getfreescreen ; fi
 
 console_get_ip()
 {
