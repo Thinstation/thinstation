@@ -44,7 +44,7 @@ if [ "$ACTION" == "remove" ] || [ "$TYPE" == "sr" ] && [ "$ID_CDROM_MEDIA" != "1
 	else
 		while mounted /dev/$devpath ; do
                 	mtpath=`cat /proc/mounts |grep -e /dev/$devpath |tail -n 1 |cut -d ' ' -f 2 |grep -e /mnt`
-                	umount -n -f /dev/$devpath
+                	umount -n -f /dev/$mtpath
                 	if [ -n "$mtpath" ] ; then
                         	rmdir $mtpath
                 	fi
