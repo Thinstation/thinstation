@@ -4,11 +4,11 @@
 
 name=kernel-TS
 pname=${name%-*}
-version=3.2.20
-sversion=3.2.20
+version=3.4.2
+sversion=3.4.2
 release=1
 source=(ftp://ftp.kernel.org/pub/linux/kernel/v3.x/linux-$sversion.tar.bz2 \
-http://dev.gentoo.org/~spock/projects/fbcondecor/archive/fbcondecor-0.9.6-3.0-rc2.patch
+https://raw.github.com/mjanusz/homepage/master/projects/fbcondecor/fbcondecor-0.9.6-3.5-rc3.patch \
 ts.config)
 
 build() {
@@ -16,7 +16,7 @@ export MAKEFLAGS="-j5"
 	cd linux-$sversion
 	cp $SRC/ts.config ./.config
 
-	patch -p1 <../fbcondecor-0.9.6-3.0-rc2.patch
+	patch -p1 <../fbcondecor-0.9.6-3.5-rc3.patch
 
 	make modules_prepare
 	mkdir -p $PKG/usr/src/kernels/${version}TS
