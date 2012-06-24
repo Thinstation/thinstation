@@ -19,7 +19,7 @@ KERNEL=="lp[0-9]*",      SYMLINK=="printers/%n"
 #KERNEL=="sr*", ACTION=="remove", RUN+="/etc/udev/scripts/usbcd.sh"
 
 #IDE Devices
-ENV{DEVTYPE}=="partition", RUN+="/etc/udev/scripts/scsi.sh", OPTIONS="last_rule"
+ENV{ID_FS_USAGE}=="filesystem", RUN+="/etc/udev/scripts/scsi.sh", OPTIONS="last_rule"
 SUBSYSTEM=="block", ENV{ID_CDROM}=="1", ACTION=="add", RUN+="/bin/start-stop-daemon -S -x /bin/cddetect -p /var/run/cddetect -m -b &"
 SUBSYSTEM=="block", ENV{ID_CDROM}=="1", ACTION=="change", RUN+="/etc/udev/scripts/scsi.sh", OPTIONS="last_rule"
 
