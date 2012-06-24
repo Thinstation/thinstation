@@ -35,8 +35,16 @@ if [ "$LM" == "2" ]; then
 		while [ ! -e $FILE ]; do sleep .1 ; done
         else
 		FILE=/boot/"$squash_location"lib.squash
-		while [ ! -e $FILE ]; do sleep .1 ; done
 		UPDATE=/boot/"$squash_location"lib.update
+		while [ "$BOOTABLE" != "TRUE" ]; do 
+			if [ -e $FILE ] || [ -e $UPDATE ] ; then
+				BOOTABLE=TRUE
+			else
+				BOOTALBE=FALSE
+				echo "Waiting for Storage"
+				sleep .1
+			fi
+		done
 	        if [ -e $UPDATE ]; then
         	        rm $FILE
         		mv $UPDATE $FILE

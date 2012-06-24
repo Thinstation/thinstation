@@ -1,7 +1,6 @@
 #!/bin/bash
 
 configure=$1
-exit_status=0
 
 pretty_box()
 {
@@ -102,14 +101,15 @@ get_existing()
 
 set_proxy()
 {
-                echo "internet=$internet" > ~/.proxy
-		echo "http=$http" >> ~/.proxy
-		echo "git=$git" >> ~/.proxy
-                echo "PROXY_SERVER=$PROXY_SERVER" >> ~/.proxy
-                echo "PROXY_PORT=$PROXY_PORT" >> ~/.proxy
-                echo "PROXY_AUTH=$PROXY_AUTH" >> ~/.proxy
-                echo "PROXY_HTTP=$PROXY_HTTP" >> ~/.proxy
-                echo "PROXY_GIT=$PROXY_GIT" >> ~/.proxy
+	echo "internet=$internet" > ~/.proxy
+	echo "http=$http" >> ~/.proxy
+	echo "git=$git" >> ~/.proxy
+	echo "PROXY_SERVER=$PROXY_SERVER" >> ~/.proxy
+	echo "PROXY_PORT=$PROXY_PORT" >> ~/.proxy
+	echo "PROXY_AUTH=$PROXY_AUTH" >> ~/.proxy
+	echo "PROXY_HTTP=$PROXY_HTTP" >> ~/.proxy
+	echo "PROXY_GIT=$PROXY_GIT" >> ~/.proxy
+	cp ~/.proxy /tmp/.proxy
 	if [ ! -z "$PROXY_SERVER" ] && [ ! -z "$PROXY_PORT" ] ; then
 		if [ "$PROXY_HTTP" == "TRUE" ] ; then
 			if [ -z $PROXY_AUTH ] ; then
@@ -122,7 +122,6 @@ set_proxy()
 			git config --global core.gitproxy gitproxy
 			git config --global http.sslVerify false
 		fi
-		cp ~/.proxy /tmp/.
 	fi
 }
 
@@ -135,8 +134,9 @@ Internet Connectivity Test Failed! \n\
 \n\
  Would you like to setup a Proxy?" 15 50
        	retval=$?
+	unset exit_status
        	if [ "$retval" -lt "1" ] ; then
-		while [ -z $PROXY_SERVER -o -z $PROXY_PORT ] && [ "$exit_status" -lt "1" ] ; do
+		while [ -z $PROXY_SERVER -o -z $PROXY_PORT ] || [ "$exit_status" != "0" ] ; do
 			proxy_dialog
 			set_proxy
 		done
@@ -151,7 +151,6 @@ unset_http()
 	if [ -e ~/.wgetrc ] ; then
         	rm ~/.wgetrc
 	fi
-
 }
 
 unset_git()
@@ -189,7 +188,7 @@ if [ "$internet" != "Success!" ] ; then
 		if get_proxy ; then
 			test_internet
 			if [ "$PROXY_HTTP" == "TRUE" ] && [ "$http" == "Fail!" ] ; then
-				unset_http 
+				unset_http
 			fi
 			if [ "$PROXY_GIT" == "TRUE" ] && [ "$git" == "Fail!" ] ; then
 				unset_git
@@ -200,6 +199,7 @@ if [ "$internet" != "Success!" ] ; then
 		exit 1
 	fi
 fi
+
 set_proxy
 
 exit 0
