@@ -13,6 +13,14 @@ xfce4-settings xfconf xfdesktop xfwm4 xorg-iceauth xorg-xinit xorg-xrdb xscreens
 	cp -Prf $TMPDIR/$i/* $INSTALLDIR/.
 	rm -rf $TMPDIR
 done
+for theme in `ls -A --color=never $INSTALLDIR/lib/themes`; do
+	if [ "$theme" != "Default" ]; then
+		rm -rf $INSTALLDIR/lib/themes/$theme
+	fi
+done
+for bloat in backdrops session xfwm4 dev-tools; do
+	rm -rf $INSTALLDIR/lib/xfce4/$bloat
+done
 cp -Prf $EXTRADIR/* $INSTALLDIR/.
 
 returnval=$?
