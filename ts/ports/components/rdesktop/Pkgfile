@@ -3,16 +3,13 @@
 # Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 # Depends on: xorg-libx11
 
-name=rdesktop-TS
-pname=${name%-*}
+name=rdesktop
 version=1.7.1
 release=1
-source=(http://download.sourceforge.net/rdesktop/$pname-$version.tar.gz)
+source=(http://download.sourceforge.net/rdesktop/$name-$version.tar.gz)
 build(){
-  cd $pname-$version
+  cd $name-$version
   ./configure --prefix=/usr
   make
-  make prefix=$PKG/ mandir=$PKG/usr/man install
-mkdir -p $PKG/$TSCOMPROOT/$pname
-mv $PKG/{share,bin} $PKG/$TSCOMPROOT/$pname
+  make prefix=$PKG/usr mandir=$PKG/usr/man install
 }

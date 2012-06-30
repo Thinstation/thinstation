@@ -3,16 +3,15 @@
 # Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 # Depends on: openldap krb5-TS
 
-name=autofs-TS
-pname=${name%-*}
+name=autofs
 version=5.0.6
 release=1
-source=(http://www.kernel.org/pub/linux/daemons/$pname/v5/$pname-$version.tar.bz2 )
+source=(http://www.kernel.org/pub/linux/daemons/$name/v5/$name-$version.tar.bz2 )
 #	http://www.kernel.org/pub/linux/daemons/$pname/v5/patch_order-$version
 #	http://www.kernel.org/pub/linux/daemons/autofs/v5/autofs-5.0.6-fix-ipv6-name-for-lookup-fix.patch)
 
 build() {
-	cd $pname-$version
+	cd $name-$version
 #	for f in `grep ^[^#] $SRC/patch_order-$version`; do
 #		patch -p1 -i $SRC/$f
 #	done
@@ -24,7 +23,4 @@ build() {
 	sed -i -e 's|fstype=nfs|fstype=nfs,vers=3|g' $PKG/etc/auto.*
 mkdir $PKG/bin
 cp daemon/automount $PKG/bin/.
-mkdir -p $PKG/$TSCOMPROOT/$pname
-mv $PKG/{bin,etc,usr/lib} $PKG/$TSCOMPROOT/$pname/.
-rm -rf $PKG/{usr,var}
 }
