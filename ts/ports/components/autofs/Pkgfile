@@ -7,19 +7,12 @@ name=autofs
 version=5.0.6
 release=1
 source=(http://www.kernel.org/pub/linux/daemons/$name/v5/$name-$version.tar.bz2 )
-#	http://www.kernel.org/pub/linux/daemons/$pname/v5/patch_order-$version
-#	http://www.kernel.org/pub/linux/daemons/autofs/v5/autofs-5.0.6-fix-ipv6-name-for-lookup-fix.patch)
 
 build() {
 	cd $name-$version
-#	for f in `grep ^[^#] $SRC/patch_order-$version`; do
-#		patch -p1 -i $SRC/$f
-#	done
 	./configure --prefix=/usr --with-confdir=/etc
 	make
 	make INSTALLROOT=$PKG install
-#	rm $PKG/autofs
-#	install -D -m 755 $SRC/autofs.rc $PKG/etc/rc.d/autofs
 	sed -i -e 's|fstype=nfs|fstype=nfs,vers=3|g' $PKG/etc/auto.*
 mkdir $PKG/bin
 cp daemon/automount $PKG/bin/.
