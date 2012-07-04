@@ -22,29 +22,6 @@ if [ -n "$DEBUG_NETWORK" ] ; then
 	debug="-d"
 fi
 
-# Determine what transport method to download config files
-transport()
-{
-	local spath=$1 cpath=$2 server=$3
-
-	# Set default if variable not set
-	if [ -z "$NET_FILE_METHOD" ] ; then
-		NET_FILE_METHOD=tftp
-	fi
-
-	case `make_caps $NET_FILE_METHOD` in
-	TFTP)
-		echo "tftp -g -r $spath -l $cpath $server > /dev/null 2>&1"
-	;;
-	SCP)
-		echo "scp -BC $NET_FILE_USER@$server:$spath $cpath"
-	;;
-	WGET)
-		echo "wget -P /tmp $BASEURL/$spath"
-	;;
-	esac
-}
-
 # Get global config file
 
 get_global_file()
