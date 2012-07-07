@@ -15,8 +15,11 @@ X_CONFIG="/etc/X11/x.config-$DISPLAY_NUMBER"
 
 build_command ()
 {
-  X_CMD="$X_SERVER :$DISPLAY_NUMBER -config $X_CONFIG -br vt01"
-#  X_CMD="$X_SERVER :$DISPLAY_NUMBER -br"
+  if is_enabled $X_PRECONFIGURE ; then
+	X_CMD="$X_SERVER :$DISPLAY_NUMBER -config $X_CONFIG -br vt01 -nolisten tcp"
+  else
+	X_CMD="$X_SERVER :$DISPLAY_NUMBER -br vt01 -nolisten tcp"
+  fi
   if [ -e /tmp/X_TERMINATE ] ; then
 	  X_CMD="$X_CMD -terminate"
   fi
@@ -342,7 +345,7 @@ xorg_autoconfig ()
 build_config ()
 {
     # This is ONLY for XORG, so I have removed all the XVESA & XF86_SVGA stuff
-    if [ ! -e $X_CONFIG ] ; then
+    if [ ! -e $X_CONFIG ] && is_enabled $X_PRECONFIGURE ; then
 	    # Automagically detect what X server to use
 	    if pkg_is_executable Xorg && xorg_autoconfig ;  then
 	       X_SERVER=Xorg
@@ -351,6 +354,8 @@ build_config ()
 		sleep 2
 	    fi
 	    echo "X_SERVER=$X_SERVER" >> $TS_RUNTIME
+    elif pkg_is_executable Xorg ; then
+	    X_SERVER=Xorg
     fi
 }
 
@@ -375,7 +380,6 @@ start)
   	  if [ "$X_SERVER" = "Xorg" ] && [ ! -z "$POSITION" ] && [ "$POSITION" -ge "2" ] ; then
 		sleep 6
 	  fi
-	  X_CMD="$X_CMD -nolisten tcp"
 	  echo $X_CMD >> $LOGFILE
 	  $X_CMD >> $LOGFILE 2>&1 &
 	  sleep .2

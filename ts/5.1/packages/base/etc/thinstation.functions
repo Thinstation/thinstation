@@ -723,7 +723,5 @@ vm_agent ()
 
 make_res_list ()
 {
-	for i in `xrandr 2>/dev/null |grep -Ev 'default|Screen|connected|disconnected' |sed -r 's/[[:space:]]+/\:/g' |cut -d ":" -f2 |sort -n`; do
-		echo "$i" >> /var/log/resolutions
-	done
+	xrandr 2>/dev/null |grep -Ev 'default|Screen|connected|disconnected' |sed -r 's/[[:space:]]+/\:/g' |cut -d ":" -f2 |sort -n > /var/log/resolutions
 }
