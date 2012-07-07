@@ -53,7 +53,7 @@ wm_menu ()
       done
       rm /tmp/typelist
     fi
-    
+
     if [ "`make_caps $ICONMODE`" == "AUTO" ] ; then
       touch $TMPMENU
       if [ -e /lib/menu ] ; then
@@ -82,9 +82,9 @@ wm_menu ()
     echo '  <separator label="System" />' >> $MENU_FILE
     echo '  <menu id="system-menu"/>' >> $MENU_FILE
     echo '  <separator />' >> $MENU_FILE
-    if [ "`make_caps x$MENU_SHOWRES`" == "XTRUE" ] && [ -e /sys/devices/platform/uvesafb.0/vbe_modes ]; then
+    if is_enabled $MENU_SHOWRES && [ -e /var/log/resolutions ]; then
 	echo '  <menu id="RES" label="Resolution">' >> $MENU_FILE
-	for i in `cat /sys/devices/platform/uvesafb.0/vbe_modes |cut -d "-" -f1 |sort -n |uniq`
+	for i in `cat /var/log/resolutions`
                 do
                   	echo "    <item label=\"$i\">" >> $MENU_FILE
 			echo "      <action name=\"Execute\">" >> $MENU_FILE
@@ -94,7 +94,7 @@ wm_menu ()
                 done
 	echo '  </menu>' >> $MENU_FILE
     fi
-    if [ "`make_caps x$MENU_SHOWABOUT`" == "XTRUE" ] && [ -e /bin/about ]; then
+    if is_enabled $MENU_SHOWABOUT && [ -e /bin/about ]; then
 	echo '  <item label="About">' >> $MENU_FILE
 	echo '    <action name="Execute">' >> $MENU_FILE
 	echo '      <command>about</command>' >> $MENU_FILE

@@ -32,6 +32,12 @@ if [ -e /etc/cmd/$PACKAGE.change_server_type ] ; then SERVER="\"$2\"" ; elif [ !
 if [ ! -z "$3" ] ; then OPTIONS=$3 ; fi
 if [ -e /etc/cmd/$PACKAGE.server_first ] ; then	REVERSE_ORDER=TRUE ; fi
 
+gen_menu()
+{
+	make_res_list
+	if [ -e /etc/cmd/$PACKAGE.wm ] ; then wm_menu; fi
+}
+
 console_get_ip()
 {
      if is_enabled $CMD_GETIP ; then
@@ -106,6 +112,7 @@ menu)
     order_command
     touch /tmp/X_TERMINATE    # Set flag to terminate X-Server when user exits
     start_x
+    gen_menu
     free_memory
     rm /tmp/X_TERMINATE
     # Set flag to regenerate replimenu on session exit
@@ -125,6 +132,7 @@ menu)
 console)
     echo "Running Console $PACKAGE" >> $LOGFILE
     start_x
+    gen_menu
     free_memory
     x_get_ip
     order_command
