@@ -91,6 +91,8 @@ if [ "$DEVTYPE" == "wlan" ]; then
 		rm -f /etc/wpa_supplicant.conf.tmp*
 		wpa_supplicant -B -D`make_lower $WIRELESS_DRIVER` -i$INTERFACE -c/etc/wpa_supplicant.conf
 		sleep 1
+	elif [ -n "CUSTOM_SUPPLICANT_CONF" ] ; then
+		wpa_supplicant -B -D`make_lower $WIRELESS_DRIVER` -i$INTERFACE -c$CUSTOM_SUPPLICANT_CONF
 	fi
 	# This appears to be a Wireless device (USB/PCI/PCMCIA). Set specific
         # options. (Code ripped from pcmcia-cs wireless script)
