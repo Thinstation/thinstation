@@ -3,6 +3,7 @@
 # URL: http://www.thinstation.org
 # Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 
+
 show_help()
 {
 echo "
@@ -46,11 +47,8 @@ extract_archive()
 		mkdir -p $pkgpath
 	fi
 	ppath=`prt-get path $package`
-#	echo $ppath
 	version=`prt-get current $package`
-#	echo $version
 	archive=$ppath/${package}#$version.pkg.tar.gz
-#	echo $archive
 	tar -zxf $archive -C $pkgpath 2>/dev/null
 }
 
@@ -60,16 +58,15 @@ shallow_usr()
 		for essential_dir in bin lib etc var ; do
 			if [ -d $pkgpath/$usr_dir/$essential_dir ]; then
 				mkdir -p $pkgpath/$essential_dir
-				cp -Prf $pkgpath/$usr_dir/$essential_dir $pkgpath/.
+				cp -Prfd $pkgpath/$usr_dir/$essential_dir $pkgpath/.
 				rm -rf $pkgpath/$usr_dir/$essential_dir
 			fi
 		done
 		if [ -d $pkgpath/$usr_dir/sbin ] ; then
 			mkdir -p $pkgpath/bin
-			cp -Prf $pkgpath/$usr_dir/sbin/* $pkgpath/bin
+			cp -Prfd $pkgpath/$usr_dir/sbin/* $pkgpath/bin
 			rm -rf $pkgpath/$usr_dir/sbin
 		fi
-
 	done
 }
 
@@ -79,7 +76,7 @@ redirect_shared()
 		if [ -d $pkgpath/$share_dir ] ; then
 			if [ -d $pkgpath/$share_dir/dbus-1 ] ; then
 				mkdir -p $pkgpath/etc
-				cp -Prf $pkgpath/$share_dir/dbus-1 $pkgpath/etc/.
+				cp -Prfd $pkgpath/$share_dir/dbus-1 $pkgpath/etc/.
 				rm -rf $pkgpath/$share_dir/dbus-1
 			fi
 			for shared_object in `ls --color=never $pkgpath/$share_dir` ; do
@@ -96,7 +93,7 @@ redirect_shared()
 
 extra_dirs()
 {
-	if [ "$pkg" == "python" ] ; then
+	if [ "$package" == "python" ] ; then
 		extra_dirs="man pkgconfig"
 	else
 		extra_dirs="include man pkgconfig"
@@ -113,6 +110,13 @@ extra_dirs()
 		fi
 		if [ -d $pkgpath/lib/$extra_dir ] ; then
 			rm -rf $pkgpath/lib/$extra_dir
+		fi
+	done
+	for  include in include local/include ; do
+		if [ -d $pkgpath/usr/$include ] ; then
+			cp -Prfd $pkgpath/usr/$include/* $pkgpath/lib/.
+			rm -rf $pkgpath/usr/$include
+			ln -sf /lib $pkgpath/usr/$include
 		fi
 	done
 }
@@ -139,6 +143,5 @@ main()
 	extra_files
 	remove_empty
 }
-
 main $@
 exit 0
