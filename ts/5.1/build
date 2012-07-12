@@ -230,8 +230,8 @@ make_initrd()
 		fi
 		echo -e "\nMaking initramfs"
 	fi
-	echo -e "\tFixing-Up usr links"
-	rm usr/bin usr/sbin usr/lib usr/icons usr/X11R7 usr/share usr/etc usr/local share
+	echo -e "\tFixing-Up links"
+	rm usr/bin usr/sbin usr/lib usr/icons usr/X11R7 usr/share usr/etc usr/local share sbin
 	ln -sf /bin usr/bin
 	ln -sf /bin usr/sbin
 	ln -sf /lib usr/lib
@@ -241,6 +241,7 @@ make_initrd()
 	ln -sf / usr/X11R7
 	ln -sf /lib/icons usr/icons
 	ln -sf / usr/local
+	ln -sf /bin sbin
 	if [ "$ts_initrdcmd" == "none" -o "$ts_initrdcmd" == "" ] ;
 		then find . -print0 | cpio --null -oV --format=newc > ../$INITDIR/initrd
 		else find . -print0 | cpio --null -oV --format=newc | $ts_initrdcmd > ../$INITDIR/initrd

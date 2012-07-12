@@ -85,10 +85,12 @@ if [ "$2" == "lotsofmem" ]; then
 	for i in `ls --color=never bin/ |grep -Ewvf ../fastboot/bin-boot |grep -Ev '^wget$|^tftp$|^expr$|^wc$|^cut$|^cat$|^sed$|^cp$|^mv$|^readlink$|^grep$|^ifconfig$'` ; do
 		if [ ! -z "$i" ] && [ "`readlink bin/$i`" != "/bin/busybox" ]; then
         		mv bin/$i ../fastboot-tmp/bin/.
-			cp --remove-destination /bin/cp bin/.
-			cp --remove-destination /bin/mv bin/.
 		fi
 	done
+	cp --remove-destination /bin/cp bin/.
+	cp --remove-destination /bin/mv bin/.
+	cp --remove-destination /lib/libacl.so.1 lib/.
+	cp --remove-destination /lib/libattr.so.1 lib/.
 	echo -e "\tMaking lib.squash"
 	../utils/tools/mksquashfs ../fastboot-tmp/. ../$INITDIR/lib.squash -always-use-fragments -no-recovery -all-root -no-xattrs -noappend
 	cp ../utils/tools/unsquashfs bin/.
