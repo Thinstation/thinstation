@@ -56,16 +56,21 @@ shallow_usr()
 {
 	for usr_dir in usr usr/local ; do
 		for essential_dir in bin lib etc var ; do
-			if [ -d $pkgpath/$usr_dir/$essential_dir ]; then
+			if [ -d $pkgpath/$usr_dir/$essential_dir ] && [ -n "`ls -A $pkgpath/$usr_dir/$essential_dir`" ]; then
 				mkdir -p $pkgpath/$essential_dir
 				cp -Prfd $pkgpath/$usr_dir/$essential_dir $pkgpath/.
 				rm -rf $pkgpath/$usr_dir/$essential_dir
 			fi
 		done
-		if [ -d $pkgpath/$usr_dir/sbin ] ; then
+		if [ -d $pkgpath/$usr_dir/sbin ] && [ -n "`ls -A $pkgpath/$usr_dir/sbin`" ]; then
 			mkdir -p $pkgpath/bin
 			cp -Prfd $pkgpath/$usr_dir/sbin/* $pkgpath/bin
 			rm -rf $pkgpath/$usr_dir/sbin
+		fi
+		if [ -e $pkgpath/sbin ] && [ -n "`ls -A $pkgpath/sbin`" ]; then
+			mkdir -p $pkgpath/bin
+			cp -Prfd $pkgpath/sbin/* $pkgpath/bin
+			rm -rf $pkgpath/sbin
 		fi
 	done
 }
@@ -73,10 +78,10 @@ shallow_usr()
 redirect_shared()
 {
 	for share_dir in share usr/share usr/local/share ; do
-		if [ -d $pkgpath/$share_dir ] ; then
-			if [ -d $pkgpath/$share_dir/dbus-1 ] ; then
-				mkdir -p $pkgpath/etc
-				cp -Prfd $pkgpath/$share_dir/dbus-1 $pkgpath/etc/.
+		if [ -d $pkgpath/$share_dir ] && [ -n "`ls -A $pkgpath/$share_dir`" ]; then
+			if [ -d $pkgpath/$share_dir/dbus-1 ] && [ -n "`ls -A $pkgpath/$share_dir/dbus-1`" ]; then
+				mkdir -p $pkgpath/etc/dbus-1
+				cp -Prfd $pkgpath/$share_dir/dbus-1/* $pkgpath/etc/dbus-1
 				rm -rf $pkgpath/$share_dir/dbus-1
 			fi
 			for shared_object in `ls --color=never $pkgpath/$share_dir` ; do
@@ -93,10 +98,9 @@ redirect_shared()
 
 extra_dirs()
 {
-	if [ "$package" == "python" ] ; then
-		extra_dirs="man pkgconfig"
-	else
-		extra_dirs="include man pkgconfig"
+	extra_dirs="man pkgconfig aclocal"
+	if [ "$package" != "python" ] ; then
+		extra_dirs="$extra_dirs include"
 	fi
 	for extra_dir in $extra_dirs ; do
 		if [ -d $pkgpath/$extra_dir ] ; then
