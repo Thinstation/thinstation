@@ -11,8 +11,9 @@ for i in cryptsetup libgcrypt popt libdevmapper ; do
 done
 #rm -rf $INSTALLDIR/lib/locale
 #cp -Prf $EXTRADIR/* $INSTALLDIR/.
+dmlib=$( basename `readlink $INSTALLDIR/lib/libdevmapper.so` )
 rm $INSTALLDIR/lib/libdevmapper.so
-ln -sf libdevmapper.so.1.02 $INSTALLDIR/lib/libdevmapper.so
+ln -sf $dmlib $INSTALLDIR/lib/libdevmapper.so
 
 returnval=$?
 
