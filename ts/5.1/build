@@ -1067,7 +1067,9 @@ do
 	  if [ -e $PACDIR/$name.package ] ; then
             if [ ! -e ./tmp-tree/lib/modules/$module.ko ] ; then
 	      echo "Package : $name   Module: $module"
-	      cp `find ./kernel/modules/ -follow -name "$module.ko"` ./tmp-tree/lib/modules/
+	      if ! cp `find ./kernel/modules/ -follow -name "$module.ko"` ./tmp-tree/lib/modules/ ; then
+		echo "Could not find module $module"
+	      fi
 	      echo "$module.ko" >> ./tmp-tree/modules.final
             fi
 	  elif [ -e $PACDIR/$name.pkg ] ; then
