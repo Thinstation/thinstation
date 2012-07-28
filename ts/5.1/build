@@ -320,11 +320,11 @@ get_file ()
     fi
 
     case `make_caps $filetype` in
-    HTTP)
+    HTTP|HTTPS)
 	echo -e "\nDownloading from Net....."
         if [ ! -z "$ts_httpproxy" ] ; then
             echo "Using proxy $http_proxy"
-                if ! wget -N $URL -O $2/$outfile -e http_proxy=$ts_httpproxy ; then
+                if ! wget -N $URL -O $2/$outfile -e http_proxy=$ts_httpproxy --no-check-certificate ; then
                         echo -e "\nError has occured downloading file"
                         echo -e "Build Aborted\n"
                         remove_files
@@ -332,7 +332,7 @@ get_file ()
                 fi
         else
             echo "Not using any proxy to connect to internet"
-                if ! wget -N $URL -O $2/$outfile --no-proxy ; then
+                if ! wget -N $URL -O $2/$outfile --no-proxy --no-check-certificate ; then
                         echo -e "\nError has occured downloading file"
                         echo -e "Build Aborted\n"
                         remove_files

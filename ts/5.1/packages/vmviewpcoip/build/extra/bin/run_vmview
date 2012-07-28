@@ -1,0 +1,49 @@
+#!/bin/sh
+
+vmviewusername=""
+vmviewdomain=""
+. /etc/thinstation.global
+if [ ! -e /root/.vmware/view-preferences ]; then
+   echo 'view.autoConnectBroker = "TRUE"' >/root/.vmware/view-preferences
+# ignore bad ssl certificate
+   echo 'view.sslVerificationMode = "3"' >>/root/.vmware/view-preferences
+   vmviewserver=`set|grep -i vmviewpcoip_server|cut -f 2 -d "'"`
+   echo "view.defaultBroker = \"$vmviewserver\"" >>/root/.vmware/view-preferences
+fi
+   vmviewdomain=`set|grep -i vmviewpcoip_domainname|cut -f 2 -d "'"`
+if [ $? ] ; then
+    echo "Domainname was set to $vmviewdomain"
+fi
+   vmviewusername=`set|grep -i vmviewpcoip_username|cut -f 2 -d "'"`
+if [ $? ] ; then
+    echo "Username was set to $vmviewusername"
+fi
+
+case $1 in
+"")
+	if [ ! -z $vmviewdomain ] && [ ! -z $vmviewusername ]; then
+	echo " Domain and user given"
+	vmware-view --fullscreen -d $vmviewdomain -u $vmviewusername
+	fi
+	if [ ! -z $vmviewdomain ] ; then
+	echo " Domain given"
+	vmware-view --fullscreen -d $vmviewdomain
+	else
+	vmware-view --fullscreen
+	fi
+;;
+*)
+	if [ ! -z $vmviewdomain ] && [ ! -z $vmviewusername ]; then
+	echo " Domain and user given"
+	vmware-view --fullscreen -d $vmviewdomain -u $vmviewusername
+	fi
+	if [ ! -z $vmviewdomain ] ; then
+	echo " Domain given"
+	vmware-view --fullscreen -d $vmviewdomain
+	else
+	vmware-view --fullscreen
+	fi
+
+;;
+esac
+
