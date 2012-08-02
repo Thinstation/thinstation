@@ -1,0 +1,19 @@
+# Description: Secure Sockets Layer and Transport Layer Security tools
+# URL:         http://www.openssl.org/
+# Maintainer:  CRUX System Team, core-ports at crux dot nu
+
+name=openssl-compat
+pname=openssl
+version=0.9.8x
+release=1
+source=(http://www.openssl.org/source/$pname-$version.tar.gz)
+
+build() {
+    cd $pname-$version
+    ./config --prefix=/usr --openssldir=/etc/ssl shared
+    sed -i "s|-O3|$CFLAGS|" Makefile
+    make -j1
+    make INSTALL_PREFIX=$PKG/$TSCOMPROOT/$name LIBDIR=lib MANDIR=/usr/man MANSUFFIX=ssl install
+    chmod -R +w $PKG/$TSCOMPROOT/$name
+    rm -rf $PKG/$TSCOMPROOT/$name/{usr/include,usr/bin,usr/man,usr/lib/engines,usr/lib/pkgconfig,etc}
+}
