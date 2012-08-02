@@ -4,18 +4,16 @@
 
 name=pcsc-lite-TS
 pname=${name%-*}
-version=1.7.4
+version=1.8.4
 release=1
-source=(https://alioth.debian.org/frs/download.php/3598/$pname-$version.tar.bz2)
+source=(https://alioth.debian.org/frs/download.php/3734/$pname-$version.tar.bz2)
 
 build() {
 	cd $pname-$version
 
 	./configure --prefix=/usr \
-			--disable-libhal \
 			--sysconfdir=/etc \
-			--mandir=/usr/man \
-			--disable-extras
+			--mandir=/usr/man
 
 	make
 	make DESTDIR=$PKG install
