@@ -101,7 +101,7 @@ do
 	libfile=`basename $libname`
 	if [ ! -e ./tmp-tree/lib/$libfile ] && [ ! -e $pkgname/lib/$libfile ] ; then
 	  libsource="`prt-get fsearch $libfile |grep -v Found |cut -d " " -f3 |head -n1`"
-	  if [ -n $libsource ] ; then
+	  if [ -n "$libsource" ] && [ -e $libsource ] ; then
 		echo "Adding $libfile dependency in `basename $pkgname` for `basename $filename`"
 		if [ ! -e $pkgname/lib ] ; then
 			mkdir $pkgname/lib
