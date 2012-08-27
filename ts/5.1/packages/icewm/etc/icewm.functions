@@ -74,12 +74,14 @@ if is_enabled $MENU_SHOWAPPS ; then
       if [ -e /lib/menu ] ; then
            cat /lib/menu/* > $TMPMENU
       fi
-      if [ "`make_caps x$MENU_EXTRA`" == "XONLY" ] ; then
-		if [ -e $MENU_EXTRA_DIR/* ] ; then
+      if [ ! -z $MENU_EXTRA_DIR ]; then
+        if [ "`make_caps x$MENU_EXTRA`" == "XONLY" ]; then
+		if [ ! -z `ls -A  $MENU_EXTRA_DIR` ] ; then
 			cat $MENU_EXTRA_DIR/* > $TMPMENU
       		fi
-      elif [ -e $MENU_EXTRA_DIR/* ] ; then
+        elif [ ! -z `ls -A $MENU_EXTRA_DIR` ]; then
 		cat $MENU_EXTRA_DIR/* >> $TMPMENU
+        fi
       fi
       (cat $TMPMENU) |
       while read entry
@@ -93,7 +95,9 @@ if is_enabled $MENU_SHOWAPPS ; then
 	echo "$package.icon: $package" >> $MENU_ICONS
 	echo "prog \"$title\" \"$package\" $command" >> $MENU_FILE
       done
-      rm /tmp/entry
+      if [ -e /tmp/entry ]; then
+        rm /tmp/entry
+      fi
       rm $TMPMENU
     fi
 fi

@@ -38,21 +38,6 @@ gen_menu()
 	if [ -e /etc/cmd/$PACKAGE.wm ] ; then wm_menu; fi
 }
 
-console_get_ip()
-{
-     if is_enabled $CMD_GETIP ; then
-        if [ -z "$SERVER" ]; then
-                replimenu -c $MENUCOLOUR -f $REPLIMENU/server.menu
-                . /tmp/RM_SERVER
-		sleep .2
-                rm /tmp/RM_SERVER
-        else
-                RM_SERVER=$2
-        fi
-        SERVER=$RM_SERVER
-    fi
-}
-
 x_get_ip()
 {
 	if is_enabled $CMD_GETIP ; then
@@ -106,43 +91,22 @@ auto)
   done
     $NO_SESSION
     ;;
-menu)
-    echo "Running Menu $PACKAGE" >> $LOGFILE
-    console_get_ip
-    order_command
-    touch /tmp/X_TERMINATE    # Set flag to terminate X-Server when user exits
-    start_x
+console)
+    echo "Running Console $PACKAGE" >> $LOGFILE
     gen_menu
     free_memory
-    rm /tmp/X_TERMINATE
-    # Set flag to regenerate replimenu on session exit
-    if [ -n "$SESSION_NUMBER" ] ; then
-    	session=/var/sessions/SESSION$SESSION_NUMBER
-        CMD="(kill \`pidof replimenu\` ; touch $session ; $CMD_MENU $3 $SERVER ; rm $session ;
-       	      kill \`pidof replimenu\` ; sed_file $TS_CUSTOM '/^SESSION_'$SESSION_NUMBER'_/d' )"
-    else
-        CMD="$CMD_MENU $ORDERED_COMMAND"
-    fi
-    run_command
+    use_xrandr
+    use_wallpaper
+    x_auth_file
     x_mouse
     x_mod_map
     x_numlock
     vm_agent
-    ;;
-console)
-    echo "Running Console $PACKAGE" >> $LOGFILE
-    start_x
-    gen_menu
-    free_memory
-    x_get_ip
-    order_command
-    CMD="$CMD_CONSOLE $ORDERED_COMMAND"
     while [ -e /tmp/.X11-unix/X$DISPLAY_NUMBER ] && [ "$reconnect" != "1" ]; do
+	x_get_ip
+	order_command
+	CMD="$CMD_CONSOLE $ORDERED_COMMAND"
         run_command
-	x_mouse
-	x_mod_map
-	x_numlock
-	vm_agent
 	wait
 	check_NX
 	check_xrunning

@@ -634,7 +634,6 @@ use_xrandr ()
 {
 	if is_enabled $USE_XRANDR ; then
         	echo "Using xrandr to set display resolution." >> $LOGFILE
-		sleep .25
         	if [ "$XRANDR_OPTIONS" == "" ]; then
 		    	xrandr -s $SCREEN_RESOLUTION
         	else
@@ -678,27 +677,22 @@ x_auth_file ()
 	# If Don't already have an Xauthority file, create one now.
 	if [ ! -e $HOME/.Xauthority ] ; then
 		touch $HOME/.Xauthority
-		xauth -f $HOME/.Xauthority generate :$DISPLAY_NUMBER.0 . trusted >> $LOGFILE 2>&1
+		xauth -f $HOME/.Xauthority generate $DISPLAY . trusted >> $LOGFILE 2>&1
 	fi
 }
 
 x_wm ()
 {
-	# Are We Running Any Known Window Managers
-	unset flag
+	# Are we going to run a real window manager?
 	WMS="icewm openbox xfce xfwm4"
 	for i in $WMS; do
-		if pidof $i ; then
-			flag=true
+		if [ "$i" == "$WMNAME" ; then
+			echo_log "Found a Window Manager"
+			return 0
 		fi
 	done
-	if is_enabled $flag ; then
-		echo_log "Found a Window Manager"
-		return 0
-	else
-		echo_log "Failed to find a Window Manager"
-		return 1
-	fi
+	echo_log "Failed to find a Window Manager"
+	return 1
 }
 
 x_mouse ()
@@ -716,7 +710,7 @@ x_mouse ()
 
 vm_agent ()
 {
-	if vmware-checkvm && x_wm ; then
+	if which vmware-checkvm && vmware-checkvm && x_wm ; then
 		vmware-user-suid-wrapper
 	fi
 }

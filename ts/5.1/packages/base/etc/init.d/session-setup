@@ -1,10 +1,6 @@
-#!/bin/sh
+#! /bin/sh
 
-. /etc/thinstation.env
 . $TS_GLOBAL
-. /etc/splash.functions
-
-echo_log "\n\nWelcome to Thinstation Linux $TS_VERSION"
 
 no_package()
 {
@@ -17,44 +13,41 @@ no_package()
 	done
 }
 
-case $1 in
-	0)
-	# Start each session
-	# Cleanup files if already existing
-	if [ -e $WKDIR/windowapps ] ; then
-		rm $WKDIR/windowapps
+case "$1" in
+init)
+	if ! pkg_initialized $PACKAGE; then
+		pkg_set_init_flag $PACKAGE
 	fi
-	if [ -e $WKDIR/consoleapps ] ; then
-		rm $WKDIR/consoleapps
-	fi
-	if [ -e $WKDIR/*.autostart ] ; then
-		rm $WKDIR/*.autostart
-	fi
-
+	#Figure out if we have a window manager.
 	(cat $WKDIR/session) |
 	while read type title screen position workspace autostart custom icon server options ; do
 		if [ -e /etc/cmd/$type.wm ] && [ -z "$WMNAME" ] ; then
-			export WMSCREEN=$screen
-			export WMNAME=$type
-			echo "WMNAME"="$type" >> $TS_RUNTIME
+			echo "WMSCREEN=$screen" >> $TS_RUNTIME
+			echo "WMNAME=$type" >> $TS_RUNTIME
+			break
 		fi
+	done
+
+. $TS_RUNTIME
+
+	#Now read the sessions for real and create our session script.
+	(cat $WKDIR/session) |
+	while read type title screen position workspace autostart custom icon server options ; do
 		autostart=`make_caps $autostart`
 		case $autostart in
 			ON)
-				if [ -e /etc/init.d/$type ] ; then
+				if [ -e /etc/init.d/$type ]; then
 					# Set screen variables
-					export DISPLAY=:$screen.0
 					export DISPLAY_NUMBER=$screen
 					export WMWORKSPACE=$workspace
 					export POSITION=$position
 					if [ "$server" = "." ] ; then server= ; fi
 					if [ "$options" = "." ] ; then options= ; fi
-					if [ ! -e /etc/console/$type ] ; then
+					if [ ! -e /etc/console/$type ]; then
 						if [ -n "$WMNAME" ] && [ "$type" != "$WMNAME" ] && [ "$screen" == "$WMSCREEN" ] ; then
 							echo "pkg auto $type \"$server\" \"$options\" \"$WMWORKSPACE\" &" >> $WKDIR/$WMNAME.autostart
 							echo "sleep .2" >> $WKDIR/$WMNAME.autostart
 						else
-							echo "export DISPLAY=$DISPLAY" >> $WKDIR/windowapps
 							echo "export DISPLAY_NUMBER=$DISPLAY_NUMBER" >> $WKDIR/windowapps
 							echo "pkg console $type \"$server\" \"$options\" &" >> $WKDIR/windowapps
 						fi
@@ -70,21 +63,8 @@ case $1 in
 			;;
 		esac
 	done
-	if [ -e $WKDIR/windowapps ] ; then
-		. $WKDIR/windowapps
-	fi
-	if [ -e $WKDIR/consoleapps ] ; then
-		. $WKDIR/consoleapps
-	fi
-	# Start Menu session
-	if [ ! -e $WKDIR/windowapps ] && [ -e /tmp/BOOTMENU ] ; then
-		splash_exit
-		while [ ! -e /tmp/shutdown ] ; do
-			pkg console menu
-			. $TS_GLOBAL
-		done
-		rm /tmp/BOOTMENU
-	fi
-	wait
-	;;
+;;
+*)
+	exit
+;;
 esac

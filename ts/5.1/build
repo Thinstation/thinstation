@@ -95,17 +95,20 @@ do
     (cat ./liblist.final ) |
     while read filename
     do
-      (ldd $filename 2>/dev/null | grep -v "not a dynamic executable" | cut -d= -f1 ) |
+      (ldd $filename 2>/dev/null |grep -v "not a dynamic executable" |grep -v linux-gate |grep -v statically |cut -d= -f1 ) |
       while read libname
       do
 	libfile=`basename $libname`
 	if [ ! -e ./tmp-tree/lib/$libfile ] && [ ! -e $pkgname/lib/$libfile ] ; then
-	  if [ -e ./packages/lib/$libfile ] ; then
+	  libsource="`prt-get fsearch $libfile |grep -v Found |cut -d " " -f3 |head -n1`"
+	  if [ -n $libsource ] ; then
 		echo "Adding $libfile dependency in `basename $pkgname` for `basename $filename`"
 		if [ ! -e $pkgname/lib ] ; then
 			mkdir $pkgname/lib
 		fi
-		cp ./packages/lib/$libfile $pkgname/lib
+		cp $libsource $pkgname/lib
+	  else
+		echo "Could not find $libfile !"
 	  fi
 	fi
       done

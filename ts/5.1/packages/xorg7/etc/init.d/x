@@ -1,24 +1,25 @@
 #! /bin/sh
 
-. /etc/thinstation.env
 . $TS_GLOBAL
 . /etc/splash.functions
 
 #echo "Starting X"
+DISPLAY_NUMBER=0
 XAUTHHOME=$HOME
 HOME=/tmp
 X_PATH=/usr/X11R7
 X_PORT=/tmp/x_port
 X_AUTO=$HOME/xorg.conf.new
 X_CONFIG="/etc/X11/x.config-$DISPLAY_NUMBER"
+echo "DISPLAY=:0.0" >> $TS_RUNTIME
 #POSITION=$(fgconsole)
 
 build_command ()
 {
   if is_enabled $X_PRECONFIGURE ; then
-	X_CMD="$X_SERVER :$DISPLAY_NUMBER -config $X_CONFIG -br vt01 -nolisten tcp"
+	X_CMD="$X_SERVER :$DISPLAY_NUMBER -config $X_CONFIG -br -noreset -nolisten tcp vt05"
   else
-	X_CMD="$X_SERVER :$DISPLAY_NUMBER -br vt01 -nolisten tcp"
+	X_CMD="$X_SERVER :$DISPLAY_NUMBER -br -noreset -nolisten tcp vt05"
   fi
   if [ -e /tmp/X_TERMINATE ] ; then
 	  X_CMD="$X_CMD -terminate"
@@ -364,9 +365,7 @@ init)
   if ! pkg_initialized $PACKAGE; then
     pkg_set_init_flag $PACKAGE
   fi
-  ;;
-start)
-    if [ ! -e /tmp/.xorg-unix/X$DISPLAY_NUMBER ]; then
+  if [ ! -e /tmp/.xorg-unix/X$DISPLAY_NUMBER ]; then
 	echo "Starting $0 server" >> $LOGFILE
 
 	if [ -n "$X_COOKIE" ] ; then
@@ -390,38 +389,8 @@ start)
 	splash_exit
 	/bin/bash
 	fi
-    fi
-    ;;
-console|menu)
-    if [ ! -e /tmp/.xorg-unix/X$DISPLAY_NUMBER ]; then
-	echo "Starting $0 server" >> $LOGFILE
-
-	if [ -n "$X_COOKIE" ] ; then
-		xauth -f $XAUTHHOME/.Xauthority add :$DISPLAY_NUMBER.0 - $X_COOKIE >> $LOGFILE 2>&1
-   	fi
-
-	build_config
-	if [ -n "$X_SERVER" ]; then
-	  build_command
-	  if [ "$2" = "" ] ; then
-		  X_CMD="$X_CMD -broadcast"
-	  elif [ "$3" = "" ] ; then
-		  X_CMD="$X_CMD -query $2"
-	  else
-	 	 X_CMD="$X_CMD $3 $2" 
-	  fi
-	  echo $X_CMD >> $LOGFILE
-	  exec $X_CMD >> $LOGFILE 2>&1
- 	else
-	  echo "XSERVER variable is not defined, error!!!"
-	  echo "X aborted, starting shell instead."
-	/bin/bash
-	fi
-    fi
-    ;;
-help)
-    echo "Usage: $0 {init|start|stop|console|menu}"
-    ;;
+  fi
+  ;;
 *)
     exit 1
     ;;
