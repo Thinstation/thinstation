@@ -49,7 +49,12 @@ grep -e pkg.tar.gz` ; do
                 	PKG_NAME="`echo $PKG_NAME |cut -d "#" -f1`"
                 	echo "Installing Package $PKG_NAME"
                 	/usr/bin/pkgadd $PKGARGS $PKG_FILE
-        	done
+                  	if [ -e "`dirname $PKG_FILE`"/post-install ]; then
+                                echo ". `dirname $PKG_FILE`/post-install" >> $R$
+                        fi
+        done
+	source $ROOT/post-install.sh
+        rm $ROOT/post-install.sh
 	rm /dostage2
 	touch /dostage3
 }
