@@ -2,20 +2,19 @@
 # URL: http://www.thinstation.org
 # Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 
-name=pcsc-lite-TS
-pname=${name%-*}
-version=1.8.4
+name=pcsc-lite
+version=1.8.6
 release=1
-source=(https://alioth.debian.org/frs/download.php/3734/$pname-$version.tar.bz2)
+source=(https://alioth.debian.org/frs/download.php/3757/$name-$version.tar.bz2)
 
 build() {
-	cd $pname-$version
+	cd $name-$version
 
 	./configure --prefix=/usr \
 			--sysconfdir=/etc \
-			--mandir=/usr/man
-
+			--mandir=/usr/man \
+			--enable-libusb \
+			--disable-libudev
 	make
 	make DESTDIR=$PKG install
-rm -rf $PKG/usr/{share,man}
 }

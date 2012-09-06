@@ -3,14 +3,13 @@
 # Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 # depends on: pcsc-lite-TS
 
-name=ccid-TS
-pname=${name%-*}
+name=ccid
 version=1.4.7
 release=1
-source=(https://alioth.debian.org/frs/download.php/3730/$pname-$version.tar.bz2)
+source=(https://alioth.debian.org/frs/download.php/3730/$name-$version.tar.bz2)
 
 build() {
-	cd $pname-$version
+	cd $name-$version
 
 	./configure --prefix=/ \
 			--exec-prefix=/ \
@@ -25,7 +24,4 @@ mkdir -p $PKG/{bin,sbin}
 cp src/92_pcscd_ccid.rules $PKG/etc/udev/.
 cp contrib/Kobil_mIDentity_switch/Kobil_mIDentity_switch $PKG/sbin/.
 cp contrib/RSA_SecurID/RSA_SecurID_getpasswd $PKG/bin/.
-rm -rf $PKG/{share,usr/man}
-mkdir -p $PKG/$TSCOMPROOT/$pname
-mv $PKG/{etc,usr,bin,sbin} $PKG/$TSCOMPROOT/$pname/.
 }
