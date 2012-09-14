@@ -5,14 +5,14 @@
 # Depends on: fontconfig fontforge freeglut gnutls lcms mpg123 openal xorg-libxcomposite xorg-libxcursor xorg-libxinerama xorg-libxrandr xorg-libxxf86dga
 
 name=wine
-version=1.3.37
+version=1.5.12
 release=2
 source=(http://ibiblio.org/pub/linux/system/emulators/wine/wine-$version.tar.bz2
-	http://downloads.sourceforge.net/project/wine/Wine%20Gecko/1.4/wine_gecko-1.4-x86.msi)
+	http://downloads.sourceforge.net/project/wine/Wine%20Gecko/1.7/wine_gecko-1.7-x86.msi
+	http://downloads.sourceforge.net/wine/wine-mono-0.0.4.msi)
 
 build() {
 	cd $name-$version
-
 	./configure \
 		--prefix=/usr \
 		--mandir=$PKG/usr/man \
@@ -22,6 +22,8 @@ build() {
 	make depend
 	make
 	make prefix=$PKG/usr install
-	install -D $SRC/wine_gecko-1.4-x86.msi $PKG/usr/share/wine/gecko/wine_gecko-1.4-x86.msi
+	install -D $SRC/wine_gecko-1.7-x86.msi $PKG/usr/share/wine/gecko/wine_gecko-1.7-x86.msi
+	install -D $SRC/wine-mono-0.0.4.msi $PKG/usr/share/wine/mono/wine-mono-0.0.4.msi
 	rm -r $PKG/usr/man/??.UTF-8
 }
+
