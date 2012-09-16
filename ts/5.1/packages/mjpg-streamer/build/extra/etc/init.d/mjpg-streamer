@@ -1,0 +1,34 @@
+#!/bin/bash
+
+name=mjpg_streamer
+
+case $1 in
+stop)
+	start-stop-daemon -p /var/run/$name.pid -K -s HUP
+	rm /var/run/$name.pid
+	;;
+start|init)
+        unset video_timeout
+	while [ ! -e /dev/video0 ]; do
+		if [ "$video_timeout" == "25" ]; then exit 255; fi
+		sleep .1
+		let video_timeout=video_timeout+1
+	done
+	. $TS_GLOBAL
+	if [ -z $MJPG_INPUT ] ;then
+		MJPG_INPUT=uvc
+	fi
+	if [ -z $MJPG_OUTPUT ]; then
+		MJPG_OUTPUT=http
+	fi
+	if [ -z $MJPG_OUTPUT_OPTIONS ] && [ "$MJPG_OUTPUT" == "http" ]; then
+		MJPG_OUTPUT_OPTIONS="-w /www -p 1234"
+	fi
+	start-stop-daemon -S -p /var/run/$name.pid -m -b -x \
+		 /bin/$name -- -i "/lib/input_$MJPG_INPUT.so $MJPG_INPUT_OPTIONS" -o "/lib/output_$MJPG_OUTPUT.so $MJPG_OUTPUT_OPTIONS" 2>/dev/null > $LOGFILE
+	;;
+restart)
+	$0 stop
+	$0 start
+	;;
+esac

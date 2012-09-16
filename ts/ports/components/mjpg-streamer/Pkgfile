@@ -1,0 +1,17 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=mjpg-streamer
+version=svn
+release=1
+source=()
+
+build() {
+svn co https://mjpg-streamer.svn.sourceforge.net/svnroot/mjpg-streamer mjpg-streamer
+	cd $name/$name
+	mkdir -p $PKG/{lib,bin}
+	make
+	make DESTDIR=$PKG install
+	cp start.sh $PKG/bin/start-mjpg.sh
+}
