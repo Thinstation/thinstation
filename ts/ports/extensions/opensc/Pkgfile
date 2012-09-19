@@ -1,0 +1,37 @@
+# Description: Tools and libraries for smart cards
+# URL: http://www.opensc-project.org/opensc
+# Maintainer: None
+
+name=opensc
+version=0.12.2
+release=1
+source=(http://www.opensc-project.org/files/$name/$name-$version.tar.gz
+	$name-$version-exports.patch
+	$name-$version-hotplug.patch
+	$name-$version-gsc.patch
+	$name-conf.patch)
+
+build() {
+	# Includes patches to support Government CAC (GSC-IS) cards
+	# Also a patch for Firefox hotplugging
+	cd $name-$version
+	patch -p1 -i $SRC/$name-$version-exports.patch
+	patch -p1 -i $SRC/$name-$version-hotplug.patch
+	patch -p1 -i $SRC/$name-$version-gsc.patch
+
+	./configure --prefix=/ \
+			--exec-prefix=/ \
+			--sysconfdir=/etc \
+			--libexecdir=/lib \
+			--mandir=/usr/man \
+			--enable-pcsc \
+			--disable-openct \
+			--enable-openssl
+
+	make
+	make DESTDIR=$PKG install
+	mkdir -p $PKG/$TSCOMPROOT/$name
+	mv $PKG/{share,bin,lib,sbin,etc,usr} $PKG/$TSCOMPROOT/$name
+
+	patch -d $PKG/$TSCOMPROOT/$name/etc -i $SRC/$name-conf.patch
+}

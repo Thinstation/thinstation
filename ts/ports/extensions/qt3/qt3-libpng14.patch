@@ -1,0 +1,26 @@
+--- qt-x11-free-3.3.8/src/kernel/qpngio.cpp.orig	2007-02-02 23:01:15.000000000 +0900
++++ qt-x11-free-3.3.8/src/kernel/qpngio.cpp	2011-01-02 09:20:40.151999994 +0900
+@@ -159,7 +159,11 @@
+ 		image.setColor( i, qRgba(c,c,c,0xff) );
+ 	    }
+ 	    if ( png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS) ) {
++#if PNG_LIBPNG_VER < 10400
+ 		const int g = info_ptr->trans_values.gray;
++#else
++		const int g = info_ptr->trans_color.gray;
++#endif
+ 		if (g < ncols) {
+ 		    image.setAlphaBuffer(TRUE);
+ 		    image.setColor(g, image.color(g) & RGB_MASK);
+@@ -187,7 +191,11 @@
+ 		    info_ptr->palette[i].red,
+ 		    info_ptr->palette[i].green,
+ 		    info_ptr->palette[i].blue,
++#if PNG_LIBPNG_VER < 10400
+ 		    info_ptr->trans[i]
++#else
++		    info_ptr->trans_alpha[i]
++#endif
+ 		    )
+ 		);
+ 		i++;

@@ -1,0 +1,20 @@
+# Description:  USB Multiplexing Daemon
+# URL:          http://www.libimobiledevice.org/
+# Packager:     
+# Maintainer:   
+# Dependencies:	libplist
+
+name=usbmuxd
+version=1.0.7
+release=1
+source=(http://www.libimobiledevice.org/downloads/$name-$version.tar.bz2)
+
+build() {
+    # usbmuxd checks for GIT for its version - our GIT confuses it
+    # so override describe.sh to do what it does without GIT
+    echo "cat version.tag" > $name-$version/Modules/describe.sh
+    cmake -DCMAKE_INSTALL_PREFIX=/usr $name-$version
+    make
+    make DESTDIR=$PKG install
+}
+

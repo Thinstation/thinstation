@@ -1,0 +1,17 @@
+# Description: A multi-platform toolkit for creating graphical user interfaces
+# URL: http://www.gtk.org/
+# Maintainer: Tilman Sauerbeck, tilman at crux dot nu
+# Depends on: atk, hicolor-icon-theme, gdk-pixbuf, pango, xorg-libsm, xorg-libxcursor, xorg-libxinerama, xorg-libxrandr, xorg-libxcomposite
+
+name=gtk-sharp
+version=2.12.10
+release=1
+source=(http://download.gnome.org/sources/$name/${version%.*}/${name}-$version.tar.bz2)
+
+build () {
+	cd ${name}-$version
+
+	./configure --prefix=/usr --mandir=/usr/man --enable-debug=no
+	make
+	make DESTDIR=$PKG install
+}

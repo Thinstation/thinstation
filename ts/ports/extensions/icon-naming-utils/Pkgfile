@@ -1,0 +1,17 @@
+# Description: A naming utilities module that generates icon files appropriate for the desktop environment being used.
+# URL: http://tango.freedesktop.org
+# Maintainer: None
+
+name=icon-naming-utils
+version=0.8.90
+release=1
+source=(http://tango.freedesktop.org/releases/$name-$version.tar.gz)
+
+build() {
+	cd $name-$version
+
+	./configure --prefix=/usr
+
+	make 
+	make DESTDIR=$PKG install
+}

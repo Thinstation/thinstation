@@ -2,12 +2,13 @@
 
 . $TS_GLOBAL
 . /etc/vmview.functions
+HOME=/etc/skel
 
 if [ -n $DEBUG_NETWORK ] ; then
     debug="-d"
 fi
 
-case "$1" in  
+case "$1" in
 init)
     if ! pkg_initialized $PACKAGE; then
 	pkg_set_init_flag $PACKAGE
@@ -16,7 +17,7 @@ init)
 	    mkdir -p $HOME/.vmware
 	fi
 
-	(ls -1 /etc/vmware/*.vdm ) | 
+	(ls -1 /etc/vmware/*.vdm ) |
 	while read filename ; do
 	    cp $filename $HOME/.vmware/.
 	done
@@ -52,7 +53,7 @@ init)
 	      # some parameters don't have values
 	      if [ "$vdioption" == "fullscreen" ] || [ "$vdioption" == "nonInteractive" ] || [ "$vdioption" == "keep-wm-bindings" ] ; then
 	        value=`make_lower $vdivalue`
-	        if [ "$value" == "true" ] || [ "$value" == "on" ] ; then 
+	        if [ "$value" == "true" ] || [ "$value" == "on" ] ; then
 	    	    echo "--$vdioption" >> $VDICONFIG
 		fi
 	      # allow for passthrough of user specified rdesktop options

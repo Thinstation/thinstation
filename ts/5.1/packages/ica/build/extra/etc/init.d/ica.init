@@ -1,8 +1,8 @@
 #! /bin/sh
 
 . $TS_GLOBAL
-
 . /etc/ica.functions
+HOME=/etc/skel
 
 case "$1" in
 init)
@@ -14,10 +14,10 @@ if ! pkg_initialized $PACKAGE; then
  ICA_CONF=$HOME/.ICAClient
  APPSRV_CUSTOM=/tmp/appsrv.ini.new
  WFCLIENT_CUSTOM=/tmp/wfclient.ini.new
- 
+
  # Create the user config directory if it doesn't exist
  if [ ! -e $ICA_CONF ] ; then mkdir -p $ICA_CONF ; fi
- 
+
  # Create a cache directory
  if [ ! -e $ICA_CONF/cache ] ; then mkdir $ICA_CONF/cache ; fi
 
@@ -28,13 +28,7 @@ if ! pkg_initialized $PACKAGE; then
  if [ ! -e $HOME/.mime.types ] || [ "`grep -c -E ICA $HOME/.mime.types`" == "0" ] ; then
         echo 'type=application/x-ica exts=ica desc="Citrix ICA"' >> $HOME/.mime.types
  fi
- if [ ! -e $HOME/.mozilla/plugins/npica.so ] ; then
-        mkdir -p $HOME/.mozilla/plugins
-        ln -sf $ICA_ROOT/npica.so $HOME/.mozilla/plugins/npica.so
- fi
- for i in `cat /etc/ICA-Perms` ; do
-        chown root.sys $i
- done
+
  chmod u+s $ICA_ROOT/ctxusb
  /etc/init.d/ctxusbd start
 
@@ -79,7 +73,7 @@ if ! pkg_initialized $PACKAGE; then
     # only boot the first session, unless SESSION_1_ICA_APPLICATION or
     # SESSION_1_ICA_SERVER has something other than null
 
-    if [ -z "$ICAX_SERVER" ] ; then 
+    if [ -z "$ICAX_SERVER" ] ; then
 	   if [ "$x" = 0 ] ; then
 		   ICAX_SERVER=$ICA_SERVER
 	   fi

@@ -27,9 +27,9 @@ clean()
 	else
 		version $file
 		if [ "$suffix" != "" ] ; then
-			rmfile=`find $DEST/$loc -type f |grep -e ${prefix}[0-9] |grep -e $suffix$`
+			rmfile=`find $DEST/$loc -mindepth 1 -maxdepth 1 -type f|grep -e ${prefix}[0-9] |grep -e $suffix$`
 		else
-			rmfile=`find $DEST/$loc -type f |grep -e ${prefix}[0-9] |grep -e [0-9]$`
+			rmfile=`find $DEST/$loc -mindepth 1 -maxdepth 1 -type f|grep -e ${prefix}[0-9] |grep -e [0-9]$`
 		fi
 		if [ "$rmfile" != "" ] ; then
 			cmdlist="${cmdlist}rm $rmfile\n"
@@ -94,7 +94,7 @@ empty_file()
 
 getpackageloc()
 {
-	if [ "`prt-get isinst $srcpkg |grep -c -e not$`" -ge "1" ] ; then
+	if [ "`prt-get isinst $srcpkg |grep -c -e 'not inst'`" -ge "1" ] ; then
 		prt-get depinst -fr $srcpkg
 		pkgver="`prt-get current $srcpkg`"
 	fi
@@ -162,6 +162,9 @@ makelinks()
 		linkname=`basename ${link[$index]}`
 		if [ "$lndepth" -gt "0" ] ; then
 			linkloc=`dirname ${link[$index]}`
+			if [ ! -d $DEST/$linkloc ] || [ "$DRYRUN" == "1" ]; then
+			    cmdlist="${cmdlist}mkdir -p $DEST/$linkloc\n"
+			fi
 		else
 			linkloc=""
 		fi

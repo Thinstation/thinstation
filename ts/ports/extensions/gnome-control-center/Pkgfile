@@ -1,0 +1,23 @@
+# Description: The GNOME Control Center for GNOME 2
+# URL:
+# Maintainer: None
+# Depends on: gnome-menus gnome-settings-daemon metacity libgnomekbd
+
+name=gnome-control-center
+version=2.32.1
+release=1
+source=(ftp://ftp.gnome.org/pub/gnome/sources/$name/${version%.*}/$name-$version.tar.bz2)
+
+build() {
+	cd $name-$version
+	export LINGUAS=en
+
+        sed -i -e "s/USE_NLS=yes/USE_NLS=no/" \
+                -e "s/ENABLE_NLS 1/ENABLE_NLS 0/" configure
+        ./configure --prefix=/usr --disable-nls --disable-scrollkeeper --with-help-formats=none \
+		--disable-static --disable-schemas-install --disable-update-mimedb
+
+	make
+	make install DESTDIR=$PKG
+	rm -rf $PKG/usr/share/omf
+}

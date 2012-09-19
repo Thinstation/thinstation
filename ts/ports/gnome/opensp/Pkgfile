@@ -1,0 +1,22 @@
+# Description: SGML System Conforming to International Standard ISO 8879.
+# URL: http://openjade.sourceforge.net/
+# Maintainer: Danny Rawlins, monster dot romster at gmail dot com
+# Packager: Diederick de Vries, diederick at diederickdevries.net
+
+name=opensp
+version=1.5.2
+release=1
+source=(http://downloads.sourceforge.net/project/openjade/$name/$version/OpenSP-$version.tar.gz)
+
+build() {
+	cd OpenSP-$version
+
+	./configure \
+		--prefix=/usr \
+		--disable-doc-build \
+		--disable-nls
+
+	make
+	make DESTDIR=$PKG install
+	rm -r $PKG/usr/share/doc
+}

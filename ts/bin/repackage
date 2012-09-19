@@ -55,24 +55,23 @@ extract_archive()
 shallow_usr()
 {
 	for usr_dir in usr usr/local ; do
-		for essential_dir in bin lib etc var ; do
+		for essential_dir in sbin bin lib etc var ; do
 			if [ -d $pkgpath/$usr_dir/$essential_dir ] && [ -n "`ls -A $pkgpath/$usr_dir/$essential_dir`" ]; then
 				mkdir -p $pkgpath/$essential_dir
 				cp -Prfd $pkgpath/$usr_dir/$essential_dir $pkgpath/.
 				rm -rf $pkgpath/$usr_dir/$essential_dir
 			fi
 		done
-		if [ -d $pkgpath/$usr_dir/sbin ] && [ -n "`ls -A $pkgpath/$usr_dir/sbin`" ]; then
-			mkdir -p $pkgpath/bin
-			cp -Prfd $pkgpath/$usr_dir/sbin/* $pkgpath/bin
-			rm -rf $pkgpath/$usr_dir/sbin
-		fi
-		if [ -e $pkgpath/sbin ] && [ -n "`ls -A $pkgpath/sbin`" ]; then
-			mkdir -p $pkgpath/bin
-			cp -Prfd $pkgpath/sbin/* $pkgpath/bin
-			rm -rf $pkgpath/sbin
-		fi
 	done
+}
+
+redirect_sbin()
+{
+	if [ -e $pkgpath/sbin ] && [ -n "`ls -A $pkgpath/sbin`" ]; then
+		mkdir -p $pkgpath/bin
+		cp -Prfd $pkgpath/sbin/* $pkgpath/bin
+		rm -rf $pkgpath/sbin
+	fi
 }
 
 redirect_shared()
@@ -142,6 +141,7 @@ main()
 	package_path
 	extract_archive
 	shallow_usr
+	redirect_sbin
 	redirect_shared
 	extra_dirs
 	extra_files

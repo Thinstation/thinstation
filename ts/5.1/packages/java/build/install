@@ -1,15 +1,52 @@
 #!/bin/bash
 
 gzname=`basename $1`
-tarname=`basename $1 .gz`
-filename=`basename $1 .tar.gz`
-INSTALLDIR=./packages/java/jre/
+JAVAHOME=/lib/jre
+INSTALLDIR=./packages/java$JAVAHOME
+EXTRADIR=./packages/java/build/extra
 
 mkdir -p $INSTALLDIR
 cd ./wget_tmp
-chmod 755 ./$gzname
-./$gzname
+if [ -n "`file $gzname | grep 'gzip compressed'`" ]; then
+  tar xf $gzname
+else
+  chmod 755 ./$gzname
+  ./$gzname
+fi
 cd ..
 cp -Rp ./wget_tmp/jre1*/* $INSTALLDIR
 let returnval=returnval+$?
+
+mkdir -p ./packages/java/bin
+for bin in $INSTALLDIR/bin/*; do
+  link=`basename $bin`
+  ln -s $JAVAHOME/bin/$link ./packages/java/bin
+  let returnval=returnval+$?
+done
+
+ln -s ../$JAVAHOME/LICENSE ./packages/java/build/license
+let returnval=returnval+$?
+
+mkdir -p ./packages/java/lib/licenses/java
+ln -s $JAVAHOME/LICENSE ./packages/java/lib/licenses/java
+let returnval=returnval+$?
+
+mkdir -p ./packages/java/lib/firefox/plugins
+ln -s $JAVAHOME/lib/i386/libnpjp2.so ./packages/java/lib/firefox/plugins
+let returnval=returnval+$?
+
+rm -rf $INSTALLDIR/plugin
+let returnval=returnval+$?
+
+rm -rf $INSTALLDIR/man
+let returnval=returnval+$?
+
+mv $INSTALLDIR/lib/desktop/* ./packages/java/lib
+let returnval=returnval+$?
+
+rmdir $INSTALLDIR/lib/desktop
+
+rm -rf ./packages/java/lib/icons/*Contrast*
+
+cp -Prfd $EXTRADIR/* ./packages/java/.
 exit $returnval

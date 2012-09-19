@@ -1,0 +1,18 @@
+# Packager: Stoyan Zhekov, zhware at hotpop dot com
+# Maintainer: Jose V Beneyto, sepen at crux dot nu
+# Description: set of bindings for the GTK widget set
+# URL: http://www.pygtk.org
+# Depends on: pygobject pycairo libglade
+
+name=pygtk
+version=2.24.0
+release=1
+source=(http://ftp.gnome.org/pub/GNOME/sources/$name/${version::4}/$name-$version.tar.bz2)
+
+build() {
+    cd $name-$version
+    ./configure --prefix=/usr
+    make
+    make DESTDIR=$PKG install
+    rm -rf $PKG/usr/share/gtk-doc
+}

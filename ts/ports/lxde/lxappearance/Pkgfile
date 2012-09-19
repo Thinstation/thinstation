@@ -1,0 +1,20 @@
+# Description: desktop panel from lxde project
+# URL:         http://lxde.org/
+# Maintainer:  Bartlomiej Palmowski, rotwang at crux dot org dot pl
+# Depends on:  gtk intltool menu-cache xorg-libxdamage
+
+name=lxappearance
+version=0.3.0
+release=1
+source=(http://download.sourceforge.net/sourceforge/lxde/$name-$version.tar.gz)
+
+build() {
+    cd $name-$version
+    ./configure \
+        --prefix=/usr \
+        --mandir=/usr/man \
+        --disable-nls
+    make
+    make DESTDIR=$PKG install
+    rm -rf $PKG/usr/share/locale
+}

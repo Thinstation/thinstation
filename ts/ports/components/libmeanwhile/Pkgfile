@@ -1,0 +1,24 @@
+# Description:	Lotus Sametime library for instant messaging
+# URL:		http://meanwhile.sourceforge.net/
+# Maintainer:	Alan Mizrahi, alan at mizrahi dot com dot ve
+# Depends on:	
+
+name=libmeanwhile
+version=1.0.2
+release=2
+source=(http://downloads.sf.net/meanwhile/meanwhile-$version.tar.gz glib_include.patch)
+
+build() {
+	cd meanwhile-$version
+
+	patch -p1 -i $SRC/glib_include.patch
+
+	./configure \
+		--prefix=/usr \
+		--disable-static \
+		--disable-doxygen \
+		--disable-mailme
+	make
+	make DESTDIR=$PKG install
+	rm -rf $PKG/usr/share
+}

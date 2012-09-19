@@ -1,0 +1,22 @@
+# Description: Implementation of the XDG Sound Theme and Name Specifications
+# URL: http://0pointer.de/lennart/projects/libcanberra/
+# Maintainer: None
+# Depends on: alsa gtk gconf vorbis gstreamer
+
+name=libcanberra
+version=0.24
+release=1
+source=(http://0pointer.de/lennart/projects/$name/$name-$version.tar.gz)
+
+build() {
+	cd $name-$version
+
+        sed -i -e "s/USE_NLS=yes/USE_NLS=no/" \
+                                 -e "s/ENABLE_NLS 1/ENABLE_NLS 0/" configure
+
+	./configure --prefix=/usr --disable-nls --sysconfdir=/etc --localstatedir=/var \
+		--disable-oss --disable-schemas-install --disable-gtk-doc
+	make
+	make install DESTDIR=$PKG
+	rm -rf $PKG/usr/share/{doc,gtk-doc}
+}

@@ -1,0 +1,23 @@
+# Description: Intel Wireless Wifi link firmwarre
+# URL: http://http://intellinuxwireless.org/?n=downloads
+# Maintainer: None
+
+name=firmware
+version=1.0
+release=1
+source=(
+	http://security.ubuntu.com/ubuntu/pool/main/l/linux-firmware/linux-firmware_1.79_all.deb
+
+)
+
+build() {
+
+	mkdir -p $PKG/$TSCOMPROOT/kernel/kernel/$name
+
+#	Un-archive the .deb file, pipe it to get untarred
+	ar p linux-firmware_1.79_all.deb data.tar.gz | tar xzv
+
+	mv $SRC/lib/firmware/* $PKG/$TSCOMPROOT/kernel/kernel/$name
+	mv $SRC/usr/share/doc/linux-firmware/licenses/* $PKG/$TSCOMPROOT/kernel/kernel/$name 
+
+}

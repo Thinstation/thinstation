@@ -2,6 +2,12 @@ if [ -n "$DEBUG_INIT" ] ; then
         echo_log "Starting Splash"
 fi
 
+if [ "`make_caps $uvesafb`" != "OFF" ]; then
+	if [ ! -e /dev/fb0 ]; then
+		modprobe uvesafb
+	fi
+fi
+
 # Setup Splash Progress Bar
 
 if ! is_disabled $FASTBOOT ; then

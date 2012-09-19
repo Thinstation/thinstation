@@ -102,6 +102,7 @@ module squashfs
 # --- Packages to include in boot image
 # --- Packages below may be "package" or "pkg"
 #!!Miscellaneous
+package ts-classic		# The classic ts logic for network/netfiles/hostname/mounting/telnetd/telnet/playcd
 package ntp			# Utility to obtain date & time from network
 #package sound-esd		# Enable sound-esd or sound-nasd if you want to be able to control
 #package sound-nasd		#  sound on your thin client from another computer or
@@ -113,6 +114,7 @@ package ntp			# Utility to obtain date & time from network
 #package kismet
 #package gst-plugins-base
 #package gst-plugins-good
+#package gstreamer
 #package crystalhd
 #package libva
 #package iptables		# IP Tables support
@@ -184,6 +186,8 @@ package locale-en_US  # English-US
 
 #!Applications
 #!!Connection Package types.  Choose *at least* one!
+#package adobereader		# Adobe Reader PDF Viewer
+#package libreoffice		# LibreOffice Productivity Suite
 #package freerdp		# X RDP Client - fork of rdesktop
 #package rdesktop		# X RDP client for Windows Terminal Services (ver 1.7)
 #package vncviewer		# VNC client (vncviewer)
@@ -230,6 +234,8 @@ package icewm			# "ICEWM" window manager.  Makes TS a light workstation.
 #package icewm-theme-bernstein
 package icewm-theme-bluecrux
 #package icewm-theme-liquid
+
+#package xfwm4			# XFCE window manager
 
 #!!Window Manager Utils
 #package idle-shutdown		# Package that lets you specify automatic shutdown settings and logic.
@@ -298,6 +304,23 @@ package fonts-Type1-xfree86
 #package installer		# Wipes a drive, makes partitions and downloads thinstation from a pxe server
 #package devstation		# Starts a tftp server that hosts files from the boot-images/pxe folder
 
+#!!FreeDesktop Networking
+package modemmanager		# Broadband modem support
+package networkmanager		# UI for selecting networks
+#package b43firmware		# Where available, adds Broadcom b43 firmware
+#package p54firmware		# Where available, adds Prism firmware
+#package volumeicon
+#package tango-icon-theme
+#package encryptionwizard
+#package udisks-glue
+
+#!!Print Capability
+#package cups			# Core printing using CUPS and web interface
+#package gutenprint		# Good collection of print drivers
+#package hpijs			# Additional print drivers for HP
+#package system-config-printer	# Python UI for CUPS with USB autodetect
+
+
 # Parameters
 ########################################
 ### --- Miscellaneous Parameters --- ###
@@ -307,6 +330,7 @@ package fonts-Type1-xfree86
 #param fastboot       true				# Mangles the filesystem a special way as to improve boot spead and reduce
 							# memory utilization. Cool/Dangerous . Harder to dubug other packages. (Finishing Touch)
 							# Set to 'true' to enable or 'lotsofmem' for slightly slower booting but no squash lag on app launch.
+#param tsuser         tsuser				# Name of the user that thinstation will run as. Needs userauto package.
 param rootpasswd     pleasechangeme			# Do Change!  Console/telnet password for root
                                         		# If this is enabled, Telnetd will be enabled.
 param xorgvncpasswd  pleasechangeme			# VNC Access Password
@@ -351,6 +375,8 @@ param baseurl        http://www.doncuppjr.net		# Used to determine url to wget f
 param fulllocales    true	      			# Use full locale support for packages
 #param icaencryption  false      			# Use ica encryption support, add 290k to image
 param haltonerror    false				# Will halt on error, default is true
+param hardlinkfs     true
+param sametimestmp   true                               # When enabled, the timestamps for all files and folders will be set to 00:00 of todays date in your timezone
 param initrdcmd	     "gzip -9"				# Compression mode and level of initrd file. none, gzip -9, lzma -9 ,bzip2 -9
 param bootverbosity   3          			# Increased vebosity when booting TS
                                 			#   0 no verbose messages
@@ -380,7 +406,11 @@ param javaurl		http://javadl.sun.com/webapps/download/AutoDL?BundleId=49015
 param tarantellaurl	file://home/installs/tnci3li.tar
 param chromeurl		http://dl.google.com/linux/direct/google-chrome-stable_current_i386.deb
 param eGalaxurl         http://210.64.17.162/web20/drivers/touch_driver/Linux/20120202/eGalaxTouch-3.07.6014-32b-k26.tar.gz
-param vmviewpcoipurl    https://launchpad.net/ubuntu/+archive/partner/+files/vmware-view-client_1.5.0.orig.tar.gz
+param libreofficeurl	http://mirror3.mirrors.tds.net/pub/documentfoundation.org/libreoffice/stable/3.6.1/deb/x86/LibO_3.6.1_Linux_x86_install-deb_en-US.tar.gz
+param adobereaderurl	http://ardownload.adobe.com/pub/adobe/reader/unix/9.x/9.5.1/enu/AdbeRdr9.5.1-1_i486linux_enu.tar.bz2
+param downloads		/downloads
+param bootimages	"iso syslinux pxe"
+param syslinuxtheme	"default"
 #param httpproxy	http://192.168.1.2:8080
 
 #param bootfssize     50%                               # Modify the size of the tmpfs filesystem

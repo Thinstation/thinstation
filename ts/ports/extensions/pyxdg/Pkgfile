@@ -1,0 +1,17 @@
+# Description: Python library to access freedesktop.org standards.
+# URL: http://freedesktop.org/wiki/Software/pyxdg
+# Maintainer: Danny Rawlins, monster dot romster at gmail dot com
+# Packager: Antonio SJ Musumeci, bile at landofbile dot com
+# Depends on: python
+
+name=pyxdg
+version=0.19
+release=1
+source=(http://people.freedesktop.org/~lanius/$name-$version.tar.gz)
+
+build() {
+	cd $name-$version
+	python setup.py install --prefix=/usr --root=$PKG
+	rm $PKG/usr/lib/python2.7/site-packages/pyxdg-$version-py2.7.egg-info
+}
+

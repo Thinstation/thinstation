@@ -52,7 +52,7 @@ idesk_icons ()
     let maxy=maxy-100
     let x=75
     let y=40
-    
+
     if [ "`make_caps $ICONMODE`" == "AUTO" ] ; then
       if [ -e /lib/menu ] ; then
            cat /lib/menu/* > $IMENU
@@ -63,8 +63,11 @@ idesk_icons ()
 	case "$entry" in
 		\#*|"") continue ;;
 	esac
+	nodesktop=""
 	echo $entry > /tmp/entry
 	. /tmp/entry
+	if [ "`make_caps $nodesktop`" != "TRUE" ]; then
+
         ICON=/lib/pixmaps/`replace_char $package " " "_"`"_32x32.xpm"
 	LINK=$IDESKDIR/$title.lnk
 	if [ -e $ICON ] ; then
@@ -83,6 +86,8 @@ idesk_icons ()
               fi
 	      echo "y=$y; x=$x" > /tmp/entry
       	fi
+
+	fi
       done
 
     fi
@@ -91,7 +96,7 @@ idesk_icons ()
 	    . /tmp/entry
 	    rm /tmp/entry
     fi
-	  	
+
     (cat $WKDIR/session) |
     while read type title screen position workspace autostart custom icon server options
     do

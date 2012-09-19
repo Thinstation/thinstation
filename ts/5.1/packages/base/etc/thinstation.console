@@ -27,10 +27,11 @@ if [ -z "$CMD_WINDOW" ] ; then CMD_WINDOW=$CMD_GLOBAL ; fi
 if [ -z "$CMD_MENU" ] ; then CMD_MENU=$CMD_GLOBAL ; fi
 if [ -z "$CMD_FULLSCREEN" ] ; then CMD_FULLSCREEN=$CMD_GLOBAL ; fi
 
+APPLOG=$APPLOGDIR/$PACKAGE.$$
 
 case "$1" in
 console|menu)
-    echo "Running $PACKAGE" >> $LOGFILE
+    echo "Running $PACKAGE" >> $APPLOG
     if [ -e /etc/cmd/$PACKAGE.getip ] ; then
     	if [ -z "$2" ]; then
 	    replimenu -c $MENUCOLOUR -f $REPLIMENU/server.menu
@@ -48,11 +49,11 @@ console|menu)
     fi
     clear
     CMD="$CMD_CONSOLE $3 $RM_SERVER"
-    echo $CMD >> $LOGFILE
+    echo $CMD >> $APPLOG
     $CMD
     ;;
 auto|window|fullscreen)
-    echo "Running $PACKAGE" >> $LOGFILE
+    echo "Running $PACKAGE" >> $APPLOG
     if [ -z "$2" ]; then
         dialog_get_server_address $PACKAGE
 	if [ -n $SERVER ]; then
@@ -60,7 +61,7 @@ auto|window|fullscreen)
 	fi
     else
         CMD="xterm -e pkg console $PACKAGE $2"
-	echo $CMD >> $LOGFILE
+	echo $CMD >> $APPLOG
 	$CMD
     fi
     ;;

@@ -1,0 +1,7 @@
+# udev rules for setting correct configuration and pairing on tethered iPhones
+ATTR{idVendor}!="05ac", GOTO="ipheth_rules_end"
+
+# Execute pairing program when appropriate
+ACTION=="add", SUBSYSTEM=="net", ENV{ID_USB_DRIVER}=="ipheth", SYMLINK+="iphone", RUN+="/bin/ideviceinfo -k com.apple.mobile.tethered_sync"
+
+LABEL="ipheth_rules_end"

@@ -1,0 +1,17 @@
+#!/bin/sh
+
+INSTALLDIR=./packages/gpicview
+EXTRADIR=$INSTALLDIR/build/extra
+TMPDIR=./build-gpicview
+
+for i in gpicview; do
+	repackage $i -t $TMPDIR
+	cp -Prf $TMPDIR/$i/* $INSTALLDIR/.
+	rm -rf $TMPDIR
+done
+#rm -rf $INSTALLDIR/lib/locale
+cp -Prf $EXTRADIR/* $INSTALLDIR/.
+
+returnval=$?
+
+exit $returnval

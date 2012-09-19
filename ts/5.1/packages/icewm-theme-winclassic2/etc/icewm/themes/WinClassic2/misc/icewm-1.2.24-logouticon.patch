@@ -1,0 +1,141 @@
+--- src/objmenu.h.orig	2006-01-22 13:27:10.000000000 +0100
++++ src/objmenu.h	2006-01-22 14:42:06.000000000 +0100
+@@ -25,6 +25,7 @@
+     virtual ~ObjectMenu();
+ 
+     virtual void addObject(DObject *object);
++    virtual void addObject(DObject *object, const char *icons);
+     virtual void addSeparator();
+     virtual void addContainer(char *name, YIcon *icon, ObjectContainer *container);
+ };
+--- src/wmapp.cc.orig	2006-01-22 13:27:10.000000000 +0100
++++ src/wmapp.cc	2006-01-22 14:42:06.000000000 +0100
+@@ -737,11 +737,11 @@
+             YStringArray noargs;
+ 
+             if (canLock())
+-                logoutMenu->addItem(_("Lock _Workstation"), -2, "", actionLock);
++                logoutMenu->addItem(_("Lock _Workstation"), -2, "", actionLock, "lock");
+             if (canShutdown(true))
+-                logoutMenu->addItem(_("Re_boot"), -2, "", actionReboot);
++                logoutMenu->addItem(_("Re_boot"), -2, "", actionReboot, "reboot");
+             if (canShutdown(false))
+-                logoutMenu->addItem(_("Shut_down"), -2, "", actionShutdown);
++                logoutMenu->addItem(_("Shut_down"), -2, "", actionShutdown, "shutdown");
+             logoutMenu->addSeparator();
+ 
+             DProgram *restartIcewm =
+--- src/wmprog.cc.orig	2006-01-22 13:27:10.000000000 +0100
++++ src/wmprog.cc	2006-01-22 14:42:06.000000000 +0100
+@@ -76,6 +76,9 @@
+ void ObjectMenu::addObject(DObject *fObject) {
+     add(new DObjectMenuItem(fObject));
+ }
++void ObjectMenu::addObject(DObject *fObject, const char *icons) {
++    add(new DObjectMenuItem(fObject), icons);
++}
+ 
+ void ObjectMenu::addSeparator() {
+     YMenu::addSeparator();
+@@ -733,7 +736,7 @@
+     if (showPrograms) {
+         ObjectMenu *programs = new MenuFileMenu("programs", 0);
+         ///    if (programs->itemCount() > 0)
+-        addSubmenu(_("Programs"), 0, programs);
++        addSubmenu(_("Programs"), 0, programs, "programs");
+     }
+ #endif
+ 
+@@ -772,7 +775,7 @@
+ 
+     if (showRun) {
+         if (runDlgCommand && runDlgCommand[0])
+-            addItem(_("_Run..."), -2, "", actionRun);
++            addItem(_("_Run..."), -2, "", actionRun, "run");
+     }
+ 
+     addSeparator();
+@@ -795,21 +798,21 @@
+             DProgram::newProgram(_("_Help"), NULL, false, "browser.IceHelp",
+                                  ICEHELPEXE, args);
+ 
+-        if (help) addObject(help);
++        if (help) addObject(help, "help");
+     }
+ #endif
+ 
+     if (showThemesMenu) {
+         YMenu *themes = new ThemesMenu();
+         if (themes)
+-            addSubmenu(_("_Themes"), -2, themes);
++            addSubmenu(_("_Themes"), -2, themes, "themes");
+     }
+ 
+     if (logoutMenu) {
+         if (showLogoutSubMenu)
+-            addItem(_("_Logout..."), -2, actionLogout, logoutMenu);
++            addItem(_("_Logout..."), -2, actionLogout, logoutMenu, "logout");
+         else
+-            addItem(_("_Logout..."), -2, "", actionLogout);
++            addItem(_("_Logout..."), -2, "", actionLogout, "logout");
+     }
+ }
+ #endif
+--- src/ymenu.cc.orig	2006-01-22 13:27:10.000000000 +0100
++++ src/ymenu.cc	2006-01-22 14:42:06.000000000 +0100
+@@ -19,6 +19,8 @@
+ #include "ascii.h"
+ #include "ypixbuf.h"
+ 
++#include "yicon.h"
++
+ #include <string.h>
+ 
+ YColor *menuBg = 0;
+@@ -608,6 +610,18 @@
+     beginAutoScroll(deltaX || deltaY, motion);
+ }
+ 
++YMenuItem *YMenu::addItem(const char *name, int hotCharPos, const char *param, YAction *action, const char *icons) {
++    return add(new YMenuItem(name, hotCharPos, param, action, 0), icons);
++}
++
++YMenuItem *YMenu::addItem(const char *name, int hotCharPos, YAction *action, YMenu *submenu, const char *icons) {
++    return add(new YMenuItem(name, hotCharPos, 0, action, submenu), icons);
++}
++
++YMenuItem *YMenu::addSubmenu(const char *name, int hotCharPos, YMenu *submenu, const char *icons) {
++    return add(new YMenuItem(name, hotCharPos, 0, 0, submenu), icons);
++}
++
+ YMenuItem *YMenu::addItem(const char *name, int hotCharPos, const char *param, YAction *action) {
+     return add(new YMenuItem(name, hotCharPos, param, action, 0));
+ }
+@@ -638,6 +652,13 @@
+     if (item) fItems.append(item);
+     return item;
+ }
++YMenuItem * YMenu::add(YMenuItem *item, const char *icons) {
++    YIcon *icon = 0;
++    icon = YIcon::getIcon(icons);
++    if (icon && item) item->setIcon(icon);
++    if (item) fItems.append(item);
++    return item;
++}
+ 
+ YMenuItem * YMenu::addSorted(YMenuItem *item, bool duplicates) {
+     for (int i = 0; i < itemCount(); i++) {
+--- src/ymenu.h.orig	2006-01-22 13:27:10.000000000 +0100
++++ src/ymenu.h	2006-01-22 14:42:06.000000000 +0100
+@@ -29,6 +29,11 @@
+ 
+     void trackMotion(const int x_root, const int y_root, const unsigned state, bool submenu);
+ 
++    YMenuItem *add(YMenuItem *item, const char *icons);
++    YMenuItem *addItem(const char *name, int hotCharPos, const char *param, YAction *action, const char *icons);
++    YMenuItem *addItem(const char *name, int hotCharPos, YAction *action, YMenu *submenu, const char *icons);
++    YMenuItem *addSubmenu(const char *name, int hotCharPos, YMenu *submenu, const char *icons);
++    
+     YMenuItem *add(YMenuItem *item);
+     YMenuItem *addSorted(YMenuItem *item, bool duplicates);
+     YMenuItem *addItem(const char *name, int hotCharPos, const char *param, YAction *action);

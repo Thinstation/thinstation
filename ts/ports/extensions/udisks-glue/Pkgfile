@@ -1,0 +1,43 @@
+# Maintainer: Mikhail Borisov <borisov.mikhail@gmail.com>
+
+name=udisks-glue
+version=20110219
+release=2
+pkgdesc="A tool to associate udisks events to user-defined actions"
+url="http://github.com/fernandotcl/udisks-glue"
+license=('BSD')
+arch=('i686' 'x86_64')
+depends=('glib2' 'confuse' 'dbus-glib')
+makedepends=('git')
+provides=('udisks-glue')
+conflicts=('udisks-glue')
+
+_gitroot="http://github.com/fernandotcl/udisks-glue.git"
+_gitname="udisks-glue"
+
+#source=(http://aur.archlinux.org/packages/ud/udisks-glue-git/udisks-glue-git.tar.gz)
+
+build() {
+  cd $SRC
+
+  echo "Connecting to the GIT server...."
+  if [ -d $_gitname ]; then
+    (cd $_gitname && git pull origin)
+  else
+    git clone $_gitroot 
+  fi
+
+  rm -rf ${_gitname}-build
+  cp -r $_gitname ${_gitname}-build
+  cd ${_gitname}-build
+
+  echo "Starting build process."
+  ./autogen.sh
+  ./configure --prefix=/usr
+  make 
+
+  make install DESTDIR=$PKG
+  install -Dm 0644 LICENSE $PKG/usr/share/licenses/udisks-glue/LICENSE
+
+}
+

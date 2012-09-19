@@ -1,0 +1,13 @@
+#base 00
+. /etc/thinstation.env
+
+for i in /*; do
+  if [ $i != "/dev" ]; then
+    chown -R root:root $i
+    chmod -R g-w,o-w $i
+  fi
+done
+mkdir -p /var/run/applications
+chmod -R g+w,o+w /var/run/applications
+chmod u+s /bin/su
+chmod 640 /etc/securetty

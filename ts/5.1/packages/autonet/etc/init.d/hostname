@@ -1,0 +1,19 @@
+#!/bin/sh
+
+for adapter in `ls /var/log/net`; do
+        . /var/log/net/$adapter
+        echo "$CLIENT_IP $CLIENT_NAME" >> /etc/hosts
+        unset CLIENT_IP CLIENT_NAME
+        if [ -n "$SERVER_IP" ] && [ -n "$SERVER_NAME" ]; then
+                echo "$SERVER_IP $SERVER_NAME" >> /etc/hosts
+                unset SERVER_IP SERVER_NAME
+        fi
+done
+
+. $TS_RUNTIME
+
+if [ -n $NET_DEVICE ] ; then
+	. /var/log/net/$NET_DEVICE
+	hostname $CLIENT_NAME
+fi
+

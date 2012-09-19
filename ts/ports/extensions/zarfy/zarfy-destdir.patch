@@ -1,0 +1,69 @@
+diff -ur zarfy-0.1.0.old/Makefile.am zarfy-0.1.0/Makefile.am
+--- zarfy-0.1.0.old/Makefile.am	2008-09-13 08:05:04.000000000 -0500
++++ zarfy-0.1.0/Makefile.am	2012-07-31 18:00:30.551492236 -0500
+@@ -14,23 +14,23 @@
+ 
+ install-data-local:
+ 	@$(NORMAL_INSTALL)
+-	  $(mkinstalldirs) $(pkgdatadir); \
++	  $(mkinstalldirs) $(DESTDIR)$(pkgdatadir); \
+ 	  for fname in data/*; do \
+ 	    if test -f $$fname; then \
+-	      $(INSTALL_DATA) $$fname $(pkgdatadir); \
++	      $(INSTALL_DATA) $$fname $(DESTDIR)$(pkgdatadir); \
+ 	    fi \
+ 	  done;
+-	  $(mkinstalldirs) $(mandir)/man1; \
+-	  $(INSTALL_DATA) man/zarfy.1.gz $(mandir)/man1
++	  $(mkinstalldirs) $(DESTDIR)$(mandir)/man1; \
++	  $(INSTALL_DATA) man/zarfy.1.gz $(DESTDIR)$(mandir)/man1
+ 
+ uninstall-local:
+ 	@$(NORMAL_UNINSTALL)
+-	  for fname in $(pkgdatadir)/*; do \
++	  for fname in $(DESTDIR)$(pkgdatadir)/*; do \
+ 	    if test -f $$fname; then \
+ 	      rm $$fname; \
+ 	    fi \
+ 	  done; \
+-	rmdir $(pkgdatadir); \
+-	rm $(mandir)/man1/zarfy.*
++	rmdir $(DESTDIR)$(pkgdatadir); \
++	rm $(DESTDIR)$(mandir)/man1/zarfy.*
+ 
+ 
+diff -ur zarfy-0.1.0.old/Makefile.in zarfy-0.1.0/Makefile.in
+--- zarfy-0.1.0.old/Makefile.in	2008-09-13 08:05:07.000000000 -0500
++++ zarfy-0.1.0/Makefile.in	2012-07-31 17:59:34.163197186 -0500
+@@ -612,24 +612,24 @@
+ 
+ install-data-local:
+ 	@$(NORMAL_INSTALL)
+-	  $(mkinstalldirs) $(pkgdatadir); \
++	  $(mkinstalldirs) $(DESTDIR)$(pkgdatadir); \
+ 	  for fname in data/*; do \
+ 	    if test -f $$fname; then \
+-	      $(INSTALL_DATA) $$fname $(pkgdatadir); \
++	      $(INSTALL_DATA) $$fname $(DESTDIR)$(pkgdatadir); \
+ 	    fi \
+ 	  done;
+-	  $(mkinstalldirs) $(mandir)/man1; \
+-	  $(INSTALL_DATA) man/zarfy.1.gz $(mandir)/man1
++	  $(mkinstalldirs) $(DESTDIR)$(mandir)/man1; \
++	  $(INSTALL_DATA) man/zarfy.1.gz $(DESTDIR)$(mandir)/man1
+ 
+ uninstall-local:
+ 	@$(NORMAL_UNINSTALL)
+-	  for fname in $(pkgdatadir)/*; do \
++	  for fname in $(DESTDIR)$(pkgdatadir)/*; do \
+ 	    if test -f $$fname; then \
+ 	      rm $$fname; \
+ 	    fi \
+ 	  done; \
+-	rmdir $(pkgdatadir); \
+-	rm $(mandir)/man1/zarfy.*
++	rmdir $(DESTDIR)$(pkgdatadir); \
++	rm $(DESTDIR)$(mandir)/man1/zarfy.*
+ # Tell versions [3.59,3.63) of GNU make to not export all variables.
+ # Otherwise a system limit (for SysV at least) may be exceeded.
+ .NOEXPORT:

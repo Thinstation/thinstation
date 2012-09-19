@@ -39,27 +39,30 @@ showhelp()
 remove_files()
 {
 #	But only if we don't want to save them for debugging
-    if [ -z "$SAVEDIR" ]; then
-	if [ -e ./tmp-tree ] ; then
-	    rm -Rf ./tmp-tree/*
-	    rmdir ./tmp-tree
+	if [ -z "$SAVEDIR" ]; then
+		if [ -e ./tmp-tree ] ; then
+			rm -Rf ./tmp-tree/*
+			rmdir ./tmp-tree
+		fi
+		if [ -e ./fastboot-tmp ] ;then
+			rm -rf ./fastboot-tmp
+		fi
+		if [ -e ./liblist ] ; then
+			rm ./liblist
+		fi
+		if [ -e ./wget_tmp ] ; then
+			rm -Rf ./wget_tmp
+		fi
+		if [ -e ./liblist.tmp ] ; then
+			rm ./liblist.tmp
+		fi
+		if [ -e $MODDIR ] ; then
+			rm -R $MODDIR
+		fi
+		if [ -e ./build.image ] ; then
+			rm ./build.image
+		fi
 	fi
-	if [ -e ./fastboot-tmp ] ;then
-		rm -rf ./fastboot-tmp
-	fi
-	if [ -e ./liblist ] ; then
-	  rm ./liblist
-	fi
-	if [ -e ./wget_tmp ] ; then
-	  rm -Rf ./wget_tmp
-	fi
-	if [ -e ./liblist.tmp ] ; then
-	  rm ./liblist.tmp
-	fi
-	if [ -e $MODDIR ] ; then
-	  rm -R $MODDIR
-	fi
-    fi
 }
 
 ## Add PKG Files to local Storage
@@ -76,66 +79,64 @@ addpkgs()
   fi
 }
 
-lib_dependencies()
+lib_in_path()
 {
-
-echo -e "\nAdding Library Dependencies\n"
-
-for pkgname in `echo "./tmp-tree" && find $PKGDIR -mindepth 1 -maxdepth 1`
-do
-  for findname in `find $pkgname -name "*" -type f | grep -f ./exclusions -v`
-  do
-    file $findname 2>/dev/null | grep "ELF 32-bit" | cut -d: -f1 >> ./liblist.tmp 2>/dev/null
+  for lpath in `cat lpaths.tmp`; do
+    if [ -e ./tmp-tree$lpath/$1 ]; then
+      return 0
+    fi
   done
-  sort liblist.tmp > liblist.final
-  cp liblist.final liblist.list
-  rm liblist.tmp
-
-  while [ -s liblist.final ]; do
-    (cat ./liblist.final ) |
-    while read filename
-    do
-      (ldd $filename 2>/dev/null |grep -v "not a dynamic executable" |grep -v linux-gate |grep -v statically |cut -d= -f1 ) |
-      while read libname
-      do
-	libfile=`basename $libname`
-	if [ ! -e ./tmp-tree/lib/$libfile ] && [ ! -e $pkgname/lib/$libfile ] ; then
-	  libsource="`prt-get fsearch $libfile |grep -v Found |cut -d " " -f3 |head -n1`"
-	  if [ -n "$libsource" ] && [ -e $libsource ] ; then
-		echo "Adding $libfile dependency in `basename $pkgname` for `basename $filename`"
-		if [ ! -e $pkgname/lib ] ; then
-			mkdir $pkgname/lib
-		fi
-		cp $libsource $pkgname/lib
-	  else
-		echo "Could not find $libfile !"
-	  fi
-	fi
-      done
-    done
-    for findname in `find $pkgname -name "*" -type f | grep -f ./exclusions -v`
-    do
-      file $findname 2>/dev/null | grep "ELF 32-bit" | cut -d: -f1 >> ./liblist.tmp 2>/dev/null
-    done
-    sort liblist.tmp > liblist.after
-    comm -3 liblist.list liblist.after > liblist.final
-    cp liblist.after liblist.list
-    rm liblist.tmp
-  done
-done
-
-ldconfig -r tmp-tree
-rm liblist.after
-rm liblist.list
-rm liblist.final
-
+  return 1
 }
 
+lib_dependencies()
+{
+  echo -e "\nAdding Library Dependencies\n"
+  if [ -e ./tmp-tree/etc/ld.so.conf ]; then
+    cat ./tmp-tree/etc/ld.so.conf |grep -v include > lpaths.tmp
+  fi
+  if [ -e ./tmp-tree/etc/ld.so.conf.d ] && [ -n "`ls -A ./tmp-tree/etc/ld.so.conf.d`" ]; then
+    cat ./tmp-tree/etc/ld.so.conf.d/* >> lpaths.tmp
+  fi
+  for pkgname in `echo "./tmp-tree" && find $PKGDIR -mindepth 1 -maxdepth 1`; do
+    find $pkgname -type f > filelist
+    file -e encoding -e tokens -e compress -e ascii -e apptype -e tar -e cdf -m utils/tools/elf.mgc -f filelist -n -r |grep -e ELF |cut -d: -f1 > liblist.final 2>/dev/null
+    rm filelist
+    while [ -s liblist.final ]; do
+      (cat liblist.final ) |
+      while read filename; do
+        (ldd $filename 2>/dev/null |grep -v "not a dynamic executable" |grep -v linux-gate |grep -v statically |cut -d= -f1 ) |
+        while read libname; do
+          libfile=`basename $libname`
+          if ! lib_in_path $libfile && [ ! -e $pkgname/lib/$libfile ]; then
+            libsource="`prt-get fsearch $libfile |grep -v Found |cut -d " " -f3 |head -n1`"
+            if [ -n "$libsource" ] && [ -e $libsource ]; then
+              echo "Adding $libfile dependency in `basename $pkgname` for `basename $filename`"
+              if [ ! -e $pkgname/lib ]; then
+                mkdir $pkgname/lib
+              fi
+              cp $libsource $pkgname/lib
+              echo "$pkgname/lib/$libfile" >> liblist.added
+            else
+              echo "Could not find $libfile which is dependency of $filename !"
+            fi
+          fi
+        done
+      done
+      rm liblist.final
+      if [ -e liblist.added ]; then
+        mv liblist.added liblist.final
+      fi
+    done
+  done
+  ldconfig -r tmp-tree
+  rm lpaths.tmp
+}
 
 module_module_dependencies()
 {
 echo -e "\nAdding modules that are dependencies of selected modules\n"
-for line in `ls ./tmp-tree/lib/modules/*` ;
+for line in `ls ./tmp-tree/lib/modules/$KERNVER/*` ;
 do
     modname=`basename $line`
     deplist=`grep /${modname}: ./modules.dep`
@@ -143,11 +144,11 @@ do
     for modpath in $modlist
     do
 	mod=`basename $modpath`
-	if [ ! -e "./tmp-tree/lib/modules/$mod" ] ; then
-    	    if [ -e "./kernel/modules/$modpath" ] ; then
-		cp "./kernel/modules/$modpath" ./tmp-tree/lib/modules/$mod
+	if [ ! -e "./tmp-tree/lib/modules/$KERNVER/$mod" ] ; then
+    	    if [ -e "./kernel/modules-$KERNVER/$modpath" ] ; then
+		cp "./kernel/modules-$KERNVER/$modpath" ./tmp-tree/lib/modules/$KERNVER/$mod
 		echo "Including $mod as a dependency of $modname"
-	    elif [ -e "./tmp-tree/lib/modules/$mod" ] ; then
+	    elif [ -e "./tmp-tree/lib/modules/$KERNVER/$mod" ] ; then
 		echo "already there" >/dev/null
 	    else
 		echo "Error, Dependent module $mod for $modname not found"
@@ -155,7 +156,6 @@ do
 	fi
     done
 done
-
 }
 
 module_dependencies()
@@ -163,13 +163,13 @@ module_dependencies()
 
 for pkgname in `echo "./tmp-tree" && find $MODDIR/ -mindepth 1 -maxdepth 1 && find $PKGDIR/ -mindepth 1 -maxdepth 1`
 do
-  if [ -e $pkgname/lib/modules ] ; then
+  if [ -e $pkgname/lib/modules/$KERNVER ] ; then
      # This checks to see if we are doing a first or second run of module_dependencies
      if [ ! -e $pkgname/modules.final ] ; then
-	     ls $pkgname/lib/modules/ | grep \.ko > $pkgname/modules.final
+	     ls $pkgname/lib/modules/$KERNVER | grep \.ko > $pkgname/modules.final
 	     cp $pkgname/modules.final ./modules.list
      else
-	     ls $pkgname/lib/modules/ | grep \.ko > ./modules.list
+	     ls $pkgname/lib/modules/$KERNVER | grep \.ko > ./modules.list
 
      fi
      while [ -s $pkgname/modules.final ]
@@ -180,18 +180,18 @@ do
 		# Checks for already existing modules
 		for moduleinbase in $modulelist
 		do
-			if [ ! -e ./tmp-tree/lib/modules/`basename $moduleinbase` ] ; then
+			if [ ! -e ./tmp-tree/lib/modules/$KERNVER/`basename $moduleinbase` ] ; then
 				modulefinal="$modulefinal $moduleinbase "
 			fi
 		done
 		echo "Adding dependency in `basename $pkgname` for module $module"
 		if [ -n "$modulefinal" ] ; then
 		    cp `echo $modulefinal | sed -e "s@/lib/modules/@./kernel/lib/modules/@g"`\
-		       $pkgname/lib/modules > /dev/null 2>&1
+		       $pkgname/lib/modules/$KERNVER > /dev/null 2>&1
 		fi
 		modulefinal=""
 	done
-        ls $pkgname/lib/modules/ | grep .ko > ./modules.after
+        ls $pkgname/lib/modules/$KERNVER | grep .ko > ./modules.after
         diff -e ./modules.list ./modules.after | grep \.ko > $pkgname/modules.final
         cp ./modules.after ./modules.list
 	rm ./modules.after
@@ -245,15 +245,27 @@ make_initrd()
 	ln -sf /lib/icons usr/icons
 	ln -sf / usr/local
 	ln -sf /bin sbin
-	if [ "$ts_initrdcmd" == "none" -o "$ts_initrdcmd" == "" ] ;
-		then find . -print0 | cpio --null -oV --format=newc > ../$INITDIR/initrd
-		else find . -print0 | cpio --null -oV --format=newc | $ts_initrdcmd > ../$INITDIR/initrd
+	if [ "$ts_hardlinkfs" == "true" ]; then
+		hardlink .
+	fi
+	if [ "$ts_sametimestmp" == "true" ]; then
+		timestamp="`date +%Y%m%d`0000"
+		echo -e "\tSetting all timestamps to $timestamp"
+		for file in `find .`; do
+			touch -c -h -t $timestamp $file
+		done
+	fi
+	if [ "$ts_initrdcmd" == "squashfs" ]; then
+		../utils/tools/mksquashfs . ../$INITDIR/initrd -always-use-fragments -no-recovery -no-exports -no-xattrs -noappend
+	elif [ "$ts_initrdcmd" == "none" -o "$ts_initrdcmd" == "" ]; then
+		find . -print0 | cpio --null -oV --format=newc > ../$INITDIR/initrd
+	else find . -print0 | cpio --null -oV --format=newc | $ts_initrdcmd > ../$INITDIR/initrd
 	fi
 	cd ..
    chmod 755 $INITDIR/initrd
    IMAGESIZE=`du -k $INITDIR/initrd | cut -f1`
    if [ $IMAGESIZE -gt $MAXIMAGE ] ; then
-           echo "ERROR, Image file is too Big, maximum size is $MAXIMAGE remove" 
+           echo "ERROR, Image file is too Big, maximum size is $MAXIMAGE remove"
            echo "some packages!"
            echo "Build Aborted!!"
            echo
@@ -277,7 +289,7 @@ package_dependencies ()
     package=`basename $filename .$1`
     echo "Adding Dependent $1 Packages for $package"
     if [ -e packages/$package/dependencies ] ; then
-      (cat packages/$package/dependencies ) |
+      (cat packages/$package/dependencies |grep -r -v ^#) |
       while read name cross
       do
        	if [ "$1" = "package" ] || [ "$name" = "base" ] ; then
@@ -299,7 +311,7 @@ package_dependencies ()
       done
     else
 	echo "Not Found $package dependency!!"
-	sleep 5
+#	sleep 5
     fi
   done
   ls $PACDIR/*.$1 > packages.after
@@ -324,6 +336,12 @@ get_file ()
 
     case `make_caps $filetype` in
     HTTP|HTTPS)
+	if [ -e $PACDIR/downloads.param ] ; then
+            . $PACDIR/downloads.param
+	fi
+	if [ -n "$ts_downloads" ] && [ -e "$ts_downloads/$outfile" ]; then
+	    cp $ts_downloads/$outfile $2/$outfile
+	else
 	echo -e "\nDownloading from Net....."
         if [ ! -z "$ts_httpproxy" ] ; then
             echo "Using proxy $http_proxy"
@@ -342,6 +360,10 @@ get_file ()
                         exit 1
                 fi
         fi
+	if [ -n "$ts_downloads" ]; then
+	    cp $2/$outfile $ts_downloads/$outfile
+	fi
+	fi
     ;;
     FILE)
 	if ! cp $filepath $2/$3 ; then
@@ -608,7 +630,7 @@ do
 	     $PACDIR/$name.package
 	else
 	   echo "Not Found $name!!"
-	   sleep 5
+#	   sleep 5
 	fi
 	;;
     machine)
@@ -631,12 +653,14 @@ do
     	if [ -e ./kernel/alias/$name ] ; then
 		name=`cat ./kernel/alias/$name`
 	fi
-        if [ -e `find ./kernel/modules/ -follow -name "$name.ko"` ] ; then
-		echo "Module: $name"
-		cp `find ./kernel/modules/ -follow -name "$name.ko"` ./tmp-tree/lib/modules/"$name".ko
-	else
-		echo "Error, Module $name not found"
-	fi
+	for KERNVER in $KERNVERS; do
+        if [ -e `find ./kernel/modules-$KERNVER/ -follow -name "$name.ko"` ] ; then
+			echo "Module $KERNVER: $name"
+			cp `find ./kernel/modules-$KERNVER/ -follow -name "$name.ko"` ./tmp-tree/lib/modules/$KERNVER/"$name".ko
+		else
+			echo "Error, Module $name not found"
+		fi
+	done
 	fi
 	if [ `make_caps X$args` == "XFORCE" ]; then
 	echo $name `echo $args | cut -f1 -d#` >> ./tmp-tree/etc/modules
@@ -647,16 +671,19 @@ do
         if [ -e ./kernel/alias/$name ] ; then
 		name=`cat ./kernel/alias/$name`
 	fi
+	for KERNVER in $KERNVERS; do
         if [ -e `find ./kernel/modules/ -follow -name "$name.ko"` ] ; then
 		echo "Module Pkg: $name"
 		mkdir $MODDIR/$name
 		mkdir $MODDIR/$name/lib
 		mkdir $MODDIR/$name/lib/modules
+		mkdir $MODDIR/$name/lib/modules/$KERNVER
 		mkdir $MODDIR/$name/etc
-		cp `find ./kernel/modules/ -follow -name "$name.ko"` $MODDIR/$name/lib/modules
+		cp `find ./kernel/modules-KERNVER/ -follow -name "$name.ko"` $MODDIR/$name/lib/modules/$KERNVER
 	else
 		echo "Error, Module $name not found"
 	fi
+	done
 	echo $name $args `echo $args | cut -f1 -d#` > $MODDIR/$name/etc/$name.modules
 	fi
 	;;
@@ -705,6 +732,9 @@ mkdir ./tmp-tree/lib/modules
 mkdir ./tmp-tree/packages
 mkdir $MODDIR
 
+for KERNVER in $KERNVERS; do
+mkdir ./tmp-tree/lib/modules/$KERNVER
+
 if [ -e ./ALLMODULES ]; then
 	ALLMODULES=true
 fi
@@ -712,46 +742,47 @@ if [ "$ALLMODULES" == "true" ] ; then
     for line in `find -L ./kernel/modules-$KERNVER -name *.ko -print`
     do
 	modname=`basename $line`
-	cp $line ./tmp-tree/lib/modules/$modname
+	cp $line ./tmp-tree/lib/modules/$KERNVER/$modname
     done
 fi
+done
 
 echo "+ Building image: "
 read_conf
 
 # Check if kernel exists
+for KERNVER in $KERNVERS; do
 
-if [ ! -e ./kernel/vmlinuz ] ; then
-	echo -e "\nError Kernel not found!!!"
+if [ ! -e ./kernel/vmlinuz-$KERNVER ] ; then
+	echo -e "\nError Kernel $KERNVER not found!!!"
 	remove_files
 	exit 0
 fi
 
 # Adding additional packages which are dependencies of modules
-
-echo -e "\nAdding package module dependencies\n"
+echo -e "\nAdding package module dependencies for $KERNVER\n"
 for pkgname in `echo "./tmp-tree" && find $MODDIR/ -mindepth 1 -maxdepth 1`
 do
   (ls ./kernel/dependencies_module/ ) |
   while read module
   do
-    if [ -e $pkgname/lib/modules/$module.ko ] || [ -e ./tmp-tree/lib/modules/$module.ko ] ; then
+    if [ -e $pkgname/lib/modules/$KERNVER/$module.ko ] || [ -e ./tmp-tree/lib/modules/$KERNVER/$module.ko ] ; then
       (cat ./kernel/dependencies_module/$module ) |
       while read type name
       do
         case $type in
         package)
 	  if [ ! -e $PACDIR/$name.package ] && [ ! -e $PACDIR/$name.pkg ] ; then
-            if [ -e ./tmp-tree/lib/modules/$module.ko ] ; then
+            if [ -e ./tmp-tree/lib/modules/$KERNVER/$module.ko ] ; then
 	      echo "Package: $name"
 	      if [ -d ./packages/$name ]; then
 	         echo "cp -Rp --remove-destination ./packages/$name/* ./tmp-tree > /dev/null 2>&1">>\
 	           $PACDIR/$name.package
 	      else
 	         echo "Not Found $name!!"
-	         sleep 5
+#	         sleep 5
 	      fi
-	    elif [ -e $pkgname/lib/modules/$module.ko ] ; then
+	    elif [ -e $pkgname/lib/modules/$KERNVER/$module.ko ] ; then
               echo "building-pkg $name"
 	      echo -e "cp -Rp ./packages/$name $PKGDIR" >> $PACDIR/$name.pkg
             fi
@@ -764,6 +795,7 @@ do
       done
     fi
   done
+done
 done
 
 
@@ -823,20 +855,20 @@ do
    fi
 
    if [ "$CHOICE" = "YES" ] ; then
-	echo
+#	echo
 	echo "INFO: $package included"
-	echo
-	sleep 1
+#	echo
+#	sleep 1
    else
 	if [ -e $PACDIR/$package.package ] ; then
 		rm $PACDIR/$package.package
 	elif [ -e $PACDIR/$package.pkg ] ; then
 		rm $PACDIR/$package.pkg
 	fi
-	echo
+#	echo
 	echo "INFO: $package not included"
-	echo
-	sleep 4
+#	echo
+#	sleep 4
    fi
   fi
 done
@@ -861,7 +893,17 @@ rm ./filelist
 if [ -e $PACDIR/tsuser.param ]; then
     echo "TSUSER=$ts_tsuser" >> ./tmp-tree/etc/thinstation.defaults
     echo "HOME=/home/$ts_tsuser" >> ./tmp-tree/etc/thinstation.env
-    echo "$ts_tsuser::1000:100:$ts_tsuser:/home/$ts_tsuser:/bin/sh" >./tmp-tree/etc/passwd
+    echo "$ts_tsuser::1000:1000:$ts_tsuser:/home/$ts_tsuser:/bin/sh" >> ./tmp-tree/etc/passwd
+    echo "$ts_tsuser:x:1000:" >> ./tmp-tree/etc/group
+    cat ./tmp-tree/etc/group |sed -e "s/tsuser/$ts_tsuser/g" > ./tmp-tree/etc/group.tmp
+    rm ./tmp-tree/etc/group
+    mv ./tmp-tree/etc/group.tmp ./tmp-tree/etc/group
+    cat ./tmp-tree/etc/inittab |sed -e "s/\-a root/\-a $ts_tsuser/g" > ./tmp-tree/etc/new.inittab
+    rm ./tmp-tree/etc/inittab
+    mv ./tmp-tree/etc/new.inittab ./tmp-tree/etc/inittab
+else
+    echo "HOME=/root" >> ./tmp-tree/etc/thinstation.env
+    echo "TSUSER=root" >> ./tmp-tree/etc/thinstation.env
 fi
 
 echo -e "Setting Passwords"
@@ -872,10 +914,6 @@ if [  -e $PACDIR/rootpasswd.param ]; then
     echo "root:$GETPASSWD:0:0:root:/root:/bin/sh" >./tmp-tree/etc/passwd
     cat ./tmp-tree/etc/passwd.tmp | grep -v "root" >> ./tmp-tree/etc/passwd
     rm ./tmp-tree/etc/passwd.tmp
-    if [ ! -e $PACDIR/xinetd.package ] && [ ! -e $PACDIR/xinetd.pkg ] ; then
-	cp -Rp ./packages/xinetd/* ./tmp-tree
-	touch $PACDIR/xinetd.package
-    fi
 fi
 
 if [ -e $PACDIR/xorgvncpasswd.param ]; then
@@ -1012,11 +1050,12 @@ keymaps
 lib_dependencies
 
 # Adding dependent modules
-echo -e "\nBuilding dependencies for Modules...\n"
+for KERNVER in $KERNVERS; do
+echo -e "\nBuilding dependencies for $KERNVER Modules...\n"
 
 if [ "$ALLMODULES" != "true" ] ; then
 
-$TOOLSDIR/depmod -b ./kernel -e -F kernel/System.map -n $KERNVER > ./modules.dep
+$TOOLSDIR/depmod -b ./kernel -e -F kernel/System.map-$KERNVER -n $KERNVER > ./modules.dep
 
 cat ./modules.dep | sed '/^[	 ]*$/d' | sed '/[\]/ N;s/[\]\n//g' \
 	| sed '/[\]/ N;s/[\]\n//g'  > ./modules.tmp
@@ -1024,27 +1063,27 @@ cat ./modules.dep | sed '/^[	 ]*$/d' | sed '/[\]/ N;s/[\]\n//g' \
 module_dependencies
 
 # Adding additional modules which are dependencies of other modules
-echo -e "\nAdding module dependencies on other modules not picked up by depmod\n"
+echo -e "\nAdding $KERNVER module dependencies on other modules not picked up by depmod\n"
 for pkgname in `echo "./tmp-tree" && find $MODDIR/ -mindepth 1 -maxdepth 1`
 do
   (ls ./kernel/dependencies_module/ ) |
   while read module
   do
-   if [ -e $pkgname/lib/modules/$module.ko ] || [ -e ./tmp-tree/lib/modules/$module.ko ] ; then
+   if [ -e $pkgname/lib/modules/$KERNVER/$module.ko ] || [ -e ./tmp-tree/lib/modules/$KERNVER/$module.ko ] ; then
      (cat ./kernel/dependencies_module/$module ) |
      while read type name
      do
        case $type in
        module)
-	  if [ ! -e ./tmp-tree/lib/modules/$name.ko ] && [ ! -e $pkgname/lib/modules/$name.ko ]  ; then
-            if [ -e ./tmp-tree/lib/modules/$module.ko ] ; then
+	  if [ ! -e ./tmp-tree/lib/modules/$KERNVER/$name.ko ] && [ ! -e $pkgname/lib/modules/$KERNVER/$name.ko ]  ; then
+            if [ -e ./tmp-tree/lib/modules/$KERNVER/$module.ko ] ; then
 	      echo "Module : $name"
-	      cp `find ./kernel/modules/ -follow -name "$name.ko"` ./tmp-tree/lib/modules/
+	      cp `find ./kernel/modules-$KERNVER/ -follow -name "$name.ko"` ./tmp-tree/lib/modules/$KERNVER
 #	      echo $name >> ./tmp-tree/etc/modules
 	      echo "$name.ko" >> ./tmp-tree/modules.final
-	    elif [ -e $pkgname/lib/modules/$module.ko ] ; then
+	    elif [ -e $pkgname/lib/modules/$KERNVER/$module.ko ] ; then
               echo "Module-pkg $name"
-	      cp `find ./kernel/modules/ -follow -name "$name.ko"` $pkgname/lib/modules
+	      cp `find ./kernel/modules-$KERNVER/ -follow -name "$name.ko"` $pkgname/lib/modules/$KERNVER
 	      echo $name >> $pkgname/etc/`basename $pkgname`.modules
 	      echo "$name.ko" >> $pkgname/modules.final
             fi
@@ -1060,7 +1099,7 @@ do
 done
 
 # Adding additional modules which are dependencies of packages 
-echo -e "\nAdding module dependencies on other packages\n"
+echo -e "\nAdding $KERNVER module dependencies on other packages\n"
 (ls ./kernel/dependencies_package/ ) |
 while read name
 do
@@ -1068,23 +1107,20 @@ do
      while read module
      do
 	  if [ -e $PACDIR/$name.package ] ; then
-            if [ ! -e ./tmp-tree/lib/modules/$module.ko ] ; then
+            if [ ! -e ./tmp-tree/lib/modules/$KERNVER/$module.ko ] ; then
 	      echo "Package : $name   Module: $module"
-	      if ! cp `find ./kernel/modules/ -follow -name "$module.ko"` ./tmp-tree/lib/modules/ ; then
-		echo "Could not find module $module"
+	      if ! cp `find ./kernel/modules-$KERNVER/ -follow -name "$module.ko"` ./tmp-tree/lib/modules/$KERNVER ; then
+		echo "Could not find $KERNVER module $module"
 	      fi
 	      echo "$module.ko" >> ./tmp-tree/modules.final
             fi
 	  elif [ -e $PACDIR/$name.pkg ] ; then
-	    if [ ! -e $PKGDIR/$name/lib/modules/$module.ko ] ; then
+	    if [ ! -e $PKGDIR/$name/lib/modules/$KERNVER/$module.ko ] ; then
               echo "Pkg     : $name   Module: $module"
-	      if [ ! -e $PKGDIR/$name/lib ] ; then
-	              mkdir $PKGDIR/$name/lib
+	      if [ ! -e $PKGDIR/$name/lib/modules/$KERNVER ] ; then
+	              mkdir -p $PKGDIR/$name/lib/modules/$KERNVER
 	      fi
-	      if [ ! -e $PKGDIR/$name/lib/modules ] ; then
-	              mkdir $PKGDIR/$name/lib/modules
-	      fi
-	      cp `find ./kernel/modules/ -follow -name "$module.ko"` $PKGDIR/$name/lib/modules
+	      cp `find ./kernel/modules-$KERNVER/ -follow -name "$module.ko"` $PKGDIR/$name/lib/modules/$KERNVER
 	      echo "$module.ko" >> $PKGDIR/$name/modules.final
             fi
           fi
@@ -1103,12 +1139,9 @@ rm ./modules.tmp
 rm ./modules.dep
 fi
 
-#Copy all modules under $KERNVER subdirectory as this is where depmod looks
-mkdir ./tmp-tree/lib/modules/$KERNVER
-mv ./tmp-tree/lib/modules/*.ko ./tmp-tree/lib/modules/$KERNVER/.
-
 #Run depmod on modules included to generate modules.* files
 ./utils/tools/depmod -b ./tmp-tree $KERNVER
+done
 
 # Add user defined defaults
 if [ -e ./$ts_defaultconfig ] && [ ! -z "$ts_defaultconfig" ] ; then
@@ -1172,6 +1205,18 @@ if [ "$ts_acpisupport" == "disable" ]; then
 else
 	echo -e "\nAdvanced Configuration and Power Interface support enabled\n"
 fi
+
+
+for package in `ls $PACDIR | grep "\.package" | sed -e "s/\.package//"`
+do
+  if [ -e "./packages/$package/build/finalize" ]; then
+    mkdir -p ./tmp-tree/finalize
+    cp ./packages/$package/build/finalize ./tmp-tree/finalize/`head -n 1 ./packages/$package/build/finalize | cut -d' ' -f 2`$package
+  fi
+  if [ -e "./packages/$package/build/image" ]; then
+    cat ./packages/$package/build/image >> build.image
+  fi
+done
 
 # Adding contributed modifications
 echo -e "\nAdding contributed files\n"
@@ -1309,6 +1354,19 @@ else
 fi
 echo -e "\tLinking BusyBox\n"
 chroot ./tmp-tree /bin/busybox --install -s
+
+if [ -e ./tmp-tree/finalize ]; then
+  echo -e "\tRunning Finalize\n"
+  mount --bind /dev ./tmp-tree/dev
+  cat ./tmp-tree/finalize/* > ./tmp-tree/build.finalize
+  chroot ./tmp-tree /bin/sh /build.finalize
+  while fuser ./tmp-tree ; do
+	sleep .1
+  done
+  umount ./tmp-tree/dev
+  rm ./tmp-tree/build.finalize
+  rm -rf ./tmp-tree/finalize
+fi
 }
 
 # this is the starting point =>
@@ -1359,7 +1417,7 @@ until [ -z "$1" ]
 do
 	if [ "$1" = "--kernel" ] ; then
 		shift
-		KERNVER=$1
+		KERNVEROPT=$1
 	elif [ "$1" = "--license" ] ; then
 		shift
 		LICENSE=$1
@@ -1414,6 +1472,15 @@ else
     CONFIG_FILE="build.conf"
 fi
 
+if [ -z "$KERNVEROPT" ]; then
+  KERNVEROPT=`cat utils/KERNEL_VERSION`
+fi
+
+for KERNVER in $KERNVEROPT; do
+if [ "$KERNVER" = "UP" ]; then
+  KERNVER=""
+fi
+
 # If a specific Kernel version is specified - use it
 if [ -e ./SMP ]; then
 	KERNVER=SMP
@@ -1432,9 +1499,10 @@ else
     KERNVER=`cat utils/KERNEL_VERSION`
 fi
 echo "Using the $KERNVER Kernel"
+KERNVERS="$KERNVERS $KERNVER"
 
 # Setup symlinks for selected kernel
-for i in vmlinuz System.map modules lib/modules $KERNVER
+for i in lib/modules $KERNVER
 	do
 		if [ -e ./kernel/$i ] ;
 			then
@@ -1442,11 +1510,9 @@ for i in vmlinuz System.map modules lib/modules $KERNVER
 		fi
 	done
 ln -s .. ./kernel/lib/modules
-ln -s modules-$KERNVER ./kernel/modules
-ln -s vmlinuz-$KERNVER ./kernel/vmlinuz
-ln -s System.map-$KERNVER ./kernel/System.map
 ln -s modules-$KERNVER ./kernel/$KERNVER
 rm ./packages/base/lib/modules/* > /dev/null 2>&1
+done
 
 # Removal all commerical packages then exit
 if [ -n "$REMOVEALL" ]; then
@@ -1497,21 +1563,29 @@ if [ -z "$BUILDTIME" ] ; then
 else
 	if [ -e "$BUILDTIME" ] ; then
 		ts_initrdcmd=`grep build.conf -e initrdcmd |cut -d '"' -f2`
+		ts_syslinuxtheme=`grep build.conf -e syslinuxtheme |cut -d '"' -f2`
+		ts_bootimages=`grep build.conf -e bootimages |cut -d '"' -f2`
 		unzip=`echo $ts_initrdcmd |cut -d " " -f1`
 		mkdir ./tmp-tree
 		cd ./tmp-tree
-		if [ "$unzip" == "none" -o "$unzip" == "" ] ;
-			then cat ../$INITDIR/initrd |cpio -i
-			else $unzip -dc < ../$INITDIR/initrd |cpio -i
+		if [ "$unzip" != "squashfs" ]; then
+			if [ "$unzip" == "none" -o "$unzip" == "" ] ;
+				then cat ../$INITDIR/initrd |cpio -i
+			else
+				$unzip -dc < ../$INITDIR/initrd |cpio -i
+			fi
 		fi
 		sed -e 's/\
 //g' ../"$BUILDTIME" >> ../tmp-tree/thinstation.buildtime
 		. ../$INITDIR/kernel_parameters
-	        if [ "$ts_initrdcmd" == "none" -o "$ts_initrdcmd" == "" ] ;
-	                then find . -print0 | cpio --null -oV --format=newc > ../$INITDIR/initrd
-        	        else find . -print0 | cpio --null -oV --format=newc | $ts_initrdcmd > ../$INITDIR/initrd
-	        fi
-       		cd ..
+		if [ "$ts_initrdcmd" == "squashfs" ]; then
+		    ../utils/tools/mksquashfs . ../$INITDIR/initrd -always-use-fragments -no-recovery -no-exports -no-xattrs
+		elif [ "$ts_initrdcmd" == "none" -o "$ts_initrdcmd" == "" ]; then
+			find . -print0 | cpio --null -oV --format=newc > ../$INITDIR/initrd
+		else
+			find . -print0 | cpio --null -oV --format=newc | $ts_initrdcmd > ../$INITDIR/initrd
+		fi
+       	cd ..
 		chmod 755 $INITDIR/initrd
 	else
 		echo -e "\nError, no buidtime file found, aborting build"
@@ -1523,6 +1597,10 @@ fi
 # Add extra kernel commandline parameters
 if [ -n "$ts_kernelcmdline" ] ; then
        KERNEL_PARAMETERS="$KERNEL_PARAMETERS $ts_kernelcmdline"
+fi
+
+if [ "$ts_initrdcmd" == "squashfs" ]; then
+    KERNEL_PARAMETERS="$KERNEL_PARAMETERS load_ramdisk=1 ramdisk_blocksize=4096 root=\/dev\/ram0 ramdisk_size=$MAXIMAGE"
 fi
 
 if [ -z "$kernel_parameters" ] ; then
@@ -1538,12 +1616,16 @@ if [ -n "$kernel_acpi_support" ] ; then
 fi
 
 # Making all image types
-if [ ! -e ./boot-images/initrd/vmlinuz ]; then
-	ln -sf ../../kernel/vmlinuz ./boot-images/initrd/vmlinuz
-fi
 cd boot-images/initrd
-md5sum vmlinuz > image.md5
-md5sum initrd >> image.md5
+rm -f vmlinuz*
+md5sum initrd > image.md5
+for KERNVER in $KERNVERS; do
+if [ ! -e ./vmlinuz$k ]; then
+	ln -sf ../../kernel/vmlinuz-$KERNVER ./vmlinuz$k
+fi
+md5sum vmlinuz$k >> image.md5
+let k=k+1
+done
 if [ -e lib.squash ]; then
 	md5sum lib.squash >> image.md5
 fi
@@ -1558,16 +1640,30 @@ image_fastboot()
 	fi
 }
 
+if [ -z "$ts_bootimages" ] ; then
+  ts_bootimages="syslinux pxe iso"
+fi
+if [ -z "$ts_syslinuxtheme" ]; then
+  ts_syslinuxtheme="default"
+fi
+
+if [ -e build.image ]; then
+  rm -rf boot-images/common
+  sh build.image boot-images/common
+  rm build.image
+fi
+
 # Skips Images if NOIMAGES is set, useful for TS-O-Matic
 if [ -z "$NOIMAGES" ] ; then
- for image in loadlin syslinux pxe iso nbi
+ for image in $ts_bootimages
  do
   echo -e "\nMaking boot image for $image Type....\n"
   case $image in
   loadlin)
     IMAGEDIR=boot-images/loadlin
     cat $IMAGEDIR/ts.bat.tpl | sed -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS LM=1/g"> $IMAGEDIR/ts.bat
-    cp kernel/vmlinuz $IMAGEDIR
+    rm -f $IMAGEDIR/vmlinuz*
+    cp $INITDIR/vmlinuz* $IMAGEDIR
     cp -p $INITDIR/initrd $IMAGEDIR
     cp $INITDIR/image.md5 $IMAGEDIR
     image_fastboot
@@ -1575,8 +1671,15 @@ if [ -z "$NOIMAGES" ] ; then
     ;;
   syslinux)
     IMAGEDIR=boot-images/syslinux
+    if [ -e boot-images/initrd/syslinux.files ]; then
+      cat boot-images/initrd/syslinux.files | xargs rm -rf
+    fi
+    ls boot-images/templates/$ts_syslinuxtheme > boot-images/initrd/syslinux.files
+    cp -a boot-images/templates/$ts_syslinuxtheme/* $IMAGEDIR
     cat $IMAGEDIR/syslinux.cfg.tpl |sed -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS LM=2/g"> $IMAGEDIR/syslinux.cfg
-    cp kernel/vmlinuz $IMAGEDIR
+    rm $IMAGEDIR/syslinux.cfg.tpl
+    rm -f $IMAGEDIR/vmlinuz*
+    cp $INITDIR/vmlinuz* $IMAGEDIR
     cp -p $INITDIR/initrd $IMAGEDIR
     cp $INITDIR/image.md5 $IMAGEDIR
     image_fastboot
@@ -1584,8 +1687,16 @@ if [ -z "$NOIMAGES" ] ; then
     ;;
   pxe)
     IMAGEDIR=boot-images/pxe
-    cat $IMAGEDIR/pxelinux.cfg/default.tpl | sed -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS LM=3/g"> $IMAGEDIR/pxelinux.cfg/default
-    cp kernel/vmlinuz $IMAGEDIR
+    if [ -e boot-images/initrd/syslinux.files ]; then
+      cat boot-images/initrd/syslinux.files | xargs rm -f
+    fi
+    ls boot-images/templates/$ts_syslinuxtheme > boot-images/initrd/syslinux.files
+    mkdir -p $IMAGESDIR/pxelinux.cfg
+    cp -a boot-images/templates/$ts_syslinuxtheme/* $IMAGEDIR/
+    cat $IMAGEDIR/syslinux.cfg.tpl | sed -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS LM=3/g"> $IMAGEDIR/pxelinux.cfg/default
+    rm $IMAGEDIR/syslinux.cfg.tpl
+    rm -f $IMAGEDIR/vmlinuz*
+    cp $INITDIR/vmlinuz* $IMAGEDIR
     cp -p $INITDIR/initrd $IMAGEDIR
     cp $INITDIR/image.md5 $IMAGEDIR
     image_fastboot
@@ -1593,18 +1704,27 @@ if [ -z "$NOIMAGES" ] ; then
     ;;
   iso)
     IMAGEDIR=boot-images/iso
+    if [ -e boot-images/common ]; then
+      cp -a boot-images/common/* $IMAGEDIR/source
+    fi
+    if [ -e boot-images/initrd/syslinux.files ]; then
+      cat boot-images/initrd/syslinux.files | xargs rm -rf
+    fi
+    ls boot-images/templates/$ts_syslinuxtheme > boot-images/initrd/syslinux.files
+    cp -a boot-images/templates/$ts_syslinuxtheme/* $IMAGEDIR/source
     if [ "$ts_livecd" != "true" ] ; then
-    	cat $IMAGEDIR/source/isolinux.cfg.tpl | sed -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS LM=4/g" > $IMAGEDIR/source/isolinux.cfg
+    	cat $IMAGEDIR/source/syslinux.cfg.tpl | sed -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS LM=4/g" > $IMAGEDIR/source/isolinux.cfg
     else
 	cp ./conf/isolinux-livcd $IMAGEDIR/source/isolinux.cfg
     fi
+    rm $IMAGEDIR/source/syslinux.cfg.tpl
     if [ -e $IMAGEDIR/source/vmlinuz ] ; then
-	    rm $IMAGEDIR/source/vmlinuz
+	    rm $IMAGEDIR/source/vmlinuz*
     fi
     if [ -e $IMAGEDIR/source/lib.squash ]; then
 	    rm $IMAGEDIR/source/lib.squash
     fi
-    ln -s ../../../kernel/vmlinuz $IMAGEDIR/source/vmlinuz
+    cp $INITDIR/vmlinuz* $IMAGEDIR/source/
     if [ ! -e $IMAGEDIR/source/initrd ]; then
 	ln -sf ../../initrd/initrd $IMAGEDIR/source/initrd
     fi
@@ -1627,10 +1747,16 @@ if [ -z "$NOIMAGES" ] ; then
 	-joliet \
 	-rock \
 	$IMAGEDIR/source
+
+    if [ -e boot-images/common ]; then
+      for i in boot-images/common/*; do
+        rm -rf $IMAGEDIR/source/`basename $i`
+      done
+    fi
     ;;
   nbi)
     IMAGEDIR=boot-images/etherboot
-    $TOOLSDIR/mknbi/mkelf-linux --relocseg=0x8000 --format=nbi --rootdir=/dev/ram0  --append="ramdisk_blocksize=4096 $KERNEL_PARAMETERS LM=5 dumbcon=4" --target=linux --output=$IMAGEDIR/thinstation.nbi kernel/vmlinuz $INITDIR/initrd $INITDIR/lib.squash
+    $TOOLSDIR/mknbi/mkelf-linux --relocseg=0x8000 --format=nbi --rootdir=/dev/ram0  --append="ramdisk_blocksize=4096 $KERNEL_PARAMETERS LM=5 dumbcon=4" --target=linux --output=$IMAGEDIR/thinstation.nbi $INITDIR/vmlinuz* $INITDIR/initrd $INITDIR/lib.squash
      ;;
   esac
  done
@@ -1648,7 +1774,9 @@ if [ -n "$MODFILES" ] ; then
 	echo "Your MOD_PACKAGES for the .conf file should be"
 	echo "MOD_PACKAGES=\"$MODFILES\""
 fi
-	echo "Kernel size is `du -L --apparent-size -BK kernel/vmlinuz |cut -f1`"
+for KERNVER in $KERNVERS; do
+	echo "Kernel $KERNVER size is `du -L --apparent-size -BK kernel/vmlinuz-$KERNVER |cut -f1`"
+done
 	echo "Initrd size is `du --apparent-size -BK boot-images/initrd/initrd |cut -f1`"
 	if [ "$ts_fastboot" == "true" ] || [ "$ts_fastboot" == "lotsofmem" ] ; then
 		echo "Squash size is `du --apparent-size -BK boot-images/initrd/lib.squash |cut -f1`"

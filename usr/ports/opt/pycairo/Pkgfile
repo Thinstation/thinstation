@@ -1,0 +1,17 @@
+# Description: A set of python bindings for cairo
+# URL: http://cairographics.org/pycairo
+# Maintainer: Jose V Beneyto, sepen at crux dot nu
+# Packager: Simone Rota, sip at crux dot nu
+# Depends on: cairo python
+
+name=pycairo
+version=1.10.0
+release=1
+source=(http://cairographics.org/releases/py2cairo-$version.tar.bz2)
+
+build() {
+    cd py2cairo-$version
+    ./waf configure --prefix=/usr
+    ./waf build
+    ./waf install --destdir=$PKG
+}

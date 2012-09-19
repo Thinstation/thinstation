@@ -1,0 +1,17 @@
+# Description: Tools for testing/using PC/SC driver, card, or reader
+# URL:         http://ludovic.rousseau.free.fr/softwares/pcsc-tools/
+# Maintainer:  Ludovic ROUSSEAU, ludovic.rousseau at free dot fr
+# Packager:    Ludovic ROUSSEAU, ludovic.rousseau at free dot fr
+# Depends on:  opensc
+
+name=pcsc-tools
+version=1.4.20
+release=0
+source=(http://ludovic.rousseau.free.fr/softwares/$name/$name-$version.tar.gz)
+
+build() {
+    cd $name-$version
+    make
+    make DESTDIR=$PKG install
+    rm -rf $PKG/usr/share
+}

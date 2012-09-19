@@ -1,0 +1,25 @@
+#!/bin/sh
+
+create_wind()
+{
+	echo "#`md5sum .dna`" > /ts/wind_cache/$i.turbo
+        update -c -d $i >> /ts/wind_cache/$i.turbo
+	. /ts/wind_cache/$i.turbo
+}
+
+create_unwind()
+{
+	echo -e "\tCreating fast install cache for $i"
+        echo "#`md5sum .dna`" > /ts/unwind_cache/$i.turbo
+        update -d $i |
+        sed -e 's/^cp \//3:/g' -e 's/mkdir \-/2:/g' -e 's/ln \-/4:/g' |
+        sort |
+        uniq |
+        sed -e 's/^2:/mkdir \-/g' -e 's/^3:/cp \//g' -e 's/^4:/ln \-/g' >> /ts/unwind_cache/$i.turbo
+}
+
+i=$1
+cd /ts/5.1/packages/$i
+create_wind
+create_unwind
+. /ts/unwind_cache/$i.turbo

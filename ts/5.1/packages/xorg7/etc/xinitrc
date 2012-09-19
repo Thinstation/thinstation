@@ -1,0 +1,15 @@
+#!/bin/bash
+
+. /etc/thinstation.global
+
+xinitrcd=/etc/X11/xinit/xinitrc.d
+if [ -d $xinitrcd ]; then
+	for file in `ls -A $xinitrcd`; do
+		. $xinitrcd/$file
+	done
+fi
+
+if [ -e $WKDIR/windowapps ] ; then
+        . $WKDIR/windowapps
+fi
+wait

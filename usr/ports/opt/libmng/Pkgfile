@@ -1,0 +1,23 @@
+# Description: libmng - Mutliple Image Network Graphics 
+# URL:         http://www.libmng.com
+# Maintainer:  Juergen Daubert, jue at crux dot nu
+# Packager:    Daniel Mueller, daniel at danm dot de
+# Depends on:  zlib, libjpeg, lcms
+
+name=libmng
+version=1.0.10
+release=1
+source=(http://download.sourceforge.net/$name/$name-$version.tar.gz \
+        libmng.la)
+
+build() {
+    mkdir -p $PKG/usr/{include,lib}
+    cd $name-$version
+    cp makefiles/makefile.linux Makefile
+    sed -i -e 's|/local||g' Makefile
+    sed -i 's|1\.0\.9|1\.0\.10|g' Makefile
+    make
+    make prefix=$PKG/usr install
+    ln -s libmng.so.1.1.0.10 $PKG/usr/lib/libmng.so.1.0.10
+    install -m 755 $SRC/libmng.la $PKG/usr/lib
+}

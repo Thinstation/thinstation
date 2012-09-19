@@ -1,0 +1,29 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=polkit-gnome
+version=0.102
+release=1
+source=(ftp://ftp.gnome.org/pub/gnome/sources/$name/$version/$name-$version.tar.bz2)
+
+build() {
+	cd $name-$version
+
+	./configure --prefix=/lib \
+			--exec-prefix=/ \
+			--sysconfdir=/etc \
+			--libexecdir=/lib \
+			--mandir=/usr/man \
+			--disable-gtk-doc \
+			--disable-gtk-doc-html \
+			--disable-gtk-doc-pdf \
+			--disable-examples \
+			--disable-introspection \
+			--disable-nls \
+			--with-gtk=2.0
+
+	make
+	make DESTDIR=$PKG install
+	rm -rf $PKG/lib/share
+}

@@ -1,0 +1,17 @@
+# Description: Implementation of the draft "Desktop Menu Specification" and menu layout
+# URL: 
+# Maintainer: None
+# Depends on: glib python
+
+name=gnome-menus
+version=2.30.5
+release=1
+source=(ftp://ftp.gnome.org/pub/gnome/sources/$name/${version%.*}/$name-$version.tar.bz2)
+
+build() {
+	cd $name-$version
+
+	./configure --prefix=/usr --disable-static --disable-nls --disable-introspection
+	make
+	make install DESTDIR=$PKG
+}

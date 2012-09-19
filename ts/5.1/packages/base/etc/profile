@@ -1,5 +1,10 @@
 #/etc/profile: system-wide .profile file for ash.
+
 . /etc/thinstation.global
+
+for file in `ls -A /etc/skel`; do
+	cp -a /etc/skel/$file $HOME/.
+done
 
 umask 022
 alias ll='ls -l'
@@ -8,6 +13,7 @@ alias l='ls -l'
 if pkg_initialized e3 ; then
 	alias vi='e3vi'
 fi
-if [ "$TERM" == "startx" ] ; then
+if [ "$TERM" == "xinit" ] ; then
+	/etc/xserverrc
 	/etc/xinitrc
 fi

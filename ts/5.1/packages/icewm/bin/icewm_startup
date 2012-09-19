@@ -1,8 +1,13 @@
-. /etc/thinstation.env
-. $TS_GLOBAL
-. /etc/icewm.functions
+#. $TS_GLOBAL
 
-$WMNAME & >> $LOGFILE 2>&1
+if [ -e /bin/eula_startup ]; then
+  eula_startup
+fi
+
+$WMNAME & >> $APPLOG 2>&1
+sleep .1
+icewmtray & >> $APPLOG 2>&1
+sleep .1
 
 wmautostart="$HOME/.xinitrc"
 if [ -e $wmautostart ] ; then

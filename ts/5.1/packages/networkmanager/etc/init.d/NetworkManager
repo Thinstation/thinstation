@@ -1,0 +1,30 @@
+#! /bin/sh
+
+. $TS_GLOBAL
+
+case "$1" in  
+init)
+    if ! pkg_initialized $PACKAGE; then
+      pkg_set_init_flag $PACKAGE
+
+      HOSTNAME=`hostname`
+      if [ "$HOSTNAME" == "(none)" ]; then
+	HOSTNAME=""
+        hostname localhost
+      fi
+
+      echo "127.0.0.1 $HOSTNAME localhost" >> /etc/hosts
+
+      NetworkManager
+      #nm-online -t $NET_LINKWAIT
+    fi
+    ;;
+help)
+    echo "Usage: $0 init"
+    ;;
+  *)
+    exit 1
+    ;;
+esac
+
+exit 0

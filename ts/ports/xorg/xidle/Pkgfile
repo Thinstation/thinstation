@@ -1,0 +1,19 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=xidle
+version=24102005
+release=1
+source=(ftp://ftp.freebsd.org/pub/FreeBSD/ports/local-distfiles/novel/$name-$version.tar.bz2 \
+        xidle_linux_compat.patch)
+
+build() {
+	cd $name-$version
+	patch -p1 < ../xidle_linux_compat.patch
+	gcc -o Xidle -lXss -lXext -lX11 -I/usr/include/X11 -L/usr/lib xidle.c
+	strip Xidle
+	mkdir -p $PKG/bin
+	cp $SRC/$name-$version/Xidle $PKG/bin
+
+}

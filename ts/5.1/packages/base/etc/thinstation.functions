@@ -114,7 +114,11 @@ echo_log ()
 	if [ -n "$debug" ] ; then
 		echo -e $noline $string > $CONSOLE
 	fi
-	echo -e $noline $string >> $LOGFILE
+	if [ -z "$APPLOG" ]; then
+	  echo -e $noline $string >> $LOGFILE
+	else
+	  echo -e $noline $string >> $APPLOG
+	fi
 }
 
 ## PKG functions
@@ -241,7 +245,7 @@ fi
 
 # Now to business:
 DIALOG_RESPONSE=`Xdialog --stdout --title $1 --left --icon /usr/icons/$1_32x32.xpm --2inputsbox "Preparing to run $1" \
-                15 55 "Server name or IP number" "$DIALOG_SERVER" "Options" "$DIALOG_OPTIONS" ` 2>>$LOGFILE
+                15 55 "Server name or IP number" "$DIALOG_SERVER" "Options" "$DIALOG_OPTIONS" ` 2>>$APPLOG
 if [ "$?" == "0" ] && [ ! -z "$DIALOG_RESPONSE" ] ; then
     DIALOG_LENGTH=`expr length "$DIALOG_RESPONSE"`
     DIALOG_SEPERATOR=`expr index "$DIALOG_RESPONSE" /`
@@ -622,7 +626,7 @@ screen_res ()
 {
 	if [ -z "$SCREEN_RESOLUTION" ]; then
 		video="`cat /proc/cmdline |grep -o -E video=[a-zA-Z0-9:,-]+ |head -n 1 |cut -d = -f2`"
-		if [ "$video" != "uvesafb:off" ]; then
+		if [ "$video" != "" -a "$video" != "uvesafb:off" ]; then
 			SCREEN_RESOLUTION=`echo $video |cut -d ":" -f2 |cut -d "-" -f1`
 		else
 			SCREEN_RESOLUTION=$PREFERED_RES
@@ -633,7 +637,7 @@ screen_res ()
 use_xrandr ()
 {
 	if is_enabled $USE_XRANDR ; then
-        	echo "Using xrandr to set display resolution." >> $LOGFILE
+        	echo "Using xrandr to set display resolution." >> $APPLOG
         	if [ "$XRANDR_OPTIONS" == "" ]; then
 		    	xrandr -s $SCREEN_RESOLUTION
         	else
@@ -677,7 +681,7 @@ x_auth_file ()
 	# If Don't already have an Xauthority file, create one now.
 	if [ ! -e $HOME/.Xauthority ] ; then
 		touch $HOME/.Xauthority
-		xauth -f $HOME/.Xauthority generate $DISPLAY . trusted >> $LOGFILE 2>&1
+		xauth -f $HOME/.Xauthority generate $DISPLAY . trusted >> $APPLOG 2>&1
 	fi
 }
 
@@ -699,12 +703,12 @@ x_mouse ()
 {
 	# If we don't have a Window Manager, give the mouse a place to hang out.
 	if ! x_wm ; then
-		xsetroot -cursor_name top_left_arrow >> $LOGFILE 2>&1 &
+		xsetroot -cursor_name top_left_arrow >> $APPLOG 2>&1 &
 	fi
 	# Set the mouse acceleration speed
 	if [ -n "$MOUSE_ACCELERATION" ]; then
-		echo xset -display :$DISPLAY_NUMBER m ${MOUSE_ACCELERATION} 1 >> $LOGFILE
-		xset -display :$DISPLAY_NUMBER m ${MOUSE_ACCELERATION} 1 >> $LOGFILE 2>&1 &
+		echo xset -display :$DISPLAY_NUMBER m ${MOUSE_ACCELERATION} 1 >> $APPLOG
+		xset -display :$DISPLAY_NUMBER m ${MOUSE_ACCELERATION} 1 >> $APPLOG 2>&1 &
 	fi
 }
 
@@ -717,5 +721,5 @@ vm_agent ()
 
 make_res_list ()
 {
-	xrandr 2>/dev/null |grep -Ev 'default|Screen|connected|disconnected' |sed -r 's/[[:space:]]+/\:/g' |cut -d ":" -f2 |sort -n > /var/log/resolutions
+	xrandr 2>/dev/null |grep -Ev 'default|Screen|connected|disconnected' |sed -r 's/[[:space:]]+/\:/g' |cut -d ":" -f2 |sort -n > /var/run/applications/resolutions
 }

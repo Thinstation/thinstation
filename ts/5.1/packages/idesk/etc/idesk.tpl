@@ -5,12 +5,12 @@ table Config
  CaptionBackground: no
  CaptionBorder: yes
  ClickInterval: 500
- IconWidth: 32
- IconHeight: 32
+ IconWidth: 48
+ IconHeight: 48
  Fixed: true
- SnapWidth: 16
+ SnapWidth: 20
  SnapHeight: 16
- FontSize: 8
+ FontSize: 9
  ToolTip.FontSize: 9
  ToolTip.FontName: gothic
  ToolTip.ForeColor: #0000FF
@@ -22,7 +22,7 @@ table Config
  Shadow: false
  ShadowX: 1
  ShadowY: 2
- Bold: false
+ Bold: true
  ClickDelay: 300
  IconSnap: true
  SnapOrigin: BottomRight

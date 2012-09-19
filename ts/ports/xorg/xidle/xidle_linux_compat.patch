@@ -1,0 +1,37 @@
+--- old/xidle.c	2005-10-24 10:42:09.000000000 -0400
++++ new/xidle.c	2012-08-09 18:09:49.761161311 -0400
+@@ -87,10 +87,10 @@
+ void	close_x(struct xinfo *);
+ void	init_x(const char *, struct xinfo *, int, int);
+ void	handler(int);
+-__dead void	usage(void);
++void	usage(void);
+ 
+ 
+-__dead void
++void
+ usage()
+ {
+ 	fprintf(stderr, "Usage:\n%s %s\n", __progname,
+@@ -361,13 +361,20 @@
+ 
+ 				/* Take note of the serial for this event. */
+ 				last_serial = se->serial;
+-
++#ifdef DEBUG
++		printf("got type %d, serial %d, send_event %d, forced: %d, state: %d, kind: %d\n", se->type, se->serial, se->send_event, se->forced, se->state, se->kind);
++#endif
+ 				/*
+ 				 * Was for real or due to terminal
+ 				 * switching or a locking program?
+ 				 */
+ 				if (se->forced != False)
+ 					break;
++				/*
++ 				 * If the state was not 1, then the event is coming out of idle
++ 				 */
++				if (se->state != True)
++					break;
+ 			}
+ 			action(&x, args);
+ 			break;

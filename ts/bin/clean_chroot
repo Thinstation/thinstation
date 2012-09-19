@@ -39,12 +39,12 @@ stage1()
 		/build \
 		$TSWRKNG/boot-images/initrd/kernel_parameters \
 		$TSWRKNG/tmp-tree \
-                $TSWRKNG/boot-images/iso/source/{isolinux.cfg,vmlinuz,initrd,lib.squash} \
+                $TSWRKNG/boot-images/iso/source/{isolinux.cfg,vmlinuz*,initrd,lib.squash} \
 		$TSWRKNG/boot-images/etherboot/thinstation.nbi \
-		$TSWRKNG/boot-images/initrd/{initrd,lib.squash} \
+		$TSWRKNG/boot-images/initrd/{initrd,lib.squash,vmlinuz*} \
 		$TSWRKNG/boot-images/iso/thinstation.iso \
 		$TSWRKNG/boot-images/iso/source/modeset.cfg \
-		$TSWRKNG/boot-images/{syslinux,loadlin,pxe}/{lib.squash,initrd,vmlinuz} \
+		$TSWRKNG/boot-images/{syslinux,loadlin,pxe}/{lib.squash,initrd,vmlinuz*} \
 		$TSWRKNG/boot-images/pkg-packages/* \
 		$TSWRKNG/boot-images/pxe/pxelinux.cfg/default \
 		$TSWRKNG/boot-images/pxe/{module.list,vbe_modes.list,firmware.list} \
@@ -55,6 +55,14 @@ stage1()
 				then rm -rf $i
 			fi
 	done
+	if [ -e $TSWRKNG/boot-images/initrd/syslinux.files ]; then
+		for i in pxe iso/source syslinux; do
+			cat $TSWRKNG/boot-images/initrd/syslinux.files | while read file; do
+				rm -rf $TSWRKNG/boot-images/$i/$file
+			done
+		done
+		rm $TSWRKNG/boot-images/initrd/syslinux.files
+	fi
 	for checksum in `find $TSWRKNG/boot-images -name image.md5` ; do
 		if [ -n "$checksum" ]; then
 			rm $checksum
@@ -93,7 +101,7 @@ stage1()
 	echo -e "\tCleaning boot-images"
 	update -c -b
 	echo "Checking Ports Directories for Downloaded Files"
-	for d in /usr/ports/{contrib,core,xorg,opt} /ts/ports/{xorg,gnome,broken,chroot,static-source,components,xfce};
+	for d in /usr/ports/{contrib,core,xorg,opt} /ts/ports/{xorg,gnome,broken,chroot,static-source,components,lxde,extensions,xfce};
 		do
 			if [ -d $d ] ; then
 			cd $d
@@ -123,7 +131,7 @@ stage1()
 
 stage2()
 {
-	for i in share home usr/ROX usr/var man bin boot dev etc lib mnt opt proc root sbin sys tmp var ts/components usr/{swat,private,bin,etc,include,lib,man,sbin,share,src,local} ;
+	for i in www share home usr/libexec usr/ROX usr/var man bin boot dev etc lib mnt opt proc root sbin sys tmp var ts/components usr/{swat,private,bin,etc,include,lib,man,sbin,share,src,local} ;
 		do
 			if [ -e $i ] ;
 				then

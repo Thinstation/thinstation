@@ -32,6 +32,9 @@ if [ -e /etc/cmd/$PACKAGE.change_server_type ] ; then SERVER="\"$2\"" ; elif [ !
 if [ ! -z "$3" ] ; then OPTIONS=$3 ; fi
 if [ -e /etc/cmd/$PACKAGE.server_first ] ; then	REVERSE_ORDER=TRUE ; fi
 
+APPLOG=$APPLOGDIR/$PACKAGE.$$
+export APPLOG
+
 gen_menu()
 {
 	make_res_list
@@ -62,15 +65,22 @@ order_command()
    fi
 }
 
+ck_wrapper()
+{
+   if [ -x /bin/ck-launch-session ]; then
+	CMD="ck-launch-session $CMD"
+   fi
+}
+
 run_command()
 {
    echo $CMD > /tmp/CMD$PID
    if [ -e /tmp/CMD$PID ] ; then
 	if is_enabled $LOG_COMMANDS ; then
-	        cat /tmp/CMD$PID >> $LOGFILE
+	        cat /tmp/CMD$PID >> $APPLOG
 	fi
-        . /tmp/CMD$PID >> $LOGFILE 2>&1 &
-        sleep .3
+        . /tmp/CMD$PID >> $APPLOG 2>&1 &
+        sleep .5
         rm /tmp/CMD$PID
    fi
 }
@@ -78,7 +88,7 @@ run_command()
 case "$1" in
 auto)
   while [ "$reconnect" != "1" ]; do
-    echo "Running Auto $PACKAGE" >> $LOGFILE
+    echo "Running Auto $PACKAGE" >> $APPLOG
     x_get_ip
     order_command
     CMD="$CMD_CONSOLE $ORDERED_COMMAND"
@@ -92,7 +102,7 @@ auto)
     $NO_SESSION
     ;;
 console)
-    echo "Running Console $PACKAGE" >> $LOGFILE
+    echo "Running Console $PACKAGE" >> $APPLOG
     gen_menu
     free_memory
     use_xrandr
@@ -106,6 +116,7 @@ console)
 	x_get_ip
 	order_command
 	CMD="$CMD_CONSOLE $ORDERED_COMMAND"
+	ck_wrapper
         run_command
 	wait
 	check_NX
@@ -116,7 +127,7 @@ console)
     $NO_SESSION
     ;;
 window|fullscreen)
-    echo "Running $1 $PACKAGE" >> $LOGFILE
+    echo "Running $1 $PACKAGE" >> $APPLOG
     local ALLOW_EXIT=TRUE
     if ! is_disabled $ALWAYS_ENTER_SERVER ; then
 	local ALWAYS_ENTER_SERVER=TRUE

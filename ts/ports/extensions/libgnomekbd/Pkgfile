@@ -1,0 +1,17 @@
+# Description: Contains xkb hooks used by the GNOME desktop
+# URL:
+# Maintainer: None
+# Depends on: gtk gconf libxlavier glib xmlparser
+
+name=libgnomekbd
+version=2.32.0
+release=1
+source=(ftp://ftp.gnome.org/pub/gnome/sources/$name/${version%.*}/$name-$version.tar.bz2)
+
+build() {
+	cd $name-$version
+
+	./configure --prefix=/usr --disable-static --disable-nls --disable-schemas-install
+	make
+	make install DESTDIR=$PKG
+}

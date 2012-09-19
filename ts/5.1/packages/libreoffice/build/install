@@ -1,0 +1,37 @@
+#!/bin/sh
+
+gzname=`basename $1`
+installdir=../packages/libreoffice
+
+tar -C wget_tmp -xf wget_tmp/$gzname
+let returnval=returnval+$?
+
+cd wget_tmp
+debdir=`ls -d LibO_*_Linux_x86_install* | grep -v $gzname`
+
+for file in $debdir/DEBS/*.deb $debdir/DEBS/desktop-integration/*.deb
+do
+  ar -xf $file
+  let returnval=returnval+$?
+  tar -C $installdir -xf data.tar.gz
+  let returnval=returnval+$?
+done
+
+optname=`basename $installdir/opt/libreoffice*`
+
+mv $installdir/usr/bin $installdir/bin
+mv $installdir/usr/share/* $installdir/lib
+rm -rf $installdir/usr
+rm -rf $installdir/lib/{applnk,mimelnk}
+
+ln -s ../opt/$optname/LICENSE $installdir/build/license
+mkdir -p $installdir/lib/licenses/libreoffice
+ln -s /opt/$optname/LICENSE $installdir/lib/licenses/libreoffice
+
+mkdir -p $installdir/lib/firefox/plugins
+ln -s /opt/$optname/program/libnpsoplugin.so $installdir/lib/firefox/plugins
+
+cd ..
+
+
+exit $returnval

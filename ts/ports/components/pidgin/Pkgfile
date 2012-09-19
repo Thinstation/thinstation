@@ -1,0 +1,35 @@
+# Description: multi-protocol instant messaging client
+# URL:         http://pidgin.im/
+# Maintainer:  Bartlomiej Palmowski, rotwang at crux dot org dot pl
+# Packager:    Simone Rota, sip at crux dot nu
+# Depends on:  intltool gtk xorg-libxscrnsaver startup-notification nss libidn xorg-libxdamage
+
+name=pidgin
+version=2.10.6
+release=1
+source=(http://downloads.sourceforge.net/project/$name/Pidgin/$version/$name-$version.tar.bz2)
+
+build () {
+    cd $name-$version
+    ./configure --prefix=/usr \
+        --mandir=/usr/man \
+        --disable-nls \
+        --disable-schemas-install \
+        --with-nspr-includes=/usr/include/nspr \
+        --with-nss-includes=/usr/include/nss \
+        --with-nspr-libs=/usr/lib \
+        --with-nss-libs=/usr/lib \
+	--with-gnutls-includes=/usr/include/gnutls \
+	--with-gnutls-libs=/usr/lib \
+	--disable-gtkspell \
+        --disable-avahi \
+        --disable-gstreamer \
+	--disable-tcl \
+        --disable-vv
+
+    make
+    make DESTDIR=$PKG install
+    find $PKG/usr/lib/ -name '*.la' -delete
+    #rm -rf $PKG/usr/share/locale
+    rm -rf $PKG/usr/etc/gconf || :
+}

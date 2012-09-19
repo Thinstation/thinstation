@@ -1,0 +1,18 @@
+# Description: The GNU Debugger (GDB)
+# URL:         http://sources.redhat.com/gdb/
+# Maintainer:  Thomas Penteker, tek at serverop dot de
+# Packager:    Tilman Sauerbeck, tilman at crux dot nu
+# Depends on:  ncurses
+
+name=gdb
+version=7.5
+release=1
+source=(ftp://ftp.gnu.org/gnu/$name/$name-$version.tar.bz2)
+
+build() {
+    cd $name-$version
+    ./configure --prefix=/usr --mandir=/usr/man
+    make
+    make DESTDIR=$PKG install
+    rm -rf $PKG/usr/{info,share,lib,include}
+}

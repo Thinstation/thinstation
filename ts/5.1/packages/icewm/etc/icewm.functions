@@ -13,28 +13,30 @@ wm_workspaces ()
 
 wm_menu ()
 {
+mkdir -p ${HOME}/.icewm
+
 if is_disabled $MENU_SHOWCLOCK ; then
-	echo "TaskBarShowClock=0" >> /etc/icewm/prefoverride
+	echo "TaskBarShowClock=0" >> ${HOME}/.icewm/prefoverride
 fi
 if is_enabled $HIDE_CONTROLS ; then
-	echo "TitleBarHeight=0" >> /etc/icewm/prefoverride
-	echo "ShowWorkspaceStatus=0"  >> /etc/icewm/prefoverride
-	echo "UseRootButtons=0"  >> /etc/icewm/prefoverride
-	echo "ShowTaskBar=0"  >> /etc/icewm/prefoverride
-	echo "ShowSettingsMenu=0"  >> /etc/icewm/prefoverride
-	echo "ShowThemesMenu=0"  >> /etc/icewm/prefoverride
-        echo "BorderSizeX=0"  >> /etc/icewm/prefoverride
-        echo "BorderSizeY=0"  >> /etc/icewm/prefoverride
-        echo "DlgBorderSizeX=0"  >> /etc/icewm/prefoverride
-        echo "DlgBorderSizeY=0"  >> /etc/icewm/prefoverride
-        echo "CornerSizeX=0"  >> /etc/icewm/prefoverride
-        echo "CornerSizeY=0"  >> /etc/icewm/prefoverride
+	echo "TitleBarHeight=0" >> ${HOME}/.icewm/prefoverride
+	echo "ShowWorkspaceStatus=0"  >> ${HOME}/.icewm/prefoverride
+	echo "UseRootButtons=0"  >> ${HOME}/.icewm/prefoverride
+	echo "ShowTaskBar=0"  >> ${HOME}/.icewm/prefoverride
+	echo "ShowSettingsMenu=0"  >> ${HOME}/.icewm/prefoverride
+	echo "ShowThemesMenu=0"  >> ${HOME}/.icewm/prefoverride
+        echo "BorderSizeX=0"  >> ${HOME}/.icewm/prefoverride
+        echo "BorderSizeY=0"  >> ${HOME}/.icewm/prefoverride
+        echo "DlgBorderSizeX=0"  >> ${HOME}/.icewm/prefoverride
+        echo "DlgBorderSizeY=0"  >> ${HOME}/.icewm/prefoverride
+        echo "CornerSizeX=0"  >> ${HOME}/.icewm/prefoverride
+        echo "CornerSizeY=0"  >> ${HOME}/.icewm/prefoverride
 fi
 
     MENU_FILE=/tmp/$WMNAME.menu
     TMPMENU=/tmp/$WMNAME.tmp
 
-    MENU_ICONS="/etc/icewm/winoptions"
+    MENU_ICONS="${HOME}/.icewm/winoptions"
     cat /dev/null > $MENU_FILE
 if is_enabled $MENU_SHOWAPPS ; then
     (cat $WKDIR/session | sort ) |
@@ -89,11 +91,20 @@ if is_enabled $MENU_SHOWAPPS ; then
 	case "$entry" in
 		\#*|"") continue ;;
 	esac
+	menu=""
 	echo $entry > /tmp/entry
 	. /tmp/entry
 
 	echo "$package.icon: $package" >> $MENU_ICONS
-	echo "prog \"$title\" \"$package\" $command" >> $MENU_FILE
+        if [ -z "$menu" ]; then
+            echo "prog \"$title\" \"$package\" $command" >> $MENU_FILE
+        else
+            if [ ! -f "/tmp/${menu}_menu" ] ; then
+                echo $menu $menu >> /tmp/typelist
+            fi
+            echo "prog \"$title\" \"$package\" $command" >> /tmp/"$menu"_menu
+        fi
+
       done
       if [ -e /tmp/entry ]; then
         rm /tmp/entry
@@ -102,9 +113,21 @@ if is_enabled $MENU_SHOWAPPS ; then
     fi
 fi
 
-    if is_enabled $MENU_SHOWRES && [ -e /var/log/resolutions ] ; then
+    if [ -e /tmp/typelist ] ; then
+      ( sort /tmp/typelist ) |
+      while read type menu
+      do
+        echo "menu $menu "$type"_menu {" >> $MENU_FILE
+        cat /tmp/"$type"_menu >> $MENU_FILE
+        echo "}" >> $MENU_FILE
+        rm /tmp/"$type"_menu
+      done
+      rm /tmp/typelist
+    fi
+
+    if is_enabled $MENU_SHOWRES && [ -e /var/run/applications/resolutions ] ; then
         echo "menu Resolution" "resolution_menu {" >> $MENU_FILE
-	for i in `cat /var/log/resolutions` ; do
+	for i in `cat /var/run/applications/resolutions` ; do
 		echo "prog \"$i\" \"$i\" setres $i" >> $MENU_FILE
 	done
 	echo "}" >> $MENU_FILE
@@ -114,12 +137,14 @@ fi
     fi
     if is_enabled $MENU_SHOWLOGOUT ; then
 	echo "menu Logout" "logout_menu {" >> $MENU_FILE
+	if is_enabled $MENU_LOGOUT ; then
 	echo "prog \"Logout\" \"logout\" logout" >> $MENU_FILE
+	fi
 	echo "prog \"Shutdown\" \"shutdown\" poweroff" >> $MENU_FILE
 	echo "prog \"Reboot\" \"reboot\" reboot" >> $MENU_FILE
 	echo "}" >> $MENU_FILE
     fi
-    cat $MENU_FILE > /etc/icewm/menu
+    cat $MENU_FILE > ${HOME}/.icewm/menu
     rm $MENU_FILE
 }
 

@@ -1,13 +1,14 @@
 #! /bin/sh
 
-. /etc/thinstation.global
+. $TS_GLOBAL
+HOME=/etc/skel
 
 case "$1" in
 init)
  if ! pkg_initialized $PACKAGE; then
 	pkg_set_init_flag $PACKAGE
 	if [ ! -e $HOME/.mozilla ] && [ -e /etc/FF.tar.gz ]; then
-		tar -C ~ -zxvf /etc/FF.tar.gz
+		tar -C $HOME -zxvf /etc/FF.tar.gz
 	fi
 	if [ ! -e $HOME/.mozilla/firefox ] ; then
 		mkdir -p $HOME/.mozilla/firefox
@@ -23,7 +24,7 @@ init)
 	FFPREFS=$HOME/.mozilla/firefox/TS.default/prefs.js
 	if [ ! -e $FFPREFS ] ; then
 	    FF_HOMEPAGE="http://www.thinstation.org"
-	    . $TS_GLOBAL
+#	    . $TS_GLOBAL
 	    let x=0
 	    # Add any configuration parameters
 	    while [ -n "`eval echo '$SESSION_'$x'_TYPE'`" ] ; do

@@ -1,0 +1,15 @@
+# Description:	Video conversion library
+# URL:		http://freshmeat.net/projects/libv4l
+# Maintainer:	Alan Mizrahi, alan at mizrahi dot com dot ve
+# Depends on:	qt4 sysfsutils
+
+name=v4l-utils
+version=0.8.8
+release=1
+source=(http://linuxtv.org/downloads/v4l-utils/$name-$version.tar.bz2)
+
+build() {
+	cd $name-$version
+	make CFLAGS="$CFLAGS"
+	make PREFIX=/usr DESTDIR=$PKG install
+}
