@@ -29,18 +29,9 @@ hotplug_icons ()
     fi
 }
 
-idesk_params ()
-{
-    idesk_cmd="idesk "
-    wmautostart="$HOME/.xinitrc"
-    if [ ! -e "$wmautostart" ] ; then
-	touch $wmautostart
-    fi
-    echo "$idesk_cmd&">>$wmautostart
-}
-
 idesk_icons ()
 {
+    SCREEN_RESOLUTION=`get_res`
     # Do we want hotplug device icons on the desktop?
     if [ "`make_caps $ICONHOTPLUG`" == "YES" ] ; then
       hotplug_icons

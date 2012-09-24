@@ -1,8 +1,9 @@
 #!/bin/sh
-presize=`xrandr 2>/dev/null |grep -e \* |cut -d " " -f4`
+. $TS_GLOBAL
+presize=`get_res`
 /bin/zarfy
-postsize=`xrandr 2>/dev/null |grep -e \* |cut -d " " -f4`
+postsize=`get_res`
 if [ "$presize" != "$postsize" ]; then
-	. $TS_GLOBAL
 	use_wallpaper
+	use_idesk
 fi

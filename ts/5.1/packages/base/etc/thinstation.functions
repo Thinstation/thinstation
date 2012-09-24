@@ -661,6 +661,24 @@ use_wallpaper ()
 	fi
 }
 
+use_idesk ()
+{
+	if [ -x /bin/idesk ]; then
+	        IDESKPID=`pidof idesk`
+        	if [ -n "$IDESKPID" ]; then
+                	kill -HUP $IDESKPID
+                	wait $IDESKPID
+		fi
+		if [ -e ~/.idesktop ]; then
+			rm -rf ~/.idesktop
+		fi
+		mkdir ~/.idesktop
+		. /etc/idesk.functions
+		idesk_icons
+		/bin/idesk &
+        fi
+}
+
 x_mod_map ()
 {
  # Add xmodmap modifications
@@ -722,4 +740,9 @@ vm_agent ()
 make_res_list ()
 {
 	xrandr |grep -o -r -e '   [0-9]*x[0-9]*' |sed -r 's/ //g' |sort -u -t'x' -k1n -k2n > /var/run/applications/resolutions
+}
+
+get_res ()
+{
+	echo "`xrandr 2>/dev/null |grep -e \* |cut -d' ' -f4`"
 }
