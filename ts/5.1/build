@@ -335,7 +335,7 @@ get_file ()
     fi
 
     case `make_caps $filetype` in
-    HTTP|HTTPS)
+    HTTP|HTTPS|FTP|FTPS)
 	if [ -e $PACDIR/downloads.param ] ; then
             . $PACDIR/downloads.param
 	fi
@@ -377,7 +377,7 @@ get_file ()
 	 echo blah >/dev/null
     ;;
     *)
-	echo -e "\nCan't determine installation type, should be http: or file:"
+	echo -e "\nCan't determine installation type, should be http(s): or ftp(s) or file:"
 	echo -e "Build Aborted\n"
 	remove_files
 	exit 1

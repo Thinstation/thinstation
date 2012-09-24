@@ -721,5 +721,5 @@ vm_agent ()
 
 make_res_list ()
 {
-	xrandr 2>/dev/null |grep -Ev 'default|Screen|connected|disconnected' |sed -r 's/[[:space:]]+/\:/g' |cut -d ":" -f2 |sort -n > /var/run/applications/resolutions
+	xrandr |grep -o -r -e '   [0-9]*x[0-9]*' |sed -r 's/ //g' |sort -u -t'x' -k1n -k2n > /var/run/applications/resolutions
 }

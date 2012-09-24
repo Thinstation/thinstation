@@ -8,7 +8,10 @@ screen_res
 let COLS=`echo $SCREEN_RESOLUTION | cut -f1 -dx`/6-1
 let ROWS=`echo $SCREEN_RESOLUTION | cut -f2 -dx`/14
 
-echo "SCREEN_RESOLUTION=$SCREEN_RESOLUTION" >>$TS_RUNTIME
+if is_enabled $X_RES_SEED; then
+	echo "SCREEN_RESOLUTION=\"$SCREEN_RESOLUTION\"" >>$TS_RUNTIME
+fi
+
 echo "COLS=$COLS" >> $TS_RUNTIME
 echo "ROWS=$ROWS" >> $TS_RUNTIME
 

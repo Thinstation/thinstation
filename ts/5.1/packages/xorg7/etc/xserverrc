@@ -1,389 +1,52 @@
 #! /bin/sh
 
 . $TS_GLOBAL
-. /etc/splash.functions
 
-#echo "Starting X"
 DISPLAY_NUMBER=0
-XAUTHHOME=/etc/skel
-HOME=/tmp
-X_PATH=/usr/X11R7
-X_PORT=/tmp/x_port
-X_AUTO=/tmp
-X_CONFIG="/etc/X11/x.config-$DISPLAY_NUMBER"
+XAUTHHOME=$HOME
 LOGFILE=/var/run/applications/xorg
-#echo "DISPLAY=:0.0" >> $TS_RUNTIME
-#POSITION=$(fgconsole)
 
 build_command ()
 {
-  if is_enabled $X_PRECONFIGURE ; then
-	X_CMD="$X_SERVER :$DISPLAY_NUMBER -config $X_CONFIG -br -noreset -nolisten tcp vt05"
-  else
+	# Base Xorg Configuration
 	X_CMD="$X_SERVER :$DISPLAY_NUMBER -br -noreset -nolisten tcp vt05"
-  fi
-  if [ -e /tmp/X_TERMINATE ] ; then
-	  X_CMD="$X_CMD -terminate"
-  fi
 
-  # Define Font Paths
-  if [ -n "$SCREEN_X_FONT_SERVER" ]; then
-    X_CMD="$X_CMD -fp tcp/$SCREEN_X_FONT_SERVER"
-  fi
-  if [ -n "$X_DPI" ]; then
-	X_CMD="$X_CMD -dpi $X_DPI"
-  fi
-  if is_enabled $X_NO_CURSOR ; then
-	X_CMD="$X_CMD -nocursor"
-  fi
-  if [ ! -z "$SCREEN_COLOR_DEPTH" ] ; then X_CMD="$X_CMD -depth $SCREEN_COLOR_DEPTH" ; fi
+	# Define Font Paths
+	if [ -n "$SCREEN_X_FONT_SERVER" ]; then
+		X_CMD="$X_CMD -fp tcp/$SCREEN_X_FONT_SERVER"
+	fi
 
-  if [ -n "$DUALHEAD" ] ; then
-	# The keybdev driver can interfer with dual head support and needs to be removed
-#	if lsmod | grep keybdev > /dev/null 2>&1 ; then
-#		rmmod keybdev
-#	fi
-	# The apm module causes the second screen to crash when using dual head
-#	if lsmod | grep apm > /dev/null 2>&1 ; then
-#		rmmod apm
-#	fi
-  	if [ ! -z "$POSITION" ] && [ "$POSITION" -ge "2" ] ; then
-	    X_CMD="$X_CMD -novtswitch -sharevts"
- 	fi
-  fi
+	# Force DPI
+	if [ -n "$X_DPI" ]; then
+		X_CMD="$X_CMD -dpi $X_DPI"
+	fi
+
+	# Hide the mouse cursor
+	if is_enabled $X_NO_CURSOR; then
+		X_CMD="$X_CMD -nocursor"
+	fi
+
+	# Force a color depth
+	if [ -n "$SCREEN_COLOR_DEPTH" ]; then
+		X_CMD="$X_CMD -depth $SCREEN_COLOR_DEPTH"
+	fi
+
 }
 
-get_options ()
-{
-    tmpfile=/tmp/x_$1
-    cat /dev/null > $tmpfile
-    tssection=`make_caps $1`
-    for option in 1 2 3 4 5 6 7 8 9
-    do
-	(eval echo '$X_'$tssection'_OPTION'$option) |
-	while read name value
-	do
-	    if [ -n "$name" ] ; then echo -e "\tOption \"$name\" \"$value\"" >> $tmpfile ; fi
-	done
-    done
-}
-
-device_extras ()
-{
-    # VNC stuff goes in the device section
-    if [ -e $X_PATH/lib/X11/vnc_device.tpl ] ; then
-	VNC_PATH=$X_PATH/lib/X11
-	cat $VNC_PATH/vnc_device.tpl  >> /tmp/x_Device
-    fi
-    # The old driver options are really device options, so let's add them in here
-    for option in 1 2 3 4 5 6 7 8 9
-    do
-	(eval echo '$X_DRIVER_OPTION'$option) |
-	while read name value
-	do
-	    if [ -n "$name" ] ; then echo -e "\tOption \"$name\" \"$value\"" >> /tmp/x_Device ; fi
-	done
-    done
-}
-
-keyboard_extras ()
-{
-    # Keymaps etc. go in here (allow for older settings)
-    if [ ! -z "$KEYBOARD_DEVICE" ] ; then echo -e "\tOption \t\"Device\" \"$KEYBOARD_DEVICE\"" >> /tmp/x_Keyboard ; fi
-    if [ ! -z "$KEYBOARD_AUTOREPEAT" ] ; then echo -e "\tOption \t\"AutoRepeat\" \"$KEYBOARD_AUTOREPEAT\"" >> /tmp/x_Keyboard ; fi
-    if [ ! -z "$XKEYBOARD" ] ; then
-	echo 'Section "InputClass"' > /etc/X11/xorg.conf.d/00-keyboard.conf
-	echo '	Identifier	"Keyboard Defaults"' >> /etc/X11/xorg.conf.d/00-keyboard.conf
-	echo '	MatchIsKeyboard	"on"' >> /etc/X11/xorg.conf.d/00-keyboard.conf
-	echo "	Option		\"XkbLayout\"	\"$XKEYBOARD\""  >> /etc/X11/xorg.conf.d/00-keyboard.conf
-	if [ ! -z "$XKBMODEL" ]; then
-		echo "	Option \"XkbModel\"	\"$XKBMODEL\"" >> /etc/X11/xorg.conf.d/00-keyboard.conf
-	fi
-	if [ ! -z "$XKBVARIANT" ]; then
-                echo "  Option \"XkbVariant\"     \"$XKBVARIANT\"" >> /etc/X11/xorg.conf.d/00-keyboard.conf
-        fi
-	if [ ! -z "$XKBOPTIONS" ]; then
-                echo "  Option \"XkbOptions\"     \"$XKBOPTIONS\"" >> /etc/X11/xorg.conf.d/00-keyboard.conf
-        fi
-	echo 'EndSection'  >> /etc/X11/xorg.conf.d/00-keyboard.conf
-    fi
-}
-
-mouse_extras ()
-{
-    # Mouse specific parameters go in here (allow for older settings)
-    if [ ! -z "$MOUSE_PROTOCOL" ] ; then echo -e "\tOption \t\"Protocol\" \"$MOUSE_PROTOCOL\"" >> /tmp/x_Mouse ; fi
-    if [ ! -z "$MOUSE_DEVICE" ] ; then echo -e "\tOption \t\"Device\" \"$MOUSE_DEVICE\"" >> /tmp/x_Mouse ; fi
-    if [ ! -z "$MOUSE_RESOLUTION" ] ; then echo -e "\tOption \t\"Resolution\" \"$MOUSE_RESOLUTION\"" >> /tmp/x_Mouse ; fi
-}
-
-monitor_extras ()
-{
-    # Modelines go in the Monitor section
-    if [ -n "$X_MONITOR_MODELINE" ] ; then
-	echo -e "\tModeLine $X_MONITOR_MODELINE" >> /tmp/x_Monitor
-    fi
-    for option in 1 2 3 4 5 6 7 8 9
-    do
-	ml=`eval echo '$X_MONITOR_MODELINE'$option`
-	if [ -n "$ml" ] ; then echo -e "\tModeLine $ml" >> /tmp/x_Monitor ; fi
-    done
-
-    # HORIZSYNC and VERTREFRESH also go in the Monitor section
-    if [ ! -z "$SCREEN_HORIZSYNC" ] ; then echo -e "\tHorizSync $SCREEN_HORIZSYNC" >> /tmp/x_Monitor ; fi
-    if [ ! -z "$SCREEN_VERTREFRESH" ] ; then echo -e "\tVertRefresh $SCREEN_VERTREFRESH" >> /tmp/x_Monitor ; fi
-}
-
-serverflags_extras ()
-{
-    # ServerFlags (allow for older settings)
-    if [ ! -z "$SCREEN_BLANK_TIME" ] ; then echo -e "\tOption \t\"BlankTime\" \""$SCREEN_BLANK_TIME"\"" >> /tmp/x_ServerFlags ; fi
-    if [ ! -z "$SCREEN_STANDBY_TIME" ] ; then echo -e "\tOption \t\"StandbyTime\" \""$SCREEN_STANDBY_TIME"\"" >> /tmp/x_ServerFlags ; fi
-    if [ ! -z "$SCREEN_SUSPEND_TIME" ] ; then echo -e "\tOption \t\"SuspendTime\" \""$SCREEN_SUSPEND_TIME"\"" >> /tmp/x_ServerFlags ; fi
-    if [ ! -z "$SCREEN_OFF_TIME" ] ; then echo -e "\tOption \t\"OffTime\" \""$SCREEN_OFF_TIME"\"" >> /tmp/x_ServerFlags ; fi
-    if [ "`make_caps x$DONT_VT_SWITCH_STATE`" == "XTRUE" ]; then echo -e "\tOption \t\"DontVTSwitch\" \"TRUE\"" >> /tmp/x_ServerFlags ; fi
-    if [ "`make_caps x$DONT_ZAP_STATE`" == "XTRUE" ]; then echo -e "\tOption \t\"DontZap\" \"TRUE\"" >> /tmp/x_ServerFlags ; fi
-}
-
-xorg_autoconfig ()
-{
-    if [ ! -e $X_AUTO ] ; then
-        Xorg -configure >/var/log/x.config.log 2>&1
-	if [ ! -e $X_AUTO ] ; then
-	    echo -e "\n\nError, Configuration for Xorg has failed!!!!!" >> $LOGFILE
-	    echo "Check /var/log/x.config.log for details" >> $LOGFILE
-	    sleep 2
-	    echo -e "\nTail of log file is:" >> $LOGFILE
-	    tail /var/log/x.config.log >> $LOGFILE
-	    echo -e "\n" >> $LOGFILE
-	    sleep 2
-	    return 1;
-	fi
-    fi
-
-    # Checks for and configures dual head support
-    if [ "$DUALHEAD" == "ENABLED" ] ; then
-	echo -e "DUALHEAD: Enabled" >> $LOGFILE
-	# Auto configures keyboard/mouse support
-	if [ -z "$X_KEYBOARD1" ] ; then
-	    ls /dev/input/event* > /tmp/devices
-	    if [ -s /tmp/devices ] ; then
-		(cat /tmp/devices) |
-		while read device
-		do
-		    if [ "$devicetype" != "`evdev $device 2>&1`" ] ; then
-			devicetype=`evdev $device 2>&1`
-			if [ -z "$X_KEYBOARD1" ] ; then
-			    if echo $devicetype | grep eyboard > /dev/null ; then
-				X_KEYBOARD1=$device
-				echo "X_KEYBOARD1=$device" >> $TS_RUNTIME
-			    fi
-			elif [ -z "$X_KEYBOARD2" ] ; then
-			    if echo $devicetype | grep eyboard > /dev/null ; then
-				X_KEYBOARD2=$device
-				echo "X_KEYBOARD2=$device" >> $TS_RUNTIME
-			    fi
-			fi
-			if [ -z "$X_MOUSE1" ] ; then
-			    if echo $devicetype | grep ouse > /dev/null ; then
-				X_MOUSE1=$device
-				echo "X_MOUSE1=$device" >> $TS_RUNTIME
-			    fi
-			elif [ -z "$X_MOUSE2" ] ; then
-			    if echo $devicetype | grep ouse > /dev/null ; then
-				X_MOUSE2=$device
-				echo "X_MOUSE2=$device" >> $TS_RUNTIME
-			    fi
-			fi
-		    fi
-		done
-	    fi
-	     rm /tmp/devices
-	fi
-
-	. $TS_RUNTIME
-	if [ -z "$X_MOUSE1" ] ; then
-	    echo_log "Dual Head session aborted, no 1st mouse found"
-	    DUALHEAD=""
-	fi
-	if [ -z "$X_MOUSE2" ] ; then
-	    echo_log "Dual Head session aborted, no 2nd mouse found"
-	    DUALHEAD=""
-	fi
-	if [ -z "$X_KEYBOARD1" ] ; then
-	    echo_log "Dual Head session aborted, no 1st keyboard found"
-	    DUALHEAD=""
-	fi
-	if [ -z "$X_KEYBOARD2" ] ; then
-	    echo_log "Dual Head session aborted, no 2nd keyboard found"
-	    DUALHEAD=""
-	fi
-	if [ -n "$DUALHEAD" ] ; then
-	    if [ ! -z "$POSITION" ] && [ "$POSITION" -ge "2" ] ; then
-		CONFIGFILE=$X_PATH/lib/xorg/XF86Config-Xorg_Head2.tpl
-		CONFIGSERVER=$CONFIGFILE
-		MOUSE_DEVICE=$X_MOUSE2
-	    else
-		CONFIGFILE=$X_PATH/lib/xorg/XF86Config-Xorg_Head1.tpl
-		CONFIGSERVER=$CONFIGFILE
-		MOUSE_DEVICE=$X_MOUSE1
-	    fi
-	else
-	    CONFIGFILE=$X_AUTO
-	    CONFIGSERVER=$X_AUTO
-	fi
-    else
-	CONFIGFILE=$X_AUTO
-	CONFIGSERVER=$X_AUTO
-    fi
-
-    # For each different section type, see if we have any options defined in the config files
-    for section in ServerLayout Files InputDevice Monitor Device Modes Screen ServerFlags Dri
-    do
-	if [ "$section" == "InputDevice" ] ; then
-	    for idevice in Keyboard Mouse
-	    do
-		get_options $idevice
-	    done
-	else
-	    get_options $section
-	fi
-	case $section in
-	InputDevice)
-	    keyboard_extras
-	    mouse_extras
-	    awk "/Section \"InputDevice\"/,/EndSection/" $X_AUTO | \
-		awk '{print $0; if ( /Keyboard0/ ) system ("cat '/tmp/x_Keyboard'")}' | \
-		awk '{print $0; if ( /Mouse0/ ) system ("cat '/tmp/x_Mouse'")}' >> $X_CONFIG
-	    ;;
-	Device)
-	    device_extras
-	    # Manual Settings override autoconfig, however, if manual settings for
-	    # driver name are wrong, it will drop back to autoconfig
-	    let x=-1
-	    if [ ! -e $X_PORT ] ; then
-		echo $x > $X_PORT
-	    fi
-	    if [ -e "$X_PATH/lib/xorg/modules/drivers/$X_DRIVER_NAME"_drv.o ] ; then
-		echo "Section \"Device\"" >> $X_CONFIG
-		echo "Driver \"$X_DRIVER_NAME\"" >> $X_CONFIG
-		echo "Identifier \"Card0\"" >> $X_CONFIG
-		if [ -n "$X_DRIVER_BUSID" ] ; then echo "BusID \"$X_DRIVER_BUSID\"" >> $X_CONFIG; fi
-		cat /tmp/x_Device >> $X_CONFIG
-		echo "EndSection" >> $X_CONFIG
-	    else
-		awk "/Section \"Device\"/,/EndSection/" $X_AUTO | \
-		    awk '{print $0; if ( /Section \"Device\"/ ) system("cat '/tmp/x_Device'")}' | \
-			awk 'BEGIN {x='`cat $X_PORT`'} {print $0 ; if ( /httpdir/ ) { y=y+1; \
-			    print "\tOption  \"httpport\" \""y+x+5800"\"" }} END { print y+x > "'$X_PORT'"}' >> $X_CONFIG
-	    fi
-	    ;;
-	Monitor)
-	    monitor_extras
-	    cat $X_AUTO |  awk '/Section \"'$section'\"/,/EndSection/' | \
-		awk '{print $0; if ( /Section \"'$section'\"/ ) system ("cat '/tmp/x_$section'")}' >> $X_CONFIG
-	    ;;
-	ServerFlags)
-	    serverflags_extras
-	    stuff=`awk "/Section \"ServerFlags\"/,/EndSection/" $X_AUTO`
-	    if [ -z "$stuff" ] ; then
-		if [ -s /tmp/x_ServerFlags ] ; then
-		    echo -e "Section \"ServerFlags\"" >> $X_CONFIG
-		    cat /tmp/x_ServerFlags >> $X_CONFIG
-		    echo -e "EndSection" >> $X_CONFIG
-		fi
-	    else
-		awk "/Section \""$section"\"/,/EndSection/" $X_AUTO | \
-		    awk '{print $0; if ( /Section \"'$section'\"/ ) system ("cat '/tmp/x_$section'")}' >> $X_CONFIG
-	    fi
-	    ;;
-	ServerLayout)
-	    if [ -n "$VNC_PATH" ] ; then 
-		awk "/Section \"ServerLayout\"/,/EndSection/" $X_AUTO | \
-		    awk '{print $0; if ( /Section \"ServerLayout\"/ ) system ("cat '/tmp/x_ServerLayout'")}' | \
-			awk '{print $0; if ( /Identifier/ ) system("cat '$VNC_PATH/vnc_input.tpl'")}' >> $X_CONFIG
-		cat $VNC_PATH/vnc_keyboard.tpl >> $X_CONFIG
-	    else
-		awk "/Section \"ServerLayout\"/,/EndSection/" $X_AUTO | \
-		    awk '{print $0; if ( /Section \"ServerLayout\"/ ) system ("cat '/tmp/x_ServerLayout'")}' >> $X_CONFIG
-	    fi
-	    ;;
-	Screen)
-	    awk "/Section \""$section"\"/,/EndSection/" $X_AUTO | \
-		awk '{print $0; if ( /Section \"'$section'\"/ ) system ("cat '/tmp/x_$section'")}' \
-		    >> $X_CONFIG
-	    ;;
-	Dri)
-	    echo -e "Section \"Dri\"" >> $X_CONFIG
-	    echo -e "\tMode\t0660" >> $X_CONFIG
-	    echo -e "EndSection" >> $X_CONFIG
-	    ;;
-	*)
-	    stuff=`awk '/Section \"'$section'\"/,/EndSection/' $X_AUTO`
-	    if [ -z "$stuff" ] ; then
-		if [ -s /tmp/x_$section ] ; then
-		    echo -e "Section \""$section"\"" >> $X_CONFIG
-		    cat /tmp/x_$section >> $X_CONFIG
-		    echo -e "EndSection" >> $X_CONFIG
-		fi
-	    else
-		awk "/Section \""$section"\"/,/EndSection/" $X_AUTO | \
-		    awk '{print $0; if ( /Section \"'$section'\"/ ) system ("cat '/tmp/x_$section'")}' >> $X_CONFIG
-	    fi
-	    ;;
-	esac
-	if [ "$section" == "InputDevice" ] ; then
-	    rm /tmp/x_Keyboard
-	    rm /tmp/x_Mouse
-	else
-	    rm /tmp/x_$section
-	fi
-    done
-
-    return 0;
-}
-
-build_config ()
-{
-    # This is ONLY for XORG, so I have removed all the XVESA & XF86_SVGA stuff
-    if [ ! -e $X_CONFIG ] && is_enabled $X_PRECONFIGURE ; then
-	    # Automagically detect what X server to use
-	    if pkg_is_executable Xorg && xorg_autoconfig ;  then
-	       X_SERVER=Xorg
-	    else
-		"Can't autodetect your video card!!! Do you have one? ;)"
-		sleep 2
-	    fi
-	    echo "X_SERVER=$X_SERVER" >> $TS_RUNTIME
-    elif pkg_is_executable Xorg ; then
-	    X_SERVER=Xorg
-    fi
-}
-
-  if ! pkg_initialized $PACKAGE; then
-    pkg_set_init_flag $PACKAGE
-  fi
-  if [ ! -e /tmp/.xorg-unix/X$DISPLAY_NUMBER ]; then
+if [ ! -e /tmp/.xorg-unix/X$DISPLAY_NUMBER ]; then
 	echo "Starting $0 server" >> $LOGFILE
-
 	if [ -n "$X_COOKIE" ] ; then
 		xauth -f $XAUTHHOME/.Xauthority add :$DISPLAY_NUMBER.0 - $X_COOKIE >> $LOGFILE 2>&1
-   	fi
-	build_config
-	if [ -n "$X_SERVER" ]; then
-  	  build_command
-	  # Delay needed for dual head support
-  	  if [ "$X_SERVER" = "Xorg" ] && [ ! -z "$POSITION" ] && [ "$POSITION" -ge "2" ] ; then
-		sleep 6
-	  fi
-	  echo $X_CMD >> $LOGFILE
-	  $X_CMD >> $LOGFILE 2>&1 &
-	else
-	  echo "XSERVER variable is not defined, error!!!"
-	  echo "X aborted, starting shell instead."
-	splash_exit
-	/bin/bash
 	fi
-  fi
+	if [ -n "$X_SERVER" ]; then
+		build_command
+		echo $X_CMD >> $LOGFILE
+		$X_CMD >> $LOGFILE 2>&1 &
+	else
+		echo "XSERVER variable is not defined, error!!!"
+		echo "X aborted, starting shell instead."
+		/bin/bash
+	fi
+fi
 
 exit 0
