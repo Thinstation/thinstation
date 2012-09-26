@@ -16,8 +16,9 @@ init)
 	fi
 	CHROMEPREFS=$HOME/.config/google-chrome/Default/Preferences
 	if [ ! -e $CHROMEPREFS ] ; then
-	    CHROME_HOMEPAGE="http://www.thinstation.org"
-#	    . $TS_GLOBAL
+	    if [ -z $CHROME_HOMEPAGE ]; then
+	    	CHROME_HOMEPAGE="http://www.thinstation.org"
+	    fi
 	    let x=0
 	    # Add any configuration parameters
 	    while [ -n "`eval echo '$SESSION_'$x'_TYPE'`" ] ; do
