@@ -1399,7 +1399,7 @@ if [ -n "$missing_commands" ]; then
     exit 1
 fi
 
-required_tools="convert cryptmd5 depmod genisoimage mknbi/mkelf-linux mksquashfs smbpasswd splash vncpasswd"
+required_tools="convert cryptmd5 depmod genisoimage mksquashfs smbpasswd splash vncpasswd"
 for tool in $required_tools ; do
     if [ ! -x "$TOOLSDIR/$tool" ]; then missing_tools="$missing_tools $TOOLSDIR/$tool"; fi
 done
@@ -1659,16 +1659,6 @@ if [ -z "$NOIMAGES" ] ; then
  do
   echo -e "\nMaking boot image for $image Type....\n"
   case $image in
-  loadlin)
-    IMAGEDIR=boot-images/loadlin
-    cat $IMAGEDIR/ts.bat.tpl | sed -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS LM=1/g"> $IMAGEDIR/ts.bat
-    rm -f $IMAGEDIR/vmlinuz*
-    cp $INITDIR/vmlinuz* $IMAGEDIR
-    cp -p $INITDIR/initrd $IMAGEDIR
-    cp $INITDIR/image.md5 $IMAGEDIR
-    image_fastboot
-    addpkgs $IMAGEDIR
-    ;;
   syslinux)
     IMAGEDIR=boot-images/syslinux
     if [ -e boot-images/initrd/syslinux.files ]; then
@@ -1754,10 +1744,6 @@ if [ -z "$NOIMAGES" ] ; then
       done
     fi
     ;;
-  nbi)
-    IMAGEDIR=boot-images/etherboot
-    $TOOLSDIR/mknbi/mkelf-linux --relocseg=0x8000 --format=nbi --rootdir=/dev/ram0  --append="ramdisk_blocksize=4096 $KERNEL_PARAMETERS LM=5 dumbcon=4" --target=linux --output=$IMAGEDIR/thinstation.nbi $INITDIR/vmlinuz* $INITDIR/initrd $INITDIR/lib.squash
-     ;;
   esac
  done
 fi
