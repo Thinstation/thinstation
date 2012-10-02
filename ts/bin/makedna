@@ -23,33 +23,33 @@ makeblacklists()
 	neverversioned=".xpm .conf .pcf .spd .pfa .afm .pfb .py .pyc .pyo .dll .def .fon .exe"
 	neverupdate="prefoverride preferences gtkrc dependencies fonts.alias securetty profile services passwd nsswitch.conf fstab group protocols ld.so.conf inittab"
 	nudir="TS.default init.d console build/install build/remove build/conf cmd menu"
-	for i in $neverversioned ;
+	for extension in $neverversioned;
 		do
-			echo $i >>neverversioned
+			echo $extension >> neverversioned
 		done
-	for i in $neverupdate ;
+	for nu_file in $neverupdate;
 		do
-			echo $i >>neverupdate
+			echo $nu_file >> neverupdate
 		done
-	for i in $nudir ;
+	for nu_dir in $nudir;
 		do
-			echo $i >>nudir
+			echo $nu_dir >> nudir
 		done
 }
 
 cleanup()
 {
-	for i in neverversioned neverupdate nudir ;
+	for blacklist in neverversioned neverupdate nudir;
 		do
-			if [ -e $i ] ; then
-				rm $i
+			if [ -e $blacklist ]; then
+				rm $blacklist
 			fi
 		done
 }
 
 getfootprints()
 {
-	if [ "$footprints" == "" ] ;
+	if [ "$footprints" == "" ];
 		then
 			footprints="`find -L /{usr/ports,ts/ports} -name .footprint`"
 	fi
@@ -57,7 +57,7 @@ getfootprints()
 
 getfiles()
 {
-	files=`find $dir/ -type f -printf "\n%f'%h" 2>/dev/null`
+	files=`find $dir/ -type f -printf "\n%f'%h" 2>/dev/null |grep -v .gitignore`
 }
 
 getparts()
@@ -78,22 +78,23 @@ getlinks()
 {
 	unset link[@]
 	index=0
-	if [ "$loc" == "" ] ;
+	if [ "$loc" == "" ];
 		then
 			term="$dir/$file"
 		else
 			term="$dir/$loc/$file"
 	fi
-	for i in `find -L $dir -samefile $term 2>/dev/null |grep -w -v "$term"`
+	for i in `find -L $dir -samefile $term 2>/dev/null |grep -w -v "$term"`;
 		do
 			link[$index]=`echo $i |cut -d / -f3-`
-			if [ "${link[$index]}" == "$loc/$file" ] ; then
-				unset link[$index]
-			else
-				index=$(( $index + 1 ))
+			if [ "${link[$index]}" == "$loc/$file" ];
+				then
+					unset link[$index]
+				else
+					index=$(( $index + 1 ))
 			fi
 		done
-	if [ "${#link[@]}" -gt "9" ] ;
+	if [ "${#link[@]}" -gt "9" ];
 		then
 			echo "Needs ${#link[@]} links."
 			echo "There are to many links for $file. Not using any of them."
@@ -105,58 +106,59 @@ getpackage()
 {
 	unset packf[@]
 	index=0
-	for l in `prt-get fsearch $file |grep -w -e Found |cut -d / -f5 |cut -d : -f1` ; 
-		do 
+	for l in `prt-get fsearch $file |grep -w -e Found |cut -d / -f5 |cut -d : -f1`;
+		do
 			packf[$index]=$l
 			index=$(( $index + 1 ))
 		done
-	if [ "${#packf[@]}" -lt "1" ] && [ "$versioned" == "1" ] ;
+	if [ "${#packf[@]}" -lt "1" ] && [ "$versioned" == "1" ];
 		then
 			echo "Fast Search didn't find anything, doing the slow one."
 			version $file
 			getfootprints
-			for l in $footprints ; 
+			for l in $footprints;
 				do
-					if [ "`cat $l |grep -e $prefix |grep -e $suffix |grep -v lrwx`" != "" ] ;
+					if [ "`cat $l |grep -e $prefix |grep -e $suffix |grep -v lrwx`" != "" ];
 						then
-							packf[$index]="`echo $l |cut -d / -f5`" 
+							packf[$index]="`echo $l |cut -d / -f5`"
 							index=$(( $index + 1 ))
 					fi
 				done
 	fi
 	if [ "${#packf[@]}" -gt "1" ] && [ "$override" == "" ];
-		then 
+		then
 			index=$(( $index + 1 ))
 			packf[$index]="other"
 			index=$(( $index + 1 ))
 			packf[$index]="none"
 			echo -e "\nThe file $loc/$file was found in the following src packges.\nWhat is the number of the src pkg you would like to use?"
-			select i in ${packf[@]} ;
+			select i in ${packf[@]};
 				do
 					echo -e "\n"
 					srcpkg=$i
 					break
 				done
 		else
-			if [ "${#packf[@]}" == "1" ] ;
+			if [ "${#packf[@]}" == "1" ];
 				then
 					srcpkg=${packf[0]}
-			else
-				srcpkg=""
+				else
+					srcpkg=""
 			fi
 	fi
-	if [ "$override" != "" ] ;
-		then srcpkg=$override
+	if [ "$override" != "" ];
+		then
+			srcpkg=$override
 	fi
-	if [ "$srcpkg" == "other" ] ;
+	if [ "$srcpkg" == "other" ];
 		then
 			read -p "What is the name of the source package you would like to use? " srcpkg
 	fi
-	if [ "$srcpkg" == "none" ] ;
+	if [ "$srcpkg" == "none" ];
 		then
 			srcpkg=""
 	fi
-	if [ "$srcpkg" == "" ] ;
+	if [ "$srcpkg" == "" ];
 		then
 			echo -e "There is no source package for $loc/$file."
 		else
@@ -166,19 +168,19 @@ getpackage()
 
 isversioned()
 {
-	if [ `echo $file| grep -v -f neverversioned |grep -o -e [2-9] |wc -l` -gt "1" ] ;
-		then while true ;
+	if [ `echo $file| grep -v -f neverversioned |grep -o -e [2-9] |wc -l` -gt "1" ];
+		then while true;
 			do
 				echo -e "\n"
-				read -p "Is $file versioned? " yn ;
+				read -p "Is $file versioned? " yn;
 				case $yn in
-					[Yy]* )
+					[Yy]*)
 						getversion
 						break;;
-					[Nn]* )
+					[Nn]*)
 						noversion
 						break;;
-					* ) 
+					*)
 						echo "Please answer yes or no."
 						sleep 3;;
 				esac
@@ -205,7 +207,7 @@ getversion()
 	read -p "what is the ending posistion of the version? (default is last)  " tail
 	local total=`echo $file |wc -m`
 	total=$(( $total - 1 ))
-	if [ "$tail" = "" ] ;
+	if [ "$tail" = "" ];
 		then
 			tail="0"
 		else
@@ -217,9 +219,9 @@ getversion()
 
 isdeleteable()
 {
-	if [ "`echo $loc| grep -c -e etc`" == "0" ] && [ "`echo $loc| grep -c -e bin`" == "0" ] ;
+	if [ "`echo $loc| grep -c -e etc`" == "0" ] && [ "`echo $loc| grep -c -e bin`" == "0" ];
 		then
-			if [ "$srcpkg" == "" ] ;
+			if [ "$srcpkg" == "" ];
 				then
 					delete="0"
 					return 0
@@ -228,9 +230,9 @@ isdeleteable()
 					return 0
 			fi
 	fi
-	if [ "`file $dir/$loc/$file |grep -c -e ELF`" != "0" ] ;
+	if [ "`file $dir/$loc/$file |grep -c -e ELF`" != "0" ];
 		then
-			if [ "$srcpkg" == "" ] ;
+			if [ "$srcpkg" == "" ];
 				then
 					delete="0"
 					return 0
@@ -239,32 +241,32 @@ isdeleteable()
 					return 0
 			fi
 	fi
-	if [ "`cat $dir/$loc/$file |grep -c -e TS_GLOBAL`" != "0" ] ;
+	if [ "`cat $dir/$loc/$file |grep -c -e TS_GLOBAL`" != "0" ];
 		then
 			echo -e "\nFile $loc/$file is not updatable. Removing source package."
 			srcpkg=""
 			delete=0
 			return 0
 	fi
-	if [ "$srcpkg" == "" ] ;
+	if [ "$srcpkg" == "" ];
 		then
 			delete=0
 			return 0
 	fi
-	while true ;
+	while true;
 		do
 			echo -e "\n"
 			read -p "Can $loc/$file be removed during update? " yn
 			case $yn in
-				[Yy]* )
+				[Yy]*)
 					delete=1
 					break ;;
-				[Nn]* )
+				[Nn]*)
 					delete=0
 					srcpkg=""
 					echo -e "\nSource Package removed for $loc/$file. It will not be updated."
 					break ;;
-				* ) 
+				*)
 					echo "Please answer yes or no."
 					;;
 			esac
@@ -276,15 +278,15 @@ version()
 	local total=`echo $1 |wc -m`
 	local hhead=$(( $head + 1 ))
 	local ttail=""
-	if [ "$head" == "0" -a "$tail" == "0" ] ;
+	if [ "$head" == "0" -a "$tail" == "0" ];
 		then
 			prefix=$1
 			version=""
 			suffix=""
 		else
 			prefix=`echo $1|cut -c -$head`
-			if [ "$tail" = "0" ] ; 
-				then 
+			if [ "$tail" = "0" ];
+				then
 					version=`echo $1|cut -c $hhead-`
 					suffix=""
 				else
@@ -300,60 +302,70 @@ init()
 {
 	package=$1
 	override=$2
-	if [ "$package" == "" -o "$package" == "--help" ] ; then
-		showhelp
-		exit
-	elif [ "$package" == "tools" ] ;then
-		dir=utils/tools
-	elif [ "$package" == "boot-images" ] ;then
-		dir=boot-images
-	else
-		dir=packages/$package
+	if [ "$package" == "" -o "$package" == "--help" ];
+		then
+			showhelp
+			exit
+		elif [ "$package" == "tools" ];
+			then
+				dir=utils/tools
+		elif [ "$package" == "boot-images" ];
+			then
+				dir=boot-images
+		else
+			dir=packages/$package
 	fi
 	cd $TSWRKNG
-	if [ ! -e $dir ] ; then
-		echo -e "\nThe package '$package' was not found.\n\n"
-		showhelp
-		exit
+	if [ ! -e $dir ];
+		then
+			echo -e "\nThe package '$package' was not found.\n\n"
+			showhelp
+			exit
 	fi
-	if [ -f $dir/.dna ] ; then
-		rm $dir/.dna
+	if [ -f $dir/.dna ];
+		then
+			rm $dir/.dna
 	fi
 }
+
 main()
 {
-	if [ "$package" == "tools" -o "$package" == "gnome-media" ] || [ "$package" == "boot-images" ]; then
-		touch neverversioned
-		touch neverupdate
-		touch nudir
-	else
-		makeblacklists
+	if [ "$package" == "tools" ] || [ "$package" == "boot-images" ];
+		then
+			touch neverversioned
+			touch neverupdate
+			touch nudir
+		else
+			makeblacklists
 	fi
 	getfiles
-	for i in $files ; do
-		getparts $i
-		if [ $(echo "$file" |grep -c -f neverupdate) != 0 -o $(echo "$loc" |grep -w -c -f nudir) != 0 ] || \
-		   [ $(cat "$dir/$loc/$file" |grep -c -e TS_GLOBAL) != 0 -o $(echo "$loc/$file" |grep -w -c -f nudir) != 0 ] ; then
-			srcpkg=""
-			head="0"
-			tail="0"
-			delete="0"
-			unset link[@]
-		elif [ ! -s $dir/$loc/$file ] ; then
-                        srcpkg="EMPTY"
-                        head="0"
-                        tail="0"
-                        delete="1"
-			getlinks
-		else
-			echo -e "\nFound file $loc/$file. Attempting to configure dna! \n"
-			getlinks
-			isversioned
-			getpackage
-			isdeleteable
+	for i in $files;
+		do
+			getparts $i
+			if [ $(echo "$file" |grep -c -f neverupdate) != 0 -o $(echo "$loc" |grep -w -c -f nudir) != 0 ] || \
+		   	[ $(cat "$dir/$loc/$file" |grep -c -e TS_GLOBAL) != 0 -o $(echo "$loc/$file" |grep -w -c -f nudir) != 0 ];
+				then
+					srcpkg=""
+					head="0"
+					tail="0"
+					delete="0"
+					unset link[@]
+				elif [ ! -s $dir/$loc/$file ];
+					then
+						srcpkg="EMPTY"
+						head="0"
+						tail="0"
+						delete="1"
+						getlinks
+				else
+					echo -e "\nFound file $loc/$file. Attempting to configure dna! \n"
+					getlinks
+					isversioned
+					getpackage
+					isdeleteable
 		fi
-		echo "$srcpkg,$file,$head,$tail,$loc,$delete,${link[0]},${link[1]},${link[2]},${link[3]},${link[4]},${link[5]},${link[6]},${link[7]},${link[8]}" >>$dir/.dna
-	done ;
+		echo "$srcpkg,$file,$head,$tail,$loc,$delete,${link[0]},${link[1]},${link[2]},${link[3]},${link[4]},${link[5]},${link[6]},${link[7]},${link[8]}" >> $dir/.dna
+	done
 	cleanup
 }
 

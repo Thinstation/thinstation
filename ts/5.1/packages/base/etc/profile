@@ -2,9 +2,12 @@
 
 . /etc/thinstation.global
 
-for file in `ls -A /etc/skel`; do
-	cp -a /etc/skel/$file $HOME/.
-done
+if ! pkg_initialized home; then
+    pkg_set_init_flag home
+    for file in `ls -A /etc/skel`; do
+	cp -a /etc/skel/$file $HOME/. 2>/dev/null
+    done
+fi
 
 umask 022
 alias ll='ls -l'

@@ -1,0 +1,16 @@
+# Description: A set of interfaces for accessibility
+# URL: http://www.gtk.org/
+# Maintainer: Tilman Sauerbeck, tilman at crux dot nu
+# Depends on: glib
+
+name=gtk-doc
+version=1.18
+release=1
+source=(http://ftp.gnome.org/pub/GNOME/sources/gtk-doc/1.18/$name-$version.tar.bz2)
+
+build () {
+	cd $name-$version
+	./configure --prefix=/usr --disable-scrollkeeper
+	make
+	make DESTDIR=$PKG install
+}

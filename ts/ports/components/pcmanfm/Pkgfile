@@ -1,0 +1,20 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=pcmanfm
+version=git
+release=1
+source=()
+
+build() {
+git clone --depth 1 git://pcmanfm.git.sourceforge.net/gitroot/pcmanfm/pcmanfm
+	cd $name
+	./autogen.sh
+	./configure --prefix=/usr \
+			--disable-nls
+
+	make
+	make DESTDIR=$PKG install
+	rm -rf $PKG/usr/share/locale
+}

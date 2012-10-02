@@ -1,0 +1,22 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=mtpaint
+version=3.40
+release=1
+source=(http://downloads.sourceforge.net/project/mtpaint/mtpaint/$version/mtpaint-$version.tar.bz2)
+
+build() {
+	cd $name-$version
+
+	./configure --prefix=/ \
+			--exec-prefix=/ \
+			--sysconfdir=/etc \
+			--libexecdir=/lib \
+			--mandir=/usr/man \
+			--disable-extras
+
+	make
+	make DESTDIR=$PKG install
+}
