@@ -105,10 +105,10 @@ lib_dependencies()
     while [ -s liblist.final ]; do
       (cat liblist.final ) |
       while read filename; do
-        (ldd $filename 2>/dev/null |grep -v "not a dynamic executable" |grep -v linux-gate |grep -v statically |cut -d= -f1 ) |
-        while read libname; do
+        (ldd $filename 2>/dev/null |grep -v "not a dynamic executable" |grep -v linux-gate |grep -v statically) |
+        while read libname trash libloc; do
           libfile=`basename $libname`
-          if ! lib_in_path $libfile && [ ! -e $pkgname/lib/$libfile ]; then
+          if ! lib_in_path $libfile && [ -z "`echo $libloc | grep $pkgname`" ] && [ ! -e $pkgname/lib/$libfile ]; then
             libsource="`prt-get fsearch $libfile |grep -v Found |cut -d " " -f3 |head -n1`"
             if [ -n "$libsource" ] && [ -e $libsource ]; then
               echo "Adding $libfile dependency in `basename $pkgname` for `basename $filename`"
@@ -256,7 +256,7 @@ make_initrd()
 		done
 	fi
 	if [ "$ts_initrdcmd" == "squashfs" ]; then
-		../utils/tools/mksquashfs . ../$INITDIR/initrd -always-use-fragments -no-recovery -no-exports -no-xattrs -noappend
+		../utils/tools/mksquashfs . ../$INITDIR/initrd -comp xz -always-use-fragments -no-recovery -no-exports -no-xattrs -noappend
 	elif [ "$ts_initrdcmd" == "none" -o "$ts_initrdcmd" == "" ]; then
 		find . -print0 | cpio --null -oV --format=newc > ../$INITDIR/initrd
 	else find . -print0 | cpio --null -oV --format=newc | $ts_initrdcmd > ../$INITDIR/initrd
@@ -1579,7 +1579,7 @@ else
 //g' ../"$BUILDTIME" >> ../tmp-tree/thinstation.buildtime
 		. ../$INITDIR/kernel_parameters
 		if [ "$ts_initrdcmd" == "squashfs" ]; then
-		    ../utils/tools/mksquashfs . ../$INITDIR/initrd -always-use-fragments -no-recovery -no-exports -no-xattrs
+		    ../utils/tools/mksquashfs . ../$INITDIR/initrd -comp xz -always-use-fragments -no-recovery -no-exports -no-xattrs
 		elif [ "$ts_initrdcmd" == "none" -o "$ts_initrdcmd" == "" ]; then
 			find . -print0 | cpio --null -oV --format=newc > ../$INITDIR/initrd
 		else
