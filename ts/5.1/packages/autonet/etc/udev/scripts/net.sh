@@ -154,7 +154,7 @@ if [ "$DEVTYPE" != "wlan" ] ;then
 	LINKTOLERANCECOUNTER=0
 	while [ $LINKTOLERANCECOUNTER -lt $NET_LINKWAIT ]; do
 		link="`cat /sys/class/net/$INTERFACE/carrier`"
-                echo ":${SUBSYSTEM}:${ACTION}:${DEVTYPE}:${INTERFACE}:link status ${link}:${ID_BUS}:" >>/var/log/udev-lanlink
+#                echo ":${SUBSYSTEM}:${ACTION}:${DEVTYPE}:${INTERFACE}:link status ${link}:${ID_BUS}:" >>/var/log/udev-lanlink
 		if [ "$link" == "1" ]; then
 			LINKTOLERANCECOUNTER=$NET_LINKWAIT
                 else

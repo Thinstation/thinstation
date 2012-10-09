@@ -3,11 +3,11 @@
 # Mount Hotplug Device
 #
 
-echo "1 $DEVPATH" >> /var/log/scsi
-echo "2 $ACTION" >> /var/log/scsi
-echo "3 $ID_BUS" >> /var/log/scsi
-echo "4 $ID_FS_TYPE" >> /var/log/scsi
-echo "4 $ID_CDROM_MEDIA" >> /var/log/scsi
+#echo "1 $DEVPATH" >> /var/log/scsi
+#echo "2 $ACTION" >> /var/log/scsi
+#echo "3 $ID_BUS" >> /var/log/scsi
+#echo "4 $ID_FS_TYPE" >> /var/log/scsi
+#echo "4 $ID_CDROM_MEDIA" >> /var/log/scsi
 
 devpath=`basename $DEVPATH`
 name=`echo $devpath | sed -e "s/[0-9]*//g"`

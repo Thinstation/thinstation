@@ -1,6 +1,5 @@
 #! /bin/sh
-. /etc/thinstation.env
-. $TS_GLOBAL
+. /etc/thinstation.global
 
 if [ -z "$INTERFACE" ]; then
 	echo "No interface specfied"
@@ -31,7 +30,7 @@ case $1 in
 		echo "CLIENT_IP=$ip" >> /var/log/net/$INTERFACE
                 echo "SUBNET=$subnet" >> /var/log/net/$INTERFACE
                 echo "boot_file=$boot_file" >> /var/log/net/$INTERFACE
-		env >> /var/log/lease_dhcp
+#		env >> /var/log/lease_dhcp
 #		echo "local-pac-server=$local-pac-server" >> /var/log/net/$INTERFACE
 		if [ -n "$siaddr" ] ; then
                         SERVER_IP=$siaddr

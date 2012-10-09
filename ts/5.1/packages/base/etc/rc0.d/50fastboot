@@ -71,6 +71,7 @@ if [ "$LM" == "3" ]; then
 			done
 			let progress=OLDPROGRESS+100
 			splash_progress
+			rm -rf /var/log/wget_progress
 		else
 			OLDPROGRESS=$progress
 			while [ "$WPROGRESS" != "100" ] && [ ! -z "`pidof wget`" ]; do
@@ -82,6 +83,7 @@ if [ "$LM" == "3" ]; then
 			done
 			let progress=OLDPROGRESS+100
 			splash_progress
+			rm -rf /var/log/wget_progress
 		fi
 	else
 		squash_server=`dirname $boot_file`
@@ -103,6 +105,7 @@ if [ "$LM" == "3" ]; then
 		done
 		let progress=OLDPROGRESS+100
 		splash_progress
+		rm -rf /var/log/tftp_progress
 	fi
 fi
 
@@ -129,6 +132,7 @@ if [ "$FASTBOOT" == "lotsofmem" ] ; then
 	done
 	let progress=OLDPROGRESS+100
 	splash_progress
+	rm -rf /var/log/expand_progress
 	if [ -e /tmp/lib.squash ] ; then
 		rm /tmp/lib.squash
 	fi
