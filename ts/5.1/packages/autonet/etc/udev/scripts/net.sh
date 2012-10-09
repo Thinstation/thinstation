@@ -1,6 +1,6 @@
 #!/bin/sh
+. /etc/thinstation.global
 
-. $TS_GLOBAL
 if [ -z "$INTERFACE" ];then
 	echo_log "No interface specified"
 	exit
@@ -9,7 +9,6 @@ if echo $INTERFACE |grep -e tun[0-9] ; then
 	echo_log "Tunnel Interface - Defering to master"
 	exit
 fi
-. /etc/thinstation.global
 if [ -e /var/log/net/$INTERFACE ]; then
 	. /var/log/net/$INTERFACE
 	echo_log "Read a config file for $INTERFACE"

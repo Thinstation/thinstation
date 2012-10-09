@@ -1,4 +1,4 @@
-#! /bin/sh
+#! /bin/bash
 
 . $TS_GLOBAL
 PID=$$
@@ -74,15 +74,10 @@ ck_wrapper()
 
 run_command()
 {
-   echo $CMD > /tmp/CMD$PID
-   if [ -e /tmp/CMD$PID ] ; then
 	if is_enabled $LOG_COMMANDS ; then
-	        cat /tmp/CMD$PID >> $APPLOG
+		echo "$CMD" >> $APPLOG
 	fi
-        . /tmp/CMD$PID >> $APPLOG 2>&1 &
-        sleep .5
-        rm /tmp/CMD$PID
-   fi
+	. $CMD &
 }
 
 case "$1" in
@@ -134,7 +129,8 @@ window|fullscreen)
     fi
     x_get_ip
     order_command
-    CMD='$'CMD_`make_caps $1`' '$ORDERED_COMMAND
+    MODE=`make_caps $1`
+    CMD=`eval echo '$'CMD_$MODE`' '$ORDERED_COMMAND
     run_command
     ;;
 help)

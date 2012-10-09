@@ -1358,7 +1358,8 @@ chroot ./tmp-tree /bin/busybox --install -s
 if [ -e ./tmp-tree/finalize ]; then
   echo -e "\tRunning Finalize\n"
   mount --bind /dev ./tmp-tree/dev
-  cat ./tmp-tree/finalize/* > ./tmp-tree/build.finalize
+  echo ". /etc/thinstation.global" > ./tmp-tree/build.finalize
+  cat ./tmp-tree/finalize/* >> ./tmp-tree/build.finalize
   chroot ./tmp-tree /bin/sh /build.finalize
   while fuser ./tmp-tree ; do
 	sleep .1

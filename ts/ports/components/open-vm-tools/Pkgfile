@@ -3,10 +3,10 @@
 # Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 
 name=open-vm-tools
-version=2012.05.21-724730
-kver=3.4.5
+version=9.2.0-799703
+kver=3.6.1
 release=1
-source=(http://downloads.sourceforge.net/project/$name/$name/${version%-*}/${name}-$version.tar.gz
+source=(http://downloads.sourceforge.net/project/$name/$name/stable-9.2.x/${name}-$version.tar.gz
 ftp://ftp.kernel.org/pub/linux/kernel/v3.x/linux-$kver.tar.bz2
 	/ts/ports/components/kernel-TS_SMP/ts.config)
 
@@ -31,11 +31,12 @@ build() {
 			--with-linuxdir=$SRC/linux-$kver \
 			--disable-docs \
 			--with-gtkmm \
-			--without-pam
+			--without-pam \
+			--without-kernel-modules
 
 	make
 	make DESTDIR=$PKG install
-	mkdir -p $PKG/lib/modules/$kver-TS_SMP
-	mv $PKG/$SRC/linux-$kver/kernel $PKG/lib/modules/$kver-TS_SMP/.
+#	mkdir -p $PKG/lib/modules/$kver-TS_SMP
+#	mv $PKG/$SRC/linux-$kver/kernel $PKG/lib/modules/$kver-TS_SMP/.
 	rm -rf $PKG/{ts,share,include} $PKG/lib/{*.a,*.la,pkgconfig} $PKG/lib/open-vm-tools/plugins/common/*.la $PKG/etc/pam.d
 }

@@ -14,7 +14,6 @@
 # Short-Description:	Runs the open-vm-tools services
 ### END INIT INFO
 
-. /etc/thinstation.env
 . $TS_GLOBAL
 
 vmxnet_needed ()
@@ -25,11 +24,13 @@ vmxnet_needed ()
 	do
 		if grep -q 15ad ${DEVICE}/vendor && grep -q 0720 ${DEVICE}/device
 		then
+			INTERFACE=`ls --color=never ${DEVICE}/net`
 			return 0
 		fi
 
 		if [ "${HWVERSION}" -ge "4" ] && grep -q 1022 ${DEVICE}/vendor && grep -q 2000 ${DEVICE}/device
 		then
+			INTERFACE=`ls --color=never ${DEVICE}/net`
 			return 0
 		fi
 	done
@@ -65,15 +66,18 @@ case "${1}" in
 		mkdir -m 1777 /tmp/VMwareDnD
 		mount -t vmblock none /proc/fs/vmblock/mountPoint
 
-		echo_log "Loading open-vm-tools modules"
-		echo_log "vmhgfs"; modprobe vmhgfs
+#		echo_log "Loading open-vm-tools modules"
+#		echo_log "vmhgfs"; modprobe vmhgfs
 #		echo_log "vmmemctl"; modprobe vmmemctl
-		echo_log "vmsync"; modprobe vmsync
-		echo_log "vmci"; modprobe vmci
-		echo_log "vsock"; modprobe vsock
+#		echo_log "vmsync"; modprobe vmsync
+#		echo_log "vmci"; modprobe vmci
+#		echo_log "vsock"; modprobe vsock
 
 		if vmxnet_found && vmxnet_needed
 		then
+			if [ -e /etc/udev/scripts/net.sh ]; then
+				. /etc/udev/scripts/net.sh ACTION=remove
+			fi
 			modprobe -r pcnet32
 			modprobe vmxnet
 		fi
@@ -103,6 +107,9 @@ case "${1}" in
 
 		if vmxnet_found && vmxnet_needed
 		then
+			if [ -e /etc/udev/scripts/net.sh ]; then
+				. /etc/udev/scripts/net.sh ACTION=remove
+			fi
 			modprobe -r vmxnet
 			modprobe pcnet32
 		fi
