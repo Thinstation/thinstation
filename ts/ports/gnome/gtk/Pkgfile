@@ -15,7 +15,12 @@ build () {
 
 #	patch -p1 -i $SRC/old-icon-symlinks.patch
 
-	./configure --prefix=/usr --mandir=/usr/man --enable-debug=no
+	./configure	--prefix=/usr \
+			--mandir=/usr/man \
+			--enable-debug \
+			--enable-introspection=no \
+			--with-xinput=xfree
+
 	make
 	make DESTDIR=$PKG install
 	mkdir -p $PKG/usr/etc/gtk-2.0

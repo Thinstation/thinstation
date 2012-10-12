@@ -256,7 +256,7 @@ make_initrd()
 		done
 	fi
 	if [ "$ts_initrdcmd" == "squashfs" ]; then
-		../utils/tools/mksquashfs . ../$INITDIR/initrd -comp xz -always-use-fragments -no-recovery -no-exports -no-xattrs -noappend
+		../utils/tools/mksquashfs . ../$INITDIR/initrd $ts_squashopt -always-use-fragments -no-recovery -no-exports -no-xattrs -noappend
 	elif [ "$ts_initrdcmd" == "none" -o "$ts_initrdcmd" == "" ]; then
 		find . -print0 | cpio --null -oV --format=newc > ../$INITDIR/initrd
 	else find . -print0 | cpio --null -oV --format=newc | $ts_initrdcmd > ../$INITDIR/initrd
@@ -1296,12 +1296,8 @@ echo -e "Running File System Fixups"
 echo "TS_VERSION=$TSVER" >> ./tmp-tree/etc/thinstation.env
 if [ -e ./tmp-tree/etc/icewm/toolbar ]; then
 	echo -e "\tFixing IceWM toolbar"
-	cat ./tmp-tree/etc/icewm/toolbar |sed -e "s/\$XTERM_CMD/$XTERM_CMD/g" > ./tmp-tree/etc/icewm/toolbar.tmp
-	rm ./tmp-tree/etc/icewm/toolbar
-	mv ./tmp-tree/etc/icewm/toolbar.tmp ./tmp-tree/etc/icewm/toolbar
-	cat ./tmp-tree/etc/icewm/keys |sed -e "s/\$XTERM_CMD/$XTERM_CMD/g" > ./tmp-tree/etc/icewm/keys.tmp
-	rm ./tmp-tree/etc/icewm/keys
-	mv ./tmp-tree/etc/icewm/keys.tmp ./tmp-tree/etc/icewm/keys
+	sed -i "s/\$XTERM_CMD/$XTERM_CMD/g" ./tmp-tree/etc/icewm/toolbar
+	sed -i "s/\$XTERM_CMD/$XTERM_CMD/g" ./tmp-tree/etc/icewm/keys
 fi
 if [ -e ./tmp-tree/lib/gconv ] ; then
 	echo -e "\tBuilding Charmap Cache"
@@ -1566,6 +1562,7 @@ else
 		ts_initrdcmd=`grep build.conf -e initrdcmd |cut -d '"' -f2`
 		ts_syslinuxtheme=`grep build.conf -e syslinuxtheme |cut -d '"' -f2`
 		ts_bootimages=`grep build.conf -e bootimages |cut -d '"' -f2`
+		ts_squashopt=`grep build.conf -e squashopt |cut -d '"' -f2`
 		unzip=`echo $ts_initrdcmd |cut -d " " -f1`
 		mkdir ./tmp-tree
 		cd ./tmp-tree
@@ -1580,7 +1577,7 @@ else
 //g' ../"$BUILDTIME" >> ../tmp-tree/thinstation.buildtime
 		. ../$INITDIR/kernel_parameters
 		if [ "$ts_initrdcmd" == "squashfs" ]; then
-		    ../utils/tools/mksquashfs . ../$INITDIR/initrd -comp xz -always-use-fragments -no-recovery -no-exports -no-xattrs
+		    ../utils/tools/mksquashfs . ../$INITDIR/initrd $ts_squashopt -always-use-fragments -no-recovery -no-exports -no-xattrs
 		elif [ "$ts_initrdcmd" == "none" -o "$ts_initrdcmd" == "" ]; then
 			find . -print0 | cpio --null -oV --format=newc > ../$INITDIR/initrd
 		else

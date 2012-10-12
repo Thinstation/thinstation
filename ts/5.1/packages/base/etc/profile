@@ -1,22 +1,23 @@
 #/etc/profile: system-wide .profile file for ash.
 
 . /etc/thinstation.global
+umask 022
 
-if ! pkg_initialized home; then
-    pkg_set_init_flag home
-    for file in `ls -A /etc/skel`; do
-	cp -a /etc/skel/$file $HOME/. 2>/dev/null
-    done
+if [ "$TERM" == "xinit" ] ; then
+	if ! pkg_initialized home; then
+		pkg_set_init_flag home
+		for file in `ls -A /etc/skel`; do
+			cp -a /etc/skel/$file $HOME/. 2>/dev/null
+		done
+	fi
+	/etc/xserverrc
+	exec /etc/xinitrc 2>&1 >> /var/run/applications/session.$$
 fi
 
-umask 022
 alias ll='ls -l'
 alias l='ls -l'
 
 if pkg_initialized e3 ; then
-	alias vi='e3vi'
+        alias vi='e3vi'
 fi
-if [ "$TERM" == "xinit" ] ; then
-	/etc/xserverrc
-	exec /etc/xinitrc
-fi
+

@@ -14,6 +14,6 @@ Section "Device"
 EndSection
 EOF
 
-echo "package=\"nvidia-settings\"; needs=\"x11\"; title=\"NVIDIA Display Settings\"; command=\"/bin/nvidia-settings\"; menu=\"Utilities\"; nodesktop=\"true\"" > /lib/menu/nvidia
+echo "package=\"nvidia-settings\"; needs=\"x11\"; title=\"NVIDIA Display Settings\"; command=\"/bin/nvidia-settings\"; menu=\"Multimedia\"; nodesktop=\"true\"" > /lib/menu/nvidia
 
 exit 0

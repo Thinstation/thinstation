@@ -60,7 +60,7 @@ idesk_icons ()
 	if [ "`make_caps $nodesktop`" != "TRUE" ]; then
 
         ICON=/lib/pixmaps/`replace_char $package " " "_"`"_32x32.xpm"
-	LINK=$IDESKDIR/$title.lnk
+	LINK=$IDESKDIR/`replace_char "$title.lnk" "[ /]" "_"`
 	if [ -e $ICON ] ; then
               echo "table Icon">$LINK
 #              echo " Type: Program">>$LINK
@@ -75,7 +75,7 @@ idesk_icons ()
                  let x=x+100
                  let y=40
               fi
-	      echo "y=$y; x=$x" > /tmp/entry
+	      echo "y=$y; x=$x" > /tmp/ideskxy
       	fi
 
 	fi
@@ -83,9 +83,9 @@ idesk_icons ()
 
     fi
 
-    if [ -e /tmp/entry ] ; then
-	    . /tmp/entry
-	    rm /tmp/entry
+    if [ -e /tmp/ideskxy ] ; then
+	    . /tmp/ideskxy
+	    rm /tmp/ideskxy
     fi
 
     (cat $WKDIR/session) |
@@ -96,7 +96,7 @@ idesk_icons ()
       case "$icon" in
       ON|SUBMENU)
         ICON=/lib/pixmaps/`replace_char $type " " "_"`"_32x32.xpm"
-	LINK=$IDESKDIR/$title.lnk
+	LINK=$IDESKDIR/`replace_char "$title.lnk" "[ /]" "_"`
         if [ -e $ICON ] ; then
           echo "table Icon">$LINK
 #          echo " Type: Program">>$LINK

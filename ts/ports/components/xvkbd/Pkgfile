@@ -1,0 +1,18 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=xvkbd
+version=3.3
+release=1
+source=(http://homepage3.nifty.com/tsato/xvkbd/xvkbd-$version.tar.gz )
+
+build() {
+	cd $name-$version
+	sed -i 's/#define XAW3D//g' Imakefile
+	sed -i 's/#define I18N//g' Imakefile
+	xmkmf
+	make DESTDIR=$PKG install install.man
+	rm $PKG/usr/lib/X11/app-defaults
+	mv $PKG/etc/X11/app-defaults $PKG/usr/lib/X11
+}

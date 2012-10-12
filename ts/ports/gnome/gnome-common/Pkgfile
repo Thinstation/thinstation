@@ -1,0 +1,21 @@
+# Description: Documentation utilities for GNOME
+# URL: http://www.gnome.org/
+# Maintainer: Matt Housh, jaeger at morpheus dot net
+# Depends on: rarian
+# Group: gnome/desktop
+
+name=gnome-common
+version=2.34.0
+release=1
+source=(http://ftp.gnome.org/pub/GNOME/sources/$name/${version%.*}/${name}-$version.tar.bz2)
+
+build() {
+	cd $name-$version
+	sed -i -e 's/USE_NLS=yes/USE_NLS=no/' \
+		-e 's/ENABLE_NLS 1/ENABLE_NLS 0/' configure
+	./configure --prefix=/usr \
+		--mandir=/usr/man \
+		--disable-scrollkeeper
+	make
+	make DESTDIR=$PKG install
+}
