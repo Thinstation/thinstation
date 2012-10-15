@@ -1,6 +1,7 @@
 #! /bin/sh
 
 . $TS_GLOBAL
+. /etc/splash.functions
 
 DISPLAY_NUMBER=0
 XAUTHHOME=$HOME
@@ -42,6 +43,7 @@ if [ ! -e /tmp/.xorg-unix/X$DISPLAY_NUMBER ]; then
 		build_command
 		echo $X_CMD >> $LOGFILE
 		$X_CMD >> $LOGFILE 2>&1 &
+		splash_exit
 	else
 		echo "XSERVER variable is not defined, error!!!"
 		echo "X aborted, starting shell instead."

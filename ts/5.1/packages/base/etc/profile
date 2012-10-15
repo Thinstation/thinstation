@@ -1,9 +1,11 @@
 #/etc/profile: system-wide .profile file for ash.
 
+clear
 . /etc/thinstation.global
 umask 022
 
 if [ "$TERM" == "xinit" ] ; then
+	echo -e '\033[?1c'
 	if ! pkg_initialized home; then
 		pkg_set_init_flag home
 		for file in `ls -A /etc/skel`; do
