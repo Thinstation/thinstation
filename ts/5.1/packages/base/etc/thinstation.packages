@@ -74,6 +74,13 @@ ck_wrapper()
    fi
 }
 
+xterm_wrapper()
+{
+	if [ -e /etc/console/$PACKAGE ]; then
+		CMD="$XTERM_CMD -e $CMD"
+	fi
+}
+
 run_command()
 {
 	if is_enabled $LOG_COMMANDS ; then
@@ -90,6 +97,7 @@ auto)
     order_command
     CMD="$CMD_CONSOLE $ORDERED_COMMAND"
     wm_workspaces "$CMD" $4
+    xterm_wrapper
     run_command
     wait
         check_NX
@@ -113,6 +121,7 @@ console)
 	x_get_ip
 	order_command
 	CMD="$CMD_CONSOLE $ORDERED_COMMAND"
+	xterm_wrapper
 	ck_wrapper
         run_command
 	wait
@@ -133,6 +142,7 @@ window|fullscreen)
     order_command
     MODE=`make_caps $1`
     CMD=`eval echo '$'CMD_$MODE`' '$ORDERED_COMMAND
+    xterm_wrapper
     run_command
     ;;
 help)
