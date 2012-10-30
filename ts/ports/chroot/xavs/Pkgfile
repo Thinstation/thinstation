@@ -1,0 +1,24 @@
+# Description: A library to provide an API to MPEG-4 files.
+# URL: http://code.google.com/p/mp4v2/
+# Maintainer: Danny Rawlins, monster dot romster at gmail dot com
+# Packager: Matt Housh, jaeger at morpheus dot net
+# Depends on:
+
+name=xavs
+version=svn
+release=1
+source=()
+
+build() {
+	svn co https://xavs.svn.sourceforge.net/svnroot/xavs/trunk xavs
+	cd xavs
+
+	./configure \
+		--prefix=/usr \
+		--mandir=/usr/man \
+		--disable-static \
+		--disable-gch
+
+	make
+	make DESTDIR=$PKG install
+}
