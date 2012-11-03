@@ -2,7 +2,8 @@ if [ "`make_caps x$RTC_CMOS`" == "XLOCAL" ]; then
 	if [ -n "$DEBUG_INIT" ] ; then
 	        echo_log "Using Local Time"
 	fi
-        hwclock -s --local
+	sed -i -e "s/UTC/LOCAL/" /etc/adjtime
+        hwclock -s
 else
 	if [ -n "$DEBUG_INIT" ] ; then
 	        echo_log "Using UTC Time"
