@@ -1,0 +1,156 @@
+--- a/src/scdate/core/dateBackend.py
++++ b/src/scdate/core/dateBackend.py
+@@ -31,8 +31,6 @@ import sys
+ import time
+ import shlex
+ 
+-from slip.util.files import overwrite_safely
+-
+ import servicesBackend
+ 
+ class NTPProvider(object):
+@@ -74,7 +72,7 @@
+ 
+         #--cal.get_date starts counting months at 0 for Jan.  We need to start counting at 1
+         month = month + 1
+-        cmd = '/bin/date -s %d/%d/%d\ %s:%s:%s' % (year, month, day, hour, min, sec)
++        cmd = '/bin/date -s %d-%d-%d\ %s:%s:%s' % (year, month, day, hour, min, sec)
+         fd = os.popen(cmd, 'r')
+         fd.readlines()
+         return not fd.close()
+@@ -85,7 +84,7 @@ class dateBackend(object):
+         # was run).
+         if os.access("/sbin/hwclock", os.F_OK) == 1:
+             #The S390 has no hwclock binary, so don't try to run it if it isn't there
+-            return not os.system("/sbin/hwclock --systohc")
++            return not os.system("/sbin/hwclock --hctosys")
+         return True
+ 
+     def writeNtpConfig (self, ntpServers, ntpBroadcastClient, ntpLocalTimeSource, ntpIburst):
+--- a/src/scdate/core/timezoneBackend.py
++++ b/src/scdate/core/timezoneBackend.py
+@@ -26,7 +26,7 @@
+ # Nils Philippsen <nils@redhat.com>
+ 
+ import os
+-from slip.util.files import linkorcopyfile
++import shutil
+ 
+ def bool(val):
+     if val: return "true"
+@@ -42,12 +42,13 @@
+         else:
+             utc = "true"
+ 
+-        linkorcopyfile (fromFile, "/etc/localtime")
++        os.remove("/etc/localtime")
++        os.symlink (fromFile, "/etc/localtime")
+ 
+         #Check to see if /var/spool/postfix/etc/localtime exists
+         if os.access("/var/spool/postfix/etc/localtime", os.F_OK) == 1:
+             #If it does, copy the new time zone file into the chroot jail
+-            linkorcopyfile (fromFile, "/var/spool/postfix/etc/localtime")
++            shutil.copyfile (fromFile, "/var/spool/postfix/etc/localtime")
+ 
+         #Write info to the /etc/sysconfig/clock file
+         f = open("/etc/sysconfig/clock", "w")
+--- a/src/scdMainWindow.py
++++ b/src/scdMainWindow.py
+@@ -78,24 +78,38 @@ class scdMainWindow(object):
+         sysDate = self.datePage.getDate ()
+         sysTime = self.datePage.getTime ()
+         ntpEnabled = self.datePage.getNtpEnabled ()
++        
++        timezone, utc = self.timezoneBackend.getTimezoneInfo ()
++        tzchanged = False
++        if utc == 'true':
++            utc = True
++        elif utc == 'false':
++            utc = False
+ 
+         # Get the time zone info from the time zone page
+         if "timezone" in self.showPages:
+-            timezone, utc = self.timezonePage.getTimezoneInfo ()
+-        else:
+-            timezone, utc = self.timezoneBackend.getTimezoneInfo ()
++            newtimezone, newutc = self.timezonePage.getTimezoneInfo ()
++            if newtimezone != timezone:
++                tzchanged = newutc
++            if utc != newutc:
++                tzchanged = True
++            timezone = newtimezone
++            utc = newutc
+ 
+         self.timezoneBackend.writeConfig (timezone, utc)
+ 
+-        if ntpEnabled == False:
++        if tzchanged:
++            if not self.dateBackend.syncHardwareClock ():
++                self.showDialog (gtk.MESSAGE_WARNING, _("Failed to synchronize hardware clock. This may be because there is no hardware clock accessible, e.g. when running in a virtualized environment."))
++            self.closeParent = True
++
++        elif ntpEnabled == False:
+             # We're not using ntp, so stop the service
+             self.dateBackend.stopNtpService ()
+             # set the time on the system according to what the user set it to
+             if not self.dateBackend.writeDateConfig (sysDate, sysTime):
+                 self.showErrorDialog (_("Failed to set time and date."))
+                 return
+-            if not self.dateBackend.syncHardwareClock ():
+-                self.showDialog (gtk.MESSAGE_WARNING, _("Failed to synchronize hardware clock. This may be because there is no hardware clock accessible, e.g. when running in a virtualized environment."))
+             self.closeParent = True
+             self.dateBackend.chkconfigOff ()
+ 
+@@ -111,9 +125,9 @@ class scdMainWindow(object):
+                 self.showErrorDialog (_("Please specify an NTP server to use or enable NTP broadcast."))
+                 return
+ 
+-            if self.dateBackend.writeNtpConfig (ntpServers = ntpServers, ntpBroadcastClient = ntpBroadcastClient, ntpLocalTimeSource = ntpLocalTimeSource, ntpIburst = ntpIburst) == None:
+-                self.showErrorDialog(_("Couldn't write either /etc/ntp.conf or /etc/sysconfig/network.\nConfiguration unchanged."), gtk.BUTTONS_CLOSE)
+-                return
++            #if self.dateBackend.writeNtpConfig (ntpServers = ntpServers, ntpBroadcastClient = ntpBroadcastClient, ntpLocalTimeSource = ntpLocalTimeSource, ntpIburst = ntpIburst) == None:
++            #    self.showErrorDialog(_("Couldn't write either /etc/ntp.conf or /etc/sysconfig/network.\nConfiguration unchanged."), gtk.BUTTONS_CLOSE)
++            #    return
+ 
+             self.failureServers = None
+             self.childHandled = False
+--- a/src/scdate/core/servicesBackend.py	2012-09-11 07:48:08.000000000 -0500
++++ b/src/scdate/core/servicesBackend.py	2012-10-08 08:49:03.106188721 -0500
+@@ -75,6 +75,28 @@
+         raise NotImplementedError()
+ 
+ 
++
++class BSDServices(AbstractServices):
++
++    startstop = "/sbin/start-stop-daemon"
++
++    executables = (startstop, )
++
++    @classmethod
++    def check_flavor(cls):
++        return super(BSDServices, cls).check_flavor()
++
++    @classmethod
++    def service_exists(cls, service):
++        if (not os.access("/bin/%s" % (service), os.X_OK) and not os.access("/sbin/%s" % (service), os.X_OK)):
++	    return False
++        return True
++
++    @classmethod
++    def service_is_enabled(cls, service):
++        return False
++
++
+ class SysVServices(AbstractServices):
+ 
+     chkconfig = "/sbin/chkconfig"
+@@ -184,7 +206,7 @@
+ def Services():
+     global __services
+     if __services is None:
+-        for candidate in SystemDServices, SysVServices:
++        for candidate in SystemDServices, SysVServices, BSDServices:
+             if candidate.check_flavor():
+                 __services = candidate
+                 break
