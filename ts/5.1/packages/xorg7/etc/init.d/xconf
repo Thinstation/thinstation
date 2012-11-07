@@ -118,39 +118,33 @@ serverflags_ ()
 {
 	# ServerFlags (allow for older settings)
 	CONF=/tmp/x_ServerFlags
-#	if [ -n "$SCREEN_BLANK_TIME" ]; then	echo -e "\tOption \"BlankTime\"    \"$SCREEN_BLANK_TIME\""	>> $CONF; fi
-#	if [ -n "$SCREEN_STANDBY_TIME" ]; then	echo -e "\tOption \"StandbyTime\"  \"$SCREEN_STANDBY_TIME\""	>> $CONF; fi
-#	if [ -n "$SCREEN_SUSPEND_TIME" ]; then	echo -e "\tOption \"SuspendTime\"  \"$SCREEN_SUSPEND_TIME\""	>> $CONF; fi
-#	if [ -n "$SCREEN_OFF_TIME" ]; then	echo -e "\tOption \"OffTime\"      \"$SCREEN_OFF_TIME\""	>> $CONF; fi
-#	if [ -n "$DONT_VT_SWITCH_STATE" ]; then	echo -e "\tOption \"DontVTSwitch\" \"$DONT_VT_SWITCH_STATE\""	>> $CONF; fi
-#	if [ -n "$DONT_ZAP_STATE" ]; then	echo -e "\tOption \"DontZap\"      \"$DONT_ZAP_STATE\""		>> $CONF; fi
 	if [ -s /tmp/x_ServerFlags ]; then
 	CONF=/etc/X11/xorg.conf.d/09-serverflags.conf
-						echo -e "Section \"ServerFlags\""				> $CONF
-						cat /tmp/x_ServerFlags						>> $CONF
-						echo -e "EndSection"						>> $CONF
+		echo -e "Section \"ServerFlags\""	> $CONF
+		cat /tmp/x_ServerFlags			>> $CONF
+		echo -e "EndSection"			>> $CONF
 	fi
 }
 
 screen_ ()
 {
-	if [ -n "$SCREEN_RESOLUTION" ]; then
-	CONF=/etc/X11/xorg.conf.d/12-resolution.conf
+	if [ -n "$SCREEN_RESOLUTION" ] || [ -e /etc/X11/xorg.conf.d/10-serverlayout.conf ]; then
+	CONF=/etc/X11/xorg.conf.d/12-screen.conf
 		for mode in `echo $SCREEN_RESOLUTION |grep -o -e '[0-9]*x[0-9]*'`; do
 			MODES="$MODES\"$mode\" "
 		done
-			echo -e "Section \"Screen\""		> $CONF
-			echo -e "\tIdentifier \"Screen0\""	>> $CONF
-			echo -e "\tDevice     \"Card0\""	>> $CONF
-			echo -e "\tMonitor    \"Monitor0\""	>> $CONF
+					echo -e "Section \"Screen\""		> $CONF
+					echo -e "\tIdentifier \"Screen0\""	>> $CONF
+					echo -e "\tDevice     \"Card0\""	>> $CONF
+					echo -e "\tMonitor    \"Monitor0\""	>> $CONF
 		for DEPTH in 1 4 8 15 16 24; do
-			echo -e "\tSubSection \"Display\""	>> $CONF
-			echo -e "\t\tViewport   0 0"		>> $CONF
-			echo -e "\t\tModes      $MODES"		>> $CONF
-			echo -e "\t\tDepth     $DEPTH"		>> $CONF
-			echo -e "\tEndSubSection"		>> $CONF
+					echo -e "\tSubSection \"Display\""	>> $CONF
+					echo -e "\t\tViewport   0 0"		>> $CONF
+		if [ -n $MODES ]; then	echo -e "\t\tModes      $MODES"		>> $CONF fi
+					echo -e "\t\tDepth     $DEPTH"		>> $CONF
+					echo -e "\tEndSubSection"		>> $CONF
 		done
-			echo -e "EndSection"			>> $CONF
+					echo -e "EndSection"			>> $CONF
 	fi
 }
 
@@ -177,8 +171,6 @@ serverlayout_ ()
 							echo -e "\tIdentifier \"TS Configured\""		>> $CONF
 							echo -e "\tScreen   0\t\"Screen0\" 0 0" 		>> $CONF
 		if [ -s $VNC_PATH/vnc_input.tpl ]; then	cat $VNC_PATH/vnc_input.tpl				>> $CONF; fi
-#							echo -e "\tInputDevice\t\"Mouse0\" \"CorePointer\"" 	>> $CONF
-#							echo -e "\tInputDevice\t\"Keyboard0\" \"CoreKeyboard\""	>> $CONF
 		if [ -s /tmp/x_ServerLayout ]; then	cat /tmp/x_ServerLayout					>> $CONF; fi
 							echo -e "EndSection"					>> $CONF
 	fi
@@ -205,7 +197,7 @@ init|start)
 	for section in ServerLayout Files Keyboard Mouse Monitor Device Modes Screen ServerFlags Dri; do
 		get_options $section
 		`make_lower $section`_
-	if [ -e /tmp/x_$section ]; then rm /tmp/x_$section; fi
+		if [ -e /tmp/x_$section ]; then rm /tmp/x_$section; fi
 	done
 	;;
 help)
