@@ -586,40 +586,28 @@ ps |grep $1 |grep -v grep |awk '{print $1}'
 
 is_enabled ()
 {
-	local switch
 	if [ ! -z "$1" ]; then
 		value=`make_caps $1`
 		for i in TRUE ON ENABLED YES POSITIVE Y; do
 			if [ $value == $i ]; then
-				switch=0
+				return 0
 			fi
 		done
 	fi
-        if [ "$switch" == "0" ] ; then
-		return 0
-	else
-		return 1
-	fi
+	return 1
 }
 
 is_disabled ()
 {
-        local switch
         if [ ! -z "$1" ]; then
                 value=`make_caps $1`
         	for i in FALSE OFF DISABLED NO NEGATIVE N ; do
                 	if [ $value == $i ]; then
-                        	switch=0
+                        	return 0
                 	fi
         	done
-	else
-		switch=0
 	fi
-        if [ "$switch" == "0" ] ; then
-                return 0
-        else
-                return 1
-        fi
+	return 1
 }
 
 screen_res ()
@@ -636,7 +624,7 @@ screen_res ()
 
 use_xrandr ()
 {
-	if is_enabled $USE_XRANDR ; then
+	if is_enabled $USE_XRANDR && [ "$WMNAME" != "xfwm4" ]; then
         	echo "Using xrandr to set display resolution." >> $APPLOG
         	if [ "$XRANDR_OPTIONS" == "" ]; then
 		    	xrandr -s $SCREEN_RESOLUTION 2>/dev/null
@@ -648,7 +636,7 @@ use_xrandr ()
 
 use_wallpaper ()
 {
-	if is_enabled $USE_WALLPAPER && [ -e /bin/wmsetbg ] ; then
+	if is_enabled $USE_WALLPAPER && [ -e /bin/wmsetbg ] && [ "$WMNAME" != "xfwm4" ]; then
         	if [ -f /etc/background.jpg ] ; then
                 	wmsetbg /etc/background.jpg 2>/dev/null
         	elif [ -f /etc/background-$SCREEN_RESOLUTION.jpg ] ; then
@@ -663,7 +651,7 @@ use_wallpaper ()
 
 use_idesk ()
 {
-	if [ -x /bin/idesk ]; then
+	if [ -x /bin/idesk ] && [ "$WMNAME" != "xfwm4"]; then
 	        IDESKPID=`pidof idesk`
         	if [ -n "$IDESKPID" ]; then
                 	kill -HUP $IDESKPID
@@ -682,7 +670,7 @@ use_idesk ()
 x_mod_map ()
 {
  # Add xmodmap modifications
-        if [ -e /lib/kmaps/$KEYBOARD_MAP.xmod ] ; then
+        if [ -e /lib/kmaps/$KEYBOARD_MAP.xmod ] && [ "$WMNAME" != "xfwm4"]; then
                 xmodmap /lib/kmaps/$KEYBOARD_MAP.xmod
         fi
 }
@@ -706,14 +694,9 @@ x_auth_file ()
 x_wm ()
 {
 	# Are we going to run a real window manager?
-	WMS="icewm openbox xfce xfwm4"
-	for i in $WMS; do
-		if [ "$i" == "$WMNAME" ]; then
-			echo_log "Found a Window Manager"
-			return 0
-		fi
-	done
-	echo_log "Failed to find a Window Manager"
+	if [ "$PACKAGE" == "$WMNAME" ]; then
+		return 0
+	fi
 	return 1
 }
 
@@ -727,13 +710,6 @@ x_mouse ()
 	if [ -n "$MOUSE_ACCELERATION" ]; then
 		echo xset -display :$DISPLAY_NUMBER m ${MOUSE_ACCELERATION} 1 >> $APPLOG
 		xset -display :$DISPLAY_NUMBER m ${MOUSE_ACCELERATION} 1 >> $APPLOG 2>&1 &
-	fi
-}
-
-vm_agent ()
-{
-	if which vmware-checkvm && vmware-checkvm && x_wm ; then
-		vmware-user-suid-wrapper
 	fi
 }
 

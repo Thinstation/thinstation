@@ -4,9 +4,9 @@
 # Depends on:  libglade, p5-xml-parser
 
 name=glade3
-version=3.8.1
+version=3.8.2
 release=1
-source=(http://ftp.gnome.org/pub/GNOME/sources/$name/3.8/$name-$version.tar.bz2)
+source=(http://ftp.gnome.org/pub/GNOME/sources/$name/3.8/$name-$version.tar.xz)
 
 build() {
    cd $name-$version
@@ -16,9 +16,7 @@ build() {
       --disable-gtk-doc \
       --with-help-formats=NONE \
       --disable-nls \
-#      --disable-gnome \
-#      --disable-scrollkeeper \
-
+      --disable-scrollkeeper
 
    make && make DESTDIR=$PKG install
    ln -sf /usr/bin/glade-3 $PKG/usr/bin/glade

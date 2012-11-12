@@ -1338,7 +1338,9 @@ else
 	if [ -e ./tmp-tree/lib/icons/hicolor/index.theme ]; then
 	echo -e "\tCaching icons"
 		cp -H utils/tools/gtk-update-icon-cache ./tmp-tree/bin/.
-		chroot ./tmp-tree /bin/gtk-update-icon-cache /lib/icons/hicolor 2>/dev/null
+		for icontheme in `ls --color=never ./tmp-tree/lib/icons`; do
+			chroot ./tmp-tree /bin/gtk-update-icon-cache /lib/icons/$icontheme 2>/dev/null
+		done
 		rm ./tmp-tree/bin/gtk-update-icon-cache
 	fi
 	if [ -e ./tmp-tree/lib/glib-2.0/schemas ]; then

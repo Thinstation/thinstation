@@ -4,11 +4,11 @@ INSTALLDIR=./packages/xfwm4
 EXTRADIR=$INSTALLDIR/build/extra
 TMPDIR=./build-xfwm
 
-for i in perl p5-xml-parser openssh dbus-glib exo freetype garcon \
-gdk-pixbuf glade3 glib gtk-xfce-engine xorg-libxi xorg-libxcursor \
+for i in gtk-engines perl p5-xml-parser openssh dbus-glib exo freetype garcon upower notification-daemon-xfce \
+gdk-pixbuf glib gtk-xfce-engine xorg-libxi xorg-libxcursor xorg-xinput thunar-volman xkeyboard-config \
 libexif libjpeg libnotify libpng libwnck libxfce4ui libxfce4util p5-uri startup-notification terminal thunar tumbler \
-vte xdg-user-dirs xfce-utils libglade xfce4 xfce4-appfinder xfce4-panel xfce4-session \
-xfce4-settings xfconf xfdesktop xfwm4 xorg-iceauth xorg-xinit xorg-xrdb xscreensaver ; do
+vte xdg-user-dirs libglade xfce4 xfce4-appfinder xfce4-panel xfce4-session xfwm4-themes \
+xfce4-settings xfconf xfdesktop xfwm4 xorg-iceauth xorg-xinit xorg-xrdb ; do
 	repackage $i -t $TMPDIR
 	cp -Prf $TMPDIR/$i/* $INSTALLDIR/.
 	rm -rf $TMPDIR
@@ -21,6 +21,8 @@ done
 for bloat in backdrops session xfwm4 dev-tools; do
 	rm -rf $INSTALLDIR/lib/xfce4/$bloat
 done
+rm -rf $INSTALLDIR/lib/backgrounds
+
 cp -Prf $EXTRADIR/* $INSTALLDIR/.
 
 returnval=$?

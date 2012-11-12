@@ -1,0 +1,21 @@
+# Description: Fallback window manager for GNOME
+# URL: 
+# Maintainer: None
+# Depends on: gtk libcanberra zenity
+
+name=metacity
+version=2.34.13
+release=1
+source=(ftp://ftp.gnome.org/pub/gnome/sources/$name/${version%.*}/$name-$version.tar.xz)
+
+build() {
+	cd $name-$version
+
+        sed -i -e "s/USE_NLS=yes/USE_NLS=no/" \
+                                 -e "s/ENABLE_NLS 1/ENABLE_NLS 0/" configure
+
+	./configure --prefix=/usr --disable-nls --disable-static --sysconfdir=/etc \
+		--disable-schemas-install
+	make
+	make install DESTDIR=$PKG
+}

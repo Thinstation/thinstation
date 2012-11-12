@@ -6,7 +6,7 @@
 # Group: xfce4
 
 name=xfwm4
-version=4.8.2
+version=4.10.0
 release=1
 source=(http://archive.xfce.org/src/xfce/$name/${version%.*}/$name-$version.tar.bz2)
 
@@ -14,9 +14,10 @@ build () {
   cd $name-$version
 
   ./configure --prefix=/usr \
-              --libexecdir=/usr/bin \
-              --disable-static \
-              --disable-debug 
+		--libexecdir=/usr/bin \
+		--disable-static \
+		--disable-debug \
+		--disable-nls
 
   make
   make DESTDIR=$PKG install

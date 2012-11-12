@@ -4,16 +4,16 @@
 # Depends on: glib, xorg-libx11, libpng, libtiff, libjpeg
 
 name=gdk-pixbuf
-version=2.24.0
+version=2.26.4
 release=2
-source=(http://download.gnome.org/sources/$name/2.24/$name-$version.tar.bz2 \
+source=(http://download.gnome.org/sources/$name/2.26/$name-$version.tar.xz \
         gdk-pixbuf.loaders gdk-pixbuf-register.sh)
 
 build () {
 	cd $name-$version
 
 	./configure --prefix=/usr --mandir=/usr/man --disable-nls \
-	            --without-libjasper
+	            --without-libjasper --disable-introspection --with-x11
 	make
 	make DESTDIR=$PKG install
 

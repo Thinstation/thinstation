@@ -1,0 +1,22 @@
+# Description: Window Navigator Construction Kit library
+# URL: http://cvs.gnome.org/viewcvs/libwnck/
+# Maintainer: Jose V Beneyto, sepen at crux dot nu
+# Packager: Matt Housh, jaeger at morpheus dot net
+# Depends on: gtk startup-notification intltool
+
+name=libwnck
+version=2.31.0
+release=1
+source=(ftp://ftp.gnome.org/pub/gnome/sources/$name/${version%.*}/$name-$version.tar.xz)
+
+build() {
+  cd $name-$version
+  rm po/*.po
+  sed -i configure \
+      -e 's/USE_NLS=yes/USE_NLS=no/' \
+      -e 's/ENABLE_NLS 1/ENABLE_NLS 0/'
+  ./configure --prefix=/usr --disable-introspection
+  make
+  make DESTDIR=$PKG install
+  rm -rf $PKG/usr/share
+}

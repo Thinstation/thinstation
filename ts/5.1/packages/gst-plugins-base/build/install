@@ -1,0 +1,16 @@
+#!/bin/sh
+
+INSTALLDIR=./packages/gst-plugins-base
+EXTRADIR=$INSTALLDIR/build/extra
+TMPDIR=./build-gst-plugins-base
+
+for i in gst-plugins-base ; do
+	repackage $i -t $TMPDIR
+	cp -Prf $TMPDIR/$i/* $INSTALLDIR/.
+	rm -rf $TMPDIR
+done
+rm -rf $INSTALLDIR/lib/locale
+
+returnval=$?
+
+exit $returnval

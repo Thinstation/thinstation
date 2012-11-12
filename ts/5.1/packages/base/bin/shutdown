@@ -11,4 +11,8 @@ fi
 /bin/umount /boot 2> /dev/null
 /bin/umount /mnt/disc/sda/part1 2> /dev/null
 /bin/umount -a -r 2> /dev/null
-/sbin/poweroff
+
+case $1 in
+	-r) /sbin/reboot ;;
+	-h|*) /sbin/poweroff ;;
+esac

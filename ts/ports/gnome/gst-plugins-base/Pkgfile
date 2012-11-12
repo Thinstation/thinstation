@@ -5,9 +5,9 @@
 # Depends on: alsa-lib e2fsprogs glibc gstreamer liboil libvorbis pango xorg-libxv xorg-libxcomposite
 
 name=gst-plugins-base
-version=0.10.35
+version=0.10.36
 release=1
-source=(http://gstreamer.freedesktop.org/src/$name/$name-$version.tar.bz2)
+source=(http://gstreamer.freedesktop.org/src/$name/$name-$version.tar.xz)
 
 build() {
   cd $name-$version
@@ -19,7 +19,9 @@ build() {
               --disable-nls \
               --disable-dependency-tracking \
               --disable-valgrind \
-              --disable-examples
+              --disable-examples \
+	      --enable-experimental \
+	      --enable-introspection=no
 
   make
   make DESTDIR=$PKG install

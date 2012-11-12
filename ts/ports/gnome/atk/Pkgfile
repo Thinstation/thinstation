@@ -4,13 +4,13 @@
 # Depends on: glib
 
 name=atk
-version=2.2.0
+version=2.6.0
 release=1
-source=(http://download.gnome.org/sources/$name/2.2/$name-$version.tar.bz2)
+source=(http://download.gnome.org/sources/$name/${version%.*}/$name-$version.tar.xz)
 
 build () {
 	cd $name-$version
-	./configure --prefix=/usr 
+	./configure --prefix=/usr --disable-introspection
 	make
 	make DESTDIR=$PKG install
 	rm -r $PKG/usr/share

@@ -5,16 +5,10 @@
 name=hicolor-icon-theme
 version=0.11
 release=1
-source=(http://icon-theme.freedesktop.org/releases/$name-$version.tar.gz
-	http://art.gnome.org/download/themes/icon/1100/ICON-DroplineNeu.tar.bz2
-)
+source=(http://icon-theme.freedesktop.org/releases/$name-$version.tar.gz)
 
 build() {
 	cd $name-$version
 	./configure --prefix=/usr
 	make DESTDIR=$PKG install
-	cp -Prf $SRC/Neu/* $PKG/usr/share/icons/hicolor/.
-	find $PKG -name file-roller.\* -delete
-	find $PKG -name gnome-settings-default-applications.\* -delete
-	find $PKG -name battery.\* -delete
 }

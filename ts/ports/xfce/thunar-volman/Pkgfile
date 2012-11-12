@@ -1,0 +1,31 @@
+# Description: Filemanager for Xfce4
+# URL: http://thunar.xfce.org/
+# Maintainer: Jose V Beneyto, sepen at crux dot nu
+# Packager: Juergen Daubert, juergen dot daubert at t-online dot de
+# Depends on: xfce4-panel libpng gudev shared-mime-info
+# Group: xfce4
+
+name=thunar-volman
+version=0.8.0
+release=2
+source=(http://archive.xfce.org/src/xfce/$name/${version%.*}/$name-$version.tar.bz2)
+
+build () {
+  cd $name-$version
+
+  ./configure --prefix=/usr \
+              --mandir=/usr/man \
+              --libexecdir=/usr/lib/thunar \
+              --enable-dbus \
+              --enable-gudev \
+              --disable-nls \
+              --disable-static \
+              --disable-debug
+
+  make
+  make DESTDIR=$PKG install
+
+  rm -rf $PKG/usr/share/{locale,doc,gtk-doc}
+  find $PKG/usr/share -type f -name '*.desktop' \
+    -exec sed -r '/\[.+\]=/d' -i {} \;
+}

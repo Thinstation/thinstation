@@ -5,7 +5,7 @@
 # Depends on: nettle libidn
 
 name=gnutls
-version=3.0.20
+version=3.0.26
 release=1
 source=(http://ftp.gnu.org/pub/gnu/$name/$name-$version.tar.xz)
 
@@ -14,8 +14,11 @@ build() {
 
   ./configure --prefix=/usr \
               --mandir=/usr/man \
-              --without-p11-kit \
-              --disable-guile
+	      --disable-static \
+	      --disable-rpath \
+              --disable-guile \
+	      --disable-nls \
+#	      --enable-cryptodev
 
   make
   make DESTDIR=$PKG install

@@ -6,7 +6,7 @@
 # Group: xfce4
 
 name=exo
-version=0.6.2
+version=0.9.0
 release=1
 source=(http://archive.xfce.org/src/xfce/$name/${version%.*}/$name-$version.tar.bz2)
 
@@ -24,7 +24,7 @@ build () {
   make
   make DESTDIR=$PKG install
 
-  rm -r $PKG/usr/share/{locale,doc,gtk-doc}
+  rm -rf $PKG/usr/share/{locale,doc,gtk-doc}
   find $PKG/usr/share -type f -name '*.desktop' \
     -exec sed -r '/\[.+\]=/d' -i {} \;
 }

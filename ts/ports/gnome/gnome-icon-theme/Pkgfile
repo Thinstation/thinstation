@@ -1,0 +1,14 @@
+# Description: default fallback used by the icon theme specification
+# URL: http://icon-theme.freedesktop.org/wiki/HicolorTheme
+# Maintainer: Tilman Sauerbeck, tilman at crux dot nu
+
+name=gnome-icon-theme
+version=2.18.0
+release=1
+source=(http://art.gnome.org/download/themes/icon/1352/ICON-Gnome218IconTheme.tar.bz2)
+
+build() {
+	mkdir -p $PKG/usr/share/icons/Gnome
+	cp -Prf $SRC/$name-$version/* $PKG/usr/share/icons/Gnome/.
+	rm -rf $PKG/usr/share/icons/Gnome/index.theme~
+}

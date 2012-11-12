@@ -6,7 +6,7 @@
 # Group: xfce4
 
 name=xfce4-mount-plugin
-version=0.5.5
+version=0.6.4
 release=1
 source=(http://archive.xfce.org/src/panel-plugins/$name/${version%.*}/$name-$version.tar.bz2)
 
@@ -18,6 +18,6 @@ build() {
   make
   make DESTDIR=$PKG install
   rm -rf $PKG/usr/share/locale
-  find $PKG/usr/share/xfce4/panel-plugins -type f -name '*.desktop' \
+  find $PKG/usr/share/xfce4/panel/plugins -type f -name '*.desktop' \
     -exec sed -r '/\[.+\]=/d' -i {} \;
 }

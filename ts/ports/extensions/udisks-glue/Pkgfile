@@ -16,6 +16,7 @@ _gitroot="http://github.com/fernandotcl/udisks-glue.git"
 _gitname="udisks-glue"
 
 #source=(http://aur.archlinux.org/packages/ud/udisks-glue-git/udisks-glue-git.tar.gz)
+source=(udisks-glue.desktop)
 
 build() {
   cd $SRC
@@ -24,7 +25,7 @@ build() {
   if [ -d $_gitname ]; then
     (cd $_gitname && git pull origin)
   else
-    git clone $_gitroot 
+    git clone $_gitroot
   fi
 
   rm -rf ${_gitname}-build
@@ -34,10 +35,10 @@ build() {
   echo "Starting build process."
   ./autogen.sh
   ./configure --prefix=/usr
-  make 
+  make
 
   make install DESTDIR=$PKG
   install -Dm 0644 LICENSE $PKG/usr/share/licenses/udisks-glue/LICENSE
-
+  install -Dm 0644 $SRC/udisks-glue.desktop $PKG/etc/xdg/autostart/udisk-glue.desktop
 }
 

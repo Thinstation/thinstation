@@ -4,9 +4,9 @@
 # Depends on: atk, hicolor-icon-theme, gdk-pixbuf, pango, xorg-libsm, xorg-libxcursor, xorg-libxinerama, xorg-libxrandr, xorg-libxcomposite
 
 name=gtk
-version=2.24.8
+version=2.24.13
 release=1
-source=(http://download.gnome.org/sources/gtk+/2.24/${name}+-$version.tar.bz2 \
+source=(http://download.gnome.org/sources/gtk+/${version%.*}/${name}+-$version.tar.xz \
 	gtk.immodules gtk-register.sh
 	old-icon-symlinks.patch)
 
@@ -19,7 +19,8 @@ build () {
 			--mandir=/usr/man \
 			--enable-debug \
 			--enable-introspection=no \
-			--with-xinput=xfree
+			--with-xinput=xfree \
+			--disable-glibtest
 
 	make
 	make DESTDIR=$PKG install

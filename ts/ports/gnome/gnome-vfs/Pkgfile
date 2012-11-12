@@ -16,17 +16,14 @@ build() {
 		-e 's/ENABLE_NLS 1/ENABLE_NLS 0/' configure
 	./configure --prefix=/usr \
 		--libexecdir=/usr/lib/$name \
-		--disable-schemas-install \
 		--enable-openssl \
 		--disable-gnutls \
 		--disable-gtk-doc \
 		--enable-ipv6 \
-		--with-gtk=no \
-		--enable-hal \
 		--enable-avahi \
 		--disable-howl
+
 	make
-	export GCONF_DISABLE_MAKEFILE_SCHEMA_INSTALL=1
 	make DESTDIR=$PKG install
 	rm -rf $PKG/usr/share/gtk-doc
 }

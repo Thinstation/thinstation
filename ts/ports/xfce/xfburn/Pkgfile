@@ -8,15 +8,21 @@
 name=xfburn
 version=0.4.3
 release=1
-source=(http://archive.xfce.org/src/apps/xfburn/${version%.*}/$name-$version.tar.bz2)
+source=(http://archive.xfce.org/src/apps/xfburn/${version%.*}/$name-$version.tar.bz2 \
+	xfburn-glib.patch)
 
 build() {
-  cd $name-$version
+  cd $name-$version/xfburn
+  patch -p0 < $SRC/xfburn-glib.patch
+  cd $SRC/$name-$version
 
   ./configure --prefix=/usr \
               --mandir=/usr/man \
               --enable-thunar-vfs \
-              --disable-debug
+              --disable-debug \
+	      --disable-introspection \
+	      --disable-hal \
+	      --disable-nls
 
   make
   make DESTDIR=$PKG install
