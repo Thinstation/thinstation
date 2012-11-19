@@ -13,13 +13,15 @@ build() {
   cd $name-$version
 
   ./configure --prefix=/usr \
-              --libexecdir=/usr/lib/$name \
-              --disable-static \
+              --libexecdir=/usr/libexec \
+              --disable-nls \
               --disable-debugging \
               --disable-python \
               --disable-gtk-doc \
               --with-xft2 \
-              --with-pangox
+              --with-pangox \
+	      --enable-shared \
+	      --disable-static
 
   make
   make DESTDIR=$PKG install

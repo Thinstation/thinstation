@@ -33,6 +33,11 @@ down)
 ;;
 
 esac
+if [ -n "$siaddr" ] ; then
+	SERVER_IP=$siaddr
+else
+	SERVER_IP=$tftp
+fi
 
 echo "DEVTYPE=$DEVTYPE" > /var/log/net/$INTERFACE
 echo "CLIENT_NAME=$CLIENT_NAME" >> /var/log/net/$INTERFACE
@@ -40,7 +45,7 @@ echo "CLIENT_MAC=$CLIENT_MAC" >> /var/log/net/$INTERFACE
 echo "CLIENT_IP=$ip" >> /var/log/net/$INTERFACE
 echo "CLIENT_GATEWAY=$gw" >> /var/log/net/$INTERFACE
 echo "SUBNET=$subnet" >> /var/log/net/$INTERFACE
-echo "SERVER_IP=$saddr" >> /var/log/net/$INTERFACE
+echo "SERVER_IP=$SERVER_IP" >> /var/log/net/$INTERFACE
 echo "NETWORKUP=$NETWORKUP" >> /var/log/net/$INTERFACE
 echo "NETMASK_SIZE=$mask" >> /var/log/net/$INTERFACE
 echo "SERVER_NAME=$saddr" >> /var/log/net/$INTERFACE

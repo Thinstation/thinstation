@@ -10,7 +10,11 @@ source=(http://download.gnome.org/sources/libIDL/0.8/libIDL-$version.tar.bz2)
 
 build() {
 	cd libIDL-$version
-	./configure --prefix=/usr
+
+	./configure --prefix=/usr \
+			--disable-static \
+			--enable-shared
+
 	make
 	make DESTDIR=$PKG install
 	rm -rf $PKG/usr/share

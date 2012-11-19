@@ -10,10 +10,12 @@ for i in hicolor-icon-theme gnome-icon-theme neu-icon-theme tango-icon-theme; do
 done
 #Now, to save some space, we want to composite the icon themes
 mkdir -p $INSTALLDIR/lib/icons/Default
-for theme in Gnome Tango Neu; do #Ordering is important here, the last theme will be the most dominant
+for theme in gnome Tango Neu; do #Ordering is important here, the last theme will be the most dominant
 	cp -Prfd $INSTALLDIR/lib/icons/$theme/* $INSTALLDIR/lib/icons/Default/.
 	rm -rf $INSTALLDIR/lib/icons/$theme
 done
+
+rm -rf $INSTALLDIR/lib/locale
 
 returnval=$?
 

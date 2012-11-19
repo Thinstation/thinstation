@@ -11,7 +11,13 @@ source=(http://download.gnome.org/sources/$name/${version%.*}/$name-$version.tar
 
 build () {
 	cd $name-$version
-	./configure --prefix=/usr --mandir=/usr/man
+
+	./configure --prefix=/usr \
+			--mandir=/usr/man \
+			--disable-introspection \
+			--disable-static \
+			--enable-shared \
+
 	make
 	make DESTDIR=$PKG install
 	install -D -m 644 $SRC/pango.modules $PKG/usr/etc/pango/pango.modules

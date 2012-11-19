@@ -12,7 +12,12 @@ build() {
 	cd $name-$version
 	CFLAGS="$CFLAGS -DG_CONST_RETURN=const"
 
-	./configure --prefix=/usr --disable-static --disable-introspection --disable-gtk-doc
+	./configure --prefix=/usr \
+			--disable-introspection \
+			--disable-gtk-doc \
+			--enable-shared \
+			--disable-static
+
 	make
 	make install DESTDIR=$PKG
 	rm -rf $PKG/usr/share

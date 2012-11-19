@@ -11,7 +11,12 @@ source=(http://download.gnome.org/sources/$name/${version%.*}/${name}-$version.t
 build () {
 	cd ${name}-$version
 
-	./configure --prefix=/usr --mandir=/usr/man --enable-debug=no
+	./configure --prefix=/usr \
+			--mandir=/usr/man \
+			--enable-debug=no \
+			--disable-static \
+			--enable-shared \
+
 	sed -i -e 's/glib\/gslist.h/glib.h/g' glib/glue/list.c
 	sed -i -e 's/glib\/glist.h/glib.h/g' glib/glue/list.c
 	sed -i -e 's/glib\/gslist.h/glib.h/g' glib/glue/slist.c

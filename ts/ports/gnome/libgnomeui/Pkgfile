@@ -14,10 +14,15 @@ build() {
 	rm po/*.po
 	sed -i -e 's/USE_NLS=yes/USE_NLS=no/' \
 		-e 's/ENABLE_NLS 1/ENABLE_NLS 0/' configure
+
 	./configure --prefix=/usr \
-		--libexecdir=/usr/lib/$name \
+		--libexecdir=/usr/libexec \
 		--disable-debug \
-		--disable-gtk-doc
+		--disable-gtk-doc \
+		--disable-nls \
+		--enable-shared \
+		--disable-static
+
 	make
 	make DESTDIR=$PKG install
 	rm -rf $PKG/usr/share/gtk-doc

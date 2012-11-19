@@ -10,7 +10,12 @@ source=(http://ftp.gnome.org/pub/GNOME/sources/gtk-doc/1.18/$name-$version.tar.b
 
 build () {
 	cd $name-$version
-	./configure --prefix=/usr --disable-scrollkeeper
+
+	./configure --prefix=/usr \
+			--disable-scrollkeeper \
+			--disable-static \
+			--enable-shared \
+
 	make
 	make DESTDIR=$PKG install
 }

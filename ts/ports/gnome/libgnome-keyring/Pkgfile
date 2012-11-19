@@ -15,7 +15,11 @@ build() {
 		-e 's/ENABLE_NLS 1/ENABLE_NLS 0/' configure
 
 	./configure --prefix=/usr \
-		--libexecdir=/usr/lib/$name --disable-nls
+		--libexecdir=/usr/libexec \
+		--disable-nls \
+		--disable-static \
+		--enable-shared
+
 	make
 	make DESTDIR=$PKG install
 	rm -rf $PKG/usr/share/gtk-doc

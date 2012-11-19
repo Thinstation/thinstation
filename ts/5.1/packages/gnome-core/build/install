@@ -3,14 +3,25 @@
 INSTALLDIR=./packages/gnome-core
 EXTRADIR=$INSTALLDIR/build/extra
 TMPDIR=./build-gnome-core
+FILE_BLOAT="libglade-convert gsettings-schema-convert gconf-sanity-check-2 bonobo-slay echo-client-2 test-moniker \
+bonobo-browser linc-cleanup-sockets orbit-idl-2 orbit2-config ior-decode-2 typelib-dump desktop-file-install desktop-file-validate desktop-file-edit"
+DIR_BLOAT="lib/gnome-vfs-2.0/include lib/idl lib/bonobo-2.0 lib/gnome-background-properties"
 
-for i in gconf libglade glib gnome-keyring gnome-vfs libart_lgpl \
+for i in gconf libglade gnome-keyring gnome-vfs \
 libbonobo libbonoboui libgnome libgnomecanvas libgnomeui gsettings-desktop-schemas \
-libtasn1 orbit2 popt xdg-utils xdg-user-dirs shared-mime-info; do
+orbit2 xdg-utils xdg-user-dirs shared-mime-info desktop-file-utils; do
 	repackage $i -t $TMPDIR
 	cp -Prf $TMPDIR/$i/* $INSTALLDIR/.
 	rm -rf $TMPDIR
 done
+for bloat in $FILE_BLOAT; do
+	find $INSTALLDIR -type f -name $bloat -delete
+	find $INSTALLDIR -type l -name $bloat -delete
+done
+for bloat in $DIR_BLOAT; do
+	rm -rf $INSTALLDIR/$bloat
+done
+
 rm -rf $INSTALLDIR/lib/locale
 cp -Prf $EXTRADIR/* $INSTALLDIR/.
 

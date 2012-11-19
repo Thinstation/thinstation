@@ -16,8 +16,10 @@ build() {
 #	patch -i $SRC/$name-deprecated.patch configure
 	./configure --prefix=/usr \
 		--enable-debug=no \
-		--disable-indent \
-		--disable-gtk-doc
+		--disable-gtk-doc \
+		--disable-static \
+		--enable-shared \
+
 	make
 	make DESTDIR=$PKG install
 	rm -rf $PKG/usr/share/gtk-doc

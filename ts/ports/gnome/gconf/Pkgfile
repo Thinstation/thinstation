@@ -18,13 +18,18 @@ build() {
 	cp /usr/lib/glib-2.0/include/glibconfig.h .
 	ln -sf /usr/include/glib-2.0/glib glib
 	ln -sf /usr/include/glib-2.0/gobject gobject
+
 	./configure --prefix=/usr \
 		--mandir=/usr/man \
-		--enable-debug=no \
-		--libexecdir=/usr/lib/GConf \
+		--disable-nls \
+		--enable-defaults-service \
+		--libexecdir=/usr/libexec \
 		--enable-gtk \
 		--disable-gtk-doc \
-		--disable-introspection
+		--disable-introspection \
+		--enable-shared \
+		--disable-static
+
 	make
 	make DESTDIR=$PKG install
 	rm -rf $PKG/usr/share/gtk-doc

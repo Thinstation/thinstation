@@ -11,7 +11,11 @@ source=(http://ftp.gnome.org/pub/GNOME/sources/$name/${version%.*}/$name-$versio
 
 build() {
 	cd $name-$version
-	./configure --prefix=/usr
+
+	./configure --prefix=/usr \
+			--disable-static \
+			--enable-shared
+
 	make
 	make DESTDIR=$PKG install
 	rm -r $PKG/usr/share/doc

@@ -1,0 +1,27 @@
+#!/bin/sh
+
+INSTALLDIR=./packages/glib
+EXTRADIR=$INSTALLDIR/build/extra
+TMPDIR=./build-glib
+FILE_BLOAT="gio-querymodule gtester gtester-report gresource gobject-query glib-mkenums glib-gettextize glib-genmarshal glib-compile-resources gdbus-codegen dconf-editor"
+DIR_BLOAT="lib/gtk-doc lib/vala etc/profile.d lib/gdb lib/gdbus-2.0 lib/bash-completion lib/glib-2.0/gdb lib/glib-2.0/gettext lib/glib-2.0/include"
+
+for i in glib glib-networking gvfs dconf; do
+	repackage $i -t $TMPDIR
+	cp -Prf $TMPDIR/$i/* $INSTALLDIR/.
+	rm -rf $TMPDIR
+done
+for bloat in $FILE_BLOAT; do
+	find $INSTALLDIR -type f -name $bloat -delete
+done
+for bloat in $DIR_BLOAT; do
+	rm -rf $INSTALLDIR/$bloat
+done
+#gio-querymodules $INSTALLDIR/lib/gio/modules
+mkdir -p $INSTALLDIR/lib/gvfs/remote-volume-monitors
+rm -rf $INSTALLDIR/lib/locale
+#cp -Prf $EXTRADIR/* $INSTALLDIR/.
+
+returnval=$?
+
+exit $returnval

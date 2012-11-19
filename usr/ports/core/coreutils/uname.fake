@@ -1,0 +1,12 @@
+#!/bin/bash
+
+_real()
+{
+	/bin/uname-auto $@
+}
+
+case $1 in
+	-m) echo "i686" ; exit ;;
+	-r) if [ -n "$REPORT_KERNEL" ]; then echo "$REPORT_KERNEL"; else _real $@; fi; exit ;;
+	*) _real $@ ; exit ;;
+esac

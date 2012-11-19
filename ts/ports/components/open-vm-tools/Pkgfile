@@ -10,8 +10,8 @@ source=(http://downloads.sourceforge.net/project/$name/$name/Development%20Snaps
 
 build() {
 	cd $name-$version
-ln -sf /ts/components/kernel/kernel/modules-3.6.5TS_SMP 3.6.5-TS_SMP
-ln -sf /ts/components/kernel/kernel/modules-3.6.5TS 3.6.5-TS
+#ln -sf /ts/components/kernel/kernel/modules-3.6.5TS_SMP 3.6.5TS_SMP
+#ln -sf /ts/components/kernel/kernel/modules-3.6.5TS 3.6.5TS
 	sed -i -e 's/s_frozen/s_writers.frozen/g' modules/linux/vmsync/sync.c
 #	sed -i -e 's/, KM_USER0//g' modules/linux/vmhgfs/page.c
 
@@ -20,7 +20,7 @@ ln -sf /ts/components/kernel/kernel/modules-3.6.5TS 3.6.5-TS
 			--sysconfdir=/etc \
 			--libexecdir=/lib \
 			--mandir=/usr/man \
-			--with-kernel-release=$kver-TS_SMP \
+			--with-kernel-release=${kver}TS_SMP \
 			--with-linuxdir=/usr/src/kernels/${kver}TS_SMP \
 			--disable-docs \
 			--with-gtkmm \
@@ -35,7 +35,7 @@ ln -sf /ts/components/kernel/kernel/modules-3.6.5TS 3.6.5-TS
 			--sysconfdir=/etc \
 			--libexecdir=/lib \
 			--mandir=/usr/man \
-			--with-kernel-release=$kver-TS \
+			--with-kernel-release=${kver}TS \
 			--with-linuxdir=/usr/src/kernels/${kver}TS \
 			--disable-docs \
 			--with-gtkmm \

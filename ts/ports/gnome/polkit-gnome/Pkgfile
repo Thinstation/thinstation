@@ -11,22 +11,22 @@ source=(ftp://ftp.gnome.org/pub/gnome/sources/$name/$version/$name-$version.tar.
 build() {
 	cd $name-$version
 
-	./configure --prefix=/lib \
-			--exec-prefix=/ \
+	./configure --prefix=/usr \
 			--sysconfdir=/etc \
-			--libexecdir=/lib \
-			--mandir=/usr/man \
+			--libexecdir=/lib/libexec \
 			--disable-gtk-doc \
 			--disable-gtk-doc-html \
 			--disable-gtk-doc-pdf \
 			--disable-examples \
 			--disable-introspection \
 			--disable-nls \
-			--with-gtk=2.0
+			--with-gtk=2.0 \
+			--disable-static \
+			--enable-shared \
 
 	make
 	make DESTDIR=$PKG install
 	mkdir -p $PKG/etc/xdg/autostart
 	cp $SRC/polkit-gnome-authentication-agent-1.desktop $PKG/etc/xdg/autostart/.
-	rm -rf $PKG/lib/share
+	rm -rf $PKG/usr/share
 }

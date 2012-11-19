@@ -1,0 +1,31 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=libproxy
+version=0.4.10
+release=1
+source=(http://libproxy.googlecode.com/files/$name-$version.tar.gz
+	libproxy-0.4.10-mozjs.patch)
+
+build() {
+
+  cd $name-$version
+  patch -p1 < ../libproxy-0.4.10-mozjs.patch
+  cd ..
+
+  mkdir build
+  cd build
+  cmake ../$name-$version \
+    -DCMAKE_INSTALL_PREFIX=/usr \
+    -DLIBEXEC_INSTALL_DIR=/usr/lib/libproxy \
+    -DCMAKE_SKIP_RPATH=ON \
+    -DWITH_PERL=OFF \
+    -DWITH_WEBKIT3=ON \
+    -DWITH_GNOME3=OFF \
+    -DWITH_MOZJS=ON \
+    -DCMAKE_CXX_FLAGS="${CXXFLAGS}" \
+    -DCMAKE_C_FLAGS="${CFLAGS}"
+  make
+  make DESTDIR=$PKG install
+}

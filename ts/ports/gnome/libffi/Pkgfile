@@ -10,7 +10,12 @@ source=(ftp://sourceware.org/pub/$name/$name-$version.tar.gz)
 
 build() {
   cd $SRC/$name-$version
-  ./configure --prefix=/usr --mandir=/usr/man
+
+  ./configure --prefix=/usr \
+		--mandir=/usr/man \
+		--disable-static \
+		--enable-shared
+
   make
   make install DESTDIR=$PKG
   rm -rf $PKG/usr/share

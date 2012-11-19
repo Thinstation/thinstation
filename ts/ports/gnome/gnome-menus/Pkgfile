@@ -11,7 +11,12 @@ source=(ftp://ftp.gnome.org/pub/gnome/sources/$name/${version%.*}/$name-$version
 build() {
 	cd $name-$version
 
-	./configure --prefix=/usr --disable-static --disable-nls --disable-introspection
+	./configure --prefix=/usr \
+		--disable-nls \
+		--disable-introspection \
+		--disable-static \
+		--enable-shared
+
 	make
 	make install DESTDIR=$PKG
 }

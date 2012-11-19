@@ -1,0 +1,24 @@
+# Description: Xdialog is designed to be a replacement for dialog or cdialog.  
+# URL: http://xdialog.dyns.net/
+# Maintainer: Victor Martinez, pitillo at ono dot com
+# Depends on: gtk
+
+name=poppler
+version=0.20.5
+release=2
+source=(http://poppler.freedesktop.org/poppler-$version.tar.gz)
+
+build () {
+git clone --depth 1 git://git.freedesktop.org/git/poppler/test
+  cd $name-$version
+  ./configure --prefix=/usr \
+	      --disable-introspection \
+	      --enable-shared \
+	      --disable-static \
+	      --enable-libcurl \
+	      --enable-zlib
+
+  make
+  make DESTDIR=$PKG install
+  rm -rf $PKG/usr/share
+}

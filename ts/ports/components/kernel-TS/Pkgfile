@@ -26,16 +26,11 @@ export MAKEFLAGS="-j5"
 	cp -a arch/x86/include $PKG/usr/src/kernels/${version}TS/arch/x86
 	rm $PKG/usr/src/kernels/${version}TS/scripts/{mod,kconfig}/*.o
 
-	mkdir -p $PKG/lib/modules/${version}TS
-	ln -s /usr/src/kernels/${version}TS $PKG/lib/modules/${version}TS/build
-	ln -s build $PKG/lib/modules/${version}TS/source
-
 	make -j5
 	make INSTALL_PATH=$PKG install
 	make INSTALL_MOD_PATH=$PKG modules_install
 
 	cp -a Module.symvers System.map $PKG/usr/src/kernels/${version}TS
-	ln -sf . $PKG/usr/src/kernels/${version}TS
 	mkdir -p $PKG/$TSCOMPROOT/kernel/kernel
 	mkdir -p $PKG/$TSCOMPROOT/kernel/utils
 
@@ -47,4 +42,9 @@ export MAKEFLAGS="-j5"
 	rm -rf lib
 	cp $SRC/linux-$sversion/.config $PKG/$TSCOMPROOT/kernel/kernel/config-${version}TS
 	echo ${version}TS >$PKG/$TSCOMPROOT/kernel/utils/KERNEL_VERSION
+
+	mkdir -p $PKG/lib/modules/${version}TS
+	ln -sf /usr/src/kernels/${version}TS $PKG/lib/modules/${version}TS/build
+	ln -sf build $PKG/lib/modules/${version}TS/source
+	ln -sf . $PKG/usr/src/kernels/${version}TS/build
 }

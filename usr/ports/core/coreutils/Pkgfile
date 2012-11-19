@@ -4,15 +4,16 @@
 # Depends on:  libgmp acl libcap
 
 name=coreutils
-version=8.14
+version=8.20
 release=1
 source=(http://ftp.gnu.org/pub/gnu/$name/$name-$version.tar.xz
-        coreutils-uname.patch uname-arch.patch)
+        coreutils-uname.patch uname.fake)
 
 build() {
     cd $name-$version
 
     patch -p1 -i $SRC/coreutils-uname.patch
+    export FORCE_UNSAFE_CONFIGURE=1
 
     ./configure --prefix=/usr \
                 --libexecdir=/usr/lib \
@@ -28,6 +29,6 @@ build() {
     mv $PKG/usr/bin/{mknod,mv,pwd,readlink,rm,rmdir,stty,sync,touch,true,uname} $PKG/bin
     rm -r $PKG/usr/share
     mv $PKG/bin/uname $PKG/bin/uname-auto
-    install $SRC/uname-arch.patch $PKG/bin/uname
+    install $SRC/uname.fake $PKG/bin/uname
 
 }

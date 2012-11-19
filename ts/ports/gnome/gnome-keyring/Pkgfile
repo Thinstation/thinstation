@@ -14,7 +14,15 @@ build() {
 	sed -i -e 's/USE_NLS=yes/USE_NLS=no/' \
 		-e 's/ENABLE_NLS 1/ENABLE_NLS 0/' configure
 	./configure --prefix=/usr \
-		--libexecdir=/usr/lib/$name --disable-nls
+			--libexecdir=/usr/libexec \
+			--disable-tests \
+			--disable-debug \
+			--disable-nls \
+			--enable-pam \
+			--with-root-certs=/etc/ssl/certs/ \
+			--enable-shared \
+			--disable-static
+
 	make
 	make DESTDIR=$PKG install
 	rm -rf $PKG/usr/share/gtk-doc

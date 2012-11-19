@@ -10,8 +10,14 @@ source=(http://ftp.gnome.org/pub/GNOME/sources/$name/2.20/$name-$version.tar.bz2
 
 build() {
     cd $name-$version
-    ./configure --prefix=/usr --enable-animation
-	sed -i -e 's/glib\/gtimer.h/glib.h/g' engines/clearlooks/src/animation.c
+
+    ./configure --prefix=/usr \
+			--enable-animation \
+			--disable-nls \
+			--disable-static \
+			--enable-shared \
+
+    sed -i -e 's/glib\/gtimer.h/glib.h/g' engines/clearlooks/src/animation.c
     make
     make DESTDIR=$PKG install
     rm -r $PKG/usr/share/{locale,gtk-engines}

@@ -15,10 +15,13 @@ build() {
 	sed -i -e 's/USE_NLS=yes/USE_NLS=no/' \
 		-e 's/ENABLE_NLS 1/ENABLE_NLS 0/' configure
 	./configure --prefix=/usr \
-		--libexecdir=/usr/lib/$name \
+		--libexecdir=/usr/libexec \
 		--disable-pulseaudio \
 		--with-help-formats="NONE" \
 		--disable-scrollkeeper \
+		--disable-nls \
+		--disable-static \
+		--enable-shared \
 
 	make
 	make DESTDIR=$PKG install

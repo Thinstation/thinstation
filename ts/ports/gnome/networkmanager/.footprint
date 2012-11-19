@@ -11,6 +11,10 @@ drwxr-xr-x	root/root	etc/dbus-1/system.d/
 drwxr-xr-x	root/root	etc/rc.d/
 -rwxr-xr-x	root/root	etc/rc.d/rc.networkmanager
 drwxr-xr-x	root/root	lib/
+drwxr-xr-x	root/root	lib/systemd/
+drwxr-xr-x	root/root	lib/systemd/system/
+-rw-r--r--	root/root	lib/systemd/system/NetworkManager-wait-online.service
+-rw-r--r--	root/root	lib/systemd/system/NetworkManager.service
 drwxr-xr-x	root/root	lib/udev/
 drwxr-xr-x	root/root	lib/udev/rules.d/
 -rw-r--r--	root/root	lib/udev/rules.d/77-nm-olpc-mesh.rules
@@ -25,6 +29,7 @@ drwxr-xr-x	root/root	usr/include/NetworkManager/
 -rw-r--r--	root/root	usr/include/NetworkManager/NetworkManagerVPN.h
 -rw-r--r--	root/root	usr/include/NetworkManager/nm-connection.h
 -rw-r--r--	root/root	usr/include/NetworkManager/nm-setting-8021x.h
+-rw-r--r--	root/root	usr/include/NetworkManager/nm-setting-adsl.h
 -rw-r--r--	root/root	usr/include/NetworkManager/nm-setting-bluetooth.h
 -rw-r--r--	root/root	usr/include/NetworkManager/nm-setting-bond.h
 -rw-r--r--	root/root	usr/include/NetworkManager/nm-setting-cdma.h
@@ -52,6 +57,7 @@ drwxr-xr-x	root/root	usr/include/libnm-glib/
 -rw-r--r--	root/root	usr/include/libnm-glib/nm-access-point.h
 -rw-r--r--	root/root	usr/include/libnm-glib/nm-active-connection.h
 -rw-r--r--	root/root	usr/include/libnm-glib/nm-client.h
+-rw-r--r--	root/root	usr/include/libnm-glib/nm-device-adsl.h
 -rw-r--r--	root/root	usr/include/libnm-glib/nm-device-bond.h
 -rw-r--r--	root/root	usr/include/libnm-glib/nm-device-bt.h
 -rw-r--r--	root/root	usr/include/libnm-glib/nm-device-ethernet.h
@@ -79,19 +85,14 @@ drwxr-xr-x	root/root	usr/include/libnm-glib/
 -rw-r--r--	root/root	usr/include/libnm-glib/nm-vpn-plugin.h
 -rw-r--r--	root/root	usr/include/libnm-glib/nm-wimax-nsp.h
 drwxr-xr-x	root/root	usr/lib/
-drwxr-xr-x	root/root	usr/lib/NetworkManager/
--rwxr-xr-x	root/root	usr/lib/NetworkManager/nm-avahi-autoipd.action
--rwxr-xr-x	root/root	usr/lib/NetworkManager/nm-crash-logger
--rwxr-xr-x	root/root	usr/lib/NetworkManager/nm-dhcp-client.action
--rwxr-xr-x	root/root	usr/lib/NetworkManager/nm-dispatcher.action
 -rwxr-xr-x	root/root	usr/lib/libnm-glib-vpn.la
 lrwxrwxrwx	root/root	usr/lib/libnm-glib-vpn.so -> libnm-glib-vpn.so.1.1.0
 lrwxrwxrwx	root/root	usr/lib/libnm-glib-vpn.so.1 -> libnm-glib-vpn.so.1.1.0
 -rwxr-xr-x	root/root	usr/lib/libnm-glib-vpn.so.1.1.0
 -rwxr-xr-x	root/root	usr/lib/libnm-glib.la
-lrwxrwxrwx	root/root	usr/lib/libnm-glib.so -> libnm-glib.so.4.3.0
-lrwxrwxrwx	root/root	usr/lib/libnm-glib.so.4 -> libnm-glib.so.4.3.0
--rwxr-xr-x	root/root	usr/lib/libnm-glib.so.4.3.0
+lrwxrwxrwx	root/root	usr/lib/libnm-glib.so -> libnm-glib.so.4.4.0
+lrwxrwxrwx	root/root	usr/lib/libnm-glib.so.4 -> libnm-glib.so.4.4.0
+-rwxr-xr-x	root/root	usr/lib/libnm-glib.so.4.4.0
 -rwxr-xr-x	root/root	usr/lib/libnm-util.la
 lrwxrwxrwx	root/root	usr/lib/libnm-util.so -> libnm-util.so.2.3.0
 lrwxrwxrwx	root/root	usr/lib/libnm-util.so.2 -> libnm-util.so.2.3.0
@@ -105,6 +106,11 @@ drwxr-xr-x	root/root	usr/lib/pppd/
 drwxr-xr-x	root/root	usr/lib/pppd/2.4.5/
 -rwxr-xr-x	root/root	usr/lib/pppd/2.4.5/nm-pppd-plugin.la
 -rwxr-xr-x	root/root	usr/lib/pppd/2.4.5/nm-pppd-plugin.so
+drwxr-xr-x	root/root	usr/libexec/
+-rwxr-xr-x	root/root	usr/libexec/nm-avahi-autoipd.action
+-rwxr-xr-x	root/root	usr/libexec/nm-crash-logger
+-rwxr-xr-x	root/root	usr/libexec/nm-dhcp-client.action
+-rwxr-xr-x	root/root	usr/libexec/nm-dispatcher.action
 drwxr-xr-x	root/root	usr/sbin/
 -rwxr-xr-x	root/root	usr/sbin/NetworkManager
 drwxr-xr-x	root/root	usr/share/
@@ -112,6 +118,7 @@ drwxr-xr-x	root/root	usr/share/NetworkManager/
 -rw-r--r--	root/root	usr/share/NetworkManager/gdb-cmd
 drwxr-xr-x	root/root	usr/share/dbus-1/
 drwxr-xr-x	root/root	usr/share/dbus-1/system-services/
+-rw-r--r--	root/root	usr/share/dbus-1/system-services/org.freedesktop.NetworkManager.service
 -rw-r--r--	root/root	usr/share/dbus-1/system-services/org.freedesktop.nm_dispatcher.service
 drwxr-xr-x	root/root	usr/share/man/
 drwxr-xr-x	root/root	usr/share/man/man1/

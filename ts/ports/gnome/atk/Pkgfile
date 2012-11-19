@@ -10,7 +10,12 @@ source=(http://download.gnome.org/sources/$name/${version%.*}/$name-$version.tar
 
 build () {
 	cd $name-$version
-	./configure --prefix=/usr --disable-introspection
+
+	./configure --prefix=/usr \
+			--disable-introspection \
+			--enable-shared \
+			--disable-static
+
 	make
 	make DESTDIR=$PKG install
 	rm -r $PKG/usr/share

@@ -1339,7 +1339,7 @@ else
 	echo -e "\tCaching icons"
 		cp -H utils/tools/gtk-update-icon-cache ./tmp-tree/bin/.
 		for icontheme in `ls --color=never ./tmp-tree/lib/icons`; do
-			chroot ./tmp-tree /bin/gtk-update-icon-cache /lib/icons/$icontheme 2>/dev/null
+			chroot ./tmp-tree /bin/gtk-update-icon-cache -i /lib/icons/$icontheme 2>/dev/null
 		done
 		rm ./tmp-tree/bin/gtk-update-icon-cache
 	fi
@@ -1348,6 +1348,7 @@ else
 		cp -H utils/tools/glib-compile-schemas ./tmp-tree/bin/.
 		chroot ./tmp-tree /bin/glib-compile-schemas /lib/glib-2.0/schemas 2>/dev/null
 		rm ./tmp-tree/bin/glib-compile-schemas
+		gio-querymodules ./tmp-tree/lib/gio/modules
 	fi
 fi
 echo -e "\tLinking BusyBox\n"

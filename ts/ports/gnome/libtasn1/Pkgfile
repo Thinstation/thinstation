@@ -10,7 +10,10 @@ source=(http://ftp.gnu.org/gnu/libtasn1/$name-$version.tar.gz)
 build() {
 	cd $name-$version
 	./configure --prefix=/usr \
-		--mandir=/usr/man
+		--mandir=/usr/man \
+		--disable-static \
+		--enable-shared \
+
 	make
 	make DESTDIR=$PKG install
 	rm -rf $PKG/usr/share/info

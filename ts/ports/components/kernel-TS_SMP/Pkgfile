@@ -26,16 +26,11 @@ export MAKEFLAGS="-j5"
 	cp -a arch/x86/include $PKG/usr/src/kernels/${version}TS_SMP/arch/x86
 	rm $PKG/usr/src/kernels/${version}TS_SMP/scripts/{mod,kconfig}/*.o
 
-	mkdir -p $PKG/lib/modules/${version}TS_SMP
-	ln -s /usr/src/kernels/${version}TS_SMP $PKG/lib/modules/${version}TS_SMP/build
-	ln -s build $PKG/lib/modules/${version}TS_SMP/source
-
 	make
 	make INSTALL_PATH=$PKG install
 	make INSTALL_MOD_PATH=$PKG modules_install
 
 	cp -a Module.symvers System.map $PKG/usr/src/kernels/${version}TS_SMP
-	ln -sf . $PKG/usr/src/kernels/${version}TS
 
 	mkdir -p $PKG/$TSCOMPROOT/kernel_SMP/kernel
 	mkdir -p $PKG/$TSCOMPROOT/kernel_SMP/utils
@@ -48,4 +43,9 @@ export MAKEFLAGS="-j5"
 	rm -rf lib
 	cp $SRC/linux-$sversion/.config $PKG/$TSCOMPROOT/kernel_SMP/kernel/config-${version}TS_SMP
 	echo ${version}TS_SMP >$PKG/$TSCOMPROOT/kernel_SMP/utils/KERNEL_VERSION
+
+	mkdir -p $PKG/lib/modules/${version}TS_SMP
+	ln -s /usr/src/kernels/${version}TS_SMP $PKG/lib/modules/${version}TS_SMP/build
+	ln -s build $PKG/lib/modules/${version}TS_SMP/source
+	ln -sf . $PKG/usr/src/kernels/${version}TS_SMP/build
 }
