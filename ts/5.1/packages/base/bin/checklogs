@@ -1,8 +1,8 @@
 #! /bin/sh
 
-for filename in `ls /var/log/* | grep -v ".old"`
+for filename in `find /var/log -type f -not -name "*.old" `
 do
-	FILESIZE=`ls -s $filename | cut -c1-5`
+	FILESIZE=`ls -s $filename | sed -e "s/^\s*\([0-9]*\).*/\1/"`
 	if [ $FILESIZE -ge 100 ] ; then
 		cat $filename > $filename.old
 		cat /dev/null > $filename

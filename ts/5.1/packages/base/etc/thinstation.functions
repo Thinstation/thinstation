@@ -624,7 +624,7 @@ screen_res ()
 
 use_xrandr ()
 {
-	if is_enabled $USE_XRANDR && [ "$WMNAME" != "xfwm4" ]; then
+	if is_enabled $USE_XRANDR ; then
         	echo "Using xrandr to set display resolution." >> $APPLOG
         	if [ "$XRANDR_OPTIONS" == "" ]; then
 		    	xrandr -s $SCREEN_RESOLUTION 2>/dev/null
@@ -651,7 +651,7 @@ use_wallpaper ()
 
 use_idesk ()
 {
-	if [ -x /bin/idesk ] && [ "$WMNAME" != "xfwm4"]; then
+	if [ -x /bin/idesk ] && [ "$WMNAME" != "xfwm4" ]; then
 	        IDESKPID=`pidof idesk`
         	if [ -n "$IDESKPID" ]; then
                 	kill -HUP $IDESKPID
@@ -670,7 +670,7 @@ use_idesk ()
 x_mod_map ()
 {
  # Add xmodmap modifications
-        if [ -e /lib/kmaps/$KEYBOARD_MAP.xmod ] && [ "$WMNAME" != "xfwm4"]; then
+        if [ -e /lib/kmaps/$KEYBOARD_MAP.xmod ] && [ "$WMNAME" != "xfwm4" ]; then
                 xmodmap /lib/kmaps/$KEYBOARD_MAP.xmod
         fi
 }

@@ -45,11 +45,11 @@ if is_enabled $MENU_SHOWAPPS ; then
 	if [ "$server" == "." ] ; then server="" ; fi
 	if [ "$options" == "." ] ; then options="" ; fi
 	case "$icon" in
-	ON)
+	ON|MENU)
 	 echo "$type.icon: $type" >> $MENU_ICONS
 	 echo "prog \"$title\" \"$type\" pkg $MAXIMIZE_DEFAULT $type \"$server\" \"$options\"" >> $MENU_FILE
 	;;
-	SUBMENU)
+	SUBMENU|SUBMENUONLY)
 	 if [ "$lasttype" != "$type" ] ; then
 		lasttype=$type
 	 	echo $type >> /tmp/typelist

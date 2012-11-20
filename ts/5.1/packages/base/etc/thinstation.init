@@ -12,6 +12,7 @@ if [ -e /etc/thinstation.global ] ; then . /etc/thinstation.global ; fi
 if [ -e /etc/splash.functions ] ; then . /etc/splash.functions ; fi
 
 umask 022
+trap "" INT QUIT TSTP
 
 # Runs packages in init level
 
@@ -25,7 +26,7 @@ init_packages()
 	    		echo -n `echo "$package -" | cut -c4-`" "
 		fi
 		(
-	    		trap - INT QUIT TSTP
+	    		#trap - INT QUIT TSTP
 	    		if [ -n "$DEBUG_BOOT" ]; then
 	        		echo "$package" >> $LOGFILE
             		fi
