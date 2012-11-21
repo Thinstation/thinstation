@@ -136,7 +136,7 @@ lib_dependencies()
 module_module_dependencies()
 {
 echo -e "\nAdding modules that are dependencies of selected modules\n"
-for line in `ls ./tmp-tree/lib/modules/$KERNVER/*` ;
+for line in `find ./tmp-tree/lib/modules/$KERNVER -type f -name \*.ko` ;
 do
     modname=`basename $line`
     deplist=`grep /${modname}: ./modules.dep`
@@ -144,12 +144,12 @@ do
     for modpath in $modlist
     do
 	mod=`basename $modpath`
-	if [ ! -e "./tmp-tree/lib/modules/$KERNVER/$mod" ] ; then
-    	    if [ -e "./kernel/modules-$KERNVER/$modpath" ] ; then
-		cp "./kernel/modules-$KERNVER/$modpath" ./tmp-tree/lib/modules/$KERNVER/$mod
+	mod_path=`dirname $modpath`
+	if [ ! -e ./tmp-tree/lib/modules/$KERNVER/$modpath ] ; then
+    	    if [ -e ./kernel/modules-$KERNVER/$modpath ] ; then
+		mkdir -p ./tmp-tree/lib/modules/$KERNVER/$mod_path
+		cp ./kernel/modules-$KERNVER/$modpath ./tmp-tree/lib/modules/$KERNVER/$modpath
 		echo "Including $mod as a dependency of $modname"
-	    elif [ -e "./tmp-tree/lib/modules/$KERNVER/$mod" ] ; then
-		echo "already there" >/dev/null
 	    else
 		echo "Error, Dependent module $mod for $modname not found"
 	    fi
@@ -287,15 +287,18 @@ package_dependencies ()
   while read filename
   do
     package=`basename $filename .$1`
-    echo "Adding Dependent $1 Packages for $package"
-    if [ -e packages/$package/dependencies ] ; then
+    if [ -s packages/$package/dependencies ] ; then
       (cat packages/$package/dependencies |grep -r -v ^#) |
       while read name cross
       do
        	if [ "$1" = "package" ] || [ "$name" = "base" ] ; then
           if [ ! -e $PACDIR/$name.package ] && [ ! -e $PACDIR/$name.pkg ] ; then
            if [ -e $PACDIR/$cross.package ] || [ -e $PACDIR/$cross.pkg ] || [ -z "$cross" ] ; then
-            echo "                 Packages package $name"
+	    if [ "$DISPLAYED" != "TRUE" ]; then
+		echo "Adding dependent packages of $package:"
+		DISPLAYED=TRUE
+	    fi
+            echo "                              package $name"
             echo "cp -Rp --remove-destination ./packages/$name/* ./tmp-tree > /dev/null 2>&1">>\
               $PACDIR/$name.package
 	   fi
@@ -303,15 +306,19 @@ package_dependencies ()
         elif [ "$1" = "pkg" ] ; then
           if [ ! -e $PACDIR/$name.package ] && [ ! -e $PACDIR/$name.pkg ] ; then
            if [ -e $PACDIR/$cross.package ] || [ -e $PACDIR/$cross.pkg ] || [ -z "$cross" ] ; then
-            echo "                 Packages pkg $name"
+	    if [ "$DISPLAYED" != "TRUE" ]; then
+                echo "Adding Dependent Pkgs of $package:"
+                DISPLAYED=TRUE
+            fi
+            echo "                         pkg $name"
 	    echo -e "cp -Rp --remove-destination ./packages/$name $PKGDIR" >> $PACDIR/$name.pkg
 	   fi
           fi
         fi
       done
-    else
+      unset DISPLAYED
+    elif [ ! -e packages/$package/dependencies ]; then
 	echo "Not Found $package dependency!!"
-#	sleep 5
     fi
   done
   ls $PACDIR/*.$1 > packages.after
@@ -411,7 +418,7 @@ web_package ()
 	get_file $URL ./wget_tmp
 	if ./packages/$package/build/install $URL ; then
 	  touch ./packages/$package/build/installed
-	  echo -e "\n$package Setup complete"
+	  echo -e "$package: Setup Complete"
 	else
 	  echo -e "\nError has occured while installing package"
        	  echo -e "Build Aborted\n"
@@ -649,19 +656,21 @@ do
 	fi
 	;;
     module)
-	if [ "$ALLMODULES" != "true" ] ; then
+	if [ "$ALLMODULES" == "true" ] ; then return 0 ; fi
     	if [ -e ./kernel/alias/$name ] ; then
 		name=`cat ./kernel/alias/$name`
 	fi
 	for KERNVER in $KERNVERS; do
-        if [ -e `find ./kernel/modules-$KERNVER/ -follow -name "$name.ko"` ] ; then
+		modpath=`find ./kernel/modules-$KERNVER -follow -name $name.ko |cut -d/ -f4-`
+		if [ -n "$modpath" ]; then
+			mod_path=`dirname $modpath`
 			echo "Module $KERNVER: $name"
-			cp `find ./kernel/modules-$KERNVER/ -follow -name "$name.ko"` ./tmp-tree/lib/modules/$KERNVER/"$name".ko
+			mkdir -p ./tmp-tree/lib/modules/$KERNVER/$mod_path
+			cp ./kernel/modules-$KERNVER/$modpath ./tmp-tree/lib/modules/$KERNVER/$mod_path/.
 		else
-			echo "Error, Module $name not found"
+			echo "Error, Module $name not found for $KERNVER"
 		fi
 	done
-	fi
 	if [ `make_caps X$args` == "XFORCE" ]; then
 	echo $name `echo $args | cut -f1 -d#` >> ./tmp-tree/etc/modules
 	fi
@@ -832,7 +841,7 @@ do
 	elif [ "`cat ./packages/$package/build/install |grep -c -e repackage`" -gt "0" ]; then
 		if ./packages/$package/build/install ; then
 	        	touch ./packages/$package/build/installed
-        		echo -e "\n$package Setup complete"
+        		echo -e "$package: Setup complete"
         	else
           		echo -e "\nError has occured while installing package"
           		echo -e "Build Aborted\n"
@@ -1339,6 +1348,7 @@ else
 	echo -e "\tCaching icons"
 		cp -H utils/tools/gtk-update-icon-cache ./tmp-tree/bin/.
 		for icontheme in `ls --color=never ./tmp-tree/lib/icons`; do
+			rm -f ./tmp-tree/lib/icons/$icontheme/icon-theme.cache
 			chroot ./tmp-tree /bin/gtk-update-icon-cache -i /lib/icons/$icontheme 2>/dev/null
 		done
 		rm ./tmp-tree/bin/gtk-update-icon-cache
