@@ -12,8 +12,15 @@ if [ "$TERM" == "xinit" ] ; then
 			cp -a /etc/skel/$file $HOME/. 2>/dev/null
 		done
 	fi
-	/etc/xserverrc
-	exec /etc/xinitrc 2>&1 >> /var/run/applications/session.$$
+	check_last_session
+	exec xinit /etc/xinitrc -- /etc/xserverrc 2>&1 >> /var/run/applications/session.$$
+	error=$?
+	if [ "$error" != "0" ]; then
+		echo "Something went wrong! Starting the shell instead"
+		echo "exit code was $error"
+	else
+		exit $error
+	fi
 fi
 
 alias ll='ls -l'
