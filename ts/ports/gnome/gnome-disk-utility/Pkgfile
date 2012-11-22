@@ -1,0 +1,28 @@
+# Description: C++ interface for the popular glib library.
+# URL: http://gtkmm.sourceforge.net/
+# Maintainer: Danny Rawlins, monster dot romster at gmail dot com
+# Packager: Younes Hafri, ycrux at club-internet dot fr
+# Depends on: gtk libsigc++
+
+name=gnome-disk-utility
+version=2.30.1
+release=1
+source=(http://ftp.gnome.org/pub/GNOME/sources/$name/${version%.*}/$name-$version.tar.bz2)
+
+build() {
+	cd $name-$version
+
+	sed -i -e 's/glib\/gthread.h/glib.h/g' src/format-tool/gdu-format-tool.c
+	./configure \
+		--prefix=/usr \
+		--disable-dependency-tracking \
+		--enable-shared \
+		--disable-static \
+		--disable-gtk-doc-html \
+		--disable-gtk-doc \
+		--disable-scrollkeeper
+
+	make
+	make DESTDIR=$PKG install
+	rm -rf $PKG/usr/share/gtk-doc $PKG/usr/share/gnome/help $PKG/usr/share/omf
+}
