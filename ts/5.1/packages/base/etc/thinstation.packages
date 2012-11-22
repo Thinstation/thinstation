@@ -86,7 +86,11 @@ run_command()
 	if is_enabled $LOG_COMMANDS ; then
 		echo "$CMD" >> $APPLOG
 	fi
-	eval $CMD 2>&1 >> $APPLOG
+	if x_wm ;then
+		eval exec $CMD 2>&1 >> $APPLOG
+	else
+		eval $CMD 2>&1 >> $APPLOG
+	fi
 }
 
 case "$1" in
