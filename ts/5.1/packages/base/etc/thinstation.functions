@@ -722,3 +722,15 @@ get_res ()
 {
 	xrandr 2>/dev/null |grep -e \* |cut -d' ' -f4
 }
+
+check_last_session ()
+{
+	if [ "`ls -l $APPLOGDIR |grep -e xorg -c`" -gt "0" ]; then
+        	lastlog=`ls -ltr $APPLOGDIR |grep -e xorg |tail -n1 |cut -c 58-`
+        	if [ "`tail -n1 $APPLOGDIR/$lastlog |grep -o -e \(0\)`" == "(0)" ]; then
+                	continue
+		else
+			TERM=linux exec openvt -c 4 -s -w $NO_XORG_CMD
+		fi
+	fi
+}
