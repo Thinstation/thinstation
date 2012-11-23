@@ -10,7 +10,6 @@ else
 fi
 
 modprobe squashfs
-#modprobe loop
 
 squash_location=`dirname $initrd`
 if [ "$squash_location" == "." -o "$squash_location" == "/." ]; then
@@ -22,10 +21,6 @@ elif [ "`echo $squash_location |cut -c 1`" == "." ]; then
 else
 	squash_location=$squash_location/
 fi
-
-# Loadlin
-#if [ "$LM" == "1" ]; then
-#fi
 
 # Syslinux
 if [ "$LM" == "2" ]; then
@@ -114,11 +109,6 @@ if [ "$LM" == "4" ]; then
         FILE=/mnt/cdrom0/"$squash_location"lib.squash
 fi
 
-# nbi
-#if [ "$LM" == "5" ]; then
-# MEMORY_CONSTRAINED=TRUE
-#fi
-
 if [ "$FASTBOOT" == "lotsofmem" ] ; then
 	unsquashfs -d / -f $FILE |tee /var/log/expand_progress &
 	sleep .2
@@ -138,7 +128,9 @@ if [ "$FASTBOOT" == "lotsofmem" ] ; then
 	fi
 elif is_enabled $MEMORY_CONSTRAINED ; then
         mount -o ro,loop -t squashfs $FILE /lib
-elif [ ! -e /tmp/lib.squash ] ; then
-	cp $FILE /tmp/lib.squash
+else
+	if [ ! -e /tmp/lib.squash ] ; then
+		cp $FILE /tmp/lib.squash
+	fi
 	mount -o ro,loop -t squashfs /tmp/lib.squash /lib
 fi
