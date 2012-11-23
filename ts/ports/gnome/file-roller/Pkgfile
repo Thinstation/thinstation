@@ -1,0 +1,25 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=file-roller
+version=2.32.2
+release=1
+source=(http://ftp.gnome.org/pub/gnome/sources/$name/${version%.*}/$name-$version.tar.gz)
+
+build() {
+	cd $name-$version
+
+	./configure --prefix=/usr \
+			--disable-scrollkeeper \
+			--exec-prefix=/ \
+			--sysconfdir=/etc \
+			--libexecdir=/lib \
+			--mandir=/usr/man \
+			--disable-extras
+
+	make
+	make DESTDIR=$PKG install
+	rm -rf $PKG/usr/share/locale
+	sed -i -e 's/multipart\/x-zip;//g' $PKG/usr/share/applications/file-roller.desktop
+}

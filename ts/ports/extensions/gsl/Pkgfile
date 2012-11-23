@@ -1,0 +1,15 @@
+# Description: GNU compression utility (replacement for compress)
+# URL:         http://www.gzip.org/
+# Maintainer:  CRUX System Team, core-ports at crux dot nu
+
+name=gsl
+version=1.15
+release=1
+source=(http://ftp.gnu.org/gnu/$name/$name-$version.tar.gz)
+
+build() {
+    cd $name-$version
+    ./configure --prefix=/usr --mandir=/usr/man
+    make
+    make DESTDIR=$PKG install
+}

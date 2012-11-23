@@ -1,0 +1,72 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=inkscape
+version=0.48.3.1
+release=1
+source=(http://iweb.dl.sourceforge.net/project/inkscape/inkscape/$version/inkscape-$version.tar.bz2)
+
+build() {
+	cd $name-$version
+#	for i in `grep -R * -e gtypes.h |cut -d: -f1`;do
+#		sed -i -e 's/glib\/gtypes.h/glib.h/g' $i
+#	done
+#       for i in `grep -R * -e gmessages.h |cut -d: -f1`;do
+#                sed -i -e 's/glib\/gmessages.h/glib.h/g' $i
+#        done
+#        for i in `grep -R * -e gstring.h |cut -d: -f1`;do
+#                sed -i -e 's/glib\/gstring.h/glib.h/g' $i
+#        done
+#        for i in `grep -R * -e gslist.h |cut -d: -f1`;do
+#                sed -i -e 's/glib\/gslist.h/glib.h/g' $i
+#        done
+#        for i in `grep -R * -e glist.h |cut -d: -f1`;do
+#                sed -i -e 's/glib\/glist.h/glib.h/g' $i
+#        done
+#        for i in `grep -R * -e gmain.h |cut -d: -f1`;do
+#                sed -i -e 's/glib\/gmain.h/glib.h/g' $i
+#        done
+#        for i in `grep -R * -e ghash.h |cut -d: -f1`;do
+#                sed -i -e 's/glib\/ghash.h/glib.h/g' $i
+#        done
+#        for i in `grep -R * -e gdir.h |cut -d: -f1`;do
+#                sed -i -e 's/glib\/gdir.h/glib.h/g' $i
+#        done
+#	for i in `grep -R * -e gfileutils.h |cut -d: -f1`;do
+#                sed -i -e 's/glib\/gfileutils.h/glib.h/g' $i
+#        done
+#        for i in `grep -R * -e gquark.h |cut -d: -f1`;do
+#                sed -i -e 's/glib\/gquark.h/glib.h/g' $i
+#        done
+#        for i in `grep -R * -e gmacros.h |cut -d: -f1`;do
+#                sed -i -e 's/glib\/gmacros.h/glib.h/g' $i
+#        done
+#        for i in `grep -R * -e gversionmacros.h |cut -d: -f1`;do
+#                sed -i -e 's/glib\/gversionmacros.h/glib.h/g' $i
+#        done
+#        for i in `grep -R * -e gutils.h |cut -d: -f1`;do
+#                sed -i -e 's/glib\/gutils.h/glib.h/g' $i
+#        done
+#        for i in `grep -R * -e gerror.h |cut -d: -f1`;do
+#                sed -i -e 's/glib\/gerror.h/glib.h/g' $i
+#        done
+#        for i in `grep -R * -e gmem.h |cut -d: -f1`;do
+#                sed -i -e 's/glib\/gmem.h/glib.h/g' $i
+#        done
+#        for i in `grep -R * -e gconvert.h |cut -d: -f1`;do
+#                sed -i -e 's/glib\/gconvert.h/glib.h/g' $i
+#        done
+#        for i in `grep -R * -e gstrfuncs.h |cut -d: -f1`;do
+#                sed -i -e 's/glib\/gstrfuncs.h/glib.h/g' $i
+#        done
+
+	./configure --prefix=/usr \
+			--exec-prefix=/ \
+			--sysconfdir=/etc \
+			--libexecdir=/lib \
+			--mandir=/usr/man \
+
+	make
+	make DESTDIR=$PKG install
+}
