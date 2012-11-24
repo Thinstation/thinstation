@@ -2,7 +2,9 @@ if [ -n "$DEBUG_INIT" ] ; then
         echo_log "Doing Mounts"
 fi
 
-mount -t proc proc /proc
+if [ ! -e /proc/mounts ]; then
+	mount -t proc proc /proc
+fi
 if [ ! -e /sys/bus ] ; then
 	mount -t sysfs sys /sys
 fi

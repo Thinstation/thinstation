@@ -5,7 +5,9 @@ gconftool-2 --makefile-install-rule /etc/gconf/schemas/* > /dev/null
 rm -rf /etc/gconf/schemas
 rm -f /etc/gconf/gconf.xml.defaults/%gconf-tree-*.xml
 update-mime-database /lib/mime
-find /lib/mime ! -name mime.cache -type f -delete
-find /lib/mime -mindepth 1 -type d -delete
+if [ ! -e /bin/xfce4-mime-settings ]; then
+	find /lib/mime ! -name mime.cache -type f -delete
+	find /lib/mime -mindepth 1 -type d -delete
+fi
 update-desktop-database /lib/applications
 rm /bin/update-desktop-database

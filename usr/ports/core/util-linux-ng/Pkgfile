@@ -4,9 +4,9 @@
 # Depends on:  ncurses zlib
 
 name=util-linux-ng
-version=2.20.1
+version=2.22.1
 release=1
-source=(ftp://ftp.infradead.org/pub/util-linux/v2.20/util-linux-$version.tar.bz2)
+source=(ftp://ftp.kernel.org/pub/linux/utils/util-linux/v${version%.*}/util-linux-$version.tar.xz)
 
 build() {
     cd util-linux-$version
@@ -14,14 +14,20 @@ build() {
     ./configure --prefix=/usr \
                 --mandir=/usr/man \
                 --disable-{nls,wall,mountpoint} \
-                --enable-{write,raw,kill}
+                --enable-{write,raw,kill} \
+		--with-pic \
+		--disable-rpath \
+		--disable-utmpdump \
+		--disable-login \
+		--disable-sulogin \
+		--disable-su
     make
     make DESTDIR=$PKG install
 
     install -d $PKG/{etc,var/{lib/libuuid,run/uuidd}}
     touch $PKG/etc/adjtime
 
-    rm -r $PKG/usr/{share,man/ru}
-    rm $PKG/sbin/{mkfs.bfs,mkfs.minix,fsck.minix}
-    rm $PKG/usr/man/man8/{fsck.minix,mkfs.bfs,mkfs.minix}.8
+    rm -rf $PKG/usr/{share,man/ru}
+    rm -rf $PKG/sbin/{mkfs.bfs,mkfs.minix,fsck.minix}
+    rm -rf $PKG/usr/man/man8/{fsck.minix,mkfs.bfs,mkfs.minix}.8
 }
