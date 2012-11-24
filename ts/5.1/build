@@ -136,24 +136,22 @@ lib_dependencies()
 module_module_dependencies()
 {
 echo -e "\nAdding modules that are dependencies of selected modules\n"
-for line in `find ./tmp-tree/lib/modules/$KERNVER -type f -name \*.ko` ;
-do
-    modname=`basename $line`
-    deplist=`grep /${modname}: ./modules.dep`
-    modlist=${deplist#*:}
-    for modpath in $modlist
-    do
-	mod=`basename $modpath`
-	mod_path=`dirname $modpath`
-	if [ ! -e ./tmp-tree/lib/modules/$KERNVER/$modpath ] ; then
-    	    if [ -e ./kernel/modules-$KERNVER/$modpath ] ; then
-		mkdir -p ./tmp-tree/lib/modules/$KERNVER/$mod_path
-		cp ./kernel/modules-$KERNVER/$modpath ./tmp-tree/lib/modules/$KERNVER/$modpath
-		echo "Including $mod as a dependency of $modname"
-	    else
-		echo "Error, Dependent module $mod for $modname not found"
-	    fi
-	fi
+for line in `find ./tmp-tree/lib/modules/$KERNVER -type f -name \*.ko` ;do
+	modname=`basename $line`
+	deplist=`grep /${modname}: ./modules.dep`
+	modlist=${deplist#*:}
+	for modpath in $modlist ;do
+		mod=`basename $modpath`
+		mod_path=`dirname $modpath`
+		if [ ! -e ./tmp-tree/lib/modules/$KERNVER/$modpath ] ;then
+			if [ -e ./kernel/modules-$KERNVER/$modpath ] ;then
+				echo "Including $mod as a dependency of $modname"
+				mkdir -p ./tmp-tree/lib/modules/$KERNVER/$mod_path
+				cp ./kernel/modules-$KERNVER/$modpath ./tmp-tree/lib/modules/$KERNVER/$modpath
+		else
+				echo "Error, Dependent module $mod for $modname not found"
+		fi
+		fi
     done
 done
 }
@@ -161,46 +159,40 @@ done
 module_dependencies()
 {
 
-for pkgname in `echo "./tmp-tree" && find $MODDIR/ -mindepth 1 -maxdepth 1 && find $PKGDIR/ -mindepth 1 -maxdepth 1`
-do
-  if [ -e $pkgname/lib/modules/$KERNVER ] ; then
-     # This checks to see if we are doing a first or second run of module_dependencies
-     if [ ! -e $pkgname/modules.final ] ; then
-	     ls $pkgname/lib/modules/$KERNVER | grep \.ko > $pkgname/modules.final
-	     cp $pkgname/modules.final ./modules.list
-     else
-	     ls $pkgname/lib/modules/$KERNVER | grep \.ko > ./modules.list
-
-     fi
-     while [ -s $pkgname/modules.final ]
-     do
-	for module in `cat $pkgname/modules.final`
-	do
-		modulelist="`cat ./modules.tmp | grep $module: | cut -f2 -d:`"
-		# Checks for already existing modules
-		for moduleinbase in $modulelist
-		do
-			if [ ! -e ./tmp-tree/lib/modules/$KERNVER/`basename $moduleinbase` ] ; then
-				modulefinal="$modulefinal $moduleinbase "
-			fi
-		done
-		echo "Adding dependency in `basename $pkgname` for module $module"
-		if [ -n "$modulefinal" ] ; then
-		    cp `echo $modulefinal | sed -e "s@/lib/modules/@./kernel/lib/modules/@g"`\
-		       $pkgname/lib/modules/$KERNVER > /dev/null 2>&1
+for pkgname in `echo "./tmp-tree" && find $MODDIR/ -mindepth 1 -maxdepth 1 && find $PKGDIR/ -mindepth 1 -maxdepth 1` ;do
+	if [ -e $pkgname/lib/modules/$KERNVER ] ; then
+		# This checks to see if we are doing a first or second run of module_dependencies
+		if [ ! -e $pkgname/modules.final ] ; then
+			ls $pkgname/lib/modules/$KERNVER | grep \.ko > $pkgname/modules.final
+			cp $pkgname/modules.final ./modules.list
+		else
+			ls $pkgname/lib/modules/$KERNVER | grep \.ko > ./modules.list
 		fi
-		modulefinal=""
-	done
-        ls $pkgname/lib/modules/$KERNVER | grep .ko > ./modules.after
-        diff -e ./modules.list ./modules.after | grep \.ko > $pkgname/modules.final
-        cp ./modules.after ./modules.list
-	rm ./modules.after
-  done
-  rm $pkgname/modules.final
-  rm ./modules.list
- fi
+		while [ -s $pkgname/modules.final ]; do
+			for module in `cat $pkgname/modules.final` ;do
+				modulelist="`cat ./modules.tmp | grep $module: | cut -f2 -d:`"
+				# Checks for already existing modules
+				for moduleinbase in $modulelist ;do
+					if [ ! -e ./tmp-tree/lib/modules/$KERNVER/`basename $moduleinbase` ] ; then
+						modulefinal="$modulefinal $moduleinbase "
+					fi
+				done
+				echo "Adding dependency in `basename $pkgname` for module $module"
+				if [ -n "$modulefinal" ] ; then
+					cp `echo $modulefinal | sed -e "s@/lib/modules/@./kernel/lib/modules/@g"`\
+					$pkgname/lib/modules/$KERNVER > /dev/null 2>&1
+				fi
+				modulefinal=""
+			done
+			ls $pkgname/lib/modules/$KERNVER | grep .ko > ./modules.after
+			diff -e ./modules.list ./modules.after | grep \.ko > $pkgname/modules.final
+			cp ./modules.after ./modules.list
+			rm ./modules.after
+		done
+		rm $pkgname/modules.final
+		rm ./modules.list
+	fi
 done
-
 }
 
 strip_files()
@@ -657,7 +649,7 @@ do
 	;;
     module)
 	if [ "$ALLMODULES" == "true" ] ; then return 0 ; fi
-    	if [ -e ./kernel/alias/$name ] ; then
+    if [ -e ./kernel/alias/$name ] ; then
 		name=`cat ./kernel/alias/$name`
 	fi
 	for KERNVER in $KERNVERS; do

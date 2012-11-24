@@ -599,13 +599,13 @@ is_enabled ()
 
 is_disabled ()
 {
-        if [ ! -z "$1" ]; then
-                value=`make_caps $1`
-        	for i in FALSE OFF DISABLED NO NEGATIVE N ; do
-                	if [ $value == $i ]; then
-                        	return 0
-                	fi
-        	done
+	if [ ! -z "$1" ]; then
+    	value=`make_caps $1`
+		for i in FALSE OFF DISABLED NO NEGATIVE N ; do
+			if [ $value == $i ]; then
+				return 0
+			fi
+		done
 	else
 		return 0
 	fi
@@ -647,17 +647,17 @@ use_wallpaper ()
                 	wmsetbg /etc/background-1024x768.jpg 2>/dev/null
 		else
 			echo_log "No wallpaper found"
-        	fi
+       	fi
 	fi
 }
 
 use_idesk ()
 {
 	if [ -x /bin/idesk ] && [ "$WMNAME" != "xfwm4" ]; then
-	        IDESKPID=`pidof idesk`
-        	if [ -n "$IDESKPID" ]; then
-                	kill -HUP $IDESKPID
-                	wait $IDESKPID
+		IDESKPID=`pidof idesk`
+		if [ -n "$IDESKPID" ]; then
+			kill -HUP $IDESKPID
+			wait $IDESKPID
 		fi
 		if [ -e ~/.idesktop ]; then
 			rm -rf ~/.idesktop
@@ -666,7 +666,7 @@ use_idesk ()
 		. /etc/idesk.functions
 		idesk_icons
 		/bin/idesk &
-        fi
+	fi
 }
 
 x_mod_map ()
