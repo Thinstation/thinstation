@@ -648,23 +648,24 @@ do
 	fi
 	;;
     module)
-	if [ "$ALLMODULES" == "true" ] ; then return 0 ; fi
-    if [ -e ./kernel/alias/$name ] ; then
-		name=`cat ./kernel/alias/$name`
-	fi
-	for KERNVER in $KERNVERS; do
-		modpath=`find ./kernel/modules-$KERNVER -follow -name $name.ko |cut -d/ -f4-`
-		if [ -n "$modpath" ]; then
-			mod_path=`dirname $modpath`
-			echo "Module $KERNVER: $name"
-			mkdir -p ./tmp-tree/lib/modules/$KERNVER/$mod_path
-			cp ./kernel/modules-$KERNVER/$modpath ./tmp-tree/lib/modules/$KERNVER/$mod_path/.
-		else
-			echo "Error, Module $name not found for $KERNVER"
+	if [ "$ALLMODULES" != "true" ] ;then
+		if [ -e ./kernel/alias/$name ] ; then
+			name=`cat ./kernel/alias/$name`
 		fi
-	done
-	if [ `make_caps X$args` == "XFORCE" ]; then
-	echo $name `echo $args | cut -f1 -d#` >> ./tmp-tree/etc/modules
+		for KERNVER in $KERNVERS; do
+			modpath=`find ./kernel/modules-$KERNVER -follow -name $name.ko |cut -d/ -f4-`
+			if [ -n "$modpath" ]; then
+				mod_path=`dirname $modpath`
+				echo "Module $KERNVER: $name"
+				mkdir -p ./tmp-tree/lib/modules/$KERNVER/$mod_path
+				cp ./kernel/modules-$KERNVER/$modpath ./tmp-tree/lib/modules/$KERNVER/$mod_path/.
+			else
+				echo "Error, Module $name not found for $KERNVER"
+			fi
+		done
+		if [ `make_caps X$args` == "XFORCE" ]; then
+			echo $name `echo $args | cut -f1 -d#` >> ./tmp-tree/etc/modules
+		fi
 	fi
 	;;
     module_pkg)
