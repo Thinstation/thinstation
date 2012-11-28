@@ -269,57 +269,41 @@ make_initrd()
 
 package_dependencies ()
 {
-
- ls $PACDIR/*.$1 > packages.final 2>/dev/null
-
- cp packages.final packages.list
-
- while [ -s packages.final ]; do
-  (cat packages.final ) |
-  while read filename
-  do
-    package=`basename $filename .$1`
-    if [ -s packages/$package/dependencies ] ; then
-      (cat packages/$package/dependencies |grep -r -v ^#) |
-      while read name cross
-      do
-       	if [ "$1" = "package" ] || [ "$name" = "base" ] ; then
-          if [ ! -e $PACDIR/$name.package ] && [ ! -e $PACDIR/$name.pkg ] ; then
-           if [ -e $PACDIR/$cross.package ] || [ -e $PACDIR/$cross.pkg ] || [ -z "$cross" ] ; then
-	    if [ "$DISPLAYED" != "TRUE" ]; then
-		echo "Adding dependent packages of $package:"
-		DISPLAYED=TRUE
-	    fi
-            echo "                              package $name"
-            echo "cp -Rp --remove-destination ./packages/$name/* ./tmp-tree > /dev/null 2>&1">>\
-              $PACDIR/$name.package
-	   fi
-          fi
-        elif [ "$1" = "pkg" ] ; then
-          if [ ! -e $PACDIR/$name.package ] && [ ! -e $PACDIR/$name.pkg ] ; then
-           if [ -e $PACDIR/$cross.package ] || [ -e $PACDIR/$cross.pkg ] || [ -z "$cross" ] ; then
-	    if [ "$DISPLAYED" != "TRUE" ]; then
-                echo "Adding Dependent Pkgs of $package:"
+  if [ "$1" == "package" ]; then
+    DEST=./tmp-tree
+  else
+    DEST=$PKGDIR
+  fi
+  find $PACDIR/ -name \*.$1 > packages.list 2>/dev/null
+  while [ -e packages.list ]; do
+    (cat packages.list ) |
+    while read filename; do
+      package=`basename $filename .$1`
+      if [ -s packages/$package/dependencies ]; then
+        (cat packages/$package/dependencies |grep -r -v ^#) |
+        while read name cross; do
+          if [ ! -e $PACDIR/$name.package ] && [ ! -e $PACDIR/$name.pkg ]; then
+            if [ -e $PACDIR/$cross.package ] || [ -e $PACDIR/$cross.pkg ] || [ -z "$cross" ]; then
+              if [ "$DISPLAYED" != "TRUE" ]; then
+                echo "Adding dependent ${1}s of $package:"
                 DISPLAYED=TRUE
+              fi
+              echo "                              $1 $name"
+              echo "cp -Prfd --remove-destination ./packages/$name/* $DEST" > $PACDIR/$name.$1
+              echo $PACDIR/$name.$1 >> packages.added
             fi
-            echo "                         pkg $name"
-	    echo -e "cp -Rp --remove-destination ./packages/$name $PKGDIR" >> $PACDIR/$name.pkg
-	   fi
           fi
-        fi
-      done
-      unset DISPLAYED
-    elif [ ! -e packages/$package/dependencies ]; then
-	echo "Not Found $package dependency!!"
+        done
+        unset DISPLAYED
+      elif [ ! -e packages/$package/dependencies ]; then
+        echo "Not Found $package dependency!!"
+      fi
+    done
+    rm packages.list
+    if [ -e packages.added ]; then
+      mv packages.added packages.list
     fi
   done
-  ls $PACDIR/*.$1 > packages.after
-  diff -e packages.list packages.after | grep \.$1 > packages.final
-  cp packages.after packages.list
-  rm ./packages.after
- done
- rm ./packages.final
- rm ./packages.list
 }
 
 get_file ()
@@ -502,105 +486,12 @@ fi
 
 locales()
 {
-for i in `cat ./tmp-tree/build/*.template` ;
-	do
-		inputfile=`echo $i|cut -d , -f1` ;
-		charmap=`echo $i|cut -d , -f2` ;
-		name=`echo $i|cut -d , -f3` ;
-		localedef -i $inputfile -f $charmap $name --prefix=./tmp-tree ;
-	done
-
-# Removes extended locale libs if not selected
-
-if [ -n "$ts_forcelocales" ] ; then
-	ts_fulllocales=true
-fi
-
-if [ -z "$ts_fulllocales" ] ; then
-	if [ ! -e $PACDIR/fulllocales.param ]; then
-		ts_fulllocales="false"
-	fi
-fi
-
-if [ "$ts_fulllocales" != "true" ] ; then
-      for filename in `find $PKGDIR -maxdepth 1 -name "keymaps-*" && echo "./tmp-tree"`
-      do
-        if [ -e $filename/full ] ; then
-           rm -R $filename/full
- 	fi
-      done
-else
-	 for filename in `find $PKGDIR -maxdepth 1 -name "keymaps-*" && echo "./tmp-tree"`
-	 do
-           if [ -e $filename/full ] ; then
-	     cp -Rp $filename/full/* $filename/
-	     rm -R $filename/full
-           fi
-         done
-fi
-
-}
-
-keymaps()
-{
-#
-    for filename in `find $PACDIR -maxdepth 1 -name "keymaps-*"`
-    do
-	package=`basename $filename`
-	keymap=${package%%.*}
-	if [ -n "$xkeymap" ] ; then
-	    xkeymap=$xkeymap,${keymap##*-}
-	else
-	    xkeymap=${keymap##*-}
-	fi
-    done
-    echo "XKEYBOARD=$xkeymap" >> ./tmp-tree/etc/thinstation.defaults
-
-
-# Removes uneeded keymap package types
-# Also places the keymap components in the correct package
-
-echo -e "Checking if extended locale support is enabled\n"
-
-for packagename in x-common base rdesktop blackbox ica_wfc
-do
-	if [ -e $PACDIR/$packagename.pkg ]; then
-	   for filename in `find $PKGDIR -maxdepth 1 -name "keymaps-*" && echo "./tmp-tree"`
-	   do
-	       if [ -e $filename/$packagename ] ; then
-		 echo "Coping extended $packagename to pkg file"
-	         cp -Rp $filename/$packagename/* $PKGDIR/$packagename
-	         rm -R $filename/$packagename
-               fi
-           done
-	elif [ -e $PACDIR/$packagename.package ] ; then
-	   for filename in `find $PKGDIR -maxdepth 1 -name "keymaps-*" && echo "./tmp-tree"`
-	   do
-	       if [ -e $filename/$packagename ] ; then
-		 echo "Coping extended $packagename to inbuilt image"
-	         cp -Rp $filename/$packagename/* ./tmp-tree
-	         rm -R $filename/$packagename
-               fi
-           done
-	else
-	   for filename in `find $PKGDIR -maxdepth 1 -name "keymaps-*" && echo "./tmp-tree"`
-	   do
-	       if [ -e $filename/$packagename ] ; then
-	         rm -R $filename/$packagename
-	       fi
-           done
-	fi
-done
-
-# Checks for and removes any remaining keymap.pkg files
-# It does this as keymaps are merged into there parent files
-
-for filename in `find $PKGDIR -maxdepth 1 -name "keymaps-*"`
-do
-	rm -R $filename
-	keymapname=`basename $filename`
-	rm $PACDIR/$keymapname.pkg
-done
+  for i in `cat ./tmp-tree/build/*.template`; do
+    inputfile=`echo $i|cut -d , -f1`
+    charmap=`echo $i|cut -d , -f2`
+    name=`echo $i|cut -d , -f3`
+    localedef -i $inputfile -f $charmap $name --prefix=./tmp-tree
+  done
 }
 
 read_conf()
@@ -1043,9 +934,6 @@ fi
 
 # Process locales
 locales
-
-# Process keymaps
-keymaps
 
 # Adding library dependencies
 
