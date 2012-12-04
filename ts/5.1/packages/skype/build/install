@@ -1,0 +1,24 @@
+#!/bin/sh
+
+gzname=`basename $1`
+dirname=`basename $gzname .tar.bz2`
+INSTALLDIR=../../packages/skype
+
+cd wget_tmp
+tar -jxvf $gzname
+cd $dirname
+mkdir $INSTALLDIR/bin
+mkdir -p $INSTALLDIR/lib/skype
+mkdir $INSTALLDIR/etc
+mkdir $INSTALLDIR/lib/applications
+mv skype $INSTALLDIR/bin
+mv skype.conf $INSTALLDIR/etc/.
+mv skype.desktop $INSTALLDIR/lib/applications/.
+mv sounds $INSTALLDIR/lib/skype/.
+mv avatars $INSTALLDIR/lib/skype/.
+mv lang $INSTALLDIR/lib/skype/.
+
+cp -Prfd $INSTALLDIR/build/extra/* $INSTALLDIR/.
+returnval=$?
+
+exit $returnval
