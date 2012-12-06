@@ -18,9 +18,9 @@ build () {
     sed -i 's|"$COMPILER" -c|$COMPILER -c|' config.tests/unix/fvisibility.test
 
     ./configure -prefix /usr/share/qt4 \
-                -bindir /usr/bin \
-                -headerdir /usr/include/qt4 \
-                -libdir /usr/lib/qt4 \
+                -bindir /usr/share/qt4/bin \
+                -headerdir /usr/share/qt4/include \
+                -libdir /usr/share/qt4/lib \
                 -plugindir /usr/share/qt4/plugins \
                 -platform linux-g++ -release -shared -sm \
                 -nis -verbose -system-zlib \
@@ -41,20 +41,20 @@ build () {
     rm -rf $PKG/usr/share/qt4/phrasebooks
 
     install -d $PKG/{etc/ld.so.conf.d,usr/{bin,lib,include}}
-    echo "/usr/lib/qt4" > $PKG/etc/ld.so.conf.d/qt4.conf
+    echo "/usr/share/qt4/lib" > $PKG/etc/ld.so.conf.d/qt4.conf
 
-#    ln -s ../share/qt4/include     $PKG/usr/include/qt4
-#    ln -s ../share/qt4/lib         $PKG/usr/lib/qt4
-#    ln -s linux-g++                $PKG/usr/share/qt4/mkspecs/default
+    ln -s ../share/qt4/include     $PKG/usr/include/qt4
+    ln -s ../share/qt4/lib         $PKG/usr/lib/qt4
+    ln -s linux-g++                $PKG/usr/share/qt4/mkspecs/default
 
-    mv $PKG/usr/lib/qt4/pkgconfig $PKG/usr/lib
+    mv $PKG/usr/share/qt4/lib/pkgconfig $PKG/usr/lib
 
     sed -i -e "s|-L$SRC/qt-everywhere-opensource-src-$version/lib ||g" \
-           -e "s|$SRC/qt-everywhere-opensource-src-$version/bin|/usr/bin|g" \
+           -e "s|$SRC/qt-everywhere-opensource-src-$version/bin|/usr/share/qt4/bin|g" \
         $PKG/usr/lib/pkgconfig/*.pc
 
-#    for f in assistant designer linguist lrelease lupdate moc qmake qtconfig uic \
-#    pixeltool qdbus qdbuscpp2xml qdbusxml2cpp qt3to4 rcc uic3; do
-#        ln -s ../share/qt4/bin/$f $PKG/usr/bin/$f
-#    done
+    for f in assistant designer linguist lrelease lupdate moc qmake qtconfig uic \
+    pixeltool qdbus qdbuscpp2xml qdbusxml2cpp qt3to4 rcc uic3; do
+        ln -s /usr/share/qt4/bin/$f $PKG/usr/bin/$f
+    done
 }
