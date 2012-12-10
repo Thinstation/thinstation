@@ -1,0 +1,15 @@
+#!/bin/sh
+
+gzname=`basename $1`
+INSTALLDIR=../packages/talkplugin
+
+cd wget_tmp
+ar -x $gzname
+tar -zxf data.tar.gz
+mkdir -p $INSTALLDIR/lib/firefox/plugins
+cp opt/google/talkplugin/*.so $INSTALLDIR/lib/firefox/plugins
+mv opt $INSTALLDIR
+chmod 4755 $INSTALLDIR/opt/google/talkplugin
+returnval=$?
+
+exit $returnval
