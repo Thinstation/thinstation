@@ -9,7 +9,7 @@ let COLS=`echo $SCREEN_RESOLUTION | cut -f1 -dx`/6-1
 let ROWS=`echo $SCREEN_RESOLUTION | cut -f2 -dx`/14
 
 if is_enabled $X_RES_SEED; then
-	echo "SCREEN_RESOLUTION=\"$SCREEN_RESOLUTION\"" >>$TS_RUNTIME
+        echo "SCREEN_RESOLUTION=\"$SCREEN_RESOLUTION\"" >>$TS_RUNTIME
 fi
 
 echo "COLS=$COLS" >> $TS_RUNTIME
@@ -28,6 +28,7 @@ while [ $x -le $y ]; do
    SESSION_SCREEN=
    SESSION_SCREEN_POSITION=
    SESSION_ICON=
+   SESSION_LAUNCH=
    SESSION_CUSTOM_CONFIG=
 
    # Get Session details
@@ -39,6 +40,7 @@ while [ $x -le $y ]; do
    SESSION_SCREEN=`eval echo '$SESSION_'$x'_SCREEN'`
    SESSION_SCREEN_POSITION=`eval echo '$SESSION_'$x'_SCREEN_POSITION'`
    SESSION_ICON=`eval echo '$SESSION_'$x'_ICON'`
+   SESSION_LAUNCH=`eval echo '$SESSION_'$x'_LAUNCH'`
    SESSION_CUSTOM_CONFIG=`eval echo '$SESSION_'$x'_CUSTOM_CONFIG'`
 
    # Get package parameters
@@ -55,6 +57,7 @@ while [ $x -le $y ]; do
    if [ -z "$SERVER" ]; then SERVER=. ; fi
    if [ -z "$OPTIONS" ]; then OPTIONS=. ; fi
    if [ -z "$ICON" ]; then ICON=Off ; fi
+   if [ -z "$LAUNCH" ]; then LAUNCH=auto ; fi
    if [ -z "$SCREEN_POSITION" ]; then SCREEN_POSITION=1 ; fi
 
 
@@ -67,15 +70,16 @@ while [ $x -le $y ]; do
    if [ -z "$SESSION_SERVER" ] ;then SESSION_SERVER=$SERVER ; fi
    if [ -z "$SESSION_OPTIONS" ] ;then SESSION_OPTIONS=$OPTIONS ; fi
    if [ -z "$SESSION_ICON" ] ;then SESSION_ICON=$ICON ; fi
+   if [ -z "$SESSION_LAUNCH" ] ;then SESSION_LAUNCH=$LAUNCH ; fi
    if [ -e /etc/cmd/$SESSION_TYPE.change_server_type ] ; then
-	if [ -n "$SESSION_TITLE" ] ; then
-	   	SESSION_SERVER=`replace_char "$SESSION_TITLE" " " "_"`
-	elif [ -n "$SESSION_APPLICATION_SET" ] ;then
-		SESSION_SERVER=$SESSION_APPLICATION_SET
-		SESSION_TITLE=$SESSION_APPLICATION_SET
-	else
-		SESSION_SERVER="$SESSION_TYPE"_"$x"
-   	fi
+        if [ -n "$SESSION_TITLE" ] ; then
+                SESSION_SERVER=`replace_char "$SESSION_TITLE" " " "_"`
+        elif [ -n "$SESSION_APPLICATION_SET" ] ;then
+                SESSION_SERVER=$SESSION_APPLICATION_SET
+                SESSION_TITLE=$SESSION_APPLICATION_SET
+        else
+                SESSION_SERVER="$SESSION_TYPE"_"$x"
+        fi
    fi
    if [ -z "$SESSION_TITLE" ] ;then SESSION_TITLE=$SESSION_TYPE ; fi
    SESSION_AUTOSTART=`make_caps $SESSION_AUTOSTART`
@@ -84,23 +88,24 @@ while [ $x -le $y ]; do
    SESSION_CUSTOM_CONFIG=`make_caps $SESSION_CUSTOM_CONFIG`
 
    if [ "$SESSION_SCREEN_POSITION" != "1" ] ; then
-   	if [ "$DUALHEAD" != "ENABLED" ] ; then
-	   DUALHEAD=ENABLED
-	   echo "DUALHEAD=$DUALHEAD" >> $TS_RUNTIME
-  	fi
+        if [ "$DUALHEAD" != "ENABLED" ] ; then
+           DUALHEAD=ENABLED
+           echo "DUALHEAD=$DUALHEAD" >> $TS_RUNTIME
+        fi
    fi
    if [ -n "$SESSION_TYPE" ] ;then
      let y=y+1
      echo $SESSION_TYPE  \
-	`replace_invalid "$SESSION_TITLE"`  \
-	$SESSION_SCREEN  \
-	$SESSION_SCREEN_POSITION  \
-	$SESSION_WORKSPACE  \
-	$SESSION_AUTOSTART  \
-	$SESSION_CUSTOM_CONFIG  \
-	$SESSION_ICON  \
-	`replace_invalid "$SESSION_SERVER"`  \
-	`replace_invalid "$SESSION_OPTIONS"` >> $WKDIR/session
+        `replace_invalid "$SESSION_TITLE"`  \
+        $SESSION_SCREEN  \
+        $SESSION_SCREEN_POSITION  \
+        $SESSION_WORKSPACE  \
+        $SESSION_AUTOSTART  \
+        $SESSION_CUSTOM_CONFIG  \
+        $SESSION_ICON  \
+        $SESSION_LAUNCH \
+        `replace_invalid "$SESSION_SERVER"`  \
+        `replace_invalid "$SESSION_OPTIONS"` >> $WKDIR/session
    fi
 done
 
@@ -108,8 +113,9 @@ if [ ! -e $WKDIR/session ] ; then
   echo_log -d "\n\nError, no valid session type!!!"
   echo_log -d "Boot aborted, please check your thinstation config files are correct"
   if pkg_initialized debug ; then
-	  echo_log -d "Debug Enabled...continuing"
+          echo_log -d "Debug Enabled...continuing"
   else
-	  halt
+          halt
   fi
 fi
+
