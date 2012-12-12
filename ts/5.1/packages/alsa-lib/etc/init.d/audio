@@ -6,16 +6,16 @@ IFS=$'\n'
 case "$1" in
 init)
         if ! pkg_initialized $PACKAGE; then
-#                if [ -e /bin/arecord ] ; then
-#                        arecord -d 1 -N
-#                fi
+		if [ -e /bin/arecord ] ; then
+			arecord -d -1 -N &> /dev/null
+		fi
                 for control in `amixer | grep "Simple mixer control" | cut -d"'" -f2` ; do
                         features=`amixer sget "$control"`
                         if `echo $features | grep -q "cvolume"` ; then
-                                amixer sset "$control" $MIC_LEVEL% capture > /dev/null
+                                amixer sset "$control" $MIC_LEVEL% capture unmute > /dev/null
                         fi
                         if `echo $features | grep -q "pvolume"` ; then
-                                amixer sset "$control" $AUDIO_LEVEL% playback > /dev/null
+                                amixer sset "$control" $AUDIO_LEVEL% playback unmute > /dev/null
                         fi
                 done
                 pkg_set_init_flag $PACKAGE

@@ -20,7 +20,7 @@ init)
 	fi
 	#Figure out if we have a window manager.
 	(cat $WKDIR/session) |
-	while read type title screen position workspace autostart custom icon server options ; do
+	while read type title screen position workspace autostart custom icon launch server options ; do
 		if [ -e /etc/cmd/$type.wm ] && [ -z "$WMNAME" ] ; then
 			echo "WMSCREEN=$screen" >> $TS_RUNTIME
 			echo "WMNAME=$type" >> $TS_RUNTIME
@@ -32,7 +32,7 @@ init)
 
 	#Now read the sessions for real and create our session script.
 	(cat $WKDIR/session) |
-	while read type title screen position workspace autostart custom icon server options ; do
+	while read type title screen position workspace autostart custom icon launch server options ; do
 		autostart=`make_caps $autostart`
 		case $autostart in
 			ON)
@@ -45,7 +45,7 @@ init)
 					if [ "$options" = "." ] ; then options= ; fi
 					if [ ! -e /etc/console/$type ]; then
 						if [ -n "$WMNAME" ] && [ "$type" != "$WMNAME" ] && [ "$screen" == "$WMSCREEN" ] ; then
-							echo "pkg auto $type \"$server\" \"$options\" \"$WMWORKSPACE\" &" >> $WKDIR/$WMNAME.autostart
+							echo "pkg $launch $type \"$server\" \"$options\" \"$WMWORKSPACE\" &" >> $WKDIR/$WMNAME.autostart
 							echo "sleep .2" >> $WKDIR/$WMNAME.autostart
 						else
 							echo "export DISPLAY_NUMBER=$DISPLAY_NUMBER" >> $WKDIR/windowapps
