@@ -584,6 +584,15 @@ pgrep () {
 ps |grep $1 |grep -v grep |awk '{print $1}'
 }
 
+mounted ()
+{
+        if [ "`cat /proc/mounts |grep -c -e $1`" -ne "0" ]; then
+                return 0
+        else
+                return 1
+        fi
+}
+
 is_enabled ()
 {
 	if [ ! -z "$1" ]; then
