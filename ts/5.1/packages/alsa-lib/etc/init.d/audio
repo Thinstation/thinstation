@@ -6,9 +6,16 @@ IFS=$'\n'
 case "$1" in
 init)
         if ! pkg_initialized $PACKAGE; then
-#                if [ -e /bin/arecord ] ; then
-#                        arecord -d 1 -N
-#                fi
+		if [ -e /usr/bin/arecord ] && [ -e /etc/intel-sound-amplifier.list ]; then
+			(cat /etc/intel-sound-amplifier.list) | while read device ; do
+				if `lspci -n | grep -q $device` ; then
+					arecord -d -1 -N &> /dev/null
+					# arecord man page says it wants an integer for d, 0 being infinity
+					# -1 seems to "open" the device and close it immediately which is what we want although undocumented so may change/break
+					break
+				fi
+			done
+                fi
                 for control in `amixer | grep "Simple mixer control" | cut -d"'" -f2` ; do
                         features=`amixer sget "$control"`
                         if `echo $features | grep -q "cvolume"` ; then
