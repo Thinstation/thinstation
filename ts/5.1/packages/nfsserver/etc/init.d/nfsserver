@@ -1,30 +1,39 @@
 #!/bin/sh
 #
-# /etc/rc.d/nfs: start/stop nfs client
+# /etc/rc.d/nfsserver: start/stop nfs server
 #
 
 . $TS_GLOBAL
 
+NFSD=/proc/fs/nfsd
 PIPEFS=/var/lib/nfs/rpc_pipefs
 
 case "$1" in
 init)
 	if ! pkg_initialized $PACKAGE; then
+		if ! mounted $NFSD; then
+			/bin/mount -t nfsd nfsd $NFSD
+		fi
 		if ! mounted $PIPEFS; then
 			/bin/mount -t rpc_pipefs rpc_pipefs $PIPEFS
 		fi
-		/usr/sbin/sm-notify
 		/usr/sbin/rpc.idmapd
-		/usr/sbin/rpc.statd
-		/bin/mount -a -t nfs
+		/usr/sbin/exportfs -a
+		/usr/sbin/rpc.mountd
+		/usr/sbin/rpc.statd --no-notify
+		/usr/sbin/rpc.nfsd --syslog 8
+		/usr/sbin/sm-notify
 		pkg_set_init_flag $PACKAGE
 	fi
 	;;
 stop)
-	/bin/umount -a -t nfs
+	killall -q -2 nfsd
 	killall -q /usr/sbin/rpc.statd
+	killall -q /usr/sbin/rpc.mountd
+	/usr/sbin/exportfs -au
 	killall -q /usr/sbin/rpc.idmapd
 	/bin/umount $PIPEFS
+	/bin/umount $NFSD
 	;;
 restart)
 	$0 stop
