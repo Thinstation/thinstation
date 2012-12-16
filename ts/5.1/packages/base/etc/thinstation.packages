@@ -45,16 +45,17 @@ gen_menu()
 
 x_get_ip()
 {
-	if is_enabled $CMD_GETIP ; then
-		while is_enabled $ALWAYS_ENTER_SERVER || [ -z "$SERVER" ] ; do
-        		dialog_get_server_address $PACKAGE
-			local ALWAYS_ENTER_SERVER=DONE
-			if [ -z "$SERVER" ] && is_enabled $ALLOW_EXIT ; then
-				exit
-			elif [ -z "$SERVER" ]; then
-				dialog_no_value
-			fi
-		done
+	if is_enabled $CMD_GETIP; then
+	    if  is_enabled $ALWAYS_ENTER_SERVER || [ -z "$SERVER" ]; then
+		dialog_get_server_address $PACKAGE
+	    fi
+	fi
+}
+
+x_get_user()
+{
+	if [ -e /etc/cmd/$PACKAGE.getuser ] && [ -z "$REMUSER" ]; then
+	    dialog_get_username $PACKAGE
 	fi
 }
 
@@ -64,6 +65,9 @@ order_command()
 	ORDERED_COMMAND="$SERVER $OPTIONS"
    else
         ORDERED_COMMAND="$OPTIONS $SERVER"
+   fi
+   if [ -e /etc/cmd/$PACKAGE.getuser ]; then
+	ORDERED_COMMAND="$REMUSER $ORDERED_COMMAND"
    fi
 }
 
@@ -98,6 +102,7 @@ auto)
   while [ "$reconnect" != "1" ]; do
     echo "Running Auto $PACKAGE" >> $APPLOG
     x_get_ip
+    x_get_user
     order_command
     CMD="$CMD_CONSOLE $ORDERED_COMMAND"
     wm_workspaces "$CMD" $4
@@ -122,6 +127,7 @@ console)
     use_wallpaper
     while [ -e /tmp/.X11-unix/X$DISPLAY_NUMBER ] && [ "$reconnect" != "1" ]; do
 	x_get_ip
+	x_get_user
 	order_command
 	CMD="$CMD_CONSOLE $ORDERED_COMMAND"
 	xterm_wrapper
@@ -142,6 +148,7 @@ window|fullscreen)
 	ALWAYS_ENTER_SERVER=TRUE
     fi
     x_get_ip
+    x_get_user
     order_command
     MODE=`make_caps $1`
     CMD=`eval echo '$'CMD_$MODE`' '$ORDERED_COMMAND

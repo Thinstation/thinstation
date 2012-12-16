@@ -1,21 +1,18 @@
 #!/bin/sh
 
 INSTALLDIR=./packages/icons-hicolor
+EXTRADIR=$INSTALLDIR/build/extra
 TMPDIR=./build-icons-hicolor
 
-for i in hicolor-icon-theme gnome-icon-theme neu-icon-theme tango-icon-theme; do
+for i in hicolor-icon-theme; do
 	repackage $i -t $TMPDIR
 	cp -Prf $TMPDIR/$i/* $INSTALLDIR/.
 	rm -rf $TMPDIR
 done
-#Now, to save some space, we want to composite the icon themes
-mkdir -p $INSTALLDIR/lib/icons/Default
-for theme in gnome Tango Neu; do #Ordering is important here, the last theme will be the most dominant
-	cp -Prfd $INSTALLDIR/lib/icons/$theme/* $INSTALLDIR/lib/icons/Default/.
-	rm -rf $INSTALLDIR/lib/icons/$theme
-done
 
-rm -rf $INSTALLDIR/lib/locale
+if [ -e $EXTRADIR ]; then
+	cp -Prfd $EXTRADIR/* $INSTALLDIR/.
+fi
 
 returnval=$?
 

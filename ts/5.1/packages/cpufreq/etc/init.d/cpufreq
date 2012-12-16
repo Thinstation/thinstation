@@ -4,7 +4,7 @@
 
 #modprobe $CPUFREQ_DRIVER
 
-if [ -n $CPUFREQ_GOV ]; then
+if [ -n "$CPUFREQ_GOV" ]; then
 	for i in `ls -l --color=never /sys/devices/system/cpu/ |grep -o -E 'cpu[0-9]' |cut -c 4-`; do
 		cpufreq-set -c $i -g $CPUFREQ_GOV
 	done

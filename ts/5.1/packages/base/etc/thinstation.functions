@@ -222,6 +222,43 @@ confirm_exit ()
         Xdialog --title "Logout" --clear --yesno "Click yes to Confirm Exit?" 10 60
 }
 
+dialog_get_username ()
+{
+if [ ! -z "$REMUSER" ]; then
+    DIALOG_USER=$REMUSER
+    echo "$REMUSER" > /tmp/.dialog_$1_options
+elif [ -e /tmp/.dialog_$1_user ]; then
+    DIALOG_USER=$(cat /tmp/.dialog_$1_user)
+fi
+
+notcomplete=true
+while $notcomplete; do
+
+DIALOG_RESPONSE=`Xdialog --stdout --title $1 --left --icon /lib/pixmaps/$1_32x32.xpm \
+	--inputbox "Preparing to run $1" 10 55 "User name" "$DIALOG_USER" ` 2>>$APPLOG
+
+if [ "$?" == "0" ]; then
+    DIALOG_USER=`echo $DIALOG_RESPONSE | cut -d/ -f2`
+    DIALOG_OPTIONS=`echo $DIALOG_RESPONSE | cut -d/ -f3-`
+
+    if [ "$DIALOG_USER" != "" ]; then
+	REMUSER="`echo $DIALOG_USER |grep -E -v '&|;|\(|\`'`"
+	echo "$DIALOG_USER" > /tmp/.dialog_$1_user
+	notcomplete=false
+    else
+	Xdialog --title "$1 Client" --clear --msgbox "You must enter value for user name" 10 60 10000
+    fi
+else
+    if is_enabled $ALLOW_EXIT ; then
+	exit
+    else
+	dialog_no_value
+    fi
+fi
+
+done
+}
+
 dialog_get_server_address ()
 {
 if [ ! -z "$SERVER" ]; then
@@ -244,14 +281,15 @@ else
 fi
 
 # Now to business:
-DIALOG_RESPONSE=`Xdialog --stdout --title $1 --left --icon /usr/icons/$1_32x32.xpm --2inputsbox "Preparing to run $1" \
-                15 55 "Server name or IP number" "$DIALOG_SERVER" "Options" "$DIALOG_OPTIONS" ` 2>>$APPLOG
-if [ "$?" == "0" ] && [ ! -z "$DIALOG_RESPONSE" ] ; then
-    DIALOG_LENGTH=`expr length "$DIALOG_RESPONSE"`
-    DIALOG_SEPERATOR=`expr index "$DIALOG_RESPONSE" /`
-    DIALOG_SERVER=`expr substr "$DIALOG_RESPONSE" 1 $(($DIALOG_SEPERATOR - 1))`
-    DIALOG_OPTIONS=`expr substr "$DIALOG_RESPONSE" $(($DIALOG_SEPERATOR + 1)) $DIALOG_LENGTH`
+notcomplete=true
+while $notcomplete; do
 
+DIALOG_RESPONSE=`Xdialog --stdout --title $1 --left --icon /lib/pixmaps/$1_32x32.xpm --2inputsbox "Preparing to run $1" \
+                15 55 "Server name or IP number" "$DIALOG_SERVER" "Options" "$DIALOG_OPTIONS" ` 2>>$APPLOG
+
+if [ "$?" == "0" ]; then
+    DIALOG_SERVER=`echo $DIALOG_RESPONSE | cut -d/ -f1`
+    DIALOG_OPTIONS=`echo $DIALOG_RESPONSE | cut -d/ -f2-`
     # preserve settings
     echo "$DIALOG_SERVER" > /tmp/.dialog_$1_server
     echo "$DIALOG_OPTIONS" > /tmp/.dialog_$1_options
@@ -260,11 +298,24 @@ if [ "$?" == "0" ] && [ ! -z "$DIALOG_RESPONSE" ] ; then
     SERVER="`echo $DIALOG_SERVER |grep -E -v '&|;|\(|\`'`"
     OPTIONS="`echo $DIALOG_OPTIONS |grep -E -v '&|;|\(|\`'`"
     fi
+
+    if [ -n "$SERVER" ]; then
+	notcomplete=false
+    else
+	echo "$DIALOG_SERVER" > /tmp/.dialog_$1_server
+	SERVER=""
+	OPTIONS=""
+	Xdialog --title "$1 Client" --clear --msgbox "You must enter value for server name or IP" 10 60 10000
+    fi
 else
-    echo "$DIALOG_SERVER" > /tmp/.dialog_$1_server
-    SERVER=""
-    OPTIONS=""
+    if is_enabled $ALLOW_EXIT ; then
+	exit
+    else
+	dialog_no_value
+    fi
 fi
+
+done
 }
 
 dialog_no_value ()

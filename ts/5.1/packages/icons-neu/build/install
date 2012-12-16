@@ -1,0 +1,16 @@
+#!/bin/sh
+
+INSTALLDIR=./packages/icons-neu
+TMPDIR=./build-icons-neu
+
+for i in neu-icon-theme; do
+	repackage $i -t $TMPDIR
+	cp -Prf $TMPDIR/$i/* $INSTALLDIR/.
+	rm -rf $TMPDIR
+done
+
+rm -rf $INSTALLDIR/lib/locale
+
+returnval=$?
+
+exit $returnval
