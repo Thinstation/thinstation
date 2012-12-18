@@ -26,6 +26,8 @@ get_opts()
 		case "$1" in
 			-h|--help)		show_help ; exit 255 ;;
 			-t|--temp)		temp_folder="$2" ; shift ;;
+			-e|--env)		from_env ; exit 0 ;;
+			-c|--clean)		clean ; exit 0 ;;
 			*)			package="$1" ;;
 		esac
 		shift
@@ -135,9 +137,59 @@ remove_empty()
 	find $pkgpath -type d -empty -delete
 }
 
+clean()
+{
+	if [ -n $PACKAGE ] && [ -e ./packages/$PACKAGE ]; then
+		for object in `ls -A --color=never ./packages/$PACKAGE |grep -E -v 'build|.dna|.gitignore|dependencies'`; do
+			rm -rf ./packages/$PACKAGE/$object
+		done
+		rm ./packages/$PACKAGE/build/installed
+	else
+		echo "$PACKAGE does not exist"
+		exit 1
+	fi
+}
+
+cut_bloat()
+{
+	for bloat in $DROP_FILES; do
+		find $INSTALLDIR -type f -name $bloat -delete
+	done
+	for bloat in $DROP_DIRS; do
+		rm -rf $INSTALLDIR/$bloat
+	done
+}
+
+create_empty()
+{
+	for folder in $CREATE_EMPTY_DIRS; do
+		mkdir -p $INSTALLDIR/$folder
+	done
+}
+
+merge_trunk()
+{
+	if [ -e $INSTALLDIR/build/extra ]; then
+		cp -Prf $INSTALLDIR/build/extra/* $INSTALLDIR/.
+	fi
+}
+
+from_env()
+{
+	INSTALLDIR=./packages/$PACKAGE
+	temp_folder=./build-$PACKAGE
+	for package in $PORTS; do
+		main
+		cp -Prf $temp_folder/$package/* $INSTALLDIR/.
+		rm -rf $temp_folder
+	done
+	cut_bloat
+	create_empty
+	merge_trunk
+}
+
 main()
 {
-	get_opts $@
 	package_path
 	extract_archive
 	shallow_usr
@@ -147,5 +199,7 @@ main()
 	extra_files
 	remove_empty
 }
+
+get_opts $@
 main $@
 exit 0
