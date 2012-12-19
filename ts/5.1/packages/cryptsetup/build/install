@@ -1,16 +1,9 @@
 #!/bin/sh
 
-INSTALLDIR=./packages/cryptsetup
-EXTRADIR=$INSTALLDIR/build/extra
-TMPDIR=./build-cryptsetup
+export PACKAGE=cryptsetup
+export PORTS="cryptsetup libgcrypt popt libdevmapper"
+repackage -e
 
-for i in cryptsetup libgcrypt popt libdevmapper ; do
-	repackage $i -t $TMPDIR
-	cp -Prf $TMPDIR/$i/* $INSTALLDIR/.
-	rm -rf $TMPDIR
-done
-#rm -rf $INSTALLDIR/lib/locale
-#cp -Prf $EXTRADIR/* $INSTALLDIR/.
 dmlib=$( basename `readlink $INSTALLDIR/lib/libdevmapper.so` )
 rm $INSTALLDIR/lib/libdevmapper.so
 ln -sf $dmlib $INSTALLDIR/lib/libdevmapper.so

@@ -1,15 +1,8 @@
 #!/bin/sh
-PACKAGE=pcmanfm
-INSTALLDIR=./packages/$PACKAGE
-EXTRADIR=$INSTALLDIR/build/extra
-TMPDIR=./build-$PACKAGE
 
-for i in $PACKAGE libfm menu-cache; do
-	repackage $i -t $TMPDIR
-	cp -Prf $TMPDIR/$i/* $INSTALLDIR/.
-	rm -rf $TMPDIR
-done
-cp -Prf $EXTRADIR/* $INSTALLDIR/.
+export PACKAGE=pcmanfm
+export PORTS="pcmanfm libfm menu-cache"
+repackage -e
 
 returnval=$?
 

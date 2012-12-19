@@ -1,15 +1,8 @@
 #!/bin/sh
 
-INSTALLDIR=./packages/ffmpeg
-EXTRADIR=$INSTALLDIR/build/extra
-TMPDIR=./build-ffmpeg
-
-for i in ffmpeg lame libmp4v2 libogg libtheora libvorbis libxvid opencore-amr speex x264 ; do
-	repackage $i -t $TMPDIR
-	cp -Prf $TMPDIR/$i/* $INSTALLDIR/.
-	rm -rf $TMPDIR
-done
-#cp -Prf $EXTRADIR/* $INSTALLDIR/.
+export PACKAGE=ffmpeg
+export PORTS="ffmpeg lame libmp4v2 libogg libtheora libvorbis libxvid opencore-amr speex x264"
+repackage -e
 
 returnval=$?
 

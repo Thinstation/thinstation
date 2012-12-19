@@ -1,16 +1,8 @@
 #!/bin/sh
 
-INSTALLDIR=./packages/openvpn
-EXTRADIR=$INSTALLDIR/build/extra
-TMPDIR=./build-openvpn
-
-for i in openvpn ; do
-	repackage $i -t $TMPDIR
-	cp -Prf $TMPDIR/$i/* $INSTALLDIR/.
-	rm -rf $TMPDIR
-	rm -rf $INSTALLDIR/lib
-done
-cp -Prf $EXTRADIR/* $INSTALLDIR/.
+export PACKAGE=openvpn
+export PORTS=$PACKAGE
+repackage -e
 
 returnval=$?
 

@@ -1,15 +1,9 @@
 #!/bin/sh
 
-INSTALLDIR=./packages/gst-plugins-good
-EXTRADIR=$INSTALLDIR/build/extra
-TMPDIR=./build-gst-plugins-good
-
-for i in gst-plugins-good ; do
-	repackage $i -t $TMPDIR
-	cp -Prf $TMPDIR/$i/* $INSTALLDIR/.
-	rm -rf $TMPDIR
-done
-rm -rf $INSTALLDIR/lib/locale
+export PACKAGE=gst-plugins-good
+export PORTS=$PACKAGE
+export DROP_DIRS=lib/locale
+repackage -e
 
 returnval=$?
 

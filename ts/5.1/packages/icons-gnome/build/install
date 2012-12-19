@@ -1,15 +1,8 @@
 #!/bin/sh
 
-INSTALLDIR=./packages/icons-gnome
-TMPDIR=./build-icons-gnome
-
-for i in gnome-icon-theme; do
-	repackage $i -t $TMPDIR
-	cp -Prf $TMPDIR/$i/* $INSTALLDIR/.
-	rm -rf $TMPDIR
-done
-
-rm -rf $INSTALLDIR/lib/locale
+export PACKAGE=icons-gnome
+export PORTS=gnome-icon-theme
+repackage -e
 
 returnval=$?
 

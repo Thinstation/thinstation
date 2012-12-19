@@ -1,15 +1,8 @@
 #!/bin/sh
 
-INSTALLDIR=./packages/spice
-EXTRADIR=$INSTALLDIR/build/extra
-TMPDIR=./build-spice
-
-for i in celt spice ; do
-	repackage $i -t $TMPDIR
-	cp -Prf $TMPDIR/$i/* $INSTALLDIR/.
-	rm -rf $TMPDIR
-done
-cp -Prf $EXTRADIR/* $INSTALLDIR/.
+export PACKAGE=spice
+export PORTS="celt spice"
+repackage -e
 
 returnval=$?
 

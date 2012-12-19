@@ -1,16 +1,10 @@
 #!/bin/sh
-PACKAGE=evince
-INSTALLDIR=./packages/$PACKAGE
-EXTRADIR=$INSTALLDIR/build/extra
-TMPDIR=./build-$PACKAGE
 
-for i in $PACKAGE ; do
-	repackage $i -t $TMPDIR
-	cp -Prf $TMPDIR/$i/* $INSTALLDIR/.
-	rm -rf $TMPDIR
-done
-cp -Prf $EXTRADIR/* $INSTALLDIR/.
-rm -rf $INSTALLDIR/lib/{omf,gtk-doc,locale,gnome}
+export PACKAGE=evince
+export PORTS=$PACKAGE
+export DROP_DIRS="lib/omf lib/gtk-doc lib/locale lib/gnome"
+repackage -e
+
 returnval=$?
 
 exit $returnval

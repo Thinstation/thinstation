@@ -1,16 +1,8 @@
 #!/bin/sh
 
-INSTALLDIR=./packages/pidgin
-EXTRADIR=$INSTALLDIR/build/extra
-TMPDIR=./build-pidgin
-
-for i in pidgin libmeanwhile; do
-	repackage $i -t $TMPDIR
-	cp -Prf $TMPDIR/$i/* $INSTALLDIR/.
-	rm -rf $TMPDIR
-done
-#rm -rf $INSTALLDIR/lib/locale
-cp -Prf $EXTRADIR/* $INSTALLDIR/.
+export PACKAGE=pidgin
+export PORTS="pidgin libmeanwhile"
+repackage -e
 
 returnval=$?
 
