@@ -1,0 +1,33 @@
+# Description: Gobject interface for udev
+# URL: http://gudev.sourceforge.net
+# Maintainer: Jose V Beneyto, sepen at crux dot nu
+# Packager: Jose V Beneyto, sepen at crux dot nu
+# Depends on: udev glib
+# Group: xfce4
+
+name=broadcom-sta
+version=5.100.82.112
+pversion=5_100_82_112
+release=3.6.11
+source=(http://www.broadcom.com/docs/linux_sta/hybrid-portsrc_x86_32-v$pversion.tar.gz)
+
+build() {
+	sed -i -e 's/ndo_set_multicast_list/ndo_set_rx_mode/' -e 's/.*asm\/system.h.*//' src/wl/sys/wl_linux.c
+	KBUILD_NOPEDANTIC=1 make -C /usr/src/kernels/${release}TS M=`pwd` V=1
+	mkdir -p $PKG/$TSCOMPROOT/kernel/kernel/modules-${release}TS/kernel/drivers/net/wireless
+	cp -a wl.ko $PKG/$TSCOMPROOT/kernel/kernel/modules-${release}TS/kernel/drivers/net/wireless
+
+	KBUILD_NOPEDANTIC=1 make -C /usr/src/kernels/${release}TS M=`pwd` clean
+
+	KBUILD_NOPEDANTIC=1 make -C /usr/src/kernels/${release}TS_SMP M=`pwd`
+	mkdir -p $PKG/$TSCOMPROOT/kernel_SMP/kernel/modules-${release}TS_SMP/kernel/drivers/net/wireless
+	cp -a wl.ko $PKG/$TSCOMPROOT/kernel_SMP/kernel/modules-${release}TS_SMP/kernel/drivers/net/wireless
+
+	mkdir -p  $PKG/$TSCOMPROOT/$name/
+	cp lib/LICENSE.txt $PKG/$TSCOMPROOT/$name/
+
+	echo "# Make sure that the wl driver gets loaded and not the ssb driver" > $PKG/$TSCOMPROOT/$name/$name.conf
+	modinfo wl.ko | grep alias | sed -e 's/alias: *\(.*\)/alias \1 wl/' >> $PKG/$TSCOMPROOT/$name/$name.conf
+	echo "install ssb modprobe wl; modprobe --ignore-install ssb" >> $PKG/$TSCOMPROOT/$name/$name.conf
+
+}
