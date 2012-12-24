@@ -1,5 +1,7 @@
 #/etc/profile: system-wide .profile file for ash.
 
+trap "" INT QUIT TSTP
+
 . /etc/thinstation.global
 umask 022
 
@@ -14,6 +16,8 @@ if [ "$TERM" == "xinit" ] ; then
 	fi
 	check_last_session
 	exec xinit /etc/xinitrc -- /etc/xserverrc 2>&1 >> /var/run/applications/session.$$
+else
+	trap - INT QUIT TSTP
 fi
 
 alias ll='ls -l'
