@@ -3,3 +3,31 @@
 if [ ! -e /lib/thunderbird/thunderbird ]; then 
 	rm /lib/applications/exo-mail-reader.desktop
 fi
+if [ ! -e /lib/applications/Terminal.desktop ]; then
+	rm /lib/applications/exo-terminal-emulator.desktop
+fi
+if [ ! -e /lib/applications/google-chrome.desktop ] && [ ! -e /lib/applications/firefox.desktop ]; then
+	rm /lib/applications/exo-web-browser.desktop
+fi
+if [ ! -e /lib/applications/Thunar.desktop ]; then
+	rm /lib/applications/exo-file-manager.desktop
+fi
+
+if [ "$XFWM4_THEME" != "ALL" ]; then
+	if [ -z "$XFWM4_THEME" ]; then
+		XFWM4_THEME=Xfce
+	fi
+	if [ -e /lib/themes/$XFWM4_THEME/xfwm4/themerc ]; then
+		sed -i -e "s/name=\"theme\" type=\"string\" value=\"Default\"/name=\"theme\" type=\"string\" value=\"$XFWM4_THEME\"/g" /etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xfwm4.xml
+		for theme in `find /lib/themes -name themerc |cut -d "/" -f4`; do
+			if [ "$theme" != "$XFWM4_THEME" ]; then
+				rm -rf /lib/themes/$theme/xfwm4
+				if [ -z "`ls -A /lib/themes/$theme`" ]; then
+					rmdir /lib/themes/$theme
+				fi
+			fi
+		done
+	else
+		echo -e "\tXfwm4 Theme $XFWM4_THEME not found!"
+	fi
+fi

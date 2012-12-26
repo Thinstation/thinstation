@@ -1,20 +1,21 @@
 #!/bin/sh
 
 export PACKAGE=xfwm4
-export PORTS="gtk-engines perl p5-xml-parser openssh dbus-glib exo freetype garcon upower notification-daemon-xfce \
-gdk-pixbuf gtk-xfce-engine xorg-libxi xorg-libxcursor xorg-xinput thunar-volman xkeyboard-config \
-libexif libjpeg libnotify libpng libwnck libxfce4ui libxfce4util p5-uri startup-notification thunar tumbler \
-xdg-user-dirs libglade xfce4 xfce4-appfinder xfce4-panel xfce4-session xfwm4-themes \
-xfce4-settings xfconf xfdesktop xfwm4 xorg-iceauth xorg-xinit xorg-xrdb"
-export DROP_DIRS="lib/xfce4/backdrops lib/xfce4/session lib/xfce4/xfwm4 lib/xfce4/dev-tools lib/backgrounds lib/locale"
-
+export PORTS="openssh dbus-glib exo garcon upower notification-daemon-xfce gtk-xfce-engine xorg-xinput xkeyboard-config \
+libnotify libwnck libxfce4ui libxfce4util startup-notification xdg-user-dirs libglade xfce4 xfce4-panel \
+xfce4-session xfwm4-themes xfce4-settings xfconf xfdesktop xfwm4 xorg-iceauth xorg-xrdb"
+export DROP_DIRS="lib/xfce4/backdrops lib/xfce4/session lib/xfce4/xfwm4 lib/xfce4/dev-tools lib/backgrounds lib/locale lib/themes/Default/balou"
+#export DROP_FILES="libglade-convert wnckprop sshd_config scp sftp ssh-keygen ssh-keyscan sftp-server ssh-keysign sshd \
+#xfce4-accessibility-settings xfce4-appearance-settings xfce4-display-settings xfce4-keyboard-settings xfce4-mime-settings \
+#xfce4-mouse-settings xfce4-settings-editor xfce4-settings-manager \
+#xfce-display-settings.desktop xfce-keyboard-settings.desktop xfce-mouse-settings.desktop xfce-settings-manager.desktop \
+#xfce-ui-settings.desktop xfce4-accessibility-settings.desktop xfce4-mime-settings.desktop xfce4-settings-editor.desktop \
+#xfce-display-extend.png xfce-display-external.png xfce-display-internal.png xfce-display-mirror.png"
 repackage -e
 
-for theme in `ls -A --color=never ./packages/$PACKAGE/lib/themes`; do
-	if [ "$theme" != "Default" ]; then
-		rm -rf ./packages/$PACKAGE/lib/themes/$theme
-	fi
-done
 returnval=$?
 
 exit $returnval
+
+#thunar tumbler thunar-volman
+
