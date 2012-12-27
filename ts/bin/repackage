@@ -143,7 +143,7 @@ clean()
 		for object in `ls -A --color=never ./packages/$PACKAGE |grep -E -v 'build|.dna|.gitignore|dependencies'`; do
 			rm -rf ./packages/$PACKAGE/$object
 		done
-		rm ./packages/$PACKAGE/build/installed
+		rm -f ./packages/$PACKAGE/build/installed
 	else
 		echo "$PACKAGE does not exist"
 		exit 1
@@ -186,6 +186,7 @@ from_env()
 	cut_bloat
 	create_empty
 	merge_trunk
+	touch $INSTALLDIR/build/installed
 }
 
 main()
