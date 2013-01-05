@@ -246,6 +246,7 @@ make_initrd()
 	ln -sf /lib/icons usr/icons
 	ln -sf / usr/local
 	ln -sf /bin sbin
+
 	if [ "$ts_hardlinkfs" == "true" ]; then
 		hardlink -t -m .
 	fi
@@ -1675,9 +1676,8 @@ if [ -z "$NOIMAGES" ] ; then
   syslinux)
     IMAGEDIR=boot-images/syslinux
     if [ -e boot-images/initrd/syslinux.files ]; then
-      cat boot-images/initrd/syslinux.files | xargs rm -rf
+      cat boot-images/initrd/syslinux.files | awk "{ print \"$IMAGEDIR/\" \$1 }" | xargs rm -rf
     fi
-    ls boot-images/templates/$ts_syslinuxtheme > boot-images/initrd/syslinux.files
     cp -a boot-images/templates/$ts_syslinuxtheme/* $IMAGEDIR
     cat $IMAGEDIR/syslinux.cfg.tpl |sed -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS LM=2/g"> $IMAGEDIR/syslinux.cfg
     rm $IMAGEDIR/syslinux.cfg.tpl
@@ -1691,9 +1691,8 @@ if [ -z "$NOIMAGES" ] ; then
   pxe)
     IMAGEDIR=boot-images/pxe
     if [ -e boot-images/initrd/syslinux.files ]; then
-      cat boot-images/initrd/syslinux.files | xargs rm -f
+      cat boot-images/initrd/syslinux.files | awk "{ print \"$IMAGEDIR/\" \$1 }" | xargs rm -rf
     fi
-    ls boot-images/templates/$ts_syslinuxtheme > boot-images/initrd/syslinux.files
     mkdir -p $IMAGEDIR/pxelinux.cfg
     cp -a boot-images/templates/$ts_syslinuxtheme/* $IMAGEDIR/
     cat $IMAGEDIR/syslinux.cfg.tpl | sed -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS LM=3/g"> $IMAGEDIR/pxelinux.cfg/default
@@ -1711,9 +1710,8 @@ if [ -z "$NOIMAGES" ] ; then
       cp -a boot-images/common/* $IMAGEDIR/source
     fi
     if [ -e boot-images/initrd/syslinux.files ]; then
-      cat boot-images/initrd/syslinux.files | xargs rm -rf
+      cat boot-images/initrd/syslinux.files | awk "{ print \"$IMAGEDIR/source/\" \$1 }" | xargs rm -rf
     fi
-    ls boot-images/templates/$ts_syslinuxtheme > boot-images/initrd/syslinux.files
     cp -a boot-images/templates/$ts_syslinuxtheme/* $IMAGEDIR/source
     if [ "$ts_livecd" != "true" ] ; then
     	cat $IMAGEDIR/source/syslinux.cfg.tpl | sed -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS LM=4/g" > $IMAGEDIR/source/isolinux.cfg
@@ -1759,6 +1757,7 @@ if [ -z "$NOIMAGES" ] ; then
     ;;
   esac
  done
+ ls boot-images/templates/$ts_syslinuxtheme > boot-images/initrd/syslinux.files
 fi
 
 remove_files
