@@ -1376,6 +1376,10 @@ if [ -e ./tmp-tree/finalize ]; then
   umount ./tmp-tree/dev
   rm ./tmp-tree/build.finalize
   rm -rf ./tmp-tree/finalize
+  #Run depmod one last time, in case a finalize script removed a module
+  for KERNVER in $KERNVERS; do
+	./utils/tools/depmod -b ./tmp-tree $KERNVER
+  done
 fi
 }
 
