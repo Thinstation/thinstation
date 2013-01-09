@@ -1,0 +1,28 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=realtek8723
+version=0006.0514.2012
+release=3.6.11
+source=(http://dl.dropbox.com/u/57056576/DRIVERS/REALTEK/rtl_92ce_92se_92de_8723ae_linux_mac80211_$version.tar.gz)
+
+build() {
+	cd rtl_92ce_92se_92de_8723ae_linux_mac80211_$version/rtl8723e
+	export REPORT_KERNEL=${release}TS_SMP
+	make
+
+	ipath=$PKG/ts/components/kernel_SMP/kernel/modules-${release}TS_SMP/kernel/drivers/net/wireless/rtlwifi/rtl8723e
+	module=rtl8723e.ko
+        mkdir -p $ipath
+	cp $module $ipath/.
+
+	make clean
+	export REPORT_KERNEL=${release}TS
+	make
+
+	ipath=$PKG/ts/components/kernel_SMP/kernel/modules-${release}TS/kernel/drivers/net/wireless/rtlwifi/rtl8723e
+        module=rtl8723e.ko
+        mkdir -p $ipath
+	cp $module $ipath/.
+}
