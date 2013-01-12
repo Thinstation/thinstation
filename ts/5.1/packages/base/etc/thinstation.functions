@@ -711,6 +711,20 @@ use_wallpaper ()
 	fi
 }
 
+# function to trigger the creation of the desktop icons, via idesk on icefw or desktop folder under xfwm4
+create_icons ()
+{
+if [ -x /bin/idesk ] && [ "$WMNAME" != "xfwm4" ]; then
+use_idesk ()
+else
+create_icons_xfwm4 ()
+}
+
+create_icons_xfwm4 ()
+{
+. /etc/icons.functions
+
+}
 use_idesk ()
 {
 	if [ -x /bin/idesk ] && [ "$WMNAME" != "xfwm4" ]; then
