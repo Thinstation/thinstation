@@ -32,8 +32,8 @@ do_mounts()
 		mount -t vfat /dev/${disk}1 /boot
 		sleep 1
 	done
-	while ! mounted /root ; do
-		mount -t ext4 /dev/${disk}2 /root
+	while ! mounted /tmp-root ; do
+		mount -t ext4 /dev/${disk}2 /tmp-root
 		sleep 1
 	done
 	while ! mounted /thinstation ; do

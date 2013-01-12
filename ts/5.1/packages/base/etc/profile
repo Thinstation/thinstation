@@ -2,10 +2,10 @@
 
 trap "" INT QUIT TSTP
 
-. /etc/thinstation.global
 umask 022
 
 if [ "$TERM" == "xinit" ] ; then
+	. /etc/thinstation.global
 	clear
 	echo -e '\033[?1c'
 	if ! pkg_initialized home; then
@@ -15,15 +15,17 @@ if [ "$TERM" == "xinit" ] ; then
 		done
 	fi
 	check_last_session
+	cd /var/run
 	exec xinit /etc/xinitrc -- /etc/xserverrc 2>&1 >> /var/run/applications/session.$$
 else
+	. /etc/thinstation.global --nofunctions
 	trap - INT QUIT TSTP
 fi
 
+cd ~
 alias ll='ls -l'
 alias l='ls -l'
-
-if pkg_initialized e3 ; then
-        alias vi='e3vi'
+if [ -e /bin/e3vi ]; then
+	alias vi='e3vi'
 fi
 

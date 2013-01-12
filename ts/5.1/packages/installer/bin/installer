@@ -4,32 +4,48 @@ tempdir=`mktemp -d 2>/dev/null`
 
 x_echo()
 {
-	Xdialog --title "$1" --msgbox "$2" 18 60 2> /dev/null
+	Xdialog	--title "$1" \
+		--stdout \
+		--msgbox "$2" 18 60 \
+			> /dev/null
 }
 
-Xdialog --title "Install to HD" --textbox /README 30 120
-retval=$?
-if [ "$retval" -lt "1" ]; then
-	continue
-else
-	exit 1
-fi
+readme()
+{
+	Xdialog	--title "Install to HD" \
+		--textbox /README 30 120
+			if [ $? -lt 1 ]; then
+				continue
+			else
+				exit 1
+			fi
+}
 
 timezone_locale()
 {
 	OLDIFS=$IFS
 	IFS=$'\t\n'
 	option=`cat /lib/indexed-zone.tab`
-	Xdialog --no-tags --title "Time Zone" --menu "Please Choose Your Time Zone" 20 40 4 ${option} 2> $tempdir/timezone
-	retval=$?
-	if [ "$retval" != "0" ] ; then exit $retval ; fi
-	TIME_ZONE=`cat $tempdir/timezone`
+	Xdialog	--no-tags \
+		--stdout \
+		--title "Time Zone" \
+		--menu "Please Choose Your Time Zone" 20 40 4 ${option} \
+			> $tempdir/timezone
+			if [ $? -gt 0 ]; then
+				exit 1
+			fi
+			TIME_ZONE=`cat $tempdir/timezone`
 
 	option=`cat /lib/indexed-locale.tab`
-	Xdialog --no-tags --title "Locale" --menu "Localization / Keyboard Map" 20 40 4 ${option} 2> $tempdir/locale
-	retval=$?
-	if [ "$retval" != "0" ] ; then exit $retval ; fi
-	LOCALE=`cat $tempdir/locale`
+	Xdialog	--no-tags \
+		--title "Locale" \
+		--stdout \
+		--menu "Localization / Keyboard Map" 20 40 4 ${option} \
+			> $tempdir/locale
+			if [ $? -gt 0 ]; then
+				exit 1
+			fi
+		LOCALE=`cat $tempdir/locale`
 
 	IFS=$OLDIFS
 	TIME_ZONE=`cat /lib/indexed-zone.tab |grep -E ^$TIME_ZONE[[:space:]]+ |cut -f2`
@@ -41,27 +57,31 @@ set_res()
 	index=0
 	if [ -e /sys/devices/platform/uvesafb.0/vbe_modes ]; then
 		for i in `cat /sys/devices/platform/uvesafb.0/vbe_modes |cut -d "-" -f1 |sort -n |uniq`; do
-        	res[$index]=$i
-        	echo "$index $i" >> /$tempdir/reslist
-        	let index=index+1
+        		res[$index]=$i
+        		echo "$index $i" >> /$tempdir/reslist
+        		let index=index+1
 		done
 	else
-		for i in `xrandr 2>/dev/null |grep -Ev 'default|Screen|connected|disconnected' |sed -r 's/[[:space:]]+/\:/g' |cut -d ":" -f2 |sort -n`; do
-		res[$index]=$i
-                echo "$index $i" >> /$tempdir/reslist
-                let index=index+1
+		for i in `xrandr 2>/dev/null |grep -o -r -e '   [0-9]*x[0-9]*' |sed -r 's/ //g' |sort -u -t'x' -k1n -k2n`; do
+			res[$index]=$i
+                	echo "$index $i" >> /$tempdir/reslist
+                	let index=index+1
 		done
 	fi
 	list=`cat $tempdir/reslist`
-	Xdialog --title "Resolution" --no-label --no-tags --menu "What is your prefered\n screen resolution?" 20 40 4 $list 2> $tempdir/reschoice
-	retval=$?
-	if [ "$retval" -lt "1" ]; then
-		index=`cat $tempdir/reschoice`
-		res="video=uvesafb:"${res[$index]}"-32,mtrr:0,ywrap"
-		SCREEN_RESOLUTION=${res[$index]}
-	else
-		exit $retval
-	fi
+	Xdialog	--title "Resolution" \
+		--no-label \
+		--no-tags \
+		--stdout \
+		--menu "What is your prefered\n screen resolution?" 20 40 4 $list \
+			> $tempdir/reschoice
+			if [ $? -lt 1 ]; then
+				index=`cat $tempdir/reschoice`
+				res="video=uvesafb:"${res[$index]}"-32,mtrr:0,ywrap"
+				SCREEN_RESOLUTION=${res[$index]}
+			else
+				exit 1
+			fi
 }
 
 disk_setup()
@@ -80,13 +100,17 @@ disk_setup()
 	if [ "$[index]" == "1" ] && [ "$list" != "" ]; then
 		index=0
 	elif [ "$list" != "" ]; then
-		Xdialog --title "Select Disk" --no-label --no-tags --menu "Which disk would you like to use?" 20 40 4 $list 2> $tempdir/sldisk.$$
-		retval=$?
-		if [ "$retval" -lt "1" ]; then
-			index=`cat $tempdir/sldisk.$$ |cut -d " " -f1`
-		else
-			exit $retval
-		fi
+		Xdialog	--title "Select Disk" \
+			--no-label \
+			--stdout \
+			--no-tags \
+			--menu "Which disk would you like to use?" 20 40 4 $list \
+				> $tempdir/sldisk.$$
+				if [ $? -lt 1 ]; then
+					index=`cat $tempdir/sldisk.$$ |cut -d " " -f1`
+				else
+					exit 1
+				fi
 	else
 		x_echo '"No usable disk"' '"ThinStation Dev requirees a disk at least 10GB in size. Exiting"'
 		exit 1
@@ -94,37 +118,45 @@ disk_setup()
 
 	disk=${disk[$index]}
 	x_echo "Selected Disk" "Using disk $disk"
-	Xdialog --title "Buggy Bios" --no-tags --checklist "Do you have a buggy bios that requires the\n start of the partition to be at sector 1\n instead of the default sector of \
-	2048?" 0 0 2 1 "Enable Buggy Bios Support" off 2> $tempdir/buggy
-	retval=$?
-	if [ "$retval" -lt "1" ] ;then
-		if [ "`cat $tempdir/buggy`" == "1" ]; then
-			buggybios=true
-		else
-			buggybios=false
-		fi
-	else
-		exit $retval
-	fi
+	Xdialog	--title "Buggy Bios" \
+		--no-tags \
+		--stdout \
+		--checklist "Do you have a buggy bios that requires the\n start of the partition to be at sector 1\n instead of the default sector of 2048?" \
+			0 0 2 1 "Enable Buggy Bios Support" off \
+			> $tempdir/buggy
+			if [ $? -lt 1 ]; then
+				if [ "`cat $tempdir/buggy`" == "1" ]; then
+					buggybios=true
+				else
+					buggybios=false
+				fi
+			else
+				exit 1
+			fi
 }
 
 install_it()
 {
-	Xdialog --title "Warning" --default-no --yesno "All Data on the selected disk is about to be erased.\n Do you Wish to continue?" 10 60
-	retval=$?
-	if [ "$retval" -gt "0" ]; then
-		exit $retval
-	fi
-	Xdialog --title "Warning" --default-no --yesno "Are you really sure?" 10 50
-	retval=$?
-	if [ "$retval" -gt "0" ]; then
-        	exit $retval
-	else
-		$XTERM_CMD -e /bin/install.sh $disk $buggybios
-	fi
+	Xdialog	--title "Warning" \
+		--default-no \
+		--stdout \
+		--yesno "All Data on the selected disk is about to be erased.\n Do you Wish to continue?" 10 60
+			if [ $? -gt 0 ]; then
+				exit 1
+			fi
+	Xdialog	--title "Warning" \
+		--stdout \
+		--default-no \
+		--yesno "Are you really sure?" 10 50
+			if [ $? -gt 0 ]; then
+        			exit l
+			else
+				$XTERM_CMD -e /bin/install.sh $disk $buggybios
+			fi
 }
 
-if proxy-setup ; then 
+readme
+if proxy-setup ; then
 	continue
 else
 	x_echo "Broken Internet" "No Internet Connectivity. Exiting."
@@ -166,6 +198,9 @@ NET_HOSTNAME=DevStation_*
 #WIRELESS_WPAKEY="3x@mpl39@559hr@53"
 #WIRELESS_DRIVER="wext"' >> /root/thinstation.conf.user
 
+for object in `ls -A /root`; do
+	cp -Prfd /root/$object /tmp-root/.
+done
 cat /boot/syslinux.tpl |sed -e "s/\$RES/$res/g" > /boot/syslinux.cfg
 
 flag=0
