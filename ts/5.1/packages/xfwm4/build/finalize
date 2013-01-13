@@ -15,10 +15,9 @@ fi
 
 if [ "$XFWM4_THEME" != "ALL" ]; then
 	if [ -z "$XFWM4_THEME" ]; then
-		XFWM4_THEME=Xfce
+		XFWM4_THEME=Default
 	fi
 	if [ -e /lib/themes/$XFWM4_THEME/xfwm4/themerc ]; then
-		sed -i -e "s/name=\"theme\" type=\"string\" value=\"Default\"/name=\"theme\" type=\"string\" value=\"$XFWM4_THEME\"/g" /etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xfwm4.xml
 		for theme in `find /lib/themes -name themerc |cut -d "/" -f4`; do
 			if [ "$theme" != "$XFWM4_THEME" ]; then
 				rm -rf /lib/themes/$theme/xfwm4

@@ -1369,11 +1369,13 @@ if [ -e ./tmp-tree/finalize ]; then
   mount --bind /dev ./tmp-tree/dev
   echo ". /etc/thinstation.global" > ./tmp-tree/build.finalize
   cat ./tmp-tree/finalize/* >> ./tmp-tree/build.finalize
+  ln -sf /etc/skel ./tmp-tree/root
   chroot ./tmp-tree /bin/sh /build.finalize
   while fuser ./tmp-tree ; do
 	sleep .1
   done
   umount ./tmp-tree/dev
+#  rm -rf ./tmp-tree/root
   rm ./tmp-tree/build.finalize
   rm -rf ./tmp-tree/finalize
   #Run depmod one last time, in case a finalize script removed a module
