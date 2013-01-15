@@ -6,7 +6,6 @@ xfwm4_icons ()
 {
     IMENU=/tmp/icon.menu
     ICONDIR=$HOME/Desktop
-
     if [ "`make_caps $ICONMODE`" == "AUTO" ] ; then
       if [ -e /lib/menu ] ; then
            cat /lib/menu/* > $IMENU
@@ -21,47 +20,39 @@ xfwm4_icons ()
 	echo $entry > /tmp/entry
 	. /tmp/entry
 	if [ "`make_caps $nodesktop`" != "TRUE" ]; then
-
+	{
         ICON=/lib/pixmaps/`replace_char $package " " "_"`"_32x32.xpm"
-	LINK=$ICONDIR/`replace_char "$title.lnk" "[ /]" "_"`
+	LINK=$ICONDIR/`replace_char "$title.desktop" "[ /]" "_"`
 	if [ -e $ICON ] ; then
+	{
 	echo "[Desktop Entry]">$LINK
         echo "Name=$title" >>$LINK
         echo "Comment=$package">>$LINK
 	echo "TryExec=$command">>$LINK
-        echo "Exec=$command"">>$LINK
+        echo "Exec=$command">>$LINK
         echo "StartupNotify=false" >>$LINK
         echo "Terminal=false ">>$LINK
         echo "Type=Application">>$LINK
         echo "Icon=microsoft-windows-icon">>$LINK
         echo "Categories=GTK;GNOME;ThinClients;">>$LINK
-
+	chmod +x $LINK
+	}
       	fi
+	}
 	fi
       done
     fi
-
     (cat $WKDIR/session) |
     while read type title screen position workspace autostart custom icon server options
     do
       if [ "$server" = "." ] ; then server= ; fi
       if [ "$options" = "." ] ; then options= ; fi
-#[Desktop Entry]
-#Name=RDesktop
-#Comment=Windows Remote Desktop Client
-#TryExec=pkg window rdesktop
-#Exec=pkg window rdesktop
-#StartupNotify=false
-#Terminal=false
-#Type=Application
-#Icon=microsoft-windows-icon
-#Categories=GTK;GNOME;ThinClients;
-
       case "$icon" in
       ON|SUBMENU)
-	ICON=/lib/pixmaps/`replace_char $package " " "_"`"_32x32.xpm"
-	LINK=$ICONDIR/`replace_char "$title" "[ /]" "_"`
+	ICON=/lib/pixmaps/`replace_char $type " " "_"`"_32x32.xpm"
+	LINK=$ICONDIR/`replace_char "$title.desktop" "[ /]" "_"`
         if [ -e $ICON ] ; then
+	{
         echo "[Desktop Entry]">$LINK
 	echo "Name=$title" >>$LINK
 	echo "Comment=$package">>$LINK
@@ -72,7 +63,9 @@ xfwm4_icons ()
 	echo "Type=Application">>$LINK
 	echo "Icon=microsoft-windows-icon">>$LINK
 	echo "Categories=GTK;GNOME;ThinClients;">>$LINK
-        fi
+	chmod +x $LINK
+	}        
+	fi
       ;;
       esac
     done
