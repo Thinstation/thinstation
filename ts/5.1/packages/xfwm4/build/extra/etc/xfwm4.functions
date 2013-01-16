@@ -1,6 +1,61 @@
 wm_menu()
 {
-	echo unused > /dev/null
+	IMENU=/tmp/icon.menu
+	ICONDIR=$HOME/Desktop
+	if [ "`make_caps $ICONMODE`" == "AUTO" ]; then
+		if [ -e /lib/menu ] ; then
+			cat /lib/menu/* > $IMENU
+		fi
+		(cat $IMENU) |
+			while read entry; do
+				case "$entry" in
+					\#*|"") continue ;;
+				esac
+				$entry
+				if ! is_enabled $nodesktop ; then
+					ICON=/lib/pixmaps/`replace_char $package " " "_"`"_32x32.xpm"
+					LINK=$ICONDIR/`replace_char "$title.desktop" "[ /]" "_"`
+					if [ -e $ICON ]; then
+						echo "[Desktop Entry]"				>$LINK
+						echo "Name=$title"				>>$LINK
+						echo "Comment=$package"				>>$LINK
+						echo "TryExec=$command"				>>$LINK
+						echo "Exec=$command"				>>$LINK
+						echo "StartupNotify=false"			>>$LINK
+						echo "Terminal=false "				>>$LINK
+						echo "Type=Application"				>>$LINK
+						echo "Icon=microsoft-windows-icon"		>>$LINK
+						echo "Categories=GTK;GNOME;ThinClients;"	>>$LINK
+						chmod +x $LINK
+						unset title package command nodesktop
+					fi
+				fi
+			done
+	fi
+	(cat $WKDIR/session) |
+		while read type title screen position workspace autostart custom icon server options; do
+			if [ "$server" = "." ]; then unset server ; fi
+			if [ "$options" = "." ]; then unset options ; fi
+			case "$icon" in
+				ON|SUBMENU)
+					ICON=/lib/pixmaps/`replace_char $type " " "_"`"_32x32.xpm"
+					LINK=$ICONDIR/`replace_char "$title.desktop" "[ /]" "_"`
+					if [ -e $ICON ]; then
+						echo "[Desktop Entry]"						>$LINK
+						echo "Name=$title"						>>$LINK
+						echo "Comment=$package"						>>$LINK
+						echo "TryExec=pkg fullscreen $type \"$server\" \"$options\""	>>$LINK
+						echo "Exec=pkg fullscreen $type \"$server\" \"$options\""	>>$LINK
+						echo "StartupNotify=false"					>>$LINK
+						echo "Terminal=false "						>>$LINK
+						echo "Type=Application"						>>$LINK
+						echo "Icon=microsoft-windows-icon"				>>$LINK
+						echo "Categories=GTK;GNOME;ThinClients;"			>>$LINK
+						chmod +x $LINK
+					fi
+				;;
+			esac
+		done
 }
 
 wm_workspaces()
