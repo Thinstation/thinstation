@@ -2,6 +2,7 @@ wm_menu()
 {
 	IMENU=/tmp/icon.menu
 	ICONDIR=$HOME/Desktop
+	mkdir -p $ICONDIR
 	if [ "`make_caps $ICONMODE`" == "AUTO" ]; then
 		if [ -e /lib/menu ] ; then
 			cat /lib/menu/* > $IMENU
@@ -11,10 +12,12 @@ wm_menu()
 				case "$entry" in
 					\#*|"") continue ;;
 				esac
-				$entry
+				eval $entry
 				if ! is_enabled $nodesktop ; then
-					ICON=/lib/pixmaps/`replace_char $package " " "_"`"_32x32.xpm"
 					LINK=$ICONDIR/`replace_char "$title.desktop" "[ /]" "_"`
+					if [ -n "$menu" ]; then
+						menu="$menu;"
+					fi
 					if [ -e $ICON ]; then
 						echo "[Desktop Entry]"				>$LINK
 						echo "Name=$title"				>>$LINK
@@ -24,10 +27,10 @@ wm_menu()
 						echo "StartupNotify=false"			>>$LINK
 						echo "Terminal=false "				>>$LINK
 						echo "Type=Application"				>>$LINK
-						echo "Icon=microsoft-windows-icon"		>>$LINK
-						echo "Categories=GTK;GNOME;ThinClients;"	>>$LINK
+						echo "Icon=$package"				>>$LINK
+						echo "Categories=GTK;GNOME;$menu"		>>$LINK
 						chmod +x $LINK
-						unset title package command nodesktop
+						unset title package command nodesktop menu needs
 					fi
 				fi
 			done
