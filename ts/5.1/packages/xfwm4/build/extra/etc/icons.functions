@@ -4,6 +4,7 @@
 # ropetry
 xfwm4_icons ()
 {
+    ICONDUMMY="microsoft-windows-icon"
     IMENU=/tmp/icon.menu
     ICONDIR=$HOME/Desktop
     if [ "`make_caps $ICONMODE`" == "AUTO" ] ; then
@@ -26,6 +27,7 @@ xfwm4_icons ()
 	if [ -e $ICON ] ; then
 	{
 	echo "[Desktop Entry]">$LINK
+        echo "Version=1.0" >>$LINK
         echo "Name=$title" >>$LINK
         echo "Comment=$package">>$LINK
 	echo "TryExec=$command">>$LINK
@@ -33,7 +35,7 @@ xfwm4_icons ()
         echo "StartupNotify=false" >>$LINK
         echo "Terminal=false ">>$LINK
         echo "Type=Application">>$LINK
-        echo "Icon=microsoft-windows-icon">>$LINK
+        echo "Icon=$ICON">>$LINK
         echo "Categories=GTK;GNOME;ThinClients;">>$LINK
 	chmod +x $LINK
 	}
@@ -54,14 +56,15 @@ xfwm4_icons ()
         if [ -e $ICON ] ; then
 	{
         echo "[Desktop Entry]">$LINK
+        echo "Version=1.0" >>$LINK
 	echo "Name=$title" >>$LINK
-	echo "Comment=$package">>$LINK
+	echo "Comment=$title">>$LINK
 	echo "TryExec=pkg fullscreen $type \"$server\" \"$options\"">>$LINK
         echo "Exec=pkg fullscreen $type \"$server\" \"$options\"">>$LINK
         echo "StartupNotify=false" >>$LINK
 	echo "Terminal=false ">>$LINK
 	echo "Type=Application">>$LINK
-	echo "Icon=microsoft-windows-icon">>$LINK
+	echo "Icon=$ICON">>$LINK
 	echo "Categories=GTK;GNOME;ThinClients;">>$LINK
 	chmod +x $LINK
 	}        
