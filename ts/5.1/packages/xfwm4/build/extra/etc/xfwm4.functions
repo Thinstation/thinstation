@@ -1,9 +1,28 @@
+make_desktop()
+{
+	mkdir -p $ICONDIR
+	LINK=$ICONDIR/`replace_char "$title.desktop" "[ /]" "_"`
+	if [ -n "$menu" ]; then
+		menu="$menu;"
+	fi
+	echo "[Desktop Entry]"                          >$LINK
+	echo "Version=1.0"                              >>$LINK
+	echo "Name=$title"                              >>$LINK
+	echo "Comment=$title"                           >>$LINK
+	echo "TryExec=$command"                         >>$LINK
+	echo "Exec=$command"                            >>$LINK
+	echo "StartupNotify=false"                      >>$LINK
+	echo "Terminal=false "                          >>$LINK
+	echo "Type=Application"                         >>$LINK
+	echo "Icon=$package"                            >>$LINK
+	echo "Categories=GTK;GNOME;$menu"               >>$LINK
+	chmod +x $LINK
+}
+
 wm_menu()
 {
-	IMENU=/tmp/icon.menu
-	ICONDIR=$HOME/Desktop
-	mkdir -p $ICONDIR
 	if [ "`make_caps $ICONMODE`" == "AUTO" ]; then
+		IMENU=/tmp/icon.menu
 		if [ -e /lib/menu ] ; then
 			cat /lib/menu/* > $IMENU
 		fi
@@ -13,54 +32,110 @@ wm_menu()
 					\#*|"") continue ;;
 				esac
 				eval $entry
-				if ! is_enabled $nodesktop ; then
-					LINK=$ICONDIR/`replace_char "$title.desktop" "[ /]" "_"`
-					if [ -n "$menu" ]; then
-						menu="$menu;"
-					fi
-					if [ -e $ICON ]; then
-						echo "[Desktop Entry]"				>$LINK
-						echo "Version=1.0"				>>$LINK
-						echo "Name=$title"				>>$LINK
-						echo "Comment=$title"				>>$LINK
-						echo "TryExec=$command"				>>$LINK
-						echo "Exec=$command"				>>$LINK
-						echo "StartupNotify=false"			>>$LINK
-						echo "Terminal=false "				>>$LINK
-						echo "Type=Application"				>>$LINK
-						echo "Icon=$package"				>>$LINK
-						echo "Categories=GTK;GNOME;$menu"		>>$LINK
-						chmod +x $LINK
-						unset title package command nodesktop menu needs
-					fi
+				ICONDIR=$HOME/.local/share/applications
+				if [ -z "$menu" ]; then
+					menu=X-Xfce-Toplevel
+				else
+					echo $menu >> /tmp/typelist
 				fi
+				make_desktop
+				if ! is_enabled $nodesktop ; then
+					ICONDIR=$HOME/Desktop
+					make_desktop
+				fi
+				unset title package command nodesktop menu needs
 			done
 	fi
 	(cat $WKDIR/session) |
 		while read type title screen position workspace autostart custom icon server options; do
 			if [ "$server" = "." ]; then unset server ; fi
 			if [ "$options" = "." ]; then unset options ; fi
+			command="pkg fullscreen $type \"$server\" \"$options\""
+			package=$type
 			case "$icon" in
-				ON|SUBMENU)
-					ICON=/lib/pixmaps/`replace_char $type " " "_"`"_32x32.xpm"
-					LINK=$ICONDIR/`replace_char "$title.desktop" "[ /]" "_"`
-					if [ -e $ICON ]; then
-						echo "[Desktop Entry]"						>$LINK
-						echo "Version=1.0"						>>$LINK
-						echo "Name=$title"						>>$LINK
-						echo "Comment=$title"						>>$LINK
-						echo "TryExec=pkg fullscreen $type \"$server\" \"$options\""	>>$LINK
-						echo "Exec=pkg fullscreen $type \"$server\" \"$options\""	>>$LINK
-						echo "StartupNotify=false"					>>$LINK
-						echo "Terminal=false "						>>$LINK
-						echo "Type=Application"						>>$LINK
-						echo "Icon=microsoft-windows-icon"				>>$LINK
-						echo "Categories=GTK;GNOME;ThinClients;"			>>$LINK
-						chmod +x $LINK
-					fi
+				ON|MENU)
+					ICONDIR=$HOME/.local/share/applications
+					make_desktop
+				;;
+				SUBMENU|SUBMENUONLY)
+					ICONDIR=$HOME/.local/share/applications
+					menu=$type
+					echo $type >> /tmp/typelist
+					make_desktop
+					unset menu
+				;;
+			esac
+			case "$autostart" in
+				ON)
+					ICONDIR=$HOME/.config/autostart
+					make_desktop
 				;;
 			esac
 		done
+	mkdir -p ~/.config/menus
+	menufile=~/.config/menus/xfce-applications.menu
+		echo "<!DOCTYPE Menu PUBLIC \"-//freedesktop//DTD Menu 1.0//EN\""		>$menufile
+		echo "  \"http://www.freedesktop.org/standards/menu-spec/1.0/menu.dtd\">"	>>$menufile
+		echo ""										>>$menufile
+		echo "<Menu>"									>>$menufile
+		echo "    <Name>Xfce</Name>"							>>$menufile
+		echo ""										>>$menufile
+		echo "    <DefaultAppDirs/>"							>>$menufile
+		echo "    <DefaultDirectoryDirs/>"						>>$menufile
+		echo "    <DefaultMergeDirs/>"							>>$menufile
+		echo ""										>>$menufile
+		echo "    <Include>"								>>$menufile
+		echo "        <Category>X-Xfce-Toplevel</Category>"				>>$menufile
+		echo "    </Include>"								>>$menufile
+		echo ""										>>$menufile
+		echo "    <Layout>"								>>$menufile
+		echo "        <Filename>exo-terminal-emulator.desktop</Filename>"		>>$menufile
+		echo "        <Filename>exo-file-manager.desktop</Filename>"			>>$menufile
+		echo "        <Filename>exo-mail-reader.desktop</Filename>"			>>$menufile
+		echo "        <Filename>exo-web-browser.desktop</Filename>"			>>$menufile
+	for toplevel in `grep $HOME/.local/share/applications/* -e Toplevel |cut -d ":" -f1`; do
+		toplevel=`basename $toplevel`
+		echo "        <Filename>$toplevel</Filename>"					>>$menufile
+	done
+		echo "        <Merge type=\"all\"/>"						>>$menufile
+	if is_enabled $MENU_SHOWSETTINGS; then
+        	echo "        <Menuname>Settings</Menuname>"                                    >>$menufile
+	fi
+	if is_enabled $MENU_SHOWABOUT; then
+		echo "        <Filename>about.desktop</Filename>"				>>$menufile
+	fi
+	if is_enabled $MENU_SHOWLOGOUT; then
+		echo "        <Filename>xfce4-session-logout.desktop</Filename>"		>>$menufile
+	fi
+		echo "    </Layout>"								>>$menufile
+		echo ""										>>$menufile
+		echo "    <Menu>"								>>$menufile
+		echo "        <Name>Settings</Name>"						>>$menufile
+		echo "        <Directory>xfce-settings.directory</Directory>"			>>$menufile
+		echo "        <Include>"							>>$menufile
+		echo "            <Category>Settings</Category>"				>>$menufile
+		echo "        </Include>"							>>$menufile
+		echo "    </Menu>"								>>$menufile
+		echo ""										>>$menufile
+
+	for menu_type in `cat /tmp/typelist |sort -u`; do
+		menudirfile=/lib/desktop-directories/$menu_type.directory
+		echo "    <Menu>"								>>$menufile
+		echo "        <Name>$menu_type</Name>"						>>$menufile
+		echo "        <Directory>$menu_type.directory</Directory>"			>>$menufile
+		echo "        <Include>"							>>$menufile
+		echo "            <Category>$menu_type</Category>"				>>$menufile
+		echo "        </Include>"							>>$menufile
+		echo "    </Menu>"								>>$menufile
+		echo ""										>>$menufile
+		echo "[Desktop Entry]"								>>$menudirfile
+		echo "Version=1.0"								>>$menudirfile
+		echo "Type=Directory"								>>$menudirfile
+		echo "Icon=$menu_type"								>>$menudirfile
+		echo "Name=$menu_type"								>>$menudirfile
+		echo "Comment=$menu_type"							>>$menudirfile
+	done
+		echo "</Menu>"									>>$menufile
 }
 
 wm_workspaces()
