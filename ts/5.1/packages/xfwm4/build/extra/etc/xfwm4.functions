@@ -98,9 +98,7 @@ wm_menu()
 		echo "        <Filename>$toplevel</Filename>"					>>$menufile
 	done
 		echo "        <Merge type=\"all\"/>"						>>$menufile
-	if is_enabled $MENU_SHOWSETTINGS; then
         	echo "        <Menuname>Settings</Menuname>"                                    >>$menufile
-	fi
 	if is_enabled $MENU_SHOWABOUT; then
 		echo "        <Filename>about.desktop</Filename>"				>>$menufile
 	fi
@@ -109,6 +107,7 @@ wm_menu()
 	fi
 		echo "    </Layout>"								>>$menufile
 		echo ""										>>$menufile
+	if is_enable $MENU_SHOWSETTINGS; then
 		echo "    <Menu>"								>>$menufile
 		echo "        <Name>Settings</Name>"						>>$menufile
 		echo "        <Directory>xfce-settings.directory</Directory>"			>>$menufile
@@ -117,7 +116,7 @@ wm_menu()
 		echo "        </Include>"							>>$menufile
 		echo "    </Menu>"								>>$menufile
 		echo ""										>>$menufile
-
+	fi
 	for menu_type in `cat /tmp/typelist |sort -u`; do
 		menudirfile=/lib/desktop-directories/$menu_type.directory
 		echo "    <Menu>"								>>$menufile
