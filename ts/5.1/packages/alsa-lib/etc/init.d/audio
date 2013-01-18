@@ -15,7 +15,12 @@ init)
 				amixer sset "$control" $MIC_LEVEL% capture unmute > /dev/null
 			fi
 			if `echo $features | grep -q "pvolume"` ; then
+				if [ "$control" != "Beep" ]; then
 				amixer sset "$control" $AUDIO_LEVEL% playback unmute > /dev/null
+				fi
+			fi
+			if [ "$control" == "Front" ]; then
+				amixer sset "$control" unmute > /dev/null
 			fi
 		done
 		pkg_set_init_flag $PACKAGE

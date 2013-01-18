@@ -43,8 +43,30 @@ init)
 	<entry name="use_same_proxy" mtime="${mtime}" type="bool" value="${same}"/>
 	<entry name="use_http_proxy" mtime="${mtime}" type="bool" value="${proxy}"/>
 EOF
+
+	if [ -n "$PROXY_EXCEPTIONS" ]; then
+	cat <<EOF >> ${HOME}/.gconf/system/http_proxy/%gconf.xml
+	<entry name="ignore_hosts" mtime="${mtime}" type="list" ltype="string">
+		<li type="string">
+			<stringvalue>localhost</stringvalue>
+		</li>
+		<li type="string">
+			<stringvalue>127.0.0.0/8</stringvalue>
+		</li>
+EOF
+	for exception in $PROXY_EXCEPTIONS; do
+	cat <<EOF >> ${HOME}/.gconf/system/http_proxy/%gconf.xml
+		<li type="string">
+			<stringvalue>$exception</stringvalue>
+		</li>
+EOF
+	done
+
+	echo "</entry>" >> ${HOME}/.gconf/system/http_proxy/%gconf.xml
+	fi
+	
 	if [ -n "$PROXY_AUTH" ]; then
-	cat <<EOF > ${HOME}/.gconf/system/proxy/%gconf.xml
+	cat <<EOF >> ${HOME}/.gconf/system/proxy/%gconf.xml
         <entry name="authentication_user" mtime="${mtime}" type="string">
                 <stringvalue>${PROXY_AUTH}</stringvalue>
         </entry>
