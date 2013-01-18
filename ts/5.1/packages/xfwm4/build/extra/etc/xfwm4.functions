@@ -101,13 +101,15 @@ wm_menu()
         	echo "        <Menuname>Settings</Menuname>"                                    >>$menufile
 	if is_enabled $MENU_SHOWABOUT; then
 		echo "        <Filename>about.desktop</Filename>"				>>$menufile
+	else
+		echo "        <Exclude>about.desktop</Exclude>"					>>$menufile
 	fi
 	if is_enabled $MENU_SHOWLOGOUT; then
 		echo "        <Filename>xfce4-session-logout.desktop</Filename>"		>>$menufile
 	fi
 		echo "    </Layout>"								>>$menufile
 		echo ""										>>$menufile
-	if is_enable $MENU_SHOWSETTINGS; then
+	if is_enabled $MENU_SHOWSETTINGS; then
 		echo "    <Menu>"								>>$menufile
 		echo "        <Name>Settings</Name>"						>>$menufile
 		echo "        <Directory>xfce-settings.directory</Directory>"			>>$menufile
