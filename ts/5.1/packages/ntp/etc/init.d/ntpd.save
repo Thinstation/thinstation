@@ -1,0 +1,85 @@
+#! /bin/sh
+
+. $TS_GLOBAL
+
+update ()
+{
+    tickers=`awk '$1=="peer"||$1=="server"{print $2}' /etc/ntp.conf`
+    if [ -n "$tickers" ]; then
+  	ntpdate -s $tickers
+    fi
+}
+
+status ()
+{
+    if [ -z "`crontab -l | grep ntpd`" ]; then
+      return 1
+    fi
+    return 0
+}
+
+start ()
+{
+    if ! pkg_initialized $PACKAGE ; then
+	exit 1
+    fi
+    if [ "`make_caps $NETWORKUP`" != "TRUE" ]; then
+	exit 1
+    fi
+
+    if ! status ; then
+    	tickers=`awk '$1=="peer"||$1=="server"{print $2}' /etc/ntp.conf`
+    	if [ -n "$tickers" ]; then
+  		ntpdate -s -b $tickers
+  		echo "1 * * * * /etc/init.d/ntpd restart" >> /tmp/crontab
+  		crontab /tmp/crontab
+	fi
+    else
+	update
+    fi
+}
+
+stop ()
+{
+    sed -i -e "/ntpd/d" /tmp/crontab
+    crontab /tmp/crontab
+}
+
+case "$1" in
+init)
+    if ! pkg_initialized $PACKAGE; then
+	pkg_set_init_flag $PACKAGE
+
+	if [ -n "$NET_TIME_SERVER" ]; then
+		echo "server $NET_TIME_SERVER" >> /etc/ntp.conf
+		if [ -n "$NET_TIME_SERVER_BACKUP" ]; then
+			echo "server $NET_TIME_SERVER_BACKUP" >> /etc/ntp.conf
+		fi
+
+		start
+	fi
+
+    fi
+    ;;
+restart)
+    update
+    ;;
+start)
+    start
+    ;;
+stop)
+    stop
+    ;;
+status)
+    status
+    exit $?
+    ;;
+help)
+    echo "Usage: $0 init"
+    ;;
+  *)
+    exit 1
+    ;;
+esac
+
+exit 0

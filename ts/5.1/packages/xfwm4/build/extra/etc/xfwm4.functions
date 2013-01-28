@@ -5,22 +5,109 @@ make_desktop()
 	if [ -n "$menu" ]; then
 		menu="$menu;"
 	fi
-	echo "[Desktop Entry]"                          >$LINK
-	echo "Version=1.0"                              >>$LINK
-	echo "Name=$title"                              >>$LINK
-	echo "Comment=$title"                           >>$LINK
-	echo "TryExec=$command"                         >>$LINK
-	echo "Exec=$command"                            >>$LINK
-	echo "StartupNotify=false"                      >>$LINK
-	echo "Terminal=false "                          >>$LINK
-	echo "Type=Application"                         >>$LINK
-	echo "Icon=$package"                            >>$LINK
-	echo "Categories=GTK;GNOME;$menu"               >>$LINK
+	echo "[Desktop Entry]"				>$LINK
+	echo "Version=1.0"				>>$LINK
+	echo "Name=$title"				>>$LINK
+	echo "Comment=$title"				>>$LINK
+	echo "TryExec=$command"				>>$LINK
+	echo "Exec=$command"				>>$LINK
+	echo "StartupNotify=false"			>>$LINK
+	echo "Terminal=false"				>>$LINK
+	echo "Type=Application"				>>$LINK
+	echo "Icon=$icon"				>>$LINK
+	echo "Categories=GTK;GNOME;$menu"		>>$LINK
 	chmod +x $LINK
+}
+
+xfconf_settings()
+{
+	xfconf-query -c xfce4-session -p /general/SaveOnExit -t bool -s false -n
+	if [ ! -e /lib/applications/Thunar.desktop ]; then
+		xfconf-query -c xfce4-desktop -p /desktop-icons/file-icons/show-filesystem -t bool -s false -n
+		xfconf-query -c xfce4-desktop -p /desktop-icons/file-icons/show-home -t bool -s false -n
+		xfconf-query -c xfce4-desktop -p /desktop-icons/file-icons/show-trash -t bool -s false -n
+		xfconf-query -c xfce4-desktop -p /desktop-icons/file-icons/show-removable -t bool -s false -n
+	fi
+	if is_disabled $DESKTOP_SHOWTRASH; then
+		xfconf-query -c xfce4-desktop -p /desktop-icons/file-icons/show-trash -t bool -s false -n
+	fi
+	if is_disabled $DEKSTOP_SHOWHOME; then
+		xfconf-query -c xfce4-desktop -p /desktop-icons/file-icons/show-home -t bool -s false -n
+	fi
+	if is_disabled $DESKTOP_SHOWREMOVEABLE; then
+		xfconf-query -c xfce4-desktop -p /desktop-icons/file-icons/show-removable -t bool -s false -n
+	fi
+	if is_disabled $DESKTOP_SHOWFILESYSTEM; then
+		xfconf-query -c xfce4-desktop -p /desktop-icons/file-icons/show-filesystem -t bool -s false -n
+	fi
+
+	PANEL="-t int -s 1 -t int -s 3 -t int -s 15"
+	if is_enabled $PANEL_PAGER; then
+		PANEL="$PANEL -t int -s 4"
+	else
+		xfconf-query -c xfce4-panel -p /plugins/plugin-4 --reset
+                xfconf-query -c xfwm4 -p /general/workspace_count -t int -s 1 -n
+                xfconf-query -c xfwm4 -p /general/workspace_names --reset
+	fi
+	if is_enabled $PANEL_REV_CLOCKSYSTRAY; then
+		PANEL="$PANEL -t int -s 6 -t int -s 5"
+	else
+		PANEL="$PANEL -t int -s 5 -t int -s 6"
+	fi
+	if is_enabled $PANEL_USER; then
+		PANEL="$PANEL -t int -s 2"
+	else
+		xfconf-query -c xfce4-panel -p /plugins/plugin-2 --reset
+	fi
+	xfconf-query -c xfce4-panel -p /panels/panel-1/plugin-ids $PANEL
+
+	if [ -n "$DESKTOP_ICON_SIZE" ]; then
+		xfconf-query -c xfce4-desktop -p /desktop-icons/icon-size -t uint -s $DESKTOP_ICON_SIZE -n
+	fi
+	if [ -n "$DESKTOP_FONT_SIZE" ]; then
+		xfconf-query -c xfce4-desktop -p /desktop-icons/use-custom-font-size -t bool -s true -n
+		xfconf-query -c xfce4-desktop -p /desktop-icons/font-size -t double -s $DESKTOP_FONT_SIZE -n
+	fi
+	if [ -n "$XFWM4_BRIGHTNESS" ]; then
+		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/brightness -t int -s $XFWM4_BRIGHTNESS -n
+		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor1/brightness -t int -s $XFWM4_BRIGHTNESS -n
+	fi
+	if [ -n "$XFWM4_SATURATION" ]; then
+		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/saturation -t double -s $XFWM4_SATURATION -n
+		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor1/saturation -t double -s $XFWM4_SATURATION -n
+	fi
+	if [ -e /etc/background.jpg ]; then
+		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/image-path -t string -s /etc/background.jpg -n
+		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/image-show -t string -s true -n
+		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor1/image-path -t string -s /etc/background.jpg -n
+		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor1/image-show -t string -s true -n
+	fi
+	if [ -n "$XFWM4_RED" ] && [ -n "$XFWM4_BLUE" ] && [ -n "$XFWM4_GREEN" ]; then
+		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/color1 -t uint -t uint -t uint -t uint -s $XFWM4_RED -s $XFWM4_BLUE -s $XFWM4_GREEN -s 65535 -n
+		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor1/color1 -t uint -t uint -t uint -t uint -s $XFWM4_RED -s $XFWM4_BLUE -s $XFWM4_GREEN -s 65535 -n
+	fi
+	if [ -n "$XFWM4_START_ICON" ]; then
+		xfconf-query -c xfce4-panel -p /plugins/plugin-1/button-icon -t string -s $XFWM4_START_ICON -n
+	fi
+	if [ -n "$XFWM4_START_TITLE" ]; then
+		xfconf-query -c xfce4-panel -p /plugins/plugin-1/button-title -t string -s $XFWM4_START_TITLE -n
+	fi
+	if [ "`make_caps x$XFWM4_START_POSITION`" == "XBOTTOM" ]; then
+		xfconf-query -c xfce4-panel -p /panels/panel-1/position -t string -s "p=8;x=0;y=0" -n
+	fi
+	if is_enabled $XFWM4_COMPOSITING; then
+		xfconf-query -c xfwm4 -p /general/use_compositing -t bool -s true -n
+	fi
+	if [ -n "XFWM4$_THEME" ] && [ "$XFWM4_THEME" != "ALL" ]; then
+		if [ -e /lib/themes/$XFWM4_THEME/xfwm4/themerc ]; then
+			xfconf-query -c xfwm4 -p /general/theme -t string -s $XFWM4_THEME -n
+		fi
+	fi
 }
 
 wm_menu()
 {
+	xfconf_settings
 	if [ "`make_caps $ICONMODE`" == "AUTO" ]; then
 		IMENU=/tmp/icon.menu
 		if [ -e /lib/menu ] ; then
@@ -38,21 +125,25 @@ wm_menu()
 				else
 					echo $menu >> /tmp/typelist
 				fi
+				if [ -z "$icon" ]; then
+					icon=$package
+				fi
 				make_desktop
 				if ! is_enabled $nodesktop ; then
 					ICONDIR=$HOME/Desktop
 					make_desktop
 				fi
-				unset title package command nodesktop menu needs
+				unset title package command nodesktop menu needs icon
 			done
 	fi
 	(cat $WKDIR/session) |
-		while read type title screen position workspace autostart custom icon server options; do
+		while read type title screen position workspace autostart custom icon_mode server options; do
 			if [ "$server" = "." ]; then unset server ; fi
 			if [ "$options" = "." ]; then unset options ; fi
 			command="pkg fullscreen $type \"$server\" \"$options\""
 			package=$type
-			case "$icon" in
+			icon=$type
+			case "$icon_mode" in
 				ON|MENU)
 					ICONDIR=$HOME/.local/share/applications
 					make_desktop
@@ -89,20 +180,20 @@ wm_menu()
 		echo "    </Include>"								>>$menufile
 		echo ""										>>$menufile
 		echo "    <Layout>"								>>$menufile
-		echo "        <Filename>exo-terminal-emulator.desktop</Filename>"		>>$menufile
-		echo "        <Filename>exo-file-manager.desktop</Filename>"			>>$menufile
-		echo "        <Filename>exo-mail-reader.desktop</Filename>"			>>$menufile
-		echo "        <Filename>exo-web-browser.desktop</Filename>"			>>$menufile
-	for toplevel in `grep $HOME/.local/share/applications/* -e Toplevel |cut -d ":" -f1`; do
+	for toplevel in `grep $HOME/.local/share/applications/* -e Toplevel |grep -v About |cut -d ":" -f1`; do
 		toplevel=`basename $toplevel`
 		echo "        <Filename>$toplevel</Filename>"					>>$menufile
 	done
 		echo "        <Merge type=\"all\"/>"						>>$menufile
         	echo "        <Menuname>Settings</Menuname>"                                    >>$menufile
 	if is_enabled $MENU_SHOWABOUT; then
-		echo "        <Filename>about.desktop</Filename>"				>>$menufile
-	else
-		echo "        <Exclude>about.desktop</Exclude>"					>>$menufile
+		echo "        <Filename>About.desktop</Filename>"				>>$menufile
+		ICONDIR=$HOME/.local/share/applications
+		command=about
+		icon=help-about
+		menu=X-Xfce-Toplevel
+		title=About
+		make_desktop
 	fi
 	if is_enabled $MENU_SHOWLOGOUT; then
 		echo "        <Filename>xfce4-session-logout.desktop</Filename>"		>>$menufile
