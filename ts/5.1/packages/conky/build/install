@@ -1,0 +1,16 @@
+#!/bin/sh
+
+INSTALLDIR=./packages/conky
+EXTRADIR=$INSTALLDIR/build/extra
+TMPDIR=./build-conky
+
+for i in conky ; do
+	repackage $i -t $TMPDIR
+	cp -Prf $TMPDIR/$i/* $INSTALLDIR/.
+	rm -rf $TMPDIR
+done
+cp -Prf $EXTRADIR/* $INSTALLDIR/.
+
+returnval=$?
+
+exit $returnval
