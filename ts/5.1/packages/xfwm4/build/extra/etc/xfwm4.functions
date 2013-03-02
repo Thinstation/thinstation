@@ -76,7 +76,14 @@ xfconf_settings()
 		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/saturation -t double -s $XFWM4_SATURATION -n
 		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor1/saturation -t double -s $XFWM4_SATURATION -n
 	fi
-	if [ -e /etc/background.jpg ]; then
+	if [ -e /etc/background.svg ]; then
+		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/image-path -t string -s /etc/background.svg -n
+		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/image-show -t bool -s true -n
+		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/image-style -t int -s 4 -n
+		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor1/image-path -t string -s /etc/background.svg -n
+		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor1/image-show -t bool -s true -n
+		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor1/image-style -t int -s 4 -n
+	elif [ -e /etc/background.jpg ]; then
 		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/image-path -t string -s /etc/background.jpg -n
 		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/image-show -t string -s true -n
 		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor1/image-path -t string -s /etc/background.jpg -n
@@ -110,6 +117,8 @@ wm_menu()
 	xfconf_settings
 	if [ "`make_caps $ICONMODE`" == "AUTO" ]; then
 		IMENU=/tmp/icon.menu
+		rm -rf $IMENU
+		rm -rf /tmp/typelist
 		if [ -e /lib/menu ] ; then
 			cat /lib/menu/* > $IMENU
 		fi
@@ -210,8 +219,10 @@ wm_menu()
 		echo "    </Menu>"								>>$menufile
 		echo ""										>>$menufile
 	fi
+	menudir=$HOME/.local/share/desktop-directories
+	mkdir -p $menudir
 	for menu_type in `cat /tmp/typelist |sort -u`; do
-		menudirfile=/lib/desktop-directories/$menu_type.directory
+		menudirfile=$menudir/$menu_type.directory
 		echo "    <Menu>"								>>$menufile
 		echo "        <Name>$menu_type</Name>"						>>$menufile
 		echo "        <Directory>$menu_type.directory</Directory>"			>>$menufile

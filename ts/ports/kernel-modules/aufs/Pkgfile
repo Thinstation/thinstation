@@ -1,0 +1,32 @@
+# Description:  Advanced Unification Filesystem
+# URL:          http://aufs.sourceforge.net/
+# Packager:     
+# Maintainer:   
+
+name=aufs
+version=3.6
+release=3.6.11
+source=()
+
+build() {
+    git clone git://aufs.git.sourceforge.net/gitroot/aufs/aufs3-standalone.git \
+	$name
+    cd $name
+    git checkout origin/aufs$version
+
+    sed -i -e 's/CONFIG_AUFS_PROC_MAP =.*/CONFIG_AUFS_PROC_MAP = y/' \
+	-e 's/CONFIG_AUFS_DEBUG =.*/CONFIG_AUFS_DEBUG = /' \
+	config.mk
+
+    mkdir -p $PKG/usr/include/linux
+    mkdir -p $PKG/$TSCOMPROOT/kernel/kernel/modules-${release}TS/kernel/fs/aufs
+    make KDIR=/usr/src/kernels/${release}TS all install_headers DESTDIR=$PKG
+    cp -a aufs.ko $PKG/$TSCOMPROOT/kernel/kernel/modules-${release}TS/kernel/fs/aufs
+    
+    make KDIR=/usr/src/kernels/${release}TS clean
+
+    mkdir -p $PKG/$TSCOMPROOT/kernel_SMP/kernel/modules-${release}TS_SMP/kernel/fs/aufs
+    make KDIR=/usr/src/kernels/${release}TS_SMP CONFIG_AUFS_PROC_MAP=Y
+    cp -a aufs.ko $PKG/$TSCOMPROOT/kernel_SMP/kernel/modules-${release}TS_SMP/kernel/fs/aufs
+}
+

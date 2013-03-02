@@ -5,10 +5,12 @@
 name=minicom
 version=2.6.1
 release=1
-source=(http://alioth.debian.org/frs/download.php/3700/minicom-$version.tar.gz)
+source=(http://alioth.debian.org/frs/download.php/3700/minicom-$version.tar.gz
+	terminal.patch)
 
 build() {
 	cd $name-$version
+	patch -p0 <../terminal.patch
 
 	./configure --prefix=/usr \
 			--exec-prefix=/ \

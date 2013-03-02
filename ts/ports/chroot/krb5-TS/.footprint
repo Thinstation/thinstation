@@ -9,6 +9,7 @@ drwxr-xr-x	root/root	usr/bin/
 -rwxr-xr-x	root/root	usr/bin/kpasswd
 -rwxr-xr-x	root/root	usr/bin/krb5-config
 -rwsr-xr-x	root/root	usr/bin/ksu
+-rwxr-xr-x	root/root	usr/bin/kswitch
 -rwxr-xr-x	root/root	usr/bin/ktutil
 -rwxr-xr-x	root/root	usr/bin/kvno
 -rwxr-xr-x	root/root	usr/bin/sclient
@@ -50,17 +51,20 @@ drwxr-xr-x	root/root	usr/include/krb5/
 -rw-r--r--	root/root	usr/include/krb5/krb5.h
 -rw-r--r--	root/root	usr/include/krb5/locate_plugin.h
 -rw-r--r--	root/root	usr/include/krb5/plugin.h
+-rw-r--r--	root/root	usr/include/krb5/preauth_plugin.h
 -rw-r--r--	root/root	usr/include/krb5/pwqual_plugin.h
 -rw-r--r--	root/root	usr/include/profile.h
+-rw-r--r--	root/root	usr/include/verto-module.h
+-rw-r--r--	root/root	usr/include/verto.h
 drwxr-xr-x	root/root	usr/lib/
 drwxr-xr-x	root/root	usr/lib/krb5/
 drwxr-xr-x	root/root	usr/lib/krb5/plugins/
 drwxr-xr-x	root/root	usr/lib/krb5/plugins/authdata/
 drwxr-xr-x	root/root	usr/lib/krb5/plugins/kdb/
 -rw-r--r--	root/root	usr/lib/krb5/plugins/kdb/db2.so
+-rw-r--r--	root/root	usr/lib/krb5/plugins/kdb/kldap.so
 drwxr-xr-x	root/root	usr/lib/krb5/plugins/libkrb5/
 drwxr-xr-x	root/root	usr/lib/krb5/plugins/preauth/
--rw-r--r--	root/root	usr/lib/krb5/plugins/preauth/encrypted_challenge.so
 -rw-r--r--	root/root	usr/lib/krb5/plugins/preauth/pkinit.so
 lrwxrwxrwx	root/root	usr/lib/libgssapi_krb5.so -> libgssapi_krb5.so.2.2
 lrwxrwxrwx	root/root	usr/lib/libgssapi_krb5.so.2 -> libgssapi_krb5.so.2.2
@@ -79,15 +83,24 @@ lrwxrwxrwx	root/root	usr/lib/libkadm5srv.so -> libkadm5srv_mit.so
 lrwxrwxrwx	root/root	usr/lib/libkadm5srv_mit.so -> libkadm5srv_mit.so.8.0
 lrwxrwxrwx	root/root	usr/lib/libkadm5srv_mit.so.8 -> libkadm5srv_mit.so.8.0
 -rw-r--r--	root/root	usr/lib/libkadm5srv_mit.so.8.0
-lrwxrwxrwx	root/root	usr/lib/libkdb5.so -> libkdb5.so.5.0
-lrwxrwxrwx	root/root	usr/lib/libkdb5.so.5 -> libkdb5.so.5.0
--rw-r--r--	root/root	usr/lib/libkdb5.so.5.0
+lrwxrwxrwx	root/root	usr/lib/libkdb5.so -> libkdb5.so.6.0
+lrwxrwxrwx	root/root	usr/lib/libkdb5.so.6 -> libkdb5.so.6.0
+-rw-r--r--	root/root	usr/lib/libkdb5.so.6.0
+lrwxrwxrwx	root/root	usr/lib/libkdb_ldap.so -> libkdb_ldap.so.1.0
+lrwxrwxrwx	root/root	usr/lib/libkdb_ldap.so.1 -> libkdb_ldap.so.1.0
+-rw-r--r--	root/root	usr/lib/libkdb_ldap.so.1.0
 lrwxrwxrwx	root/root	usr/lib/libkrb5.so -> libkrb5.so.3.3
 lrwxrwxrwx	root/root	usr/lib/libkrb5.so.3 -> libkrb5.so.3.3
 -rw-r--r--	root/root	usr/lib/libkrb5.so.3.3
 lrwxrwxrwx	root/root	usr/lib/libkrb5support.so -> libkrb5support.so.0.1
 lrwxrwxrwx	root/root	usr/lib/libkrb5support.so.0 -> libkrb5support.so.0.1
 -rw-r--r--	root/root	usr/lib/libkrb5support.so.0.1
+lrwxrwxrwx	root/root	usr/lib/libverto-k5ev.so -> libverto-k5ev.so.0.0
+lrwxrwxrwx	root/root	usr/lib/libverto-k5ev.so.0 -> libverto-k5ev.so.0.0
+-rw-r--r--	root/root	usr/lib/libverto-k5ev.so.0.0
+lrwxrwxrwx	root/root	usr/lib/libverto.so -> libverto.so.0.0
+lrwxrwxrwx	root/root	usr/lib/libverto.so.0 -> libverto.so.0.0
+-rw-r--r--	root/root	usr/lib/libverto.so.0.0
 drwxr-xr-x	root/root	usr/man/
 drwxr-xr-x	root/root	usr/man/man1/
 -rw-r--r--	root/root	usr/man/man1/k5srvutil.1.gz
@@ -100,16 +113,21 @@ drwxr-xr-x	root/root	usr/man/man1/
 -rw-r--r--	root/root	usr/man/man1/krb5-config.1.gz
 -rw-r--r--	root/root	usr/man/man1/krb5-send-pr.1.gz
 -rw-r--r--	root/root	usr/man/man1/ksu.1.gz
+-rw-r--r--	root/root	usr/man/man1/kswitch.1.gz
 -rw-r--r--	root/root	usr/man/man1/ktutil.1.gz
 -rw-r--r--	root/root	usr/man/man1/kvno.1.gz
 -rw-r--r--	root/root	usr/man/man1/sclient.1.gz
 drwxr-xr-x	root/root	usr/man/man5/
+-rw-r--r--	root/root	usr/man/man5/.k5identity.5.gz
 -rw-r--r--	root/root	usr/man/man5/.k5login.5.gz
+-rw-r--r--	root/root	usr/man/man5/k5identity.5.gz
+-rw-r--r--	root/root	usr/man/man5/k5login.5.gz
 -rw-r--r--	root/root	usr/man/man5/kdc.conf.5.gz
 -rw-r--r--	root/root	usr/man/man5/krb5.conf.5.gz
 drwxr-xr-x	root/root	usr/man/man8/
 -rw-r--r--	root/root	usr/man/man8/kadmin.local.8.gz
 -rw-r--r--	root/root	usr/man/man8/kadmind.8.gz
+-rw-r--r--	root/root	usr/man/man8/kdb5_ldap_util.8.gz
 -rw-r--r--	root/root	usr/man/man8/kdb5_util.8.gz
 -rw-r--r--	root/root	usr/man/man8/kprop.8.gz
 -rw-r--r--	root/root	usr/man/man8/kpropd.8.gz
@@ -120,6 +138,7 @@ drwxr-xr-x	root/root	usr/sbin/
 -rwxr-xr-x	root/root	usr/sbin/gss-server
 -rwxr-xr-x	root/root	usr/sbin/kadmin.local
 -rwxr-xr-x	root/root	usr/sbin/kadmind
+-rwxr-xr-x	root/root	usr/sbin/kdb5_ldap_util
 -rwxr-xr-x	root/root	usr/sbin/kdb5_util
 -rwxr-xr-x	root/root	usr/sbin/kprop
 -rwxr-xr-x	root/root	usr/sbin/kpropd

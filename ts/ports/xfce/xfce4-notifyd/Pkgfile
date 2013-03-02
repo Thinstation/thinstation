@@ -1,0 +1,23 @@
+# Description: Port of Gnome's notification-daemon for the Xfce desktop.
+# URL: http://goodies.xfce.org/projects/applications/notification-daemon-xfce
+# Maintainer: Jose V Beneyto, sepen at crux dot nu
+# Packager: Jose V Beneyto, sepen at crux dot nu
+# Depends on: libxfcegui4 dbus libsexy
+# Group: xfce4
+
+name=xfce4-notifyd
+version=0.2.2
+release=1
+source=(http://archive.xfce.org/src/apps/$name/${version%.*}/$name-$version.tar.bz2)
+
+build() {
+  cd $name-$version
+  ./configure --prefix=/usr \
+              --libexecdir=/usr/lib \
+              --disable-static \
+              --disable-debug \
+
+  make
+  make DESTDIR=$PKG install
+  rm -rf $PKG/usr/share/locale
+}

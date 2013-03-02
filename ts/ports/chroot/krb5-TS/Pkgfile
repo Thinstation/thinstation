@@ -5,20 +5,17 @@
 
 name=krb5-TS
 pname=${name%-*}
-version=1.9
+version=1.10.3
 release=1
-source=(http://web.mit.edu/kerberos/dist/krb5/1.9/krb5-$version-signed.tar)
+source=(http://web.mit.edu/kerberos/dist/krb5/${version%.*}/krb5-$version-signed.tar)
 
 build() {
-	tar -xf $SRC/krb5-1.9-signed.tar
-	tar -xzf $SRC/krb5-1.9.tar.gz
+	tar -xf $SRC/$pname-$version-signed.tar
+	tar -xzf $SRC/$pname-$version.tar.gz
     	cd $pname-$version/src
-    	CFLAGS="-I/usr/include/et" ./configure --prefix=/usr --with-system-et --with-system-ss
+    	CFLAGS="-I/usr/include/et" ./configure --prefix=/usr --mandir=/usr/man --with-system-et --with-system-ss --with-ldap --without-system-verto
 
 	make
     	make DESTDIR=$PKG install
 	rm -rf $PKG/usr/share
-
-	# Comment this if you want kerberized versions of ftp and telnet
-	rm -rf $PKG/usr/bin/{ftp,telnet} $PKG/usr/man/man1/{ftp,telnet}.1
 }

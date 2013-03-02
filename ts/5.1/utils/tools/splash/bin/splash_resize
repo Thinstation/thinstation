@@ -18,12 +18,14 @@ if ($#ARGV < 2) {
 	exit 0;
 }
 
-$theme = $ARGV[0];
-$old_res = $ARGV[1];
-$new_res = $ARGV[2];
+$root = $ARGV[0];
+$theme = $ARGV[1];
+$type = $ARGV[2];
+$old_res = $ARGV[3];
+$new_res = $ARGV[4];
 
-open IN,"<./utils/tools/splash/$theme/$old_res/$old_res.cfg" || die "Can't open source config file."; 
-open OUT,">./utils/tools/splash/$theme/$new_res/$new_res.cfg" || die "Can't write to destination config file."; 
+open IN,"<$root/$theme/$type/$type.cfg" || die "Can't open source config file."; 
+open OUT,">$root/$theme/$new_res/$new_res.cfg" || die "Can't write to destination config file."; 
 
 $old_res =~ /(\d+)x(\d+)/; $old_x = $1; $old_y = $2;
 $new_res =~ /(\d+)x(\d+)/; $new_x = $1; $new_y = $2;

@@ -6,21 +6,12 @@ umask 022
 
 if [ "$TERM" == "xinit" ] ; then
 	. /etc/thinstation.global
-	clear
-	echo -e '\033[?1c'
-	if ! pkg_initialized home; then
-		pkg_set_init_flag home
-		for file in `ls -A /etc/skel`; do
-			cp -a /etc/skel/$file $HOME/. 2>/dev/null
-		done
-	fi
 	check_last_session
-	cd /var/run
-	exec xinit /etc/xinitrc -- /etc/xserverrc 2>&1 >> /var/run/applications/session.$$
-else
-	. /etc/thinstation.global --nofunctions
-	trap - INT QUIT TSTP
+	exec xinit /etc/xinitrc -- /etc/xserverrc &> /var/run/applications/session.$$
 fi
+
+. /etc/thinstation.global --nofunctions
+trap - INT QUIT TSTP
 
 cd ~
 alias ll='ls -l'

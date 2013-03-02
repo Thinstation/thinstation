@@ -1,0 +1,16 @@
+# Description: Utilities for doing and managing mounts of the Linux CIFS filesystem
+# URL:         http://wiki.samba.org/index.php/LinuxCIFS_utils
+# Maintainer:  Juergen Daubert, jue at crux dot nu
+# Depends on:  samba keyutils
+
+name=cifs-utils
+version=5.8
+release=1
+source=(ftp://ftp.samba.org/pub/linux-cifs/$name/$name-$version.tar.bz2)
+
+build () {
+    cd $name-$version
+    ./configure --prefix=/usr --mandir=/usr/man
+    make
+    make DESTDIR=$PKG install
+}

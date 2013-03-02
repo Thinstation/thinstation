@@ -8,10 +8,13 @@
 name=xfce4-session
 version=4.10.0
 release=1
-source=(http://archive.xfce.org/src/xfce/$name/${version%.*}/$name-$version.tar.bz2)
+source=(http://archive.xfce.org/src/xfce/$name/${version%.*}/$name-$version.tar.bz2 logout.patch logout.patch2)
 
 build () {
-  cd $name-$version
+  cd $name-$version/xfce4-session
+  patch -p0 < ../../logout.patch
+  patch -p0 < ../../logout.patch2
+  cd ..
 
   ./configure --prefix=/usr \
               --mandir=/usr/man \

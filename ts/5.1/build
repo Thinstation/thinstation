@@ -235,9 +235,9 @@ make_initrd()
 		echo -e "\nMaking initramfs"
 	fi
 	echo -e "\tFixing-Up links"
-	rm usr/bin usr/sbin usr/lib usr/icons usr/X11R7 usr/share usr/etc usr/local share sbin
+	rm usr/bin usr/sbin usr/lib usr/icons usr/X11R7 usr/share usr/etc usr/local share
 	ln -sf /bin usr/bin
-	ln -sf /bin usr/sbin
+	ln -sf /sbin usr/sbin
 	ln -sf /lib usr/lib
 	ln -sf /etc usr/etc
 	ln -sf /lib usr/share
@@ -245,7 +245,7 @@ make_initrd()
 	ln -sf / usr/X11R7
 	ln -sf /lib/icons usr/icons
 	ln -sf / usr/local
-	ln -sf /bin sbin
+	ln -sf /bin/shutdown sbin/shutdown
 
 	if [ "$ts_hardlinkfs" == "true" ]; then
 		hardlink -t -m .
@@ -446,6 +446,48 @@ web_package ()
 }
 
 ## Add boot splash image
+splash_resize()
+{
+	mkdir "$TOOLSDIR/splash/$ts_boottheme/$res"
+	if [ -e $TOOLSDIR/splash/$ts_boottheme/scalable ]; then
+		if [ -z "$SPLASH_BG_COLOR" ]; then
+			SPLASH_BG_COLOR=black
+		fi
+		$TOOLSDIR/splash/bin/splash_resize ./utils/tools/splash $ts_boottheme scalable 1024x768 $res
+		rsvg-convert $TOOLSDIR/splash/$ts_boottheme/scalable/verbose.svg \
+			-w `echo $res |cut -d "x" -f1` \
+			-h `echo $res |cut -d "x" -f2` \
+			-a -o tmp.png
+		convert -background $SPLASH_BG_COLOR tmp.png \
+			-resize $res \
+			-gravity center \
+			-extent $res \
+			+repage $TOOLSDIR/splash/$ts_boottheme/$res/verbose.png
+		rm tmp.png
+		if [ "`readlink $TOOLSDIR/splash/$ts_boottheme/scalable/silent.svg`" == "verbose.svg" ]; then
+			ln $TOOLSDIR/splash/$ts_boottheme/$res/verbose.png $TOOLSDIR/splash/$ts_boottheme/$res/silent.png
+		else
+			rsvg-convert $TOOLSDIR/splash/$ts_boottheme/scalable/silent.svg \
+				-w `echo $res |cut -d "x" -f1` \
+				-h `echo $res |cut -d "x" -f2` \
+				-a -o tmp.png
+			convert -background $SPLASH_BG_COLOR tmp.png \
+				-resize $res \
+				-gravity center \
+				-extent $res \
+				+repage $TOOLSDIR/splash/$ts_boottheme/$res/silent.png
+			rm tmp.png
+		fi
+        else
+		$TOOLSDIR/splash/bin/splash_resize ./utils/tools/splash $ts_boottheme 1024x768 1024x768 $res
+		convert -size 1024x768 \
+			$TOOLSDIR/splash/$ts_boottheme/1024x768/silent.jpg \
+			-resize $res\! $TOOLSDIR/splash/$ts_boottheme/$res/silent.jpg
+		convert -size 1024x768 \
+			$TOOLSDIR/splash/$ts_boottheme/1024x768/verbose.jpg \
+			-resize $res\! $TOOLSDIR/splash/$ts_boottheme/$res/verbose.jpg
+        fi
+}
 
 splash_setup()
 {
@@ -500,16 +542,24 @@ if [ ! -z "$ts_bootresolution" ] ;then
 	res=${ts_bootresolution%-*}
 	echo $res
 	if [ ! -e $TOOLSDIR/splash/$ts_boottheme/$res/$res.cfg ] ; then
-	        mkdir "$TOOLSDIR/splash/$ts_boottheme/$res"
-		$TOOLSDIR/splash/bin/splash_resize $ts_boottheme 1024x768 $res
-		$TOOLSDIR/convert -size 1024x768 $TOOLSDIR/splash/$ts_boottheme/1024x768/silent.jpg -resize $res\! $TOOLSDIR/splash/$ts_boottheme/$res/silent.jpg
-		$TOOLSDIR/convert -size 1024x768 $TOOLSDIR/splash/$ts_boottheme/1024x768/verbose.jpg -resize $res\! $TOOLSDIR/splash/$ts_boottheme/$res/verbose.jpg
+		splash_resize
 	fi
-	if [ ! -e ./tmp-tree/etc/splash/$ts_boottheme/$res/$res.cfg ]; then
-	        mkdir -p ./tmp-tree/etc/splash/$ts_boottheme/$res
-		cp $TOOLSDIR/splash/$ts_boottheme/$res/$res.cfg ./tmp-tree/etc/splash/$ts_boottheme/.
-	        cp $TOOLSDIR/splash/$ts_boottheme/$res/*.jpg ./tmp-tree/etc/splash/$ts_boottheme/$res/.
+	mkdir -p ./tmp-tree/etc/splash/$ts_boottheme
+	cp -Prfd $TOOLSDIR/splash/$ts_boottheme/$res ./tmp-tree/etc/splash/$ts_boottheme
+	if is_enabled $ts_allres; then
+		for res in 800x600 1024x600 1024x768 1152x864 1280x720 1280x768 1280x800 1280x960 1280x1024 1366x768 1400x1050 1440x900 1600x1200 1680x1050 1920x1080 1920x1200; do
+			if [ ! -e $TOOLSDIR/splash/$ts_boottheme/$res/$res.cfg ] ; then
+				splash_resize
+			fi
+			if [ ! -e ./tmp-tree/etc/splash/$ts_boottheme/$res/$res.cfg ]; then
+				mkdir -p ./tmp-tree/etc/splash/$ts_boottheme
+				cp -Prfd $TOOLSDIR/splash/$ts_boottheme/$res ./tmp-tree/etc/splash/$ts_boottheme
+			fi
+		done
 	fi
+	for res in `ls --color=never ./tmp-tree/etc/splash/$ts_boottheme`; do
+		mv ./tmp-tree/etc/splash/$ts_boottheme/$res/$res.cfg ./tmp-tree/etc/splash/$ts_boottheme/.
+	done
   else
 		KERNEL_PARAMETERS="$KERNEL_PARAMETERS splash=off"
   fi
@@ -912,12 +962,11 @@ if [ -e $PACDIR/tsuser.param ]; then
     echo "HOME=/home/$ts_tsuser" >> ./tmp-tree/etc/thinstation.env
     echo "$ts_tsuser::1000:1000:$ts_tsuser:/home/$ts_tsuser:/bin/sh" >> ./tmp-tree/etc/passwd
     echo "$ts_tsuser:x:1000:" >> ./tmp-tree/etc/group
-    cat ./tmp-tree/etc/group |sed -e "s/tsuser/$ts_tsuser/g" > ./tmp-tree/etc/group.tmp
-    rm ./tmp-tree/etc/group
-    mv ./tmp-tree/etc/group.tmp ./tmp-tree/etc/group
-    cat ./tmp-tree/etc/inittab |sed -e "s/\-a root/\-a $ts_tsuser/g" > ./tmp-tree/etc/new.inittab
-    rm ./tmp-tree/etc/inittab
-    mv ./tmp-tree/etc/new.inittab ./tmp-tree/etc/inittab
+    sed -i -e "s/tsuser/$ts_tsuser/g" ./tmp-tree/etc/group
+    sed -i -e "s/\-a root/\-a $ts_tsuser/g" ./tmp-tree/etc/inittab
+    if [ -e ./tmp-tree/etc/pam.d/login ]; then
+      sed -i -e "s/user = root/user = $ts_tsuser/g" ./tmp-tree/etc/pam.d/login
+    fi
 else
     echo "HOME=/root" >> ./tmp-tree/etc/thinstation.env
     echo "TSUSER=root" >> ./tmp-tree/etc/thinstation.env
@@ -926,7 +975,11 @@ fi
 echo -e "Setting Passwords"
 
 if [  -e $PACDIR/rootpasswd.param ]; then
-    GETPASSWD=`$TOOLSDIR/cryptmd5 $ts_rootpasswd`
+    if [ "$ts_rootpasswd" == "!!" ]; then
+        GETPASSWD="!!"
+    else
+        GETPASSWD=`$TOOLSDIR/cryptmd5 $ts_rootpasswd`
+    fi
     cp ./tmp-tree/etc/passwd ./tmp-tree/etc/passwd.tmp
     echo "root:$GETPASSWD:0:0:root:/root:/bin/sh" >./tmp-tree/etc/passwd
     cat ./tmp-tree/etc/passwd.tmp | grep -v "root" >> ./tmp-tree/etc/passwd
@@ -1005,7 +1058,11 @@ echo -e "Checking for Desktop background"
 
 if [ -e $PACDIR/desktop.param ]; then
     echo -e "Using $ts_desktop as desktop background"
-    get_file $ts_desktop ./tmp-tree/etc background.jpg
+    if [ "`basename $ts_desktop |cut -d. -f2`" == "svg" ]; then
+	get_file $ts_desktop ./tmp-tree/etc background.svg
+    else
+	get_file $ts_desktop ./tmp-tree/etc background.jpg
+    fi
 fi
 
 echo -e "Checking for Known Hosts File"

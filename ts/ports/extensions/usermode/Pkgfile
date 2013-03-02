@@ -1,0 +1,18 @@
+# Description: Run graphical configuration applications as root
+# URL: https://fedorahosted.org/usermode
+# Maintainer: None
+# Depends on: 
+
+name=usermode
+version=1.111
+release=1
+source=(https://fedorahosted.org/released/$name/$name-$version.tar.xz)
+
+build() {
+    cd $name-$version
+
+    ./configure --prefix=/usr --disable-nls
+
+    make
+    make install DESTDIR=$PKG
+}

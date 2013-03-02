@@ -81,7 +81,19 @@ ck_wrapper()
 xterm_wrapper()
 {
 	if [ -e /etc/console/$PACKAGE ]; then
-		CMD="$XTERM_CMD -e $CMD"
+		if [ "`basename $XTERM_CMD`" == "Terminal" ]; then
+			arg="-x"
+		else
+			ard="-e"
+		fi
+		CMD="$XTERM_CMD $arg $CMD"
+	fi
+}
+
+eula_()
+{
+	if [ -e /bin/eula_startup ]; then
+		/bin/eula_startup
 	fi
 }
 
@@ -132,6 +144,7 @@ console)
 	CMD="$CMD_CONSOLE $ORDERED_COMMAND"
 	xterm_wrapper
 	ck_wrapper
+	eula_
         run_command
 	wait
 	check_NX
