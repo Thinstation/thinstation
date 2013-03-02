@@ -1,0 +1,19 @@
+# Description: a curses (terminal-based) interface to the GNU Debugger
+# URL: http://cgdb.sourceforge.net/
+# Maintainer: James Mills, prologic at shortcircuit dot net dot au
+# Packager: James Mills, prologic at shortcircuit dot net dot au
+#
+# Depends on:
+
+name=cgdb
+version=0.6.7
+release=1
+source=(http://cgdb.me/files/cgdb-0.6.7.tar.gz)
+
+build() {
+cd $name-$version
+./configure --prefix=/usr
+make
+make DESTDIR=$PKG install
+chown -R root:root $PKG
+}
