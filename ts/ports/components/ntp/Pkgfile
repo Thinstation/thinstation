@@ -3,11 +3,10 @@
 # Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 # Depends on:  openssl xorg-imake
 
-name=ntp-TS
-pname=${name%-*}
+name=ntp
 version=4.2.6p4-beta2
 release=2
-source=(http://www.eecis.udel.edu/~ntp/ntp_spool/ntp4/ntp-4.2/$pname-$version.tar.gz
+source=(http://www.eecis.udel.edu/~ntp/ntp_spool/ntp4/ntp-4.2/$name-$version.tar.gz
         ntpd
         ntpdate
         ntp.conf
@@ -20,7 +19,7 @@ build () {
       $PKG/var/lib/ntp/stats \
       $PKG/usr/man/{man8,man5}
 
-   cd $pname-$version
+   cd $name-$version
    patch -p1 -i ../ntp-64bit.diff
 
    ./configure \
@@ -34,7 +33,7 @@ build () {
       --enable-parse-clocks \
       --enable-all-clocks \
       CFLAGS="$CFLAGS" \
-      LDFLAGS="$LDFLAGS" 
+      LDFLAGS="$LDFLAGS"
 
    # substitute the default configuration path
    sed -i -e 's;\(CONFIG_FILE[^"]*"\)/etc/ntp.conf;\1/etc/ntp/ntp.conf;' \
@@ -53,7 +52,7 @@ build () {
 
    # initialize ntp.drift file
    echo "0.0" > $PKG/var/lib/ntp/ntp.drift
-rm -rf /$PKG/{var,usr/man}
-mkdir -p $PKG/$TSCOMPROOT/$pname
-mv $PKG/{etc,usr} $PKG/$TSCOMPROOT/$pname
+#rm -rf /$PKG/{var,usr/man}
+#mkdir -p $PKG/$TSCOMPROOT/$pname
+#mv $PKG/{etc,usr} $PKG/$TSCOMPROOT/$pname
 }

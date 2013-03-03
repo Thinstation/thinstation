@@ -30,9 +30,13 @@ start ()
     if ! status ; then
     	tickers=`awk '$1=="peer"||$1=="server"{print $2}' /etc/ntp.conf`
     	if [ -n "$tickers" ]; then
-  		ntpdate -s -b $tickers
   		echo "1 * * * * /etc/init.d/ntpd restart" >> /tmp/crontab
-  		crontab /tmp/crontab
+		if is_enabled $RTC_CMOS_UPDATE; then
+			echo "1 * * * * hwclock -w" >> /tmp/crontab
+		else
+			ntpdate -s -b $tickers
+		fi
+		crontab /tmp/crontab
 	fi
     else
 	update
