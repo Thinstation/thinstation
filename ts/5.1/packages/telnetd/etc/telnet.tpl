@@ -5,7 +5,7 @@ service telnet
 	socket_type	= stream        
 	wait		= no
 	user		= root
-	server		= /bin/telnetd
+	server		= /sbin/telnetd
 	server_args	= -i
 	log_type	= FILE /var/log/telnet
 	log_on_failure	+= USERID

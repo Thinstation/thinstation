@@ -30,10 +30,10 @@ stage1()
 	./build --removeall
 	cp conf/default/* .
 	cd /
-	for res in `ls $TSWRKNG/utils/tools/splash/default |grep -v "1024x768"` ; do
-		if [ ! -z "$res" ] ; then
-			rm -rf $TSWRKNG/utils/tools/splash/default/$res
-		fi
+	for theme in `ls $TSWRKNG/utils/tools/splash |grep -v bin`; do
+		for res in `ls $TSWRKNG/utils/tools/splash/$theme |grep -E -v '1024x768|scalable'` ; do
+			rm -rf $TSWRKNG/utils/tools/splash/$theme/$res
+		done
 	done
 	for i in \
 		/build \
