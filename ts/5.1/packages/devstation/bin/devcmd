@@ -7,7 +7,7 @@ x_echo()
 
 do_update()
 {
-	$XTERM_CMD -T "Update initrd" -e update-initrd -w
+	$XTERM_CMD -T "Update initrd" $ARG update-initrd -w
 	case $? in
 		0) x_echo Update "Update Complete" ;;
 		1) x_echo Update "No Update Needed" ;;
@@ -52,7 +52,7 @@ toggle_pxe()
 do_build()
 {
 	cd /thinstation
-	$XTERM_CMD -T Build -e ./setup-chroot -b -o --autodl --license ACCEPT 
+	$XTERM_CMD -T Build $ARG ./setup-chroot -b -o --autodl --license ACCEPT 
 }
 
 make_machine()
@@ -79,12 +79,18 @@ Are you really sure?" 20 100
         retval=$?
         if [ "$retval" -gt "0" ]; then exit $retval ; fi
 	cd /thinstation
-	$XTERM_CMD -T "Wipe" -e rm -rf *
-	$XTERM_CMD -T "GIT Pull" -e git pull
-	$XTERM_CMD -T "GIT Checkout" -e git checkout -f
-	$XTERM_CMD -T "Setup" -e ./setup-chroot -i
+	$XTERM_CMD -T "Wipe" $ARG rm -rf *
+	$XTERM_CMD -T "GIT Pull" $ARG git pull
+	$XTERM_CMD -T "GIT Checkout" $ARG git checkout -f
+	$XTERM_CMD -T "Setup" $ARG ./setup-chroot -i
 	x_echo "Done" "You build env has been reset and updated"
 }
+
+if [ "`basename $XTERM_CMD`" == "Terminal" ]; then
+	ARG="-x"
+else
+	ARG="-e"
+fi
 
 
 case $1 in
