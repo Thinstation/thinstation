@@ -9,7 +9,7 @@ if [ -e $TS_FUNCTIONS ] && [ "$1" != "--nofunctions" ]; then . $TS_FUNCTIONS ; f
 if [ -e $TS_USER ] ; then . $TS_USER ; fi
 if [ -e $TS_RUNTIME ] ; then . $TS_RUNTIME ; fi
 if [ -e $TS_CUSTOM ] ; then . $TS_CUSTOM ; fi
-if [ -e /var/log/net/$NET_DEVICE ] ; then . /var/log/net/$NET_DEVICE ; fi
+if [ -n "$NET_DEVICE" ] && [ -e /var/log/net/$NET_DEVICE ] ; then . /var/log/net/$NET_DEVICE ; fi
 
 PACKAGE=`basename $0 | cut -c 1`
 if [ "$PACKAGE" = "S" ] ; then
