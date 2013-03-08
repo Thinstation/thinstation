@@ -155,6 +155,9 @@ cut_bloat()
 	for bloat in $DROP_FILES; do
 		find $INSTALLDIR -type f -name $bloat -delete
 	done
+	for bloat in $DROP_FILES; do
+		find $INSTALLDIR -type l -name $bloat -delete
+	done
 	for bloat in $DROP_DIRS; do
 		rm -rf $INSTALLDIR/$bloat
 	done
@@ -189,16 +192,23 @@ from_env()
 	touch $INSTALLDIR/build/installed
 }
 
+remove_libs()
+{
+	if [ -e $pkgpath/lib ]; then
+		find $pkgpath/lib -mindepth 1 -maxdepth 1 -name lib\*.so\* -delete
+	fi
+}
+
 main()
 {
 	package_path
 	extract_archive
 	shallow_usr
-#	redirect_sbin
 	redirect_shared
 	extra_dirs
 	extra_files
 	remove_empty
+#	remove_libs
 }
 
 get_opts $@
