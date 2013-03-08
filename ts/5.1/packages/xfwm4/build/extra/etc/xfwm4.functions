@@ -48,7 +48,7 @@ xfconf_settings()
 		xfconf-query -c xfce4-desktop -p /desktop-icons/file-icons/show-trash -t bool -s false -n
 		xfconf-query -c xfce4-desktop -p /desktop-icons/file-icons/show-removable -t bool -s false -n
 	fi
-	
+
 	PANEL="-t int -s 1 -t int -s 3 -t int -s 15"
 	if is_enabled $PANEL_PAGER; then
 		PANEL="$PANEL -t int -s 4"
@@ -130,6 +130,9 @@ xfconf_settings()
 wm_menu()
 {
 	xfconf_settings
+	rm -f $HOME/Desktop/*.desktop
+	rm -f $HOME/.local/share/applications/*
+	rm -f $HOME/.config/xfce4/desktop/*
 	if [ "`make_caps $ICONMODE`" == "AUTO" ]; then
 		IMENU=/tmp/icon.menu
 		rm -rf $IMENU
