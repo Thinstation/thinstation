@@ -104,7 +104,7 @@ squash_loc()
 mount_squash()
 {
 	if [ "$FASTBOOT" == "lotsofmem" ] ; then
-		unsquashfs -d / -f $FILE |tee /var/log/expand_progress &
+		unsquashfs -f -d / -f $FILE |tee /var/log/expand_progress &
 		sleep .2
 		OLDPROGRESS=$progress
 		while [ "$DPROGRESS" != "100" ] && [ ! -z "`pidof unsquashfs`" ] ; do

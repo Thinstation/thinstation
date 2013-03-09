@@ -51,6 +51,10 @@ if [ "$2" == "true" ] ; then
 		fi
 	done
 	echo -e "\tMaking lib.squash"
+	timestamp="`date +%Y%m%d`0000"
+	for file in `find lib`; do
+		touch -c -h -t $timestamp lib/$file
+	done
 	if [ "$HARDLINK" == "true" ]; then
 		hardlink -t -m lib
 	fi
