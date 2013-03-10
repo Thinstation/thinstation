@@ -212,7 +212,7 @@ if is_disabled $NET_USE_DHCP ; then
 	echo_log "Booting with manually configured network..." $debug
 	manual_config
 else
-	udhcpc -R -b -A $NET_DHCP_TIMEOUT -H $CLIENT_NAME -t 20 -T 3 -i $INTERFACE -C -s /etc/udev/scripts/lease_dhcp -p /var/run/udhcpc-$INTERFACE.pid
+	udhcpc -R -b -A $NET_DHCP_TIMEOUT -x hostname:$CLIENT_NAME -t 20 -T 3 -i $INTERFACE -C -s /etc/udev/scripts/lease_dhcp -p /var/run/udhcpc-$INTERFACE.pid
 fi
 
 # Kernel Network setting

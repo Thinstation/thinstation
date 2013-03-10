@@ -2,6 +2,7 @@ if [ -n "$DEBUG_INIT" ] ; then
         echo_log "Starting Udev"
 fi
 
+touch /tmp/init
 if is_enabled $VESAMODE; then
 	find /lib/modules -name radeon.ko -delete -o -name vmwgfx.ko -delete -o -name nouveau.ko -delete -o -name i915.ko -delete
 	depmod
@@ -23,5 +24,5 @@ if is_enabled $UDEV_NO_WAIT ; then
 else
 	/sbin/udevadm settle
 fi
-
+rm /tmp/init
 

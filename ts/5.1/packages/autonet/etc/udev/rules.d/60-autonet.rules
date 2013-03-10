@@ -4,5 +4,6 @@
 # See the udev.rules.examples file for more examples of how to create rules
 #
 SUBSYSTEM!="net", GOTO="net_end"
-RUN+="/etc/udev/scripts/net.sh"
+ACTION=="add", RUN+="/etc/udev/scripts/pre-net.sh"
+ACTION!="add", RUN+="/etc/udev/scripts/net.sh"
 LABEL="net_end"
