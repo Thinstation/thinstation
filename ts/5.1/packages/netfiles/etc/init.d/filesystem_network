@@ -13,7 +13,7 @@ init)
 		   password=`cat /etc/.storage`,\
 		   workgroup=$NET_SMB_WORKGROUP
 	  fi
-	  if lsmod | grep nfs && [ -n "$NET_NFS_SERVER" ] ; then
+	  if module_available nfs && [ -n "$NET_NFS_SERVER" ] ; then
 		  mkdir /mnt/nfs
 		  mount $NET_NFS_SERVER /mnt/nfs -t nfs -o rsize=8192,wsize=8192,timeo=14,vers=2,intr
 	  fi
