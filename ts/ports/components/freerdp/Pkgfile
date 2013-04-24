@@ -10,9 +10,24 @@ source=()
 
 build() {
 	git config --global http.sslVerify false
-	git clone --depth 1 https://github.com/FreeRDP/FreeRDP.git -b stable-1.0
+	git clone https://github.com/FreeRDP/FreeRDP.git #-b stable-1.1
 	cd FreeRDP
-	cmake .  -DCMAKE_INSTALL_PREFIX=/usr -DWITH_PCSC=ON
+	git checkout 1.0.2
+	cmake .	-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DWITH_PCSC=ON \
+		-DBUILD_SHARED_LIBS=ON \
+		-DWITH_CHANNELS=ON \
+		-DWITH_SERVER=OFF \
+		-DWITH_CLIENT=ON \
+		-DWITH_PULSE=OFF \
+		-DWITH_CUPS=ON \
+		-DWITH_FFMPEG=ON \
+		-DCHANNEL_URBDRC_CLIENT=ON \
+		-DWITH_GSTREAMER=ON \
+		-DWITH_DIRECTFB=OFF \
+		-DWITH_XINERAMA=ON
+
 	make
 	make DESTDIR=$PKG install
 }

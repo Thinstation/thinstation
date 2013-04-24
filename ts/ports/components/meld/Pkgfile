@@ -1,0 +1,24 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=meld
+version=1.6.1
+release=1
+source=(http://ftp.gnome.org/pub/GNOME/sources/meld/${version%.*}/meld-$version.tar.xz)
+
+build() {
+	cd $SRC
+	mkdir -p $PKG/opt
+	mkdir -p $PKG/usr/bin
+	mv meld-* $PKG/opt/meld
+	ln -sf /opt/meld/bin/meld $PKG/usr/bin/meld
+
+#	./configure --prefix=/usr \
+#			--sysconfdir=/etc \
+#			--mandir=/usr/man \
+#			--disable-extras
+#
+#	make
+#	make DESTDIR=$PKG install
+}
