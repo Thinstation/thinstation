@@ -21,6 +21,16 @@ readme()
 			fi
 }
 
+mem_check()
+{
+	MEM=`cat /proc/meminfo |grep -e MemTotal |cut -d: -f2 |sed -r 's/[[:space:]]+/:/g' |cut -d: -f2`
+	if [ "$MEM" -lt "2048000" ]; then
+		x_echo "Low Memmory" "You will need at least 2gb of RAM\n\
+ to use the DevStation."
+		exit 1
+	fi
+}
+
 timezone_locale()
 {
 	OLDIFS=$IFS
@@ -151,11 +161,13 @@ install_it()
 			if [ $? -gt 0 ]; then
         			exit l
 			else
-				$XTERM_CMD -e /bin/install.sh $disk $buggybios
+				$XTERM_CMD -T "Installing" $ARG /bin/install.sh $disk $buggybios
 			fi
 }
 
 readme
+mem_check
+
 if proxy-setup ; then
 	continue
 else
@@ -165,6 +177,11 @@ fi
 disk_setup
 set_res
 timezone_locale
+if [ "`basename $XTERM_CMD`" == "Terminal" ]; then
+        ARG="-x"
+else
+        ARG="-e"
+fi
 install_it
 
 echo "LOCALE=$LOCALE" > /root/thinstation.conf.user
@@ -210,7 +227,8 @@ for check in /boot/vmlinuz /thinstation/setup-chroot ; do
 	fi
 done
 if [ "$flag" != "2" ]; then
-	x_echo "Fail" "Something must have gone wrong with the installation"
+	x_echo "Fail" "Something must have gone wrong\n\
+ with the installation"
 	exit 1
 fi
 

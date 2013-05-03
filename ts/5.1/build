@@ -1741,6 +1741,7 @@ if [ -z "$NOIMAGES" ] ; then
     fi
     cp -a boot-images/templates/$ts_syslinuxtheme/* $IMAGEDIR
     cat $IMAGEDIR/syslinux.cfg.tpl |sed -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS LM=2/g"> $IMAGEDIR/syslinux.cfg
+    sed -i -e 's/LM=4/LM=2/g' $IMAGEDIR/syslinux.cfg
     rm $IMAGEDIR/syslinux.cfg.tpl
     rm -f $IMAGEDIR/vmlinuz*
     cp $INITDIR/vmlinuz* $IMAGEDIR
@@ -1757,6 +1758,7 @@ if [ -z "$NOIMAGES" ] ; then
     mkdir -p $IMAGEDIR/pxelinux.cfg
     cp -a boot-images/templates/$ts_syslinuxtheme/* $IMAGEDIR/
     cat $IMAGEDIR/syslinux.cfg.tpl | sed -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS LM=3/g"> $IMAGEDIR/pxelinux.cfg/default
+    sed -i -e 's/LM=4/LM=3/g' $IMAGEDIR/pxelinux.cfg/default
     rm $IMAGEDIR/syslinux.cfg.tpl
     rm -f $IMAGEDIR/vmlinuz*
     cp $INITDIR/vmlinuz* $IMAGEDIR
@@ -1774,11 +1776,7 @@ if [ -z "$NOIMAGES" ] ; then
       cat boot-images/initrd/syslinux.files | awk "{ print \"$IMAGEDIR/source/\" \$1 }" | xargs rm -rf
     fi
     cp -a boot-images/templates/$ts_syslinuxtheme/* $IMAGEDIR/source
-    if [ "$ts_livecd" != "true" ] ; then
-    	cat $IMAGEDIR/source/syslinux.cfg.tpl | sed -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS LM=4/g" > $IMAGEDIR/source/isolinux.cfg
-    else
-	cp ./conf/isolinux-livcd $IMAGEDIR/source/isolinux.cfg
-    fi
+    cat $IMAGEDIR/source/syslinux.cfg.tpl | sed -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS LM=4/g" > $IMAGEDIR/source/isolinux.cfg
     rm $IMAGEDIR/source/syslinux.cfg.tpl
     if [ -e $IMAGEDIR/source/vmlinuz ] ; then
 	    rm $IMAGEDIR/source/vmlinuz*

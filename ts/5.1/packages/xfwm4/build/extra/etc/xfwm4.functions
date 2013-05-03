@@ -4,6 +4,8 @@ make_desktop()
 	LINK=$ICONDIR/`replace_char "$title.desktop" "[ /]" "_"`
 	if [ -n "$menu" ]; then
 		menu="$menu;"
+	else
+		menu="X-Xfce-Toplevel;"
 	fi
 	echo "[Desktop Entry]"			>$LINK
 	echo "Version=1.0"			>>$LINK
@@ -17,6 +19,7 @@ make_desktop()
 	echo "Icon=$icon"			>>$LINK
 	echo "Categories=GTK;GNOME;$menu"	>>$LINK
 	chmod +x $LINK
+	unset menu
 }
 
 xfconf_settings()
@@ -173,6 +176,8 @@ wm_menu()
 			case "$icon_mode" in
 				ON|MENU)
 					ICONDIR=$HOME/.local/share/applications
+					make_desktop
+					ICONDIR=$HOME/Desktop
 					make_desktop
 				;;
 				SUBMENU|SUBMENUONLY)

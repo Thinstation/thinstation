@@ -95,10 +95,8 @@ cp /install/* .
 ./syslinux -s ${disk}1
 ./syslinux ${disk}1
 proxy-setup
-if [ -e /mnt/cdrom0/initrd-dev ]; then
-	cp /mnt/cdrom0/initrd-dev /boot/initrd
-	cp /mnt/cdrom0/vmlinuz-dev /boot/vmlinuz
-	cp /mnt/cdrom0/lib.squash-dev /boot/lib.update
+if [ -e /mnt/cdrom0/thindev-default.tar.xz ]; then
+	tar -xvf /mnt/cdrom0/thindev-default.tar.xz
 else
 	echo "Downloading a Default Image"
 	wget http://www.doncuppjr.net/thindev-default.tar.xz
@@ -111,5 +109,5 @@ cp /boot/lib.update /boot/lib.squash-backup
 cd /thinstation
 rm -rf *
 echo "Gitting thinstation repo"
-git clone --depth 1 git://thinstation.git.sourceforge.net/gitroot/thinstation/thinstation /thinstation
+git clone --depth 1 git://github.com/Thinstation/thinstation.git -b 5.1-Stable /thinstation
 ./setup-chroot -i
