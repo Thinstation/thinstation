@@ -1,0 +1,37 @@
+From 0bf9ac622fa41978fced2606450d2f906c8ca6f8 Mon Sep 17 00:00:00 2001
+From: Jasper Lievisse Adriaanse <jasper@humppa.nl>
+Date: Thu, 19 May 2011 16:14:54 +0000
+Subject: file-method: Don't pass invalid flags to chmod
+
+Remove the GNOME-VFS masks which aren't valid bits.
+
+Commit message written by Colin Walters <walters@verbum.org>
+
+https://bugzilla.gnome.org/show_bug.cgi?id=542026
+---
+diff --git a/modules/file-method.c b/modules/file-method.c
+index 37e4853..1d70d19 100644
+--- a/modules/file-method.c
++++ b/modules/file-method.c
+@@ -2378,7 +2378,18 @@ do_set_file_info (GnomeVFSMethod *method,
+ 	}
+ 
+ 	if (mask & GNOME_VFS_SET_FILE_INFO_PERMISSIONS) {
+-		if (chmod (full_name, info->permissions) != 0) {
++		int tmask;
++		int permissions = info->permissions;
++		/*
++		 * ktrace showed "invalid argument", and this makes sense....
++		 * because, we cannot pass the GNOME_VFS_PERM_ACCESS_*
++		 * constants to chmod.
++		 */
++		tmask = GNOME_VFS_PERM_ACCESS_READABLE;
++		tmask |= GNOME_VFS_PERM_ACCESS_WRITABLE;
++		tmask |= GNOME_VFS_PERM_ACCESS_EXECUTABLE;
++		permissions = permissions & ~tmask;
++		if (chmod (full_name, permissions) != 0) {
+ 			g_free (full_name);
+ 			return gnome_vfs_result_from_errno ();
+ 		}
+--
+cgit v0.9.0.2

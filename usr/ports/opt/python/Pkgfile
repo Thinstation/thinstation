@@ -4,21 +4,28 @@
 # Depends on:  db gdbm openssl bzip2 zlib sqlite3
 
 name=python
-version=2.7.3
-release=1
-source=(http://www.python.org/ftp/$name/$version/Python-$version.tar.xz)
+version=2.7.4
+release=2
+source=(http://www.python.org/ftp/$name/$version/Python-$version.tar.xz \
+        pyconfig.h)
 
 build () {
     cd Python-$version
-    
+
+    # set OPT to the python default without -O3
+    # our CFLAGS are used as well
+    OPT="-Wall -Wstrict-prototypes -fwrapv" \
     ./configure --prefix=/usr \
                 --mandir=/usr/man \
                 --enable-shared \
                 --with-threads \
-                --enable-ipv6
+                --enable-ipv6 
 
-    make EXTRA_CFLAGS="$CFLAGS"
+    make 
     make -j1 DESTDIR=$PKG install
+
+    # fix issue with man-page symlink
+    ln -sf python2.7.1 $PKG/usr/man/man1/python.1
 
     ln -sf python2.7 $PKG/usr/bin/python
     ln -s python2.7 $PKG/usr/lib/python
@@ -30,4 +37,7 @@ build () {
     rm $PKG/usr/lib/python/{distutils,site-packages,test/data}/README
     rm $PKG/usr/lib/python/idlelib/{ChangeLog,{NEWS,README,TODO}.txt}
     rm $PKG/usr/lib/python/ctypes/macholib/README.ctypes
+
+#    mv $PKG/usr/include/python2.7/pyconfig.h
+#    cp $SRC/pyconfig.h $PKG/usr/include/python2.7/
 }

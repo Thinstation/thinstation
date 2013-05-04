@@ -10,10 +10,11 @@ source=(http://www.openssl.org/source/$pname-$version.tar.gz)
 
 build() {
     cd $pname-$version
-    ./config --prefix=/usr --openssldir=/etc/ssl shared
+    ./config --prefix=/usr/local --openssldir=/etc/ssl shared
     sed -i "s|-O3|$CFLAGS|" Makefile
     make -j1
-    make INSTALL_PREFIX=$PKG/$TSCOMPROOT/$name LIBDIR=lib MANDIR=/usr/man MANSUFFIX=ssl install
-    chmod -R +w $PKG/$TSCOMPROOT/$name
-    rm -rf $PKG/$TSCOMPROOT/$name/{usr/include,usr/bin,usr/man,usr/lib/engines,usr/lib/pkgconfig,etc}
+    make INSTALL_PREFIX=$PKG install
+    rm -rf $PKG/usr/local/{include,bin,man,lib/engines,lib/pkgconfig} $PKG/etc
+    find $PKG -name \*.a -delete
+    find $PKG -type l -delete
 }

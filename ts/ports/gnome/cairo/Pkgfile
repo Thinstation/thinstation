@@ -1,0 +1,35 @@
+# Description: A 2D graphics library with support for multiple output devices
+# URL: http://www.cairographics.org/
+# Maintainer: Fredrik Rinnestam, fredrik at crux dot nu
+# Depends on: fontconfig, libpng, xorg-libxext, xorg-libxrender, xorg-libpixman, xorg-xcb-util, glib
+
+name=cairo
+version=1.12.14
+release=1
+source=(http://cairographics.org/releases/$name-$version.tar.xz
+	0001-xlib-Don-t-crash-when-swapping-a-0-sized-glyph.patch
+	0002-xcb-Don-t-crash-when-swapping-a-0-sized-glyph.patch)
+
+build() {
+        cd $name-$version
+	patch -p1 -i ../0001-xlib-Don-t-crash-when-swapping-a-0-sized-glyph.patch
+	patch -p1 -i ../0002-xcb-Don-t-crash-when-swapping-a-0-sized-glyph.patch
+
+        ./configure --prefix=/usr \
+		--enable-xlib \
+		--enable-ft \
+		--enable-tee \
+		--enable-gl \
+		--enable-gobject \
+                --enable-xcb=yes \
+                --enable-ps \
+                --enable-pdf \
+		--enable-svg \
+                --disable-gtk-doc \
+		--enable-shared \
+		--disable-static
+
+        make
+        make DESTDIR=$PKG install
+        rm -rf $PKG/usr/share
+}

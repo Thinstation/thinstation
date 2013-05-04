@@ -11,10 +11,9 @@ source=(http://downloads.sourceforge.net/project/wxwindows/$version/wxGTK-$versi
 
 build() {
 	cd wxGTK-$version
-	
+
 	./configure \
 		--prefix=/usr \
-		--enable-gtk2 \
 		--enable-unicode \
 		--with-opengl
 
@@ -24,10 +23,10 @@ build() {
 	cd contrib
 	make
 	make DESTDIR=$PKG install
-	
+
 	ln -sf /usr/lib/wx/config/gtk2-unicode-release-${version%.*} \
 		$PKG/usr/bin/wx-config
-	
+
 	rm -r \
 		$PKG/usr/share/locale \
 		$PKG/usr/share/bakefile

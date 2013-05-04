@@ -1,0 +1,25 @@
+# Description: The GIMP
+# URL:         http://www.gimp.org/
+# Maintainer:  Thomas Penteker, tek at serverop dot de
+# Packager:    Simone Rota, sip at crux dot nu
+# Depends on:  libart_lgpl, xorg-libxmu, xorg-libxpm, gegl
+# Nice to have: gimp-print, libsdl, ghostscript, librsvg, libmng
+
+name=gimp
+version=2.8.2
+release=1
+source=(ftp://ftp.gimp.org/pub/gimp/v2.8/gimp-$version.tar.bz2)
+
+build() {
+  cd gimp-$version
+  sed -i -e '/$(helpbrowser)/d' plug-ins/Makefile.in
+  ./configure --prefix=/usr \
+    --mandir=/usr/man \
+    --disable-static \
+    --disable-python \
+    --disable-nls \
+    --without-webkit
+  make
+  make DESTDIR=$PKG install
+  rm -rf $PKG/usr/share/{gtk-doc,locale}
+}

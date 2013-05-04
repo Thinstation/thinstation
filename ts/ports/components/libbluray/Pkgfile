@@ -1,0 +1,22 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=libbluray
+version=0.2.3
+release=1
+source=()
+
+build() {
+git clone --depth 1 git://git.videolan.org/libbluray.git
+	cd $name
+
+	./bootstrap
+	./configure --prefix=/usr \
+			--disable-doxygen-doc \
+			--disable-doxygen-dot \
+			--disable-extras
+
+	make
+	make DESTDIR=$PKG install
+}

@@ -1,0 +1,35 @@
+# Description: WINE - Implementation of Windows DLL's and core.
+# URL: http://www.winehq.com/
+# Maintainer: Danny Rawlins, monster dot romster at gmail dot com
+# Packager: Daniel Walpole, daniel at walpole dot id dot au
+# Depends on: fontconfig freeglut xorg-libxcomposite xorg-libxcursor xorg-libxinerama xorg-libxrandr xorg-libxxf86dga alsa-lib libpng libjpeg prelink
+
+name=wine
+version=1.5.29
+release=1
+source=(http://downloads.sourceforge.net/wine/$name-$version.tar.bz2
+	http://downloads.sourceforge.net/wine/wine_gecko-1.9-x86.msi
+	http://downloads.sourceforge.net/wine/wine-mono-0.0.8.msi)
+
+build() {
+	cd $name-$version
+	./configure \
+		--prefix=/usr \
+		--mandir=$PKG/usr/man \
+		--verbose \
+		--disable-tests
+
+	make depend
+	make
+	make DESTDIR=$PKG install
+
+	install -d $PKG/usr/share/wine/gecko
+	install -d $PKG/usr/share/wine/mono
+
+	install -t $PKG/usr/share/wine/gecko/ \
+		$SRC/wine_gecko-1.9-x86.msi
+
+	install $SRC/wine-mono-0.0.8.msi $PKG/usr/share/wine/mono/
+
+#	rm -r $PKG/usr/man/??.UTF-8
+}

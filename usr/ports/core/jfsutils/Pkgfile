@@ -1,15 +1,19 @@
 # Description: Tools for IBM's journaled file system
 # URL:         http://jfs.sourceforge.net/
 # Maintainer:  CRUX System Team, core-ports at crux dot nu
-# Depends on:  util-linux-ng
+# Depends on:  util-linux
 
 name=jfsutils
 version=1.1.15
 release=1
-source=(http://jfs.sourceforge.net/project/pub/$name-$version.tar.gz)
+source=(http://jfs.sourceforge.net/project/pub/$name-$version.tar.gz
+	inttypes.patch)
 
 build() {
     cd $name-$version
+
+    patch -p1 -i ../inttypes.patch
+
     ./configure --prefix=/ --mandir=/usr/man
     make
     make DESTDIR=$PKG install

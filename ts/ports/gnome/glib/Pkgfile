@@ -4,18 +4,19 @@
 # Depends on: libpcre
 
 name=glib
-version=2.32.4
+version=2.36.0
 release=1
 source=(http://download.gnome.org/sources/$name/${version%.*}/$name-$version.tar.xz)
 
 build () {
 	cd $name-$version
 	./configure --prefix=/usr \
-		--mandir=/usr/man --with-pcre=system \
-		--with-runtime-libdir=../../lib \
-		--with-gio-module-dir=/lib/gio/modules \
+		--with-pcre=system \
 		--disable-static \
 		--enable-shared \
+		--mandir=/usr/man \
+#		--with-gio-module-dir=/lib/gio/modules \
+#		--with-runtime-libdir=../../lib \
 
 	make
 	make -j 1 DESTDIR=$PKG install

@@ -1,0 +1,20 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=patchelf
+version=0.6
+release=1
+source=(http://hydra.nixos.org/build/1524660/download/2/patchelf-0.6.tar.bz2)
+
+build() {
+	cd $name-$version
+
+	./configure --prefix=/usr \
+			--sysconfdir=/etc \
+			--mandir=/usr/man \
+			--disable-extras
+
+	make
+	make DESTDIR=$PKG install
+}

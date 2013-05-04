@@ -1,0 +1,18 @@
+# Description: A multi-platform toolkit for creating graphical user interfaces
+# URL: http://www.gtk.org/
+# Maintainer: Fredrik Rinnestam, fredrik at crux dot nu
+# Depends on: gtk, at-spi2-atk, xorg-libxi
+
+name=gtk3
+version=3.8.0
+release=1
+source=(http://download.gnome.org/sources/gtk+/3.8/gtk+-$version.tar.xz)
+
+build () {
+    cd gtk+-$version
+
+    ./configure --prefix=/usr --mandir=/usr/man --enable-gtk2-dependency
+    make
+    make DESTDIR=$PKG install
+    rm -r $PKG/usr/share/{gtk-doc,locale,gtk-3.0}
+}

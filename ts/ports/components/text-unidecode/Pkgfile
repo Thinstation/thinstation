@@ -1,0 +1,18 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=text-unidecode
+version=0.04
+release=1
+source=(http://www.cpan.org/modules/by-module/Text/Text-Unidecode-${version}.tar.gz)
+
+build() {
+	cd Text-Unidecode-$version
+
+	perl Makefile.PL
+
+	make
+	make DESTDIR=$PKG install
+	        mv $PKG/usr/lib/perl5/5.16/linux-thread-multi/perllocal.pod $PKG/usr/lib/perl5/5.16/linux-thread-multi/perllocal.pod.unidecode
+}

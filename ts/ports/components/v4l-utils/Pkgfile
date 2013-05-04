@@ -4,12 +4,15 @@
 # Depends on:	qt4 sysfsutils
 
 name=v4l-utils
-version=0.8.8
+version=0.9.5
 release=1
 source=(http://linuxtv.org/downloads/v4l-utils/$name-$version.tar.bz2)
 
 build() {
 	cd $name-$version
-	make CFLAGS="$CFLAGS"
-	make PREFIX=/usr DESTDIR=$PKG install
+
+	./configure --prefix=/usr
+
+	make
+	make DESTDIR=$PKG install
 }

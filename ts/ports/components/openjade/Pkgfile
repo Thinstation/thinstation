@@ -8,12 +8,18 @@ name=openjade
 version=1.3.2
 release=1
 source=(http://downloads.sourceforge.net/project/$name/$name/${version}/$name-$version.tar.gz
-	iostream.patch)
+	openjade-deplibs.patch
+	openjade-nola.patch
+	openjade-1.3.2-gcc46.patch
+	openjade-getoptperl.patch)
 
 build() {
 	cd $name-$version
 
-#	patch -p 1 -i $SRC/iostream.patch
+	patch -p1 -i $SRC/openjade-deplibs.patch
+	patch -p1 -i $SRC/openjade-nola.patch
+	patch -p1 -i $SRC/openjade-1.3.2-gcc46.patch
+	patch -p1 -i $SRC/openjade-getoptperl.patch
 
 	./configure \
 		--prefix=/usr \

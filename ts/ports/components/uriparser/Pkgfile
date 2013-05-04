@@ -1,0 +1,23 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=uriparser
+version=0.7.7
+release=1
+source=(http://downloads.sourceforge.net/project/$name/Sources/$version/$name-$version.tar.bz2)
+
+build() {
+	cd $name-$version
+
+	./configure --prefix=/usr \
+			--sysconfdir=/etc \
+			--libexecdir=/lib \
+			--mandir=/usr/man \
+			--includedir=/usr/include \
+			--disable-extras \
+			--disable-test \
+			--disable-doc
+	make
+	make DESTDIR=$PKG install
+}

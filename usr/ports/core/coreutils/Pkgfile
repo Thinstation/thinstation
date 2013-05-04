@@ -4,7 +4,7 @@
 # Depends on:  libgmp acl libcap
 
 name=coreutils
-version=8.20
+version=8.21
 release=1
 source=(http://ftp.gnu.org/pub/gnu/$name/$name-$version.tar.xz
         coreutils-uname.patch uname.fake)
@@ -21,7 +21,7 @@ build() {
                 --disable-nls \
                 --disable-assert \
                 --enable-no-install-program=uptime,kill,chcon,runcon,groups
-    make
+    make -j1
     make DESTDIR=$PKG install 
 
     mkdir $PKG/bin
@@ -30,5 +30,4 @@ build() {
     rm -r $PKG/usr/share
     mv $PKG/bin/uname $PKG/bin/uname-auto
     install $SRC/uname.fake $PKG/bin/uname
-
 }

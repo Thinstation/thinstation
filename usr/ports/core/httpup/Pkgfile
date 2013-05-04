@@ -4,17 +4,13 @@
 # Depends on:  curl
 
 name=httpup
-version=0.4.0k
+version=0.4.0l
 release=1
-source=(http://jw.tks6.net/files/crux/${name}-$version.tar.gz httpup)
+source=(http://jw.smts.ch/files/crux/$name-$version.tar.gz httpup)
 
 build() {
     cd $name-$version
-
     make
-    mkdir -p $PKG/usr/{bin,man/man8}
-
-    cp httpup httpup-repgen $PKG/usr/bin
+    make DESTDIR=$PKG prefix=/usr install
     install -D -m 755 $SRC/httpup $PKG/etc/ports/drivers/httpup
-    cp *.8 $PKG/usr/man/man8
 }

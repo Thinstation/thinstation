@@ -1,0 +1,28 @@
+# Description: A set of good-quality plugins for gstreamer under the LGPL.
+# URL: http://gstreamer.freedesktop.org/modules/gst-plugins-good.html
+# Maintainer: Danny Rawlins, monster dot romster at gmail dot com
+# Packager: Matt Housh, jaeger at morpheus dot net
+# Depends on: flac gst-plugins-base gtk hal libdv libshout libsoup libtheora speex taglib wavpack
+
+name=gst-plugins-good-1
+version=1.0.6
+release=1
+source=(http://gstreamer.freedesktop.org/src/gst-plugins-good/gst-plugins-good-$version.tar.xz)
+
+build() {
+	cd gst-plugins-good-$version
+
+	./configure \
+		--prefix=/usr \
+		--mandir=/usr/man \
+		--disable-debug \
+		--disable-nls \
+		--disable-dependency-tracking \
+		--disable-valgrind \
+		--disable-examples \
+		--enable-shared \
+		--disable-static
+
+	make
+	make DESTDIR=$PKG install
+}

@@ -4,13 +4,16 @@
 # Depends on:  zlib
 
 name=file
-version=5.09
+version=5.14
 release=1
 source=(ftp://ftp.fu-berlin.de/unix/tools/file/$name-$version.tar.gz)
 
 build() {
     cd $name-$version
-    ./configure --prefix=/usr --mandir=/usr/man --enable-fsect-man5 
+    ./configure --prefix=/usr \
+                --mandir=/usr/man \
+                --enable-fsect-man5 \
+                --enable-static
     make
     make DESTDIR=$PKG install
     rmdir $PKG/usr/man/man4

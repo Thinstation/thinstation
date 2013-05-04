@@ -3,13 +3,14 @@
 # Maintainer:  CRUX System Team, core-ports at crux dot nu
 
 name=bin86
-version=0.16.18
+version=0.16.19
 release=1
 source=(http://rdebath.nfshost.com/dev86/$name-$version.tar.gz)
 
 build() {
     cd $name-$version
-    make CFLAGS="$CFLAGS -D_POSIX_SOURCE" PREFIX=/usr
+
+    make -j1 CFLAGS="$CFLAGS -D_POSIX_SOURCE" PREFIX=/usr
     mkdir -p $PKG/usr/{bin,man/man1}
     make PREFIX=$PKG/usr install
 }

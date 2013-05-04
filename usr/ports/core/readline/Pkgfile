@@ -4,13 +4,13 @@
 # Depends on:  ncurses
 
 name=readline
-version=6.2.1
+version=6.2.4
 release=1
-source=(http://ftp.gnu.org/gnu/$name/$name-${version::3}.tar.gz \
+source=(http://ftp.gnu.org/gnu/$name/$name-${version:0:3}.tar.gz \
         $name-$version.patch.gz inputrc)
 
 build() {
-    cd $name-${version::3}
+    cd $name-${version:0:3}
 
     gunzip -c $SRC/$name-$version.patch.gz | patch -p0
 
@@ -23,8 +23,8 @@ build() {
 
     install -d $PKG/lib
     mv $PKG/usr/lib/lib*.so.* $PKG/lib
-    ln -sf ../../lib/libhistory.so.${version::3} $PKG/usr/lib/libhistory.so
-    ln -sf ../../lib/libreadline.so.${version::3} $PKG/usr/lib/libreadline.so
+    ln -sf ../../lib/libhistory.so.${version:0:3} $PKG/usr/lib/libhistory.so
+    ln -sf ../../lib/libreadline.so.${version:0:3} $PKG/usr/lib/libreadline.so
 
     install -D -m 644 $SRC/inputrc $PKG/etc/inputrc
     rm -r $PKG/usr/share/info

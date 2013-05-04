@@ -1,0 +1,17 @@
+# Description: Zarfy
+# URL: http://http://zarfy.sourceforge.net/
+# Maintainer: None
+
+name=zarfy
+version=0.1.0
+release=1
+source=(http://sourceforge.net/projects/${name}/files/${name}/${name}%20${version}/${name}-${version}.tar.bz2 zarfy-destdir.patch)
+
+build() {
+	cd $name-$version
+	patch -Np1 -i ../zarfy-destdir.patch
+	./configure LIBS="-lm -lX11" --prefix=/usr
+
+	make
+	make DESTDIR=$PKG install
+}

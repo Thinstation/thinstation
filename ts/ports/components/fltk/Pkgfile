@@ -1,0 +1,28 @@
+# Description: Cross-platform C++ GUI toolkit for Unix, Windows and Mac OS X.
+# URL: http://www.fltk.org/
+# Maintainer: Danny Rawlins, monster dot romster at gmail dot com
+# Packager: Ivan Lyanguzov, tzong at tzong dot spb dot ru
+# Depends on: alsa-lib libjpeg libpng mesa3d xorg-libxft xorg-libxinerama
+
+name=fltk
+version=1.3.2
+release=1
+source=(http://ftp.easysw.com/pub/fltk/$version/fltk-$version-source.tar.gz)
+
+build() {
+	cd fltk-$version
+
+	./configure \
+		--prefix=/usr \
+		--mandir=/usr/man \
+		--enable-threads \
+		--disable-static \
+		--enable-shared \
+		--enable-xft
+
+	make
+	make DESTDIR=$PKG install
+	chmod a-x $PKG/usr/lib/*.a
+	rm -r $PKG/usr/{share,man/cat?}
+}
+

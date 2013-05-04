@@ -1,0 +1,17 @@
+# Description: A lightweight volume control that sits in the systray.
+# URL: http://softwarebakery.com/maato/volumeicon.html
+# Maintainer: None
+
+name=volumeicon
+version=0.5.0
+release=1
+source=(http://softwarebakery.com/maato/files/$name/$name-$version.tar.gz)
+
+build() {
+	cd $name-$version
+
+	./configure --prefix=/usr
+
+	make
+	make DESTDIR=$PKG install
+}

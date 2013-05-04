@@ -1,0 +1,17 @@
+# Description: A tool to create language bindings
+# URL:         http://www.swig.org/
+# Maintainer:  Jose V Beneyto, sepen at crux dot nu
+# Packager:    Juergen Daubert, jue at crux dot nu
+# Depends on:  zlib libpcre
+
+name=swig
+version=2.0.8
+release=1
+source=(http://downloads.sourceforge.net/project/$name/$name/$name-$version/$name-$version.tar.gz)
+
+build () {
+    cd $name-$version
+    ./configure --prefix=/usr --mandir=/usr/man
+    make
+    make DESTDIR=$PKG install
+}

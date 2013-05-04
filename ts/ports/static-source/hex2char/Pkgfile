@@ -1,0 +1,15 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=hex2char
+version=0.1
+release=1
+source=(hex2char.c)
+
+build() {
+	gcc -O2 hex2char.c -o hex2char
+	strip -s -R .note -R .comment hex2char
+mkdir -p $PKG/usr/bin
+cp hex2char $PKG/usr/bin/.
+}

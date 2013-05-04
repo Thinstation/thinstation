@@ -1,0 +1,24 @@
+# Description: A menu driven communications program
+# URL: http://alioth.debian.org/projects/minicom/
+# Maintainer: Jose V Beneyto, sepen at crux dot nu
+# Packager: sten, nick dot steeves at shaw dot ca
+# Depends on:
+
+name=minicom
+version=2.6.1
+release=1
+source=(https://alioth.debian.org/frs/download.php/3700/$name-$version.tar.gz
+	terminal.patch)
+
+build() {
+  cd $name-$version
+  sed 's/getline(/gethistline(/g' -i src/minicom.c
+  patch -p0 <../terminal.patch
+
+  ./configure --prefix=/usr \
+              --disable-nls \
+              --mandir=/usr/man
+
+  make
+  make DESTDIR=$PKG install
+}

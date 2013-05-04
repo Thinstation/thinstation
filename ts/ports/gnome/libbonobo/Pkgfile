@@ -14,6 +14,12 @@ build() {
 	rm po/*.po
 	sed -i -e "s/USE_NLS=yes/USE_NLS=no/" \
 		-e "s/ENABLE_NLS 1/ENABLE_NLS 0/" configure
+
+	sed -i -e 's/-DG_DISABLE_DEPRECATED//g' activation-server/Makefile.am
+        sed -i -e 's/-DG_DISABLE_DEPRECATED//g' activation-server/Makefile.in
+        sed -i -e 's/-DG_DISABLE_DEPRECATED//g' configure
+        sed -i -e 's/-DG_DISABLE_DEPRECATED//g' configure.in
+
 	./configure --prefix=/usr \
 		--mandir=/usr/man \
 		--libexecdir=/usr/libexec \

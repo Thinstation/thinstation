@@ -1,12 +1,12 @@
 # Description: Ext2 Filesystem Utilities
 # URL:         http://e2fsprogs.sourceforge.net/
 # Maintainer:  CRUX System Team, core-ports at crux dot nu
-# Depends on:  util-linux-ng
+# Depends on:  util-linux
 
 name=e2fsprogs
-version=1.41.14
+version=1.42.7
 release=1
-source=(http://downloads.sourceforge.net/project/$name/$name/$version/$name-$version.tar.gz)
+source=(http://downloads.sourceforge.net/project/$name/$name/v$version/$name-$version.tar.gz)
 
 build() {
     cd $name-$version
@@ -25,6 +25,10 @@ build() {
 
     make
     make -j1 DESTDIR=$PKG install install-libs
+
+    # quota support is disabled by default
+    rm -r $PKG/usr/include/quota
+    rm $PKG/usr/lib/{libquota.a,pkgconfig/quota.pc}
 
     rm -r $PKG/usr/share/info
 

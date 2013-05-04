@@ -1,0 +1,19 @@
+# Description:	Network Authentication Protocol
+# URL:	http://web.mit.edu/kerberos
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+# Depends on:
+
+name=krb5
+version=1.11.2
+release=1
+source=(http://web.mit.edu/kerberos/dist/krb5/${version%.*}/krb5-${version}-signed.tar)
+
+build() {
+	tar -xzf $SRC/$name-$version.tar.gz
+    	cd $name-$version/src
+    	CFLAGS="-I/usr/include/et" ./configure --prefix=/usr --mandir=/usr/man --with-system-et --with-system-ss --with-ldap --without-system-verto
+
+	make
+    	make DESTDIR=$PKG install
+	rm -rf $PKG/usr/share
+}

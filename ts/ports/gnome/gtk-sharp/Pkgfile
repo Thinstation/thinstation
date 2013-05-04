@@ -4,9 +4,9 @@
 # Depends on: atk, hicolor-icon-theme, gdk-pixbuf, pango, xorg-libsm, xorg-libxcursor, xorg-libxinerama, xorg-libxrandr, xorg-libxcomposite
 
 name=gtk-sharp
-version=2.12.10
+version=2.99.0
 release=1
-source=(http://download.gnome.org/sources/$name/${version%.*}/${name}-$version.tar.bz2)
+source=(http://download.gnome.org/sources/$name/${version%.*}/${name}-$version.tar.xz)
 
 build () {
 	cd ${name}-$version
@@ -17,10 +17,10 @@ build () {
 			--disable-static \
 			--enable-shared \
 
-	sed -i -e 's/glib\/gslist.h/glib.h/g' glib/glue/list.c
-	sed -i -e 's/glib\/glist.h/glib.h/g' glib/glue/list.c
-	sed -i -e 's/glib\/gslist.h/glib.h/g' glib/glue/slist.c
-	sed -i -e 's/glib\/gthread.h/glib.h/g' glib/glue/thread.c
+#	sed -i -e 's/glib\/gslist.h/glib.h/g' glib/glue/list.c
+#	sed -i -e 's/glib\/glist.h/glib.h/g' glib/glue/list.c
+#	sed -i -e 's/glib\/gslist.h/glib.h/g' glib/glue/slist.c
+#	sed -i -e 's/glib\/gthread.h/glib.h/g' glib/glue/thread.c
 	make
 	make DESTDIR=$PKG install
 }

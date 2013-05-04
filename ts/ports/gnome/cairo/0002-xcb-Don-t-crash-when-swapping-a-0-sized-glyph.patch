@@ -1,0 +1,139 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns='http://www.w3.org/1999/xhtml' xml:lang='en' lang='en'>
+<head>
+<title>cairo.git - cairo</title>
+<meta name='generator' content='cgit v0.9.1'/>
+<meta name='robots' content='index, nofollow'/>
+<link rel='stylesheet' type='text/css' href='/cgit-data/cgit.css'/>
+<link rel='alternate' title='Atom feed' href='http://pkgs.fedoraproject.org/cgit/cairo.git/atom/0002-xcb-Don-t-crash-when-swapping-a-0-sized-glyph.patch?h=master' type='application/atom+xml'/>
+</head>
+<body>
+<div id='cgit'><table id='header'>
+<tr>
+<td class='logo' rowspan='2'><a href='/cgit/'><img src='/cgit-data/cgit.png' alt='cgit logo'/></a></td>
+<td class='main'><a href='/cgit/'>index</a> : <a title='cairo.git' href='/cgit/cairo.git/'>cairo.git</a></td><td class='form'><form method='get' action=''>
+<select name='h' onchange='this.form.submit();'>
+<option value='f10'>f10</option>
+<option value='f11'>f11</option>
+<option value='f12'>f12</option>
+<option value='f13'>f13</option>
+<option value='f14'>f14</option>
+<option value='f15'>f15</option>
+<option value='f16'>f16</option>
+<option value='f17'>f17</option>
+<option value='f18'>f18</option>
+<option value='f19'>f19</option>
+<option value='f7'>f7</option>
+<option value='f8'>f8</option>
+<option value='f9'>f9</option>
+<option value='master' selected='selected'>master</option>
+</select> <input type='submit' name='' value='switch'/></form></td></tr>
+<tr><td class='sub'>cairo</td><td class='sub right'>Jesse Keating</td></tr></table>
+<table class='tabs'><tr><td>
+<a href='/cgit/cairo.git/'>summary</a><a href='/cgit/cairo.git/refs/'>refs</a><a href='/cgit/cairo.git/log/0002-xcb-Don-t-crash-when-swapping-a-0-sized-glyph.patch'>log</a><a class='active' href='/cgit/cairo.git/tree/0002-xcb-Don-t-crash-when-swapping-a-0-sized-glyph.patch'>tree</a><a href='/cgit/cairo.git/commit/0002-xcb-Don-t-crash-when-swapping-a-0-sized-glyph.patch'>commit</a><a href='/cgit/cairo.git/diff/0002-xcb-Don-t-crash-when-swapping-a-0-sized-glyph.patch'>diff</a><a href='/cgit/cairo.git/stats/0002-xcb-Don-t-crash-when-swapping-a-0-sized-glyph.patch'>stats</a></td><td class='form'><form class='right' method='get' action='/cgit/cairo.git/log/0002-xcb-Don-t-crash-when-swapping-a-0-sized-glyph.patch'>
+<select name='qt'>
+<option value='grep'>log msg</option>
+<option value='author'>author</option>
+<option value='committer'>committer</option>
+<option value='range'>range</option>
+</select>
+<input class='txt' type='text' size='10' name='q' value=''/>
+<input type='submit' value='search'/>
+</form>
+</td></tr></table>
+<div class='path'>path: <a href='/cgit/cairo.git/tree/'>root</a>/<a href='/cgit/cairo.git/tree/0002-xcb-Don-t-crash-when-swapping-a-0-sized-glyph.patch'>0002-xcb-Don-t-crash-when-swapping-a-0-sized-glyph.patch</a></div><div class='content'>blob: 7d2b40554eb968796c3107d9a0421a1bad838bac (<a href='/cgit/cairo.git/plain/0002-xcb-Don-t-crash-when-swapping-a-0-sized-glyph.patch'>plain</a>)
+<table summary='blob content' class='blob'>
+<tr><td class='linenumbers'><pre><a class='no' id='n1' name='n1' href='#n1'>1</a>
+<a class='no' id='n2' name='n2' href='#n2'>2</a>
+<a class='no' id='n3' name='n3' href='#n3'>3</a>
+<a class='no' id='n4' name='n4' href='#n4'>4</a>
+<a class='no' id='n5' name='n5' href='#n5'>5</a>
+<a class='no' id='n6' name='n6' href='#n6'>6</a>
+<a class='no' id='n7' name='n7' href='#n7'>7</a>
+<a class='no' id='n8' name='n8' href='#n8'>8</a>
+<a class='no' id='n9' name='n9' href='#n9'>9</a>
+<a class='no' id='n10' name='n10' href='#n10'>10</a>
+<a class='no' id='n11' name='n11' href='#n11'>11</a>
+<a class='no' id='n12' name='n12' href='#n12'>12</a>
+<a class='no' id='n13' name='n13' href='#n13'>13</a>
+<a class='no' id='n14' name='n14' href='#n14'>14</a>
+<a class='no' id='n15' name='n15' href='#n15'>15</a>
+<a class='no' id='n16' name='n16' href='#n16'>16</a>
+<a class='no' id='n17' name='n17' href='#n17'>17</a>
+<a class='no' id='n18' name='n18' href='#n18'>18</a>
+<a class='no' id='n19' name='n19' href='#n19'>19</a>
+<a class='no' id='n20' name='n20' href='#n20'>20</a>
+<a class='no' id='n21' name='n21' href='#n21'>21</a>
+<a class='no' id='n22' name='n22' href='#n22'>22</a>
+<a class='no' id='n23' name='n23' href='#n23'>23</a>
+<a class='no' id='n24' name='n24' href='#n24'>24</a>
+<a class='no' id='n25' name='n25' href='#n25'>25</a>
+<a class='no' id='n26' name='n26' href='#n26'>26</a>
+<a class='no' id='n27' name='n27' href='#n27'>27</a>
+<a class='no' id='n28' name='n28' href='#n28'>28</a>
+<a class='no' id='n29' name='n29' href='#n29'>29</a>
+<a class='no' id='n30' name='n30' href='#n30'>30</a>
+<a class='no' id='n31' name='n31' href='#n31'>31</a>
+<a class='no' id='n32' name='n32' href='#n32'>32</a>
+<a class='no' id='n33' name='n33' href='#n33'>33</a>
+<a class='no' id='n34' name='n34' href='#n34'>34</a>
+<a class='no' id='n35' name='n35' href='#n35'>35</a>
+<a class='no' id='n36' name='n36' href='#n36'>36</a>
+<a class='no' id='n37' name='n37' href='#n37'>37</a>
+<a class='no' id='n38' name='n38' href='#n38'>38</a>
+<a class='no' id='n39' name='n39' href='#n39'>39</a>
+<a class='no' id='n40' name='n40' href='#n40'>40</a>
+<a class='no' id='n41' name='n41' href='#n41'>41</a>
+<a class='no' id='n42' name='n42' href='#n42'>42</a>
+<a class='no' id='n43' name='n43' href='#n43'>43</a>
+</pre></td>
+<td class='lines'><pre><code>From 4cad9bf9f0744efe17f1b70548cd2059df071e81 Mon Sep 17 00:00:00 2001
+From: Adam Jackson &lt;ajax@redhat.com&gt;
+Date: Wed, 31 Oct 2012 16:12:58 -0400
+Subject: [PATCH 2/2] xcb: Don't crash when swapping a 0-sized glyph
+
+malloc(0) needn't return NULL, and on glibc, doesn't.  Then we encounter
+a loop of the form do { ... } while (--c), which doesn't do quite what
+you were hoping for when c is initially 0.
+
+Since there's nothing to swap in this case, just bomb out.
+
+Signed-off-by: Adam Jackson &lt;ajax@redhat.com&gt;
+---
+ src/cairo-xcb-surface-render.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/src/cairo-xcb-surface-render.c b/src/cairo-xcb-surface-render.c
+index 27ed113..16d1ef8 100644
+--- a/src/cairo-xcb-surface-render.c
++++ b/src/cairo-xcb-surface-render.c
+@@ -4461,6 +4461,9 @@ _cairo_xcb_surface_add_glyph (cairo_xcb_connection_t *connection,
+ 	    const uint8_t *d;
+ 	    uint8_t *new, *n;
+ 
++	    if (c == 0)
++		break;
++
+ 	    new = malloc (c);
+ 	    if (unlikely (new == NULL)) {
+ 		status = _cairo_error (CAIRO_STATUS_NO_MEMORY);
+@@ -4489,6 +4492,9 @@ _cairo_xcb_surface_add_glyph (cairo_xcb_connection_t *connection,
+ 	    const uint32_t *d;
+ 	    uint32_t *new, *n;
+ 
++	    if (c == 0)
++		break;
++
+ 	    new = malloc (4 * c);
+ 	    if (unlikely (new == NULL)) {
+ 		status = _cairo_error (CAIRO_STATUS_NO_MEMORY);
+-- 
+1.7.12.1
+
+</code></pre></td></tr></table>
+</div> <!-- class=content -->
+<div class='footer'>generated  by cgit v0.9.1 at 2013-03-27 23:15:31 (GMT)</div>
+</div> <!-- id=cgit -->
+</body>
+</html>

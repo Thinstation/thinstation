@@ -4,14 +4,20 @@
 # Depends on: xorg, xorg-imake, xorg-gccmakedep (?)
 
 name=tigervnc
-pname=${name%-*}
-version=1.1.0
+version=1.2.0
 release=1
-source=(http://sourceforge.net/projects/tigervnc/files/tigervnc/$version/$pname-$version.tar.gz)
+source=(http://sourceforge.net/projects/tigervnc/files/tigervnc/$version/$name-$version.tar.gz
+	gnutls3.patch
+	fontconfig.patch)
 
-build() { 
-        cd $pname-$version
-        ./configure
-        make
+build() {
+        cd $name-$version
+
+	patch -p0 -i ../fontconfig.patch
+	patch -p1 -i ../gnutls3.patch
+
+	CFLAGS="$CFLAGS -Wno-error=deprecated-declarations" cmake -G "Unix Makefiles"
+
+        CFLAGS="$CFLAGS -Wno-error=deprecated-declarations" make
         make DESTDIR=$PKG install
 }

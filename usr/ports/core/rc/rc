@@ -9,8 +9,8 @@ echo "The system is coming up.  Please wait."
 . /etc/rc.conf
 
 # Start udev
-/bin/mount -n -t proc none /proc
-/bin/mount -n -t sysfs none /sys
+/bin/mount -t proc none /proc
+/bin/mount -t sysfs none /sys
 /sbin/start_udev
 
 # Create device-mapper device nodes and scan for LVM volume groups
@@ -19,8 +19,13 @@ if [ -x /sbin/lvm ]; then
 	/sbin/vgchange --ignorelockingfailure -a y
 fi
 
+# Scan for btrfs volumes to simplify fstab entries
+if [ -r /sys/fs/btrfs ]; then
+	/sbin/btrfs dev scan
+fi
+
 # Mount root read-only
-/bin/mount -n -o remount,ro /
+/bin/mount -o remount,ro /
 
 if [ -f /forcefsck ]; then
 FORCEFSCK="-f"
@@ -43,16 +48,12 @@ if [ $? -gt 1 ]; then
 	/sbin/sulogin -p
 	echo "Automatic reboot in progress..."
 	/bin/umount -a -r
-	/bin/mount -n -o remount,ro /
+	/bin/mount -o remount,ro /
 	/sbin/reboot -f
 	exit 0
 fi
 
 # Mount local filesystems
-/bin/mount -n -o remount,rw /
-/bin/umount /sys /proc
-/bin/rm -f /etc/mtab*
-/bin/touch /etc/mtab
 /bin/mount -o remount,rw /
 /bin/mount -a -O no_netdev
 

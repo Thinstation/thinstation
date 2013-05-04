@@ -4,13 +4,17 @@
 # Depends on:  zlib
 
 name=dropbear
-version=0.53.1
+version=2013.58
 release=1
 source=(http://matt.ucc.asn.au/$name/releases/$name-$version.tar.bz2 \
         $name)
 
 build () {
     cd $name-$version
+    
+    # /proc/net/rt_cache might be rather big, don't use it to gather entropy
+    sed -i 's/rt_cache/unix/' random.c
+
     sed -i 's|libexec|lib/ssh|; s|X11R6/bin|bin|; s|bin/X11|bin|' options.h
     ./configure --prefix=/usr 
     make

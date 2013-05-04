@@ -6,12 +6,12 @@
 # Group: xfce4
 
 name=nvidia
-version=304.51
+version=310.44
 release=3.6.11
 source=(http://us.download.nvidia.com/XFree86/Linux-x86/$version/NVIDIA-Linux-x86-$version.run)
 
 build() {
-	DESTDIR=$PKG/$TSCOMPROOT/$name/usr
+	DESTDIR=$PKG/usr/local
 	KMOD=kernel/drivers/video
 
 	sh NVIDIA-Linux-x86-$version.run -x
@@ -22,13 +22,13 @@ build() {
 	cd kernel
 
 	make SYSSRC=/usr/src/kernels/${release}TS module
-	mkdir -p $PKG/$TSCOMPROOT/kernel/kernel/modules-${release}TS/$KMOD
-	cp -a nvidia.ko $PKG/$TSCOMPROOT/kernel/kernel/modules-${release}TS/$KMOD
+	mkdir -p $PKG/lib/modules/${release}TS/$KMOD
+	cp -a nvidia.ko $PKG/lib/modules/${release}TS/$KMOD
 	make SYSSRC=/usr/src/kernels/${release}TS clean
 
 	make SYSSRC=/usr/src/kernels/${release}TS_SMP module
-	mkdir -p $PKG/$TSCOMPROOT/kernel_SMP/kernel/modules-${release}TS_SMP/$KMOD
-	cp -a nvidia.ko $PKG/$TSCOMPROOT/kernel_SMP/kernel/modules-${release}TS_SMP/$KMOD
+	mkdir -p $PKG/lib/modules/${release}TS_SMP/$KMOD
+	cp -a nvidia.ko $PKG/lib/modules/${release}TS_SMP/$KMOD
 
 	rm -rf /var/lib/nvidia
 	rm -f /usr/share/kde-settings/kde-profile/default/share/applications/nvidia-settings.desktop

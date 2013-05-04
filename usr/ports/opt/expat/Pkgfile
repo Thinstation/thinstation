@@ -3,16 +3,13 @@
 # Maintainer:  Juergen Daubert, jue at crux dot nu
 
 name=expat
-version=2.0.1
-release=2
-source=(http://download.sourceforge.net/$name/$name-$version.tar.gz
-        expat-CVE-2009-3560.patch expat-CVE-2009-3720.patch)
+version=2.1.0
+release=1
+source=(http://download.sourceforge.net/$name/$name-$version.tar.gz)
 
 build() { 
     cd $name-$version
-    patch -p0 -d lib -i $SRC/expat-CVE-2009-3560.patch
-    patch -p0 -d lib -i $SRC/expat-CVE-2009-3720.patch
-    ./configure --prefix=/usr
+    ./configure --prefix=/usr --mandir=/usr/man
     make
-    make prefix=$PKG/usr install
+    make DESTDIR=$PKG install
 }

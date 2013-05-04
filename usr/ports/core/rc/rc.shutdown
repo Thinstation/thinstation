@@ -43,14 +43,14 @@ fi
 /sbin/swapoff -a
 
 # Unmount file systems
-/bin/umount -a -r -t nosysfs,noproc
+/bin/umount -a -d -r -t nosysfs,noproc,nodevtmpfs
 if [ -x /sbin/lvm ]; then
 	/sbin/vgchange --ignorelockingfailure -a n
 fi
 /bin/umount -a -r
 
 # Remount root filesystem read-only
-/bin/mount -n -o remount,ro /
+/bin/mount -o remount,ro /
 
 # Power off or reboot
 if [ "$RUNLEVEL" = "0" ]; then

@@ -5,13 +5,16 @@
 # Depends on: gtk libglade p5-xml-parser
 
 name=galculator
-version=1.3.4
+version=2.1
 release=1
-source=(http://downloads.sourceforge.net/project/$name/$name/$version/$name-$version.tar.bz2)
+source=(http://downloads.sourceforge.net/project/$name/$name/$version/$name-$version.tar.bz2
+	galculator-2.1-gtk3-fix.patch)
 
 
-build() { 
+build() {
 	cd $name-$version
+
+	patch -p0 -i $SRC/galculator-2.1-gtk3-fix.patch
 
 	./configure \
 		--prefix=/usr \

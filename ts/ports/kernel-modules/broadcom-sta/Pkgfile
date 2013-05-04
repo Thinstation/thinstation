@@ -14,20 +14,21 @@ source=(http://www.broadcom.com/docs/linux_sta/hybrid-portsrc_x86_32-v$pversion.
 build() {
 	sed -i -e 's/ndo_set_multicast_list/ndo_set_rx_mode/' -e 's/.*asm\/system.h.*//' src/wl/sys/wl_linux.c
 	KBUILD_NOPEDANTIC=1 make -C /usr/src/kernels/${release}TS M=`pwd` V=1
-	mkdir -p $PKG/$TSCOMPROOT/kernel/kernel/modules-${release}TS/kernel/drivers/net/wireless
-	cp -a wl.ko $PKG/$TSCOMPROOT/kernel/kernel/modules-${release}TS/kernel/drivers/net/wireless
+	mkdir -p $PKG/lib/modules/${release}TS/kernel/drivers/net/wireless
+	cp -a wl.ko $PKG/lib/modules/${release}TS/kernel/drivers/net/wireless
 
 	KBUILD_NOPEDANTIC=1 make -C /usr/src/kernels/${release}TS M=`pwd` clean
 
 	KBUILD_NOPEDANTIC=1 make -C /usr/src/kernels/${release}TS_SMP M=`pwd`
-	mkdir -p $PKG/$TSCOMPROOT/kernel_SMP/kernel/modules-${release}TS_SMP/kernel/drivers/net/wireless
-	cp -a wl.ko $PKG/$TSCOMPROOT/kernel_SMP/kernel/modules-${release}TS_SMP/kernel/drivers/net/wireless
+	mkdir -p $PKG/lib/modules/${release}TS_SMP/kernel/drivers/net/wireless
+	cp -a wl.ko $PKG/lib/modules/${release}TS_SMP/kernel/drivers/net/wireless
 
-	mkdir -p  $PKG/$TSCOMPROOT/$name/
-	cp lib/LICENSE.txt $PKG/$TSCOMPROOT/$name/
+	mkdir -p  $PKG/usr/share/$name
+	mkdir -p $PKG/etc/modprobe.d
+	cp lib/LICENSE.txt $PKG/usr/share/$name/
 
-	echo "# Make sure that the wl driver gets loaded and not the ssb driver" > $PKG/$TSCOMPROOT/$name/$name.conf
-	modinfo wl.ko | grep alias | sed -e 's/alias: *\(.*\)/alias \1 wl/' >> $PKG/$TSCOMPROOT/$name/$name.conf
-	echo "install ssb modprobe wl; modprobe --ignore-install ssb" >> $PKG/$TSCOMPROOT/$name/$name.conf
+	echo "# Make sure that the wl driver gets loaded and not the ssb driver" > $PKG/etc/modprobe.d/$name.conf
+	modinfo wl.ko | grep alias | sed -e 's/alias: *\(.*\)/alias \1 wl/' >> $PKG/etc/modprobe.d/$name.conf
+	echo "install ssb modprobe wl; modprobe --ignore-install ssb" >> $PKG/etc/modprobe.d/$name.conf
 
 }

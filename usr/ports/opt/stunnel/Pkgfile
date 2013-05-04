@@ -1,0 +1,32 @@
+# Description: Stunnel wraps normal socket connections with SSL/TLS
+# URL:         http://www.stunnel.org
+# Maintainer:  Juergen Daubert, jue at crux dot nu
+# Depends on:  openssl tcp_wrappers zlib
+
+name=stunnel
+version=4.56
+release=1
+source=(ftp://ftp.stunnel.org/stunnel/archive/4.x/$name-$version.tar.gz \
+        $name-config.patch $name)
+
+build () {
+    cd $name-$version
+
+    patch -p1 -i $SRC/$name-config.patch
+
+    ./configure --prefix=/usr \
+                --sysconfdir=/etc \
+                --localstatedir=/var \
+                --with-ssl=/usr \
+                --enable-ipv6
+    make
+
+    install -D -m 0755 src/stunnel $PKG/usr/sbin/stunnel
+    install -D -m 0644 doc/stunnel.8 $PKG/usr/man/man8/stunnel.8
+    install -D -m 0755 $SRC/stunnel  $PKG/etc/rc.d/stunnel
+    install -m 0644 tools/stunnel.conf-sample $PKG/etc/stunnel.conf
+    install -d $PKG/{var/run,etc/ssl/{certs,keys}}
+    install -d -m 770 -o stunnel -g stunnel $PKG/var/run/stunnel
+    touch $PKG/etc/ssl/{certs/stunnel.crt,keys/stunnel.key}
+    chmod 0600 $PKG/etc/ssl/keys/stunnel.key
+}

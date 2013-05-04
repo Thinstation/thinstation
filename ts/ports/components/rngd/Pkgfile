@@ -1,0 +1,20 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=rngd
+version=2-unofficial-mt.14-1
+release=1
+source=(http://ftp.de.debian.org/debian/pool/main/r/rng-tools/rng-tools_2-unofficial-mt.14.orig.tar.bz2 )
+
+build() {
+	cd rng-tools-2-unofficial-mt.14
+	./autogen.sh
+	./configure	--prefix=/usr \
+			--disable-dependency-tracking \
+			--disable-extras \
+			--mandir=/usr/man
+
+	make
+	make DESTDIR=$PKG install
+}

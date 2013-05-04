@@ -1,0 +1,19 @@
+# Description: xorg colord
+# URL: http://xorg.freedesktop.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=accountsservice
+version=0.6.30
+release=1
+source=(http://www.freedesktop.org/software/accountsservice/accountsservice-$version.tar.xz)
+
+build() {
+	cd accountsservice-$version
+
+	./configure --prefix=/usr \
+			--disable-gusb
+
+	make
+	make DESTDIR=$PKG install
+
+}

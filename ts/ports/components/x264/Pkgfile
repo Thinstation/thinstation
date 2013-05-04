@@ -1,0 +1,24 @@
+# Description: Library for encoding H264/AVC video streams (snapshot).
+# URL: http://www.videolan.org/developers/x264.html
+# Maintainer: Danny Rawlins, monster dot romster at gmail dot com
+# Packager: Rouven Schuerch, rs at tegonal dot com
+# Depends on: yasm
+
+name=x264
+version=stable
+release=1
+source=(ftp://ftp.videolan.org/pub/videolan/x264/snapshots/last_stable_x264.tar.bz2)
+
+build() {
+	snapshot=`find . -name x264-snapshot-*-*-stable`
+	cd $snapshot
+
+	./configure \
+		--prefix=/usr \
+		--enable-pic \
+		--enable-shared
+
+	make
+	make DESTDIR=$PKG install
+	chmod a-x $PKG/usr/lib/*.so
+}

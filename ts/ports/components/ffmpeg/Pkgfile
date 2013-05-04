@@ -1,0 +1,59 @@
+# Description: Complete solution to record, convert and stream audio and video.
+# URL: http://ffmpeg.org/
+# Maintainer: Danny Rawlins, monster dot romster at gmail dot com
+# Packager: Matt Housh, jaeger at crux dot nu
+# Depends on: faac imlib2 lame libsdl libtheora libxvid x264 opencore-amr speex libva
+
+name=ffmpeg
+version=1.2
+release=1
+source=()
+
+build() {
+
+	git clone --depth 1 git://github.com/xbmc/xbmc.git
+        cd xbmc
+	./bootstrap
+
+	cd lib/ffmpeg
+
+	./configure \
+		--prefix=/usr \
+		--mandir=/usr/man \
+		--disable-static \
+		--disable-debug \
+		--disable-neon \
+		--target-os=linux \
+		--disable-muxers \
+		--enable-muxer=spdif \
+		--enable-muxer=adts \
+		--disable-encoders \
+		--enable-encoder=ac3 \
+		--enable-encoder=aac \
+		--enable-libvorbis \
+		--enable-muxer=ogg \
+		--enable-encoder=libvorbis \
+		--disable-decoder=mpeg_xvmc \
+		--disable-ffmpeg \
+		--disable-ffprobe \
+		--disable-ffplay \
+		--disable-ffserver \
+		--enable-shared \
+		--disable-doc \
+		--enable-postproc \
+		--enable-gpl \
+		--enable-vdpau \
+		--enable-vaapi \
+		--enable-optimizations \
+		--enable-protocol=http \
+		--enable-pthreads \
+		--enable-runtime-cpudetect \
+		--disable-hardcoded-tables \
+		--disable-pic \
+		--cc=gcc \
+		--disable-indev=oss \
+		--disable-outdev=oss
+
+	make SHARED_PP='yes'
+	make DESTDIR=$PKG install install-man
+}

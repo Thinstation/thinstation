@@ -1,0 +1,25 @@
+# Description: An image loading and rendering library.
+# URL: http://ftp.acc.umu.se/pub/GNOME/sources/imlib/1.9/
+# Maintainer: Danny Rawlins, monster dot romster at gmail dot com
+# Packager: Daniel Mueller, daniel at danm dot de
+# Depends on: gtk1 libungif libtiff libpng
+
+name=rest
+version=0.7.90
+release=2
+source=(http://ftp.gnome.org/pub/GNOME/sources/rest/${version%.*}/rest-$version.tar.xz)
+
+build() {
+	cd rest-$version
+
+	./configure \
+		--prefix=/usr \
+		--mandir=/usr/man \
+		--disable-static \
+		--enable-shared \
+		--with-ca-certificates=/etc/ssl/certs
+
+	make
+	make DESTDIR=$PKG install
+}
+

@@ -9,7 +9,7 @@ sversion=3.6.11
 release=1
 source=(ftp://ftp.kernel.org/pub/linux/kernel/v3.x/linux-$sversion.tar.bz2 \
 https://raw.github.com/mjanusz/homepage/master/projects/fbcondecor/fbcondecor-0.9.6-3.5-rc3.patch \
-/$TSCOMPROOT/aufs/patches/aufs3.patch
+/usr/src/kernels/aufs/patches/aufs3.patch
 ts.config)
 
 build() {
@@ -34,20 +34,16 @@ export MAKEFLAGS="-j5"
 
 	cp -a Module.symvers System.map $PKG/usr/src/kernels/${version}TS
 
-	mkdir -p $PKG/$TSCOMPROOT/kernel/kernel
-	mkdir -p $PKG/$TSCOMPROOT/kernel/utils
-
 	cd $PKG
-	mv vmlinuz $PKG/$TSCOMPROOT/kernel/kernel/vmlinuz-${version}TS
-	mv System.map $PKG/$TSCOMPROOT/kernel/kernel/System.map-${version}TS
-	rm lib/modules/${version}TS/{source,build}
-	mv lib/modules/${version}TS $PKG/$TSCOMPROOT/kernel/kernel/modules-${version}TS
-	rm -rf lib
-	cp $SRC/linux-$sversion/.config $PKG/$TSCOMPROOT/kernel/kernel/config-${version}TS
-	echo ${version}TS >$PKG/$TSCOMPROOT/kernel/utils/KERNEL_VERSION
+        mkdir -p $PKG/boot
+	mv vmlinuz $PKG/boot/vmlinuz-${version}TS
+	mv System.map $PKG/boot/System.map-${version}TS
+	cp $SRC/linux-$sversion/.config $PKG/boot/config-${version}TS
+	echo ${version}TS >$PKG/boot/KERNEL_VERSION
 
-	mkdir -p $PKG/lib/modules/${version}TS
+        rm lib/modules/${version}TS/{source,build}
 	ln -sf /usr/src/kernels/${version}TS $PKG/lib/modules/${version}TS/build
 	ln -sf build $PKG/lib/modules/${version}TS/source
 	ln -sf . $PKG/usr/src/kernels/${version}TS/build
+	rm $PKG/lib/modules/${version}TS/modules.{alias,alias.bin,builtin.bin,dep,dep.bin,devname,softdep,symbols,symbols.bin}
 }

@@ -2,18 +2,19 @@
 # URL: http://www.freedesktop.org/software/desktop-file-utils/
 # Maintainer: Jose V Beneyto, sepen at crux dot nu
 # Packager: Matt Housh, jaeger at morpheus dot net
-# Depends on: glib popt pkg-config
+# Depends on: glib pkg-config
 
 name=desktop-file-utils
-version=0.20
+version=0.21
 release=1
 source=(http://freedesktop.org/software/$name/releases/$name-$version.tar.xz)
 
 build() {
 	cd $name-$version
+
 	./configure --prefix=/usr \
                     --mandir=/usr/man \
-                    --disable-nls
+	
 	make
 	make DESTDIR=$PKG install
 }

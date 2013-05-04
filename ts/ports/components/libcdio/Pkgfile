@@ -1,0 +1,24 @@
+# Description: A library for CD-ROM and CD image access.
+# URL: http://www.gnu.org/software/libcdio/
+# Maintainer: Danny Rawlins, monster dot romster at gmail dot com
+# Packager: Tim Biermann, tim_biermann at web dot de
+# Depends on: cdparanoia
+
+name=libcdio
+version=0.90
+release=1
+source=(http://ftp.gnu.org/gnu/$name/$name-$version.tar.gz)
+
+build() {
+	cd $name-$version
+
+	./configure \
+		--prefix=/usr \
+		--mandir=/usr/man \
+		--disable-static
+
+	make
+	make DESTDIR=$PKG install
+
+	rm -r $PKG/usr/share/info
+}

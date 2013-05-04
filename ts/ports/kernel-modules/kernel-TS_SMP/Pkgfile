@@ -8,9 +8,9 @@ version=3.6.11
 sversion=3.6.11
 release=1
 source=(ftp://ftp.kernel.org/pub/linux/kernel/v3.x/linux-$sversion.tar.bz2 \
-https://raw.github.com/mjanusz/homepage/master/projects/fbcondecor/fbcondecor-0.9.6-3.5-rc3.patch \
-/$TSCOMPROOT/aufs/patches/aufs3.patch
-ts.config)
+	https://raw.github.com/mjanusz/homepage/master/projects/fbcondecor/fbcondecor-0.9.6-3.5-rc3.patch \
+	/usr/src/kernels/aufs/patches/aufs3.patch
+	ts.config)
 
 build() {
 export MAKEFLAGS="-j5"
@@ -28,26 +28,23 @@ export MAKEFLAGS="-j5"
 	cp -a arch/x86/include $PKG/usr/src/kernels/${version}TS_SMP/arch/x86
 	rm $PKG/usr/src/kernels/${version}TS_SMP/scripts/{mod,kconfig}/*.o
 
-	make
+	make -j5
 	make INSTALL_PATH=$PKG install
 	make INSTALL_MOD_PATH=$PKG modules_install
 
 	cp -a Module.symvers System.map $PKG/usr/src/kernels/${version}TS_SMP
 
-	mkdir -p $PKG/$TSCOMPROOT/kernel_SMP/kernel
-	mkdir -p $PKG/$TSCOMPROOT/kernel_SMP/utils
-
 	cd $PKG
-	mv vmlinuz $PKG/$TSCOMPROOT/kernel_SMP/kernel/vmlinuz-${version}TS_SMP
-	mv System.map $PKG/$TSCOMPROOT/kernel_SMP/kernel/System.map-${version}TS_SMP
-	rm lib/modules/${version}TS_SMP/{source,build}
-	mv lib/modules/${version}TS_SMP $PKG/$TSCOMPROOT/kernel_SMP/kernel/modules-${version}TS_SMP
-	rm -rf lib
-	cp $SRC/linux-$sversion/.config $PKG/$TSCOMPROOT/kernel_SMP/kernel/config-${version}TS_SMP
-	echo ${version}TS_SMP >$PKG/$TSCOMPROOT/kernel_SMP/utils/KERNEL_VERSION
+        mkdir -p $PKG/boot
+	mv vmlinuz $PKG/boot/vmlinuz-${version}TS_SMP
+	mv System.map $PKG/boot/System.map-${version}TS_SMP
+	cp $SRC/linux-$sversion/.config $PKG/boot/config-${version}TS_SMP
+#	echo ${version}TS_SMP >$PKG/boot/KERNEL_VERSION
 
-	mkdir -p $PKG/lib/modules/${version}TS_SMP
-	ln -s /usr/src/kernels/${version}TS_SMP $PKG/lib/modules/${version}TS_SMP/build
-	ln -s build $PKG/lib/modules/${version}TS_SMP/source
+        rm lib/modules/${version}TS_SMP/{source,build}
+	ln -sf /usr/src/kernels/${version}TS_SMP $PKG/lib/modules/${version}TS_SMP/build
+	ln -sf build $PKG/lib/modules/${version}TS_SMP/source
 	ln -sf . $PKG/usr/src/kernels/${version}TS_SMP/build
+	rm $PKG/lib/modules/${version}TS_SMP/modules.{alias,alias.bin,builtin.bin,dep,dep.bin,devname,softdep,symbols,symbols.bin}
+	rm -rf $PKG/lib/firmware
 }

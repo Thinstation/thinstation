@@ -1,5 +1,6 @@
 drwxr-xr-x	root/root	etc/
 drwxr-xr-x	root/lp	etc/cups/
+-rw-r-----	root/lp	etc/cups/cups-files.conf
 -rw-r-----	root/lp	etc/cups/cupsd.conf
 -rw-r-----	root/lp	etc/cups/cupsd.conf.default
 drwxr-xr-x	root/lp	etc/cups/interfaces/
@@ -45,11 +46,9 @@ drwxr-xr-x	root/root	usr/include/cups/
 -rw-r--r--	root/root	usr/include/cups/cgi.h
 -rw-r--r--	root/root	usr/include/cups/cups.h
 -rw-r--r--	root/root	usr/include/cups/dir.h
--rw-r--r--	root/root	usr/include/cups/driver.h
 -rw-r--r--	root/root	usr/include/cups/file.h
 -rw-r--r--	root/root	usr/include/cups/help-index.h
 -rw-r--r--	root/root	usr/include/cups/http.h
--rw-r--r--	root/root	usr/include/cups/image.h
 -rw-r--r--	root/root	usr/include/cups/ipp.h
 -rw-r--r--	root/root	usr/include/cups/language.h
 -rw-r--r--	root/root	usr/include/cups/mime.h
@@ -62,13 +61,12 @@ drwxr-xr-x	root/root	usr/include/cups/
 drwxr-xr-x	root/root	usr/lib/
 drwxr-xr-x	root/root	usr/lib/cups/
 drwxr-xr-x	root/root	usr/lib/cups/backend/
+-rwx------	root/root	usr/lib/cups/backend/dnssd
 lrwxrwxrwx	root/root	usr/lib/cups/backend/http -> ipp
 lrwxrwxrwx	root/root	usr/lib/cups/backend/https -> ipp
 -rwx------	root/root	usr/lib/cups/backend/ipp
 lrwxrwxrwx	root/root	usr/lib/cups/backend/ipps -> ipp
 -rwx------	root/root	usr/lib/cups/backend/lpd
--rwxr-xr-x	root/root	usr/lib/cups/backend/parallel
--rwxr-xr-x	root/root	usr/lib/cups/backend/serial
 -rwxr-xr-x	root/root	usr/lib/cups/backend/snmp
 -rwxr-xr-x	root/root	usr/lib/cups/backend/socket
 -rwxr-xr-x	root/root	usr/lib/cups/backend/usb
@@ -83,26 +81,16 @@ drwxr-xr-x	root/root	usr/lib/cups/daemon/
 -rwxr-xr-x	root/root	usr/lib/cups/daemon/cups-driverd
 -rwxr-xr-x	root/root	usr/lib/cups/daemon/cups-exec
 -rwxr-xr-x	root/root	usr/lib/cups/daemon/cups-lpd
--rwxr-xr-x	root/root	usr/lib/cups/daemon/cups-polld
 drwxr-xr-x	root/root	usr/lib/cups/driver/
 drwxr-xr-x	root/root	usr/lib/cups/filter/
--rwxr-xr-x	root/root	usr/lib/cups/filter/bannertops
--rwxr-xr-x	root/root	usr/lib/cups/filter/commandtoescpx
--rwxr-xr-x	root/root	usr/lib/cups/filter/commandtopclx
 -rwxr-xr-x	root/root	usr/lib/cups/filter/commandtops
 -rwxr-xr-x	root/root	usr/lib/cups/filter/gziptoany
--rwxr-xr-x	root/root	usr/lib/cups/filter/imagetops
--rwxr-xr-x	root/root	usr/lib/cups/filter/imagetoraster
--rwxr-xr-x	root/root	usr/lib/cups/filter/pdftops
 -rwxr-xr-x	root/root	usr/lib/cups/filter/pstops
 lrwxrwxrwx	root/root	usr/lib/cups/filter/rastertodymo -> rastertolabel
 -rwxr-xr-x	root/root	usr/lib/cups/filter/rastertoepson
--rwxr-xr-x	root/root	usr/lib/cups/filter/rastertoescpx
 -rwxr-xr-x	root/root	usr/lib/cups/filter/rastertohp
 -rwxr-xr-x	root/root	usr/lib/cups/filter/rastertolabel
--rwxr-xr-x	root/root	usr/lib/cups/filter/rastertopclx
 -rwxr-xr-x	root/root	usr/lib/cups/filter/rastertopwg
--rwxr-xr-x	root/root	usr/lib/cups/filter/texttops
 drwxr-xr-x	root/root	usr/lib/cups/monitor/
 -rwxr-xr-x	root/root	usr/lib/cups/monitor/bcp
 -rwxr-xr-x	root/root	usr/lib/cups/monitor/tbcp
@@ -113,8 +101,6 @@ lrwxrwxrwx	root/root	usr/lib/libcups.so -> libcups.so.2
 -rwxr-xr-x	root/root	usr/lib/libcups.so.2
 lrwxrwxrwx	root/root	usr/lib/libcupscgi.so -> libcupscgi.so.1
 -rwxr-xr-x	root/root	usr/lib/libcupscgi.so.1
-lrwxrwxrwx	root/root	usr/lib/libcupsdriver.so -> libcupsdriver.so.1
--rwxr-xr-x	root/root	usr/lib/libcupsdriver.so.1
 lrwxrwxrwx	root/root	usr/lib/libcupsimage.so -> libcupsimage.so.2
 -rwxr-xr-x	root/root	usr/lib/libcupsimage.so.2
 lrwxrwxrwx	root/root	usr/lib/libcupsmime.so -> libcupsmime.so.1
@@ -143,6 +129,7 @@ drwxr-xr-x	root/root	usr/man/man1/
 drwxr-xr-x	root/root	usr/man/man5/
 -rw-r--r--	root/root	usr/man/man5/classes.conf.5.gz
 -rw-r--r--	root/root	usr/man/man5/client.conf.5.gz
+-rw-r--r--	root/root	usr/man/man5/cups-files.conf.5.gz
 -rw-r--r--	root/root	usr/man/man5/cups-snmp.conf.5.gz
 -rw-r--r--	root/root	usr/man/man5/cupsd.conf.5.gz
 -rw-r--r--	root/root	usr/man/man5/ipptoolfile.5.gz
@@ -161,7 +148,7 @@ lrwxrwxrwx	root/root	usr/man/man8/accept.8.gz -> cupsaccept.8.gz
 -rw-r--r--	root/root	usr/man/man8/cups-deviced.8.gz
 -rw-r--r--	root/root	usr/man/man8/cups-driverd.8.gz
 -rw-r--r--	root/root	usr/man/man8/cups-lpd.8.gz
--rw-r--r--	root/root	usr/man/man8/cups-polld.8.gz
+-rw-r--r--	root/root	usr/man/man8/cups-snmp.8.gz
 -rw-r--r--	root/root	usr/man/man8/cupsaccept.8.gz
 -rw-r--r--	root/root	usr/man/man8/cupsaddsmb.8.gz
 -rw-r--r--	root/root	usr/man/man8/cupsctl.8.gz
@@ -192,18 +179,6 @@ lrwxrwxrwx	root/root	usr/sbin/cupsreject -> cupsaccept
 lrwxrwxrwx	root/root	usr/sbin/reject -> cupsaccept
 drwxr-xr-x	root/root	usr/share/
 drwxr-xr-x	root/root	usr/share/cups/
-drwxr-xr-x	root/root	usr/share/cups/banners/
--rw-r--r--	root/root	usr/share/cups/banners/classified
--rw-r--r--	root/root	usr/share/cups/banners/confidential
--rw-r--r--	root/root	usr/share/cups/banners/secret
--rw-r--r--	root/root	usr/share/cups/banners/standard
--rw-r--r--	root/root	usr/share/cups/banners/topsecret
--rw-r--r--	root/root	usr/share/cups/banners/unclassified
-drwxr-xr-x	root/root	usr/share/cups/charsets/
--rw-r--r--	root/root	usr/share/cups/charsets/utf-8
-drwxr-xr-x	root/root	usr/share/cups/data/
--rw-r--r--	root/root	usr/share/cups/data/psglyphs
--rw-r--r--	root/root	usr/share/cups/data/testprint
 drwxr-xr-x	root/root	usr/share/cups/doc/
 -rw-r--r--	root/root	usr/share/cups/doc/cups-printable.css
 -rw-r--r--	root/root	usr/share/cups/doc/cups.css
@@ -229,7 +204,7 @@ drwxr-xr-x	root/root	usr/share/cups/doc/help/
 -rw-r--r--	root/root	usr/share/cups/doc/help/man-cancel.html
 -rw-r--r--	root/root	usr/share/cups/doc/help/man-cups-config.html
 -rw-r--r--	root/root	usr/share/cups/doc/help/man-cups-lpd.html
--rw-r--r--	root/root	usr/share/cups/doc/help/man-cups-polld.html
+-rw-r--r--	root/root	usr/share/cups/doc/help/man-cups-snmp.html
 -rw-r--r--	root/root	usr/share/cups/doc/help/man-cupsaccept.html
 -rw-r--r--	root/root	usr/share/cups/doc/help/man-cupsaddsmb.html
 -rw-r--r--	root/root	usr/share/cups/doc/help/man-cupsd.html
@@ -268,6 +243,7 @@ drwxr-xr-x	root/root	usr/share/cups/doc/help/
 -rw-r--r--	root/root	usr/share/cups/doc/help/ref-access_log.html
 -rw-r--r--	root/root	usr/share/cups/doc/help/ref-classes-conf.html
 -rw-r--r--	root/root	usr/share/cups/doc/help/ref-client-conf.html
+-rw-r--r--	root/root	usr/share/cups/doc/help/ref-cups-files-conf.html
 -rw-r--r--	root/root	usr/share/cups/doc/help/ref-cupsd-conf.html
 -rw-r--r--	root/root	usr/share/cups/doc/help/ref-error_log.html
 -rw-r--r--	root/root	usr/share/cups/doc/help/ref-mailto-conf.html
@@ -326,11 +302,6 @@ drwxr-xr-x	root/root	usr/share/cups/examples/
 -rw-r--r--	root/root	usr/share/cups/examples/r300-basic.drv
 -rw-r--r--	root/root	usr/share/cups/examples/r300-colorman.drv
 -rw-r--r--	root/root	usr/share/cups/examples/r300-remote.drv
-drwxr-xr-x	root/root	usr/share/cups/fonts/
--rw-r--r--	root/root	usr/share/cups/fonts/Monospace
--rw-r--r--	root/root	usr/share/cups/fonts/Monospace-Bold
--rw-r--r--	root/root	usr/share/cups/fonts/Monospace-BoldOblique
--rw-r--r--	root/root	usr/share/cups/fonts/Monospace-Oblique
 drwxr-xr-x	root/root	usr/share/cups/ipptool/
 -rw-r--r--	root/root	usr/share/cups/ipptool/color.jpg
 -rw-r--r--	root/root	usr/share/cups/ipptool/create-printer-subscription.test
@@ -340,6 +311,7 @@ drwxr-xr-x	root/root	usr/share/cups/ipptool/
 -rw-r--r--	root/root	usr/share/cups/ipptool/document-letter.ps
 -rw-r--r--	root/root	usr/share/cups/ipptool/get-completed-jobs.test
 -rw-r--r--	root/root	usr/share/cups/ipptool/get-jobs.test
+-rw-r--r--	root/root	usr/share/cups/ipptool/get-printer-attributes.test
 -rw-r--r--	root/root	usr/share/cups/ipptool/gray.jpg
 -rw-r--r--	root/root	usr/share/cups/ipptool/ipp-1.1.test
 -rw-r--r--	root/root	usr/share/cups/ipptool/ipp-2.0.test
@@ -350,6 +322,7 @@ drwxr-xr-x	root/root	usr/share/cups/ipptool/
 -rw-r--r--	root/root	usr/share/cups/ipptool/onepage-letter.pdf
 -rw-r--r--	root/root	usr/share/cups/ipptool/onepage-letter.ps
 -rw-r--r--	root/root	usr/share/cups/ipptool/testfile.jpg
+-rw-r--r--	root/root	usr/share/cups/ipptool/testfile.pcl
 -rw-r--r--	root/root	usr/share/cups/ipptool/testfile.pdf
 -rw-r--r--	root/root	usr/share/cups/ipptool/testfile.ps
 -rw-r--r--	root/root	usr/share/cups/ipptool/testfile.txt
@@ -359,12 +332,10 @@ drwxr-xr-x	root/root	usr/share/cups/mime/
 drwxr-xr-x	root/root	usr/share/cups/model/
 drwxr-xr-x	root/root	usr/share/cups/ppdc/
 -rw-r--r--	root/root	usr/share/cups/ppdc/epson.h
--rw-r--r--	root/root	usr/share/cups/ppdc/escp.h
 -rw-r--r--	root/root	usr/share/cups/ppdc/font.defs
 -rw-r--r--	root/root	usr/share/cups/ppdc/hp.h
 -rw-r--r--	root/root	usr/share/cups/ppdc/label.h
 -rw-r--r--	root/root	usr/share/cups/ppdc/media.defs
--rw-r--r--	root/root	usr/share/cups/ppdc/pcl.h
 -rw-r--r--	root/root	usr/share/cups/ppdc/raster.defs
 drwxr-xr-x	root/root	usr/share/cups/profiles/
 drwxr-xr-x	root/root	usr/share/cups/templates/

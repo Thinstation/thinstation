@@ -6,11 +6,16 @@
 name=libunique
 version=1.1.6
 release=1
-source=(ftp://ftp.gnome.org/pub/gnome/sources/$name/${version%.*}/$name-$version.tar.bz2)
+source=(ftp://ftp.gnome.org/pub/gnome/sources/$name/${version%.*}/$name-$version.tar.bz2
+	fix-disable-deprecated.patch
+	fix-unused-but-set-variable.patch)
 
 build() {
 	cd $name-$version
-	CFLAGS="$CFLAGS -DG_CONST_RETURN=const"
+	CFLAGS="$CFLAGS -DG_CONST_RETURN=const -Wno-error=deprecated-declarations"
+
+	patch -p1 -i ../fix-disable-deprecated.patch
+	patch -p1 -i ../fix-unused-but-set-variable.patch
 
 	./configure --prefix=/usr \
 			--disable-introspection \

@@ -1,0 +1,18 @@
+# Description:  A library part of the libimobiledevice collection
+# URL:          http://www.libimobiledevice.org/
+# Packager:     
+# Maintainer:   
+# Dependencies:	usbmux libplist
+
+name=libimobiledevice
+version=1.1.5
+release=1
+source=(http://www.libimobiledevice.org/downloads/$name-$version.tar.bz2)
+
+build() {
+    cd $name-$version
+    ./configure --sysconfdir=/etc --prefix=/usr
+    make
+    make DESTDIR=$PKG install
+}
+

@@ -1,0 +1,29 @@
+diff -urNp libunique-1.1.6.old/unique/dbus/uniquebackend-dbus.c libunique-1.1.6/unique/dbus/uniquebackend-dbus.c
+--- libunique-1.1.6.old/unique/dbus/uniquebackend-dbus.c	2011-07-06 10:30:49.712128019 +0100
++++ libunique-1.1.6/unique/dbus/uniquebackend-dbus.c	2011-07-06 10:32:11.026127998 +0100
+@@ -84,7 +84,6 @@ unique_backend_dbus_register_proxy (Uniq
+ static gboolean
+ unique_backend_dbus_request_name (UniqueBackend *backend)
+ {
+-  UniqueBackendDBus *backend_dbus;
+   const gchar *name;
+   DBusGConnection *connection;
+   DBusGProxy *proxy;
+@@ -97,8 +96,6 @@ unique_backend_dbus_request_name (Unique
+   if (!connection)
+     return FALSE;
+ 
+-  backend_dbus = UNIQUE_BACKEND_DBUS (backend);
+-
+   retval = TRUE;
+   name = unique_backend_get_name (backend);
+   g_assert (name != NULL);
+@@ -207,7 +204,7 @@ unique_backend_dbus_send_message (Unique
+                                         cmd, data, time_,
+                                         &resp,
+                                         &error);
+-  if (error)
++  if (!res && error)
+     {
+       g_warning ("Error while sending message: %s", error->message);
+       g_error_free (error);

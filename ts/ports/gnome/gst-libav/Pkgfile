@@ -1,0 +1,23 @@
+# Description: FFmpeg-based plug-ins for gstreamer.
+# URL: http://gstreamer.freedesktop.org/modules/gst-ffmpeg.html
+# Maintainer: Danny Rawlins, monster dot romster at gmail dot com
+# Packager: Matt Housh, jaeger at morpheus dot net
+# Depends on: gst-plugins-base yasm
+
+name=gst-libav
+version=1.0.6
+release=1
+source=(http://gstreamer.freedesktop.org/data/src/gst-libav/gst-libav-$version.tar.xz)
+
+build() {
+	cd gst-libav-$version
+
+	./configure \
+		--prefix=/usr \
+		--mandir=/usr/man \
+		--disable-static \
+		--enable-shared \
+
+	make
+	make DESTDIR=$PKG install
+}

@@ -2,18 +2,22 @@
 # URL: http://www.cmake.org/
 # Maintainer: Jose V Beneyto, sepen at crux dot nu
 # Packager: Mark Rosenstand, mark at borkware dot net
-# Depends on: ncurses
+# Depends on: curl libarchive expat ncurses
 
 name=cmake
-version=2.8.6
+version=2.8.10
 release=1
-source=(http://www.cmake.org/files/v${version%.*}/cmake-$version.tar.gz)
+source=(http://www.cmake.org/files/v${version%.*}/$name-$version.tar.gz)
 
 build() {
-	cd cmake-$version
-	./bootstrap --prefix=/usr
+	cd $name-$version
+
+	./bootstrap \
+		--prefix=/usr \
+		--system-libs \
+		--parallel=$(sed -e 's/.*-j *\([0-9]\+\).*/\1/' <<< $MAKEFLAGS)
+
 	make
 	make DESTDIR=$PKG install
 	rm -r $PKG/usr/doc
 }
-

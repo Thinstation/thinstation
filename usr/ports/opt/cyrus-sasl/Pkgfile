@@ -2,15 +2,16 @@
 # URL:         http://asg.web.cmu.edu/sasl/sasl-library.html
 # Maintainer:  Thomas Penteker, tek at serverop dot de
 # Packager:    Daniel Mueller, daniel at danm dot de
-# Depends on: db, openssl
+# Depends on:  db openssl
 
 name=cyrus-sasl
 version=2.1.25
 release=1
-source=(ftp://ftp.andrew.cmu.edu/pub/cyrus-mail/$name-$version.tar.gz saslauthd)
+source=(ftp://ftp.andrew.cmu.edu/pub/cyrus-mail/$name-$version.tar.gz saslauthd 0027_db5_support.patch)
 
 build(){
 	cd $name-$version
+	patch -p1 -i $SRC/0027_db5_support.patch
 
 	./configure \
 	    --prefix=/usr \
@@ -22,13 +23,13 @@ build(){
 	    --with-bdb-incdir=/usr/include \
 	    --with-bdb-libdir=/usr/lib \
 	    --with-openssl=/usr \
-      --enable-login \
-      --enable-cram \
-      --enable-digest \
+	    --enable-login \
+	    --enable-cram \
+	    --enable-digest \
 	    --enable-shared \
-      --mandir=/usr/man
+	    --mandir=/usr/man
 
-	make
+	make -j1
 	make DESTDIR=$PKG install
 
 	mkdir -p \

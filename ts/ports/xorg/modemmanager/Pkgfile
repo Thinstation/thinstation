@@ -1,0 +1,21 @@
+# Description: Modem Manager with NetworkManager support
+# URL:         https://launchpad.net/modemmanager
+# Maintainer:  None
+# Depends on:  ppp gudev dbus-glib
+
+
+name=modemmanager
+version=0.7.990
+release=1
+source=(http://cgit.freedesktop.org/ModemManager/ModemManager/snapshot/ModemManager-$version.tar.gz)
+
+build() {
+	cd ModemManager-$version
+
+	./autogen.sh --prefix=/usr \
+		--sysconfdir=/etc \
+		--localstatedir=/var \
+		--with-polkit
+	make
+	make DESTDIR=$PKG install
+}

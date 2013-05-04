@@ -12,6 +12,8 @@ build() {
 	cd $name
 	./bootstrap
 	./configure --prefix=/usr \
+  --enable-libnfs \
+  --enable-crystalhd \
   --enable-gl \
   --enable-sdl \
   --enable-vdpau \
@@ -30,12 +32,12 @@ build() {
   --enable-texturepacker \
   --enable-udev \
   --enable-libcec \
-  --enable-external-ffmpeg \
   --disable-depency-tracking \
+  --enable-external-ffmpeg \
   --enable-external-libraries \
   --disable-debug \
-  --enable-crystalhd \
-#  --enable-non-free \
+  --enable-shared \
+  --disable-static
 
 	make
 	make DESTDIR=$PKG install

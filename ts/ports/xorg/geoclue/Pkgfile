@@ -1,0 +1,23 @@
+# Description: A modular geoinformation service.
+# URL: http://geoclue.freedesktop.org/
+# Maintainer: Danny Rawlins, monster dot romster at gmail dot com
+# Packager: Danny Rawlins, monster dot romster at gmail dot com
+# Depends on: gconf gtk-doc
+
+name=geoclue
+version=0.12.99
+release=1
+source=(http://freedesktop.org/~hadess/$name-$version.tar.gz)
+
+build() {
+	cd $name-$version
+
+	./configure \
+		--prefix=/usr \
+		--mandir=/usr/man
+
+	make
+	make DESTDIR=$PKG install
+
+	rm -r $PKG/usr/share/gtk-doc
+}

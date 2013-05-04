@@ -1,0 +1,21 @@
+# Description: Mesa 3D Graphics Library
+# URL: http://www.mesa3d.org
+# Maintainer: CRUX Xorg Team, xorg-ports at crux dot nu
+# Depends on: libdrm, xorg-makedepend, xorg-glproto, xorg-xextproto, xorg-dri2proto, xorg-libx11, xorg-xf86vidmodeproto, xorg-libxext, xorg-libxxf86vm, xorg-libxt, xorg-libxdamage, xorg-libpciaccess, expat, talloc, libxml2-python
+
+name=mesa3d
+version=9.1.1
+release=1
+source=(ftp://ftp.freedesktop.org/pub/mesa/$version/MesaLib-$version.tar.bz2)
+
+build() {
+    cd Mesa-$version
+
+    autoreconf --install --symlink
+    ./configure --prefix=/usr \
+                --with-dri-drivers=i915,i965,r200,radeon,swrast,nouveau \
+                --with-gallium-drivers=i915,r600,svga,nouveau 
+
+    make
+    make DESTDIR=$PKG install
+}

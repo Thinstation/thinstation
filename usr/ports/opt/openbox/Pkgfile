@@ -1,17 +1,21 @@
 # Description: Fast, lightweight, standards-compliant window manager
-# URL: http://www.icculus.org/openbox/
-# Maintainer: Tilman Sauerbeck, tilman at crux dot nu
+# URL: http://openbox.org
+# Maintainer:  Thomas Penteker, tek at serverop dot de
+# Packager: Tilman Sauerbeck, tilman at crux dot nu
 # Depends on: xorg-libxinerama, xorg-libxrandr, xorg-libsm, glib, libxml2, pango
 
 name=openbox
 version=3.5.0
 release=1
-source=(http://www.icculus.org/$name/releases/$name-$version.tar.gz)
+source=(http://openbox.org/dist/openbox/openbox-$version.tar.gz)
 
 build() {
 	cd $name-$version
 
-	./configure --prefix=/usr --mandir=/usr/man --disable-nls
+	./configure --prefix=/usr \
+              --mandir=/usr/man \
+              --disable-nls \
+              --libexecdir=/usr/lib/openbox
 
 	make
 	make DESTDIR=$PKG install

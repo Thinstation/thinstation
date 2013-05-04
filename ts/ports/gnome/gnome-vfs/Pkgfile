@@ -7,14 +7,33 @@
 name=gnome-vfs
 version=2.24.4
 release=1
-source=(http://ftp.gnome.org/pub/GNOME/sources/gnome-vfs/2.24/$name-$version.tar.bz2)
+source=(http://ftp.gnome.org/pub/GNOME/sources/gnome-vfs/2.24/$name-$version.tar.bz2
+	gnome-vfs-2.24.4-enable-deprecated.patch
+	gnome-vfs-2.24.5-file-method-chmod-flags.patch
+	gnome-vfs-2.24.xx-utf8-mounts.patch)
 
 build() {
 	cd $name-$version
 	rm po/*.po
 	sed -i -e 's/USE_NLS=yes/USE_NLS=no/' \
 		-e 's/ENABLE_NLS 1/ENABLE_NLS 0/' configure
-	./configure --prefix=/usr \
+
+#	sed -i -e 's/-DG_DISABLE_DEPRECATED//g' daemon/Makefile
+	sed -i -e 's/-DG_DISABLE_DEPRECATED//g' daemon/Makefile.in
+#	sed -i -e 's/-DG_DISABLE_DEPRECATED//g' libgnomevfs/Makefile
+	sed -i -e 's/-DG_DISABLE_DEPRECATED//g' libgnomevfs/Makefile.in
+#	sed -i -e 's/-DG_DISABLE_DEPRECATED//g' modules/Makefile
+	sed -i -e 's/-DG_DISABLE_DEPRECATED//g' modules/Makefile.in
+#	sed -i -e 's/-DG_DISABLE_DEPRECATED//g' programs/Makefile
+	sed -i -e 's/-DG_DISABLE_DEPRECATED//g' programs/Makefile.in
+#	sed -i -e 's/-DG_DISABLE_DEPRECATED//g' test/Makefile
+	sed -i -e 's/-DG_DISABLE_DEPRECATED//g' test/Makefile.in
+
+	patch -p1 -i $SRC/gnome-vfs-2.24.4-enable-deprecated.patch
+	patch -p1 -i $SRC/gnome-vfs-2.24.5-file-method-chmod-flags.patch
+	patch -p1 -i $SRC/gnome-vfs-2.24.xx-utf8-mounts.patch
+
+	CFLAGS="$CFLAGS -fno-strict-aliasing" ./configure --prefix=/usr \
 		--libexecdir=/usr/libexec \
 		--disable-nls \
 		--disable-gtk-doc \

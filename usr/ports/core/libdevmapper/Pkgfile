@@ -4,15 +4,12 @@
 # Depends on:  udev
 
 name=libdevmapper
-version=1.02.67
+version=1.02.77
 release=1
-source=(ftp://sources.redhat.com/pub/lvm2/releases/LVM2.2.02.88.tgz
-	lvm2-static_build.patch)
+source=(ftp://sources.redhat.com/pub/lvm2/releases/LVM2.2.02.98.tgz)
 
 build() {
-    cd LVM2.2.02.88
-
-    patch -p1 -i $SRC/lvm2-static_build.patch
+    cd LVM2.2.02.98
 
     ./configure --prefix=/usr \
 		--exec-prefix= \
@@ -32,5 +29,3 @@ build() {
     #pkgconfig insists on /lib one or the other way...
     sed -i '/^libdir=/s|${exec_prefix}|/usr|' $PKG/usr/lib/pkgconfig/devmapper.pc
 }
-
-# vim: sts=4 sw=4 ts=8 noet ft=sh:

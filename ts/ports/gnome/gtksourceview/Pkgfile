@@ -5,9 +5,9 @@
 # Group: gnome/desktop
 
 name=gtksourceview
-version=2.10.5
+version=3.8.0
 release=1
-source=(http://ftp.gnome.org/pub/GNOME/sources/$name/${version%.*}/$name-$version.tar.bz2)
+source=(http://ftp.gnome.org/pub/GNOME/sources/$name/${version%.*}/$name-$version.tar.xz)
 
 build() {
 	cd $name-$version
@@ -20,6 +20,7 @@ build() {
 		--disable-nls \
 		--disable-static \
 		--enable-shared \
+		--disable-introspection
 
 	make
 	make DESTDIR=$PKG install

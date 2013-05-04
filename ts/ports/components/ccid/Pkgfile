@@ -4,15 +4,14 @@
 # depends on: pcsc-lite-TS
 
 name=ccid
-version=1.4.7
+version=1.4.10
 release=1
-source=(https://alioth.debian.org/frs/download.php/3730/$name-$version.tar.bz2)
+source=(https://alioth.debian.org/frs/download.php/3897/$name-$version.tar.bz2)
 
 build() {
 	cd $name-$version
 
-	./configure --prefix=/ \
-			--exec-prefix=/ \
+	./configure --prefix=/usr \
 			--sysconfdir=/etc \
 			--libexecdir=/lib \
 			--mandir=/usr/man \
@@ -20,8 +19,8 @@ build() {
 	make
 	make DESTDIR=$PKG install
 mkdir -p $PKG/etc/udev
-mkdir -p $PKG/{bin,sbin}
+mkdir -p $PKG/usr/{bin,sbin}
 cp src/92_pcscd_ccid.rules $PKG/etc/udev/.
-cp contrib/Kobil_mIDentity_switch/Kobil_mIDentity_switch $PKG/sbin/.
-cp contrib/RSA_SecurID/RSA_SecurID_getpasswd $PKG/bin/.
+cp contrib/Kobil_mIDentity_switch/Kobil_mIDentity_switch $PKG/usr/sbin/.
+cp contrib/RSA_SecurID/RSA_SecurID_getpasswd $PKG/usr/bin/.
 }

@@ -1,0 +1,23 @@
+# Description: A fast image manipulation library
+# URL: http://freshmeat.net/projects/imlib2/
+# Maintainer: Jose V Beneyto, sepen at crux dot nu
+# Packager: Matt Housh, jaeger at morpheus dot net
+# Depends on: freetype, libid3tag, libpng, libtiff, giflib, xorg-libsm, xorg-libxext
+
+name=imlib2
+version=1.4.5
+release=2
+source=(http://download.sourceforge.net/enlightenment/$name-$version.tar.bz2)
+
+build() {
+  cd $name-$version
+
+  # fix giflib loader
+#  sed -i src/modules/loaders/loader_gif.c \
+#      -e 's|DGifOpenFileHandle(fd)|DGifOpenFileHandle(fd,0)|'
+
+  ./configure --prefix=/usr --with-pic
+
+  make
+  make DESTDIR=$PKG install
+}

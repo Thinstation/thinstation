@@ -4,7 +4,7 @@
 # Depends on:  python libxml2
 
 name=libxml2-python
-version=2.7.8
+version=2.9.1
 release=1
 source=(ftp://xmlsoft.org/libxml2/libxml2-$version.tar.gz \
         $name-config.patch)
@@ -12,13 +12,15 @@ source=(ftp://xmlsoft.org/libxml2/libxml2-$version.tar.gz \
 build () {
     cd libxml2-$version
     
-    # http://mail.gnome.org/archives/xml/2010-November/msg00016.html
-    sed -i '/VERSION_SCRIPT_FLAGS/s/-z/-n/' configure
-    
     patch -p1 -i $SRC/$name-config.patch
+    
     ./configure --prefix=/usr
     cd python
     make
     make DESTDIR=$PKG install
+
+    python -m compileall $PKG/usr/lib/python2.7/
+
+    rm $PKG/usr/lib/python2.7/site-packages/libxml2mod.{a,la}
     rm -r $PKG/usr/share
 }

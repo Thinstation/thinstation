@@ -1,0 +1,20 @@
+commit a6f280559f34dc805381507e59c9189b7149b853
+Author: psmith <psmith>
+Date:   Tue Aug 10 07:35:34 2010 +0000
+
+    Fix Savannah bug #30723: expand MAKEFLAGS before we re-exec after
+    rebuilding makefiles.
+
+diff --git a/main.c b/main.c
+index c6989e3..9fe8090 100644
+--- a/main.c
++++ b/main.c
+@@ -2093,7 +2093,7 @@ main (int argc, char **argv, char **envp)
+             const char *pv = define_makeflags (1, 1);
+             char *p = alloca (sizeof ("MAKEFLAGS=") + strlen (pv) + 1);
+             sprintf (p, "MAKEFLAGS=%s", pv);
+-            putenv (p);
++            putenv (allocated_variable_expand (p));
+           }
+ 
+ 	  if (ISDB (DB_BASIC))

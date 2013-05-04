@@ -3,45 +3,48 @@
 # Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 
 name=open-vm-tools
-version=2012.10.14-874563
+version=2012.12.26-958366
 kver=3.6.11
 release=1
-source=(http://downloads.sourceforge.net/project/$name/$name/Development%20Snapshots/${name}-$version.tar.gz)
+source=(http://downloads.sourceforge.net/project/open-vm-tools/open-vm-tools/Development%20Snapshots/open-vm-tools-$version.tar.gz)
 
 build() {
 	cd $name-$version
-	sed -i -e 's/s_frozen/s_writers.frozen/g' modules/linux/vmsync/sync.c
 
-	./configure --prefix=/ \
-			--exec-prefix=/ \
+	export CUSTOM_PROCPS_NAME=procps
+	export CUSTOM_PROCPS_LIBS=-L/usr/lib/libprocps.so
+#	sed -i -e 's/s_frozen/s_writers.frozen/g' modules/linux/vmsync/sync.c
+
+	CFLAGS="$CFLAGS -Wno-deprecated-declarations" ./configure --prefix=/usr \
 			--sysconfdir=/etc \
-			--libexecdir=/lib \
 			--mandir=/usr/man \
 			--with-kernel-release=${kver}TS_SMP \
 			--with-linuxdir=/usr/src/kernels/${kver}TS_SMP \
 			--disable-docs \
 			--with-gtkmm \
-#			--without-pam
+			--without-icu
 
 	make
 	make DESTDIR=$PKG install
 	make clean
 
-	./configure --prefix=/ \
-			--exec-prefix=/ \
+        CFLAGS="$CFLAGS -Wno-deprecated-declarations" ./configure --prefix=/usr \
 			--sysconfdir=/etc \
-			--libexecdir=/lib \
 			--mandir=/usr/man \
 			--with-kernel-release=${kver}TS \
 			--with-linuxdir=/usr/src/kernels/${kver}TS \
 			--disable-docs \
 			--with-gtkmm \
-#			--without-pam \
+			--without-icu
 
 	make
 	make DESTDIR=$PKG install
 
 	mkdir -p $PKG/lib/modules
 	mv $PKG/usr/src/kernels/* $PKG/lib/modules/.
-	rm -rf $PKG/{ts,share,include,usr} $PKG/lib/{*.a,*.la,pkgconfig} $PKG/lib/open-vm-tools/plugins/common/*.la $PKG/etc/pam.d
+	rm -r $PKG/sbin
+	rm -r $PKG/usr/src
+	rm -r $PKG/usr/{share,include}
+	find $PKG/usr -name *.la -delete
+	find $PKG/usr -name *.a -delete
 }

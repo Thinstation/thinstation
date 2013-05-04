@@ -1,10 +1,10 @@
 # Description: Basic networking applet
 # URL: http://www.linux-foundation.org/en/Net:Iputils
 # Maintainer: CRUX System Team, core-ports at crux dot nu
-# Depends on: sysfsutils
+# Depends on: libcap openssl sysfsutils
 
 name=iputils
-version=s20101006
+version=s20121221
 release=1
 source=(http://www.skbuff.net/iputils/$name-$version.tar.bz2
         http://crux.nu/files/distfiles/$name-man-$version.tar.xz)
@@ -12,8 +12,7 @@ source=(http://www.skbuff.net/iputils/$name-$version.tar.bz2
 build() {
     cd $name-$version
 
-    sed -i "/^CCOPT=/s|-O2|$CFLAGS|;s| -g$||" Makefile
-    make
+    make USE_GNUTLS=no CCOPTOPT="$CFLAGS"
 
     install -d $PKG/{{s,}bin,usr/{man/man8,sbin}}
     install ping{,6} $PKG/bin/

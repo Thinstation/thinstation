@@ -1,0 +1,20 @@
+# Description: xorg colord
+# URL: http://xorg.freedesktop.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=colord-gtk
+version=0.1.25
+release=1
+source=(http://www.freedesktop.org/software/colord/releases/colord-gtk-$version.tar.xz)
+
+build() {
+	cd colord-gtk-$version
+
+	./configure --prefix=/usr \
+			--disable-gusb \
+			--disable-introspection
+
+	make
+	make DESTDIR=$PKG install
+
+}

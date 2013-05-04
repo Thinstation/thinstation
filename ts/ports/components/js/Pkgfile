@@ -1,0 +1,31 @@
+# Description: Thinstation essential package
+# URL: http://meldmerge.org/
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=js
+version=1.8.5
+release=1
+source=(http://ftp.mozilla.org/pub/mozilla.org/js/js185-1.0.0.tar.gz
+	js-1.8.5-537701.patch
+	js-1.8.5-secondary-jit.patch
+	js185-destdir.patch
+	js185-libedit.patch)
+
+build() {
+	cd js-$version
+
+	patch -p1 -i $SRC/js-1.8.5-537701.patch
+	patch -p2 -i $SRC/js-1.8.5-secondary-jit.patch
+        patch -p0 -i $SRC/js185-destdir.patch
+        patch -p1 -i $SRC/js185-libedit.patch
+
+	cd js/src
+
+	./configure --prefix=/usr \
+			--with-system-nspr \
+			--enable-threadsafe \
+			--enable-readline
+
+	make
+	make DESTDIR=$PKG install
+}

@@ -5,13 +5,14 @@
 # Depends on: dbus-glib, gtk
 
 name=libnotify
-version=0.5.2
+version=0.7.5
 release=1
-source=(ftp://ftp.gnome.org/pub/gnome/sources/libnotify/${version%.*}/$name-$version.tar.bz2)
+source=(ftp://ftp.gnome.org/pub/gnome/sources/libnotify/${version%.*}/$name-$version.tar.xz)
 
 build() {
 	cd $name-$version
-	./configure --prefix=/usr
+	./configure --prefix=/usr \
+                    --disable-introspection
 	make
 	make DESTDIR=$PKG install
 	rm -rf $PKG/usr/share

@@ -1,0 +1,16 @@
+# Description: Sources for Time Zone and Daylight Saving Time Data
+# URL:         ftp://ftp.iana.org/tz/code/tz-link.htm
+# Maintainer:  CRUX System Team, core-ports at crux dot nu 
+
+name=tzdata
+version=2013c
+release=1
+source=(http://www.iana.org/time-zones/repository/releases/$name$version.tar.gz
+        http://www.iana.org/time-zones/repository/releases/tzcode$version.tar.gz
+        tzcode-makefile.patch)
+
+build() {
+    patch -p1 -i $SRC/tzcode-makefile.patch
+    make CFLAGS="$CFLAGS"
+    make DESTDIR=$PKG install
+}

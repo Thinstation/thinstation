@@ -1,0 +1,15 @@
+# Description: Clock scaling userspace tools
+# URL: http://www.kernel.org/pub/linux/utils/kernel/cpufreq/cpufreq.html
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+# Depends on: sysfsutils
+
+name=cpufrequtils
+version=008
+release=1
+source=(https://launchpad.net/ubuntu/+archive/primary/+files/cpufrequtils_008.orig.tar.bz2)
+
+build() {
+        cd $name-$version
+        make NLS=false V=true
+        make NLS=false V=true DESTDIR=$PKG install
+}

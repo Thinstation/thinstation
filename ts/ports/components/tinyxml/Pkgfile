@@ -1,0 +1,34 @@
+# Description: simple, small, C++ XML parser
+# URL:         http://www.grinninglizard.com/tinyxml/
+# Maintainer:  Bartlomiej Palmowski, rotwang at crux dot org dot pl
+# Depends on:
+
+name=tinyxml
+version=2.6.2
+release=1
+source=(http://download.sourceforge.net/project/$name/$name/$version/${name}_${version//./_}.zip
+	entity.patch
+	tinyxml-2.5.3-stl.patch)
+
+build() {
+    cd $name
+
+    patch -p0 -i $SRC/entity.patch
+    patch -p1 -i $SRC/tinyxml-2.5.3-stl.patch
+
+    sed -i \
+	-e '/^TINYXML_USE_STL/ s|=.*|=YES|' \
+	-e "s|^RELEASE_CFLAGS.*|& ${CXXFLAGS} -fPIC|" Makefile
+
+    make
+    g++ -fPIC ${CXXFLAGS} -shared -o lib${name}.so.$version \
+	-Wl,-soname,lib${name}.so.0 $(ls *.o | grep -v xmltest)
+
+    install -d -m 0755 "$PKG"/usr/{lib,include}
+    install -m 0755 lib${name}.so.$version "$PKG"/usr/lib/
+    install -m 0644 $name.h tinystr.h "$PKG"/usr/include
+
+    cd "$PKG"/usr/lib
+    ln -s lib${name}.so.$version lib${name}.so.0
+    ln -s lib${name}.so.$version lib${name}.so
+}

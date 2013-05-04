@@ -13,7 +13,8 @@ source=(http://ftp.gnome.org/pub/GNOME/sources/imlib/${version%.*}/imlib-$versio
 	imlib-1.9.15-bpp16-CVE-2007-3568.patch
 	imlib-1.9.15-fix-rendering.patch
 	imlib-1.9.15-asneeded.patch
-	gtk-1-for-imlib.m4.bz2)
+	gtk-1-for-imlib.m4.bz2
+	imlib-1.9.15-libpng15.patch)
 
 build() {
 	cd imlib-$version
@@ -23,6 +24,7 @@ build() {
 	patch -p 1 -i $SRC/imlib-1.9.15-bpp16-CVE-2007-3568.patch
 	patch -p 1 -i $SRC/imlib-1.9.15-fix-rendering.patch
 	patch -p 1 -i $SRC/imlib-1.9.15-asneeded.patch
+#	patch -p 0 -i $SRC/imlib-1.9.15-libpng15.patch
 
 	mkdir m4
 	bzcat $SRC/gtk-1-for-imlib.m4.bz2 > m4/gtk-1-for-imlib.m4

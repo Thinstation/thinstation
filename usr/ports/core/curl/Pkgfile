@@ -4,7 +4,7 @@
 # Depends on:  openssl, zlib
 
 name=curl
-version=7.27.0
+version=7.30.0
 release=1
 source=(http://curl.haxx.se/download/$name-$version.tar.lzma)
 
@@ -14,7 +14,8 @@ build() {
                 --mandir=/usr/man \
                 --enable-ipv6 \
                 --without-libidn \
-                --enable-threaded-resolver
+                --enable-threaded-resolver \
+                --with-ca-bundle=/etc/ssl/cert.pem
     make
     make DESTDIR=$PKG install
 }

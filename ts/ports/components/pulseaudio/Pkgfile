@@ -1,0 +1,21 @@
+# Description: A sound system for POSIX OSes
+# URL: http://www.freedesktop.org/wiki/Software/PulseAudio
+# Maintainer:  Konstantin Lepa, mad dot skipjack at mail dot ru
+# Depends on: json-c libsndfile libtool libcap consolekit
+
+name=pulseaudio
+version=3.0
+release=1
+source=(http://freedesktop.org/software/pulseaudio/releases/pulseaudio-$version.tar.xz)
+
+build() {
+	cd pulseaudio-$version
+
+	./configure --prefix=/usr \
+
+	make
+	make DESTDIR=$PKG install
+
+        rm -r $PKG/usr/share/locale
+        rm -r $PKG/usr/etc/xdg
+}

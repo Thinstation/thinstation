@@ -1,0 +1,29 @@
+# Description: DVD reading library.
+# URL: http://dvd.sourceforge.net/
+# Maintainer: Danny Rawlins, monster dot romster at gmail dot com
+# Packager: Danny Rawlins, monster dot romster at gmail dot com
+# Depends on: libdvdcss
+
+name=libdvd
+version=4.2.0
+release=1
+source=()
+
+build() {
+        git clone --depth 1 git://github.com/xbmc/xbmc.git
+        cd xbmc
+        ./bootstrap
+
+        cd lib/libdvd/libdvdcss
+		./configure --prefix=/usr
+		make
+		make DESTDIR=$PKG install
+	cd ../libdvdread
+		./configure --prefix=/usr
+		make
+		make DESTDIR=$PKG install
+	cd ../libdvdnav
+		./configure --prefix=/usr
+		make
+		make DESTDIR=$PKG install
+}

@@ -1,0 +1,54 @@
+diff -Nru stunnel-4.50.orig/src/Makefile.in stunnel-4.50/src/Makefile.in
+--- stunnel-4.50.orig/src/Makefile.in	2011-12-04 09:43:44.928367692 +0100
++++ stunnel-4.50/src/Makefile.in	2011-12-04 09:44:40.733021677 +0100
+@@ -271,7 +271,7 @@
+ 
+ # Additional preprocesor definitions
+ stunnel_CPPFLAGS = -I/usr/kerberos/include -I$(SSLDIR)/include \
+-	-DLIBDIR='"$(pkglibdir)"' -DCONFDIR='"$(sysconfdir)/stunnel"' \
++	-DLIBDIR='"$(pkglibdir)"' -DCONFDIR='"$(sysconfdir)"' \
+ 	-DPIDFILE='"$(localstatedir)/run/stunnel/stunnel.pid"'
+ 
+ # Win32 executable
+diff -Nru stunnel-4.50.orig/tools/stunnel.conf-sample.in stunnel-4.50/tools/stunnel.conf-sample.in
+--- stunnel-4.50.orig/tools/stunnel.conf-sample.in	2011-12-04 09:43:44.931700905 +0100
++++ stunnel-4.50/tools/stunnel.conf-sample.in	2011-12-04 09:48:22.478352458 +0100
+@@ -9,25 +9,33 @@
+ 
+ ; A copy of some devices and system files is needed within the chroot jail
+ ; Chroot conflicts with configuration file reload and many other features
+-chroot = @prefix@/var/lib/stunnel/
++chroot = /var/run/stunnel/
+ ; Chroot jail can be escaped if setuid option is not used
+-setuid = nobody
+-setgid = @DEFAULT_GROUP@
++setuid = stunnel
++setgid = stunnel
+ 
+ ; PID is created inside the chroot jail
+ pid = /stunnel.pid
+ 
+ ; Debugging stuff (may useful for troubleshooting)
+ ;debug = 7
++; logfile is created inside the chroot jail
+ ;output = stunnel.log
++; without chroot
++;output = /var/log/stunnel.log
++; log via syslog
++syslog = yes
++
++; Enable or disable the use of libwrap
++libwrap = yes
+ 
+ ; **************************************************************************
+ ; * Service defaults may also be specified in individual service sections  *
+ ; **************************************************************************
+ 
+ ; Certificate/key is needed in server mode and optional in client mode
+-cert = @prefix@/etc/stunnel/mail.pem
+-;key = @prefix@/etc/stunnel/mail.pem
++cert = /etc/ssl/certs/stunnel.crt
++key  = /etc/ssl/keys/stunnel.key
+ 
+ ; Authentication stuff needs to be configured to prevent MITM attacks
+ ; It is not enabled by default!

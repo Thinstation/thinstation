@@ -1,0 +1,18 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=ethtool
+version=2.6.36
+release=1
+source=(http://downloads.sourceforge.net/project/gkernel/$name/$version/${name%-*}-$version.tar.gz)
+
+build() {
+cd $name-$version
+	./configure	--prefix=/usr \
+			--disable-dependency-tracking \
+
+	make
+	make DESTDIR=$PKG install
+}
+

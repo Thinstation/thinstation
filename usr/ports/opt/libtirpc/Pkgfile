@@ -1,0 +1,19 @@
+# Description: Transport Independent RPC library
+# Maintainer:  Juergen Daubert, jue at crux dot nu
+# URL:         http://nfsv4.bullopensource.org/doc/tirpc_rpcbind.php
+
+name=libtirpc
+version=0.2.3
+release=1
+source=(http://downloads.sourceforge.net/project/$name/$name/$version/$name-$version.tar.bz2)
+
+build() {
+    cd $name-$version
+
+    ./configure --prefix=/usr \
+                --sysconfdir=/etc \
+                --mandir=/usr/man 
+    
+    make
+    make DESTDIR=$PKG install
+}

@@ -5,7 +5,7 @@
 # Group:       apache
 
 name=apache
-version=2.2.21
+version=2.2.24
 release=1
 source=(http://www.apache.org/dist/httpd/httpd-$version.tar.bz2 \
         $name-ssl_cert.patch crux.layout apache)
@@ -28,7 +28,7 @@ build(){
                --enable-cache --enable-{disk,file,mem}-cache \
                --with-mpm=prefork
    make 
-   make DESTDIR=$PKG install
+   make -j1 DESTDIR=$PKG install
 
    mkdir -p $PKG/etc/ssl/{keys,certs}
    touch $PKG/etc/ssl/keys/apache.key

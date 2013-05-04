@@ -7,16 +7,23 @@
 name=libgnome
 version=2.32.1
 release=1
-source=(http://ftp.gnome.org/pub/gnome/sources/libgnome/${version%.*}/libgnome-$version.tar.bz2)
+source=(http://ftp.gnome.org/pub/gnome/sources/libgnome/${version%.*}/libgnome-$version.tar.bz2
+	unused_but_set.patch)
 
 build() {
 	cd $name-$version
 	rm po/*.po
 	sed -i -e 's/USE_NLS=yes/USE_NLS=no/' \
 		-e 's/ENABLE_NLS 1/ENABLE_NLS 0/' configure
+
+	sed -i -e 's/-DG_DISABLE_DEPRECATED//g' libgnome/Makefile.am
+	sed -i -e 's/-DG_DISABLE_DEPRECATED//g' libgnome/Makefile.in
+	patch -p1 -i ../unused_but_set.patch
+
 	./configure --prefix=/usr \
 		--mandir=/usr/man \
 		--disable-debug \
+		--disable-esd \
 		--disable-gtk-doc \
 		--disable-schemas-install \
 		--disable-nls \

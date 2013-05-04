@@ -1,0 +1,21 @@
+# Description:	password checking library 
+# URL:		http://sourceforge.net/projects/cracklib
+# Maintainer:	Oleksiy V. Khilkevich <grim@asu.ntu-kpi.kiev.ua>
+# Packager:	Oleksiy V. Khilkevich <grim@asu.ntu-kpi.kiev.ua>
+
+name=cracklib
+version=2.8.22
+release=1
+source=(http://downloads.sourceforge.net/project/cracklib/cracklib/$version/$name-$version.tar.gz)
+
+build () {
+    cd $name-$version
+    ./configure --prefix=/usr \
+	--without-python \
+	--disable-nls \
+	--disable-static
+    make
+    make DESTDIR=$PKG install
+}
+
+# End of file

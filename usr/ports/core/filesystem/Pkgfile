@@ -3,8 +3,8 @@
 # Maintainer:  CRUX System Team, core-ports at crux dot nu
 
 name=filesystem
-version=2.7
-release=1
+version=3.0
+release=2
 source=(issue motd shells group passwd shadow securetty fstab mime.types)
 
 build() {
@@ -13,12 +13,14 @@ build() {
     mkdir $PKG/sbin
     mkdir $PKG/boot
     mkdir $PKG/dev
+    mkdir $PKG/dev/{pts,shm}
     mkdir $PKG/proc
     mkdir $PKG/sys
     mkdir $PKG/etc
     mkdir $PKG/tmp
     mkdir $PKG/mnt
     mkdir $PKG/root
+    mkdir $PKG/run
     mkdir $PKG/lib
     mkdir $PKG/lib/modules
     mkdir $PKG/opt
@@ -66,7 +68,7 @@ build() {
     cp securetty $PKG/etc
     cp fstab $PKG/etc
     cp mime.types $PKG/etc
-    touch $PKG/etc/mtab
+    ln -s /proc/self/mounts $PKG/etc/mtab
     chmod 640 $PKG/etc/shadow
 
     # /usr/bin/crux

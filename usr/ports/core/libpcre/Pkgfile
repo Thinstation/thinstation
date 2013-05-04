@@ -3,7 +3,7 @@
 # Maintainer:  CRUX System Team, core-ports at crux dot nu
 
 name=libpcre
-version=8.20
+version=8.32
 release=1
 source=(ftp://ftp.csx.cam.ac.uk/pub/software/programming/pcre/pcre-$version.tar.bz2)
 
@@ -13,9 +13,15 @@ build() {
     ./configure --prefix=/usr \
                 --mandir=/usr/man \
                 --enable-utf8 \
-                --enable-unicode-properties
+                --enable-unicode-properties \
+                --enable-jit
     make
     make DESTDIR=$PKG install
 
+#    install -d $PKG/lib
+#    mv $PKG/usr/lib/libpcre.so.* $PKG/lib
+#    ln -sf ../../lib/$(readlink $PKG/usr/lib/libpcre.so) $PKG/usr/lib/libpcre.so
+
     rm -r $PKG/usr/share
+#    rm $PKG/usr/man/man3/{pcre{16,32}*,pcre_utf{16,32}*}
 }

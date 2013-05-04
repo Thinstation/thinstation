@@ -3,8 +3,15 @@
 # URL: http://www.thinstation.org
 # Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 
-for i in `prt-get listinst` ;
-	do prt-get update -fr $i ;
+for i in `prt-get listinst`; do
+	if [ "$i" == "open-vm-tools" ]; then
+		prt-get update mesa3d
+	fi
+	prt-get update -fr $i
 done
-echo "The following packages failed to rebuild. Please check their logs in /var/log/pkgbuild"
-ls /var/log/pkgbuild |cut -d . -f 1
+if [ -n "`ls -A /var/log/pkgbuild`" ]; then
+	echo "The following packages failed to rebuild. Please check their logs in /var/log/pkgbuild"
+	ls /var/log/pkgbuild |cut -d . -f 1
+else
+	echo "Everything rebuilt correctly! Yeah!"
+fi

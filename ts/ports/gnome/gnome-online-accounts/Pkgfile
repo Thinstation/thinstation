@@ -1,0 +1,24 @@
+# Description: An image loading and rendering library.
+# URL: http://ftp.acc.umu.se/pub/GNOME/sources/imlib/1.9/
+# Maintainer: Danny Rawlins, monster dot romster at gmail dot com
+# Packager: Daniel Mueller, daniel at danm dot de
+# Depends on: gtk1 libungif libtiff libpng
+
+name=gnome-online-accounts
+version=3.8.0
+release=2
+source=(http://ftp.gnome.org/pub/GNOME/sources/gnome-online-accounts/${version%.*}/gnome-online-accounts-$version.tar.xz)
+
+build() {
+	cd gnome-online-accounts-$version
+
+	./configure \
+		--prefix=/usr \
+		--mandir=/usr/man \
+		--disable-static \
+		--enable-shared \
+
+	make
+	make DESTDIR=$PKG install
+}
+

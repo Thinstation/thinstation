@@ -1,0 +1,89 @@
+# http://sources.gentoo.org/cgi-bin/viewvc.cgi/gentoo-x86/sys-libs/timezone-data/files/timezone-data-2012a-makefile.patch
+# Patch reapplied and fixed for tzcode 2013a
+
+diff -Nru tzcode.orig/Makefile tzcode/Makefile
+--- tzcode.orig/Makefile	2013-02-27 18:20:35.000000000 +0100
++++ tzcode/Makefile	2013-03-03 10:03:29.000000000 +0100
+@@ -45,17 +45,17 @@
+ 
+ # Everything gets put in subdirectories of. . .
+ 
+-TOPDIR=		/usr/local
++TOPDIR=		$(DESTDIR)/usr
+ 
+ # "Compiled" time zone information is placed in the "TZDIR" directory
+ # (and subdirectories).
+ # Use an absolute path name for TZDIR unless you're just testing the software.
+ 
+-TZDIR=		$(TOPDIR)/etc/zoneinfo
++TZDIR=		$(TOPDIR)/share/zoneinfo
+ 
+ # The "tzselect", "zic", and "zdump" commands get installed in. . .
+ 
+-ETCDIR=		$(TOPDIR)/etc
++SBINDIR=	$(TOPDIR)/sbin
+ 
+ # If you "make INSTALL", the "date" command gets installed in. . .
+ 
+@@ -289,8 +289,10 @@
+ 
+ ###############################################################################
+ 
+-cc=		cc
+-CC=		$(cc) -DTZDIR=\"$(TZDIR)\"
++CC+=		-DTZDIR=\"$(TZDIR)\"
++ifeq ($(NLS),1)
++CC += -DHAVE_GETTEXT=1 -DTZ_DOMAIN=\"libc\"
++endif
+ 
+ TZCSRCS=	zic.c localtime.c asctime.c scheck.c ialloc.c
+ TZCOBJS=	zic.o localtime.o asctime.o scheck.o ialloc.o
+@@ -331,13 +333,15 @@
+ 
+ ALL:		all date
+ 
+-install:	all $(DATA) $(REDO) $(TZLIB) $(MANS) $(TABDATA)
++install:	all $(DATA) $(REDO) $(MANS) $(TABDATA)
+ 		$(ZIC) -y $(YEARISTYPE) \
+ 			-d $(TZDIR) -l $(LOCALTIME) -p $(POSIXRULES)
+ 		-rm -f $(TZDIR)/iso3166.tab $(TZDIR)/zone.tab
+ 		cp iso3166.tab zone.tab $(TZDIR)/.
+-		-mkdir $(TOPDIR) $(ETCDIR)
+-		cp tzselect zic zdump $(ETCDIR)/.
++		-mkdir $(TOPDIR) $(SBINDIR)
++		cp zic zdump $(SBINDIR)/.
++		-mkdir $(TOPDIR) $(BINDIR)
++		cp tzselect $(BINDIR)/.
+ 		-mkdir $(TOPDIR) $(MANDIR) \
+ 			$(MANDIR)/man3 $(MANDIR)/man5 $(MANDIR)/man8
+ 		-rm -f $(MANDIR)/man3/newctime.3 \
+@@ -347,8 +351,6 @@
+ 			$(MANDIR)/man8/zdump.8 \
+ 			$(MANDIR)/man8/zic.8
+ 		cp newctime.3 newtzset.3 $(MANDIR)/man3/.
+-		cp tzfile.5 $(MANDIR)/man5/.
+-		cp tzselect.8 zdump.8 zic.8 $(MANDIR)/man8/.
+ 
+ INSTALL:	ALL install date.1
+ 		-mkdir $(TOPDIR) $(BINDIR)
+@@ -388,9 +390,9 @@
+ # You must replace all of $(TZDIR) to switch from not using leap seconds
+ # to using them, or vice versa.
+ other_two:	zic leapseconds $(TDATA)
+-		$(ZIC) -y $(YEARISTYPE) -d $(TZDIR)-posix -L /dev/null $(TDATA)
++		$(ZIC) -y $(YEARISTYPE) -d $(TZDIR)/posix -L /dev/null $(TDATA)
+ 		$(ZIC) -y $(YEARISTYPE) \
+-			-d $(TZDIR)-leaps -L leapseconds $(TDATA)
++			-d $(TZDIR)/right -L leapseconds $(TDATA)
+ 
+ posix_right:	posix_only other_two
+ 
+@@ -418,7 +420,7 @@
+ 			<$? >$@
+ 		chmod +x $@
+ 
+-check:		check_character_set check_tables check_web
++check:		check_character_set check_tables
+ 
+ check_character_set: $(ENCHILADA)
+ 		sharp='#'; ! grep -n $(INVALID_CHAR) $(ENCHILADA)

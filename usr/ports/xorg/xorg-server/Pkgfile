@@ -1,0 +1,37 @@
+# Description: X Window System server
+# URL: http://xorg.freedesktop.org
+# Maintainer: CRUX Xorg Team, xorg-ports at crux dot nu
+# Depends on: udev util-linux mesa3d xorg-bdftopcf xorg-bigreqsproto xorg-libdmx xorg-libpixman xorg-libxaw xorg-libxcomposite xorg-libxcursor xorg-libxft xorg-libxinerama xorg-libxkbfile xorg-libxrandr xorg-libxres xorg-libxtst xorg-libxvmc xorg-libxxf86dga xorg-mkfontdir xorg-mkfontscale xorg-scrnsaverproto xorg-xcmiscproto xorg-xf86driproto
+
+name=xorg-server
+version=1.14.1
+release=1
+source=(http://xorg.freedesktop.org/releases/individual/xserver/$name-$version.tar.bz2)
+
+build() {
+    cd $name-$version
+
+    ./configure --prefix=/usr \
+                --mandir=/usr/man \
+                --localstatedir=/var \
+                --with-fontrootdir=/usr/share/fonts/X11 \
+                --with-xkb-output=/var/lib/xkb \
+                --enable-dri \
+                --with-sha1=libcrypto \
+                --disable-config-dbus \
+		--with-builder-addr="doncuppjr@yahoo.com" \
+		--with-os-vendor="Thinstation" \
+		--with-vendor-name="ThinStation made by Don Cupp" \
+		--with-vendor-name-short="ThinStation" \
+		--with-vendor-web="http://www.thinstation.org" \
+		--with-os-name="ThinStation" \
+		--with-builderstring="Donald A. Cupp Jr."
+
+
+    make
+    make DESTDIR=$PKG install
+
+    rmdir $PKG/var/log
+
+    install -m 755 -d $PKG/etc/X11/xorg.conf.d
+}

@@ -1,28 +1,25 @@
 # Description: A library that provides a secure layer over a reliable transport layer
-# URL: http://www.gnu.org/software/gnutls/
+# URL: http://gnutls.org
 # Maintainer: Jose V Beneyto, sepen at crux dot nu
 # Packager: Matt Housh, jaeger at morpheus dot net
 # Depends on: nettle libidn
 
 name=gnutls
-version=2.12.21
+version=3.1.9
 release=1
-source=(http://ftp.gnu.org/pub/gnu/$name/$name-$version.tar.bz2)
+source=(ftp://ftp.gnutls.org/gcrypt/$name/v3.1/$name-$version.tar.xz)
 
 build() {
   cd $name-$version
 
-  ./configure --prefix=/usr \
-              --mandir=/usr/man \
-	      --disable-static \
-	      --disable-rpath \
-              --disable-guile \
-	      --disable-nls \
-	      --enable-pkcs11 \
-	      --enable-cryptodev \
-	      --with-libgcrypt \
-	      --disable-srp-authentication \
-	      --enable-openssl-compatibility
+  ./configure	--prefix=/usr \
+		--mandir=/usr/man \
+		--disable-static \
+		--disable-rpath \
+		--disable-guile \
+		--disable-nls \
+ 		--enable-cryptodev \
+		--enable-openssl-compatibility
 
   make
   make DESTDIR=$PKG install

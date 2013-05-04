@@ -4,11 +4,13 @@
 
 name=cpio
 version=2.11
-release=1
+release=2
 source=(http://ftp.gnu.org/gnu/$name/$name-$version.tar.bz2)
 
 build() {
     cd $name-$version
+    # fix for glibc 'gets' removal
+    sed -i -e '/gets is a/d' gnu/stdio.in.h
     ./configure --prefix=/usr \
                 --mandir=/usr/man \
                 --disable-nls

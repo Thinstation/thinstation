@@ -1,0 +1,19 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=libcrystalhd
+version=git
+release=1
+
+build() {
+	git clone --depth 1 git://linuxtv.org/jarod/crystalhd.git
+	cd crystalhd/linux_lib/libcrystalhd
+	make
+	make DESTDIR=$PKG install
+
+	cd ../..
+	mkdir -p $PKG/lib/firmware
+	cp firmware/fwbin/70012/* $PKG/lib/firmware/.
+	cp firmware/fwbin/70015/* $PKG/lib/firmware/.
+}

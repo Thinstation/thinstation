@@ -1,0 +1,66 @@
+# Description: SMB server and client for unix
+# URL:         http://www.samba.org
+# Maintainer:  Juergen Daubert, jue at crux dot nu
+# Depends on:  ncurses openssl readline zlib tdb talloc libcap acl
+
+name=samba
+version=3.6.13
+release=1
+source=(http://www.samba.org/samba/ftp/stable/$name-$version.tar.gz \
+        samba-config.patch samba)
+
+build () {
+    cd $name-$version/source3
+
+    patch -d .. -p1 -i $SRC/samba-config.patch
+
+    ./configure --prefix=/usr \
+                --localstatedir=/var \
+                --with-fhs \
+                --with-configdir=/etc \
+                --with-modulesdir=/usr/lib/samba \
+                --with-lockdir=/var/run/samba \
+                --with-piddir=/var/run/samba \
+                --with-nmbdsocketdir=/var/run/samba \
+                --with-mandir=/usr/man \
+                --with-logfilebase=/var/log/samba \
+                --disable-swat \
+                --disable-smbtorture4 \
+                --enable-cups \
+                --enable-iprint \
+                --enable-relro \
+                --enable-shared-libs \
+                --with-included-popt \
+                --enable-external-{libtb,libtalloc} \
+                --without-libtalloc \
+                --without-dmapi \
+                --without-dnsupdate \
+                --without-sys-quotas \
+                --without-utmp \
+                --without-cluster-support
+
+    make
+    make DESTDIR=$PKG install
+
+    # pkg-config files
+    install -d $PKG/usr/lib/pkgconfig
+    install pkgconfig/*.pc $PKG/usr/lib/pkgconfig
+
+    # nsswitch extensions
+    install -d $PKG/lib
+    install ../nsswitch/libnss_win{s,bind}.so $PKG/lib
+    ln -s libnss_wins.so $PKG/lib/libnss_wins.so.2
+    ln -s libnss_winbind.so $PKG/lib/libnss_winbind.so.2
+
+    # spool/log/lib directory
+    install -d $PKG/var/{lib,log}/samba
+    install -d -m 1777 $PKG/var/spool/samba
+
+    # config-file and start-script
+    install -m 600 ../examples/smb.conf.default $PKG/etc/samba
+    install -D -m 755  $SRC/samba $PKG/etc/rc.d/samba
+
+    # cleanup
+    rm -r $PKG/usr/share
+    rm $PKG/usr/man/man8/{swat.8,tdb*.8}
+}

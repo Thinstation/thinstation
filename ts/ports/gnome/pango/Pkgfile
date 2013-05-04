@@ -4,7 +4,7 @@
 # Depends on: cairo, glib, xorg-libsm, xorg-libxext, xorg-libxft
 
 name=pango
-version=1.30.1
+version=1.34.0
 release=2
 source=(http://download.gnome.org/sources/$name/${version%.*}/$name-$version.tar.xz \
 	pango.modules)
@@ -14,12 +14,13 @@ build () {
 
 	./configure --prefix=/usr \
 			--mandir=/usr/man \
-			--disable-introspection \
 			--disable-static \
 			--enable-shared \
+			--with-xft \
+			--with-included-modules=basic-fc
 
 	make
 	make DESTDIR=$PKG install
 	install -D -m 644 $SRC/pango.modules $PKG/usr/etc/pango/pango.modules
-	rm -r $PKG/usr/share
+	rm -r $PKG/usr/share/gtk-doc
 }

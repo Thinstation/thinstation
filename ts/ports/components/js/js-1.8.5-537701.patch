@@ -1,0 +1,39 @@
+diff -up js-1.8.5/js/src/jsval.h.pad-the-structs-and-asserts js-1.8.5/js/src/jsval.h
+--- js-1.8.5/js/src/jsval.h.pad-the-structs-and-asserts	2011-11-28 12:46:32.811556132 -0600
++++ js-1.8.5/js/src/jsval.h	2011-11-28 12:46:43.493448233 -0600
+@@ -343,11 +343,11 @@ typedef union jsval_layout
+         uint64             payload47 : 47;
+     } debugView;
+     struct {
++        uint32             padding;
+         union {
+             int32          i32;
+             uint32         u32;
+             JSWhyMagic     why;
+-            jsuword        word;
+         } payload;
+     } s;
+     double asDouble;
+diff -up js-1.8.5/js/src/jsvalue.h.pad-the-structs-and-asserts js-1.8.5/js/src/jsvalue.h
+--- js-1.8.5/js/src/jsvalue.h.pad-the-structs-and-asserts	2011-11-28 12:46:37.246509255 -0600
++++ js-1.8.5/js/src/jsvalue.h	2011-11-28 12:46:43.495448203 -0600
+@@ -291,7 +291,6 @@ JSVAL_EXTRACT_NON_DOUBLE_TAG_IMPL(jsval_
+ }
+ 
+ #ifdef __cplusplus
+-JS_STATIC_ASSERT(offsetof(jsval_layout, s.payload) == 0);
+ JS_STATIC_ASSERT((JSVAL_TYPE_NONFUNOBJ & 0xF) == JSVAL_TYPE_OBJECT);
+ JS_STATIC_ASSERT((JSVAL_TYPE_FUNOBJ & 0xF) == JSVAL_TYPE_OBJECT);
+ #endif
+@@ -729,7 +728,11 @@ class Value
+     }
+ 
+     const jsuword *payloadWord() const {
++#if JS_BITS_PER_WORD == 32
+         return &data.s.payload.word;
++#elif JS_BITS_PER_WORD == 64
++	return &data.asBits;
++#endif
+     }
+ 
+   private:

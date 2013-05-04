@@ -1,0 +1,24 @@
+# Description: Library for manipulating sound files.
+# URL: http://www.mega-nerd.com/libsndfile
+# Maintainer: Danny Rawlins, monster dot romster at gmail dot com
+# Packager: Jay Dolan, jdolan at jdolan dot dyndns dot org
+# Depends on: flac alsa-lib libvorbis
+
+name=libsndfile
+version=1.0.25
+release=1
+source=(http://www.mega-nerd.com/$name/files/$name-$version.tar.gz)
+
+build() {
+	cd $name-$version
+
+	./configure \
+		--prefix=/usr \
+		--mandir=/usr/man \
+		--disable-static
+
+	make
+	make DESTDIR=$PKG install
+	rm -r $PKG/usr/share/doc
+	rmdir $PKG/usr/share
+}

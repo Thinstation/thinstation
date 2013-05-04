@@ -1,0 +1,19 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=rtmpdump
+version=2.4
+release=git
+source=()
+
+build() {
+git clone --depth 1 git://git.ffmpeg.org/rtmpdump
+	cd $name
+
+	sed -i -e 's/\/usr\/local/\/usr/g' Makefile
+        sed -i -e 's/\/usr\/local/\/usr/g' librtmp/Makefile
+
+	make
+	make DESTDIR=$PKG install
+}

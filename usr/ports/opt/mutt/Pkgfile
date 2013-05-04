@@ -5,11 +5,14 @@
 
 name=mutt
 version=1.5.21
-release=1
-source=(ftp://ftp.mutt.org/mutt/devel/$name-$version.tar.gz)
+release=2
+source=(ftp://ftp.mutt.org/mutt/devel/$name-$version.tar.gz
+        $name-$version-0e4f1782ea2e.patch)
 
 build () {
     cd $name-$version
+
+    patch -p0 -i $SRC/$name-$version-0e4f1782ea2e.patch
 
     ./configure --prefix=/usr \
                 --mandir=/usr/man \

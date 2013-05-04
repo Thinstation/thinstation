@@ -4,13 +4,13 @@
 
 name=make
 version=3.82
-release=2
+release=3
 source=(ftp://ftp.gnu.org/gnu/$name/$name-$version.tar.bz2
-	savannah-bugs.patch)
+        $name-$version-bug_{30612,30653,30723}.patch)
 
 build() {
     cd $name-$version
-    patch -p0 -i ../savannah-bugs.patch
+    cat $SRC/$name-$version-*.patch | patch -p1
     ./configure --prefix=/usr --mandir=/usr/man --disable-nls
     make
     make DESTDIR=$PKG install

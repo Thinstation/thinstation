@@ -1,16 +1,19 @@
 # Description: Inetd daemon, FTP and telnet client
 # URL:         http://www.gnu.org/software/inetutils/inetutils.html
 # Maintainer:  CRUX System Team, core-ports at crux dot nu
-# Depends on:  readline ncurses
+# Depends on:  readline
 
 name=inetutils
-version=1.8
-release=1
+version=1.9.1
+release=2
 source=(http://ftp.gnu.org/gnu/inetutils/inetutils-$version.tar.gz \
         inetd.conf inetd)
 
 build() {
     cd inetutils-$version
+
+    # fix for glibc 'gets' removal
+    sed -i -e '/gets is a/d' lib/stdio.in.h
 
     ./configure --prefix=/usr \
                 --libexecdir=/usr/sbin \

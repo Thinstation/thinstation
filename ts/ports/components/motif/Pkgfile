@@ -1,0 +1,23 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=motif
+version=2.3.4
+release=1
+source=(http://downloads.sourceforge.net/project/motif/Motif%20$version%20Source%20Code/motif-$version-src.tgz)
+
+build() {
+	cd $name-$version
+
+	./autogen.sh
+
+	./configure --prefix=/usr \
+			--sysconfdir=/etc \
+			--mandir=/usr/man \
+			--disable-extras
+
+	make
+	make DESTDIR=$PKG install
+	rm -rf $PKG/usr/man
+}

@@ -1,0 +1,30 @@
+# Description: A minimal libc made for early-userspace
+# URL: http://www.kernel.org/pub/linux/libs/klibc
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=klibc
+version=2.0.2
+release=1
+kver=3.6.11
+source=(http://www.kernel.org/pub/linux/libs/klibc/2.0/$name-$version.tar.xz
+	ftp://ftp.kernel.org/pub/linux/kernel/v3.x/linux-$kver.tar.bz2)
+
+build() {
+        #Prepare Kernel Headers
+        kernel=$SRC/$name-$version/linux
+        ln -sf $SRC/linux-$kver $SRC/$name-$version/linux
+        chown root:root $kernel
+        cd $kernel
+        make distclean
+        make defconfig
+        make prepare
+        make modules_prepare
+        make headers_install
+
+	cp -Prfd $SRC/$name-$version/linux/arch/x86/include/generated/asm/* $SRC/$name-$version/linux/arch/x86/include/asm/.
+	cd $SRC/$name-$version
+
+	make CFLAGS="-O2 -march=i686 -pipe" CXXFLAGS="-O2 -march=i686 -pipe" EXTRA_KLIBCFLAGS=''
+	make INSTALLROOT=$PKG install
+	mv $PKG/usr/lib/klibc/bin/sh.shared $PKG/usr/lib/klibc/bin/sh
+}

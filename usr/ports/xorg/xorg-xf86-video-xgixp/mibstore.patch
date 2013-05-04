@@ -1,0 +1,23 @@
+diff -rupN xf86-video-xgixp-1.8.1-orig/src/xgi_driver.c xf86-video-xgixp-1.8.1/src/xgi_driver.c
+--- xf86-video-xgixp-1.8.1-orig/src/xgi_driver.c	2013-03-09 15:29:16.335583456 +0100
++++ xf86-video-xgixp-1.8.1/src/xgi_driver.c	2013-03-09 15:30:53.721913145 +0100
+@@ -53,8 +53,6 @@
+ 
+ /* initialise a SW cursor */
+ #include "mipointer.h"
+-/* implementing backing store */
+-#include "mibstore.h"
+ 
+ /* colormap initialization */
+ #include "micmap.h"
+@@ -2041,10 +2039,6 @@ pScrn->pScreen = pScreen;
+         xf86DrvMsg(pScrn->scrnIndex, X_ERROR, "FB Manager init failed \n");
+     }
+ 
+-    /* If backing store is to be supported (as is usually the case), initialise it. */
+-    miInitializeBackingStore(pScreen);
+-    XGIDebug(DBG_FUNCTION, "[DBG] Jong 06142006-After miInitializeBackingStore()\n");
+-
+     xf86SetBackingStore(pScreen);
+     XGIDebug(DBG_FUNCTION, "[DBG] Jong 06142006-After xf86SetBackingStore()\n");
+ 

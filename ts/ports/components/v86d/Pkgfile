@@ -1,0 +1,23 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+# Depends on: klibc-TS
+
+name=v86d
+version=0.1.10
+release=1
+source=(https://github.com/mjanusz/v86d/archive/master.zip
+	v86d.fake)
+
+build() {
+	cd ${name}-master
+
+	chmod +x configure
+	./configure --with-klibc
+
+	make
+	make DESTDIR=$PKG install
+
+	mv $PKG/sbin/v86d $PKG/sbin/v86d.real
+	install $SRC/v86d.fake $PKG/sbin/v86d
+}

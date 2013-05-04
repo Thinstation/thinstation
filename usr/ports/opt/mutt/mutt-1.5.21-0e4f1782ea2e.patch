@@ -1,0 +1,51 @@
+# http://dev.mutt.org/trac/changeset/0e4f1782ea2e
+
+Index: imap/message.c
+===================================================================
+--- imap/message.c	(revision 6121:6572e8bcd723)
++++ imap/message.c	(revision 6185:0e4f1782ea2e)
+@@ -66,5 +66,5 @@
+   FILE *fp;
+   char tempfile[_POSIX_PATH_MAX];
+-  int msgno, idx;
++  int msgno, idx = msgbegin - 1;
+   IMAP_HEADER h;
+   IMAP_STATUS* status;
+@@ -186,5 +186,5 @@
+         }
+ 
+-        idx = h.sid - 1;
++        idx++;
+         ctx->hdrs[idx] = imap_hcache_get (idata, h.data->uid);
+         if (ctx->hdrs[idx])
+@@ -212,4 +212,5 @@
+           imap_free_header_data((void**) (void*) &h.data);
+           evalhc = 0;
++          idx--;
+         }
+       }
+@@ -274,4 +275,5 @@
+         dprint (2, (debugfile, "msg_fetch_header: ignoring fetch response with no body\n"));
+         mfhrc = -1;
++        msgend--;
+         continue;
+       }
+@@ -280,5 +282,5 @@
+       fputs ("\n\n", fp);
+ 
+-      idx = h.sid - 1;
++      idx++;
+       if (idx > msgend)
+       {
+@@ -286,4 +288,5 @@
+                     "unknown message number %d\n", h.sid));
+         mfhrc = -1;
++        idx--;
+         continue;
+       }
+@@ -293,4 +296,5 @@
+ 	dprint (2, (debugfile, "imap_read_headers: message %d is not new\n",
+ 		    h.sid));
++        idx--;
+ 	continue;
+       }

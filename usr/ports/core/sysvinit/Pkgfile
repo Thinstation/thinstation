@@ -4,13 +4,22 @@
 
 name=sysvinit
 version=2.88
-release=1
+release=2
 source=(http://download.savannah.gnu.org/releases/$name/$name-${version}dsf.tar.bz2)
 
 build() {
     cd $name-${version}dsf
+
     make
     make ROOT=$PKG MANDIR=/usr/man install
+
+    # Provided by util-linux 
+    rm $PKG/{bin/mountpoint,usr/bin/utmpdump}
+    rm $PKG/usr/man/man1/{mountpoint,utmpdump}.1
+
+    # Provided by systemd
+    rm $PKG/usr/man/man8/{halt,poweroff,reboot,runlevel,shutdown,telinit}.8
+
     install -d $PKG/var/log
     touch $PKG/var/log/wtmp
     touch $PKG/var/log/btmp

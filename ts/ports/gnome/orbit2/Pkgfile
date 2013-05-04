@@ -8,13 +8,20 @@ name=orbit2
 version=2.14.19
 release=1
 source=(http://ftp.gnome.org/pub/GNOME/sources/ORBit2/2.14/ORBit2-$version.tar.bz2 \
-	$name-deprecated.patch)
+	ORBit2-2.14.3-ref-leaks.patch
+	ORBit2-allow-deprecated.patch
+	ORBit2-make-j-safety.patch)
 
 build() {
 	export MAKEFLAGS="$MAKEFLAGS -j1"
 	cd ORBit2-$version
-#	patch -i $SRC/$name-deprecated.patch configure
+
+	patch -p1 -i $SRC/ORBit2-2.14.3-ref-leaks.patch
+	patch -p1 -i $SRC/ORBit2-allow-deprecated.patch
+	patch -p1 -i $SRC/ORBit2-make-j-safety.patch
+
 	./configure --prefix=/usr \
+		--enable-purify \
 		--enable-debug=no \
 		--disable-gtk-doc \
 		--disable-static \

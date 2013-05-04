@@ -1,6 +1,7 @@
-# Maintainer: Till Biedermann, tillbiedermann at yahoo dot de
 # Description: Tools to configure and manipulate wlan devices
 # URL: http://www.hpl.hp.com/personal/Jean_Tourrilhes/Linux/Tools.html
+# Packager:Till Biedermann, tillbiedermann at yahoo dot de
+# Maintainer: Jose V Beneyto, sepen at crux dot nu
 # Depends on:
 
 name=wireless-tools
@@ -10,6 +11,11 @@ source=(http://www.hpl.hp.com/personal/Jean_Tourrilhes/Linux/${name/-/_}.$versio
 
 build() {
 	cd ${name/-/_}.$version
-	make && make PREFIX=$PKG/usr install
+
+	# fix compiler flags
+	sed "s|CFLAGS=|CFLAGS=$CFLAGS |" -i Makefile
+
+	make
+	make PREFIX=$PKG/usr install
 }
 

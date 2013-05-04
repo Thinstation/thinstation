@@ -1,0 +1,18 @@
+# Description: A library and frontend to manipulate partition tables
+# URL: http://www.gnu.org/software/parted/
+# Maintainer: Matt Housh, jaeger at morpheus dot net
+# Depends on: libdevmapper, readline, udev, util-linux
+
+name=parted
+version=3.1
+release=1
+source=(http://ftp.gnu.org/gnu/$name/$name-$version.tar.xz)
+
+build() {
+	cd $name-$version
+	./configure --prefix=/usr \
+		--mandir=/usr/man
+	make
+	make DESTDIR=$PKG install
+	rm -rf $PKG/usr/share
+}

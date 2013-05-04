@@ -1,6 +1,7 @@
 # Description: A suite of programs for recording CDs and DVDs
 # URL: http://cdrkit.org/
-# Maintainer: Antti Nykanen, aon at iki dot fi
+# Maintainer: Fredrik Rinnestam, fredrik at crux dot nu
+# Packager: Antti Nykanen, aon at iki dot fi
 # Depends on: file, cmake, libcap
 
 name=cdrkit
@@ -9,8 +10,8 @@ release=1
 source=(http://cdrkit.org/releases/cdrkit-$version.tar.gz)
 
 build () {
-	cd cdrkit-$version
-	sed -i 's:share/man:${MANSUBDIR}:' 3rd-party/dirsplit/CMakeLists.txt
-	cmake -Wno-dev -DCMAKE_INSTALL_PREFIX=$PKG/usr -DMANSUBDIR=man
+    cd cdrkit-$version
+    sed -i 's:share/man:${MANSUBDIR}:' 3rd-party/dirsplit/CMakeLists.txt
+    cmake -Wno-dev -DCMAKE_INSTALL_PREFIX=$PKG/usr -DMANSUBDIR=man
     make install
 }

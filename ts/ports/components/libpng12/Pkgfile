@@ -4,19 +4,20 @@
 # Depends on:  zlib
 
 name=libpng12
-pname=libpng
 version=1.2.46
 release=1
-source=(http://download.sourceforge.net/$pname/$pname-$version.tar.xz)
+source=(http://download.sourceforge.net/libpng/libpng-$version.tar.xz)
 
 build() {
-    cd $pname-$version
+    cd libpng-$version
 
-    ./configure --prefix=/usr --mandir=/usr/man
+    ./configure --prefix=/usr/local --mandir=/usr/local/man
 
 
     make
     make DESTDIR=$PKG install
-	mkdir -p $PKG/ts/components/$pname
-	mv $PKG/usr $PKG/ts/components/$pname
+    rm -rf $PKG/usr/local/{man,bin,include}
+    rm -rf $PKG/usr/local/lib/{pkgconfig,libpng.so}
+    find $PKG -name \*.la -delete
+    find $PKG -name \*.a -delete
 }

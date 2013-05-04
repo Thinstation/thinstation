@@ -1,0 +1,22 @@
+
+# Description: Free implementation of the .NET platform including runtime and compiler
+# URL: http://www.mono-project.com/
+# Maintainer: Tadeusz Sosnierz, tadzikes gmail com
+# Depends on: libgdiplus
+
+name=mono
+version=3.0.7
+release=1
+source=(http://download.mono-project.com/sources/mono-1.1.16/${name}-$version.tar.bz2
+	mdoc.patch)
+
+build() {
+    cd $name-$version
+    patch -p0 -i ../mdoc.patch
+    ./configure --prefix=/usr --mandir=/usr/man \
+                --sysconfdir=/etc \
+
+    make
+    make DESTDIR=$PKG install
+    rm -rf $PKG/usr/share/{doc,locale,libgc-mono}
+}

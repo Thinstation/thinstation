@@ -24,7 +24,12 @@ PATH=$PATH:/ts/bin:/sbin
 alias ls='ls --color'
 umask 022
 
-
+if [ -e /opt/jre/bin/java ]; then
+	PATH=$PATH:/opt/jre/bin
+fi
+if [ -e /opt/meld/bin/meld ]; then
+	alias meld="cd /opt/meld/bin;./meld $@"
+fi
 if [ -e /dostage2 ] ; then
 	/ts/bin/install_chroot
 fi

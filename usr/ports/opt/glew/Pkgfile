@@ -1,0 +1,24 @@
+# Description: The OpenGL Extension Wrangler Library.
+# URL: http://glew.sourceforge.net/
+# Maintainer: Danny Rawlins, monster dot romster at gmail dot com
+# Packager: Johannes Winkelmann, jw at smts dot ch
+# Depends on: mesa3d xorg-libxi xorg-libxmu
+
+name=glew
+version=1.9.0
+release=1
+source=(http://downloads.sourceforge.net/project/$name/$name/$version/$name-$version.tgz)
+
+build() {
+	cd $name-$version
+
+	sed -i -e "s|lib64|lib|" config/Makefile.linux
+
+	make \
+		CC="${CC:-gcc}" \
+		LD="${CC:-gcc}" \
+		CFLAGS.EXTRA="$CFLAGS" \
+		LDFLAGS.EXTRA="$LDFLAGS"
+
+	make GLEW_DEST="$PKG/usr" install
+}

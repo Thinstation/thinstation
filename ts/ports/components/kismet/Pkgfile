@@ -3,9 +3,9 @@
 # Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 
 name=kismet
-version=2011-03-R2
+version=2013-03-R1b
 release=1
-source=(http://www.kismetwireless.net/code/$name-$version.tar.gz)
+source=(http://www.kismetwireless.net/code/$name-$version.tar.xz)
 
 build() {
 	cd $name-$version
@@ -15,10 +15,10 @@ build() {
 
 	make
 	make DESTDIR=$PKG install
-	cd plugin-autowep
+	cd restricted-plugin-autowep
         KIS_SRC_DIR=../ make
 	KIS_SRC_DIR=../ make DESTDIR=$PKG install
-	cd ../plugin-ptw
+	cd ../restricted-plugin-ptw
         KIS_SRC_DIR=../ make
 	KIS_SRC_DIR=../ make DESTDIR=$PKG install
 }
