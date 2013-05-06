@@ -1,4 +1,5 @@
 #!/bin/bash
+#set -x
 LANG=C
 INITDIR=boot-images/initrd
 PKGDIR=boot-images/pkg-packages
@@ -101,7 +102,7 @@ lib_dependencies()
   fi
   for pkgname in `echo "./tmp-tree" && find $PKGDIR -mindepth 1 -maxdepth 1`; do
     find $pkgname -type f > filelist
-    file -e encoding -e tokens -e compress -e ascii -e apptype -e tar -e cdf -m utils/tools/elf.mgc -f filelist -n -r |grep -e ELF |cut -d: -f1 > liblist.final 2>/dev/null
+    file -e encoding -e tokens -e compress -e ascii -e apptype -e tar -e cdf -f filelist -n -r |grep -e ELF |cut -d: -f1 > liblist.final 2>/dev/null
     rm filelist
     while [ -s liblist.final ]; do
       (cat liblist.final ) |
@@ -146,8 +147,8 @@ do
     do
 	mod=`basename $modpath`
 	if [ ! -e "./tmp-tree/lib/modules/$KERNVER/$mod" ] ; then
-    	    if [ -e "./kernel/modules-$KERNVER/$modpath" ] ; then
-		cp "./kernel/modules-$KERNVER/$modpath" ./tmp-tree/lib/modules/$KERNVER/$mod
+    	    if [ -e "/lib/modules/$KERNVER/$modpath" ] ; then
+		cp "/lib/modules/$KERNVER/$modpath" ./tmp-tree/lib/modules/$KERNVER/$mod
 		echo "Including $mod as a dependency of $modname"
 	    elif [ -e "./tmp-tree/lib/modules/$KERNVER/$mod" ] ; then
 		echo "already there" >/dev/null
@@ -280,7 +281,6 @@ package_dependencies ()
 {
 
  ls $PACDIR/*.$1 > packages.final 2>/dev/null
-
  cp packages.final packages.list
 
  while [ -s packages.final ]; do
@@ -289,7 +289,7 @@ package_dependencies ()
   do
     package=`basename $filename .$1`
     if [ -s packages/$package/dependencies ] ; then
-      (cat packages/$package/dependencies |grep -r -v ^#) |
+      (cat packages/$package/dependencies |grep -v ^#) |
       while read name cross
       do
        	if [ "$1" = "package" ] || [ "$name" = "base" ] ; then
@@ -719,9 +719,9 @@ do
 		name=`cat ./kernel/alias/$name`
 	fi
 	for KERNVER in $KERNVERS; do
-        if [ -e `find ./kernel/modules-$KERNVER/ -follow -name "$name.ko"` ] ; then
+        if [ -e `find /lib/modules/$KERNVER/kernel -follow -name "$name.ko"` ] ; then
 			echo "Module $KERNVER: $name"
-			cp `find ./kernel/modules-$KERNVER/ -follow -name "$name.ko"` ./tmp-tree/lib/modules/$KERNVER/"$name".ko
+			cp `find /lib/modules/$KERNVER/kernel -follow -name "$name.ko"` ./tmp-tree/lib/modules/$KERNVER/"$name".ko
 		else
 			echo "Error, Module $name not found"
 		fi
@@ -737,14 +737,11 @@ do
 		name=`cat ./kernel/alias/$name`
 	fi
 	for KERNVER in $KERNVERS; do
-        if [ -e `find ./kernel/modules/ -follow -name "$name.ko"` ] ; then
+        if [ -e `find /lib/modules/$KERNVER/ -follow -name "$name.ko"` ] ; then
 		echo "Module Pkg: $name"
-		mkdir $MODDIR/$name
-		mkdir $MODDIR/$name/lib
-		mkdir $MODDIR/$name/lib/modules
-		mkdir $MODDIR/$name/lib/modules/$KERNVER
+		mkdir -p $MODDIR/$name/lib/modules/$KERNVER
 		mkdir $MODDIR/$name/etc
-		cp `find ./kernel/modules-KERNVER/ -follow -name "$name.ko"` $MODDIR/$name/lib/modules/$KERNVER
+		cp `find /lib/modules/$KERNVER/ -follow -name "$name.ko"` $MODDIR/$name/lib/modules/$KERNVER
 	else
 		echo "Error, Module $name not found"
 	fi
@@ -804,7 +801,7 @@ if [ -e ./ALLMODULES ]; then
 	ALLMODULES=true
 fi
 if [ "$ALLMODULES" == "true" ] ; then
-    for line in `find -L ./kernel/modules-$KERNVER -name *.ko -print`
+    for line in `find -L /lib/modules/$KERNVER -name *.ko -print`
     do
 	modname=`basename $line`
 	cp $line ./tmp-tree/lib/modules/$KERNVER/$modname
@@ -819,7 +816,7 @@ read_conf
 # Check if kernel exists
 for KERNVER in $KERNVERS; do
 
-if [ ! -e ./kernel/vmlinuz-$KERNVER ] ; then
+if [ ! -e /boot/vmlinuz-$KERNVER ] ; then
 	echo -e "\nError Kernel $KERNVER not found!!!"
 	remove_files
 	exit 0
@@ -1128,7 +1125,7 @@ echo -e "\nBuilding dependencies for $KERNVER Modules...\n"
 
 if [ "$ALLMODULES" != "true" ] ; then
 
-$TOOLSDIR/depmod -b ./kernel -e -F kernel/System.map-$KERNVER -n $KERNVER > ./modules.dep
+depmod -e -F /boot/System.map-$KERNVER -n $KERNVER > ./modules.dep
 
 cat ./modules.dep | sed '/^[	 ]*$/d' | sed '/[\]/ N;s/[\]\n//g' \
 	| sed '/[\]/ N;s/[\]\n//g'  > ./modules.tmp
@@ -1151,12 +1148,12 @@ do
 	  if [ ! -e ./tmp-tree/lib/modules/$KERNVER/$name.ko ] && [ ! -e $pkgname/lib/modules/$KERNVER/$name.ko ]  ; then
             if [ -e ./tmp-tree/lib/modules/$KERNVER/$module.ko ] ; then
 	      echo "Module : $name"
-	      cp `find ./kernel/modules-$KERNVER/ -follow -name "$name.ko"` ./tmp-tree/lib/modules/$KERNVER
+	      cp `find /lib/modules/$KERNVER/kernel -follow -name "$name.ko"` ./tmp-tree/lib/modules/$KERNVER
 #	      echo $name >> ./tmp-tree/etc/modules
 	      echo "$name.ko" >> ./tmp-tree/modules.final
 	    elif [ -e $pkgname/lib/modules/$KERNVER/$module.ko ] ; then
               echo "Module-pkg $name"
-	      cp `find ./kernel/modules-$KERNVER/ -follow -name "$name.ko"` $pkgname/lib/modules/$KERNVER
+	      cp `find /lib/modules/$KERNVER/kernel -follow -name "$name.ko"` $pkgname/lib/modules/$KERNVER
 	      echo $name >> $pkgname/etc/`basename $pkgname`.modules
 	      echo "$name.ko" >> $pkgname/modules.final
             fi
@@ -1182,7 +1179,7 @@ do
 	  if [ -e $PACDIR/$name.package ] ; then
             if [ ! -e ./tmp-tree/lib/modules/$KERNVER/$module.ko ] ; then
 	      echo "Package : $name   Module: $module"
-	      if ! cp `find ./kernel/modules-$KERNVER/ -follow -name "$module.ko"` ./tmp-tree/lib/modules/$KERNVER ; then
+	      if ! cp `find /lib/modules/$KERNVER/kernel -follow -name "$module.ko"` ./tmp-tree/lib/modules/$KERNVER ; then
 		echo "Could not find $KERNVER module $module"
 	      fi
 	      echo "$module.ko" >> ./tmp-tree/modules.final
@@ -1193,7 +1190,7 @@ do
 	      if [ ! -e $PKGDIR/$name/lib/modules/$KERNVER ] ; then
 	              mkdir -p $PKGDIR/$name/lib/modules/$KERNVER
 	      fi
-	      cp `find ./kernel/modules-$KERNVER/ -follow -name "$module.ko"` $PKGDIR/$name/lib/modules/$KERNVER
+	      cp `find /lib/modules/$KERNVER/kernel -follow -name "$module.ko"` $PKGDIR/$name/lib/modules/$KERNVER
 	      echo "$module.ko" >> $PKGDIR/$name/modules.final
             fi
           fi
@@ -1213,7 +1210,8 @@ rm ./modules.dep
 fi
 
 #Run depmod on modules included to generate modules.* files
-./utils/tools/depmod -b ./tmp-tree $KERNVER
+cp /lib/modules/$KERNVER/modules.* ./tmp-tree/lib/modules/$KERNVER/.
+depmod -b ./tmp-tree $KERNVER
 done
 
 # Add user defined defaults
@@ -1377,7 +1375,7 @@ if [ -e ./tmp-tree/lib/gconv ] ; then
 	for i in `ls ./tmp-tree/lib/gconv --color=never |cut -d . -f1`;
 		 do cat /usr/lib/gconv/gconv-modules|grep -e "$i" >>./tmp-tree/lib/gconv/gconv-modules
 		 done
-        cp -H utils/tools/iconvconfig ./tmp-tree/bin/.
+        cp -H /usr/sbin/iconvconfig ./tmp-tree/bin/.
         chroot ./tmp-tree /bin/iconvconfig
         rm ./tmp-tree/bin/iconvconfig
 	find ./tmp-tree -name .gitignore |xargs rm
@@ -1434,7 +1432,7 @@ if [ -e ./tmp-tree/finalize ]; then
   rm -rf ./tmp-tree/finalize
   #Run depmod one last time, in case a finalize script removed a module
   for KERNVER in $KERNVERS; do
-	./utils/tools/depmod -b ./tmp-tree $KERNVER
+depmod -b ./tmp-tree $KERNVER
   done
 fi
 }
@@ -1469,7 +1467,7 @@ if [ -n "$missing_commands" ]; then
     exit 1
 fi
 
-required_tools="convert cryptmd5 depmod genisoimage mksquashfs smbpasswd splash vncpasswd"
+required_tools="convert cryptmd5 genisoimage mksquashfs smbpasswd splash vncpasswd"
 for tool in $required_tools ; do
     if [ ! -x "$TOOLSDIR/$tool" ]; then missing_tools="$missing_tools $TOOLSDIR/$tool"; fi
 done
@@ -1546,7 +1544,7 @@ else
 fi
 
 if [ -z "$KERNVEROPT" ]; then
-  KERNVEROPT=`cat utils/KERNEL_VERSION`
+  KERNVEROPT=`cat /boot/KERNEL_VERSION`
 fi
 
 for KERNVER in $KERNVEROPT; do
@@ -1558,34 +1556,35 @@ fi
 if [ -e ./SMP ]; then
 	KERNVER=SMP
 fi
-KERNVER_SHORT=`cat utils/KERNEL_VERSION |sed -e 's/TS/TS_'$KERNVER'/g'`
+KERNVER_SHORT=`cat /boot/KERNEL_VERSION |sed -e 's/TS/TS_'$KERNVER'/g'`
 if [ -n "$KERNVER" ]; then
-    if [ ! -e ./kernel/modules-$KERNVER ] && [ ! -e ./kernel/modules-$KERNVER_SHORT ]; then
+    if [ ! -e /lib/modules/$KERNVER ] && [ ! -e /lib/modules/$KERNVER_SHORT ]; then
 	echo "Kernel $KERNVER doesn't exist, ERROR!!"
 	remove_files
 	exit 1
     fi
-    if [ -e ./kernel/modules-$KERNVER_SHORT ]; then
+    if [ -e /lib/modules/$KERNVER_SHORT ]; then
 	KERNVER=$KERNVER_SHORT
     fi
 else
-    KERNVER=`cat utils/KERNEL_VERSION`
+    KERNVER=`cat /boot/KERNEL_VERSION`
 fi
 echo "Using the $KERNVER Kernel"
 KERNVERS="$KERNVERS $KERNVER"
 
 # Setup symlinks for selected kernel
-for i in lib/modules $KERNVER
-	do
-		if [ -e ./kernel/$i ] ;
-			then
-				rm ./kernel/$i
-		fi
-	done
-ln -s .. ./kernel/lib/modules
-ln -s modules-$KERNVER ./kernel/$KERNVER
-rm ./packages/base/lib/modules/* > /dev/null 2>&1
-depmod -b ./kernel $KERNVER
+#for i in /lib/modules/$KERNVER
+#	do
+#		if [ -e ./kernel/$i ] ;
+#			then
+#				rm ./kernel/$i
+#		fi
+#	done
+#ln -s .. ./kernel/lib/modules
+#ln -s modules-$KERNVER ./kernel/$KERNVER
+#rm ./packages/base/lib/modules/* > /dev/null 2>&1
+#depmod -b /lib/modules/$KERNVER
+depmod $KERNVER
 done
 
 # Removal all commerical packages then exit
@@ -1695,8 +1694,8 @@ cd boot-images/initrd
 rm -f vmlinuz*
 md5sum initrd > image.md5
 for KERNVER in $KERNVERS; do
-if [ ! -e ./vmlinuz$k ]; then
-	ln -sf ../../kernel/vmlinuz-$KERNVER ./vmlinuz$k
+if [ ! -e /boot/vmlinuz$k ]; then
+	ln -sf /boot/vmlinuz-$KERNVER ./vmlinuz$k
 fi
 md5sum vmlinuz$k >> image.md5
 let k=k+1
@@ -1834,7 +1833,7 @@ if [ -n "$MODFILES" ] ; then
 	echo "MOD_PACKAGES=\"$MODFILES\""
 fi
 for KERNVER in $KERNVERS; do
-	echo "Kernel $KERNVER size is `du -L --apparent-size -BK kernel/vmlinuz-$KERNVER |cut -f1`"
+	echo "Kernel $KERNVER size is `du -L --apparent-size -BK /boot/vmlinuz-$KERNVER |cut -f1`"
 done
 	echo "Initrd size is `du --apparent-size -BK boot-images/initrd/initrd |cut -f1`"
 	if [ "$ts_fastboot" == "true" ] || [ "$ts_fastboot" == "lotsofmem" ] ; then

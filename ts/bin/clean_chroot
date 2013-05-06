@@ -48,7 +48,6 @@ stage1()
 		$TSWRKNG/boot-images/pxe/pxelinux.cfg \
 		$TSWRKNG/boot-images/pxe/{module.list,vbe_modes.list,firmware.list} \
 		$TSWRKNG/{thinstation.conf.sample,background-1024x768.jpg} \
-		$TSWRKNG/utils/KERNEL_VERSION \
 		$TSWRKNG/boot-images/syslinux/syslinux.cfg ; do
 			if [ -e $i ];
 				then rm -rf $i
@@ -94,8 +93,8 @@ stage1()
 					fi
 			fi
 		done
-	echo -e "\tCleaning kernel files"
-	update -c -k
+#	echo -e "\tCleaning kernel files"
+#	update -c -k
 	echo -e "\tCleaning tools"
 	update -c -t
 	echo -e "\tCleaning boot-images"
@@ -131,7 +130,7 @@ stage1()
 
 stage2()
 {
-	for i in www share home usr/libexec usr/ROX usr/var man bin boot dev etc lib mnt opt proc root sbin sys tmp var ts/components usr/{swat,private,bin,etc,include,lib,man,sbin,share,src,local} ;
+	for i in run www share home usr/libexec usr/ROX usr/var man bin boot dev etc lib mnt opt proc root sbin sys tmp var ts/components usr/{swat,private,bin,etc,include,lib,man,sbin,share,src,local,GNUstep,www} ;
 		do
 			if [ -e $i ] ;
 				then
