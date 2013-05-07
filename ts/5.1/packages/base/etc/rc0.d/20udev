@@ -13,16 +13,16 @@ fi
 echo > /proc/sys/kernel/hotplug
 
 # launch udev daemon
-test -z "$(/bin/pidof -s udevd)" && /sbin/udevd --daemon
+test -z "$(/bin/pidof -s systemd-udevd)" && /lib/systemd/systemd-udevd --daemon
 
 # coldplug devices and wait for the queue to be processed
-/sbin/udevadm trigger --type=subsystems --action=add
-/sbin/udevadm trigger --type=devices --action=add
+/bin/udevadm trigger --type=subsystems --action=add
+/bin/udevadm trigger --type=devices --action=add
 
 if is_enabled $UDEV_NO_WAIT ; then
 	continue
 else
-	/sbin/udevadm settle
+	/bin/udevadm settle
 fi
 rm /tmp/init
 
