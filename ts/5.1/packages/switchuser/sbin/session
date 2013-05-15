@@ -1,7 +1,6 @@
 #!/bin/sh
 trap "" INT QUIT TSTP
 . /etc/thinstation.global
-#. /etc/splash.functions
 
 if [ "$TERM" != "xinit" ]; then
 	exit 0
@@ -26,8 +25,6 @@ if [ "$1" = "open" ]; then
 		cp -a /etc/skel/$file $HOME/. 2>/dev/null
 	done
 	chown -R $TSUSER.$TSUSER $HOME
-#	clear
-#	splash_exit
 fi
 
 if [ "$1" = "close" ] && [ -z "`pidof shutdown`" ]; then

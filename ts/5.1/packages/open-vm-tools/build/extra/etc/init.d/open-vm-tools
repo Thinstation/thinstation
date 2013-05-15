@@ -65,6 +65,8 @@ case "${1}" in
 #		echo_log "Mounting vmblock device filesystem"
 #		echo_log "vmblock"; modprobe vmblock
 		mkdir -m 1777 /tmp/VMwareDnD
+		mkdir -p /var/run/vmblock-fuse
+		vmware-vmblock-fuse -o subtype=vmware-vmblock,default_permissions,allow_other /var/run/vmblock-fuse
 #		mount -t vmblock none /proc/fs/vmblock/mountPoint
 
 		echo_log "Loading open-vm-tools modules"

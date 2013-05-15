@@ -259,7 +259,7 @@ make_initrd()
 		done
 	fi
 	if [ "$ts_initrdcmd" == "squashfs" ]; then
-		../utils/tools/mksquashfs . ../$INITDIR/initrd $ts_squashopt -always-use-fragments -no-recovery -no-exports -no-xattrs -noappend
+		mksquashfs . ../$INITDIR/initrd $ts_squashopt -always-use-fragments -no-recovery -no-exports -no-xattrs -noappend
 	elif [ "$ts_initrdcmd" == "none" -o "$ts_initrdcmd" == "" ]; then
 		find . -print0 | cpio --null -oV --format=newc > ../$INITDIR/initrd
 	else find . -print0 | cpio --null -oV --format=newc | $ts_initrdcmd > ../$INITDIR/initrd
@@ -790,7 +790,7 @@ if [ -e ./tmp-tree ]; then
 	rmdir ./tmp-tree
 fi
 #mkdir ./tmp-tree
-$TOOLSDIR/unsquashfs -d ./tmp-tree $INITDIR/initrd.devices > /dev/null
+unsquashfs -d ./tmp-tree $INITDIR/initrd.devices > /dev/null
 mkdir ./tmp-tree/lib/modules
 mkdir ./tmp-tree/packages
 mkdir $MODDIR
@@ -975,7 +975,7 @@ if [  -e $PACDIR/rootpasswd.param ]; then
     if [ "$ts_rootpasswd" == "!!" ]; then
         GETPASSWD="!!"
     else
-        GETPASSWD=`$TOOLSDIR/cryptmd5 $ts_rootpasswd`
+        GETPASSWD=`cryptmd5 $ts_rootpasswd`
     fi
     cp ./tmp-tree/etc/passwd ./tmp-tree/etc/passwd.tmp
     echo "root:$GETPASSWD:0:0:root:/root:/bin/sh" >./tmp-tree/etc/passwd
@@ -984,7 +984,7 @@ if [  -e $PACDIR/rootpasswd.param ]; then
 fi
 
 if [ -e $PACDIR/xorgvncpasswd.param ]; then
-    echo $ts_xorgvncpasswd |$TOOLSDIR/vncpasswd -f >./tmp-tree/etc/.vncpasswd
+    echo $ts_xorgvncpasswd |vncpasswd -f >./tmp-tree/etc/.vncpasswd
 fi
 
 if [ -e $PACDIR/storagepasswd.param ]; then
@@ -998,10 +998,9 @@ fi
 
 
 if [ -e $PACDIR/sambapasswd.param ] && [ -e $PACDIR/samba-base.* ] ; then
-    echo $ts_sambapasswd > $TOOLSDIR/smbpass
-    echo $ts_sambapasswd >> $TOOLSDIR/smbpass
-    $TOOLSDIR/smbpasswd -L -c $TOOLSDIR/smb.conf -a root -s < $TOOLSDIR/smbpass > /dev/null 2>&1
-#    strace $TOOLSDIR/smbpasswd -L -c $TOOLSDIR/smb.conf -a root -s < $TOOLSDIR/smbpass > ./exp 2>&1
+    echo $ts_sambapasswd > $TOOLSDIR\smbpass
+    echo $ts_sambapasswd >> $TOOLSDIR\smbpass
+    smbpasswd -L -c $TOOLSDIR/smb.conf -a root -s < $TOOLSDIR/smbpass > /dev/null 2>&1
     mv $TOOLSDIR/smbpassword ./tmp-tree/lib/smbpassword.ro
     mv $TOOLSDIR/secrets.tdb ./tmp-tree/lib/secrets.tdb.ro
     rm $TOOLSDIR/smbpass
@@ -1376,7 +1375,7 @@ if [ -e ./tmp-tree/lib/gconv ] ; then
 	for i in `ls ./tmp-tree/lib/gconv --color=never |cut -d . -f1`;
 		 do cat /usr/lib/gconv/gconv-modules|grep -e "$i" >>./tmp-tree/lib/gconv/gconv-modules
 		 done
-        cp -H /usr/sbin/iconvconfig ./tmp-tree/bin/.
+        cp -H `which iconvconfig` ./tmp-tree/bin/.
         chroot ./tmp-tree /bin/iconvconfig
         rm ./tmp-tree/bin/iconvconfig
 	find ./tmp-tree -name .gitignore |xargs rm
@@ -1398,19 +1397,19 @@ else
         done
 	if [ -e ./tmp-tree/lib/gdk-pixbuf-2.0/2.10.0/loaders ] ; then
 	echo -e "\tCaching pixbuf loaders"
-		cp -H utils/tools/gdk-pixbuf-query-loaders ./tmp-tree/bin/.
+		cp -H `which gdk-pixbuf-query-loaders` ./tmp-tree/bin/.
 		chroot ./tmp-tree /bin/gdk-pixbuf-query-loaders >./tmp-tree/lib/gdk-pixbuf-2.0/2.10.0/loaders.cache
 		rm ./tmp-tree/bin/gdk-pixbuf-query-loaders
 	fi
 	if [ -d ./tmp-tree/lib/pango ] ;then
 	echo -e "\tCaching pango modules"
-		cp -H utils/tools/pango-querymodules ./tmp-tree/bin/.
+		cp -H `which pango-querymodules` ./tmp-tree/bin/.
 		chroot ./tmp-tree /bin/pango-querymodules >./tmp-tree/etc/pango/pango.modules
 		rm ./tmp-tree/bin/pango-querymodules
 	fi
 	if [ -e ./tmp-tree/lib/glib-2.0/schemas ]; then
 	echo -e "\tCompiling Schemas"
-		cp -H utils/tools/glib-compile-schemas ./tmp-tree/bin/.
+		cp -H `which glib-compile-schemas` ./tmp-tree/bin/.
 		chroot ./tmp-tree /bin/glib-compile-schemas /lib/glib-2.0/schemas 2>/dev/null
 		rm ./tmp-tree/bin/glib-compile-schemas
 		gio-querymodules ./tmp-tree/lib/gio/modules
@@ -1468,15 +1467,16 @@ if [ -n "$missing_commands" ]; then
     exit 1
 fi
 
-required_tools="convert cryptmd5 genisoimage mksquashfs smbpasswd splash vncpasswd"
+required_tools="genisoimage mksquashfs unsquashfs gdk-pixbuf-query-loaders pango-querymodules glib-compile-schemas gio-querymodules rsvg-convert convert cryptmd5 vncpasswd smbpasswd"
 for tool in $required_tools ; do
-    if [ ! -x "$TOOLSDIR/$tool" ]; then missing_tools="$missing_tools $TOOLSDIR/$tool"; fi
+    if [ ! `which $tool` ]; then missing_tools="$missing_tools $tool"; fi
 done
 if [ -n "$missing_tools" ]; then
     echo "FAIL"
     echo "Your Thinstation installation is broken; the following needed tools"
     echo "are missing:$missing_tools"
     echo "This build system requires them; aborting build"
+    echo "Are you inside the chroot environment?"
     exit 1
 fi
 echo "OK"
@@ -1654,7 +1654,7 @@ else
 //g' ../"$BUILDTIME" >> ../tmp-tree/thinstation.buildtime
 		. ../$INITDIR/kernel_parameters
 		if [ "$ts_initrdcmd" == "squashfs" ]; then
-		    ../utils/tools/mksquashfs . ../$INITDIR/initrd $ts_squashopt -always-use-fragments -no-recovery -no-exports -no-xattrs
+		    mksquashfs . ../$INITDIR/initrd $ts_squashopt -always-use-fragments -no-recovery -no-exports -no-xattrs
 		elif [ "$ts_initrdcmd" == "none" -o "$ts_initrdcmd" == "" ]; then
 			find . -print0 | cpio --null -oV --format=newc > ../$INITDIR/initrd
 		else
@@ -1798,7 +1798,7 @@ if [ -z "$NOIMAGES" ] ; then
     fi
     addpkgs $IMAGEDIR/source
 
-    $TOOLSDIR/genisoimage -o $IMAGEDIR/thinstation.iso \
+    genisoimage -o $IMAGEDIR/thinstation.iso \
         -b isolinux.bin\
 	-f \
 	-quiet \

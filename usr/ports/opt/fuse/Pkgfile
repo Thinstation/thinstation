@@ -1,0 +1,17 @@
+# Description: Interface for userspace filesystems
+# URL:         http://fuse.sourceforge.net/
+# Maintainer:  Juergen Daubert, jue at crux dot nu
+# Packager:    Jukka Heino, jukka dot heino at gmail dot com
+
+name=fuse
+version=2.9.2
+release=1
+source=(http://downloads.sourceforge.net/project/$name/$name-2.X/$version/$name-$version.tar.gz)
+
+build() {
+    cd $name-$version
+    ./configure --prefix=/usr --mandir=/usr/man
+    make
+    make DESTDIR=$PKG install
+    rm -r $PKG/{dev,etc}
+}
