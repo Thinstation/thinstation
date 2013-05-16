@@ -118,9 +118,13 @@ updatefiles()
 		lfile="`prt-get cat $srcpkg .footprint |grep -e /${prefix}[0-9] |grep -e $suffix$ |grep -v 'lrwx\|drwx' -m 1 |cut -f3`"
 		ffile=${lfile##*/}
 	else
-		slink=${link[0]##*/}
-		ffile="`prt-get fsearch $slink |grep -e $srcpkg: -A 1 |grep -e '>' |cut -d ' ' -f 5`"
-		lfile="`prt-get cat $srcpkg .footprint |grep -e /$ffile$ |grep -v 'lrwx\|drwx' |cut -f 3`"
+			slink=${link[0]##*/}
+			if [ -n "$slink" ];then
+				ffile="`prt-get fsearch $slink |grep -e $srcpkg: -A 1 |grep -e '>' |cut -d ' ' -f 5`"
+				lfile="`prt-get cat $srcpkg .footprint |grep -e /$ffile$ |grep -v 'lrwx\|drwx' |cut -f 3`"
+			else
+				echo "Error processing $file"
+			fi
 	fi
 	transdepthvar=$loc
 	count_files
@@ -131,13 +135,17 @@ updatefiles()
 		lfile="`prt-get cat $srcpkg .footprint |grep -e $sloc$ffile$ |grep -v 'lrwx\|drwx' |cut -f 3`"
 		count_files
 	done
-	if [ "$loc" == "" ] ; then
-		cmdlist="${cmdlist}cp /$lfile $DEST/.\n"
-	elif	[ ! -d $DEST/$loc ] || [ "$DRYRUN" == "1" ] ; then
-		cmdlist="${cmdlist}mkdir -p $DEST/$loc\n"
-		cmdlist="${cmdlist}cp /$lfile $DEST/$loc/.\n"
+	if [ -n "$lfile" ]; then
+		if [ "$loc" == "" ] ; then
+			cmdlist="${cmdlist}cp /$lfile $DEST/.\n"
+		elif	[ ! -d $DEST/$loc ] || [ "$DRYRUN" == "1" ] ; then
+			cmdlist="${cmdlist}mkdir -p $DEST/$loc\n"
+			cmdlist="${cmdlist}cp /$lfile $DEST/$loc/.\n"
+		else
+			cmdlist="${cmdlist}cp /$lfile $DEST/$loc/.\n"
+		fi
 	else
-		cmdlist="${cmdlist}cp /$lfile $DEST/$loc/.\n"
+		echo "Error processing $file"
 	fi
 }
 

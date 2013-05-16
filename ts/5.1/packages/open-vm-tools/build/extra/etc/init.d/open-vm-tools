@@ -62,26 +62,28 @@ case "${1}" in
 		# Check if we're running inside VMWare
 		exit_if_not_in_vm
 
-		echo_log "Mounting vmblock device filesystem"
-		echo_log "vmblock"; modprobe vmblock
+#		echo_log "Mounting vmblock device filesystem"
+#		echo_log "vmblock"; modprobe vmblock
 		mkdir -m 1777 /tmp/VMwareDnD
-		mount -t vmblock none /proc/fs/vmblock/mountPoint
+		mkdir -p /var/run/vmblock-fuse
+		vmware-vmblock-fuse -o subtype=vmware-vmblock,default_permissions,allow_other /var/run/vmblock-fuse
+#		mount -t vmblock none /proc/fs/vmblock/mountPoint
 
 		echo_log "Loading open-vm-tools modules"
 		echo_log "vmhgfs"; modprobe vmhgfs
 #		echo_log "vmmemctl"; modprobe vmmemctl
-		echo_log "vmsync"; modprobe vmsync
+#		echo_log "vmsync"; modprobe vmsync
 		echo_log "vmci"; modprobe vmci
 		echo_log "vsock"; modprobe vsock
 
-		if vmxnet_found && vmxnet_needed
-		then
-			if [ -e /etc/udev/scripts/net.sh ]; then
-				. /etc/udev/scripts/net.sh ACTION=remove
-			fi
-			modprobe -r pcnet32
-			modprobe vmxnet
-		fi
+#		if vmxnet_found && vmxnet_needed
+#		then
+#			if [ -e /etc/udev/scripts/net.sh ]; then
+#				. /etc/udev/scripts/net.sh ACTION=remove
+#			fi
+#			modprobe -r pcnet32
+#			modprobe vmxnet
+#		fi
 
 		echo_log "Starting open-vm guest daemon - vmware-guestd"
 		vmtoolsd --background /var/run/vmtoolsd.pid
@@ -118,10 +120,10 @@ case "${1}" in
 		echo_log "Removing open-vm-tools modules"
 		echo_log "vsock"; modprobe -r vsock
 		echo_log "vmci"; modprobe -r vmci
-		echo_log "vmsync"; modprobe -r vmsync
-		echo_log "vmmemctl"; modprobe -r vmmemctl
+#		echo_log "vmsync"; modprobe -r vmsync
+#		echo_log "vmmemctl"; modprobe -r vmmemctl
 		echo_log "vmhgfs"; modprobe -r vmhgfs
-		echo_log "vmblock"; modprobe -r vmblock
+#		echo_log "vmblock"; modprobe -r vmblock
 		;;
 
 	force-reload|restart)

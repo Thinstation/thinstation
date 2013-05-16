@@ -1,0 +1,22 @@
+#!/bin/sh
+
+export PACKAGE=polkit
+export PORTS="$PACKAGE js"
+export CREATE_EMPTY_DIRS="
+var/lib/polkit-1/localauthority/50-local.d
+var/lib/polkit-1/localauthority/90-mandatory.d
+var/lib/polkit-1/localauthority/30-site.d
+var/lib/polkit-1/localauthority/10-vendor.d
+var/lib/polkit-1/localauthority/20-org.d
+etc/polkit-1/localauthority/50-local.d
+etc/polkit-1/localauthority/90-mandatory.d
+etc/polkit-1/localauthority/30-site.d
+etc/polkit-1/localauthority/10-vendor.d
+etc/polkit-1/localauthority/20-org.d
+"
+
+repackage -e
+
+returnval=$?
+
+exit $returnval

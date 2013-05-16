@@ -3,6 +3,9 @@
 # Mount Hotplug Device
 #
 
+. /etc/thinstation.env
+. $TS_GLOBAL
+
 #echo "1 $DEVPATH" >> /var/log/scsi
 #echo "2 $ACTION" >> /var/log/scsi
 #echo "3 $ID_BUS" >> /var/log/scsi
@@ -59,9 +62,6 @@ elif [ "$ACTION" == "add" ] && [ "$ID_FS_TYPE" == "swap" ]; then
         swapon /dev/$devpath
         exit 0
 fi
-
-. /etc/thinstation.env
-. $TS_GLOBAL
 
 if ! check_module $ID_FS_TYPE ; then
 	modprobe $ID_FS_TYPE

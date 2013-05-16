@@ -1,4 +1,5 @@
 #!/bin/bash
+#set -x
 LANG=C
 INITDIR=boot-images/initrd
 PKGDIR=boot-images/pkg-packages
@@ -101,7 +102,7 @@ lib_dependencies()
   fi
   for pkgname in `echo "./tmp-tree" && find $PKGDIR -mindepth 1 -maxdepth 1`; do
     find $pkgname -type f > filelist
-    file -e encoding -e tokens -e compress -e ascii -e apptype -e tar -e cdf -m utils/tools/elf.mgc -f filelist -n -r |grep -e ELF |cut -d: -f1 > liblist.final 2>/dev/null
+    file -e encoding -e tokens -e compress -e ascii -e apptype -e tar -e cdf -f filelist -n -r |grep -e ELF |cut -d: -f1 > liblist.final 2>/dev/null
     rm filelist
     while [ -s liblist.final ]; do
       (cat liblist.final ) |
@@ -289,7 +290,7 @@ package_dependencies ()
   do
     package=`basename $filename .$1`
     if [ -s packages/$package/dependencies ] ; then
-      (cat packages/$package/dependencies |grep -r -v ^#) |
+      (cat packages/$package/dependencies |grep -v ^#) |
       while read name cross
       do
        	if [ "$1" = "package" ] || [ "$name" = "base" ] ; then
@@ -739,12 +740,9 @@ do
 	for KERNVER in $KERNVERS; do
         if [ -e `find ./kernel/modules/ -follow -name "$name.ko"` ] ; then
 		echo "Module Pkg: $name"
-		mkdir $MODDIR/$name
-		mkdir $MODDIR/$name/lib
-		mkdir $MODDIR/$name/lib/modules
-		mkdir $MODDIR/$name/lib/modules/$KERNVER
+		mkdir -p $MODDIR/$name/lib/modules/$KERNVER
 		mkdir $MODDIR/$name/etc
-		cp `find ./kernel/modules-KERNVER/ -follow -name "$name.ko"` $MODDIR/$name/lib/modules/$KERNVER
+		cp `find ./kernel/modules-$KERNVER/ -follow -name "$name.ko"` $MODDIR/$name/lib/modules/$KERNVER
 	else
 		echo "Error, Module $name not found"
 	fi
@@ -1009,7 +1007,6 @@ if [ -e $PACDIR/sambapasswd.param ] && [ -e $PACDIR/samba-base.* ] ; then
     echo $ts_sambapasswd > $TOOLSDIR/smbpass
     echo $ts_sambapasswd >> $TOOLSDIR/smbpass
     $TOOLSDIR/smbpasswd -L -c $TOOLSDIR/smb.conf -a root -s < $TOOLSDIR/smbpass > /dev/null 2>&1
-#    strace $TOOLSDIR/smbpasswd -L -c $TOOLSDIR/smb.conf -a root -s < $TOOLSDIR/smbpass > ./exp 2>&1
     mv $TOOLSDIR/smbpassword ./tmp-tree/lib/smbpassword.ro
     mv $TOOLSDIR/secrets.tdb ./tmp-tree/lib/secrets.tdb.ro
     rm $TOOLSDIR/smbpass
@@ -1484,6 +1481,7 @@ if [ -n "$missing_tools" ]; then
     echo "Your Thinstation installation is broken; the following needed tools"
     echo "are missing:$missing_tools"
     echo "This build system requires them; aborting build"
+    echo "Are you inside the chroot environment?"
     exit 1
 fi
 echo "OK"
