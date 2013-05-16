@@ -1,0 +1,13 @@
+#!/bin/sh
+
+export PACKAGE=brotherhl
+export PORTS="brotherhllpr brotherhlcups"
+
+repackage -e
+returnval=$?
+
+mv packages/$PACKAGE/lib/doc packages/$PACKAGE/lib/licenses
+ln -s ../lib/licenses/brother-hlprinters/license packages/$PACKAGE/build/license
+ln -s /lib/Brother packages/$PACKAGE/
+
+exit $returnval

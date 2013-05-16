@@ -753,15 +753,21 @@ do
 	fi
 	;;
     firmware)
-	firmfile=`find -L ./kernel/firmware/ -name $name.*`
-        if [ -e $firmfile ] ; then
+	if [ -n "$args" ]; then
+		firmfiles=`find -L ./kernel/firmware/ -name $name.* | grep $args`
+	else
+		firmfiles=`find -L ./kernel/firmware/ -name $name.*`
+	fi
+        if [ -e $firmfiles ] ; then
 		echo "Firmware: $name"
+		for firmfile in $firmfiles; do
 		firmpath=./tmp-tree/lib/firmware/`echo $firmfile |cut -d '/' -f4-`
 		if [ ! -d ${firmpath%/*} ] ;
 			then
 			mkdir -p ${firmpath%/*}
 		fi
-		cp $firmfile ${firmpath%/*}/. 
+		cp $firmfile ${firmpath%/*}/.
+		done 
 	else
 		echo "Error, Firmware $name not found"
 	fi
@@ -1809,8 +1815,8 @@ if [ -z "$NOIMAGES" ] ; then
 	$IMAGEDIR/source
 
     if [ -e boot-images/common ]; then
-      for i in boot-images/common/*; do
-        rm -rf $IMAGEDIR/source/`basename $i`
+      ls boot-images/common | while read i; do
+        rm -rf "$IMAGEDIR/source/`basename "$i"`"
       done
     fi
     ;;

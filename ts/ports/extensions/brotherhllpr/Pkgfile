@@ -1,0 +1,20 @@
+# Description: LPR Driver for Brother HL- Printers
+# URL: http://welcome.solutions.brother.com
+# Maintainer: None
+
+name=brotherhllpr
+version=2.0.2
+release=1
+file=brhl2140lpr-$version-$release.i386.deb
+source=(http://www.brother.com/pub/bsc/linux/dlf/$file license)
+
+build() {
+ ar xf $file
+ tar xf data.tar.gz -C $PKG
+ rm -rf $PKG/var
+ mkdir -p $PKG/usr/share/doc/brother-hlprinters
+ cp $SRC/license $PKG/usr/share/doc/brother-hlprinters
+ mv $PKG/usr/local/Brother $PKG/usr/lib
+
+ ln -s /usr/lib/Brother /usr/local/Brother
+}

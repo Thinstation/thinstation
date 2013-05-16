@@ -1,0 +1,31 @@
+# Description: LPR Driver for Brother HL- Printers
+# URL: http://welcome.solutions.brother.com
+# Maintainer: None
+
+name=brotherhlcups
+version=2.0.2
+release=1
+file=cupswrapperHL2140-$version-$release.i386.deb
+source=(http://www.brother.com/pub/bsc/linux/dlf/$file)
+
+move() {
+  mkdir -p $PKG`dirname $1`
+  mv $1 $PKG`dirname $1`
+}
+
+build() {
+  ar xf $file
+  tar xf data.tar.gz -C $PKG
+
+  sed -i -e 's,sleep 2s,exit 0,' $PKG/usr/local/Brother/cupswrapper/cupswrapperHL2140-2.0.2
+
+  $PKG/usr/local/Brother/cupswrapper/cupswrapperHL2140-2.0.2
+
+  move /usr/share/cups/model/HL2140.ppd
+  move /usr/lib/cups/filter/brlpdwrapperHL2140
+
+  rm -rf $PKG/usr/share/doc
+  mv $PKG/usr/local/Brother $PKG/usr/lib
+  rmdir $PKG/usr/local
+  rm $PKG/usr/lib/Brother/cupswrapper/cupswrapperHL2140-2.0.2
+}
