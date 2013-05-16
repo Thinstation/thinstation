@@ -282,6 +282,7 @@ package_dependencies ()
 {
 
  ls $PACDIR/*.$1 > packages.final 2>/dev/null
+
  cp packages.final packages.list
 
  while [ -s packages.final ]; do
@@ -751,15 +752,21 @@ do
 	fi
 	;;
     firmware)
-	firmfile=`find -L /lib/firmware/ -name $name.*`
-        if [ -e $firmfile ] ; then
+	if [ -n "$args" ]; then
+		firmfiles=`find -L /lib/firmware/ -name $name.* | grep $args`
+	else
+		firmfiles=`find -L /lib/firmware/ -name $name.*`
+	fi
+        if [ -e $firmfiles ] ; then
 		echo "Firmware: $name"
+		for firmfile in $firmfiles; do
 		firmpath=./tmp-tree/lib/firmware/`echo $firmfile |cut -d '/' -f4-`
 		if [ ! -d ${firmpath%/*} ] ;
 			then
 			mkdir -p ${firmpath%/*}
 		fi
-		cp $firmfile ${firmpath%/*}/. 
+		cp $firmfile ${firmpath%/*}/.
+		done 
 	else
 		echo "Error, Firmware $name not found"
 	fi
@@ -998,8 +1005,8 @@ fi
 
 
 if [ -e $PACDIR/sambapasswd.param ] && [ -e $PACDIR/samba-base.* ] ; then
-    echo $ts_sambapasswd > $TOOLSDIR\smbpass
-    echo $ts_sambapasswd >> $TOOLSDIR\smbpass
+    echo $ts_sambapasswd > $TOOLSDIR/smbpass
+    echo $ts_sambapasswd >> $TOOLSDIR/smbpass
     smbpasswd -L -c $TOOLSDIR/smb.conf -a root -s < $TOOLSDIR/smbpass > /dev/null 2>&1
     mv $TOOLSDIR/smbpassword ./tmp-tree/lib/smbpassword.ro
     mv $TOOLSDIR/secrets.tdb ./tmp-tree/lib/secrets.tdb.ro
@@ -1741,6 +1748,7 @@ if [ -z "$NOIMAGES" ] ; then
     fi
     cp -a boot-images/templates/$ts_syslinuxtheme/* $IMAGEDIR
     cat $IMAGEDIR/syslinux.cfg.tpl |sed -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS LM=2/g"> $IMAGEDIR/syslinux.cfg
+    sed -i -e 's/LM=4/LM=2/g' $IMAGEDIR/syslinux.cfg
     rm $IMAGEDIR/syslinux.cfg.tpl
     rm -f $IMAGEDIR/vmlinuz*
     cp $INITDIR/vmlinuz* $IMAGEDIR
@@ -1757,6 +1765,7 @@ if [ -z "$NOIMAGES" ] ; then
     mkdir -p $IMAGEDIR/pxelinux.cfg
     cp -a boot-images/templates/$ts_syslinuxtheme/* $IMAGEDIR/
     cat $IMAGEDIR/syslinux.cfg.tpl | sed -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS LM=3/g"> $IMAGEDIR/pxelinux.cfg/default
+    sed -i -e 's/LM=4/LM=3/g' $IMAGEDIR/pxelinux.cfg/default
     rm $IMAGEDIR/syslinux.cfg.tpl
     rm -f $IMAGEDIR/vmlinuz*
     cp $INITDIR/vmlinuz* $IMAGEDIR
@@ -1774,11 +1783,7 @@ if [ -z "$NOIMAGES" ] ; then
       cat boot-images/initrd/syslinux.files | awk "{ print \"$IMAGEDIR/source/\" \$1 }" | xargs rm -rf
     fi
     cp -a boot-images/templates/$ts_syslinuxtheme/* $IMAGEDIR/source
-    if [ "$ts_livecd" != "true" ] ; then
-    	cat $IMAGEDIR/source/syslinux.cfg.tpl | sed -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS LM=4/g" > $IMAGEDIR/source/isolinux.cfg
-    else
-	cp ./conf/isolinux-livcd $IMAGEDIR/source/isolinux.cfg
-    fi
+    cat $IMAGEDIR/source/syslinux.cfg.tpl | sed -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS LM=4/g" > $IMAGEDIR/source/isolinux.cfg
     rm $IMAGEDIR/source/syslinux.cfg.tpl
     if [ -e $IMAGEDIR/source/vmlinuz ] ; then
 	    rm $IMAGEDIR/source/vmlinuz*
@@ -1811,8 +1816,8 @@ if [ -z "$NOIMAGES" ] ; then
 	$IMAGEDIR/source
 
     if [ -e boot-images/common ]; then
-      for i in boot-images/common/*; do
-        rm -rf $IMAGEDIR/source/`basename $i`
+      ls boot-images/common | while read i; do
+        rm -rf "$IMAGEDIR/source/`basename "$i"`"
       done
     fi
     ;;
