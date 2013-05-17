@@ -739,11 +739,11 @@ do
 		name=`cat ./kernel/alias/$name`
 	fi
 	for KERNVER in $KERNVERS; do
-        if [ -e `find /lib/modules/$KERNVER/ -follow -name "$name.ko"` ] ; then
+        if [ -e `find /lib/modules/$KERNVER/kernel -follow -name "$name.ko"` ] ; then
 		echo "Module Pkg: $name"
-		mkdir -p $MODDIR/$name/lib/modules/$KERNVER
+		mkdir -p $MODDIR/$name/lib/modules/$KERNVER/kernel
 		mkdir $MODDIR/$name/etc
-		cp `find /lib/modules/$KERNVER/ -follow -name "$name.ko"` $MODDIR/$name/lib/modules/$KERNVER
+		cp `find /lib/modules/$KERNVER/kernel -follow -name "$name.ko"` $MODDIR/$name/lib/modules/$KERNVER
 	else
 		echo "Error, Module $name not found"
 	fi
@@ -809,7 +809,7 @@ if [ -e ./ALLMODULES ]; then
 	ALLMODULES=true
 fi
 if [ "$ALLMODULES" == "true" ] ; then
-    for line in `find -L /lib/modules/$KERNVER -name *.ko -print`
+    for line in `find -L /lib/modules/$KERNVER/kernel -name *.ko -print`
     do
 	modname=`basename $line`
 	cp $line ./tmp-tree/lib/modules/$KERNVER/$modname

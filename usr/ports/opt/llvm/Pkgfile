@@ -14,7 +14,10 @@ build() {
 
 	cd $name-$version.src
 
-	./configure --prefix=/usr --without-oprofile
+	export CC=gcc
+	export CXX=c++
+
+	./configure --prefix=/usr --without-oprofile --enable-shared
 
 	make
 	make DESTDIR=$PKG install

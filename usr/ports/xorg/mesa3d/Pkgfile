@@ -4,7 +4,7 @@
 # Depends on: libdrm, xorg-makedepend, xorg-glproto, xorg-xextproto, xorg-dri2proto, xorg-libx11, xorg-xf86vidmodeproto, xorg-libxext, xorg-libxxf86vm, xorg-libxt, xorg-libxdamage, xorg-libpciaccess, expat, talloc, libxml2-python
 
 name=mesa3d
-version=9.1.1
+version=9.1.2
 release=1
 source=(ftp://ftp.freedesktop.org/pub/mesa/$version/MesaLib-$version.tar.bz2)
 
@@ -14,7 +14,9 @@ build() {
     autoreconf --install --symlink
     ./configure --prefix=/usr \
                 --with-dri-drivers=i915,i965,r200,radeon,swrast,nouveau \
-                --with-gallium-drivers=i915,r600,svga,nouveau 
+                --with-gallium-drivers=i915,r600,svga,nouveau \
+		--enable-xa \
+		--with-llvm-shared-libs
 
     make
     make DESTDIR=$PKG install
