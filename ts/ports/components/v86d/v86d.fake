@@ -10,6 +10,8 @@ i915_DEVICES=`cat /lib/modules/$KERNEL/modules.alias |grep -e i915 |cut -c 25-28
 NOUVEAU_VENDORS=`cat /lib/modules/$KERNEL/modules.alias |grep -e nouveau |cut -c 16-19`
 VMWGFX_VENDORS=`cat /lib/modules/$KERNEL/modules.alias |grep -e vmwgfx |cut -c 16-19`
 VMWGFX_DEVICES=`cat /lib/modules/$KERNEL/modules.alias |grep -e vmwgfx |cut -c 25-28`
+GMA_VENDORS=`cat /lib/modules/$KERNEL/modules.alias |grep -e gma500_gfx |cut -c 16-19`
+GMA_DEVICES=`cat /lib/modules/$KERNEL/modules.alias |grep -e gma500_gfx |cut -c 25-28`
 
 disqualify()
 {
@@ -17,6 +19,7 @@ disqualify()
 		if [ "$VENDOR" == "$i" ] ; then
 			for i in $VMWGFX_DEVICES ; do
 				if [ "$DEVICE" == "$i" ]; then
+					modprobe vmwgfx
 					exit 255
 				fi
 			done
@@ -26,6 +29,7 @@ disqualify()
 		if [ "$VENDOR" == "$i" ] ; then
 			for i in $RADEON_DEVICES ; do
 				if [ "$DEVICE" == "$i" ]; then
+					modprobe radeon
 					exit 255
 				fi
 			done
@@ -35,6 +39,7 @@ disqualify()
 		if [ "$VENDOR" == "$i" ]; then
 			for i in $i915_DEVICES ; do
 				if [ "$DEVICE" == "$i" ]; then
+					modprobe i915
 					exit 255
 				fi
 			done
@@ -42,9 +47,21 @@ disqualify()
 	done
 	for i in $NOUVEAU_VENDORS ; do
 		if [ "$VENDOR" == "$i" ]; then
+			modprobe nouveau
 			exit 255
 		fi
 	done
+	for i in $GMA_VENDORS ; do
+		if [ "$VENDOR" == "$i" ] ; then
+			for i in $GMA_DEVICES ; do
+				if [ "$DEVICE" == "$i" ]; then
+					modprobe gma500_gfx
+					exit 255
+				fi
+			done
+		fi
+	done
+
 }
 
 for i in `/bin/busybox lspci -m |grep -e ".0 " |cut -d '"' -f 4-6 |sed -e 's/\"//g' -e 's/ //g' |tr "[a-z]" "[A-Z]"` ; do
