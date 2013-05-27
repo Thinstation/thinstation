@@ -1,0 +1,18 @@
+#%PAM-1.0
+auth     [success=done ignore=ignore default=bad] pam_selinux_permit.so
+auth       required    pam_env.so
+auth       required    pam_permit.so
+auth       include     postlogin
+account    required    pam_nologin.so
+account    include     system-auth
+password   include     system-auth
+session    required    pam_selinux.so close
+session    required    pam_loginuid.so
+session    required    pam_limits.so
+session    optional    pam_console.so
+-session    optional    pam_ck_connector.so
+session    required    pam_selinux.so open
+session    optional    pam_keyinit.so force revoke
+session    required    pam_namespace.so
+session    include     system-auth
+session    include     postlogin

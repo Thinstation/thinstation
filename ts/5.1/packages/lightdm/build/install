@@ -1,0 +1,17 @@
+#!/bin/sh
+
+export PACKAGE=lightdm
+export PORTS="$PACKAGE lightdm-gtk-greeter accountsservice"
+export CREATE_EMPTY_DIRS="
+	lib/lightdm/remote-sessions
+        var/cache/lightdm/
+	var/log/lightdm/.cache/lightdm-gtk-greeter
+        var/run/lightdm/authority
+        var/log/lightdm
+        var/lib/lightdm
+"
+repackage -e
+
+returnval=$?
+
+exit $returnval

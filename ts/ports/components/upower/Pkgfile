@@ -11,17 +11,13 @@ source=(http://upower.freedesktop.org/releases/$name-$version.tar.xz)
 
 build () {
 	cd $name-$version
-	./configure --prefix=/usr --sysconfdir=/etc --localstatedir=/var \
-		--libexecdir=/usr/lib/udisks --disable-static --enable-shared --disable-introspection
-	sed -i -e 's|profile.d|bash_completion.d|' tools/Makefile
+	./configure	--prefix=/usr \
+			--sysconfdir=/etc \
+			--localstatedir=/var \
+			--disable-static \
+			--enable-shared \
+			--disable-introspection
 
-#	Before we make we have to remove the command option "-nonet" in the doc/man/Makefile
-#	This is to workaround a bug trying to use -nonet which causes this error
-#	I/O error : Attempt to load network entity http://(path)....docbook.xsl
-	cd $SRC/$name-$version/doc/man
-	sed -i -e 's/-nonet//g' Makefile
-
-	cd $SRC/$name-$version
 	make
 	make DESTDIR=$PKG install
 }

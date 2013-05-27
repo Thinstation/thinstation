@@ -1,0 +1,10 @@
+#%PAM-1.0
+auth       required    pam_env.so
+auth       substack    system-auth
+account    required    pam_nologin.so
+account    include     system-auth
+password   include     system-auth
+session    required    pam_loginuid.so
+-session    optional    pam_ck_connector.so
+session    required    pam_namespace.so
+session    include     system-auth

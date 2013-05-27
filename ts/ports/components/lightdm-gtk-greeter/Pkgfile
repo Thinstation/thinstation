@@ -1,0 +1,26 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=lightdm-gtk-greeter
+version=1.5.2
+release=1
+source=(https://launchpad.net/lightdm-gtk-greeter/1.6/$version/+download/lightdm-gtk-greeter-$version.tar.gz
+	lightdm-gtk-greeter)
+
+build() {
+	cd $name-$version
+
+	./configure --prefix=/usr \
+			--localstatedir=/var \
+			--sysconfdir=/etc \
+			--mandir=/usr/man \
+			--with-gtk2
+
+	make
+	make DESTDIR=$PKG install
+
+	mkdir -p $PKG/var/log/lightdm/.cache/lightdm-gtk-greeter
+	mkdir $PKG/etc/pam.d
+	cp $SRC/lightdm-gtk-greeter $PKG/etc/pam.d/.
+}
