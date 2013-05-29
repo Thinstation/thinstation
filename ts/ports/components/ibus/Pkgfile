@@ -10,6 +10,9 @@ source=(http://ibus.googlecode.com/files/$name-$version.tar.gz)
 
 build() {
 	cd $name-$version
+
+	sed -i -e "s/path=\"\/desktop\//path=\"\/org\/ibus\/desktop\//g" data/dconf/org.freedesktop.ibus.gschema.xml.in
+
 	./configure --prefix=/usr
 	make install DESTDIR=$PKG
 }

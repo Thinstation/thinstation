@@ -10,8 +10,10 @@ source=(http://www.freedesktop.org/software/accountsservice/accountsservice-$ver
 build() {
 	cd accountsservice-$version
 
-	./configure --prefix=/usr \
-			--disable-gusb
+	./configure	--prefix=/usr \
+			--localstatedir=/var \
+			--sysconfdir=/etc \
+			--enable-systemd
 
 	make
 	make DESTDIR=$PKG install

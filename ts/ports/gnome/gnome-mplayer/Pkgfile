@@ -11,7 +11,11 @@ source=(http://$name.googlecode.com/files/$name-$version.tar.gz)
 
 build() {
     cd $name-$version
-    ./configure --prefix=/usr \
+
+    sed -i -e "s/path=\"\/apps\//path=\"\/org\/mplayer\/apps\//g" apps.gecko-mediaplayer.preferences.gschema.xml
+    sed -i -e "s/path=\"\/apps\//path=\"\/org\/mplayer\/apps\//g" apps.gnome-mplayer.preferences.gschema.xml
+
+   ./configure --prefix=/usr \
                 --mandir=/usr/man \
 
     make

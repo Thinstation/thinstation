@@ -7,7 +7,6 @@ version=1.7.0
 release=1
 source=(https://launchpad.net/lightdm/1.8/$version/+download/lightdm-$version.tar.xz
 	lightdm-1.2.2-nodaemon_option.patch
-	lightdm-1.6.0-fedora_config.patch
 	lightdm-lock-screen-before-switch.patch
 	lightdm.pam
 	lightdm-autologin.pam
@@ -20,7 +19,6 @@ build() {
 	cd $name-$version
 
 	patch -p1 -i $SRC/lightdm-1.2.2-nodaemon_option.patch
-	patch -p1 -i $SRC/lightdm-1.6.0-fedora_config.patch
 	patch -p1 -i $SRC/lightdm-lock-screen-before-switch.patch
 
 	./configure --prefix=/usr \
@@ -28,7 +26,15 @@ build() {
 			--sysconfdir=/etc \
 			--mandir=/usr/man \
 			--disable-introspection \
-			--disable-tests
+			--disable-tests \
+			--disable-liblightdm-qt \
+			--disable-liblightdm-qt5 \
+			--disable-gtk-doc \
+			--disable-gtk-doc-html \
+			--disable-gtk-doc-pdf \
+			--disable-nls
+
+
 
 	make
 	make DESTDIR=$PKG install
