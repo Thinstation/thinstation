@@ -2,8 +2,8 @@ if [ -n "$DEBUG_INIT" ] ; then
         echo_log "Starting Splash"
 fi
 
-if [ "`make_caps $uvesafb`" != "OFF" ] && grep -e uvesafb /lib/modules/`uname -r`/modules.dep &>/dev/null; then
-	if [ ! -e /dev/fb0 ] && ! lsmod |grep -E 'vmwgfx|nouveau|radeon|i915|gma500' &>/dev/null ; then
+if [ "`make_caps $uvesafb`" != "OFF" ] && grep -e uvesafb /lib/modules/`uname -r`/modules.dep &>/dev/null && /sbin/v86d; then
+	if [ ! -e /dev/fb0 ] ; then
 		modprobe uvesafb
 	fi
 fi
