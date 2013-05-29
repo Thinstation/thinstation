@@ -1,6 +1,8 @@
 #!/bin/sh
 
-mount -t sysfs sys /sys
+if [ ! -e /sys/bus ] ; then
+	mount -t sysfs sys /sys
+fi
 
 KERNEL=`uname -r`
 RADEON_VENDORS=`cat /lib/modules/$KERNEL/modules.alias |grep -e radeon |cut -c 16-19 |sort |uniq`
@@ -19,7 +21,6 @@ disqualify()
 		if [ "$VENDOR" == "$i" ] ; then
 			for i in $VMWGFX_DEVICES ; do
 				if [ "$DEVICE" == "$i" ]; then
-					modprobe vmwgfx
 					exit 255
 				fi
 			done
@@ -29,7 +30,6 @@ disqualify()
 		if [ "$VENDOR" == "$i" ] ; then
 			for i in $RADEON_DEVICES ; do
 				if [ "$DEVICE" == "$i" ]; then
-					modprobe radeon
 					exit 255
 				fi
 			done
@@ -39,7 +39,6 @@ disqualify()
 		if [ "$VENDOR" == "$i" ]; then
 			for i in $i915_DEVICES ; do
 				if [ "$DEVICE" == "$i" ]; then
-					modprobe i915
 					exit 255
 				fi
 			done
@@ -47,7 +46,6 @@ disqualify()
 	done
 	for i in $NOUVEAU_VENDORS ; do
 		if [ "$VENDOR" == "$i" ]; then
-			modprobe nouveau
 			exit 255
 		fi
 	done
@@ -55,7 +53,6 @@ disqualify()
 		if [ "$VENDOR" == "$i" ] ; then
 			for i in $GMA_DEVICES ; do
 				if [ "$DEVICE" == "$i" ]; then
-					modprobe gma500_gfx
 					exit 255
 				fi
 			done
