@@ -1,0 +1,21 @@
+# $Id$
+# Maintainer: Giovanni Scafora <giovanni@archlinux.org>
+# Contributor: Jan de Groot <jgc@archlinux.org>
+# Contributor: Sergej Pupykin <sergej@aur.archlinux.org>
+# Contributor: Robert Stoffers <rob1@ubuntu.com>
+
+name=xmlto
+version=0.0.25
+release=2
+source=("https://fedorahosted.org/releases/x/m/${name}/${name}-${version}.tar.bz2")
+
+build() {
+  cd "$SRC/${name}-${version}"
+
+  ./configure --prefix=/usr \
+              --mandir=/usr/share/man
+  make
+  make DESTDIR="$PKG" install
+}
+
+

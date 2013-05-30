@@ -11,24 +11,16 @@ source=(ftp://ftp.alsa-project.org/pub/utils/$name-$version.tar.bz2 \
 
 build() {
 	cd $name-$version
-	./configure --prefix=/usr --disable-nls --mandir=/usr/man
 
-	# alsactl_init.7 is generated using xmlto, which we don't have
-	touch alsactl/alsactl_init.7
+	sed -i -e 's/oneshop/oneshot/g' alsactl/alsa-restore.service.in
+
+	./configure	--prefix=/usr \
+			--disable-nls \
+			--mandir=/usr/man
 
 	make
 	make DESTDIR=$PKG install
+
 	rm -rf $PKG/usr/man/fr
-
-	# see above
-#	rm -f $PKG/usr/man/man7/alsactl_init.7
-#	rmdir $PKG/usr/man/man7
-
 	install -D -m 0755 $SRC/rc.alsa $PKG/etc/rc.d/alsa
-
-	# Not sure about this yet.
-#	rm $PKG/lib/udev/rules.d/90-alsa-restore.rules
-#	rmdir $PKG/lib/udev/rules.d
-#	rmdir $PKG/lib/udev
-#	rm -r $PKG/lib
 }
