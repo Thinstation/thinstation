@@ -655,7 +655,7 @@ mounted ()
 
 is_enabled ()
 {
-	if [ ! -z "$1" ]; then
+	if [ -n "$1" ]; then
 		value=`make_caps $1`
 		for i in TRUE ON ENABLED YES POSITIVE Y; do
 			if [ $value == $i ]; then
@@ -668,7 +668,7 @@ is_enabled ()
 
 is_disabled ()
 {
-	if [ ! -z "$1" ]; then
+	if [ -n "$1" ]; then
     	value=`make_caps $1`
 		for i in FALSE OFF DISABLED NO NEGATIVE N ; do
 			if [ $value == $i ]; then
@@ -676,9 +676,9 @@ is_disabled ()
 			fi
 		done
 	else
-		return 0
+		return 1
 	fi
-	return 1
+	return 0
 }
 
 screen_res ()
