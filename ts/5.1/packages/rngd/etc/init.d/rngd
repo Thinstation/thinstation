@@ -7,7 +7,16 @@ init)
   if ! pkg_initialized $PACKAGE; then
     # Prime entropy pool for random number generation
     if ! is_disabled $RNGD ; then
-	/sbin/rngd -t 5 -W 4096 -B 1
+	let watermark=`cat /proc/sys/kernel/random/poolsize`/2
+	if [ -e /dev/hwrng ]; then
+		# Only use rngd if we have a hardware random number generator.
+		/sbin/rngd -t 5 -W $watermark -B 1
+	else
+		# If we don't have a hwrng, seed random from urandom one time.
+		# This won't protect against entropy starves, but this is unlikely in our context anyways.
+		dd if=/dev/urandom of=/dev/random bs=$watermark count=1
+		echo $watermark > /var/log/rng
+	fi
     fi
     pkg_set_init_flag $PACKAGE
 

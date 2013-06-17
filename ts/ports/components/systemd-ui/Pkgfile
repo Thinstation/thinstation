@@ -1,0 +1,19 @@
+# Description: Userspace device management daemon
+# URL: http://www.kernel.org/pub/linux/utils/kernel/hotplug/udev.html
+# Maintainer: CRUX System Team, core-ports at crux dot nu
+
+name=systemd-ui
+version=2
+release=1
+source=(http://www.freedesktop.org/software/systemd/systemd-ui-$version.tar.xz)
+
+build() {
+    cd $name-$version
+#    CFLAGS='-g -Wp,-U_FORTIFY_SOURCE -O2 -march=i686 -pipe -Wno-error -Wno-fatal-errors'
+#    export CFLAGS
+
+    ./configure --prefix=/usr \
+
+    make
+    make install DESTDIR=$PKG
+}
