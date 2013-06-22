@@ -1,0 +1,18 @@
+# Description: Hardware Volatile Entropy Gathering and Expansion
+# URL: http://www.issihosts.com/haveged/haveged-1.6a.tar.gz
+# Maintainer: 
+# Packager: 
+# Depends on: kernel-TS kernel-TS_SMP
+
+name=haveged
+version=1.6
+release=a
+source=(http://www.issihosts.com/$name/$name-$version$release.tar.gz)
+
+build() {
+	cd $name-$version$release
+	./configure --prefix=/usr
+	make
+	make install DESTDIR=$PKG
+	rmdir $PKG/usr/bin
+}
