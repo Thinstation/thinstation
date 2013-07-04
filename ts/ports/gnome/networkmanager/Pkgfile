@@ -6,7 +6,7 @@
 
 name=networkmanager
 pname=NetworkManager
-version=0.9.8.0
+version=0.9.8.2
 release=1
 source=(http://ftp.gnome.org/pub/GNOME/sources/$pname/${version%.*.*}/$pname-$version.tar.xz)
 
@@ -19,12 +19,13 @@ build() {
 	NSS_LIBS="`pkg-config --libs nss` `pkg-config --libs nspr`"
 	export NSS_CFLAGS NSS_LIBS
 
+	CFLAGS="$CFLAGS -Wno-error=deprecated-declarations"
+	export CFLAGS
 	./configure --prefix=/usr \
 		--libexecdir=/usr/libexec \
 		--sysconfdir=/etc \
 		--localstatedir=/var \
 		--disable-nls \
-		--with-distro=slackware \
 		--disable-introspection \
 		--disable-static \
 		--enable-shared \

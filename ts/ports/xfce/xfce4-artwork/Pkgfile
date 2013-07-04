@@ -6,13 +6,18 @@
 # Group: xfce4
 
 name=xfce4-artwork
-version=0.1
+version=git
 release=1
-source=(http://download.berlios.de/xfce-goodies/$name-$version.tar.gz)
+source=()
 
 build() {
-  cd $name-$version
-  ./configure --prefix=/usr
+git clone --depth 1 git://git.xfce.org/art/xfce4-artwork
+
+  cd $name
+  sed -i -e s/xfce-rio.png//g backdrops/Makefile.am
+
+  ./autogen.sh --prefix=/usr
+
   make
   make DESTDIR=$PKG install
 }

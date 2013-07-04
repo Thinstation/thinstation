@@ -1,0 +1,29 @@
+# Description: unique library
+# URL: https://live.gnome.org/LibUnique
+# Maintainer: None
+# Depends on: dbus-glib
+
+name=libunique1
+version=1.1.6
+release=1
+source=(ftp://ftp.gnome.org/pub/gnome/sources/libunique/${version%.*}/libunique-$version.tar.bz2
+	fix-disable-deprecated.patch
+	fix-unused-but-set-variable.patch)
+
+build() {
+	cd libunique-$version
+	CFLAGS="$CFLAGS -DG_CONST_RETURN=const -Wno-error=deprecated-declarations"
+
+	patch -p1 -i ../fix-disable-deprecated.patch
+	patch -p1 -i ../fix-unused-but-set-variable.patch
+
+	./configure --prefix=/usr \
+			--disable-introspection \
+			--disable-gtk-doc \
+			--enable-shared \
+			--disable-static
+
+	make
+	make install DESTDIR=$PKG
+	rm -rf $PKG/usr/share
+}
