@@ -100,7 +100,7 @@ disk_setup()
 	for i in `blockdev --report |sed -r 's/[[:space:]]+/:/g' |cut -d ":" -f7 |grep -e / |grep -v [0-9]`; do
 		disksize[$index]=`blockdev --report |sed -r 's/[[:space:]]+/:/g' | grep -e $i\$ |cut -d ":" -f6`
 		disk[$index]=$i
-		if [ "${disksize[$index]}" -gt "10000000000" ]; then
+		if [ "${disksize[$index]}" -gt "20000000000" ]; then
 			diskentry="${disk[$index]}:${disksize[$index]}"
 			echo "$index $diskentry" >> $tempdir/available.$$
 		fi
@@ -122,7 +122,7 @@ disk_setup()
 					exit 1
 				fi
 	else
-		x_echo '"No usable disk"' '"ThinStation Dev requirees a disk at least 10GB in size. Exiting"'
+		x_echo '"No usable disk"' '"ThinStation Dev requirees a disk at least 20GB in size. Exiting"'
 		exit 1
 	fi
 

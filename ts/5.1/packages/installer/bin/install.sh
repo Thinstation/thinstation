@@ -56,14 +56,14 @@ dd if=/dev/zero of=$disk bs=1M count=32
 read_pt
 parted -s $disk mklabel msdos
 if [ "$buggybios" == "true" ]; then
-	parted -s $disk mkpart primary fat32 "2s 2101247s" 1>/dev/null
+	parted -s $disk mkpart primary fat32 "2s 4196351s" 1>/dev/null
 else
-	parted -s $disk mkpart primary fat32 "2048s 2101247s" 1>/dev/null
+	parted -s $disk mkpart primary fat32 "2048s 4196351s" 1>/dev/null
 fi
 parted -s $disk set 1 boot on
-parted -s $disk mkpart primary ext4 "2101248s 4202495s"
-parted -s $disk mkpart primary linux-swap "4202496s 6303743s"
-parted -s $disk mkpart primary ext4 "6303744s -0"
+parted -s $disk mkpart primary ext4 "4196352s 8390655s"
+parted -s $disk mkpart primary linux-swap "8390656s 12584959s"
+parted -s $disk mkpart primary ext4 "12584960s -0"
 read_pt
 un_mount
 echo "Making filesystems"
