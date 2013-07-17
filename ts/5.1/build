@@ -83,7 +83,10 @@ addpkgs()
 
 lib_in_path()
 {
-  for lpath in `cat lpaths.tmp`; do
+  if echo "$1" |grep -Eq "libjvm.so|libmawt.so"; then
+	return 0
+  fi
+  for lpath in `cat lpaths.tmp` $filepath `dirname $filepath`; do
     if [ -e ./tmp-tree$lpath/$1 ]; then
       return 0
     fi
@@ -110,6 +113,8 @@ lib_dependencies()
         (ldd $filename 2>/dev/null |grep -v "not a dynamic executable" |grep -v linux-gate |grep -v statically) |
         while read libname trash libloc; do
           libfile=`basename $libname`
+          filepath=`dirname $filename |cut -d \/ -f3-`
+          filepath=/$filepath
           if ! lib_in_path $libfile && [ -z "`echo $libloc | grep $pkgname`" ] && [ ! -e $pkgname/lib/$libfile ]; then
             libsource="`prt-get fsearch $libfile |grep -v Found |cut -d " " -f3 |head -n1`"
             if [ -n "$libsource" ] && [ -e $libsource ]; then
@@ -756,16 +761,19 @@ do
 	else
 		firmfiles=`find -L ./kernel/firmware/ -name $name.*`
 	fi
-        if [ -e $firmfiles ] ; then
-		echo "Firmware: $name"
+	if [ -n "$firmfiles" ]; then
 		for firmfile in $firmfiles; do
-		firmpath=./tmp-tree/lib/firmware/`echo $firmfile |cut -d '/' -f4-`
-		if [ ! -d ${firmpath%/*} ] ;
-			then
-			mkdir -p ${firmpath%/*}
-		fi
-		cp $firmfile ${firmpath%/*}/.
-		done 
+		        if [ -e $firmfile ] ; then
+				echo "Firmware: `basename $firmfile`"
+				firmpath=./tmp-tree/lib/firmware/`echo $firmfile |cut -d '/' -f4-`
+				if [ ! -d ${firmpath%/*} ] ;then
+					mkdir -p ${firmpath%/*}
+				fi
+				cp $firmfile ${firmpath%/*}/.
+			else
+				echo "Error, Firmware $name not found"
+			fi
+		done
 	else
 		echo "Error, Firmware $name not found"
 	fi

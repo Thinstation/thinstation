@@ -38,6 +38,16 @@ if ! pkg_initialized $PACKAGE; then
 
   let x=0
 
+  # Defaults for global parameters
+  ICA_BROWSER_PROTOCOL=UDP
+  ICA_ENCRYPTION=Basic
+  ICA_COMPRESS=On
+  ICA_AUDIO_QUALITY=Low
+  ICA_AUDIO=On
+  ICA_SEAMLESS_WINDOW=Off
+  ICA_SMARTCARD=Off
+  ICA_DISABLECTRLALTDEL=On
+
   # Add each Applications configuration parameters
 
   while [ -n "`eval echo '$SESSION_'$x'_TYPE'`" ] ; do
@@ -148,8 +158,7 @@ if ! pkg_initialized $PACKAGE; then
 
     # Enable Smart Card Support
     if [ "`make_caps $ICAX_SMARTCARD`" = "ON" ] ; then
-	    ICAX_DISABLECTRLALTDEL="ON"
-	    touch /tmp/smartcard
+	    ICAX_DISABLECTRLALTDEL="OFF"
     fi
 
     echo -e "s/\$ICAX_SERVER/$ICAX_SERVER/g\n \

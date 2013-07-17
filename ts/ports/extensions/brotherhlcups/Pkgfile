@@ -5,8 +5,8 @@
 name=brotherhlcups
 version=2.0.2
 release=1
-file=cupswrapperHL2140-$version-$release.i386.deb
-source=(http://www.brother.com/pub/bsc/linux/dlf/$file)
+source=(http://www.brother.com/pub/bsc/linux/dlf/cupswrapperHL2140-2.0.2-1.i386.deb
+	http://www.brother.com/pub/bsc/linux/dlf/cupswrapperHL2040-2.0.1-2.i386.deb)
 
 move() {
   mkdir -p $PKG`dirname $1`
@@ -14,18 +14,23 @@ move() {
 }
 
 build() {
-  ar xf $file
+  for printer in HL2040 HL2140; do
+
+  ar xf cupswrapper${printer}*.i386.deb
   tar xf data.tar.gz -C $PKG
 
-  sed -i -e 's,sleep 2s,exit 0,' $PKG/usr/local/Brother/cupswrapper/cupswrapperHL2140-2.0.2
+  sed -i -e 's,sleep 2s,exit 0,' $PKG/usr/local/Brother/cupswrapper/cupswrapper${printer}-*
 
-  $PKG/usr/local/Brother/cupswrapper/cupswrapperHL2140-2.0.2
+  $PKG/usr/local/Brother/cupswrapper/cupswrapper${printer}-*
 
-  move /usr/share/cups/model/HL2140.ppd
-  move /usr/lib/cups/filter/brlpdwrapperHL2140
+  move /usr/share/cups/model/$printer.ppd
+  move /usr/lib/cups/filter/brlpdwrapper$printer
+
+  rm $PKG/usr/local/Brother/cupswrapper/cupswrapper${printer}-*
+
+  done
 
   rm -rf $PKG/usr/share/doc
   mv $PKG/usr/local/Brother $PKG/usr/lib
   rmdir $PKG/usr/local
-  rm $PKG/usr/lib/Brother/cupswrapper/cupswrapperHL2140-2.0.2
 }
