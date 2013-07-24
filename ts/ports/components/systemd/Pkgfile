@@ -3,7 +3,7 @@
 # Maintainer: CRUX System Team, core-ports at crux dot nu
 
 name=systemd
-version=204
+version=206
 release=1
 source=(http://www.freedesktop.org/software/systemd/systemd-$version.tar.xz
 	81-crux.rules)
@@ -24,7 +24,6 @@ build() {
                 --with-rootlibdir=/lib \
                 --mandir=/usr/man \
                 --enable-keymap \
-                --enable-static \
 		--enable-shared \
 		--disable-audit \
 		--disable-binfmt \
@@ -70,4 +69,7 @@ build() {
 
     # Remove junk
     rm -rf $PKG/usr/share/{gtk-,}doc
+    rm -rf $PKG/usr/include/systemd
+    rm -rf $PKG/usr/lib/pkgconfig/libsystemd*
+    rm -rf $PKG/usr/share/pkgconfig/systemd*
 }

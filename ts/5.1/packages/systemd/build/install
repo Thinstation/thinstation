@@ -1,11 +1,21 @@
 #!/bin/sh
 
 export PACKAGE=systemd
-export PORTS="$PACKAGE systemd-ui"
+export PORTS="$PACKAGE"
+export DROP_DIRS="lib/systemd/system"
+export DROP_FILES="99-systemd.rules"
 repackage -e
 
+for file in `find packages/systemd/{etc,bin,sbin,lib,var} -type f |grep -v udev`; do
+	rm $file
+done
+for link in `find packages/systemd/{etc,bin,sbin,lib,var} -type l |grep -v udev`; do
+	rm $link
+done
+find packages/systemd -type d -empty -delete
+
 ln -sf libudev.so.1 packages/systemd/lib/libudev.so.0
-ln -sf /lib/systemd/systemd packages/systemd/init
+#ln -sf /lib/systemd/systemd packages/systemd/init
 
 returnval=$?
 
