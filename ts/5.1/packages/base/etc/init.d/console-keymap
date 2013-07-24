@@ -14,7 +14,7 @@ init)
 		fi
         fi
         if [ -e $LOCALE ] && [ "$LOCALE" != "" ]; then
-                echo "Extended locale support enabled" >> $LOGFILE
+#                echo "Extended locale support enabled" >> $LOGFILE
                 cat $LOCALE >> $TS_RUNTIME
 		. $LOCALE
         else
@@ -22,14 +22,14 @@ init)
 		echo_log "Continuing boot with default C locale"
         fi
 	if [ -e /lib/kbd/keymaps/$CONSOLE_KEYBOARD ] && [ "$CONSOLE_KEYBOARD" != "" ] ; then
-		loadkeys /lib/kbd/keymaps/$CONSOLE_KEYBOARD
+		loadkeys /lib/kbd/keymaps/$CONSOLE_KEYBOARD > /dev/null
 	else
 		echo_log "\nNotice!, no keymap found"
 		echo_log "Continuing boot with default BIOS keymap"
 	fi
         if [ -e /lib/kbd/consolefonts/$CONSOLE_FONT ] && [ "$CONSOLE_FONT" != "" ] ; then
                 setfont /lib/kbd/consolefonts/$CONSOLE_FONT
-                echo "Loading console font: $CONSOLE_FONT" >> $LOGFILE
+#                echo "Loading console font: $CONSOLE_FONT" >> $LOGFILE
         else
                 echo_log "\nNotice!, no console font found"
                 echo_log "Continuing boot with default kernel font"
