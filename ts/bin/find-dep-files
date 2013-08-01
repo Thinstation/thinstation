@@ -1,0 +1,16 @@
+dependency=$1
+
+if [ ! -e /tmp/binlist ]; then
+	echo "Finding all files"
+	find /{bin,boot,etc,home,lib,opt,root,sbin,share,usr,var,www} -type f > /tmp/filelist
+	echo "Determining which files are ELF"
+	for file in `file -f /tmp/filelist |grep -e ELF |grep -e shared |cut -d: -f1`; do
+		echo $file >> /tmp/binlist
+	done
+fi
+echo "Looking for dependent binaries on $dependency"
+for bin in `cat /tmp/binlist`; do
+	if objdump -x $bin 2>/dev/null |grep -e NEEDED |grep -e $dependency >/dev/null; then
+		echo $bin
+	fi
+done
