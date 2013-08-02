@@ -11,5 +11,6 @@ KERNEL=="fd[0-9]*",      SYMLINK=="floppy/%n",  RUN+="/etc/udev/scripts/floppy.s
 KERNEL=="lp[0-9]*",      SYMLINK=="printers/%n"
 
 #Storage Devices
+SUBSYSTEM=="block", ENV{ID_CDROM}=="1", ENV{GENERATED}!="1", IMPORT{program}="cdrom_id $devnode"
 ENV{ID_FS_USAGE}=="filesystem", RUN+="/etc/udev/scripts/scsi.sh", OPTIONS="last_rule"
-SUBSYSTEM=="block", ENV{ID_CDROM}=="1", ACTION=="change", RUN+="/etc/udev/scripts/scsi.sh", OPTIONS="last_rule"
+SUBSYSTEM=="block", ENV{ID_CDROM}=="1", RUN+="/etc/udev/scripts/scsi.sh", OPTIONS="last_rule"
