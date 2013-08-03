@@ -18,6 +18,9 @@ name=`echo $devpath | sed -e "s/[0-9]*//g"`
 node=`echo $devpath | sed -e "s/[a-z]*//g"`
 TYPE=`echo $name | cut -c 1-2`
 
+#echo "7 $devpath" >> /var/log/scsi
+#echo "8 $TYPE" >> /var/log/scsi
+
 no_mount()
 {
 	for i in gparted parted fdisk cfdisk ; do
@@ -91,16 +94,22 @@ do_mounts()
 	done
 }
 
-if [ "$TYPE" == "sr" ] && [ "$ID_CDROM_MEDIA" == "1" ]; then
-       	if [ -e /proc/sys/dev/cdrom ] ; then
-		echo 0 > /proc/sys/dev/cdrom/autoclose
+if [ "$TYPE" == "sr" ] && [ "$ACTION" == "change" ]; then
+	for var in `cdrom_id /dev/$devpath`; do
+		export $var
+	done
+#	export >> /var/log/cdrom
+	if [ "$ID_CDROM_MEDIA" == "1" ]; then
+	       	if [ -e /proc/sys/dev/cdrom ] ; then
+			echo 0 > /proc/sys/dev/cdrom/autoclose
+		fi
+		if is_enabled $LOCK_CDROM ; then
+			echo 0 > /proc/sys/dev/cdrom/lock
+		fi
+	        mtpath=$BASE_MOUNT_PATH/cdrom$node
+	       	mount_opts="$CDROM_MOUNT_OPTIONS"
+		do_mounts
 	fi
-	if is_disabled $LOCK_CDROM ; then
-		echo 0 > /proc/sys/dev/cdrom/lock
-	fi
-        mtpath=$BASE_MOUNT_PATH/cdrom$node
-       	mount_opts="$CDROM_MOUNT_OPTIONS"
-	do_mounts
 elif [ "$TYPE" == "sd" ] && [ "$ACTION" == "add" ] ; then
 	if [ "$ID_BUS" == "usb" ] ; then
 		if is_enabled $USB_STORAGE_SYNC && [ ! -n "`echo $USB_MOUNT_OPTIONS |grep -e sync`" ]; then
