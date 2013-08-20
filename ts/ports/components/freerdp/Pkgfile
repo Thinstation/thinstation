@@ -4,15 +4,14 @@
 # Depends on: xorg-libx11
 
 name=freerdp
-version=1.0.2-git
+version=1.1
 release=stable
 source=()
 
 build() {
 	git config --global http.sslVerify false
-	git clone https://github.com/FreeRDP/FreeRDP.git #-b stable-1.1
+	git clone https://github.com/FreeRDP/FreeRDP.git -b ${release}-$version
 	cd FreeRDP
-	git checkout 1.0.2
 	cmake .	-DCMAKE_INSTALL_PREFIX=/usr \
 		-DCMAKE_INSTALL_LIBDIR=lib \
 		-DWITH_PCSC=ON \

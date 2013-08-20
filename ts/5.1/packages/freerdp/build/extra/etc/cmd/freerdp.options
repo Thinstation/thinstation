@@ -1,0 +1,40 @@
+# Menu to choose alternative server
+if is_enabled $FREERDP_SELECT_SERVER; then
+	SERVER_LIST=""
+	CNT=0
+	while [[ ! -z "`eval echo '$FREERDP_SERVER_'$CNT`" ]]; do
+		SERVER_LIST="$SERVER_LIST `eval echo '$FREERDP_SERVER_'$CNT` status"
+		let CNT=CNT+1
+	done
+	SELECTED_SERVER=""
+	SELECTED_SERVER=`Xdialog	--stdout \
+								--title "Choose server" \
+								--ok-label="Connect .." \
+								--no-cancel \
+								--radiolist "Available servers" 20 50 0 \
+								$SERVER_LIST`
+	CNT=0
+	while [[ ! -z "`eval echo '$FREERDP_SERVER_'$CNT`" ]]; do
+		CURRENT=`eval echo '$FREERDP_SERVER_'$CNT`
+		if [ "${CURRENT:0:`expr index "$CURRENT" " "`}" == "$SELECTED_SERVER " ]; then
+			SERVER=${CURRENT#"$SELECTED_SERVER "}
+			if [[ ! -z "`eval echo '$FREERDP_SERVER_'$CNT'_OPTIONS'`" ]]; then
+				OPTIONS=`eval echo '$FREERDP_SERVER_'$CNT'_OPTIONS'`
+			fi
+		fi
+		let CNT=CNT+1
+	done
+fi
+
+# Modify server param for FreeRDP CLI
+if [ ${SERVER:0:3} != "/v:" ] ; then SERVER="/v:$SERVER" ; fi
+
+# Add known hosts from config
+if [ ! -d "/root/.config/freerdp/certs" ]; then
+	mkdir -p /root/.config/freerdp/certs
+fi
+CNT=0
+while [[ ! -z "`eval echo '$FREERDP_KNOWN_HOST_'$CNT`" ]]; do
+	echo "`eval echo '$FREERDP_KNOWN_HOST_'$CNT`" >> /root/.config/freerdp/known_hosts
+	let CNT=CNT+1
+done
