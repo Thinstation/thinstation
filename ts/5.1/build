@@ -110,22 +110,27 @@ lib_dependencies()
     while [ -s liblist.final ]; do
       (cat liblist.final ) |
       while read filename; do
-        (ldd $filename 2>/dev/null |grep -v "not a dynamic executable" |grep -v linux-gate |grep -v statically) |
-        while read libname trash libloc; do
-          libfile=`basename $libname`
+	unset DISPLAYED
+	#Not using ldd anymore
+        (objdump -x $filename 2>/dev/null |grep -e NEEDED |cut -c 24-) |
+        while read libfile; do
           filepath=`dirname $filename |cut -d \/ -f3-`
           filepath=/$filepath
           if ! lib_in_path $libfile && [ -z "`echo $libloc | grep $pkgname`" ] && [ ! -e $pkgname/lib/$libfile ]; then
+            if [ "$DISPLAYED" != "TRUE" ]; then
+              echo "Adding library dependencies for `basename $filename`"
+              DISPLAYED=TRUE
+            fi
             libsource="`prt-get fsearch $libfile |grep -v Found |cut -d " " -f3 |head -n1`"
             if [ -n "$libsource" ] && [ -e $libsource ]; then
-              echo "Adding $libfile dependency in `basename $pkgname` for `basename $filename`"
+              echo -e "\t\t\t$libfile"
               if [ ! -e $pkgname/lib ]; then
                 mkdir $pkgname/lib
               fi
               cp $libsource $pkgname/lib
               echo "$pkgname/lib/$libfile" >> liblist.added
             else
-              echo "Could not find $libfile which is dependency of $filename !"
+              echo "Could not find $libfile !"
             fi
           fi
         done

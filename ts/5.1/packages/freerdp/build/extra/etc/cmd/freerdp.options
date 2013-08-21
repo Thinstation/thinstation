@@ -31,13 +31,3 @@ fi
 
 # Modify server param for FreeRDP CLI
 if [ ${SERVER:0:3} != "/v:" ] ; then SERVER="/v:$SERVER" ; fi
-
-# Add known hosts from config
-if [ ! -d "/root/.config/freerdp/certs" ]; then
-	mkdir -p $HOME/.config/freerdp/certs
-fi
-CNT=0
-while [[ ! -z "`eval echo '$FREERDP_KNOWN_HOST_'$CNT`" ]]; do
-	echo "`eval echo '$FREERDP_KNOWN_HOST_'$CNT`" >> $HOME/.config/freerdp/known_hosts
-	let CNT=CNT+1
-done
