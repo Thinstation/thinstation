@@ -59,9 +59,14 @@ x_get_user()
 	fi
 }
 
-package_options()
+package_input()
 {
-	if [ -e /etc/cmd/$PACKAGE.options ] ; then . /etc/cmd/$PACKAGE.options ; fi
+	if [ -e /etc/cmd/$PACKAGE.options ]; then
+		. /etc/cmd/$PACKAGE.options
+	else
+		x_get_ip
+		x_get_user
+	fi
 }
 
 order_command()
@@ -118,9 +123,7 @@ case "$1" in
 auto)
   while [ "$reconnect" != "1" ]; do
     echo "Running Auto $PACKAGE" >> $APPLOG
-    x_get_ip
-    x_get_user
-    package_options
+    package_input
     order_command
     CMD="$CMD_CONSOLE $ORDERED_COMMAND"
     wm_workspaces "$CMD" $4
@@ -144,9 +147,7 @@ console)
     use_xrandr
     use_wallpaper
     while [ -e /tmp/.X11-unix/X$DISPLAY_NUMBER ] && [ "$reconnect" != "1" ]; do
-	x_get_ip
-	x_get_user
-	package_options
+	package_input
 	order_command
 	CMD="$CMD_CONSOLE $ORDERED_COMMAND"
 	xterm_wrapper
@@ -167,9 +168,7 @@ window|fullscreen)
     if ! is_disabled $ALWAYS_ENTER_SERVER ; then
 	ALWAYS_ENTER_SERVER=TRUE
     fi
-    x_get_ip
-    x_get_user
-    package_options
+    package_input
     order_command
     MODE=`make_caps $1`
     CMD=`eval echo '$'CMD_$MODE`' '$ORDERED_COMMAND
