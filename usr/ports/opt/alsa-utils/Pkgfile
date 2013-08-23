@@ -14,21 +14,21 @@ build() {
 	./configure --prefix=/usr --disable-nls --mandir=/usr/man
 
 	# alsactl_init.7 is generated using xmlto, which we don't have
-	touch alsactl/alsactl_init.7
+#	touch alsactl/alsactl_init.7
 
 	make
 	make DESTDIR=$PKG install
-	rm -rf $PKG/usr/share $PKG/usr/man/fr
+#	rm -rf $PKG/usr/share $PKG/usr/man/fr
 
 	# see above
-	rm -f $PKG/usr/man/man7/alsactl_init.7
-	rmdir $PKG/usr/man/man7
+#	rm -f $PKG/usr/man/man7/alsactl_init.7
+#	rmdir $PKG/usr/man/man7
 
 	install -D -m 0755 $SRC/rc.alsa $PKG/etc/rc.d/alsa
 
 	# Not sure about this yet.
-	rm $PKG/lib/udev/rules.d/90-alsa-restore.rules
-	rmdir $PKG/lib/udev/rules.d
-	rmdir $PKG/lib/udev
-	rmdir $PKG/lib
+#	rm $PKG/lib/udev/rules.d/90-alsa-restore.rules
+#	rmdir $PKG/lib/udev/rules.d
+#	rmdir $PKG/lib/udev
+#	rmdir $PKG/lib
 }
