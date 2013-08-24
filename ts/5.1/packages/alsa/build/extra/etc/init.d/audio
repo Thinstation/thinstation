@@ -1,7 +1,6 @@
 #!/bin/sh
 
 . $TS_GLOBAL
-IFS=$'\n'
 
 case "$1" in
 init)
@@ -10,14 +9,19 @@ init)
 		for control in Master PCM CD Video; do
 			amixer sset $control $AUDIO_LEVEL%
 		done
-		if [ -z "$MIC_DEVICE" ]; then
-			MIC_DEVICE=Mic
-		fi
 		if [ "$MIC_LEVEL" -gt "0" ]; then
 			amixer sset Capture $MIC_LEVEL% unmute > /dev/null
 			amixer sset $MIC_DEVICE playback mute > /dev/null
 			amixer sset $MIC_DEVICE $MIC_LEVEL% cap > /dev/null
+		else
+			amixer sset Capture mute > /dev/null
 		fi
+		for control in $UNMUTE; do
+			amixer sset $control unmute > /dev/null
+		done
+		for control in $MUTE; do
+			amixer sset $control mute > /dev/null
+		done
 		pkg_set_init_flag $PACKAGE
 	fi
 	;;
