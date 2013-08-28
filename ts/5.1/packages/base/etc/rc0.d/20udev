@@ -3,6 +3,16 @@ if [ -n "$DEBUG_INIT" ] ; then
 fi
 
 touch /tmp/init
+
+if [ -d /lib/udev/filter ]; then
+  lspci -mmn | sed -e "s,Class ,," -e "s,\",,g" | cut -d' ' -f 3-4 > /tmp/devices
+  for i in /lib/udev/filter/*; do
+    . $i /tmp/devices > /dev/null 2>&1
+  done
+  rm /tmp/devices
+  depmod
+fi
+
 if is_enabled $VESAMODE; then
 	find /lib/modules -name radeon.ko -delete -o -name vmwgfx.ko -delete -o -name nouveau.ko -delete -o -name i915.ko -delete -o -name gma500_gfx.ko -delete
 	depmod
