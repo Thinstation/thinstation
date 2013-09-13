@@ -4,12 +4,15 @@
 
 name=open-vm-tools
 version=2013.04.16-1098359
-kver=3.9.4
+kver=3.10.11
 release=1
-source=(http://downloads.sourceforge.net/project/open-vm-tools/open-vm-tools/Development%20Snapshots/open-vm-tools-$version.tar.gz)
+source=(http://downloads.sourceforge.net/project/open-vm-tools/open-vm-tools/Development%20Snapshots/open-vm-tools-$version.tar.gz
+	open-vm-tools-2013.04.16-1098359-vmhgfs-linux-310.patch)
 
 build() {
 	cd $name-$version
+
+	patch -p0 < ../open-vm-tools-2013.04.16-1098359-vmhgfs-linux-310.patch
 
 	./configure --prefix=/ \
 			--exec-prefix=/ \

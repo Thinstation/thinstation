@@ -1,0 +1,352 @@
+--- a/Makefile	2011-10-22 18:55:54.000000000 +0200
++++ b/Makefile	2013-07-05 19:45:48.017337088 +0200
+@@ -16,7 +16,7 @@
+ ifneq ($(KERNELRELEASE),)
+ 
+   LINUXVER_GOODFOR_CFG80211:=$(strip $(shell \
+-    if [ "$(VERSION)" -ge "2" -a "$(PATCHLEVEL)" -ge "6" -a "$(SUBLEVEL)" -ge "32" ]; then \
++    if [ "$(VERSION)" -ge "3" -o "$(VERSION)" -ge "2" -a "$(PATCHLEVEL)" -ge "6" -a "$(SUBLEVEL)" -ge "32" ]; then \
+       echo TRUE; \
+     else \
+       echo FALSE; \
+@@ -24,7 +24,7 @@
+   ))
+ 
+     LINUXVER_WEXT_ONLY:=$(strip $(shell \
+-    if [ "$(VERSION)" -ge "2" -a "$(PATCHLEVEL)" -ge "6" -a "$(SUBLEVEL)" -ge "17" ]; then \
++    if [ "$(VERSION)" -ge "3" -o "$(VERSION)" -ge "2" -a "$(PATCHLEVEL)" -ge "6" -a "$(SUBLEVEL)" -ge "17" ]; then \
+       echo FALSE; \
+     else \
+       echo TRUE; \
+--- a/src/include/bcmutils.h	2011-10-22 18:55:54.000000000 +0200
++++ b/src/include/bcmutils.h	2013-07-05 19:45:48.017337088 +0200
+@@ -555,7 +555,11 @@
+ extern void prhex(const char *msg, uchar *buf, uint len);
+ 
+ extern bcm_tlv_t *BCMROMFN(bcm_next_tlv)(bcm_tlv_t *elt, int *buflen);
++#if LINUX_VERSION_CODE < KERNEL_VERSION(3, 8, 0)
+ extern bcm_tlv_t *BCMROMFN(bcm_parse_tlvs)(void *buf, int buflen, uint key);
++#else
++extern bcm_tlv_t *BCMROMFN(bcm_parse_tlvs)(const void *buf, int buflen, uint key);
++#endif
+ extern bcm_tlv_t *BCMROMFN(bcm_parse_ordered_tlvs)(void *buf, int buflen, uint key);
+ 
+ extern const char *bcmerrorstr(int bcmerror);
+--- a/src/wl/sys/wl_cfg80211.c	2011-10-22 18:55:54.000000000 +0200
++++ b/src/wl/sys/wl_cfg80211.c	2013-07-05 19:58:00.993999187 +0200
+@@ -42,8 +42,7 @@
+            enum nl80211_iftype type, u32 *flags, struct vif_params *params);
+ static s32 __wl_cfg80211_scan(struct wiphy *wiphy, struct net_device *ndev,
+            struct cfg80211_scan_request *request, struct cfg80211_ssid *this_ssid);
+-static s32 wl_cfg80211_scan(struct wiphy *wiphy, struct net_device *ndev,
+-           struct cfg80211_scan_request *request);
++static s32 wl_cfg80211_scan(struct wiphy *wiphy, struct cfg80211_scan_request *request);
+ static s32 wl_cfg80211_set_wiphy_params(struct wiphy *wiphy, u32 changed);
+ static s32 wl_cfg80211_join_ibss(struct wiphy *wiphy, struct net_device *dev,
+            struct cfg80211_ibss_params *params);
+@@ -56,15 +55,12 @@
+            struct cfg80211_connect_params *sme);
+ static s32 wl_cfg80211_disconnect(struct wiphy *wiphy, struct net_device *dev, u16 reason_code);
+ 
+-#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 36)
+-static s32 wl_cfg80211_set_tx_power(struct wiphy *wiphy,
+-           enum nl80211_tx_power_setting type, s32 dbm);
+-#else
+-static s32 wl_cfg80211_set_tx_power(struct wiphy *wiphy,
+-           enum tx_power_setting type, s32 dbm);
+-#endif
++static int wl_cfg80211_set_tx_power(struct wiphy *wiphy,
++           struct wireless_dev *wdev,
++           enum nl80211_tx_power_setting type, int dbm);
+ 
+-static s32 wl_cfg80211_get_tx_power(struct wiphy *wiphy, s32 *dbm);
++static int wl_cfg80211_get_tx_power(struct wiphy *wiphy,
++           struct wireless_dev *wdev, int *dbm);
+ 
+ #if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 38)
+ static s32 wl_cfg80211_config_default_key(struct wiphy *wiphy,
+@@ -570,10 +566,11 @@
+ }
+ 
+ static s32
+-wl_cfg80211_scan(struct wiphy *wiphy, struct net_device *ndev,
+-                 struct cfg80211_scan_request *request)
++wl_cfg80211_scan(struct wiphy *wiphy, struct cfg80211_scan_request *request)
+ {
+ 	s32 err = 0;
++	struct wl_priv *wl = wiphy_to_wl(wiphy);
++	struct net_device *ndev = wl_to_ndev(wl);
+ 
+ 	CHECK_SYS_UP();
+ 	err = __wl_cfg80211_scan(wiphy, ndev, request, NULL);
+@@ -742,7 +739,7 @@
+ 	else
+ 		memset(&join_params.params.bssid, 0, ETHER_ADDR_LEN);
+ 
+-	wl_ch_to_chanspec(params->channel, &join_params, &join_params_size);
++	wl_ch_to_chanspec(params->chandef.chan, &join_params, &join_params_size);
+ 
+ 	err = wl_dev_ioctl(dev, WLC_SET_SSID, &join_params, join_params_size);
+ 	if (err) {
+@@ -1099,16 +1096,10 @@
+ 	return err;
+ }
+ 
+-#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 36)
+-static s32
+-wl_cfg80211_set_tx_power(struct wiphy *wiphy, enum nl80211_tx_power_setting type, s32 dbm)
+-#else
+-#define NL80211_TX_POWER_AUTOMATIC TX_POWER_AUTOMATIC
+-#define NL80211_TX_POWER_LIMITED TX_POWER_LIMITED
+-#define NL80211_TX_POWER_FIXED TX_POWER_FIXED
+-static s32
+-wl_cfg80211_set_tx_power(struct wiphy *wiphy, enum tx_power_setting type, s32 dbm)
+-#endif
++static int
++wl_cfg80211_set_tx_power(struct wiphy *wiphy,
++            struct wireless_dev *wdev,
++            enum nl80211_tx_power_setting type, int dbm)
+ {
+ 
+ 	struct wl_priv *wl = wiphy_to_wl(wiphy);
+@@ -1155,16 +1146,17 @@
+ 	}
+ 	wl->conf->tx_power = dbm;
+ 
+-	return err;
++	return (int) err;
+ }
+ 
+-static s32 wl_cfg80211_get_tx_power(struct wiphy *wiphy, s32 *dbm)
++static int wl_cfg80211_get_tx_power(struct wiphy *wiphy,
++            struct wireless_dev *wdev, int *dbm)
+ {
+ 	struct wl_priv *wl = wiphy_to_wl(wiphy);
+ 	struct net_device *ndev = wl_to_ndev(wl);
+ 	s32 txpwrdbm;
+ 	u8 result;
+-	s32 err = 0;
++	int err = 0;
+ 
+ 	CHECK_SYS_UP();
+ 	err = wl_dev_intvar_get(ndev, "qtxpower", &txpwrdbm);
+@@ -1173,8 +1165,7 @@
+ 		return err;
+ 	}
+ 	result = (u8) (txpwrdbm & ~WL_TXPWR_OVERRIDE);
+-	*dbm = (s32) bcm_qdbm_to_mw(result);
+-
++	*dbm = (int) bcm_qdbm_to_mw(result);
+ 	return err;
+ }
+ 
+@@ -1466,7 +1457,10 @@
+ 		scb_val.val = 0;
+ 		err = wl_dev_ioctl(dev, WLC_GET_RSSI, &scb_val, sizeof(scb_val_t));
+ 		if (err) {
+-			WL_ERR(("Could not get rssi (%d)\n", err));
++			if (err != -EINVAL) {
++				// Don't fill syslog with EINVAL error
++				WL_ERR(("Could not get rssi (%d)\n", err));
++			}
+ 			return err;
+ 		}
+ 		rssi = dtoh32(scb_val.val);
+@@ -1811,7 +1805,7 @@
+ 	notif_bss_info->frame_len = offsetof(struct ieee80211_mgmt, u.beacon.variable) +
+ 	                            wl_get_ielen(wl);
+ 	freq = ieee80211_channel_to_frequency(notif_bss_info->channel 
+-#if LINUX_VERSION_CODE > KERNEL_VERSION(2, 6, 39)
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 39)
+ 		,(notif_bss_info->channel <= CH_MAX_2G_CHANNEL) ? IEEE80211_BAND_2GHZ : IEEE80211_BAND_5GHZ
+ #endif
+ 	);
+@@ -2042,9 +2036,10 @@
+ 	struct bcm_tlv *tim;
+ 	u16 beacon_interval;
+ 	s32 dtim_period;
+-	size_t ie_len;
+-	u8 *ie;
+ 	s32 err = 0;
++ 	size_t ie_len;
++	const u8 *ie;
++	const struct cfg80211_bss_ies *ies;
+ 
+ 	ssid = &wl->profile->ssid;
+ 	bss = cfg80211_get_bss(wl_to_wiphy(wl), NULL, (s8 *)&wl->bssid,
+@@ -2074,10 +2069,16 @@
+ 		beacon_interval = cpu_to_le16(bi->beacon_period);
+ 	} else {
+ 		WL_DBG(("Found the AP in the list - BSSID %pM\n", bss->bssid));
+-		ie = bss->information_elements;
+-		ie_len = bss->len_information_elements;
++		ies = (const struct cfg80211_bss_ies*)rcu_dereference(bss->ies);
++		if (!ies) {
++			/* This should never happen */
++			err = -EIO;
++			goto update_bss_info_out;
++		}
++		ie = ies->data;
++		ie_len = (size_t)(ies->len);
+ 		beacon_interval = bss->beacon_interval;
+-		cfg80211_put_bss(bss);
++		cfg80211_put_bss(wl_to_wiphy(wl), bss);
+ 	}
+ 
+ 	tim = bcm_parse_tlvs(ie, ie_len, WLAN_EID_TIM);
+--- a/src/wl/sys/wl_iw.h	2011-10-22 18:55:54.000000000 +0200
++++ b/src/wl/sys/wl_iw.h	2013-07-05 19:45:48.020670421 +0200
+@@ -16,6 +16,7 @@
+ #define _wl_iw_h_
+ 
+ #include <linux/wireless.h>
++#include <linux/semaphore.h>
+ 
+ #include <typedefs.h>
+ #include <proto/ethernet.h>
+--- a/src/wl/sys/wl_linux.c	2011-10-22 18:55:54.000000000 +0200
++++ b/src/wl/sys/wl_linux.c	2013-07-05 19:52:29.540667919 +0200
+@@ -40,7 +40,6 @@
+ #include <linux/pci_ids.h>
+ #define WLC_MAXBSSCFG		1	
+ 
+-#include <asm/system.h>
+ #include <asm/io.h>
+ #include <asm/irq.h>
+ #include <asm/pgtable.h>
+@@ -385,7 +384,7 @@
+ #endif
+ 	.ndo_get_stats = wl_get_stats,
+ 	.ndo_set_mac_address = wl_set_mac_address,
+-	.ndo_set_multicast_list = wl_set_multicast_list,
++	.ndo_set_rx_mode = wl_set_multicast_list,
+ 	.ndo_do_ioctl = wl_ioctl
+ };
+ 
+@@ -843,7 +842,7 @@
+ 	pci_set_drvdata(pdev, NULL);
+ }
+ 
+-static struct pci_driver wl_pci_driver = {
++static struct pci_driver wl_pci_driver __refdata = {
+ 	name:		"wl",
+ 	probe:		wl_pci_probe,
+ 	suspend:	wl_suspend,
+@@ -1579,11 +1578,7 @@
+ 	}
+ 
+ 	WL_LOCK(wl);
+-	if (!capable(CAP_NET_ADMIN)) {
+-		bcmerror = BCME_EPERM;
+-	} else {
+-		bcmerror = wlc_ioctl(wl->wlc, ioc.cmd, buf, ioc.len, wlif->wlcif);
+-	}
++	bcmerror = wlc_ioctl(wl->wlc, ioc.cmd, buf, ioc.len, wlif->wlcif);
+ 	WL_UNLOCK(wl);
+ 
+ done1:
+@@ -2960,7 +2955,7 @@
+ void
+ wl_tkip_printstats(wl_info_t *wl, bool group_key)
+ {
+-#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 14)
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 14) && LINUX_VERSION_CODE < KERNEL_VERSION(3, 10, 0)
+ 	char debug_buf[512];
+ 	int idx;
+ 	if (wl->tkipmodops) {
+@@ -3120,43 +3115,34 @@
+ }
+ 
+ static int
+-wl_proc_read(char *buffer, char **start, off_t offset, int length, int *eof, void *data)
++wl_proc_read(struct seq_file *seq, void *offset)
+ {
+-	wl_info_t * wl = (wl_info_t *)data;
++	wl_info_t * wl = (wl_info_t *)seq->private;
+ 	int bcmerror, to_user;
+-	int len;
+-
+-	if (offset > 0) {
+-		*eof = 1;
+-		return 0;
+-	}
+ 
+-	if (!length) {
+-		WL_ERROR(("%s: Not enough return buf space\n", __FUNCTION__));
+-		return 0;
+-	}
+ 	WL_LOCK(wl);
+ 	bcmerror = wlc_ioctl(wl->wlc, WLC_GET_MONITOR, &to_user, sizeof(int), NULL);
+-	len = sprintf(buffer, "%d\n", to_user);
+ 	WL_UNLOCK(wl);
+-	return len;
++
++	seq_printf(seq, "%d\n", to_user);
++	return bcmerror;
+ }
+ 
+-static int
+-wl_proc_write(struct file *filp, const char __user *buff, unsigned long length, void *data)
++static ssize_t wl_proc_write(struct file *file, const char __user *buff,
++			     size_t length, loff_t *ppos)
+ {
+-	wl_info_t * wl = (wl_info_t *)data;
+-	int from_user = 0;
+-	int bcmerror;
+-
+-	if (length == 0 || length > 2) {
++	struct seq_file *seq = file->private_data;
++	wl_info_t * wl = (wl_info_t *)seq->private;
++	int bcmerror, from_user = 0;
+ 
++	if (length != 1) {
+ 		WL_ERROR(("%s: Invalid data length\n", __FUNCTION__));
+ 		return -EIO;
+ 	}
++
+ 	if (copy_from_user(&from_user, buff, 1)) {
+ 		WL_ERROR(("%s: copy from user failed\n", __FUNCTION__));
+-		return -EIO;
++		return -EFAULT;
+ 	}
+ 
+ 	if (from_user >= 0x30)
+@@ -3170,21 +3156,34 @@
+ 		WL_ERROR(("%s: SET_MONITOR failed with %d\n", __FUNCTION__, bcmerror));
+ 		return -EIO;
+ 	}
++	*ppos += length;
+ 	return length;
+ }
+ 
++static int wl_proc_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, wl_proc_read, PDE_DATA(inode));
++}
++
++static const struct file_operations wl_proc_fops = {
++	.owner = THIS_MODULE,
++	.open = wl_proc_open,
++	.read = seq_read,
++	.write = wl_proc_write,
++	.llseek = seq_lseek,
++	.release = single_release,
++};
++
+ static int
+ wl_reg_proc_entry(wl_info_t *wl)
+ {
+ 	char tmp[32];
+ 	sprintf(tmp, "%s%d", HYBRID_PROC, wl->pub->unit);
+-	if ((wl->proc_entry = create_proc_entry(tmp, 0644, NULL)) == NULL) {
++	wl->proc_entry = proc_create_data(tmp, 0644, NULL, &wl_proc_fops, wl);
++	if (!wl->proc_entry) {
+ 		WL_ERROR(("%s: create_proc_entry %s failed\n", __FUNCTION__, tmp));
+ 		ASSERT(0);
+ 		return -1;
+ 	}
+-	wl->proc_entry->read_proc = wl_proc_read;
+-	wl->proc_entry->write_proc = wl_proc_write;
+-	wl->proc_entry->data = wl;
+ 	return 0;
+ }
