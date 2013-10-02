@@ -47,6 +47,22 @@ let returnval=returnval+$?
 rmdir $INSTALLDIR/lib/desktop
 
 rm -rf ./packages/java/lib/icons/*Contrast*
+rm ./packages/java/lib/jre/lib/i386/fxavcodecplugin-52.so
 
 cp -Prfd $EXTRADIR/* ./packages/java/.
+
+JWS=`$INSTALLDIR/bin/javaws | head -1 | sed -e 's,.*Start \(.*\)-fcs,\1,' | cut -d. -f1-3`
+JV=`$INSTALLDIR/bin/java -version 2>&1 | head -1 | sed -e 's,.*version.*\"1\.\(.*\)\..*_\(.*\)\",\1.\2,'`
+
+mkdir -p ./packages/java/etc/skel/.java/deployment/
+cat > ./packages/java/etc/skel/.java/deployment/deployment.properties <<EOF
+#deployment.properties
+#Mon Jan 1 12:00:00 EDT 2013
+deployment.expiration.decision.timestamp.$JWS=1/1/2020 12\:00\:00
+java.deployment.version=$JV
+deployment.expiration.decision.suppression.$JWS=true
+deployment.expiration.decision.$JWS=later
+EOF
+cp ./packages/java/etc/skel/.java/deployment/deployment.properties ./packages/java/etc/skel/.java/deployment/config.cache
+
 exit $returnval

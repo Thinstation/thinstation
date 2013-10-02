@@ -1,0 +1,28 @@
+# Description:
+# URL:
+# Packager:
+# Maintainer:
+
+name=bbswitch
+version=0.7
+release=3.10.14
+source=(https://api.github.com/repos/Bumblebee-Project/bbswitch/tarball/v$version)
+
+build() {
+    tar xzfv v$version
+    cd Bumblebee-Project-bbswitch-*
+
+    mkdir -p $PKG/usr/include/linux
+
+    for KERNELTYPE in TS TS_SMP
+    do
+       KVERSION=${release}$KERNELTYPE
+       KCOMPDIR=${KERNELTYPE##TS}
+       make KVERSION=$KVERSION
+       MODDIR=$PKG/lib/modules/${KVERSION}/kernel/drivers/video
+
+       mkdir -p $MODDIR
+       cp -a ${name}.ko $MODDIR
+    done
+}
+

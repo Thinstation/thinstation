@@ -1,0 +1,31 @@
+#!/bin/sh
+
+. $TS_GLOBAL
+
+case "$1" in
+init)
+	if ! pkg_initialized $PACKAGE; then
+		alsactl init
+		for control in Master PCM CD Video; do
+			amixer sset $control $AUDIO_LEVEL% > /dev/null
+		done
+		if [ "$MIC_LEVEL" -gt "0" ]; then
+			amixer sset Capture $MIC_LEVEL% unmute > /dev/null
+			amixer sset $MIC_DEVICE playback mute > /dev/null
+			amixer sset $MIC_DEVICE $MIC_LEVEL% cap > /dev/null
+		else
+			amixer sset Capture 0% > /dev/null
+		fi
+		for control in $UNMUTE; do
+			amixer sset $control unmute > /dev/null
+		done
+		for control in $MUTE; do
+			amixer sset $control mute > /dev/null
+		done
+		pkg_set_init_flag $PACKAGE
+	fi
+	;;
+*)
+	echo "Usage: $0 init"
+	;;
+esac

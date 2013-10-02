@@ -19,7 +19,6 @@ if [ -e /etc/cmd/$PACKAGE.window ] ; then . /etc/cmd/$PACKAGE.window ; fi
 if [ -e /etc/cmd/$PACKAGE.menu ] ; then . /etc/cmd/$PACKAGE.menu ; fi
 if [ -e /etc/cmd/$PACKAGE.fullscreen ] ; then . /etc/cmd/$PACKAGE.fullscreen ; fi
 if [ -e /etc/cmd/$PACKAGE.global ] ; then . /etc/cmd/$PACKAGE.global ; fi
-if [ -e /etc/cmd/$PACKAGE.options ] ; then . /etc/cmd/$PACKAGE.options ; fi
 
 if [ -z "$CMD_CONSOLE" ] ; then CMD_CONSOLE=$CMD_GLOBAL ; fi
 if [ -z "$CMD_WINDOW" ] ; then CMD_WINDOW=$CMD_GLOBAL ; fi
@@ -29,8 +28,8 @@ if [ -z "$CMD_FULLSCREEN" ] ; then CMD_FULLSCREEN=$CMD_GLOBAL ; fi
 if [ -e /etc/cmd/$PACKAGE.getip ] ; then CMD_GETIP=TRUE; fi
 #if [ -e /etc/cmd/$PACKAGE.wm ] ; then wm_menu; fi
 
-if [ -e /etc/cmd/$PACKAGE.change_server_type ] ; then SERVER="\"$2\"" ; elif [ ! -z "$2" ] ; then SERVER=$2 ; fi
-if [ ! -z "$3" ] ; then OPTIONS=$3 ; fi
+if [ -e /etc/cmd/$PACKAGE.change_server_type ] ; then SERVER="\"$2\"" ; elif [ -n "$2" ] ; then SERVER=$2 ; fi
+if [ -n "$3" ] ; then OPTIONS=$3 ; fi
 if [ -e /etc/cmd/$PACKAGE.server_first ] ; then	REVERSE_ORDER=TRUE ; fi
 
 APPLOG=$APPLOGDIR/$PACKAGE.$$
@@ -57,6 +56,16 @@ x_get_user()
 {
 	if [ -e /etc/cmd/$PACKAGE.getuser ] && [ -z "$REMUSER" ]; then
 	    dialog_get_username $PACKAGE
+	fi
+}
+
+package_input()
+{
+	if [ -e /etc/cmd/$PACKAGE.options ]; then
+		. /etc/cmd/$PACKAGE.options
+	else
+		x_get_ip
+		x_get_user
 	fi
 }
 
@@ -114,8 +123,7 @@ case "$1" in
 auto)
   while [ "$reconnect" != "1" ]; do
     echo "Running Auto $PACKAGE" >> $APPLOG
-    x_get_ip
-    x_get_user
+    package_input
     order_command
     CMD="$CMD_CONSOLE $ORDERED_COMMAND"
     wm_workspaces "$CMD" $4
@@ -139,8 +147,7 @@ console)
     use_xrandr
     use_wallpaper
     while [ -e /tmp/.X11-unix/X$DISPLAY_NUMBER ] && [ "$reconnect" != "1" ]; do
-	x_get_ip
-	x_get_user
+	package_input
 	order_command
 	CMD="$CMD_CONSOLE $ORDERED_COMMAND"
 	xterm_wrapper
@@ -161,8 +168,7 @@ window|fullscreen)
     if ! is_disabled $ALWAYS_ENTER_SERVER ; then
 	ALWAYS_ENTER_SERVER=TRUE
     fi
-    x_get_ip
-    x_get_user
+    package_input
     order_command
     MODE=`make_caps $1`
     CMD=`eval echo '$'CMD_$MODE`' '$ORDERED_COMMAND

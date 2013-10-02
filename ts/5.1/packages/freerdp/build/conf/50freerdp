@@ -1,56 +1,110 @@
+#    /flag (enables flag)
+#    /option:<value> (specifies option with value)
+#    +toggle -toggle (enables or disables toggle, where '/' is a synonym of '+')
+#
+#    /v:<server>[:port]   	Server hostname
+#    /port:<number>       	Server port
+#    /w:<width>           	Width
+#    /h:<height>          	Height
+#    /size:<width>x<height>	Screen size
+#    /f                   	Fullscreen mode
+#    /bpp:<depth>         	Session bpp (color depth)
+#    /kbd:0x<layout id> or <layout name>	Keyboard layout
+#    /kbd-list            	List keyboard layouts
+#    /kbd-type:<type id>  	Keyboard type
+#    /kbd-subtype:<subtype id>	Keyboard subtype
+#    /kbd-fn-key:<function key count>	Keyboard function key count
+#    /admin               	Admin (or console) session
+#    /multimon            	Use multiple monitors
+#    /workarea            	Use available work area
+#    /monitors:<0,1,2...> 	Select monitors to use
+#    /monitor-list        	List detected monitors
+#    /t:<title>           	Window title
+#    +decorations (default:off)	Window decorations
+#    +smart-sizing (default:off)	Scale remote desktop to window size
+#    /a                   	Addin
+#    /vc                  	Static virtual channel
+#    /dvc                 	Dynamic virtual channel
+#    /u:[<domain>\]<user> or <user>[@<domain>]	Username
+#    /p:<password>        	Password
+#    /d:<domain>          	Domain
+#    /g:<gateway>[:port]  	Gateway Hostname
+#    /gu:[<domain>\]<user> or <user>[@<domain>]	Gateway username
+#    /gp:<password>       	Gateway password
+#    /gd:<domain>         	Gateway domain
+#    /load-balance-info:<info string>	Load balance info
+#    /app:||<alias> or <executable path>	Remote application program
+#    /app-name:<app name> 	Remote application name for user interface
+#    /app-icon:<icon path>	Remote application icon for user interface
+#    /app-cmd:<parameters>	Remote application command-line parameters
+#    /app-file:<file name>	File to open with remote application
+#    /app-guid:<app guid> 	Remote application GUID
+#    +compression (default:off)	Compression
+#    /shell               	Alternate shell
+#    /shell-dir           	Shell working directory
+#    /sound               	Audio output (sound)
+#    /microphone          	Audio input (microphone)
+#    /audio-mode          	Audio output mode
+#    /multimedia          	Redirect multimedia (video)
+#    /network             	Network connection type
+#    /drive               	Redirect drive
+#    +drives (default:off)	Redirect all drives
+#    +home-drive (default:off)	Redirect home drive
+#    +clipboard (default:off)	Redirect clipboard
+#    /serial              	Redirect serial device
+#    /parallel            	Redirect parallel device
+#    /smartcard           	Redirect smartcard device
+#    /printer             	Redirect printer device
+#    /usb                 	Redirect USB device
+#    +multitouch (default:off)	Redirect multitouch input
+#    /echo                	Echo channel
+#    +fonts (default:off) 	Smooth fonts (ClearType)
+#    +aero (default:off)  	Desktop composition
+#    +window-drag (default:off)	Full window drag
+#    +menu-anims (default:off)	Menu animations
+#    -themes (default:on) 	Themes
+#    -wallpaper (default:on)	Wallpaper
+#    /gdi:<sw|hw>         	GDI rendering
+#    /rfx                 	RemoteFX
+#    /rfx-mode:<image|video>	RemoteFX mode
+#    /frame-ack:<number>  	Frame acknowledgement
+#    /nsc                 	NSCodec
+#    /jpeg                	JPEG codec
+#    /jpeg-quality:<percentage>	JPEG quality
+#    -nego (default:on)   	protocol security negotiation
+#    /sec:<rdp|tls|nla|ext>	force specific protocol security
+#    -sec-rdp (default:on)	rdp protocol security
+#    -sec-tls (default:on)	tls protocol security
+#    -sec-nla (default:on)	nla protocol security
+#    +sec-ext (default:off)	nla extended protocol security
+#    /cert-name:<name>    	certificate name
+#    /cert-ignore         	ignore certificate
+#    /pcb:<blob>          	Preconnection Blob
+#    /pcid:<id>           	Preconnection Id
+#    /vmconnect:<vmid>    	Hyper-V console (use port 2179, disable negotiation)
+#    -authentication (default:on)	authentication (hack!)
+#    -encryption (default:on)	encryption (hack!)
+#    -grab-keyboard (default:on)	grab keyboard
+#    -toggle-fullscreen (default:on)	Alt+Ctrl+Enter toggles fullscreen
+#    -mouse-motion (default:on)	mouse-motion
+#    /parent-window:<window id>	Parent window id
+#    -bitmap-cache (default:on)	bitmap cache
+#    -offscreen-cache (default:on)	offscreen bitmap cache
+#    -glyph-cache (default:on)	glyph cache
+#    /codec-cache:<rfx|nsc|jpeg>	bitmap codec cache
+#    -fast-path (default:on)	fast-path input/output
+#    /max-fast-path-size:<size>	maximum fast-path update size
+#    +async-input (default:off)	asynchronous input
+#    +async-update (default:off)	asynchronous update
+#    +async-transport (default:off)	asynchronous transport (unstable)
+#    +async-channels (default:off)	asynchronous channels (unstable)
+#    /wm-class:<class name>	set the WM_CLASS hint for the window instance
+#    /version             	print version
+#    /help                	print help
+#    /play-rfx:<pcap file>	Replay rfx pcap file
+#    +auth-only (default:off)	Authenticate only.
 
-#See http://freerdp.sourceforge.net for more information
-#Usage: xfreerdp [options] server:port
-#      -0: connect to console session
-#      -a: set color depth in bit, default is 16
-#      -c: initial working directory
-#      -D: hide window decorations
-#      -T: window title
-#      -d: domain
-#      -f: fullscreen mode
-#      -g: set geometry, using format WxH or X% or 'workarea', default is 1024x768
-#      -h: print this help
-#      -k: set keyboard layout ID
-#      -K: do not interfere with window manager bindings
-#      -m: don't send mouse motion events
-#      -n: hostname
-#      -o: console audio
-#      -p: password
-#      -s: set startup-shell
-#      -t: alternative port number, default is 3389
-#      -u: username
-#      -x: performance flags (m[odem], b[roadband] or l[an])
-#      -X: embed into another window with a given XID.
-#      -z: enable compression
-#      --app: RemoteApp connection. This implies -g workarea
-#      --ext: load an extension
-#      --no-auth: disable authentication
-#      --no-fastpath: disable fast-path
-#      --no-osb: disable offscreen bitmaps
-#      --no-bmp-cache: disable bitmap cache
-#      --plugin: load a virtual channel plugin
-#      --plugin cliprdr: Synchronize client and server clipboard data. Plain text, 
-#          Unicode text, HTML content and images are supported. 
-#      --plugin rdpsnd: Redirects sound generated on the server to the client. 
-#      --plugin rdpdr --data disk:<sharename>:<path> --
-#          Redirect <path> to the server as shared folde, e.g:
-#      --plugin rdpdr --data disk:USB:/mnt/usbdevice --
-#      --plugin rdpdr --data printer[:<printername>[:<driver>]] --
-#          Redirect printers to the server
-#      --noosb: disable off screen bitmaps, default on
-#      --rfx: enable RemoteFX
-#      --rfx-mode: RemoteFX operational flags (v[ideo], i[mage]), default is video
-#      --nsc: enable NSCodec (experimental)
-#      --composition: enable desktop composition
-#      --no-rdp: disable Standard RDP encryption
-#      --no-tls: disable TLS encryption
-#      --no-nla: disable network level authentication
-#      --ntlm: force NTLM authentication protocol version (1 or 2)
-#      --ignore-certificate: ignore verification of logon certificate
-#      --sec: force protocol security (rdp, tls or nla)
-#      --version: print version information
-
-# The -a option here specifies the color depth
+# The /bpp: option here specifies the color depth
 # Note certain servers support certain color depths, wrong settings with this
 # may cause your connection to fail.
 #SESSION_#_TITLE="Big Bad Server Donald"
@@ -58,20 +112,28 @@
 #SESSION_#_SCREEN=1
 #SESSION_#_SCREEN_POSITION=2
 #SESSION_#_FREERDP_SERVER=192.168.1.1
-#SESSION_#_FREERDP_OPTIONS="-u user -p password -a 16"
+#SESSION_#_FREERDP_OPTIONS="/u:user /p:password /bpp:16"
 #SESSION_#_AUTOSTART=Off
 
-# -u '' gives a blank user name
+# /u:'' gives a blank user name
 #SESSION_#_TITLE="Big Bad Server Road Runner"
 #SESSION_#_TYPE=freerdp
 #SESSION_#_SCREEN=1
 #SESSION_#_FREERDP_SERVER=192.168.1.1
-#SESSION_#_FREERDP_OPTIONS="-u '' -a 8"
+#SESSION_#_FREERDP_OPTIONS="/u:'' /bpp:8"
 #SESSION_#_AUTOSTART=Off
 
 #Example on USB and CD redirection for freerdp
 #SESSION_#_TITLE="Remote Desktop"
 #SESSION_#_TYPE=freerdp
 #SESSION_#_FREERDP_SERVER=192.168.1.1
-#SESSION_#_FREERDP_OPTIONS="-a 24 -x b --plugin rdpdr --data disk:USB:/mnt/usbdevice disk:CD:/mnt/cdrom  --"
+#SESSION_#_FREERDP_OPTIONS="+drives /multimedia /rfx +fonts +aero"
 #SESSION_#_AUTOSTART=Off
+
+FREERDP_SELECT_SERVER=true
+FREERDP_SERVER_0="1 Big_Bad_Server_Donald"
+FREERDP_SERVER_0_OPTIONS="-sec-nla"
+FREERDP_KNOWN_HOST_0="Big_Bad_Server_Donald 7a:a4:af:8a:98:da:50:52:ba:33:8d:e6:15:4e:49:7b:b3$
+FREERDP_SERVER_1="2 Big_Bad_Server_Road_Runner"
+FREERDP_SERVER_1_OPTIONS="-sec-nla /cert-ignore"
+

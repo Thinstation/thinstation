@@ -1,0 +1,21 @@
+# Compensate for NVidia Optimus hardware. Video mux must be turned OFF
+# to switch to integrated graphics, and nvidia module must be either
+# blacklisted or removed. 
+
+# Unload nvidia module, if present, so bbswitch can be loaded 
+modprobe -r nvidia  >/dev/null 2>&1
+
+# Load bbswitch with side-effect of turning off discrete graphics card, 
+# and enabling integrated card
+modprobe bbswitch load_state=0 unload_state=1 >/dev/null 2>&1
+MODPROBE_RC=$?
+
+if [ $MODPROBE_RC == 0 ] ; then
+   # Optimus hardware. Delete nvidia modules to absolutely prevent 
+   # them from being reloaded (which causes discrete card to be switched 
+   # back on)
+   find /lib/modules -name 'nvidia*.ko' -delete
+   depmod
+fi
+
+# let udev reload nvidia, if necessary
