@@ -7,20 +7,20 @@ init)
 	if ! pkg_initialized $PACKAGE; then
 		alsactl init
 		for control in Master PCM CD Video; do
-			amixer sset $control $AUDIO_LEVEL% > /dev/null
+			amixer sset $control $AUDIO_LEVEL%
 		done
 		if [ "$MIC_LEVEL" -gt "0" ]; then
-			amixer sset Capture $MIC_LEVEL% unmute > /dev/null
-			amixer sset $MIC_DEVICE playback mute > /dev/null
-			amixer sset $MIC_DEVICE $MIC_LEVEL% cap > /dev/null
+			amixer sset Capture $MIC_LEVEL% unmute
+			amixer sset $MIC_DEVICE playback mute
+			amixer sset $MIC_DEVICE $MIC_LEVEL% cap
 		else
-			amixer sset Capture mute > /dev/null
+			amixer sset Capture 0%
 		fi
 		for control in $UNMUTE; do
-			amixer sset $control unmute > /dev/null
+			amixer sset $control unmute
 		done
 		for control in $MUTE; do
-			amixer sset $control mute > /dev/null
+			amixer sset $control mute
 		done
 		pkg_set_init_flag $PACKAGE
 	fi
