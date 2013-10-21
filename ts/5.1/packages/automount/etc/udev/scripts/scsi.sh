@@ -100,14 +100,14 @@ if [ "$TYPE" == "sr" ] && [ "$ACTION" == "change" ]; then
 	done
 #	export >> /var/log/cdrom
 	if [ "$ID_CDROM_MEDIA" == "1" ]; then
-	       	if [ -e /proc/sys/dev/cdrom ] ; then
+		if [ -e /proc/sys/dev/cdrom ] ; then
 			echo 0 > /proc/sys/dev/cdrom/autoclose
 		fi
 		if is_enabled $LOCK_CDROM ; then
 			echo 0 > /proc/sys/dev/cdrom/lock
 		fi
-	        mtpath=$BASE_MOUNT_PATH/cdrom$node
-	       	mount_opts="$CDROM_MOUNT_OPTIONS"
+		mtpath=$BASE_MOUNT_PATH/cdrom$node
+		mount_opts="$CDROM_MOUNT_OPTIONS"
 		do_mounts
 	fi
 elif [ "$TYPE" == "sd" ] && [ "$ACTION" == "add" ] ; then

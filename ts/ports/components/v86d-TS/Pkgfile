@@ -7,16 +7,15 @@ name=v86d-TS
 pname=${name%-*}
 version=0.1.10
 release=1
-source=(https://github.com/mjanusz/v86d/archive/master.zip
-	v86d.fake)
+source=(https://github.com/mjanusz/v86d/archive/master.zip)
 
-build() { 
-cd $pname-master
+build() {
+	cd $pname-master
+
 	./configure --with-klibc
 	make
 	make DESTDIR=$PKG install
-mkdir -p $PKG/$TSCOMPROOT/$pname
-mv $PKG/sbin/v86d $PKG/sbin/v86d.real
-install $SRC/v86d.fake $PKG/sbin/v86d
-mv $PKG/sbin $PKG/$TSCOMPROOT/$pname/.
+
+	mkdir -p $PKG/$TSCOMPROOT/$pname
+	mv $PKG/sbin $PKG/$TSCOMPROOT/$pname/.
 }

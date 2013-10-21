@@ -1,0 +1,59 @@
+### Global settings
+
+## CRUX splash image
+splashimage (hd0,0)/boot/grub/crux03.xpm.gz
+## define special fore-/background colors for splash screen image
+foreground = FFFFFF
+background = AAAAAA
+
+## shaded text
+#shade 1
+
+## time to wait for user interaction
+timeout 5
+
+## default boot kernel 
+default 0
+
+### GRUB Devices: (see /boot/grub/device.map)
+##
+## Linux         Grub
+## ======================
+## /dev/sda      (hd0)
+## /dev/sda1     (hd0,0)
+## /dev/sdb      (hd1)
+## /dev/sdb1     (hd1,0)
+## /dev/fd0      (fd0)
+
+## Default menu entries
+
+title CRUX
+kernel (hd0,0)/boot/vmlinuz root=/dev/sda1
+
+title CRUX
+kernel (hd0,0)/boot/vmlinuz.old root=/dev/sda1 
+
+### Special cases
+
+## Boot special bootimage
+#title Memtest
+#kernel (hd0,0)/boot/memtest.bin  
+
+## Boot Microsoft Windows(TM) 
+#title Windows 
+#root (hd0,5)
+#makeactive
+#chainloader +1
+
+## Boot from Floppy
+#title floppy
+#root (fd0)
+#chainloader +1
+
+## Boot with different /boot partition
+## /     = /dev/sdb2 = (hd1,1)
+## /boot = /dev/sdb1 = (hd1,0)
+##
+#title CRUX GNU/Linux drive 2
+#kernel (hd1,0)/vmlinuz root=/dev/sdb2 
+

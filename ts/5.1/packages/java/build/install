@@ -1,7 +1,7 @@
 #!/bin/bash
 
 gzname=`basename $1`
-JAVAHOME=/lib/jre
+JAVAHOME=/opt/jre
 INSTALLDIR=./packages/java$JAVAHOME
 EXTRADIR=./packages/java/build/extra
 
@@ -31,8 +31,8 @@ mkdir -p ./packages/java/lib/licenses/java
 ln -s $JAVAHOME/LICENSE ./packages/java/lib/licenses/java
 let returnval=returnval+$?
 
-mkdir -p ./packages/java/lib/firefox/plugins
-ln -s $JAVAHOME/lib/i386/libnpjp2.so ./packages/java/lib/firefox/plugins
+mkdir -p ./packages/java/lib/mozilla/plugins
+ln -s $JAVAHOME/lib/i386/libnpjp2.so ./packages/java/lib/mozilla/plugins
 let returnval=returnval+$?
 
 rm -rf $INSTALLDIR/plugin
@@ -47,7 +47,7 @@ let returnval=returnval+$?
 rmdir $INSTALLDIR/lib/desktop
 
 rm -rf ./packages/java/lib/icons/*Contrast*
-rm ./packages/java/lib/jre/lib/i386/fxavcodecplugin-52.so
+rm $INSTALLDIR/lib/i386/fxavcodecplugin-52.so
 
 cp -Prfd $EXTRADIR/* ./packages/java/.
 

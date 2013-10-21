@@ -1,0 +1,47 @@
+# Description: GNU GRUB (GRand Unified Bootloader)
+# URL: http://www.gnu.org/software/grub/
+# Packager: Lucas Hazel, lucas at die dot net dot au
+# Maintainer: Alan Mizrahi, alan at mizrahi dot com dot ve
+# Depends on: gettext
+
+name=grub
+version=0.97
+release=7
+source=(ftp://alpha.gnu.org/gnu/grub/$name-$version.tar.gz \
+	http://crux.nu/files/grub/0.97/$name-$version-patches-2.tar.bz2 \
+	ext4.patch \
+	automake.patch \
+	http://crux.nu/files/grub/common/crux02.xpm.gz \
+	http://crux.nu/files/grub/common/crux03.xpm.gz \
+	menu.lst.sample)
+
+build () {
+	cd $name-$version
+
+	# automake 1.10 fix
+	sed -i '19i\AM_PROG_AS' configure.ac
+
+	for i in $SRC/*.patch; do
+	 patch -p1 -i $i
+	done
+
+	# We really shouldn't optimise GRUB at all.
+	unset CXXFLAGS
+	unset CFLAGS
+    
+	autoreconf --install --force
+
+	./configure --prefix=/usr \
+		--libdir=/usr/share \
+		--mandir=/usr/man \
+		--sbindir=/sbin \
+		--disable-nls \
+		--disable-auto-linux-mem-opt 
+		
+	make
+	make DESTDIR=$PKG install
+	rm -rf $PKG/usr/share/info
+
+	mkdir -p $PKG/boot/grub
+	install -m 644 $SRC/{crux*,menu.lst.sample} $PKG/boot/grub/
+}

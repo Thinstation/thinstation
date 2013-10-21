@@ -5,7 +5,7 @@ dir=AdobeReader
 installdir=./packages/adobereader
 
 mkdir -p $installdir/{bin,opt}
-mkdir -p $installdir/lib/firefox/plugins
+mkdir -p $installdir/lib/mozilla/plugins
 mkdir -p $installdir/lib/{icons,mime/packages,applications}
 
 tar -C wget_tmp -jxf wget_tmp/$gzname
@@ -18,7 +18,7 @@ do
 done
 
 ln -s /opt/Adobe/Reader9/bin/acroread $installdir/bin
-ln -s /opt/Adobe/Reader9/Browser/intellinux/nppdf.so $installdir/lib/firefox/plugins
+#ln -s /opt/Adobe/Reader9/Browser/intellinux/nppdf.so $installdir/lib/mozilla/plugins
 
 mv $installdir/opt/Adobe/Reader9/Resource/Icons $installdir/lib/icons/hicolor
 for i in $installdir/lib/icons/hicolor/*
@@ -46,5 +46,9 @@ rm -r $installdir/opt/Adobe/Reader9/Resource/Support
 ln -s ../opt/Adobe/Reader9/Reader/Legal/en_US/License.txt $installdir/build/license
 mkdir -p $installdir/lib/licenses/adobereader
 ln -s /opt/AdobeReader9/Reader/Legal/en_US/License.txt $installdir/lib/licenses/adobereader
+
+pushd $installdir
+patch -p0 -i build/acroread-dirname.patch
+popd
 
 exit $returnval

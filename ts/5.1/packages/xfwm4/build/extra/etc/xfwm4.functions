@@ -173,7 +173,7 @@ wm_menu()
 		while read type title screen position workspace autostart custom icon_mode server options; do
 			if [ "$server" = "." ]; then unset server ; fi
 			if [ "$options" = "." ]; then unset options ; fi
-			if is_enabled $autostart; then mode=auto; else mode=window;fi
+			if is_enabled $autostart; then mode=auto; else mode=$MAXIMIZE_DEFAULT;fi
 			command="pkg $mode $type \"$server\" \"$options\""
 			package=$type
 			icon=$type

@@ -1,19 +1,59 @@
-#!/bin/bash
-# little script to build a thinstation package dir from vmware-view technical preview client
-# version 0.5 initial release
-# missing error handling
-# roman petry
+#!/bin/sh
 
-gzname=`basename $1`
-subdir=`basename $1 .orig.tar.gz |sed -r 's/_/-/g'`
+dname=`basename $1`
+package=vmware-view-client
 INSTALLDIR=./packages/vmviewpcoip
-EXTRADIR=$INSTALLDIR/build/extra
 
-tar -C wget_tmp -zxf wget_tmp/$gzname
-cp -Prfd wget_tmp/$subdir/usr/bin $INSTALLDIR/.
-cp -Prfd wget_tmp/$subdir/usr/lib $INSTALLDIR/.
-cp -Prfd wget_tmp/$subdir/usr/share/* $INSTALLDIR/lib/.
-returnval=$?
-cp -Prfd $EXTRADIR/* $INSTALLDIR/.
+cd wget_tmp
+
+if [ -n "`echo $dname | grep \.deb`" ] ; then
+  mkdir $package
+  ar x $dname
+  returnval=$?
+  rm debian-binary
+  tar xf data.tar.gz -C $package
+  let returnval=returnval+$?
+  rm data.tar.gz
+  rm control.tar.gz
+else
+  tar xf $dname
+  returnval=$?
+fi
+
+mv $package/usr/bin $package
+
+if [ -e $package/bin/vmware-view.bin ]; then
+  rm $package/bin/vmware-view
+  mv $package/bin/vmware-view.bin $package/bin/vmware-view
+fi
+
+mv $package/usr/lib $package
+
+rm -rf $package/usr/share/lintian
+mv $package/usr/share/* $package/lib
+rm -rf $package/usr
+
+find $package -name "._*" -exec rm {} \;
+
+strip $package/bin/* 2>/dev/null
+strip $package/lib/libpcoip*.so 2>/dev/null
+strip $package/lib/pcoip/vchan_plugins/*.so 2>/dev/null
+strip $package/lib/vmware/vmware-* 2>/dev/null
+strip $package/lib/vmware/rdpvcbridge/*.so 2>/dev/null
+strip $package/lib/vmware/view/vdpService/*.so 2>/dev/null
+
+rm -rf $package/lib/locale
+
+cd ..
+mkdir -p $INSTALLDIR
+cp -a wget_tmp/$package/* $INSTALLDIR
+let returnval=returnval+$?
+
+ln -s ../lib/doc/vmware-view-client/VMware-view-client-EULA-en.txt $INSTALLDIR/build/license
+
+mkdir -p $INSTALLDIR/lib/licenses/vmware-view-client
+ln -s /lib/doc/vmware-view-client/VMware-view-client-EULA-en.txt $INSTALLDIR/lib/licenses/vmware-view-client
+
+cp -Prfd $INSTALLDIR/build/extra/* $INSTALLDIR/.
 
 exit $returnval

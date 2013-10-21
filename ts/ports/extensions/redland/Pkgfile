@@ -1,0 +1,21 @@
+# Description: Support for Resource Description Framework (RDF)
+# URL: http://www.librdf.org
+# Maintainer:
+# Depends on: rasqal raptor2 libiodbc sqlite3
+
+name=redland
+version=1.0.16
+release=1
+source=(http://download.librdf.org/source/$name-$version.tar.gz)
+
+build() {
+	cd $name-$version
+	./configure \
+		--prefix=/usr \
+		--disable-static \
+		--enable-release \
+		--enable-silent-rules
+	make
+	make install DESTDIR=$PKG
+	rm -rf $PKG/usr/share/{gtk-doc,man}
+}

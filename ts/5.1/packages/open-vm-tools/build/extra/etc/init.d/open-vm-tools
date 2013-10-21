@@ -64,6 +64,7 @@ case "${1}" in
 
 #		echo_log "Mounting vmblock device filesystem"
 #		echo_log "vmblock"; modprobe vmblock
+		modprobe fuse
 		mkdir -m 1777 /tmp/VMwareDnD
 		mkdir -p /var/run/vmblock-fuse
 		vmware-vmblock-fuse -o subtype=vmware-vmblock,default_permissions,allow_other /var/run/vmblock-fuse
@@ -73,7 +74,7 @@ case "${1}" in
 		echo_log "vmhgfs"; modprobe vmhgfs
 #		echo_log "vmmemctl"; modprobe vmmemctl
 #		echo_log "vmsync"; modprobe vmsync
-		echo_log "vmci"; modprobe vmci
+		echo_log "vmw_vmci"; modprobe vmw_vmci
 		echo_log "vsock"; modprobe vsock
 
 #		if vmxnet_found && vmxnet_needed

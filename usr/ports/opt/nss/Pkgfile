@@ -1,25 +1,30 @@
 # Description: Mozilla Network Security Services (NSS)
 # URL:         http://www.mozilla.org/projects/security/pki/nss/
-# Maintainer:  Fredrik Rinnestam, fredrik at crux dot nu
+# Maintainer:  Fredrik Rinnestam, fredrik at rinnestam dot se
 # Depends on:  nspr sqlite3
 
 name=nss
-version=3.13.5
-release=1
-source=(ftp://ftp.mozilla.org/pub/mozilla.org/security/nss/releases/NSS_3_13_5_RTM/src/$name-$version.tar.gz \
+version=3.15.1
+release=2
+source=(ftp://ftp.mozilla.org/pub/mozilla.org/security/nss/releases/NSS_3_15_1_RTM/src/$name-$version.tar.gz \
         nss-config.in nss.pc.in)
 
 build() {
-    cd $name-$version
+    cd $name-$version/
 
     local file
+
+    sed -i nss/coreconf/Linux.mk \
+        -e 's|^CC.*=.*gcc$|#&|' \
+        -e 's|^CCC.*=.*g++$|#&|'
 
     export NSPR_INCLUDE_DIR=/usr/include/nspr
     export NSPR_LIB_DIR=/usr/lib
     export NSS_USE_SYSTEM_SQLITE=1
     export BUILD_OPT=1
+    export XCFLAGS="${CFLAGS}"
 
-    make -j1 -C mozilla/security/nss build_coreconf build_dbm all
+    make -j1 -C nss all
 
     install -d $PKG/usr/{bin,lib/pkgconfig,include/nss}
 
@@ -28,7 +33,7 @@ build() {
         libsoftokn3.chk libnssckbi.so libfreebl3.so libfreebl3.chk \
         libcrmf.a libnssb.a libnssckfw.a libnssutil3.so libnssdbm3.so
     do
-        install -m 0644 mozilla/dist/*.OBJ/lib/$file $PKG/usr/lib
+        cp -L dist/*.OBJ/lib/$file $PKG/usr/lib
     done
 
     chmod +x $PKG/usr/lib/*.so
@@ -36,12 +41,11 @@ build() {
     for file in \
         certutil cmsutil crlutil modutil pk12util signtool signver ssltap
     do
-        install -m 0755 mozilla/dist/*.OBJ/bin/$file $PKG/usr/bin
+        cp -L dist/*.OBJ/bin/$file $PKG/usr/bin
     done
 
-    install -m 0644 mozilla/dist/public/nss/*.h $PKG/usr/include/nss
+    cp -L dist/public/nss/*.h $PKG/usr/include/nss
 
-    # we have to provide our own nss-config, because xulrunner needs it
     install -m 0755 $SRC/nss-config.in $PKG/usr/bin/nss-config
 
     sed -i "s/@VERSION@/$version/" $PKG/usr/bin/nss-config

@@ -1,0 +1,71 @@
+
+REQUIREMENTS
+
+PRE-INSTALL
+	    
+POST-INSTALL
+
+	Automatic setup using grub-install
+
+	After installation you should create your own boot menu:
+
+	# # Copy sample file
+	# cp /boot/grub/menu.lst.sample /boot/grub/menu.lst
+	# # Modify it for your system
+	# vi /boot/grub/menu.lst
+
+	For more information about setting up your own grub boot menu file:
+	http://www.gnu.org/software/grub/manual/grub.html#Configuration
+
+	After making your boot menu you should run grub-install like so:
+
+	# grub-install /dev/sdX
+
+	In the example above, X needs to be replaced with your hard drive.
+
+	Manual setup
+
+	After installation you need to copy the stage files to /boot/grub/:
+
+	# cp /usr/share/grub/i386-pc/* /boot/grub/
+
+	(Of course, you can choose another location as described above but this guide
+	assumes that you use /boot/grub. Normally you need only the files stage1 and
+	stage2. Please read the grub documentation if you don't know why:
+	http://www.uruk.org/orig-grub/ and
+	http://www.gnu.org/software/grub/manual/grub.html)
+
+	Now it's time to create your own "boot menu":
+
+	# # Copy sample file
+	# cp /boot/grub/menu.lst.sample /boot/grub/menu.lst
+	# # Modify it for your system 
+	# vi /boot/grub/menu.lst
+
+	For more information about setting up your own grub boot menu file:
+	http://www.gnu.org/software/grub/manual/grub.html#Configuration
+
+	Last but not least, install/enable the boot manager:
+
+	# # If the boot partition is mounted, you must specify --stage2, like below.
+	# # Otherwise, you may remove this.
+	# # Run grub
+	# grub
+	grub> root (hdX,Y)
+	grub> setup --stage2=/boot/grub/stage2 (hdX)
+	grub> quit
+
+	Please correct the path and device names according to your configuration. Also
+	see http://www.gnu.org/software/grub/manual/grub.html#Installation. In the
+	example above, X and Y need to be replaced with your hard drive and grub
+	partition.
+
+	That's all. Good luck ;)	
+
+PRECAUTION
+
+	Installing a new boot manager is like modifying the partition table 
+	or installing a new system kernel. Please create a rescue disk first :)
+	
+Brett Goulder	<predatorfreak@dcaf-security.org>
+
