@@ -384,7 +384,7 @@ check_reconnect ()
 				--timeout $prompt_time \
 				--msgbox "Server not responding - waiting $prompt_time seconds" 10 60
 			reconnect=0
-		elif [ "$prompt" == "FORCE" ]; then
+		elif [ "$prompt" == "FORC" ]; then
 			reconnect=0
 		elif [ "$prompt" != "OFF" ] ; then
 			Xdialog	--title "Reconnect?" \
@@ -504,7 +504,7 @@ check_module ()
 
 module_available ()
 {
-	if modprobe -D $1 -q ; then
+	if modprobe -D $1 &>/dev/null ; then
 		return 0
 	else
 		return 1
@@ -819,7 +819,10 @@ check_last_session ()
 		if [ "`tail -n1 $APPLOGDIR/$lastlog |grep -o -e \(0\)`" == "(0)" ]; then
 			continue
 		else
-			TERM=linux exec openvt -c 4 -s -w $NO_XORG_CMD
+			#TERM=linux exec openvt -c 4 -s -w $NO_XORG_CMD
+			. /etc/splash.functions
+			splash_exit
+			exec $NO_XORG_CMD
 		fi
 	fi
 }

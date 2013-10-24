@@ -1,0 +1,33 @@
+if [ -n "$DEBUG_INIT" ] ; then
+        echo_log "Starting Udev"
+fi
+
+touch /tmp/init
+
+if [ -d /lib/udev/filter ]; then
+  lspci -mmn | sed -e "s,Class ,," -e "s,\",,g" | cut -d' ' -f 3-4 > /tmp/devices
+  for i in /lib/udev/filter/*; do
+    . $i /tmp/devices > /dev/null 2>&1
+  done
+  rm /tmp/devices
+  depmod
+fi
+
+# make sure hotplugger is not set
+echo > /proc/sys/kernel/hotplug
+
+# launch udev daemon
+test -z "$(/bin/pidof -s systemd-udevd)" && /lib/systemd/systemd-udevd --daemon
+
+# coldplug devices and wait for the queue to be processed
+/bin/udevadm trigger --type=subsystems --action=add
+/bin/udevadm trigger --type=devices --action=add
+
+if is_enabled $UDEV_NO_WAIT ; then
+	continue
+else
+	/bin/udevadm settle
+fi
+
+rm /tmp/init
+

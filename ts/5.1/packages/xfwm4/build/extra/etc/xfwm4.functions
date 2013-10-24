@@ -113,6 +113,8 @@ xfconf_settings()
 	if [ "`make_caps x$XFWM4_START_POSITION`" == "XBOTTOM" ]; then
 		xfconf-query -c xfce4-panel -p /panels/panel-1/position -t string -s "p=8;x=0;y=0" -n
 	fi
+	xfconf-query -c xfwm4 -p /general/double_click_distance -t int -s 5 -n
+	xprop -root -format _NET_NUMBER_OF_DESKTOPS 32c -set _NET_NUMBER_OF_DESKTOPS 1
 	if is_enabled $XFWM4_COMPOSITING; then
 		xfconf-query -c xfwm4 -p /general/use_compositing -t bool -s true -n
 	else
@@ -173,7 +175,7 @@ wm_menu()
 		while read type title screen position workspace autostart custom icon_mode server options; do
 			if [ "$server" = "." ]; then unset server ; fi
 			if [ "$options" = "." ]; then unset options ; fi
-			if is_enabled $autostart; then mode=auto; else mode=window;fi
+			if is_enabled $autostart; then mode=auto; else mode=$MAXIMIZE_DEFAULT;fi
 			command="pkg $mode $type \"$server\" \"$options\""
 			package=$type
 			icon=$type

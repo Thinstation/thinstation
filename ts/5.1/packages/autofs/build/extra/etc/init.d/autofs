@@ -431,13 +431,13 @@ umount_loopback() {
 
 case "$1" in
 start | init )
-#	echo -n 'Starting automounter:'
+	echo -n 'Starting automounter:'
 
 	# make sure autofs4 is loaded
 	if ! grep -q autofs /proc/filesystems
 	then
 		# autofs filesystem support not loaded
-#		echo -n ' loading autofs4 kernel module,'
+		echo -n ' loading autofs4 kernel module,'
 		modprobe autofs4 || true
 	elif ([ -f /proc/modules ] && lsmod) | grep -q autofs[^4]; then
 		# wrong autofs filesystem module loaded
@@ -475,7 +475,7 @@ start | init )
 		fi
 	done
 
-#	echo " done."
+	echo " done."
 	;;
 stop)
 	echo -n 'Stopping automounter:'

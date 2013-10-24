@@ -1,26 +1,17 @@
 #!/bin/sh
 
-unset vmviewusername vmviewdomain
-. /etc/thinstation.global
+#. /etc/thinstation.global
 
-if [ ! -e /root/.vmware/view-preferences ]; then
-	echo 'view.autoConnectBroker = "TRUE"' >/root/.vmware/view-preferences
-	# ignore bad ssl certificate
-	echo 'view.sslVerificationMode = "3"' >>/root/.vmware/view-preferences
-	vmviewserver=`set|grep -i vmviewpcoip_server|cut -f 2 -d "'"`
-	echo "view.defaultBroker = \"$vmviewserver\"" >>/root/.vmware/view-preferences
-fi
+while [ -n "$1" ]; do
+case $1 in
+-*)
+  ARGS="$ARGS $1"
+;;
+*)
+  ARGS="$ARGS `cat \"$HOME/.vmware/$1.vdm\"`"
+;;
+esac
+shift
+done
 
-vmviewdomain=`set|grep -i vmviewpcoip_domainname|cut -f 2 -d "'"`
-vmviewusername=`set|grep -i vmviewpcoip_username|cut -f 2 -d "'"`
-
-VIEWCMD="vmware-view $@"
-if [ -n "$vmviewdomain" ]; then
-	VIEWCMD="$VIEWCMD -d $vmviewdomain"
-fi
-if [ -n "$vmviewusername" ]; then
-	VIEWCMD="$VIEWCMD -u $vmviewusername"
-fi
-
-$VIEWCMD
-
+eval vmware-view $ARGS

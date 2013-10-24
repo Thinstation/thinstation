@@ -6,7 +6,7 @@ PKGDIR=boot-images/pkg-packages
 DEVDIR=./packages/base/dev
 MODDIR=boot-images/module-packages
 PACDIR=./tmp-tree/packages
-MAXIMAGE=524288
+MAXIMAGE=786432
 TOOLSDIR=./utils/tools
 KERNEL_PARAMETERS=""
 CONFDIR=./conf
@@ -83,20 +83,24 @@ addpkgs()
 
 lib_in_path()
 {
-  if echo "$1" |grep -Eq "libjvm.so|libmawt.so"; then
-	return 0
-  fi
-  for lpath in `cat lpaths.tmp` $filepath `dirname $filepath`; do
-    if [ -e ./tmp-tree$lpath/$1 ]; then
-      return 0
-    fi
-  done
-  return 1
+	for lpath in `cat lpaths.tmp` $filepath; do
+		if [ -e ./tmp-tree$lpath/$1 ]; then
+			return 0
+		fi
+	done
+	if [ "`echo $filepath |sed -e 's|/|/\n|g' |grep -c '/'`" -gt "2" ]; then
+		likely_rpath=`echo $filepath |cut -d '/' -f1-3`
+		if [ -n "`find  ./tmp-tree$likely_rpath -name $1`" ]; then
+			return 0
+		fi
+	fi
+	return 1
 }
 
 lib_dependencies()
 {
   echo -e "\nAdding Library Dependencies\n"
+
   if [ -e ./tmp-tree/etc/ld.so.conf ]; then
     cat ./tmp-tree/etc/ld.so.conf |grep -v include > lpaths.tmp
   fi
@@ -767,16 +771,19 @@ do
 	else
 		firmfiles=`find -L /lib/firmware/ -name $name\*`
 	fi
-        if [ -e $firmfiles ] ; then
-		echo "Firmware: $name"
+	if [ -n "$firmfiles" ]; then
 		for firmfile in $firmfiles; do
-		firmpath=./tmp-tree/lib/firmware/`echo $firmfile |cut -d '/' -f4-`
-		if [ ! -d ${firmpath%/*} ] ;
-			then
-			mkdir -p ${firmpath%/*}
-		fi
-		cp $firmfile ${firmpath%/*}/.
-		done 
+		        if [ -e $firmfile ] ; then
+				echo "Firmware: `basename $firmfile`"
+				firmpath=./tmp-tree/lib/firmware/`echo $firmfile |cut -d '/' -f4-`
+				if [ ! -d ${firmpath%/*} ] ;then
+					mkdir -p ${firmpath%/*}
+				fi
+				cp $firmfile ${firmpath%/*}/.
+			else
+				echo "Error, Firmware $name not found"
+			fi
+		done
 	else
 		echo "Error, Firmware $name not found"
 	fi
