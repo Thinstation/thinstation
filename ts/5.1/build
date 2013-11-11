@@ -766,9 +766,9 @@ do
 	;;
     firmware)
 	if [ -n "$args" ]; then
-		firmfiles=`find -L ./kernel/firmware/ -name $name.* | grep $args`
+		firmfiles=`find -L ./kernel/firmware/ -name $name | grep $args`
 	else
-		firmfiles=`find -L ./kernel/firmware/ -name $name.*`
+		firmfiles=`find -L ./kernel/firmware/ -name $name`
 	fi
 	if [ -n "$firmfiles" ]; then
 		for firmfile in $firmfiles; do
@@ -1091,8 +1091,8 @@ if [ -e $PACDIR/knownhosts.param ]; then
 		if [ ! -e ./tmp-tree/etc/.ssh ] ; then
 			mkdir ./tmp-tree/etc/.ssh
 		fi
-		cp $ts_knownhosts ./tmp-tree/etc/skel/.ssh
-		echo "" >> ./tmp-tree/etc/skel/.ssh/`basename $ts_knownhosts`
+		cp $ts_knownhosts ./tmp-tree/etc/.ssh
+		echo "" >> ./tmp-tree/etc/.ssh/`basename $ts_knownhosts`
 	else
 		echo "Known Hosts file not found, build aborted."
 		remove_files
