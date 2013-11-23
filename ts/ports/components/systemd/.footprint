@@ -16,6 +16,8 @@ drwxr-xr-x	root/root	etc/init.d/
 drwxr-xr-x	root/root	etc/kernel/
 drwxr-xr-x	root/root	etc/kernel/install.d/
 drwxr-xr-x	root/root	etc/modules-load.d/
+drwxr-xr-x	root/root	etc/pam.d/
+-rw-r--r--	root/root	etc/pam.d/systemd-user
 drwxr-xr-x	root/root	etc/sysctl.d/
 drwxr-xr-x	root/root	etc/systemd/
 -rw-r--r--	root/root	etc/systemd/journald.conf
@@ -43,14 +45,14 @@ lrwxrwxrwx	root/root	lib/libgudev-1.0.so.0 -> libgudev-1.0.so.0.1.3
 -rwxr-xr-x	root/root	lib/libgudev-1.0.so.0.1.3
 lrwxrwxrwx	root/root	lib/libsystemd-daemon.so.0 -> libsystemd-daemon.so.0.0.10
 -rwxr-xr-x	root/root	lib/libsystemd-daemon.so.0.0.10
-lrwxrwxrwx	root/root	lib/libsystemd-id128.so.0 -> libsystemd-id128.so.0.0.24
--rwxr-xr-x	root/root	lib/libsystemd-id128.so.0.0.24
-lrwxrwxrwx	root/root	lib/libsystemd-journal.so.0 -> libsystemd-journal.so.0.11.1
--rwxr-xr-x	root/root	lib/libsystemd-journal.so.0.11.1
-lrwxrwxrwx	root/root	lib/libsystemd-login.so.0 -> libsystemd-login.so.0.8.1
--rwxr-xr-x	root/root	lib/libsystemd-login.so.0.8.1
-lrwxrwxrwx	root/root	lib/libudev.so.1 -> libudev.so.1.3.7
--rwxr-xr-x	root/root	lib/libudev.so.1.3.7
+lrwxrwxrwx	root/root	lib/libsystemd-id128.so.0 -> libsystemd-id128.so.0.0.26
+-rwxr-xr-x	root/root	lib/libsystemd-id128.so.0.0.26
+lrwxrwxrwx	root/root	lib/libsystemd-journal.so.0 -> libsystemd-journal.so.0.11.3
+-rwxr-xr-x	root/root	lib/libsystemd-journal.so.0.11.3
+lrwxrwxrwx	root/root	lib/libsystemd-login.so.0 -> libsystemd-login.so.0.9.1
+-rwxr-xr-x	root/root	lib/libsystemd-login.so.0.9.1
+lrwxrwxrwx	root/root	lib/libudev.so.1 -> libudev.so.1.4.0
+-rwxr-xr-x	root/root	lib/libudev.so.1.4.0
 drwxr-xr-x	root/root	lib/security/
 -rwxr-xr-x	root/root	lib/security/pam_systemd.la
 -rwxr-xr-x	root/root	lib/security/pam_systemd.so
@@ -60,6 +62,7 @@ drwxr-xr-x	root/root	lib/systemd/system-generators/
 -rwxr-xr-x	root/root	lib/systemd/system-generators/systemd-efi-boot-generator
 -rwxr-xr-x	root/root	lib/systemd/system-generators/systemd-fstab-generator
 -rwxr-xr-x	root/root	lib/systemd/system-generators/systemd-getty-generator
+-rwxr-xr-x	root/root	lib/systemd/system-generators/systemd-gpt-auto-generator
 -rwxr-xr-x	root/root	lib/systemd/system-generators/systemd-rc-local-generator
 -rwxr-xr-x	root/root	lib/systemd/system-generators/systemd-system-update-generator
 drwxr-xr-x	root/root	lib/systemd/system-shutdown/
@@ -192,6 +195,7 @@ lrwxrwxrwx	root/root	lib/systemd/system/sysinit.target.wants/systemd-update-utmp
 -rw-r--r--	root/root	lib/systemd/system/systemd-ask-password-console.service
 -rw-r--r--	root/root	lib/systemd/system/systemd-ask-password-wall.path
 -rw-r--r--	root/root	lib/systemd/system/systemd-ask-password-wall.service
+-rw-r--r--	root/root	lib/systemd/system/systemd-backlight@.service
 -rw-r--r--	root/root	lib/systemd/system/systemd-fsck-root.service
 -rw-r--r--	root/root	lib/systemd/system/systemd-fsck@.service
 -rw-r--r--	root/root	lib/systemd/system/systemd-halt.service
@@ -245,6 +249,7 @@ lrwxrwxrwx	root/root	lib/systemd/system/timers.target.wants/systemd-tmpfiles-cle
 -rwxr-xr-x	root/root	lib/systemd/systemd
 -rwxr-xr-x	root/root	lib/systemd/systemd-ac-power
 -rwxr-xr-x	root/root	lib/systemd/systemd-activate
+-rwxr-xr-x	root/root	lib/systemd/systemd-backlight
 -rwxr-xr-x	root/root	lib/systemd/systemd-cgroups-agent
 -rwxr-xr-x	root/root	lib/systemd/systemd-cryptsetup
 -rwxr-xr-x	root/root	lib/systemd/systemd-fsck
@@ -264,7 +269,6 @@ lrwxrwxrwx	root/root	lib/systemd/system/timers.target.wants/systemd-tmpfiles-cle
 -rwxr-xr-x	root/root	lib/systemd/systemd-sleep
 -rwxr-xr-x	root/root	lib/systemd/systemd-sysctl
 -rwxr-xr-x	root/root	lib/systemd/systemd-timedated
--rwxr-xr-x	root/root	lib/systemd/systemd-timestamp
 -rwxr-xr-x	root/root	lib/systemd/systemd-udevd
 -rwxr-xr-x	root/root	lib/systemd/systemd-update-utmp
 -rwxr-xr-x	root/root	lib/systemd/systemd-user-sessions
@@ -292,6 +296,7 @@ drwxr-xr-x	root/root	lib/udev/hwdb.d/
 -rwxr-xr-x	root/root	lib/udev/mtd_probe
 drwxr-xr-x	root/root	lib/udev/rules.d/
 -rw-r--r--	root/root	lib/udev/rules.d/42-usb-hid-pm.rules
+-rw-r--r--	root/root	lib/udev/rules.d/50-firmware.rules
 -rw-r--r--	root/root	lib/udev/rules.d/50-udev-default.rules
 -rw-r--r--	root/root	lib/udev/rules.d/60-cdrom_id.rules
 -rw-r--r--	root/root	lib/udev/rules.d/60-keyboard.rules
@@ -365,13 +370,13 @@ lrwxrwxrwx	root/root	usr/lib/libgudev-1.0.so -> ../../lib/libgudev-1.0.so.0.1.3
 -rwxr-xr-x	root/root	usr/lib/libsystemd-daemon.la
 lrwxrwxrwx	root/root	usr/lib/libsystemd-daemon.so -> ../../lib/libsystemd-daemon.so.0.0.10
 -rwxr-xr-x	root/root	usr/lib/libsystemd-id128.la
-lrwxrwxrwx	root/root	usr/lib/libsystemd-id128.so -> ../../lib/libsystemd-id128.so.0.0.24
+lrwxrwxrwx	root/root	usr/lib/libsystemd-id128.so -> ../../lib/libsystemd-id128.so.0.0.26
 -rwxr-xr-x	root/root	usr/lib/libsystemd-journal.la
-lrwxrwxrwx	root/root	usr/lib/libsystemd-journal.so -> ../../lib/libsystemd-journal.so.0.11.1
+lrwxrwxrwx	root/root	usr/lib/libsystemd-journal.so -> ../../lib/libsystemd-journal.so.0.11.3
 -rwxr-xr-x	root/root	usr/lib/libsystemd-login.la
-lrwxrwxrwx	root/root	usr/lib/libsystemd-login.so -> ../../lib/libsystemd-login.so.0.8.1
+lrwxrwxrwx	root/root	usr/lib/libsystemd-login.so -> ../../lib/libsystemd-login.so.0.9.1
 -rwxr-xr-x	root/root	usr/lib/libudev.la
-lrwxrwxrwx	root/root	usr/lib/libudev.so -> ../../lib/libudev.so.1.3.7
+lrwxrwxrwx	root/root	usr/lib/libudev.so -> ../../lib/libudev.so.1.4.0
 drwxr-xr-x	root/root	usr/lib/modules-load.d/
 drwxr-xr-x	root/root	usr/lib/pkgconfig/
 -rw-r--r--	root/root	usr/lib/pkgconfig/gudev-1.0.pc
@@ -549,6 +554,7 @@ drwxr-xr-x	root/root	usr/man/man3/
 -rw-r--r--	root/root	usr/man/man3/sd_session_get_tty.3.gz
 -rw-r--r--	root/root	usr/man/man3/sd_session_get_type.3.gz
 -rw-r--r--	root/root	usr/man/man3/sd_session_get_uid.3.gz
+-rw-r--r--	root/root	usr/man/man3/sd_session_get_vt.3.gz
 -rw-r--r--	root/root	usr/man/man3/sd_session_is_active.3.gz
 -rw-r--r--	root/root	usr/man/man3/sd_uid_get_seats.3.gz
 -rw-r--r--	root/root	usr/man/man3/sd_uid_get_sessions.3.gz
@@ -570,13 +576,13 @@ drwxr-xr-x	root/root	usr/man/man5/
 -rw-r--r--	root/root	usr/man/man5/systemd-system.conf.5.gz
 -rw-r--r--	root/root	usr/man/man5/systemd-user.conf.5.gz
 -rw-r--r--	root/root	usr/man/man5/systemd.automount.5.gz
--rw-r--r--	root/root	usr/man/man5/systemd.cgroup.5.gz
 -rw-r--r--	root/root	usr/man/man5/systemd.device.5.gz
 -rw-r--r--	root/root	usr/man/man5/systemd.exec.5.gz
 -rw-r--r--	root/root	usr/man/man5/systemd.kill.5.gz
 -rw-r--r--	root/root	usr/man/man5/systemd.mount.5.gz
 -rw-r--r--	root/root	usr/man/man5/systemd.path.5.gz
 -rw-r--r--	root/root	usr/man/man5/systemd.preset.5.gz
+-rw-r--r--	root/root	usr/man/man5/systemd.resource-control.5.gz
 -rw-r--r--	root/root	usr/man/man5/systemd.scope.5.gz
 -rw-r--r--	root/root	usr/man/man5/systemd.service.5.gz
 -rw-r--r--	root/root	usr/man/man5/systemd.slice.5.gz
@@ -608,14 +614,18 @@ drwxr-xr-x	root/root	usr/man/man8/
 -rw-r--r--	root/root	usr/man/man8/systemd-ask-password-console.service.8.gz
 -rw-r--r--	root/root	usr/man/man8/systemd-ask-password-wall.path.8.gz
 -rw-r--r--	root/root	usr/man/man8/systemd-ask-password-wall.service.8.gz
+-rw-r--r--	root/root	usr/man/man8/systemd-backlight.8.gz
+-rw-r--r--	root/root	usr/man/man8/systemd-backlight@.service.8.gz
 -rw-r--r--	root/root	usr/man/man8/systemd-cryptsetup-generator.8.gz
 -rw-r--r--	root/root	usr/man/man8/systemd-cryptsetup.8.gz
 -rw-r--r--	root/root	usr/man/man8/systemd-cryptsetup@.service.8.gz
+-rw-r--r--	root/root	usr/man/man8/systemd-efi-boot-generator.8.gz
 -rw-r--r--	root/root	usr/man/man8/systemd-fsck-root.service.8.gz
 -rw-r--r--	root/root	usr/man/man8/systemd-fsck.8.gz
 -rw-r--r--	root/root	usr/man/man8/systemd-fsck@.service.8.gz
 -rw-r--r--	root/root	usr/man/man8/systemd-fstab-generator.8.gz
 -rw-r--r--	root/root	usr/man/man8/systemd-getty-generator.8.gz
+-rw-r--r--	root/root	usr/man/man8/systemd-gpt-auto-generator.8.gz
 -rw-r--r--	root/root	usr/man/man8/systemd-halt.service.8.gz
 -rw-r--r--	root/root	usr/man/man8/systemd-hibernate.service.8.gz
 -rw-r--r--	root/root	usr/man/man8/systemd-hostnamed.8.gz
@@ -677,9 +687,11 @@ drwxr-xr-x	root/root	usr/share/bash-completion/
 drwxr-xr-x	root/root	usr/share/bash-completion/completions/
 -rw-r--r--	root/root	usr/share/bash-completion/completions/hostnamectl
 -rw-r--r--	root/root	usr/share/bash-completion/completions/journalctl
+-rw-r--r--	root/root	usr/share/bash-completion/completions/kernel-install
 -rw-r--r--	root/root	usr/share/bash-completion/completions/loginctl
 -rw-r--r--	root/root	usr/share/bash-completion/completions/systemctl
 -rw-r--r--	root/root	usr/share/bash-completion/completions/systemd-analyze
+-rw-r--r--	root/root	usr/share/bash-completion/completions/systemd-run
 -rw-r--r--	root/root	usr/share/bash-completion/completions/timedatectl
 -rw-r--r--	root/root	usr/share/bash-completion/completions/udevadm
 drwxr-xr-x	root/root	usr/share/dbus-1/
@@ -715,6 +727,23 @@ drwxr-xr-x	root/root	usr/share/polkit-1/actions/
 -rw-r--r--	root/root	usr/share/polkit-1/actions/org.freedesktop.login1.policy
 -rw-r--r--	root/root	usr/share/polkit-1/actions/org.freedesktop.systemd1.policy
 -rw-r--r--	root/root	usr/share/polkit-1/actions/org.freedesktop.timedate1.policy
+drwxr-xr-x	root/root	usr/share/zsh/
+drwxr-xr-x	root/root	usr/share/zsh/site-functions/
+-rw-r--r--	root/root	usr/share/zsh/site-functions/_hostnamectl
+-rw-r--r--	root/root	usr/share/zsh/site-functions/_journalctl
+-rw-r--r--	root/root	usr/share/zsh/site-functions/_kernel-install
+-rw-r--r--	root/root	usr/share/zsh/site-functions/_loginctl
+-rw-r--r--	root/root	usr/share/zsh/site-functions/_machinectl
+-rw-r--r--	root/root	usr/share/zsh/site-functions/_sd_hosts_or_user_at_host
+-rw-r--r--	root/root	usr/share/zsh/site-functions/_systemctl
+-rw-r--r--	root/root	usr/share/zsh/site-functions/_systemd
+-rw-r--r--	root/root	usr/share/zsh/site-functions/_systemd-analyze
+-rw-r--r--	root/root	usr/share/zsh/site-functions/_systemd-delta
+-rw-r--r--	root/root	usr/share/zsh/site-functions/_systemd-inhibit
+-rw-r--r--	root/root	usr/share/zsh/site-functions/_systemd-nspawn
+-rw-r--r--	root/root	usr/share/zsh/site-functions/_systemd-tmpfiles
+-rw-r--r--	root/root	usr/share/zsh/site-functions/_timedatectl
+-rw-r--r--	root/root	usr/share/zsh/site-functions/_udevadm
 drwxr-xr-x	root/root	var/
 drwxr-xr-x	root/root	var/lib/
 drwxr-xr-x	root/root	var/lib/systemd/

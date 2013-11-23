@@ -2,25 +2,45 @@
 
 . $TS_GLOBAL
 
+have_control()
+{
+	if amixer sget -c $card $1 > /dev/null 2>&1; then
+		return 0
+	else
+		return 1
+	fi
+}
+
 case "$1" in
 init)
 	if ! pkg_initialized $PACKAGE; then
 		alsactl init
-		for control in Master PCM CD Video; do
-			amixer sset $control $AUDIO_LEVEL%
-		done
-		if [ "$MIC_LEVEL" -gt "0" ]; then
-			amixer sset Capture $MIC_LEVEL% unmute
-			amixer sset $MIC_DEVICE playback mute
-			amixer sset $MIC_DEVICE $MIC_LEVEL% cap
-		else
-			amixer sset Capture 0%
-		fi
-		for control in $UNMUTE; do
-			amixer sset $control unmute
-		done
-		for control in $MUTE; do
-			amixer sset $control mute
+		for card in `cat /proc/asound/cards |grep -e ":" |cut -c2`; do
+			for control in Master PCM CD Video; do
+				if have_control $control; then
+					amixer sset -c $card $control $AUDIO_LEVEL%
+					amixer sset -c $card $control unmute
+				fi
+			done
+			if have_control Capture; then
+				if [ "$MIC_LEVEL" -gt "0" ]; then
+					amixer sset -c $card Capture $MIC_LEVEL% unmute
+					amixer sset -c $card $MIC_DEVICE playback mute
+					amixer sset -c $card $MIC_DEVICE $MIC_LEVEL% cap
+				else
+					amixer sset -c $card Capture 0%
+				fi
+			fi
+			for control in $UNMUTE; do
+				if have_control $control; then
+					amixer sset -c $card $control unmute
+				fi
+			done
+			for control in $MUTE; do
+				if have_control $control; then
+					amixer sset -c $card $control mute
+				fi
+			done
 		done
 		pkg_set_init_flag $PACKAGE
 	fi

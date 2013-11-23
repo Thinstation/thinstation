@@ -6,10 +6,13 @@
 name=pulseaudio
 version=3.0
 release=1
-source=(http://freedesktop.org/software/pulseaudio/releases/pulseaudio-$version.tar.xz)
+source=(http://freedesktop.org/software/pulseaudio/releases/pulseaudio-$version.tar.xz \
+	norootwarn.patch)
 
 build() {
 	cd pulseaudio-$version
+
+	patch -p0 -i $SRC/norootwarn.patch
 
 	./configure --prefix=/usr \
 
