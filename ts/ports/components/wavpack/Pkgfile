@@ -1,0 +1,22 @@
+# Description: Lossless audio compression software.
+# URL: http://www.wavpack.com/
+# Maintainer: Danny Rawlins, monster dot romster at gmail dot com
+# Packager: Jukka Heino, jukka dot heino at gmail dot com
+
+name=wavpack
+version=4.70.0
+release=1
+source=(http://www.wavpack.com/wavpack-$version.tar.bz2)
+
+build() {
+	cd wavpack-$version
+
+	./configure \
+		--prefix=/usr \
+		--exec_prefix=/usr \
+		--mandir=/usr/man
+
+	make
+	make DESTDIR=$PKG install
+	sed -i -e 's|prefix=/usr|prefix=/usr\nexec_prefix=/usr|g' $PKG/usr/lib/pkgconfig/wavpack.pc
+}

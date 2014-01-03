@@ -1,0 +1,16 @@
+# Description: ALSA libraries
+# URL: http://www.alsa-project.org/
+# Maintainer: Matt Housh, jaeger at morpheus dot net
+
+name=alsa-plugins
+version=1.0.27
+release=1
+source=(ftp://ftp.alsa-project.org/pub/plugins/$name-$version.tar.bz2)
+
+build() {
+	cd $name-$version
+	./configure --prefix=/usr \
+		--disable-python
+	make
+	make DESTDIR=$PKG install
+}

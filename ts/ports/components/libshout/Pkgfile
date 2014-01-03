@@ -1,0 +1,23 @@
+# Description: Library for communicating with an icecast server.
+# URL: http://www.icecast.org/
+# Maintainer: Danny Rawlins, monster dot romster at gmail dot com
+# Packager: Han Boetes, han at mijncomputer dot nl
+# Depends on: libvorbis
+
+name=libshout
+version=2.3.1
+release=1
+source=(http://downloads.us.xiph.org/releases/$name/$name-$version.tar.gz)
+
+build() {
+	cd $name-$version
+
+	./configure \
+		--prefix=/usr \
+		--disable-nls
+
+	make
+	make install DESTDIR=$PKG
+	rm -r $PKG/usr/share/doc/
+}
+
