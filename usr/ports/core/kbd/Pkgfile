@@ -3,12 +3,19 @@
 # Maintainer:  CRUX System Team, core-ports at crux dot nu
 
 name=kbd
-version=1.15.5
+version=2.0.1
 release=1
-source=(ftp://ftp.altlinux.org/pub/people/legion/kbd/$name-$version.tar.gz)
+source=(ftp://ftp.altlinux.org/pub/people/legion/kbd/$name-$version.tar.gz
+	kbd-2.0.1-backspace-1.patch)
 
 build() {
     cd $name-$version
+    patch -Np1 < ../kbd-2.0.1-backspace-1.patch
+
+    # Disable check requirement and tests, since we won't run them now
+    sed -i -e '/\[CHECK\]/d' configure.ac
+    sed -i -e 's/SUBDIRS = \(.*\) tests \(.*\)/SUBDIRS = \1 \2/' Makefile.am
+    autoreconf -fiv
 
     ./configure --prefix=/usr \
                 --mandir=/usr/man \

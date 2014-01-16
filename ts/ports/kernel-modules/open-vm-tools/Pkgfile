@@ -18,7 +18,8 @@ build() {
 	export CUSTOM_PROCPS_LIBS=-L/usr/lib/libprocps.so
 #	sed -i -e 's/s_frozen/s_writers.frozen/g' modules/linux/vmsync/sync.c
 
-	CFLAGS="$CFLAGS -Wno-deprecated-declarations" ./configure --prefix=/usr \
+	export CFLAGS="$CFLAGS -Wno-deprecated-declarations -Wno-error=unused-local-typedefs"
+	./configure --prefix=/usr \
 			--sysconfdir=/etc \
 			--mandir=/usr/man \
 			--with-kernel-release=${kver}TS_SMP \

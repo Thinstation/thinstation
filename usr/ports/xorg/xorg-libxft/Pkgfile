@@ -6,12 +6,13 @@
 name=xorg-libxft
 version=2.3.1
 release=1
-source=(http://xorg.freedesktop.org/releases/individual/lib/libXft-$version.tar.bz2)
+source=(http://xorg.freedesktop.org/releases/individual/lib/libXft-$version.tar.bz2 libXft-2.3.1-freetype_fix-1.patch)
 
 build() {
 	cd libXft-$version
+	patch -Np1 < $SRC/libXft-2.3.1-freetype_fix-1.patch
 
-	./configure --prefix=/usr --mandir=/usr/man
+	./configure --prefix=/usr --mandir=/usr/man --disable-static
 
 	make
 	make DESTDIR=$PKG install

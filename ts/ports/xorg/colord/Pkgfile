@@ -3,18 +3,20 @@
 # Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 
 name=colord
-version=1.0.1
+version=1.0.5
 release=1
 source=(http://www.freedesktop.org/software/colord/releases/colord-$version.tar.xz)
 
 build() {
 	cd colord-$version
 
-	./configure --prefix=/usr \
+	./configure --prefix=/usr --sysconfdir=/etc \
 			--disable-gusb \
 			--disable-bash-completion \
 			--enable-polkit \
-			--disable-systemd-login
+			--disable-systemd-login \
+			--disable-static \
+			--disable-nls
 
 	make
 	make DESTDIR=$PKG install

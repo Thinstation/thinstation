@@ -4,7 +4,7 @@
 # Depends on:  zlib libmpc
 
 name=gcc
-version=4.7.3
+version=4.8.2
 release=1
 source=(ftp://gcc.gnu.org/pub/gcc/releases/$name-$version/$name-$version.tar.bz2 \
 	$name-nocheck-fixincludes.patch)
@@ -37,10 +37,13 @@ build() {
 
     mv $PKG/usr/lib/gcc/*/$version/include-fixed/{limits.h,syslimits.h} $PKG/usr/lib/gcc/*/$version/include/
 
-    rm -f $PKG/usr/lib/{libiberty.a,libstdc++.so.6.0.17-gdb.py}
+    rm -f $PKG/usr/lib/libiberty.a
     rm -r $PKG/usr/share 
     rm -r $PKG/usr/bin/*-linux-gnu-*
     rm -r $PKG/usr/lib/gcc/*/$version/{install-tools,include-fixed} 
 
     sed -i "s|-L$SRC[^ ]* ||g" $PKG/usr/lib/{libstdc++.la,libsupc++.la}
+
+    mkdir -p $PKG/usr/share/gdb/auto-load
+    mv $PKG/usr/lib/*gdb.py $PKG/usr/share/gdb/auto-load
 }

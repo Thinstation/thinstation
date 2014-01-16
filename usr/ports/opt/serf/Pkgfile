@@ -1,0 +1,22 @@
+# Description: High performance C-based HTTP client library built upon the Apache Portable Runtime (APR) library.
+# URL: https://code.google.com/p/serf/
+# Maintainer: Jose V Beneyto, sepen at crux dot nu
+# Packager: Jose V Beneyto, sepen at crux dot nu
+# Depends on: apr
+
+name=serf
+version=1.2.1
+release=1
+source=(https://serf.googlecode.com/files/$name-$version.tar.bz2)
+
+build() {
+    cd $name-$version
+    #sed -i "/Append/s:RPATH=libdir,::"  SConstruct
+    #sed -i "/Default/s:lib_static,::"   SConstruct
+    #sed -i "/Alias/s:install_static,::" SConstruct
+
+    ./configure --prefix=/usr
+
+    make
+    make DESTDIR=$PKG install
+}

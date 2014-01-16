@@ -4,14 +4,15 @@
 # Depends on: xorg-libx11, xorg-libxext, xorg-videoproto
 
 name=xorg-libxv
-version=1.0.7
+version=1.0.10
 release=1
 source=(http://xorg.freedesktop.org/releases/individual/lib/libXv-$version.tar.bz2)
 
 build() {
 	cd libXv-$version
 
-	./configure --prefix=/usr --mandir=/usr/man
+	./configure --prefix=/usr --mandir=/usr/man \
+		--sysconfdir=/etc --disable-static
 
 	make
 	make DESTDIR=$PKG install

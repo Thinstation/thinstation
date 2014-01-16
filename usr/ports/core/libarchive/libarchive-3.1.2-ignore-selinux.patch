@@ -1,0 +1,11 @@
+--- a/libarchive/archive_write_set_format_pax.c	2014-01-07 12:55:36.692434226 -0500
++++ b.libarchive/archive_write_set_format_pax.c	2014-01-07 12:54:20.330545462 -0500
+@@ -331,6 +331,8 @@
+ 		int r;
+ 
+ 		archive_entry_xattr_next(entry, &name, &value, &size);
++		if (!strncmp(name, "security.selinux", 16))
++			continue;
+ 		url_encoded_name = url_encode(name);
+ 		if (url_encoded_name != NULL) {
+ 			/* Convert narrow-character to UTF-8. */

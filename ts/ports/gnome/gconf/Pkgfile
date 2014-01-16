@@ -14,10 +14,6 @@ build() {
 	rm po/*.po
 	sed -i -e "s/USE_NLS=yes/USE_NLS=no/" \
 		-e "s/ENABLE_NLS 1/ENABLE_NLS 0/" configure
-	cp /usr/include/glib-2.0/{glib.h,glib-object.h} .
-	cp /usr/lib/glib-2.0/include/glibconfig.h .
-	ln -sf /usr/include/glib-2.0/glib glib
-	ln -sf /usr/include/glib-2.0/gobject gobject
 
 	./configure --prefix=/usr \
 		--mandir=/usr/man \
@@ -27,6 +23,7 @@ build() {
 		--enable-gtk \
 		--disable-gtk-doc \
 		--disable-introspection \
+		--disable-orbit \
 		--enable-shared \
 		--disable-static
 

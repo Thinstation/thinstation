@@ -3,7 +3,7 @@
 # Maintainer:  Juergen Daubert, jue at crux dot nu
 
 name=keyutils
-version=1.5.5
+version=1.5.8
 release=1
 source=(http://people.redhat.com/~dhowells/$name/$name-$version.tar.bz2)
 
@@ -11,5 +11,5 @@ build () {
     cd $name-$version
     sed -i "/^MAN[1-9]/s|share/||;/^CFLAGS/s/-g/$CFLAGS/;s|/lib64|/lib|" Makefile
     make -j1
-    make DESTDIR=$PKG install
+    make DESTDIR=$PKG NO_ARLIB=1 install
 }

@@ -1,20 +1,21 @@
 # Description: A tool to display dialog boxes from shell scripts
-# URL: http://hightek.org/dialog/
+# URL: http://invisible-island.net/dialog
 # Maintainer: Jose V Beneyto, sepen at crux dot nu
 # Packager: Simone Rota, sip at crux dot nu
 # Depends on: ncurses
 
 name=dialog
-version=1.2-20121230
-release=1
-source=(http://fossies.org/linux/misc/$name-$version.tar.xz)
+version=1.2
+release=20130928
+source=(http://invisible-island.net/datafiles/release/$name.tar.gz)
 
 build () {
-  cd $name-$version
+  cd $name-$version-$release
 
   ./configure --prefix=/usr \
               --mandir=/usr/man \
-              --with-ncursesw
+              --with-ncursesw \
+	      --with-shared
 
   make
   make DESTDIR=$PKG install

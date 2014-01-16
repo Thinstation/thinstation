@@ -4,12 +4,14 @@
 # Packager:  Tilman Sauerbeck, tilman at crux dot nu
 
 name=strace
-version=4.7
+version=4.8
 release=1
-source=(http://download.sourceforge.net/$name/$name-$version.tar.xz)
+source=(http://download.sourceforge.net/$name/$name-$version.tar.xz
+	strace-4.8-ptrace_peeksiginfo_args.patch)
 
 build() {
     cd $name-$version
+    patch -Np1 -i $SRC/strace-4.8-ptrace_peeksiginfo_args.patch
     ./configure --prefix=/usr --mandir=/usr/man
     make
     make DESTDIR=$PKG install

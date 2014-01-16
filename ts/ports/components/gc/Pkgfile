@@ -3,18 +3,18 @@
 # Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 
 name=gc
-version=7.2d
+version=7.4.0
 release=1
 source=(http://www.hpl.hp.com/personal/Hans_Boehm/gc/gc_source/gc-$version.tar.gz)
 
 build() {
-	cd $name-7.2
+	cd $name-$version
 
 	./configure --prefix=/usr \
 			--sysconfdir=/etc \
 			--libexecdir=/lib \
 			--mandir=/usr/man \
-			--disable-extras
+			--disable-static
 
 	make
 	make DESTDIR=$PKG install

@@ -4,18 +4,14 @@
 # Depends on:   zlib, libjpeg, lcms
 
 name=libmng
-version=1.0.10
-release=2
-source=(http://downloads.sourceforge.net/$name/$name-$version.tar.gz)
+version=2.0.2
+release=1
+source=(http://downloads.sourceforge.net/$name/$name-$version.tar.xz)
 
 build() {
     cd $name-$version
 
-    ln -s makefiles/configure.in .
-    ln -s makefiles/Makefile.am .
-    sed -i '/AM_C_PROTOTYPES/d' configure.in
-    autoreconf --force --install
-    ./configure --prefix=/usr --mandir=/usr/man
+    ./configure --prefix=/usr --mandir=/usr/man --disable-static
     make
     make DESTDIR=$PKG install
 }

@@ -4,13 +4,15 @@
 # Depends on: libpthread-stubs xorg-libpciaccess 
 
 name=libdrm
-version=2.4.44
+version=2.4.50
 release=1
 source=(http://dri.freedesktop.org/libdrm/libdrm-$version.tar.bz2)
 
 build() {
     cd $name-$version
-    ./configure --prefix=/usr --mandir=/usr/man
+    sed -e "/pthread-stubs/d" -i configure.ac
+    autoreconf -fiv
+    ./configure --prefix=/usr --mandir=/usr/man --enable-udev
     make
     make DESTDIR=$PKG install
 }

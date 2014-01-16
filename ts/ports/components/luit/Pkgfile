@@ -11,6 +11,9 @@ source=(ftp://ftp.x.org/pub/individual/app/$name-$version.tar.bz2)
 build () {
 	cd $name-$version
 
+	# posix_openpt now requires XOPEN_SOURCE 600
+	sed -i -e "s/D_XOPEN_SOURCE=500/D_XOPEN_SOURCE=600/" configure
+
 	./configure --prefix=/usr --mandir=/usr/man
 	make && make DESTDIR=$PKG install
 }

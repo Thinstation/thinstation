@@ -3,9 +3,9 @@
 # Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 
 name=klibc
-version=2.0.2
+version=2.0.3
 release=1
-kver=3.6.11
+kver=3.10.14
 source=(http://www.kernel.org/pub/linux/libs/klibc/2.0/$name-$version.tar.xz
 	ftp://ftp.kernel.org/pub/linux/kernel/v3.x/linux-$kver.tar.bz2)
 
@@ -15,16 +15,13 @@ build() {
         ln -sf $SRC/linux-$kver $SRC/$name-$version/linux
         chown root:root $kernel
         cd $kernel
-        make distclean
-        make defconfig
-        make prepare
-        make modules_prepare
-        make headers_install
+        make mrproper
+	make headers_check
+        make headers_install INSTALL_HDR_PATH=$SRC/$name-$version/usr
 
-	cp -Prfd $SRC/$name-$version/linux/arch/x86/include/generated/asm/* $SRC/$name-$version/linux/arch/x86/include/asm/.
 	cd $SRC/$name-$version
-
 	make CFLAGS="-O2 -march=i686 -pipe" CXXFLAGS="-O2 -march=i686 -pipe" EXTRA_KLIBCFLAGS=''
 	make INSTALLROOT=$PKG install
 	mv $PKG/usr/lib/klibc/bin/sh.shared $PKG/usr/lib/klibc/bin/sh
+	find $PKG/usr/lib/klibc/include \( -name .install -o -name ..install.cmd \) -delete
 }

@@ -5,23 +5,29 @@
 
 name=freerdp
 version=stable-1.1
-release=git-stable
-source=()
+release=`date +%Y%m%d`
+source=(freerdp-1.1-ffmpeg55.patch)
 
 build() {
         git config --global http.sslVerify false
-        git clone https://github.com/FreeRDP/FreeRDP.git #-b stable-1.1
+        git clone https://github.com/FreeRDP/FreeRDP.git
         cd FreeRDP
-        git checkout origin/$version
-        cmake . -DDOCBOOKXSL_DIR=/usr/share/sgml/docbook-xsl-1.77.1/ \
-		-DCMAKE_INSTALL_PREFIX=/usr \
-                -DCMAKE_INSTALL_LIBDIR=/usr/lib \
-		-DWITH_PULSE=ON \
-		-DWITH_PCSC=ON \
-		-DWITH_SMARTCARD=ON \
-		-DWITH_CUPS=ON \
-		-DWITH_JPEG=ON \
-		-DWITH_SAMPLE=ON
+        git checkout $version
+	patch -Np1 -i ../freerdp-1.1-ffmpeg55.patch
+        cmake . -DCMAKE_INSTALL_PREFIX=/usr \
+                -DCMAKE_INSTALL_LIBDIR=lib \
+                -DWITH_PCSC=ON \
+                -DBUILD_SHARED_LIBS=ON \
+                -DWITH_CHANNELS=ON \
+                -DWITH_SERVER=OFF \
+                -DWITH_CLIENT=ON \
+                -DWITH_PULSE=ON \
+                -DWITH_CUPS=ON \
+                -DWITH_FFMPEG=ON \
+                -DCHANNEL_URBDRC_CLIENT=ON \
+                -DWITH_GSTREAMER=ON \
+                -DWITH_DIRECTFB=OFF \
+                -DWITH_XINERAMA=ON
 
         make
         make DESTDIR=$PKG install

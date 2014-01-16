@@ -11,6 +11,8 @@ source=(http://xorg.freedesktop.org/releases/individual/driver/xf86-video-silico
 build() {
 	cd xf86-video-siliconmotion-$version
 
+	sed -i -e "/miInitializeBackingStore/d" src/smi_driver.c
+
 	./configure --prefix=/usr --mandir=/usr/man
 
 	make

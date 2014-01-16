@@ -1,0 +1,18 @@
+# Description: XCB utilities library
+# URL: http://xcb.freedesktop.org
+# Maintainer: CRUX Xorg Team, xorg-ports at crux dot nu
+# Depends on: xorg-libxcb
+
+name=xorg-xcb-util-keysyms
+version=0.3.9
+release=1
+source=(http://xcb.freedesktop.org/dist/xcb-util-keysyms-$version.tar.bz2)
+
+build() {
+	cd xcb-util-keysyms-$version
+
+	./configure --prefix=/usr --disable-static
+
+	make
+	make DESTDIR=$PKG install
+}

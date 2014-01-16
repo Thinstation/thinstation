@@ -1,0 +1,26 @@
+# Description: Apache Portable Runtime library
+# Maintainer:  Juergen Daubert, jue at crux dot nu
+# URL:         http://apr.apache.org/
+# Depends on:  util-linux, expat, db, gdbm
+
+name=apr-util
+version=1.5.3
+release=1
+source=(http://www.apache.org/dist/apr/$name-$version.tar.bz2)
+
+build(){
+    cd $name-$version
+    ./configure --prefix=/usr \
+                --with-apr=/usr \
+                --with-expat=/usr \
+		--with-openssl=/usr \
+                --with-berkeley-db=/usr \
+                --with-gdbm=/usr \
+		--with-crypto
+
+    make LT_LDFLAGS="-shared"
+    make DESTDIR=$PKG install
+
+    sed -i -r "/^APU_(SOURCE|BUILD)/s|=.*|=|" $PKG/usr/bin/apu-1-config
+    rm -r $PKG/usr/lib/*.exp
+}

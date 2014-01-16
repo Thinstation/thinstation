@@ -3,18 +3,14 @@
 # Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 
 name=libxp
-version=1.0.1
+version=1.0.2
 release=1
-source=(http://ftp.de.debian.org/debian/pool/main/libx/libxp/libxp_1.0.1.orig.tar.gz
-	http://ftp.de.debian.org/debian/pool/main/libx/libxp/libxp_1.0.1-2.diff.gz)
+source=(http://ftp.de.debian.org/debian/pool/main/libx/libxp/libxp_1.0.2.orig.tar.gz)
 
 build() {
-	gunzip libxp_1.0.1-2.diff.gz
-
 	cd libXp-$version
-	patch -p1 -i ../libxp_1.0.1-2.diff
 
-	./configure --prefix=/usr
+	./configure --prefix=/usr --disable-static
 
 	make
 	make DESTDIR=$PKG install

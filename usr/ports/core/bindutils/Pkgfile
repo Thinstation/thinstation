@@ -4,7 +4,7 @@
 # Depends on:  openssl
 
 name=bindutils
-version=9.9.2
+version=9.9.4-P1
 release=1
 source=(ftp://ftp.isc.org/isc/bind9/$version/bind-$version.tar.gz)
 
@@ -12,14 +12,11 @@ build() {
     cd bind-$version
 
     ./configure --prefix=/usr \
+		--mandir=/usr/man \
                 --disable-linux-caps \
                 --with-libxml2=no
 
     make -C lib
     make -C bin/dig
-
-    install -D -m 755 bin/dig/host $PKG/usr/bin/host
-    install -D -m 644 bin/dig/host.1 $PKG/usr/man/man1/host.1
-    install -D -m 755 bin/dig/dig $PKG/usr/bin/dig
-    install -D -m 644 bin/dig/dig.1 $PKG/usr/man/man1/dig.1
+    make -C bin/dig install DESTDIR=$PKG
 }

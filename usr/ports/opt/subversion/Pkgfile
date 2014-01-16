@@ -5,7 +5,7 @@
 # Depends on: apr neon expat sqlite3
 
 name=subversion
-version=1.7.8
+version=1.8.5
 release=1
 source=(http://www.apache.org/dist/$name/$name-$version.tar.bz2)
 
@@ -14,13 +14,12 @@ build() {
 
     ./configure --prefix=/usr \
        --mandir=/usr/man \
-       --with-apr=/usr --with-apr-util=/usr --with-neon=/usr \
+       --with-apr=/usr --with-apr-util=/usr --disable-static \
        --disable-mod-activation --without-swig --disable-nls \
-       --disable-neon-version-check \
        --without-apxs
 
     make
-    make -j1 DESTDIR=$PKG external-install local-install
+    make -j1 DESTDIR=$PKG install
 
     # info pages seem to get generated when makeinfo is available
     rm -rf $PKG/usr/info

@@ -5,14 +5,14 @@
 # Depends on:
 
 name=giflib
-version=4.1.6
+version=5.0.5
 release=1
 source=(http://download.sourceforge.net/$name/$name-$version.tar.bz2)
 
 build() {
     cd $name-$version
 
-    ./configure --prefix=/usr
+    ./configure --prefix=/usr --disable-static
 
     sed 's|SUBDIRS =.*|SUBDIRS = lib util|' -i Makefile
     make

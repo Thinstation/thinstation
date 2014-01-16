@@ -4,20 +4,22 @@
 # Depends on:  attr
 
 name=libcap
-version=2.22
+version=2.23
 release=1
-source=(http://crux.s3.amazonaws.com/dist/libcap-$version.tar.bz2)
+source=(https://www.kernel.org/pub/linux/libs/security/linux-privs/libcap2/$name-$version.tar.xz
+	libcap-2.23-uapi-1.patch)
 
 build () {
     cd libcap-$version
+    patch -Np1 -i ../libcap-2.23-uapi-1.patch
 
-    sed -i "/^CFLAGS/s/-O2/$CFLAGS/" Make.Rules 
+    sed -i "/^CFLAGS/s/-O2/$CFLAGS/" Make.Rules
+    sed -i '/install.*STALIBNAME/ s/^/#/' libcap/Makefile
 
     make
     make RAISE_SETFCAP=no DESTDIR=$PKG man_prefix=/usr install
 
     install -d $PKG/usr/lib
-    mv $PKG/lib/libcap.a $PKG/usr/lib
     rm $PKG/lib/libcap.so
     ln -s ../../lib/libcap.so.$version $PKG/usr/lib/libcap.so
 }

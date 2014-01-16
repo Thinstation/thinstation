@@ -4,15 +4,13 @@
 # Depends on:  util-linux
 
 name=reiserfsprogs
-version=3.6.21
+version=3.6.24
 release=1
-source=(http://crux.nu/files/$name-$version.tar.bz2)
+source=(http://ftp.kernel.org/pub/linux/kernel/people/jeffm/$name/v$version/$name-$version.tar.xz)
 
 build () {
     cd $name-$version
     ./configure --prefix=/ --mandir=/usr/man
     make
     make DESTDIR=$PKG install
-    ln -s reiserfsck $PKG/sbin/fsck.reiserfs
-    ln -s mkreiserfs $PKG/sbin/mkfs.reiserfs
 }

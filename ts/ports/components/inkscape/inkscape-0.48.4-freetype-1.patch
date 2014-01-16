@@ -1,0 +1,21 @@
+Submitted By: Fernando de Oliveira <famobr at yahoo dot com dot br>
+Date: 2013-12-01
+Initial Package Version: 0.48.4
+Upstream Status: Committed
+Origin: Upstream
+URL: https://launchpadlibrarian.net/157792073/1255830-fix-freetype-includes-backport-0.48.x-v1.diff
+Description: Fixes build with FreeType-2.5.1
+
+diff -Naur inkscape-0.48.4/src/libnrtype/FontFactory.h.orig inkscape-0.48.4/src/libnrtype/FontFactory.h
+--- inkscape-0.48.4/src/libnrtype/FontFactory.h.orig	2011-07-08 15:25:09.468790000 -0300
++++ inkscape-0.48.4/src/libnrtype/FontFactory.h	2013-12-01 11:56:52.992005042 -0300
+@@ -31,7 +31,8 @@
+ #include <pango/pangowin32.h>
+ #else
+ #include <pango/pangoft2.h>
+-#include <freetype/freetype.h>
++#include <ft2build.h>
++#include FT_FREETYPE_H
+ #endif
+ 
+ namespace Glib

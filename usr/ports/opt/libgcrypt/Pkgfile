@@ -5,20 +5,16 @@
 # Depends on:  libgpg-error
 
 name=libgcrypt
-version=1.5.2
+version=1.6.0
 release=1
 source=(ftp://ftp.gnupg.org/gcrypt/libgcrypt/$name-$version.tar.bz2)
 
 build() {
   cd $name-$version
 
-  ./configure \
-      --prefix=/usr \
-      --disable-padlock-support \
-      --enable-static=yes
+  ./configure --prefix=/usr
   make
   make DESTDIR=$PKG install
 
-  rm -rf $PKG/usr/sbin
-  rm -rf $PKG/usr/share/info
+  rm -rf $PKG/usr/share/{man,info}
 }

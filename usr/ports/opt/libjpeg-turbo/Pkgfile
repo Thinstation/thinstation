@@ -1,0 +1,16 @@
+# Description: Library of JPEG support functions.
+# URL:         http://www.ijg.org/
+# Maintainer:  Fredrik Rinnestam, fredrik at crux dot nu
+
+name=libjpeg-turbo
+version=1.3.0
+release=1
+source=(http://downloads.sourceforge.net/$name/$name-$version.tar.gz)
+
+build() {
+    cd $name-$version
+    ./configure --prefix=/usr --mandir=/usr/man \
+                --enable-shared --disable-static --with-jpeg8
+    make
+    make DESTDIR=$PKG install
+}

@@ -3,7 +3,7 @@
 # Maintainer:  Fredrik Rinnestam, fredrik at rinnestam dot se
 
 name=nspr
-version=4.9.6
+version=4.10.2
 release=1
 source=(http://ftp.mozilla.org/pub/mozilla.org/nspr/releases/v$version/src/$name-$version.tar.gz
         $name.pc.in)
@@ -11,14 +11,17 @@ source=(http://ftp.mozilla.org/pub/mozilla.org/nspr/releases/v$version/src/$name
 build() {
     local NSPR_LIBS NSPR_CFLAGS NSPR_VERSION
 
-    cd $name-$version
+    cd $name-$version/nspr
+    # Skip installing static libraries
+    sed -i 's#$(LIBRARY) ##' config/rules.mk
 
-    ./mozilla/nsprpub/configure \
+    ./configure \
         --prefix=/usr \
         --libdir=/usr/lib \
         --includedir=/usr/include/nspr \
         --enable-optimize="$CFLAGS" \
-        --enable-64bit \
+	--with-mozilla \
+	--with-pthreads \
         --disable-debug
 
     make

@@ -6,13 +6,17 @@ name=openssl
 version=1.0.1e
 release=1
 source=(http://www.openssl.org/source/$name-$version.tar.gz \
+	openssl-1.0.1e-fix_pod_syntax-1.patch \
         mksslcert.sh)
 
 build() {
     cd $name-$version
+    patch -Np1 -i ../openssl-1.0.1e-fix_pod_syntax-1.patch
     export MAKEFLAGS="$MAKEFLAGS -j1"
     ./config --prefix=/usr --openssldir=/etc/ssl shared
     sed -i "s|-O3|$CFLAGS|" Makefile
+    # Disable static
+    sed -i 's# libcrypto.a##;s# libssl.a##' Makefile
     make
     make INSTALL_PREFIX=$PKG LIBDIR=lib MANDIR=/usr/man MANSUFFIX=ssl install
     find $PKG -name "*fips*" -delete

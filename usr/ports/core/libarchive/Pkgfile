@@ -4,22 +4,21 @@
 # Depends on:  bzip2, xz, zlib, acl
 
 name=libarchive
-version=3.0.4
+version=3.1.2
 release=1
-source=(http://www.libarchive.org/downloads/$name-$version.tar.gz)
+source=(http://www.libarchive.org/downloads/$name-$version.tar.gz
+	libarchive-3.1.2-ignore-selinux.patch)
 
 build() {
 	cd $name-$version
 
+	# Remove selinux xattr coming from chroot'd hosts filesystem
+	patch -Np1 -i $SRC/libarchive-3.1.2-ignore-selinux.patch
+
 	# We're passing --without-lzmadec, because we want to use xz for
 	# LZMA support, not the obsolete lzmadec library.
-	#
-	# We're passing --without-xml2 and --without-expat to avoid linking
-	# to libraries which are only available in opt. XML support is only
-	# needed for the xar format which we can live without.
 	./configure --prefix=/usr --mandir=/usr/man \
-	            --without-lzmadec \
-	            --without-xml2 --without-expat --without-openssl
+	            --without-lzmadec
 
 	make
 	make DESTDIR=$PKG install

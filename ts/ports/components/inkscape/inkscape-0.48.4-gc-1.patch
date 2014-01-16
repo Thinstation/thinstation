@@ -1,0 +1,78 @@
+Submitted By: Armin K. <krejzi at email dot com>
+Date: 2013-12-01
+Initial Package Version: 0.48.4
+Upstream Status: Unknown
+Origin: Armin K. <krejzi at email dot com>
+URL: 
+Description: Fixes build with gc-7.4.0
+
+diff -Naur a/configure b/configure
+--- a/configure	2012-12-15 17:56:08.450334780 +0100
++++ b/configure	2013-12-01 17:34:15.643762526 +0100
+@@ -8959,8 +8959,8 @@
+ 			# include <gc.h>
+ 			#endif
+ 			#include <stdio.h>
+-			extern unsigned GC_version;
+ 			int main(void){
++				unsigned GC_version = GC_get_version();
+ 				unsigned min = ((6 << 16) | (4 << 8) | 0);
+ 				printf("%d.%d.%d ",GC_version >> 16, (GC_version >> 8) & 0xFF, GC_version & 0xFF);
+ 				if (GC_version>=min) return 0;
+diff -Naur a/configure.ac b/configure.ac
+--- a/configure.ac	2012-12-15 17:50:19.205918190 +0100
++++ b/configure.ac	2013-12-01 17:33:57.903433873 +0100
+@@ -263,8 +263,8 @@
+ 			# include <gc.h>
+ 			#endif
+ 			#include <stdio.h>
+-			extern unsigned GC_version;
+ 			int main(void){
++				unsigned GC_version = GC_get_version();
+ 				unsigned min = ((6 << 16) | (4 << 8) | 0);
+ 				printf("%d.%d.%d ",GC_version >> 16, (GC_version >> 8) & 0xFF, GC_version & 0xFF);
+ 				if (GC_version>=min) return 0;
+diff -Naur a/src/gc-core.h b/src/gc-core.h
+--- a/src/gc-core.h	2012-02-14 04:22:17.670697000 +0100
++++ b/src/gc-core.h	2013-12-01 17:32:03.286326073 +0100
+@@ -57,7 +57,7 @@
+                                            CleanupFunc *old_func,
+                                            void **old_data);
+     int (*general_register_disappearing_link)(void **p_ptr,
+-                                              void *base);
++                                              const void *base);
+     int (*unregister_disappearing_link)(void **p_ptr);
+     std::size_t (*get_heap_size)();
+     std::size_t (*get_free_bytes)();
+diff -Naur a/src/gc.cpp b/src/gc.cpp
+--- a/src/gc.cpp	2012-02-14 04:22:17.670697000 +0100
++++ b/src/gc.cpp	2013-12-01 17:32:03.286326073 +0100
+@@ -70,8 +70,8 @@
+     return base + debug_base_fixup();
+ }
+ 
+-int debug_general_register_disappearing_link(void **p_ptr, void *base) {
+-    char *real_base=reinterpret_cast<char *>(base) - debug_base_fixup();
++int debug_general_register_disappearing_link(void **p_ptr, const void *base) {
++    const char *real_base=reinterpret_cast<const char *>(base) - debug_base_fixup();
+     return GC_general_register_disappearing_link(p_ptr, real_base);
+ }
+ 
+@@ -90,7 +90,7 @@
+     }
+ }
+ 
+-int dummy_general_register_disappearing_link(void **, void *) { return false; }
++int dummy_general_register_disappearing_link(void **, const void *) { return false; }
+ 
+ int dummy_unregister_disappearing_link(void **/*link*/) { return false; }
+ 
+@@ -202,7 +202,7 @@
+     die_because_not_initialized();
+ }
+ 
+-int stub_general_register_disappearing_link(void **, void *) {
++int stub_general_register_disappearing_link(void **, const void *) {
+     die_because_not_initialized();
+     return 0;
+ }

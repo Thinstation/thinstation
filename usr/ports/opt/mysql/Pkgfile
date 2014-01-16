@@ -4,13 +4,16 @@
 # Depends on:  tcp_wrappers ncurses zlib openssl cmake libaio
 
 name=mysql
-version=5.5.31
+version=5.6.15
 release=1
-source=(http://mirror.switch.ch/mirror/mysql/Downloads/MySQL-5.5/$name-$version.tar.gz \
+#source=(http://downloads.mysql.com/archives/get/file/$name-$version.tar.gz
+source=(http://cdn.mysql.com/Downloads/MySQL-5.6/$name-$version.tar.gz
+	mysql-5.6.15-embedded_library_shared-1.patch
         my.cnf mysqld)
 
 build () {
     cd $name-$version
+    patch -Np1 < $SRC/mysql-5.6.15-embedded_library_shared-1.patch
     
     cmake . \
         -DBUILD_CONFIG=mysql_release \

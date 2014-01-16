@@ -4,35 +4,31 @@
 # Depends on:  nspr sqlite3
 
 name=nss
-version=3.14.3
-release=2
-source=(ftp://ftp.mozilla.org/pub/mozilla.org/security/nss/releases/NSS_3_14_3_RTM/src/$name-$version.tar.gz \
-	no-softoken-freebl-tests.patch \
-#	nsspem-use-system-freebl.patch \
+version=3.15.3.1
+_version=$(printf "%i_%i_%i_%i" ${version//./ })
+release=1
+source=(ftp://ftp.mozilla.org/pub/mozilla.org/security/nss/releases/NSS_${_version}_RTM/src/$name-$version.tar.gz \
         nss-config.in nss.pc.in)
 
 build() {
     cd $name-$version
 
-    patch -p1 -i $SRC/no-softoken-freebl-tests.patch
-#    patch -p0 -i $SRC/nsspem-use-system-freebl.patch
-
     local file
 
-         # Do not override CC from commands.mk
-         # CCC is unused for g++, comment out
-         # And respect system CFLAGS
-         sed -i mozilla/security/coreconf/Linux.mk \
-                 -e 's|^CC.*=.*gcc$|#&|' \
-                 -e 's|^CCC.*=.*g++$|#&|' \
-                 -e "s|^OS_CFLAGS.*= |& $CFLAGS |"
+    # Do not override CC from commands.mk
+    # CCC is unused for g++, comment out
+    # And respect system CFLAGS
+    sed -i nss/coreconf/Linux.mk \
+        -e 's|^CC.*=.*gcc$|#&|' \
+        -e 's|^CCC.*=.*g++$|#&|' \
+        -e "s|^OS_CFLAGS.*= |& $CFLAGS |"
 
     export NSPR_INCLUDE_DIR=/usr/include/nspr
     export NSPR_LIB_DIR=/usr/lib
     export NSS_USE_SYSTEM_SQLITE=1
     export BUILD_OPT=1
 
-    make -j1 -C mozilla/security/nss build_coreconf build_dbm all
+    make -j1 -C nss all
 
     install -d $PKG/usr/{bin,lib/pkgconfig,include/nss}
 
@@ -41,7 +37,7 @@ build() {
         libsoftokn3.chk libnssckbi.so libfreebl3.so libfreebl3.chk \
         libcrmf.a libnssb.a libnssckfw.a libnssutil3.so libnssdbm3.so
     do
-        install -m 0644 mozilla/dist/*.OBJ/lib/$file $PKG/usr/lib
+        install -m 0644 dist/*.OBJ/lib/$file $PKG/usr/lib
     done
 
     chmod +x $PKG/usr/lib/*.so
@@ -49,10 +45,10 @@ build() {
     for file in \
         certutil cmsutil crlutil modutil pk12util signtool signver ssltap
     do
-        install -m 0755 mozilla/dist/*.OBJ/bin/$file $PKG/usr/bin
+        install -m 0755 dist/*.OBJ/bin/$file $PKG/usr/bin
     done
 
-    install -m 0644 mozilla/dist/public/nss/*.h $PKG/usr/include/nss
+    install -m 0644 dist/public/nss/*.h $PKG/usr/include/nss
 
     # we have to provide our own nss-config, because xulrunner needs it
     install -m 0755 $SRC/nss-config.in $PKG/usr/bin/nss-config

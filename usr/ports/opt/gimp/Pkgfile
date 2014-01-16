@@ -6,14 +6,19 @@
 # Nice to have: gimp-print, libsdl, ghostscript, librsvg, libmng
 
 name=gimp
-version=2.8.2
+version=2.8.10
 release=1
-source=(ftp://ftp.gimp.org/pub/gimp/v2.8/gimp-$version.tar.bz2)
+source=(ftp://ftp.gimp.org/pub/gimp/v2.8/gimp-$version.tar.bz2
+	gimp-2.8.10-device_info-1.patch
+	gimp-2.8.10-freetype-1.patch)
 
 build() {
   cd gimp-$version
+  patch -Np1 -i $SRC/gimp-2.8.10-device_info-1.patch
+  patch -Np1 -i $SRC/gimp-2.8.10-freetype-1.patch
   sed -i -e '/$(helpbrowser)/d' plug-ins/Makefile.in
   ./configure --prefix=/usr \
+    --sysconfdir=/etc \
     --mandir=/usr/man \
     --disable-static \
     --disable-python \

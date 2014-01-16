@@ -4,14 +4,14 @@
 # Depends on: xorg-libx11, xorg-libxext, xorg-resourceproto
 
 name=xorg-libxres
-version=1.0.6
+version=1.0.7
 release=1
 source=(http://xorg.freedesktop.org/releases/individual/lib/libXres-$version.tar.bz2)
 
 build() {
 	cd libXres-$version
 
-	./configure --prefix=/usr --mandir=/usr/man
+	./configure --prefix=/usr --mandir=/usr/man --disable-static
 
 	make
 	make DESTDIR=$PKG install

@@ -5,9 +5,9 @@
 # Depends on: nettle libidn
 
 name=gnutls
-version=3.1.9
+version=3.2.7
 release=1
-source=(ftp://ftp.gnutls.org/gcrypt/$name/v3.1/$name-$version.tar.xz)
+source=(ftp://ftp.gnutls.org/gcrypt/$name/v3.2/$name-$version.tar.xz)
 
 build() {
   cd $name-$version
@@ -19,7 +19,8 @@ build() {
 		--disable-guile \
 		--disable-nls \
  		--enable-cryptodev \
-		--enable-openssl-compatibility
+		--enable-openssl-compatibility \
+		--with-default-trust-store-file=/etc/ssl/certs/ca-bundle.crt
 
   make
   make DESTDIR=$PKG install

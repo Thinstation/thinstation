@@ -6,7 +6,7 @@
 name=cups
 version=1.6.2
 release=1
-source=(http://ftp.easysw.com/pub/cups/$version/$name-$version-source.tar.bz2
+source=(http://www.cups.org/software/$version/$name-$version-source.tar.bz2
         cups-config.patch cups)
 
 build () {
@@ -19,6 +19,7 @@ build () {
                 --libdir=/usr/lib \
                 --mandir=/usr/man \
                 --localstatedir=/var \
+		--enable-dynamic \
                 --with-docdir=/usr/share/cups/doc \
                 --with-logdir=/var/log/cups \
                 --with-cups-user=daemon \
@@ -30,8 +31,7 @@ build () {
                 --enable-{ssl,openssl} --disable-gnutls \
                 --enable-tcp-wrappers \
                 --enable-acl \
-                --disable-pam \
-                --disable-dbus 
+                --disable-pam
 
     make
     make BUILDROOT=$PKG install

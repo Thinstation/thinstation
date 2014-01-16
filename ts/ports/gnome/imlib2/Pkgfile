@@ -13,8 +13,7 @@ build() {
   cd $name-$version
 
   # fix giflib loader
-#  sed -i src/modules/loaders/loader_gif.c \
-#      -e 's|DGifOpenFileHandle(fd)|DGifOpenFileHandle(fd,0)|'
+  sed -i "/DGifOpen/s:fd:&, NULL:" src/modules/loaders/loader_gif.c
 
   ./configure --prefix=/usr --with-pic
 

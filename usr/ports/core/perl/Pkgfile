@@ -4,12 +4,18 @@
 # Depends on:  db gdbm
 
 name=perl
-version=5.16.3
+version=5.18.1
 release=1
 source=(http://www.cpan.org/src/5.0/$name-$version.tar.bz2)
 
 build() {
     cd $name-$version
+
+    # Use system zlib
+    sed -i -e "s|BUILD_ZLIB\s*= True|BUILD_ZLIB = False|" \
+	-e "s|INCLUDE\s*= ./zlib-src|INCLUDE = /usr/include|" \
+	-e "s|LIB\s*= ./zlib-src|LIB = /usr/lib|" \
+	cpan/Compress-Raw-Zlib/config.in
 
     ./Configure -des \
                 -Dprefix=/usr \

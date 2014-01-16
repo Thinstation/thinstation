@@ -4,20 +4,28 @@
 # Depends on: libdrm, xorg-makedepend, xorg-glproto, xorg-xextproto, xorg-dri2proto, xorg-libx11, xorg-xf86vidmodeproto, xorg-libxext, xorg-libxxf86vm, xorg-libxt, xorg-libxdamage, xorg-libpciaccess, expat, talloc, libxml2-python
 
 name=mesa3d
-version=9.1.2
+version=10.0.1
 release=1
 source=(ftp://ftp.freedesktop.org/pub/mesa/$version/MesaLib-$version.tar.bz2)
 
 build() {
     cd Mesa-$version
 
-    autoreconf --install --symlink
     ./configure --prefix=/usr \
-                --with-dri-drivers=i915,i965,r200,radeon,swrast,nouveau \
-                --with-gallium-drivers=i915,r600,svga,nouveau \
+		--sysconfdir=/etc \
+                --with-gallium-drivers=i915,r300,r600,svga,radeonsi,swrast,nouveau \
 		--enable-xa \
+		--with-egl-platforms="drm,x11" \
 		--with-llvm-shared-libs
 
+#   These are options that look like they'd normally be used for Mesa outside
+#   of Crux. Also, note that i915 is not typically a Gallium driver
+#		--enable-gles1 \
+#		--enable-gles2 \
+#		--enable-openvg \
+#		--enable-gbm \
+#		--enable-gallium-egl \
+#		--enable-gallium-gbm
     make
     make DESTDIR=$PKG install
 }

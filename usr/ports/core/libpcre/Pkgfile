@@ -3,7 +3,7 @@
 # Maintainer:  CRUX System Team, core-ports at crux dot nu
 
 name=libpcre
-version=8.32
+version=8.34
 release=1
 source=(ftp://ftp.csx.cam.ac.uk/pub/software/programming/pcre/pcre-$version.tar.bz2)
 
@@ -14,7 +14,10 @@ build() {
                 --mandir=/usr/man \
                 --enable-utf8 \
                 --enable-unicode-properties \
-                --enable-jit
+		--enable-pcre16 \
+		--enable-pcre32 \
+                --enable-jit \
+		--disable-static
     make
     make DESTDIR=$PKG install
 

@@ -6,15 +6,16 @@ name=xml-sax
 version=0.99
 release=1
 source=(http://mirror.jmu.edu/pub/CPAN/authors/id/G/GR/GRANTM/XML-SAX-$version.tar.gz
-	noprompt.patch)
+	noprompt.patch makefile-destdir.patch)
 
 build() {
 	cd XML-SAX-$version
 
 	patch -p0 -i ../noprompt.patch
+	patch -p1 -i ../makefile-destdir.patch
 
 	perl Makefile.PL
 	make
 	make DESTDIR=$PKG install
-        mv $PKG/usr/lib/perl5/5.16/linux-thread-multi/perllocal.pod $PKG/usr/lib/perl5/5.16/linux-thread-multi/perllocal.pod.sax
+        mv $PKG/usr/lib/perl5/5.18/linux-thread-multi/perllocal.pod $PKG/usr/lib/perl5/5.18/linux-thread-multi/perllocal.pod.sax
 }

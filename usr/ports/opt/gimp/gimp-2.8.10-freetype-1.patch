@@ -1,0 +1,22 @@
+Submitted By: Fernando de Oliveira <famobr at yahoo dot com dot br>
+Date: 2013-11-30
+Initial Package Version: 2.8.10
+Upstream Status: Committed
+Origin: gnome
+URL: http://osdir.com/ml/commits.gnome/2013-11/msg07247.html
+Description: Fixes build with FreeType-2.5.1
+
+diff -Naur gimp-2.8.10/app/text/gimpfont.c.orig gimp-2.8.10/app/text/gimpfont.c
+--- gimp-2.8.10/app/text/gimpfont.c.orig	2012-05-08 03:05:46.000000000 -0300
++++ gimp-2.8.10/app/text/gimpfont.c	2013-11-30 10:44:21.996609469 -0300
+@@ -27,7 +27,9 @@
+ 
+ #define PANGO_ENABLE_ENGINE  1   /* Argh */
+ #include <pango/pango-ot.h>
+-#include <freetype/tttables.h>
++
++#include <ft2build.h>
++#include FT_TRUETYPE_TABLES_H
+ 
+ #include "text-types.h"
+ 

@@ -4,7 +4,7 @@
 # Depends on:  util-linux, cups, fontconfig, xorg-libxt, xorg-libxext
 
 name=ghostscript
-version=9.07
+version=9.10
 release=1
 source=(http://downloads.ghostscript.com/public/$name-$version.tar.bz2
         http://downloads.sourceforge.net/sourceforge/gs-fonts/$name-fonts-std-8.11.tar.gz)
@@ -12,14 +12,14 @@ source=(http://downloads.ghostscript.com/public/$name-$version.tar.bz2
 build () {
     cd $name-$version
 
+    rm -rf expat freetype lcms2 jpeg libpng openjpeg tiff zlib
+
     ./configure --prefix=/usr \
                 --mandir=/usr/man \
+		--enable-dynamic \
                 --enable-cups \
-                --with-install-cups \
-                --disable-gtk \
-                --disable-dbus \
-                --with-drivers=ALL \
                 --with-ijs \
+		--with-system-libtiff \
                 --with-fontpath=/usr/share/ghostscript/fonts:/usr/share/fonts
 
     make so all 

@@ -5,7 +5,7 @@
 # Depends on: expat
 
 name=dbus
-version=1.6.12
+version=1.6.18
 release=1
 source=(http://dbus.freedesktop.org/releases/dbus/$name-$version.tar.gz \
 rc.dbus 30-dbus.launch)
@@ -13,6 +13,7 @@ rc.dbus 30-dbus.launch)
 build() {
    cd $name-$version
    ./configure --prefix=/usr \
+               --sysconfdir=/etc \
                --with-dbus-daemondir=/usr/sbin \
                --localstatedir=/var \
                --mandir=/usr/man \
@@ -27,5 +28,4 @@ build() {
                $PKG/etc/X11/xinit/xinitrc.d/30-dbus.launch
       rm -r $PKG/usr/share/doc
 
-#	sed -i -e 's/\/usr\/bin\/dbus-daemon/\/usr\/sbin\/dbus-daemon/g' $PKG/lib/systemd/system/dbus.service
 }

@@ -1,0 +1,19 @@
+Submitted By:            Igor Živković <contact@igor-zivkovic.from.hr>
+Date:                    2014-01-03
+Initial Package Version: 2.21.15
+Upstream Status:         Fixed
+Origin:                  Upstream
+Description:             Fixes compilation with xorg-server version >= 1.15.
+
+diff -Naur xf86-video-intel-2.21.15.orig/src/compat-api.h xf86-video-intel-2.21.15/src/compat-api.h
+--- xf86-video-intel-2.21.15.orig/src/compat-api.h	2013-05-21 12:15:11.000000000 +0200
++++ xf86-video-intel-2.21.15/src/compat-api.h	2014-01-03 11:34:52.855311042 +0100
+@@ -157,5 +157,8 @@
+ #define SourceValidate(d, x, y, w, h, mode) \
+ 	if ((d)->pScreen->SourceValidate) (d)->pScreen->SourceValidate(d, x, y, w, h)
+ #endif
++#if XORG_VERSION_CURRENT >= XORG_VERSION_NUMERIC(1,14,99,2,0)
++#define DamageUnregister(d, dd) DamageUnregister(dd)
++#endif
+ 
+ #endif

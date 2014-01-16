@@ -5,11 +5,13 @@
 # Depends on: fontconfig freeglut xorg-libxcomposite xorg-libxcursor xorg-libxinerama xorg-libxrandr xorg-libxxf86dga alsa-lib libpng libjpeg prelink
 
 name=wine
-version=1.5.29
+version=1.7.10
+gecko=2.24
+mono=4.5.2
 release=1
 source=(http://downloads.sourceforge.net/wine/$name-$version.tar.bz2
-	http://downloads.sourceforge.net/wine/wine_gecko-1.9-x86.msi
-	http://downloads.sourceforge.net/wine/wine-mono-0.0.8.msi)
+	http://downloads.sourceforge.net/wine/wine_gecko-$gecko-x86.msi
+	http://downloads.sourceforge.net/wine/wine-mono-$mono.msi)
 
 build() {
 	cd $name-$version
@@ -27,9 +29,9 @@ build() {
 	install -d $PKG/usr/share/wine/mono
 
 	install -t $PKG/usr/share/wine/gecko/ \
-		$SRC/wine_gecko-1.9-x86.msi
+		$SRC/wine_gecko-$gecko-x86.msi
 
-	install $SRC/wine-mono-0.0.8.msi $PKG/usr/share/wine/mono/
+	install $SRC/wine-mono-$mono.msi $PKG/usr/share/wine/mono/
 	mv $PKG/usr/ports/opt/wine/work/pkg/usr/man $PKG/usr/.
 	rm -rf $PKG/usr/ports
 

@@ -5,11 +5,16 @@
 name=inkscape
 version=0.48.4
 release=1
-source=(http://iweb.dl.sourceforge.net/project/inkscape/inkscape/$version/inkscape-$version.tar.bz2)
+source=(http://iweb.dl.sourceforge.net/project/inkscape/inkscape/$version/inkscape-$version.tar.bz2
+	inkscape-0.48.4-gc-1.patch
+	inkscape-0.48.4-freetype-1.patch)
 
 build() {
 	cd $name-$version
+	patch -Np1 -i ../inkscape-0.48.4-gc-1.patch
+	patch -Np1 -i ../inkscape-0.48.4-freetype-1.patch
 
+	sed -e "s@commands_toolbox,@commands_toolbox@" -i src/widgets/desktop-widget.h
 	./configure --prefix=/usr \
 			--sysconfdir=/etc \
 			--libexecdir=/lib \

@@ -3,36 +3,21 @@
 # Maintainer:  CRUX System Team, core-ports at crux dot nu
 
 name=glibc
-version=2.17
-release=4
+version=2.18
+release=1
 source=(http://ftp.gnu.org/gnu/glibc/glibc-$version.tar.xz \
-	http://crux.nu/files/distfiles/kernel-headers-3.4.11.tar.xz \
 	hosts resolv.conf nsswitch.conf host.conf ld.so.conf \
-	$name-resolv_assert.patch \
-	$name-segfault_in_strncasecmp.patch \
-	$name-strtod_integer_overflow.patch \
-	$name-regexp_buffer_overrun.patch \
 	disable-assembler-optimizations.patch)
 
 build() {
-	# install kernel headers
-	mkdir $PKG/usr/
-	cp -r kernel-headers-3.4.11/include $PKG/usr
-	chown root:root $PKG/usr
-
-#	patch -p1 -d $name-$version -i $SRC/$name-resolv_assert.patch
-#	patch -p1 -d $name-$version -i $SRC/$name-segfault_in_strncasecmp.patch
-#	patch -p1 -d $name-$version -i $SRC/$name-strtod_integer_overflow.patch
-	patch -p1 -d $name-$version -i $SRC/$name-regexp_buffer_overrun.patch
 	patch -p1 -d $name-$version -i $SRC/disable-assembler-optimizations.patch
 
 	mkdir build
 	cd build
 	../$name-$version/configure --prefix=/usr \
 		--libexecdir=/usr/lib \
-		--with-headers=$PKG/usr/include \
 		--with-tls \
-		--enable-kernel=2.6.39 \
+		--enable-kernel=2.6.32 \
 		--enable-add-ons \
 		--disable-profile \
 		--without-gd \

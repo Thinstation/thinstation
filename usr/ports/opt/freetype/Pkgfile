@@ -5,15 +5,21 @@
 # Depends on: zlib
 
 name=freetype
-version=2.4.11
+version=2.5.2
 release=1
 source=(http://download.savannah.gnu.org/releases/$name/$name-$version.tar.bz2)
 
 build() {
     cd freetype-$version
+    sed -i  -e "/AUX.*.gxvalid/s@^# @@" \
+            -e "/AUX.*.otvalid/s@^# @@" \
+            modules.cfg
+
     ./configure --prefix=/usr \
 		--with-zlib \
-		--disable-nls
+		--disable-nls \
+		--disable-static
+
     make
     make DESTDIR=$PKG install
 }

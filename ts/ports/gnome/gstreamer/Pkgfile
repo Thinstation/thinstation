@@ -11,6 +11,11 @@ source=(http://gstreamer.freedesktop.org/src/$name/$name-$version.tar.bz2)
 
 build() {
   cd $name-$version
+
+  # Patch for recent Bison
+  sed -i  -e '/YYLEX_PARAM/d'                                       \
+          -e '/parse-param.*scanner/i %lex-param { void *scanner }' \
+          gst/parse/grammar.y
   
   ./configure --prefix=/usr \
               --mandir=/usr/man \

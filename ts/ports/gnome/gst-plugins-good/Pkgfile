@@ -12,6 +12,10 @@ source=(http://gstreamer.freedesktop.org/src/$name/$name-$version.tar.xz)
 build() {
 	cd $name-$version
 
+	# Patches for new kernels
+	sed -i -e "/input:/d" sys/v4l2/gstv4l2bufferpool.c
+	sed -i -e "/case V4L2_CID_HCENTER/d" -e "/case V4L2_CID_VCENTER/d" sys/v4l2/v4l2_calls.c
+
 	./configure \
 		--prefix=/usr \
 		--mandir=/usr/man \

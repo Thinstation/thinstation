@@ -15,6 +15,7 @@ drwxr-xr-x	root/root	usr/bin/
 -rwxr-xr-x	root/root	usr/bin/mysql_client_test
 -rwxr-xr-x	root/root	usr/bin/mysql_client_test_embedded
 -rwxr-xr-x	root/root	usr/bin/mysql_config
+-rwxr-xr-x	root/root	usr/bin/mysql_config_editor
 -rwxr-xr-x	root/root	usr/bin/mysql_convert_table_format
 -rwxr-xr-x	root/root	usr/bin/mysql_embedded
 -rwxr-xr-x	root/root	usr/bin/mysql_find_rows
@@ -49,13 +50,19 @@ drwxr-xr-x	root/root	usr/bin/
 -rwxr-xr-x	root/root	usr/bin/resolveip
 drwxr-xr-x	root/root	usr/include/
 drwxr-xr-x	root/root	usr/include/mysql/
+-rw-r--r--	root/root	usr/include/mysql/big_endian.h
+-rw-r--r--	root/root	usr/include/mysql/byte_order_generic.h
+-rw-r--r--	root/root	usr/include/mysql/byte_order_generic_x86.h
+-rw-r--r--	root/root	usr/include/mysql/byte_order_generic_x86_64.h
 -rw-r--r--	root/root	usr/include/mysql/decimal.h
 -rw-r--r--	root/root	usr/include/mysql/errmsg.h
 -rw-r--r--	root/root	usr/include/mysql/keycache.h
+-rw-r--r--	root/root	usr/include/mysql/little_endian.h
 -rw-r--r--	root/root	usr/include/mysql/m_ctype.h
 -rw-r--r--	root/root	usr/include/mysql/m_string.h
 -rw-r--r--	root/root	usr/include/mysql/my_alloc.h
 -rw-r--r--	root/root	usr/include/mysql/my_attribute.h
+-rw-r--r--	root/root	usr/include/mysql/my_byteorder.h
 -rw-r--r--	root/root	usr/include/mysql/my_compiler.h
 -rw-r--r--	root/root	usr/include/mysql/my_config.h
 -rw-r--r--	root/root	usr/include/mysql/my_dbug.h
@@ -69,26 +76,39 @@ drwxr-xr-x	root/root	usr/include/mysql/
 -rw-r--r--	root/root	usr/include/mysql/my_xml.h
 -rw-r--r--	root/root	usr/include/mysql/mysql.h
 drwxr-xr-x	root/root	usr/include/mysql/mysql/
+-rw-r--r--	root/root	usr/include/mysql/mysql/client_authentication.h
 -rw-r--r--	root/root	usr/include/mysql/mysql/client_plugin.h
+-rw-r--r--	root/root	usr/include/mysql/mysql/client_plugin.h.pp
+-rw-r--r--	root/root	usr/include/mysql/mysql/get_password.h
 -rw-r--r--	root/root	usr/include/mysql/mysql/innodb_priv.h
 -rw-r--r--	root/root	usr/include/mysql/mysql/plugin.h
 -rw-r--r--	root/root	usr/include/mysql/mysql/plugin_audit.h
+-rw-r--r--	root/root	usr/include/mysql/mysql/plugin_audit.h.pp
 -rw-r--r--	root/root	usr/include/mysql/mysql/plugin_auth.h
+-rw-r--r--	root/root	usr/include/mysql/mysql/plugin_auth.h.pp
 -rw-r--r--	root/root	usr/include/mysql/mysql/plugin_auth_common.h
 -rw-r--r--	root/root	usr/include/mysql/mysql/plugin_ftparser.h
+-rw-r--r--	root/root	usr/include/mysql/mysql/plugin_ftparser.h.pp
+-rw-r--r--	root/root	usr/include/mysql/mysql/plugin_validate_password.h
 drwxr-xr-x	root/root	usr/include/mysql/mysql/psi/
 -rw-r--r--	root/root	usr/include/mysql/mysql/psi/mysql_file.h
+-rw-r--r--	root/root	usr/include/mysql/mysql/psi/mysql_idle.h
+-rw-r--r--	root/root	usr/include/mysql/mysql/psi/mysql_socket.h
+-rw-r--r--	root/root	usr/include/mysql/mysql/psi/mysql_stage.h
+-rw-r--r--	root/root	usr/include/mysql/mysql/psi/mysql_statement.h
+-rw-r--r--	root/root	usr/include/mysql/mysql/psi/mysql_table.h
 -rw-r--r--	root/root	usr/include/mysql/mysql/psi/mysql_thread.h
 -rw-r--r--	root/root	usr/include/mysql/mysql/psi/psi.h
--rw-r--r--	root/root	usr/include/mysql/mysql/psi/psi_abi_v1.h
--rw-r--r--	root/root	usr/include/mysql/mysql/psi/psi_abi_v2.h
+-rw-r--r--	root/root	usr/include/mysql/mysql/service_my_plugin_log.h
 -rw-r--r--	root/root	usr/include/mysql/mysql/service_my_snprintf.h
+-rw-r--r--	root/root	usr/include/mysql/mysql/service_mysql_string.h
 -rw-r--r--	root/root	usr/include/mysql/mysql/service_thd_alloc.h
 -rw-r--r--	root/root	usr/include/mysql/mysql/service_thd_wait.h
 -rw-r--r--	root/root	usr/include/mysql/mysql/service_thread_scheduler.h
 -rw-r--r--	root/root	usr/include/mysql/mysql/services.h
 -rw-r--r--	root/root	usr/include/mysql/mysql/thread_pool_priv.h
 -rw-r--r--	root/root	usr/include/mysql/mysql_com.h
+-rw-r--r--	root/root	usr/include/mysql/mysql_com_server.h
 -rw-r--r--	root/root	usr/include/mysql/mysql_embed.h
 -rw-r--r--	root/root	usr/include/mysql/mysql_time.h
 -rw-r--r--	root/root	usr/include/mysql/mysql_version.h
@@ -97,6 +117,7 @@ drwxr-xr-x	root/root	usr/include/mysql/mysql/psi/
 -rw-r--r--	root/root	usr/include/mysql/plugin.h
 -rw-r--r--	root/root	usr/include/mysql/plugin_audit.h
 -rw-r--r--	root/root	usr/include/mysql/plugin_ftparser.h
+-rw-r--r--	root/root	usr/include/mysql/plugin_validate_password.h
 -rw-r--r--	root/root	usr/include/mysql/sql_common.h
 -rw-r--r--	root/root	usr/include/mysql/sql_state.h
 -rw-r--r--	root/root	usr/include/mysql/sslopt-case.h
@@ -106,13 +127,16 @@ drwxr-xr-x	root/root	usr/include/mysql/mysql/psi/
 drwxr-xr-x	root/root	usr/lib/
 -rw-r--r--	root/root	usr/lib/libmysqlclient.a
 lrwxrwxrwx	root/root	usr/lib/libmysqlclient.so -> libmysqlclient.so.18
-lrwxrwxrwx	root/root	usr/lib/libmysqlclient.so.18 -> libmysqlclient.so.18.0.0
--rwxr-xr-x	root/root	usr/lib/libmysqlclient.so.18.0.0
+lrwxrwxrwx	root/root	usr/lib/libmysqlclient.so.18 -> libmysqlclient.so.18.1.0
+-rwxr-xr-x	root/root	usr/lib/libmysqlclient.so.18.1.0
 lrwxrwxrwx	root/root	usr/lib/libmysqlclient_r.a -> libmysqlclient.a
 lrwxrwxrwx	root/root	usr/lib/libmysqlclient_r.so -> libmysqlclient.so
-lrwxrwxrwx	root/root	usr/lib/libmysqlclient_r.so.18 -> libmysqlclient.so
-lrwxrwxrwx	root/root	usr/lib/libmysqlclient_r.so.18.0.0 -> libmysqlclient.so
+lrwxrwxrwx	root/root	usr/lib/libmysqlclient_r.so.18 -> libmysqlclient.so.18
+lrwxrwxrwx	root/root	usr/lib/libmysqlclient_r.so.18.1.0 -> libmysqlclient.so.18.1.0
 -rw-r--r--	root/root	usr/lib/libmysqld.a
+lrwxrwxrwx	root/root	usr/lib/libmysqld.so -> libmysqld.so.18
+lrwxrwxrwx	root/root	usr/lib/libmysqld.so.18 -> libmysqld.so.18.0.0
+-rwxr-xr-x	root/root	usr/lib/libmysqld.so.18.0.0
 -rw-r--r--	root/root	usr/lib/libmysqlservices.a
 drwxr-xr-x	root/root	usr/lib/mysql/
 drwxr-xr-x	root/root	usr/lib/mysql/plugin/
@@ -128,6 +152,7 @@ drwxr-xr-x	root/root	usr/lib/mysql/plugin/
 -rwxr-xr-x	root/root	usr/lib/mysql/plugin/qa_auth_server.so
 -rwxr-xr-x	root/root	usr/lib/mysql/plugin/semisync_master.so
 -rwxr-xr-x	root/root	usr/lib/mysql/plugin/semisync_slave.so
+-rwxr-xr-x	root/root	usr/lib/mysql/plugin/validate_password.so
 drwxr-xr-x	root/root	usr/man/
 drwxr-xr-x	root/root	usr/man/man1/
 -rw-r--r--	root/root	usr/man/man1/comp_err.1.gz
@@ -145,6 +170,7 @@ drwxr-xr-x	root/root	usr/man/man1/
 -rw-r--r--	root/root	usr/man/man1/mysql_client_test.1.gz
 -rw-r--r--	root/root	usr/man/man1/mysql_client_test_embedded.1.gz
 -rw-r--r--	root/root	usr/man/man1/mysql_config.1.gz
+-rw-r--r--	root/root	usr/man/man1/mysql_config_editor.1.gz
 -rw-r--r--	root/root	usr/man/man1/mysql_convert_table_format.1.gz
 -rw-r--r--	root/root	usr/man/man1/mysql_find_rows.1.gz
 -rw-r--r--	root/root	usr/man/man1/mysql_fix_extensions.1.gz
@@ -211,26 +237,21 @@ drwxr-xr-x	root/root	usr/share/mysql/charsets/
 -rw-r--r--	root/root	usr/share/mysql/charsets/macce.xml
 -rw-r--r--	root/root	usr/share/mysql/charsets/macroman.xml
 -rw-r--r--	root/root	usr/share/mysql/charsets/swe7.xml
--rwxr-xr-x	root/root	usr/share/mysql/config.huge.ini
--rwxr-xr-x	root/root	usr/share/mysql/config.medium.ini
--rwxr-xr-x	root/root	usr/share/mysql/config.small.ini
+-rw-r--r--	root/root	usr/share/mysql/dictionary.txt
 drwxr-xr-x	root/root	usr/share/mysql/english/
 -rw-r--r--	root/root	usr/share/mysql/english/errmsg.sys
 -rw-r--r--	root/root	usr/share/mysql/errmsg-utf8.txt
 -rw-r--r--	root/root	usr/share/mysql/fill_help_tables.sql
+-rwxr-xr-x	root/root	usr/share/mysql/innodb_memcached_config.sql
 -rw-r--r--	root/root	usr/share/mysql/magic
--rw-r--r--	root/root	usr/share/mysql/my-huge.cnf
--rw-r--r--	root/root	usr/share/mysql/my-innodb-heavy-4G.cnf
--rw-r--r--	root/root	usr/share/mysql/my-large.cnf
--rw-r--r--	root/root	usr/share/mysql/my-medium.cnf
--rw-r--r--	root/root	usr/share/mysql/my-small.cnf
+-rw-r--r--	root/root	usr/share/mysql/my-default.cnf
 -rwxr-xr-x	root/root	usr/share/mysql/mysql-log-rotate
 -rwxr-xr-x	root/root	usr/share/mysql/mysql.server
+-rw-r--r--	root/root	usr/share/mysql/mysql_security_commands.sql
 -rw-r--r--	root/root	usr/share/mysql/mysql_system_tables.sql
 -rw-r--r--	root/root	usr/share/mysql/mysql_system_tables_data.sql
 -rw-r--r--	root/root	usr/share/mysql/mysql_test_data_timezone.sql
 -rwxr-xr-x	root/root	usr/share/mysql/mysqld_multi.server
--rwxr-xr-x	root/root	usr/share/mysql/ndb-config-2-node.ini
 drwxr-xr-x	root/root	var/
 drwxr-xr-x	root/root	var/lib/
 drwx------	mysql/mysql	var/lib/mysql/

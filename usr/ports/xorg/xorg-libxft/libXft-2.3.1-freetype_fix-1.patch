@@ -1,0 +1,30 @@
+Submitted By: Chris Staub <chris at beaker67 dot com>
+Date: 2013-11-29
+Initial Package Version: 2.3.1
+Upstream Status: Fixed
+Origin: freedesktop wiki
+URL: https://trac.macports.org/changeset/114077
+Description: Fixes build with FreeType-2.5.1
+
+diff -Naur libXft-2.3.1.orig/src/xftglyphs.c libXft-2.3.1/src/xftglyphs.c
+
+Index: src/xftglyphs.c
+===================================================================
+--- libXft-2.3.1.orig/src/xftglyphs.c 2012-06-02 12:36:35.000000000 -0400
++++ libXft-2.3.1/src/xftglyphs.c 2013-11-28 23:12:42.000000000 -0500
+@@ -21,10 +21,10 @@
+  */
+ 
+ #include "xftint.h"
+-#include <freetype/ftoutln.h>
+-#include <freetype/ftlcdfil.h>
+-
+-#include <freetype/ftsynth.h>
++#include <ft2build.h>
++#include FT_OUTLINE_H
++#include FT_LCD_FILTER_H
++#include FT_SYNTHESIS_H
+ 
+ /*
+  * Validate the memory info for a font
+

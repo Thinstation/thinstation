@@ -1,0 +1,22 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=libsodium
+version=0.4.5
+release=1
+source=()
+
+build() {
+	git clone --depth 1 https://github.com/jedisct1/libsodium.git
+	cd libsodium
+
+	./autogen.sh
+	./configure --prefix=/usr \
+			--exec-prefix=/ \
+			--sysconfdir=/etc \
+			--mandir=/usr/man
+
+	make
+	make DESTDIR=$PKG install
+}

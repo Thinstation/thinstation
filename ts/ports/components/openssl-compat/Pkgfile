@@ -6,10 +6,12 @@ name=openssl-compat
 pname=openssl
 version=0.9.8x
 release=1
-source=(http://www.openssl.org/source/$pname-$version.tar.gz)
+source=(http://www.openssl.org/source/$pname-$version.tar.gz
+	openssl-0.9.8x-fix_pod_syntax-1.patch)
 
 build() {
     cd $pname-$version
+    patch -Np1 -i ../openssl-0.9.8x-fix_pod_syntax-1.patch
     ./config --prefix=/usr/local --openssldir=/etc/ssl shared
     sed -i "s|-O3|$CFLAGS|" Makefile
     make -j1

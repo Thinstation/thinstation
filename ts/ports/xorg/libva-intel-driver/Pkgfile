@@ -1,0 +1,19 @@
+# Description: Video Acceleration API to enable hardware accelerated video decode/encode for newer intel
+# URL: http://freedesktop.org/wiki/Software/vaapi
+# Maintainer:  Thomas Penteker, tek at serverop dot de
+# Depends on:  libva mesa3d libvdpau glu ffmpeg\
+
+name=libva-intel-driver
+version=1.2.1
+release=1
+source=(http://www.freedesktop.org/software/vaapi/releases/$name/$name-$version.tar.bz2)
+
+build() {
+	cd $name-$version
+
+	./configure --prefix=/usr \
+		--disable-dependency-tracking
+
+	make
+	make DESTDIR=$PKG install
+}

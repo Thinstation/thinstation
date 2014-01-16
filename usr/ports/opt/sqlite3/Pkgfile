@@ -4,7 +4,7 @@
 # Depends on:  ncurses, readline
 
 name=sqlite3
-version=3.7.16.2
+version=3.8.2
 release=1
 _version=$(printf "%i%.2i%.2i%.2i" ${version//./ })
 
@@ -14,7 +14,7 @@ build () {
     cd sqlite-autoconf-${_version}
     CFLAGS="-DSQLITE_SECURE_DELETE=1 -DSQLITE_ENABLE_COLUMN_METADATA=1 \
             -DSQLITE_ENABLE_UNLOCK_NOTIFY=1 $CFLAGS" \
-    ./configure --prefix=/usr --mandir=/usr/man
+    ./configure --prefix=/usr --mandir=/usr/man --disable-static
     make
     make DESTDIR=$PKG install
 }

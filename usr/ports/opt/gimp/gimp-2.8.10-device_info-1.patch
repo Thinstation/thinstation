@@ -1,0 +1,33 @@
+Submitted By: Fernando de Oliveira <famobr at yahoo dot com dot br>
+Date: 2013-11-30
+Initial Package Version: 2.8.10
+Upstream Status: Unknown
+Origin: ubuntuforums
+URL: http://ubuntuforums.org/showthread.php?t=1984743&page=8&p=12273558#post12273558
+Description: Fixes "Gimp-Widgets-CRITICAL **: gimp_device_info_set_device ..." annoying message by making "sure the configure input device dialog displays all of the devices" and fixes tests
+
+--- gimp-2.8.10/app/widgets/gimpdevicemanager.c.orig	2012-11-22 21:21:24.000000000 -0300
++++ gimp-2.8.10/app/widgets/gimpdevicemanager.c	2013-11-30 11:54:30.275906582 -0300
+@@ -321,19 +321,19 @@
+     GIMP_DEVICE_INFO (gimp_container_get_child_by_name (GIMP_CONTAINER (manager),
+                                                         device->name));
+ 
+-  if (device_info)
++ /*  if (device_info)
+     {
+       gimp_device_info_set_device (device_info, device, gdk_display);
+     }
+   else
+-    {
++    {*/
+       device_info = gimp_device_info_new (private->gimp, device, gdk_display);
+ 
+       gimp_device_info_set_default_tool (device_info);
+ 
+       gimp_container_add (GIMP_CONTAINER (manager), GIMP_OBJECT (device_info));
+       g_object_unref (device_info);
+-    }
++    //}
+ }
+ 
+ static void

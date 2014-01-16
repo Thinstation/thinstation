@@ -1,0 +1,48 @@
+Submitted By: Ragnar Thomsen (rthomsen at linuxfromscratch dot org)
+Date: 2012-03-21
+Initial Package Version: 5.5.17
+Origin: Gentoo Git
+Description: Fixes mysql to build a shared version of the embedded server library (libmysqld.so) used by amarok2
+
+--- a/cmake/libutils.cmake	2013-04-05 14:27:18.000000000 +0200
++++ b/cmake/libutils.cmake	2013-04-27 13:38:52.806295199 +0200
+@@ -269,6 +269,16 @@
+     MYSQL_INSTALL_TARGETS(${TARGET} DESTINATION "${INSTALL_LIBDIR}" ${COMP})
+   ENDIF()
+   SET_TARGET_PROPERTIES(${TARGET} PROPERTIES LINK_INTERFACE_LIBRARIES "")
++
++  IF(ARG_SHARED AND LINK_FLAG_NO_UNDEFINED)
++    # Do not allow undefined symbols in shared libraries
++    GET_TARGET_PROPERTY(TARGET_LINK_FLAGS ${TARGET} LINK_FLAGS)
++    IF(NOT TARGET_LINK_FLAGS)
++      SET(TARGET_LINK_FLAGS)
++    ENDIF()
++    SET_TARGET_PROPERTIES(${TARGET} PROPERTIES LINK_FLAGS 
++      "${TARGET_LINK_FLAGS} ${LINK_FLAG_NO_UNDEFINED}")
++  ENDIF() 
+ ENDMACRO()
+ 
+ FUNCTION(GET_DEPENDEND_OS_LIBS target result)
+--- a/libmysqld/CMakeLists.txt	2013-04-05 14:27:18.000000000 +0200
++++ b/libmysqld/CMakeLists.txt	2013-04-27 13:38:52.806295199 +0200
+@@ -125,7 +125,17 @@
+   ${CMAKE_STATIC_LIBRARY_PREFIX}mysqld-debug)
+ ENDIF()
+ 
+-IF(MSVC AND NOT DISABLE_SHARED)
+-  MERGE_LIBRARIES(libmysqld SHARED ${LIBS} EXPORTS ${CLIENT_API_FUNCTIONS}
+-  COMPONENT Embedded)
++IF(NOT DISABLE_SHARED)
++  MERGE_LIBRARIES(libmysqld SHARED mysqlserver EXPORTS ${CLIENT_API_FUNCTIONS})
++  IF(UNIX)
++    # Name the shared library, handle versioning (provides same api as client library
++    # hence the same version)
++    SET_TARGET_PROPERTIES(libmysqld PROPERTIES 
++      OUTPUT_NAME mysqld 
++      VERSION "${SHARED_LIB_MAJOR_VERSION}.0.0" 
++      SOVERSION "${SHARED_LIB_MAJOR_VERSION}")
++    # Clean direct output flags, as 2 targets have the same base name (libmysqld)
++    SET_TARGET_PROPERTIES(libmysqld PROPERTIES CLEAN_DIRECT_OUTPUT 1)
++    SET_TARGET_PROPERTIES(mysqlserver PROPERTIES CLEAN_DIRECT_OUTPUT 1)
++  ENDIF()
+ ENDIF()

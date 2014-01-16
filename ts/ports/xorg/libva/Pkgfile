@@ -5,23 +5,17 @@
 # Depends on: mesa3d xorg-libpciaccess
 
 name=libva
-version=1.1.0
+version=1.2.1
 release=1
-source=(http://cgit.freedesktop.org/libva/snapshot/$name-$name-$version.tar.bz2)
+source=(http://www.freedesktop.org/software/vaapi/releases/$name/$name-$version.tar.bz2)
 
 build() {
 
-#	git clone --depth 1 git://anongit.freedesktop.org/git/libva
-	cd $name-$name-$version
+	cd $name-$version
 
-#	autoreconf -fi
-	./autogen.sh
 	./configure \
 		--prefix=/usr \
-		--enable-i965-driver \
         	--enable-glx \
-		--enable-dummy-driver \
-		--enable-dummy-backend \
 		--disable-dependency-tracking
 
 	make

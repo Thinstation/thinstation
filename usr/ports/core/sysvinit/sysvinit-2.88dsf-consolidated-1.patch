@@ -1,0 +1,136 @@
+Submitted By: Bruce Dubbs <bdubbs at linuxfromscratch dot org>
+Date: 2013-12-12
+Initial Package Version: 2.88
+Upstream Status: Not Submitted
+Origin: Accumulation if changes in LFS and new changes.
+Description: 
+ 1. Update messages sent at termination.
+ 2. Remove programs superceeded by other packages: wall, mountpoint, 
+    last, lastb, mesg, sulogin, and utmpdump.
+ 3. Clean up a compiler warning in shutdown.c.
+
+diff -Naur sysvinit-2.88dsf.orig/src/Makefile sysvinit-2.88dsf/src/Makefile
+--- sysvinit-2.88dsf.orig/src/Makefile	2010-04-11 04:30:27.000000000 -0500
++++ sysvinit-2.88dsf/src/Makefile	2013-12-12 16:17:43.930749763 -0600
+@@ -16,27 +16,20 @@
+ # For some known distributions we do not build all programs, otherwise we do.
+ BIN	=
+ SBIN	= init halt shutdown runlevel killall5 fstab-decode
+-USRBIN	= last mesg
+ 
+-MAN1	= last.1 lastb.1 mesg.1
+ MAN5	= initscript.5 inittab.5
+-MAN8	= halt.8 init.8 killall5.8 pidof.8 poweroff.8 reboot.8 runlevel.8
++MAN8	= halt.8 init.8 killall5.8  poweroff.8 reboot.8 runlevel.8
+ MAN8	+= shutdown.8 telinit.8 fstab-decode.8
+ 
+ ifeq ($(DISTRO),)
+-BIN	+= mountpoint
+-SBIN	+= sulogin bootlogd
+-USRBIN	+= utmpdump wall
+-MAN1	+= utmpdump.1 mountpoint.1 wall.1
+-MAN8	+= sulogin.8 bootlogd.8
++SBIN	+= bootlogd
++MAN8	+= bootlogd.8
+ endif
+ 
+ ifeq ($(DISTRO),Debian)
+ CPPFLAGS+= -DACCTON_OFF
+-BIN	+= mountpoint
+-SBIN	+= sulogin bootlogd
+-MAN1	+= mountpoint.1
+-MAN8	+= sulogin.8 bootlogd.8
++SBIN	+= bootlogd
++MAN8	+= bootlogd.8
+ endif
+ 
+ ifeq ($(DISTRO),Owl)
+@@ -46,11 +39,8 @@
+ 
+ ifeq ($(DISTRO),SuSE)
+ CPPFLAGS+= -DUSE_SYSFS -DSANE_TIO -DSIGINT_ONLYONCE -DUSE_ONELINE
+-BIN	+= mountpoint
+-SBIN	+= sulogin
+-USRBIN	+= utmpdump
+-MAN1	+= utmpdump.1 mountpoint.1
+-MAN8	+= sulogin.8
++SBIN	+=
++MAN8	+=
+ endif
+ 
+ ID		= $(shell id -u)
+@@ -96,11 +86,8 @@
+ 
+ last:		last.o oldutmp.h
+ 
+-mesg:		mesg.o
+ 
+-mountpoint:	mountpoint.o
+ 
+-utmpdump:	utmpdump.o
+ 
+ runlevel:	runlevel.o
+ 
+@@ -138,8 +125,7 @@
+ distclean:	clobber
+ 
+ install:
+-		$(INSTALL_DIR) $(ROOT)/bin/ $(ROOT)/sbin/
+-		$(INSTALL_DIR) $(ROOT)/usr/bin/
++		$(INSTALL_DIR)  $(ROOT)/sbin/
+ 		for i in $(BIN); do \
+ 			$(INSTALL_EXEC) $$i $(ROOT)/bin/ ; \
+ 		done
+@@ -154,13 +140,8 @@
+ 		ln -sf halt $(ROOT)/sbin/reboot
+ 		ln -sf halt $(ROOT)/sbin/poweroff
+ 		ln -sf init $(ROOT)/sbin/telinit
+-		ln -sf /sbin/killall5 $(ROOT)/bin/pidof
+-		if [ ! -f $(ROOT)/usr/bin/lastb ]; then \
+-			ln -sf last $(ROOT)/usr/bin/lastb; \
+-		fi
+ 		$(INSTALL_DIR) $(ROOT)/usr/include/
+ 		$(INSTALL_DATA) initreq.h $(ROOT)/usr/include/
+-		$(INSTALL_DIR) $(ROOT)$(MANDIR)/man1/
+ 		$(INSTALL_DIR) $(ROOT)$(MANDIR)/man5/
+ 		$(INSTALL_DIR) $(ROOT)$(MANDIR)/man8/
+ 		for i in $(MAN1); do \
+diff -Naur sysvinit-2.88dsf.orig/src/init.c sysvinit-2.88dsf/src/init.c
+--- sysvinit-2.88dsf.orig/src/init.c	2010-04-13 04:48:54.000000000 -0500
++++ sysvinit-2.88dsf/src/init.c	2013-12-12 16:17:34.292881603 -0600
+@@ -1498,14 +1498,14 @@
+ 		case 0: /* Send TERM signal */
+ 			if (talk)
+ 				initlog(L_CO,
+-					"Sending processes the TERM signal");
++					"Sending processes configured via /etc/inittab the TERM signal");
+ 			kill(-(ch->pid), SIGTERM);
+ 			foundOne = 1;
+ 			break;
+ 		case 1: /* Send KILL signal and collect status */
+ 			if (talk)
+ 				initlog(L_CO,
+-					"Sending processes the KILL signal");
++					"Sending processes configured via /etc/inittab the KILL signal");
+ 			kill(-(ch->pid), SIGKILL);
+ 			break;
+ 	}
+diff -Naur sysvinit-2.88dsf.orig/src/shutdown.c sysvinit-2.88dsf/src/shutdown.c
+--- sysvinit-2.88dsf.orig/src/shutdown.c	2010-03-23 09:37:01.000000000 -0500
++++ sysvinit-2.88dsf/src/shutdown.c	2013-12-12 16:17:50.225663849 -0600
+@@ -482,7 +482,6 @@
+ 	struct stat		st;
+ 	struct utmp		*ut;
+ 	time_t			t;
+-	uid_t			realuid;
+ 	char			*halttype;
+ 	char			*downusers[32];
+ 	char			buf[128];
+@@ -498,7 +497,6 @@
+ 	int			user_ok = 0;
+ 
+ 	/* We can be installed setuid root (executable for a special group) */
+-	realuid = getuid();
+ 	setuid(geteuid());
+ 
+ 	if (getuid() != 0) {

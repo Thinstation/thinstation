@@ -5,21 +5,22 @@
 # Depends on: freetype, expat
 
 name=fontconfig
-version=2.10.92
+version=2.11.0
 release=1
 source=(http://fontconfig.org/release/$name-$version.tar.bz2)
 
 build() {
     cd $name-$version
 
-    sed -e 's|^confdir=.*|confdir=@baseconfigdir@|' -i $name.pc.in
+    sed -e 's|^confdir=.*|confdir=@BASECONFIGDIR@|' -i $name.pc.in
 
     ./configure --prefix=/usr \
                 --sysconfdir=/etc \
                 --mandir=/usr/man \
                 --localstatedir=/var \
                 --with-xmldir=/etc/fonts \
-                --with-templatedir=/etc/fonts/conf.avail
+                --with-templatedir=/etc/fonts/conf.avail \
+		--disable-static
 
     make
     make DESTDIR=$PKG install
