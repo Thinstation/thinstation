@@ -13,7 +13,7 @@ x_echo()
 readme()
 {
 	Xdialog	--title "Install to HD" \
-		--textbox /README 30 120
+		--textbox /lib/install/README 30 120
 			if [ $? -lt 1 ]; then
 				continue
 			else
@@ -72,7 +72,7 @@ set_res()
         		let index=index+1
 		done
 	else
-		for i in `xrandr 2>/dev/null |grep -o -r -e '   [0-9]*x[0-9]*' |sed -r 's/ //g' |sort -u -t'x' -k1n -k2n`; do
+		for i in `xrandr 2>/dev/null |grep -o '   [0-9]*x[0-9]*' |sed -r 's/ //g' |sort -u -t'x' -k1n -k2n`; do
 			res[$index]=$i
                 	echo "$index $i" >> /$tempdir/reslist
                 	let index=index+1
@@ -220,22 +220,18 @@ for object in `ls -A /root`; do
 done
 cat /boot/syslinux.tpl |sed -e "s/\$RES/$res/g" > /boot/syslinux.cfg
 
-flag=0
-for check in /boot/vmlinuz /thinstation/setup-chroot ; do
-	if [ -e $check ] ; then
-		let flag=flag+1
-	fi
-done
-if [ "$flag" != "2" ]; then
+if [ ! -e /boot/vmlinuz ] ; then
 	x_echo "Fail" "Something must have gone wrong\n\
  with the installation"
 	exit 1
 fi
 
 x_echo "Almost Done" "\
-You can now make your first image by going to\n\
-/thinstation and running ./setup-chroot from\n\
-there cd to /ts/$TS_VERSION and run ./build"
+You are almost ready to make your first image.\n\
+You will need to reboot and run build to init\n\
+the build env, afterwards, you can run build\n\
+to build images."
+
 x_echo "PXE Booting" "\
 This dev workstation is a PXE boot server.\n\
 You can set it's IP as the next boot server\n\
@@ -243,12 +239,12 @@ in your DHCP server, and set the boot file to\n\
 pxelinux.0 . This will let clients boot directly\n\
 from images created in the build env of this\n\
 workstation."
+
 x_echo "Alldone" "\
-Your system is now bootable with the\n\
-TS dev environment, but the password is\n\
-guessable. Please reboot and if everything\n\
-is ok, Tweak your DevStation and disable\n\
-the telnet serice."
+Your system is now bootable, but the password is\n\
+guessable. Please reboot and if everything is ok,\n\
+Tweak your DevStation and disable the\n\
+telnet serice."
 
 exit 0
 

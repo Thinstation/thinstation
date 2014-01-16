@@ -1,0 +1,20 @@
+#!/bin/sh
+
+. $TS_GLOBAL
+
+if is_enabled $SHOW_INSTALLER; then
+	xsetroot -cursor_name top_left_arrow >> /var/run/applications/eula 2>&1 &
+	if Xdialog	--title "Installer?" \
+			--ok-label "Live Session" \
+			--cancel-label "Installer" \
+			--yesno "Do you want to run the installer or start the live session?" \
+			0 0; then
+		exit 0
+	else
+		/bin/installer
+		Xdialog --title "Reboot" \
+			--msgbox "You should remove the installation media and choose ok to reboot now." \
+			0 0
+		/sbin/shutdown -r
+	fi
+fi

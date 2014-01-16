@@ -1,5 +1,14 @@
 #!/bin/bash
 
+mounted()
+{
+        if [ "`cat /proc/mounts |grep -e $1 -c`" -ne "0" ]; then
+                return 0
+        else
+                return 1
+        fi
+}
+
 x_echo()
 {
         Xdialog --title "$1" --msgbox "$2" 0 0 2> /dev/null
@@ -11,8 +20,8 @@ do_update()
 	case $? in
 		0) x_echo Update "Update Complete" ;;
 		1) x_echo Update "No Update Needed" ;;
-		2) e_echo Update "Error! Could not check md5" ;;
-		3) e_echo Update "Error! No initrd or vmlinuz found" ;;
+		2) x_echo Update "Error! Could not check md5" ;;
+		3) x_echo Update "Error! No initrd or vmlinuz found" ;;
 	esac
 }
 
@@ -68,6 +77,16 @@ make_machine()
 	fi
 }
 
+do_config()
+{
+	medit --use-session=no -t /thinstation/ts/$TS_VERSION/build.conf /thinstation/ts/$TS_VERSION/thinstation.conf.buildtime /thinstation/ts/$TS_VERSION/thinstation.conf.sample
+}
+
+do_term()
+{
+	xfce4-terminal --working-directory=/thinstation -x ./setup-chroot
+}
+
 do_reset()
 {
 	Xdialog --title "Warning: Factory Reset" --default-no --yesno "\
@@ -86,12 +105,195 @@ Are you really sure?" 20 100
 	x_echo "Done" "You build env has been reset and updated"
 }
 
-if [ "`basename $XTERM_CMD`" == "xfce4-terminal" ]; then
-	ARG="-x"
-else
-	ARG="-e"
-fi
+terminal_arg()
+{
+	if [ "`basename $XTERM_CMD`" == "xfce4-terminal" ]; then
+		ARG="--disable-server -x"
+	else
+		ARG="-e"
+	fi
+}
 
+other_branches()
+{
+        wget --no-check-certificate https://github.com/Thinstation/thinstation/branches -O /tmp/branches
+        for tag in `grep /tmp/branches -e tree |cut -d '"' -f2`; do
+                basename $tag
+        done
+}
+
+check_installed()
+{
+	if ! mounted /thinstation; then
+		x_echo "Not Intalled" "DevStation is not installed, you will need to install it before you can do builds."
+		exit 2
+	fi
+}
+
+check_git()
+{
+	if mounted /thinstation && [ ! -e /thinstation/.git ]; then
+		Xdialog --stdout \
+			--title "No Build Environment!" \
+			--yesno "Build Environment is not cloned. Would you like to clone it now?" \
+			0 0
+		if [ "$?" == "0" ]; then
+			unset list
+			index=0
+			for branch in `other_branches` 'master(Unstable)'; do
+			        brnch[$index]=$branch
+			        list="$list $index $branch"
+		        	let index=index+1
+			done
+
+			index=`Xdialog  --title "Git Branch" \
+                			--no-label \
+		                	--no-tags \
+	                		--stdout \
+			                --menu "Which branch would you like to checkout?" 20 50 4 $list`
+			if [ "$?" == "0" ]; then
+	                	branch=${brnch[$index]}
+				if [ "$branch" == 'master(Unstable)' ]; then
+					branch=master
+				fi
+        		else
+                		exit $?
+        		fi
+			git clone --depth 1 -b $branch https://github.com/Thinstation/thinstation.git /thinstation
+		else
+			exit 3
+		fi
+	fi
+}
+
+check_unwind()
+{
+	if [ -e /thinstation/ts/5.1/build ] && [ ! -e /thinstation/build/build ]; then
+		Xdialog --stdout \
+                        --title "Unwind" \
+                        --yesno "Build Environment is not ready. Would you like to unwind it now?" \
+                        0 0
+                if [ "$?" == "0" ]; then
+			cd /thinstation
+			./setup-chroot -i
+		else
+			exit 4
+		fi
+	fi
+}
+
+store_list()
+{
+	remotes=`git branch -a |grep -e remotes |cut -d "/" -f2 |uniq`
+	stores="local $remotes"
+	echo "$stores"
+}
+
+branch_list()
+{
+	if [ "$str" == "local" ]; then
+		branches=`git branch |cut -c 3-`
+	else
+		branches=`git ls-remote --heads origin |cut -d "/" -f3`
+	fi
+	echo "$branches"
+}
+
+select_store()
+{
+	unset list
+	index=0
+	for str in `store_list`; do
+		store[$index]=$str
+		list="$list $index ${store[$index]}"
+		let index=index+1
+	done
+	if [ "$index" -gt "1" ]; then
+		index=`Xdialog  --title "Git Store" \
+				--no-label \
+				--no-tags \
+				--stdout \
+				--menu "Which Git Store?" 20 50 4 $list`
+		if [ "$?" != "0" ]; then
+			exit 3
+		fi
+	else
+		index=0
+	fi
+	str=${store[$index]}
+}
+
+select_branch()
+{
+	unset list
+	index=0
+	for brnch in `branch_list`; do
+        	branch[$index]=$brnch
+	        list="$list $index ${branch[$index]}"
+        	let index=index+1
+	done
+	if [ "$index" -gt "1" ]; then
+        	index=`Xdialog  --title "Git Branch" \
+                	        --no-label \
+                        	--no-tags \
+	                        --stdout \
+        	                --menu "Which Git Branch?" 20 50 4 $list`
+	        if [ "$?" != "0" ]; then
+        	        exit 4
+	        fi
+	else
+		index=0
+	fi
+	brnch=${branch[$index]}
+}
+
+confirm_dialog()
+{
+	Xdialog	--stdout \
+		--title "Warning: Branch Select" \
+		--default-no \
+		--yesno "\
+This will wipe out your build env and checkout the selected \n\
+branch from git. If you have any customizations, they will be \n\
+lost. You should consider backing them up before proceding. \n\
+\n\
+Are you really sure?" 20 100
+}
+
+fetch_branch()
+{
+	$XTERM_CMD -T "Wipe" $ARG rm -rf *
+	if [ "$str" != "local" ]; then
+		if [ ! -e ./git/refs/heads/$brnch ]; then
+			$XTERM_CMD -T "GIT Fetch" $ARG git fetch --depth 1 $str "+$brnch:$brnch"
+		else
+			$XTERM_CMD -T "GIT Fetch" $ARG git fetch $str $brnch
+		fi
+	fi
+}
+
+checkout_branch()
+{
+	$XTERM_CMD -T "GIT Checkout" $ARG git checkout -f $brnch
+}
+
+sbranch()
+{
+	cd /thinstation
+	select_store
+	select_branch
+	if confirm_dialog; then
+		fetch_branch
+		checkout_branch
+	else
+		exit 2
+	fi
+}
+
+terminal_arg
+check_installed
+check_git
+check_unwind
 
 case $1 in
 	toggle-smp)
@@ -109,11 +311,20 @@ case $1 in
 	build)
 		do_build
 		;;
+	configure)
+		do_config
+		;;
 	reset)
 		do_reset
 		;;
+	sbranch)
+		do_branch
+		;;
 	update)
 		do_update
+		;;
+	terminal)
+		do_term
 		;;
 esac
 exit 0
