@@ -6,8 +6,7 @@
 name=gtk
 version=2.24.19
 release=1
-source=(http://download.gnome.org/sources/gtk+/${version%.*}/${name}+-$version.tar.xz \
-	gtk.immodules gtk-register.sh
+source=(http://download.gnome.org/sources/gtk+/${version%.*}/${name}+-$version.tar.xz
 	old-icon-symlinks.patch)
 
 build () {
@@ -26,9 +25,5 @@ build () {
 
 	make
 	make DESTDIR=$PKG install
-	mkdir -p $PKG/usr/etc/gtk-2.0
-	install -m 644 $SRC/gtk.immodules $PKG/usr/etc/gtk-2.0/
 	rm -r $PKG/usr/share/{locale,gtk-doc,gtk-2.0} $PKG/usr/bin/gtk-demo
-
-	install -m 0755 $SRC/gtk-register.sh $PKG/usr/bin/gtk-register
 }

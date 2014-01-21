@@ -16,6 +16,7 @@ un_mount()
 {
         for i in `mount |grep -e $disk |cut -d " " -f3`; do
                 while mounted $i; do
+			fuser -k $i
 			sync
                         umount -R -f $i
 			sleep 1
@@ -29,15 +30,15 @@ do_mounts()
 {
 	sleep 1
 	while ! mounted /boot ; do
-		mount -t vfat /dev/${disk}1 /boot
+		mount -a
 		sleep 1
 	done
 	while ! mounted /root ; do
-		mount -t ext4 /dev/${disk}2 /root
+		mount -a
 		sleep 1
 	done
 	while ! mounted /thinstation ; do
-		mount -t ext4 /dev/${disk}4 /thinstation
+		mount -a
 		sleep 1
 	done
 }

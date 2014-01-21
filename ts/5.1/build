@@ -1421,15 +1421,43 @@ else
         done
 	if [ -e ./tmp-tree/lib/gdk-pixbuf-2.0/2.10.0/loaders ] ; then
 	echo -e "\tCaching pixbuf loaders"
-		cp -H `which gdk-pixbuf-query-loaders` ./tmp-tree/bin/.
-		chroot ./tmp-tree /bin/gdk-pixbuf-query-loaders >./tmp-tree/lib/gdk-pixbuf-2.0/2.10.0/loaders.cache
-		rm ./tmp-tree/bin/gdk-pixbuf-query-loaders
+		for loader in `find ./tmp-tree/lib/gdk-pixbuf-2.0/ -type f -printf "%f "`; do
+			loader=`find /usr/lib/gdk-pixbuf-2.0/ -name $loader`
+			lver=`echo $loader |cut -d "/" -f5`
+			gdk-pixbuf-query-loaders $loader | \
+				grep -v "#" \
+				>>./tmp-tree/lib/gdk-pixbuf-2.0/$lver/loaders.cache
+		done
 	fi
 	if [ -d ./tmp-tree/lib/pango ] ;then
 	echo -e "\tCaching pango modules"
-		cp -H `which pango-querymodules` ./tmp-tree/bin/.
-		chroot ./tmp-tree /bin/pango-querymodules >./tmp-tree/etc/pango/pango.modules
-		rm ./tmp-tree/bin/pango-querymodules
+		for module in `find ./tmp-tree/lib/pango -type f -printf "%f "`; do
+			module=`find /usr/lib/pango -name $module`
+			pver=`echo $module |cut -d "/" -f5`
+			pango-querymodules $module | \
+				grep -v "#" \
+				>> ./tmp-tree/lib/pango/$pver/modules.cache
+		done
+	fi
+	echo -e "\tCaching gtk-2.0 immodules"
+	if [ -d ./tmp-tree/lib/gtk-2.0 ]; then
+		gver=`find ./tmp-tree/lib/gtk-2.0 -type d -name immodules | cut -d "/" -f5`
+		for immodule in `find ./tmp-tree/lib/gtk-2.0/$gver/immodules -type f -printf "%f "`; do
+			immodule=`find /usr/lib/gtk-2.0/$gver/immodules -name $immodule`
+			gtk-query-immodules-2.0 $immodule | \
+				grep -v "#" \
+				>> ./tmp-tree/lib/gtk-2.0/$gver/immodules.cache
+		done
+	fi
+	echo -e "\tCaching gtk-3.0 immodules"
+	if [ -d ./tmp-tree/lib/gtk-3.0 ]; then
+		gver=`find ./tmp-tree/lib/gtk-3.0 -type d -name immodules | cut -d "/" -f5`
+		for immodule in `find ./tmp-tree/lib/gtk-3.0/$gver/immodules -type f -printf "%f "`; do
+			immodule=`find /usr/lib/gtk-3.0/$gver/immodules -name $immodule`
+			gtk-query-immodules-3.0 $immodule | \
+				grep -v "#" \
+				>> ./tmp-tree/lib/gtk-3.0/$gver/immodules.cache
+		done
 	fi
 	if [ -e ./tmp-tree/lib/glib-2.0/schemas ]; then
 	echo -e "\tCompiling Schemas"
