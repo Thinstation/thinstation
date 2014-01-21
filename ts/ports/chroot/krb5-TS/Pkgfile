@@ -5,7 +5,7 @@
 
 name=krb5-TS
 pname=${name%-*}
-version=1.10.3
+version=1.11.3
 release=1
 source=(http://web.mit.edu/kerberos/dist/krb5/${version%.*}/krb5-$version-signed.tar)
 
@@ -13,7 +13,7 @@ build() {
 	tar -xf $SRC/$pname-$version-signed.tar
 	tar -xzf $SRC/$pname-$version.tar.gz
     	cd $pname-$version/src
-    	CFLAGS="-I/usr/include/et" ./configure --prefix=/usr --mandir=/usr/man --with-system-et --with-system-ss --with-ldap --without-system-verto
+    	CFLAGS="-I/usr/include/et" ./configure --prefix=/usr --mandir=/usr/man --with-system-et --with-system-ss --with-ldap --without-system-verto --enable-dns-for-realm
 
 	make
     	make DESTDIR=$PKG install

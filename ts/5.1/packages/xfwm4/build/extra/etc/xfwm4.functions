@@ -183,8 +183,6 @@ wm_menu()
 				ON|MENU)
 					ICONDIR=$HOME/.local/share/applications
 					make_desktop
-					ICONDIR=$HOME/Desktop
-					make_desktop
 				;;
 				SUBMENU|SUBMENUONLY)
 					ICONDIR=$HOME/.local/share/applications
@@ -192,6 +190,12 @@ wm_menu()
 					echo $type >> /tmp/typelist
 					make_desktop
 					unset menu
+				;;
+			esac
+			case "$icon_mode" in
+				ON|SUBMENU)
+					ICONDIR=$HOME/Desktop
+					make_desktop
 				;;
 			esac
 			case "$autostart" in

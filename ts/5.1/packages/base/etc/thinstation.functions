@@ -229,7 +229,7 @@ dialog_get_username ()
 {
 	if [ -n "$REMUSER" ]; then
 		DIALOG_USER=$REMUSER
-		echo "$REMUSER" > /tmp/.dialog_$1_options
+		echo "$REMUSER" > /tmp/.dialog_$1_user
 	elif [ -e /tmp/.dialog_$1_user ]; then
 		DIALOG_USER=$(cat /tmp/.dialog_$1_user)
 	fi
@@ -822,7 +822,7 @@ check_last_session ()
 			#TERM=linux exec openvt -c 4 -s -w $NO_XORG_CMD
 			. /etc/splash.functions
 			splash_exit
-			exec $NO_XORG_CMD
+			TERM=linux exec $NO_XORG_CMD
 		fi
 	fi
 }

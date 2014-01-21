@@ -473,6 +473,7 @@ splash_resize()
 			-h `echo $res |cut -d "x" -f2` \
 			-a -o tmp.png
 		convert -background $SPLASH_BG_COLOR tmp.png \
+			-define png:color-type=2 \
 			-resize $res \
 			-gravity center \
 			-extent $res \
@@ -486,6 +487,7 @@ splash_resize()
 				-h `echo $res |cut -d "x" -f2` \
 				-a -o tmp.png
 			convert -background $SPLASH_BG_COLOR tmp.png \
+				-define png:color-type=2 \
 				-resize $res \
 				-gravity center \
 				-extent $res \
@@ -509,38 +511,39 @@ if [ -z "$ts_bootresolution" ] ; then
 	ts_bootresolution=800x600-16
 fi
 if [ ! -z "$ts_bootresolution" ] ;then
-        uvesafb="video=uvesafb:$ts_bootresolution"
+        uvesafb="mode_option=\"$ts_bootresolution\""
 	screenres=`echo "$ts_bootresolution" |cut -d "-" -f 1`
 	screenbpp=`echo "$ts_bootresolution" |cut -d "-" -f 2`
 	echo "PREFERED_RES=$ts_bootresolution" |cut -d '-' -f1 >> ./tmp-tree/etc/thinstation.defaults
         if [ ! -z "$ts_fbmtrr" ] ;then
-	        uvesafb="$uvesafb,mtrr:$ts_fbmtrr"
+	        uvesafb="$uvesafb mtrr=$ts_fbmtrr"
         fi
         if [ `make_caps X"$ts_fbnocrtc"` == "XTRUE" ] ;then
-	        uvesafb="$uvesafb,nocrtc"
+	        uvesafb="$uvesafb nocrtc=1"
         fi
 	if [ `make_caps X"$ts_fbnoedid"` == "XTRUE" ] ; then
-		uvesafb="$uvesafb,noedid"
+		uvesafb="$uvesafb noedid=1"
 	fi
 	if [ ! -z "$ts_fbvtotal" ] ; then
-		uvesafb="$uvesafb,vtotal:$ts_fbvtotal"
+		uvesafb="$uvesafb vram_total=$ts_fbvtotal"
 	fi
 	if [ ! -z "$ts_fbmaxhf" ] ; then
-		uvesafb="$uvesafb,maxhf:$ts_fbmaxhf"
+		uvesafb="$uvesafb maxhf=$ts_fbmaxhf"
 	fi
 	if [ ! -z "$ts_fbmaxvf" ] ; then
-                uvesafb="$uvesafb,maxvf:$ts_fbmaxvf"
+                uvesafb="$uvesafb maxvf=$ts_fbmaxvf"
         fi
 	if [ ! -z "$ts_fbmaxclk" ] ; then
-                uvesafb="$uvesafb,maxclk:$ts_fbmaxclk"
+                uvesafb="$uvesafb maxclk=$ts_fbmaxclk"
         fi
         if [ ! -z "$ts_fbsm" ] ;then
-	        uvesafb="$uvesafb,$ts_fbsm"
+	        uvesafb="$uvesafb scroll=$ts_fbsm"
         fi
 	if [ "$ts_uvesafb" == "disable" ]; then
-		uvesafb="video=uvesafb:off"
+		KERNEL_PARAMETERS="$KERNEL_PARAMETRS uvesafb=off"
 	fi
-	KERNEL_PARAMETERS="$KERNEL_PARAMETERS $uvesafb"
+	mkdir -p ./tmp-tree/etc/modprobe.d
+	echo "options uvesafb $uvesafb" > ./tmp-tree/etc/modprobe.d/uvesafb.conf
 	if [ ! -z $ts_extra_vid ]; then
 		KERNEL_PARAMETERS="$KERNEL_PARAMETERS video=$ts_extra_vid"
 	fi
@@ -1443,15 +1446,18 @@ chroot ./tmp-tree /bin/busybox --install -s
 if [ -e ./tmp-tree/finalize ]; then
   echo -e "\tRunning Finalize\n"
   mount --bind /dev ./tmp-tree/dev
-  echo ". /etc/thinstation.global" > ./tmp-tree/build.finalize
+  mount --bind /proc ./tmp-tree/proc
+  sed -e "/if.*proc\/cmdline/d" tmp-tree/etc/thinstation.global > ./tmp-tree/build.finalize
   cat ./tmp-tree/finalize/* >> ./tmp-tree/build.finalize
   chroot ./tmp-tree /bin/sh /build.finalize
   while fuser ./tmp-tree ; do
 	sleep .1
   done
+  umount ./tmp-tree/proc
   umount ./tmp-tree/dev
   rm ./tmp-tree/build.finalize
   rm -rf ./tmp-tree/finalize
+  rm -rf ./tmp-tree/tmp/*
   #Run depmod one last time, in case a finalize script removed a module
   for KERNVER in $KERNVERS; do
 	./utils/tools/depmod -b ./tmp-tree $KERNVER

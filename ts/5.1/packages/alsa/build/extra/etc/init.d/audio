@@ -6,22 +6,31 @@ case "$1" in
 init)
 	if ! pkg_initialized $PACKAGE; then
 		alsactl init
-		for control in Master PCM CD Video; do
-			amixer sset $control $AUDIO_LEVEL%
-		done
-		if [ "$MIC_LEVEL" -gt "0" ]; then
-			amixer sset Capture $MIC_LEVEL% unmute
-			amixer sset $MIC_DEVICE playback mute
-			amixer sset $MIC_DEVICE $MIC_LEVEL% cap
-		else
-			amixer sset Capture 0%
+		if [ -n "$AUDIO_LEVEL" ]; then
+			for control in Master PCM CD Video; do
+				amixer sset $control $AUDIO_LEVEL%
+			done
 		fi
-		for control in $UNMUTE; do
-			amixer sset $control unmute
-		done
-		for control in $MUTE; do
-			amixer sset $control mute
-		done
+		if [ -n "$MIC_LEVEL" ]; then
+			if [ "$MIC_LEVEL" -gt "0" ]; then
+				if [ -z "$MIC_DEVICE" ]; then MIC_DEVICE=Mic; fi
+				amixer sset Capture $MIC_LEVEL% unmute
+				amixer sset $MIC_DEVICE playback mute
+				amixer sset $MIC_DEVICE $MIC_LEVEL% cap
+			else
+				amixer sset Capture 0%
+			fi
+		fi
+		if [ -n "$UNMUTE" ]; then
+			for control in $UNMUTE; do
+				amixer sset $control unmute
+			done
+		fi
+		if [ -n "$MUTE" ]; then
+			for control in $MUTE; do
+				amixer sset $control mute
+			done
+		fi
 		pkg_set_init_flag $PACKAGE
 	fi
 	;;

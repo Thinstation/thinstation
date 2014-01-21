@@ -52,8 +52,10 @@ if [ "$1" = "close" ] && [ -z "`pidof shutdown`" ]; then
 		rm -rf $HOME
 	fi
 	IFS=$'\n'
-	for mount in `ls -1 /media`; do
-		fuser -k /media/$mount
-		umount /media/$mount
-	done
+	if [ -d /media ]; then
+		for mount in `ls -1 /media`; do
+			fuser -k /media/$mount
+			umount /media/$mount
+		done
+	fi
 fi

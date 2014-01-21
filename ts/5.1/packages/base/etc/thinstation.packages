@@ -109,13 +109,33 @@ eula_()
 
 run_command()
 {
+	STATUS=0
 	if is_enabled $LOG_COMMANDS ; then
 		echo "$CMD" >> $APPLOG
 	fi
 	if x_wm ;then
-		eval exec $CMD 2>&1 >> $APPLOG
+		eval exec $CMD >> $APPLOG 2>&1
 	else
-		eval $CMD 2>&1 >> $APPLOG
+		eval $CMD >> $APPLOG 2>&1
+		STATUS=$?
+	fi
+}
+
+x_check_status()
+{
+	if [ $STATUS != 0 ] && [ ! -e /etc/console/$PACKAGE ]; then
+		Xdialog --title $PACKAGE \
+			--ok-label "View Log" \
+			--cancel-label "OK" \
+			--icon /lib/pixmaps/${PACKAGE}_32x32.xpm \
+			--yesno "Application $PACKAGE failed with an error ($STATUS)\nWould you like to review the command output log?" 10 80
+
+		if [ $? == 0 ]; then
+			Xdialog --title $PACKAGE \
+				--ok-label "Done" \
+				--no-cancel \
+				--logbox $APPLOG 40 100
+		fi
 	fi
 }
 
@@ -174,6 +194,7 @@ window|fullscreen)
     CMD=`eval echo '$'CMD_$MODE`' '$ORDERED_COMMAND
     xterm_wrapper
     run_command
+    x_check_status
     ;;
 help)
     echo "Usage: $0 {console|menu|window|fullscreen} [server] [options]"

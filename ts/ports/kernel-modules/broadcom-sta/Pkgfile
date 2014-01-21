@@ -6,18 +6,17 @@
 # Group: xfce4
 
 name=broadcom-sta
-version=5.100.82.112
-pversion=5_100_82_112
-release=3.10.17
-source=(http://www.broadcom.com/docs/linux_sta/hybrid-portsrc_x86_32-v$pversion.tar.gz
-	linux-recent.patch \
+version=6.30.223.141
+pversion=6_30_223_141
+release=3.10.27
+source=(http://www.broadcom.com/docs/linux_sta/hybrid-v35-nodebug-pcoem-$pversion.tar.gz
+	linux-recent.patch
 	license.patch)
 
 build() {
 	patch -p1 -i linux-recent.patch
 	patch -p1 -i license.patch
 
-	sed -i -e 's/ndo_set_multicast_list/ndo_set_rx_mode/' -e 's/.*asm\/system.h.*//' src/wl/sys/wl_linux.c
 	KBUILD_NOPEDANTIC=1 make -C /usr/src/kernels/${release}TS M=`pwd` V=1
 	mkdir -p $PKG/$TSCOMPROOT/kernel/kernel/modules-${release}TS/kernel/drivers/net/wireless
 	cp -a wl.ko $PKG/$TSCOMPROOT/kernel/kernel/modules-${release}TS/kernel/drivers/net/wireless
