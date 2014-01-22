@@ -7,11 +7,11 @@ release=`cat ./utils/KERNEL_VERSION`
 
 INSTALLDIR="/build/packages/xorg7_nvidia"
 DROP_FILES="nvidia-bug-report.sh nvidia-cuda-mps-control nvidia-cuda-mps-server nvidia-debugdump nvidia-installer nvidia-persistenced nvidia-smi nvidia-uninstall \
-libEGL.so.1 libGLESv1_CM.so.331.20 libOpenCL.so.1.0.0 libnvidia-cfg.so.1 libnvidia-encode.so.331.20 libnvidia-ifr.so.1 libnvidia-opencl.so.331.20 \
-libEGL.so.331.20 libGLESv2.so.2 libcuda.so.1 libnvidia-cfg.so.331.20 libnvidia-fbc.so.1 libnvidia-ifr.so.331.20 libGLESv2.so.331.20 libcuda.so.331.20 \
-libnvidia-compiler.so.331.20 libnvidia-fbc.so.331.20 libOpenCL.so.1 libnvidia-eglcore.so.331.20 libGLESv1_CM.so.1 libOpenCL.so.1.0 libnvidia-encode.so.1 \
-libnvidia-opencl.so.1 libglx.so libwfb.so libGL.so.1 libnvcuvid.so.331.20 libnvidia-glsi.so.331.20 libnvidia-ml.so.331.20 libnvcuvid.so.1 libnvidia-ml.so.1 libGL.la \
-"
+libEGL.so.1 libGLESv1_CM.so.$version libOpenCL.so.1.0.0 libnvidia-cfg.so.1 libnvidia-encode.so.$version libnvidia-ifr.so.1 libnvidia-opencl.so.$version \
+libEGL.so.$version libGLESv2.so.2 libcuda.so.1 libnvidia-cfg.so.$version libnvidia-fbc.so.1 libnvidia-ifr.so.$version libGLESv2.so.$version libcuda.so.$version \
+libnvidia-compiler.so.$version libnvidia-fbc.so.$version libOpenCL.so.1 libnvidia-eglcore.so.$version libGLESv1_CM.so.1 libOpenCL.so.1.0 libnvidia-encode.so.1 \
+libnvidia-opencl.so.1 libglx.so libGL.so.1 libnvcuvid.so.$version libnvidia-glsi.so.$version libnvidia-ml.so.$version libnvcuvid.so.1 libnvidia-ml.so.1 libGL.la \
+libnvidia-wfb.so.1 libnvidia-wfb.so.$version"
 
 KMOD=kernel/drivers/video
 
@@ -30,7 +30,7 @@ rm -rf $INSTALLDIR/share
 for file in $DROP_FILES; do
 	find $INSTALLDIR -name $file -delete
 done
-find $INSTALLDIR -name \*.so -delete
+find $INSTALLDIR -type l -name \*.so -delete
 
 cd kernel
 
