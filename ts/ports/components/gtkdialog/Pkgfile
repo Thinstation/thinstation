@@ -1,0 +1,26 @@
+# Description: Gtkdialog is a small utility for fast and easy GUI building. 
+# URL: http://linux.pte.hu/~pipas/gtkdialog/ 
+# Maintainer: Victor Martinez, pitillo at ono dot com
+# Depends on: gtk
+
+name=gtkdialog
+version=0.8.3
+release=2
+source=(http://gtkdialog.googlecode.com/files/gtkdialog-0.8.3.tar.gz \
+	nogladevte.patch)
+
+build() {
+  cd $name-$version
+
+  ./configure --prefix=/usr
+	patch -i $SRC/nogladevte.patch
+
+  make
+  make prefix=$PKG/usr install
+
+  rm -rf $PKG/usr/share/icons/hicolor/icon-theme.cache
+  rm -rf $PKG/usr/share/info
+
+  mkdir -p $PKG/usr/share/gtkdialog
+  cp -Prfd examples $PKG/usr/share/gtkdialog/.
+}
