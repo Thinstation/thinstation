@@ -1,0 +1,23 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=ethtool
+version=git
+release=1
+source=()
+
+build() {
+	git clone http://git.kernel.org/pub/scm/network/ethtool/ethtool.git
+	cd $name
+
+	./autogen.sh
+	./configure --prefix=/usr \
+			--exec-prefix=/ \
+			--sysconfdir=/etc \
+			--mandir=/usr/man \
+			--disable-extras
+
+	make
+	make DESTDIR=$PKG install
+}
