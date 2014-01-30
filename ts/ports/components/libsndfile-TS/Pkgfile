@@ -1,0 +1,29 @@
+# Description: Library for manipulating sound files.
+# URL: http://www.mega-nerd.com/libsndfile
+# Maintainer: Danny Rawlins, monster dot romster at gmail dot com
+# Packager: Jay Dolan, jdolan at jdolan dot dyndns dot org
+# Depends on: flac-32 alsa-lib-32 libvorbis-32
+
+name=libsndfile-TS
+version=1.0.25
+release=1
+source=(http://www.mega-nerd.com/libsndfile/files/libsndfile-$version.tar.gz)
+
+build() {
+	cd libsndfile-$version
+
+	export GETCONF="getconf -v POSIX_V7_ILP32_OFFBIG"
+	export GETCONF_DIR="/usr/lib/getconf"
+
+	./configure \
+		--prefix=/usr \
+		--libdir=/usr/lib \
+		--mandir=/usr/man \
+		--disable-static
+
+	make
+	make DESTDIR=$PKG install
+	
+	rm -r $PKG/usr/{bin,man,share/doc}
+	rmdir $PKG/usr/share
+}
