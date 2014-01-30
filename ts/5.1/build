@@ -983,7 +983,14 @@ rm ./filelist
 if [ -e $PACDIR/tsuser.param ]; then
     echo "TSUSER=$ts_tsuser" >> ./tmp-tree/etc/thinstation.defaults
     echo "HOME=/home/$ts_tsuser" >> ./tmp-tree/etc/thinstation.env
-    echo "$ts_tsuser::1000:1000:$ts_tsuser:/home/$ts_tsuser:/bin/sh" >> ./tmp-tree/etc/passwd
+	if [  -e $PACDIR/tsuserpasswd.param ]; then
+		if [ "$ts_tsuserpasswd" == "!!" ]; then
+			GETPASSWD="!!"
+		else
+			GETPASSWD=`$TOOLSDIR/cryptmd5 $ts_tsuserpasswd`
+		fi
+	fi
+    echo "$ts_tsuser:$GETPASSWD:1000:1000:$ts_tsuser:/home/$ts_tsuser:/bin/sh" >> ./tmp-tree/etc/passwd
     echo "$ts_tsuser:x:1000:" >> ./tmp-tree/etc/group
     sed -i -e "s/tsuser/$ts_tsuser/g" ./tmp-tree/etc/group
     sed -i -e "s/\-a root/\-a $ts_tsuser/g" ./tmp-tree/etc/inittab
