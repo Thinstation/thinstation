@@ -4,9 +4,9 @@
 #
 
 # wait until hostname has been specified
-while [ "`hostname`" = "(none)" ]; do
-  sleep 1
-done
+#while [ "`hostname`" = "(none)" ]; do
+#  sleep 1
+#done
 
 . /etc/thinstation.env
 . $TS_GLOBAL
@@ -112,19 +112,17 @@ if [ "$TYPE" == "sr" ] && [ "$ACTION" == "change" ]; then
 			echo 0 > /proc/sys/dev/cdrom/lock
 		fi
 		#mtpath=$BASE_MOUNT_PATH/cdrom$node
-    if [ -n "$USB_MOUNT_USELABEL" ] ;then
-  		if is_enabled $USB_MOUNT_USELABEL ; then
-				if [ -n "$ID_FS_LABEL" ] ; then
-					label=$ID_FS_LABEL
-				elif [ -n "$ID_FS_UUID" ]; then
-					label=$ID_FS_UUID
-				fi
-			elif ! is_disabled $USB_MOUNT_USELABEL ; then
-				if [ -n "$ID_FS_LABEL" ] ; then
-					label=$ID_FS_LABEL
-				else
-					label=$USB_MOUNT_USELABEL
-				fi
+		if is_enabled $USB_MOUNT_USELABEL ; then
+			if [ -n "$ID_FS_LABEL" ] ; then
+				label=$ID_FS_LABEL
+			elif [ -n "$ID_FS_UUID" ]; then
+				label=$ID_FS_UUID
+			fi
+		elif ! is_disabled $USB_MOUNT_USELABEL ; then
+			if [ -n "$ID_FS_LABEL" ] ; then
+				label=$ID_FS_LABEL
+			else
+				label=$USB_MOUNT_USELABEL
 			fi
 		fi
 		mtpath=$BASE_MOUNT_PATH/$USB_MOUNT_DIR/$label
