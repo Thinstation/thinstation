@@ -121,7 +121,7 @@ if [ "$2" == "lotsofmem" ]; then
 		hardlink -t -m ../fastboot-tmp
 	fi
 	echo -e "\tMaking lib.squash"
-	mksquashfs ../fastboot-tmp/. ../$INITDIR/lib.squash -always-use-fragments -no-recovery -all-root -no-xattrs -noappend
+	mksquashfs ../fastboot-tmp/. ../$INITDIR/lib.squash -always-use-fragments -no-recovery -all-root -no-xattrs -noappend -comp xz -Xbcj x86 -Xdict-size 100%
 	cp `which unsquashfs` bin/.
 	cp /usr/lib/liblzma.so.5 lib/.
 fi
