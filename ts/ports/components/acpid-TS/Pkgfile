@@ -4,21 +4,22 @@
 
 name=acpid-TS
 pname=acpid
-version=2.0.8
+version=2.0.20
 release=1
-source=(http://www.tedfelix.com/linux/$pname-$version.tar.gz \
-		acpid.rc default default.sh)
+source=(http://downloads.sourceforge.net/project/acpid2/$pname-$version.tar.xz \
+		acpid.rc default default.sh acpid-key_micmute.patch)
 
 build() {
     cd $pname-$version
     mkdir -p $PKG/{bin,sbin,man/man8}
-    make INSTPREFIX=/
-    make DESTDIR=$PKG INSTPREFIX=$PKG MAN8DIR=$PKG/usr/man/man8 install
+    patch -p1 -i ../acpid-key_micmute.patch
+    ./configure --prefix=/usr
+    make DESTDIR=$PKG MAN8DIR=$PKG/usr/man/man8 install
     install -D -m 755 ../acpid.rc   $PKG/etc/rc.d/acpid
     install -D -m 644 ../default    $PKG/etc/acpi/events/default
     install -D -m 755 ../default.sh $PKG/etc/acpi/default.sh
-	mv $PKG/usr/{bin,sbin}/* $PKG/bin/.
-	rm -rf $PKG/{usr,sbin,man}
-	mkdir -p $PKG/$TSCOMPROOT/$pname
-	mv $PKG/{etc,bin} $PKG/$TSCOMPROOT/$pname
+    mv $PKG/usr/{bin,sbin}/* $PKG/bin/.
+    rm -rf $PKG/{usr,sbin,man}
+    mkdir -p $PKG/$TSCOMPROOT/$pname
+    mv $PKG/{etc,bin} $PKG/$TSCOMPROOT/$pname
 }
