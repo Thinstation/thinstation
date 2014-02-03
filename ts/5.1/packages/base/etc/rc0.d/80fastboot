@@ -33,8 +33,8 @@ pxelinux()
 	if [ "$FASTBOOT_URL" != "" ]; then
 		wget $FASTBOOT_URL/lib.squash 2>&1 |tee /var/log/wget_progress &
 		sleep .2
+		OLDPROGRESS=$progress
 		if [ "`readlink /bin/wget`" == "/bin/busybox" ]; then
-			OLDPROGRESS=$progress
 			while [ "$WPROGRESS" != "100" ] && [ ! -z "`pidof wget`" ]; do
 				sleep .5
 				WPROGRESS=`catv /var/log/wget_progress |sed -e 's/\^M/\n/g'|tail -n 1 |cut -c 22-24`
@@ -42,11 +42,7 @@ pxelinux()
 				let progress=WPROGRESS+OLDPROGRESS
 				splash_progress
 			done
-			let progress=OLDPROGRESS+100
-			splash_progress
-			rm -rf /var/log/wget_progress
 		else
-			OLDPROGRESS=$progress
 			while [ "$WPROGRESS" != "100" ] && [ ! -z "`pidof wget`" ]; do
 				sleep .5
 				WPROGRESS=`catv /var/log/wget_progress |grep -e "%" |tail -n 1 |cut -c 63-65`
@@ -54,10 +50,8 @@ pxelinux()
 				let progress=WPROGRESS+OLDPROGRESS
 				splash_progress
 			done
-			let progress=OLDPROGRESS+100
-			splash_progress
-			rm -rf /var/log/wget_progress
 		fi
+		rm -rf /var/log/wget_progress
 	else
 		squash_server=`dirname $boot_file`
 		if [ "$squash_server" == "." -o "$squash_server" == "/." ]; then
@@ -76,10 +70,10 @@ pxelinux()
 			let progress=TPROGRESS+OLDPROGRESS
 			splash_progress
 		done
-		let progress=OLDPROGRESS+100
-		splash_progress
 		rm -rf /var/log/tftp_progress
 	fi
+	let progress=OLDPROGRESS+100
+	splash_progress
 }
 
 isolinux()
@@ -121,7 +115,6 @@ mount_squash()
 			rm /tmp/lib.squash
 		fi
 	else
-		modprobe squashfs
 		if is_enabled $MEMORY_CONSTRAINED ; then
 			mount -o ro,loop -t squashfs $FILE /lib
 		else
@@ -133,7 +126,7 @@ mount_squash()
 	fi
 }
 
-if ! is_disabled $FASTBOOT || [ "$FASTBOOT" == "lotsofmem" ]; then
+if ! is_disabled $FASTBOOT; then
 	export FASTBOOT
 	if [ -n "$DEBUG_INIT" ] ; then
 		echo_log "Doing Fastboot"
@@ -148,4 +141,3 @@ if ! is_disabled $FASTBOOT || [ "$FASTBOOT" == "lotsofmem" ]; then
 else
 	return 0
 fi
-
