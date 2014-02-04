@@ -1,0 +1,17 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=firmware-zd1211
+version=1.4
+release=1
+source=(http://downloads.sourceforge.net/zd1211/zd1211-firmware-$version.tar.bz2)
+
+build() {
+	mkdir -p $PKG/lib/firmware
+	mv zd1211-firmware $PKG/lib/firmware/zd1211
+	rm $PKG/lib/firmware/zd1211/{*.h,COPYING,README}
+
+	mkdir -p $PKG/ts/5.1/kernel/
+	mv $PKG/lib/firmware $PKG/ts/5.1/kernel/.
+}

@@ -1,0 +1,28 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=firmware-libertas
+version=1.3
+release=1
+source=(ftp://downloads.netgear.com/files/wn311t_4_2_setup.exe
+	http://archlinuxarm.org/builder/firmware/firmware/mrvl/sd8786_uapsta.bin)
+
+build() {
+	mkdir -p $PKG/lib/firmware/mwl8k
+	mkdir -p $PKG/lib/firmware/mrvl
+
+	cabextract -F Disk1/data* wn311t_4_2_setup.exe
+	unshield -g Driver x Disk1/data1.cab
+
+	wget -O extract.c 'http://marc.info/?l=linux-wireless&m=126540674419330&q=p3'
+	gcc -o extract extract.c
+	./extract Driver/netmw145.sys
+
+	cp fmimage_8XX1.fw $PKG/lib/firmware/mwl8k/fmimage_8363.fw
+	cp helper_8XX1.fw $PKG/lib/firmware/mwl8k/helper_8363.fw
+	cp sd8786_uapsta.bin $PKG/lib/firmware/mrvl/.
+
+        mkdir -p $PKG/ts/5.1/kernel/
+        mv $PKG/lib/firmware $PKG/ts/5.1/kernel/.
+}

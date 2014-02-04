@@ -1,0 +1,33 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=firmware-alsa
+version=1.0.27
+release=1
+source=(ftp://ftp.alsa-project.org/pub/firmware/alsa-firmware-$version.tar.bz2)
+
+build() {
+	cd alsa-firmware-$version
+	./configure --disable-loader
+	make
+	for i in hdsploader mixartloader pcxhrloader usx2yloader vxloader ca0132; do
+		mv $i/README README.$i
+	done
+	mv aica/license.txt LICENSE.aica_firmware
+	mv aica/Dreamcast_sound.txt aica_dreamcast_sound.txt
+	mv ca0132/creative.txt LICENSE.creative_txt
+	make install DESTDIR=$PKG
+	rm -rf $PKG/usr
+
+	for useopen in ctefx.bin ctspeq.bin maestro3_assp_kernel.fw \
+			maestro3_assp_minisrc.fw k1212.dsp alaw_main.csp \
+			ima_adpcm_capture.csp ima_adpcm_init.csp ima_adpcm_playback.csp \
+			mulaw_main.csp ds1_ctrl.fw ds1_dsp.fw ds1e_ctrl.fw \
+			yss225_registers.bin; do
+		find $PKG -name $useopen -delete
+	done
+
+	mkdir -p $PKG/ts/5.1/kernel/
+	mv $PKG/lib/firmware $PKG/ts/5.1/kernel/.
+}

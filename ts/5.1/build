@@ -687,6 +687,30 @@ do
 done
 }
 
+copy_firmware()
+{
+	if [ -n "$2" ]; then
+		firmfiles=`find -L ./kernel/firmware/ -name $1\* | grep $2`
+	else
+		firmfiles=`find -L ./kernel/firmware/ -name $1\*`
+	fi
+	if [ -n "$firmfiles" ]; then
+		for firmfile in $firmfiles; do
+			firmpath=./tmp-tree/lib/firmware/`echo $firmfile |cut -d '/' -f4-`
+			if [ ! -e $firmpath ]; then
+				echo "Firmware: `basename $firmfile`"
+				if [ ! -d ${firmpath%/*} ] ;then
+					mkdir -p ${firmpath%/*}
+				fi
+				cp $firmfile ${firmpath%/*}/.
+			fi
+		done
+	else
+		echo "Error, Firmware $1 not found"
+		echo "$1" >> /missing
+	fi
+}
+
 read_conf()
 {
 if [ -z "$1" ] ;
@@ -768,27 +792,7 @@ do
 	fi
 	;;
     firmware)
-	if [ -n "$args" ]; then
-		firmfiles=`find -L ./kernel/firmware/ -name $name\* | grep $args`
-	else
-		firmfiles=`find -L ./kernel/firmware/ -name $name\*`
-	fi
-	if [ -n "$firmfiles" ]; then
-		for firmfile in $firmfiles; do
-		        if [ -e $firmfile ] ; then
-				echo "Firmware: `basename $firmfile`"
-				firmpath=./tmp-tree/lib/firmware/`echo $firmfile |cut -d '/' -f4-`
-				if [ ! -d ${firmpath%/*} ] ;then
-					mkdir -p ${firmpath%/*}
-				fi
-				cp $firmfile ${firmpath%/*}/.
-			else
-				echo "Error, Firmware $name not found"
-			fi
-		done
-	else
-		echo "Error, Firmware $name not found"
-	fi
+	copy_firmware $name $args
 	;;
     pkg)
         echo "building-pkg $name"
@@ -1375,6 +1379,20 @@ for filename in `ls -1 $PKGDIR/` ; do
 		PKGFILES="$filename"
 	fi
 done
+
+# Allfirmware
+if is_enabled $ts_allfirmware; then
+	for module in `find ./tmp-tree/lib/modules -name \*.ko`; do
+		unset firmlist
+		firmlist=`modinfo -F firmware $module`
+		if [ -n "$firmlist" ]; then
+			echo "Adding extra module firmware for `basename $module`"
+			for firmware in $firmlist; do
+				copy_firmware `basename $firmware`
+			done
+		fi
+	done
+fi
 
 # Building Module packages
 echo -e "\nBuilding Module PKG Packages\n"
