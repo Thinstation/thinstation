@@ -173,7 +173,15 @@ create_empty()
 merge_trunk()
 {
 	if [ -e $INSTALLDIR/build/extra ]; then
-		cp -Prf $INSTALLDIR/build/extra/* $INSTALLDIR/.
+		for dir in `find $INSTALLDIR/build/extra -type d |cut -d '/' -f6-`; do
+			mkdir -p $INSTALLDIR/$dir
+		done
+		for file in `find $INSTALLDIR/build/extra ! -type d |cut -d '/' -f6-`; do
+			if [ -e $INSTALLDIR/$file ]; then
+				rm $INSTALLDIR/$file
+			fi
+			ln $INSTALLDIR/build/extra/$file $INSTALLDIR/$file
+		done
 	fi
 }
 
