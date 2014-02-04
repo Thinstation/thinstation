@@ -13,5 +13,10 @@ case $1 in
 esac
 shift
 done
+## udv scsi.sh script not allowed to mount if usb daemons of vmware are started
+touch /tmp/nomount
+## start vmware daemons.. just present in version 2.1 in version 2.2 they are missing..
+/lib/vmware/vmware-usbarbitrator
+/lib/vmware/vmware-view-usbd
 
 eval vmware-view $ARGS

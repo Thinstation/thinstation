@@ -138,8 +138,9 @@ if [ "$TYPE" == "sr" ] && [ "$ACTION" == "change" ]; then
 		mount_opts="$CDROM_MOUNT_OPTIONS"
 		do_mounts
 	fi
-elif [ "$TYPE" == "sd" ] && [ "$ACTION" == "add" ] ; then
-	if [ "$ID_BUS" == "usb" ] ; then
+elif ( [ "$TYPE" == "sd" ] || [ "$TYPE" == "mm" ] ) && [ "$ACTION" == "add" ] ; then
+        if ( [ "$ID_BUS" == "usb" ] || [ "$TYPE" == "mm" ] ) ; then
+
 		if is_enabled $USB_STORAGE_SYNC && [ ! -n "`echo $USB_MOUNT_OPTIONS |grep -e sync`" ]; then
 			USB_MOUNT_OPTIONS=$USB_MOUNT_OPTIONS,sync
 		fi
