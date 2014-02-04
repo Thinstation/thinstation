@@ -5,7 +5,7 @@
 # Depends on: xorg-libxinerama, xorg-libxrandr, xorg-libsm, glib, libxml2, pango
 
 name=openbox
-version=3.5.0
+version=3.5.2
 release=1
 source=(http://openbox.org/dist/openbox/openbox-$version.tar.gz)
 
@@ -13,13 +13,15 @@ build() {
 	cd $name-$version
 
 	./configure --prefix=/usr \
+	      --sysconfdir=/etc \
               --mandir=/usr/man \
               --disable-nls \
-              --libexecdir=/usr/lib/openbox
+              --libexecdir=/usr/lib/openbox \
+	      --disable-static
 
 	make
 	make DESTDIR=$PKG install
 
-	mv $PKG/usr/share/doc/$name/*.xsd $PKG/usr/etc/xdg/$name
+	mv $PKG/usr/share/doc/$name/*.xsd $PKG/etc/xdg/$name
 	rm -rf $PKG/usr/share/doc
 }

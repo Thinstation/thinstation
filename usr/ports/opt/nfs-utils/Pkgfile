@@ -4,17 +4,13 @@
 # Depends on:  util-linux udev libcap rpcbind libnfsidmap libevent keyutils sqlite3
 
 name=nfs-utils
-version=1.2.8
+version=1.2.9
 release=1
 source=(http://downloads.sourceforge.net/project/nfs/$name/$version/$name-$version.tar.bz2 \
         exports idmapd.conf nfs nfsserver)
 
 build () {
     cd $name-$version
-
-    # fix version string
-    sed -i '/^AC_INIT/s/7/8/' configure.ac
-    ./autogen.sh
 
     ./configure --prefix=/usr \
                 --mandir=/usr/man \

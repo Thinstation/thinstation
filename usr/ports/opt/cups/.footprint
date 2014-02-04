@@ -25,6 +25,7 @@ drwxr-xr-x	root/root	usr/bin/
 -rwxr-xr-x	root/root	usr/bin/cups-config
 -rwxr-xr-x	root/root	usr/bin/cupstestdsc
 -rwxr-xr-x	root/root	usr/bin/cupstestppd
+-rwxr-xr-x	root/root	usr/bin/ippfind
 -rwxr-xr-x	root/root	usr/bin/ipptool
 -rwxr-xr-x	root/root	usr/bin/lp
 -rwxr-xr-x	root/root	usr/bin/lpoptions
@@ -54,6 +55,7 @@ drwxr-xr-x	root/root	usr/include/cups/
 -rw-r--r--	root/root	usr/include/cups/mime.h
 -rw-r--r--	root/root	usr/include/cups/ppd.h
 -rw-r--r--	root/root	usr/include/cups/ppdc.h
+-rw-r--r--	root/root	usr/include/cups/pwg.h
 -rw-r--r--	root/root	usr/include/cups/raster.h
 -rw-r--r--	root/root	usr/include/cups/sidechannel.h
 -rw-r--r--	root/root	usr/include/cups/transcode.h
@@ -114,6 +116,7 @@ drwxr-xr-x	root/root	usr/man/man1/
 -rw-r--r--	root/root	usr/man/man1/cups-config.1.gz
 -rw-r--r--	root/root	usr/man/man1/cupstestdsc.1.gz
 -rw-r--r--	root/root	usr/man/man1/cupstestppd.1.gz
+-rw-r--r--	root/root	usr/man/man1/ippfind.1.gz
 -rw-r--r--	root/root	usr/man/man1/ipptool.1.gz
 -rw-r--r--	root/root	usr/man/man1/lp.1.gz
 -rw-r--r--	root/root	usr/man/man1/lpoptions.1.gz
@@ -256,7 +259,6 @@ drwxr-xr-x	root/root	usr/share/cups/doc/help/
 -rw-r--r--	root/root	usr/share/cups/doc/help/security.html
 -rw-r--r--	root/root	usr/share/cups/doc/help/sharing.html
 -rw-r--r--	root/root	usr/share/cups/doc/help/spec-banner.html
--rw-r--r--	root/root	usr/share/cups/doc/help/spec-browsing.html
 -rw-r--r--	root/root	usr/share/cups/doc/help/spec-cmp.html
 -rw-r--r--	root/root	usr/share/cups/doc/help/spec-command.html
 -rw-r--r--	root/root	usr/share/cups/doc/help/spec-design.html
@@ -266,7 +268,6 @@ drwxr-xr-x	root/root	usr/share/cups/doc/help/
 -rw-r--r--	root/root	usr/share/cups/doc/help/spec-ppd.html
 -rw-r--r--	root/root	usr/share/cups/doc/help/spec-raster.html
 -rw-r--r--	root/root	usr/share/cups/doc/help/spec-stp.html
--rw-r--r--	root/root	usr/share/cups/doc/help/standard.html
 -rw-r--r--	root/root	usr/share/cups/doc/help/translation.html
 -rw-r--r--	root/root	usr/share/cups/doc/help/whatsnew.html
 drwxr-xr-x	root/root	usr/share/cups/doc/images/
@@ -277,7 +278,6 @@ drwxr-xr-x	root/root	usr/share/cups/doc/images/
 -rw-r--r--	root/root	usr/share/cups/doc/images/cups-postscript-chain.png
 -rw-r--r--	root/root	usr/share/cups/doc/images/cups-raster-chain.png
 -rw-r--r--	root/root	usr/share/cups/doc/images/cups.png
--rw-r--r--	root/root	usr/share/cups/doc/images/generic.png
 -rw-r--r--	root/root	usr/share/cups/doc/images/left.gif
 -rw-r--r--	root/root	usr/share/cups/doc/images/raster-organization.png
 -rw-r--r--	root/root	usr/share/cups/doc/images/raster.png
@@ -312,21 +312,28 @@ drwxr-xr-x	root/root	usr/share/cups/ipptool/
 -rw-r--r--	root/root	usr/share/cups/ipptool/document-letter.ps
 -rw-r--r--	root/root	usr/share/cups/ipptool/get-completed-jobs.test
 -rw-r--r--	root/root	usr/share/cups/ipptool/get-jobs.test
+-rw-r--r--	root/root	usr/share/cups/ipptool/get-notifications.test
 -rw-r--r--	root/root	usr/share/cups/ipptool/get-printer-attributes.test
+-rw-r--r--	root/root	usr/share/cups/ipptool/get-subscriptions.test
 -rw-r--r--	root/root	usr/share/cups/ipptool/gray.jpg
 -rw-r--r--	root/root	usr/share/cups/ipptool/ipp-1.1.test
 -rw-r--r--	root/root	usr/share/cups/ipptool/ipp-2.0.test
 -rw-r--r--	root/root	usr/share/cups/ipptool/ipp-2.1.test
 -rw-r--r--	root/root	usr/share/cups/ipptool/ipp-2.2.test
+-rw-r--r--	root/root	usr/share/cups/ipptool/ipp-everywhere.test
 -rw-r--r--	root/root	usr/share/cups/ipptool/onepage-a4.pdf
 -rw-r--r--	root/root	usr/share/cups/ipptool/onepage-a4.ps
 -rw-r--r--	root/root	usr/share/cups/ipptool/onepage-letter.pdf
 -rw-r--r--	root/root	usr/share/cups/ipptool/onepage-letter.ps
+-rw-r--r--	root/root	usr/share/cups/ipptool/print-job-deflate.test
+-rw-r--r--	root/root	usr/share/cups/ipptool/print-job-gzip.test
+-rw-r--r--	root/root	usr/share/cups/ipptool/print-job.test
 -rw-r--r--	root/root	usr/share/cups/ipptool/testfile.jpg
 -rw-r--r--	root/root	usr/share/cups/ipptool/testfile.pcl
 -rw-r--r--	root/root	usr/share/cups/ipptool/testfile.pdf
 -rw-r--r--	root/root	usr/share/cups/ipptool/testfile.ps
 -rw-r--r--	root/root	usr/share/cups/ipptool/testfile.txt
+-rw-r--r--	root/root	usr/share/cups/ipptool/validate-job.test
 drwxr-xr-x	root/root	usr/share/cups/mime/
 -rw-r--r--	root/root	usr/share/cups/mime/mime.convs
 -rw-r--r--	root/root	usr/share/cups/mime/mime.types
@@ -410,6 +417,8 @@ drwxr-xr-x	root/root	usr/share/cups/templates/
 -rw-r--r--	root/root	usr/share/cups/templates/test-page.tmpl
 -rw-r--r--	root/root	usr/share/cups/templates/trailer.tmpl
 -rw-r--r--	root/root	usr/share/cups/templates/users.tmpl
+drwxr-xr-x	root/root	usr/share/cups/usb/
+-rw-r--r--	root/root	usr/share/cups/usb/org.cups.usb-quirks
 drwxr-xr-x	root/root	var/
 drwxr-xr-x	root/root	var/cache/
 drwxrwxr-x	root/lp	var/cache/cups/

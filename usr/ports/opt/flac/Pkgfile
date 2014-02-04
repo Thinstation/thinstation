@@ -5,18 +5,14 @@
 # Depends on: libogg
 
 name=flac
-version=1.2.1
+version=1.3.0
 release=3
-source=(http://downloads.sourceforge.net/project/$name/$name-src/$name-$version-src/$name-$version.tar.gz
-	$name.diff)
+source=(http://downloads.xiph.org/releases/$name/$name-$version.tar.xz)
 
 build() {
 	cd $name-$version
 
-	# fix compilation with gcc 4.3
-	patch -Np1 -i $SRC/$name.diff
-
-	./configure --prefix=/usr
+	./configure --prefix=/usr --disable-static
 	make
 	make DESTDIR=$PKG install
 	rm -r $PKG/usr/share/doc

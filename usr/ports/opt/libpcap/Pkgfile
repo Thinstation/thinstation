@@ -3,14 +3,14 @@
 # Maintainer:  Juergen Daubert, jue at crux dot nu
 
 name=libpcap
-version=1.3.0
+version=1.5.3
 release=1
 source=(http://www.tcpdump.org/release/$name-$version.tar.gz)
 
 build () {
     cd $name-$version
-    sed -i '/ln [^-][^s]/s/ln/ln -s/' Makefile.in
     ./configure --prefix=/usr --mandir=/usr/man
     make
+    sed -i '/INSTALL_DATA.*libpcap.a\|RANLIB.*libpcap.a/ s/^/#/' Makefile
     make DESTDIR=$PKG install install-shared
 }

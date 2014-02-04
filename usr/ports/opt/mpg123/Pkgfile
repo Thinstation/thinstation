@@ -4,7 +4,7 @@
 # Depends on:  libtool, alsa-lib
 
 name=mpg123
-version=1.15.3
+version=1.17.0
 release=1
 source=(http://www.mpg123.de/download/$name-$version.tar.bz2)
 
@@ -12,9 +12,7 @@ build() {
     cd $name-$version
     ./configure --prefix=/usr \
                 --mandir=/usr/man \
-                --with-module-suffix=.so \
-                --with-audio=alsa,oss,dummy \
-                --with-default-audio=alsa
+                --with-module-suffix=.so
     make
     make DESTDIR=$PKG install
 }

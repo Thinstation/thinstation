@@ -4,22 +4,23 @@
 # Depends on:  acl tcp_wrappers libusb openssl zlib
 
 name=cups
-version=1.6.2
+version=1.7.1
 release=1
 source=(http://www.cups.org/software/$version/$name-$version-source.tar.bz2
+	cups-1.7.1-content_type-1.patch
         cups-config.patch cups)
 
 build () {
     cd $name-$version
 
     patch -p1 -i $SRC/cups-config.patch
+    patch -p1 -i $SRC/cups-1.7.1-content_type-1.patch
 
     ./configure --prefix=/usr \
                 --sysconfdir=/etc \
                 --libdir=/usr/lib \
                 --mandir=/usr/man \
                 --localstatedir=/var \
-		--enable-dynamic \
                 --with-docdir=/usr/share/cups/doc \
                 --with-logdir=/var/log/cups \
                 --with-cups-user=daemon \

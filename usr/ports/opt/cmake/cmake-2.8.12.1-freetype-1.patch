@@ -1,0 +1,33 @@
+Submitted By: Fernando de Oliveira <famobr at yahoo dot com dot br>
+Date: 2013-12-02
+Initial Package Version: 2.8.12.1
+Upstream Status: Unknown
+Origin: archlinux
+URL: https://projects.archlinux.org/svntogit/packages.git/plain/trunk/findfreetype.patch?h=packages/cmake
+Description: Fix CMake-2.8.12.1 to find freetype include directories, with FreeType-2.5.1.
+
+diff --git a/Modules/FindFreetype.cmake b/Modules/FindFreetype.cmake
+--- a/Modules/FindFreetype.cmake
++++ b/Modules/FindFreetype.cmake
+@@ -62,10 +62,10 @@ find_path(FREETYPE_INCLUDE_DIR_ft2build ft2build.h
+     ENV GTKMM_BASEPATH
+     [HKEY_CURRENT_USER\\SOFTWARE\\gtkmm\\2.4;Path]
+     [HKEY_LOCAL_MACHINE\\SOFTWARE\\gtkmm\\2.4;Path]
+-  PATH_SUFFIXES include/freetype2 include
++  PATH_SUFFIXES include/freetype2 include/freetype include
+ )
+ 
+-find_path(FREETYPE_INCLUDE_DIR_freetype2 freetype/config/ftheader.h
++find_path(FREETYPE_INCLUDE_DIR_freetype2 config/ftheader.h
+   HINTS
+     ENV FREETYPE_DIR
+   PATHS
+@@ -76,7 +76,7 @@ find_path(FREETYPE_INCLUDE_DIR_freetype2 freetype/config/ftheader.h
+     ENV GTKMM_BASEPATH
+     [HKEY_CURRENT_USER\\SOFTWARE\\gtkmm\\2.4;Path]
+     [HKEY_LOCAL_MACHINE\\SOFTWARE\\gtkmm\\2.4;Path]
+-  PATH_SUFFIXES include/freetype2 include
++  PATH_SUFFIXES include/freetype2 include/freetype include include/freetype2/freetype
+ )
+ 
+ find_library(FREETYPE_LIBRARY

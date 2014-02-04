@@ -1,0 +1,476 @@
+Submitted By:            Armin K. <krejzi at email dot com>
+Date:                    2013-05-12
+Initial Package Version: 2.1.26
+Upstream Status:         Unknown
+Origin:                  Debian
+Description:             Various package fixes, including autotools fixes, minor build fixes, etc.
+
+--- a/cmulocal/sasl2.m4	2012-11-06 20:14:29.000000000 +0100
++++ b/cmulocal/sasl2.m4	2013-05-11 18:48:14.731051847 +0200
+@@ -112,9 +112,6 @@
+   fi
+ 
+   if test "$gss_impl" = "auto" -o "$gss_impl" = "mit"; then
+-    # check for libkrb5support first
+-    AC_CHECK_LIB(krb5support,krb5int_getspecific,K5SUP=-lkrb5support K5SUPSTATIC=$gssapi_dir/libkrb5support.a,,${LIB_SOCKET})
+-
+     gss_failed=0
+     AC_CHECK_LIB(gssapi_krb5,gss_unwrap,gss_impl="mit",gss_failed=1,
+                  ${GSSAPIBASE_LIBS} -lgssapi_krb5 -lkrb5 -lk5crypto -lcom_err ${K5SUP} ${LIB_SOCKET})
+--- a/config/kerberos_v4.m4	2012-01-28 00:31:36.000000000 +0100
++++ b/config/kerberos_v4.m4	2013-05-11 18:48:14.731051847 +0200
+@@ -89,18 +89,18 @@
+     dnl if we were ambitious, we would look more aggressively for the
+     dnl krb4 install
+     if test -d ${krb4}; then
+-       AC_CACHE_CHECK(for Kerberos includes, cyrus_krbinclude, [
++       AC_CACHE_CHECK(for Kerberos includes, cyrus_cv_krbinclude, [
+          for krbhloc in include/kerberosIV include/kerberos include
+          do
+            if test -f ${krb4}/${krbhloc}/krb.h ; then
+-             cyrus_krbinclude=${krb4}/${krbhloc}
++             cyrus_cv_krbinclude=${krb4}/${krbhloc}
+              break
+            fi
+          done
+          ])
+ 
+-       if test -n "${cyrus_krbinclude}"; then
+-         CPPFLAGS="$CPPFLAGS -I${cyrus_krbinclude}"
++       if test -n "${cyrus_cv_krbinclude}"; then
++         CPPFLAGS="$CPPFLAGS -I${cyrus_cv_krbinclude}"
+        fi
+        LDFLAGS="$LDFLAGS -L$krb4/lib"
+     fi
+--- a/configure.in	2012-10-12 16:05:48.000000000 +0200
++++ b/configure.in	2013-05-11 18:48:59.021848013 +0200
+@@ -44,6 +44,8 @@
+ AC_INIT(lib/saslint.h)
+ AC_PREREQ([2.54])
+ 
++AC_CONFIG_MACRO_DIR([cmulocal], [config])
++
+ dnl use ./config.cache as the default cache file.
+ dnl we require a cache file to successfully configure our build.
+ if test $cache_file = "/dev/null"; then
+@@ -62,9 +64,6 @@
+ AM_INIT_AUTOMAKE(cyrus-sasl, 2.1.26)
+ CMU_INIT_AUTOMAKE
+ 
+-# and include our config dir scripts
+-ACLOCAL="$ACLOCAL -I \$(top_srcdir)/config"
+-
+ DIRS=""
+ 
+ AC_ARG_ENABLE(cmulocal,
+@@ -861,9 +860,9 @@
+     notfound) AC_WARN([SQLite Library not found]); true;;
+     *)
+      if test -d ${with_sqlite}/lib; then
+-         LIB_SQLITE="-L${with_sqlite}/lib -R${with_sqlite}/lib"
++         LIB_SQLITE="-L${with_sqlite}/lib"
+      else
+-         LIB_SQLITE="-L${with_sqlite} -R${with_sqlite}"
++         LIB_SQLITE="-L${with_sqlite}"
+      fi
+ 
+      LIB_SQLITE_DIR=$LIB_SQLITE
+@@ -913,9 +912,9 @@
+     notfound) AC_WARN([SQLite3 Library not found]); true;;
+     *)
+      if test -d ${with_sqlite3}/lib; then
+-         LIB_SQLITE3="-L${with_sqlite3}/lib -R${with_sqlite3}/lib"
++         LIB_SQLITE3="-L${with_sqlite3}/lib"
+      else
+-         LIB_SQLITE3="-L${with_sqlite3} -R${with_sqlite3}"
++         LIB_SQLITE3="-L${with_sqlite3}"
+      fi
+ 
+      LIB_SQLITE3_DIR=$LIB_SQLITE3
+@@ -1412,7 +1411,7 @@
+ #endif /* CONFIG_H */
+ ])
+ 
+-AM_CONFIG_HEADER(config.h)
++AC_CONFIG_HEADERS(config.h)
+ 
+ AC_OUTPUT(Makefile
+ libsasl2.pc
+--- a/include/sasl.h	2012-10-12 16:05:48.000000000 +0200
++++ b/include/sasl.h	2013-05-11 18:48:14.731051847 +0200
+@@ -223,6 +223,8 @@
+  * they must be called before all other SASL functions:
+  */
+ 
++#include <sys/types.h>
++
+ /* memory allocation functions which may optionally be replaced:
+  */
+ typedef void *sasl_malloc_t(size_t);
+--- a/java/CyrusSasl/Makefile.am	2012-01-28 00:31:36.000000000 +0100
++++ b/java/CyrusSasl/Makefile.am	2013-05-11 18:48:14.734385240 +0200
+@@ -28,7 +28,7 @@
+ javasasldir = $(prefix)/lib/java/classes/sasl/CyrusSasl
+ javahtmldir = $(prefix)/html/sasl
+ 
+-INCLUDES=-I$(top_srcdir)/include $(JAVA_INCLUDES)
++AM_CPPFLAGS=-I$(top_srcdir)/include $(JAVA_INCLUDES)
+ 
+ javasasl_JAVA = Sasl.java GenericClient.java \
+ 		ClientFactory.java \
+--- a/lib/auxprop.c	2012-01-28 00:31:36.000000000 +0100
++++ b/lib/auxprop.c	2013-05-11 18:48:14.734385240 +0200
+@@ -43,6 +43,7 @@
+  */
+ 
+ #include <config.h>
++#include <stdio.h>
+ #include <sasl.h>
+ #include <prop.h>
+ #include <ctype.h>
+--- a/lib/dlopen.c	2012-01-28 00:31:36.000000000 +0100
++++ b/lib/dlopen.c	2013-05-11 18:48:14.737718633 +0200
+@@ -247,105 +247,6 @@
+     return result;
+ }
+ 
+-/* this returns the file to actually open.
+- *  out should be a buffer of size PATH_MAX
+- *  and may be the same as in. */
+-
+-/* We'll use a static buffer for speed unless someone complains */
+-#define MAX_LINE 2048
+-
+-static int _parse_la(const char *prefix, const char *in, char *out) 
+-{
+-    FILE *file;
+-    size_t length;
+-    char line[MAX_LINE];
+-    char *ntmp = NULL;
+-
+-    if(!in || !out || !prefix || out == in) return SASL_BADPARAM;
+-
+-    /* Set this so we can detect failure */
+-    *out = '\0';
+-
+-    length = strlen(in);
+-
+-    if (strcmp(in + (length - strlen(LA_SUFFIX)), LA_SUFFIX)) {
+-	if(!strcmp(in + (length - strlen(SO_SUFFIX)),SO_SUFFIX)) {
+-	    /* check for a .la file */
+-	    strcpy(line, prefix);
+-	    strcat(line, in);
+-	    length = strlen(line);
+-	    *(line + (length - strlen(SO_SUFFIX))) = '\0';
+-	    strcat(line, LA_SUFFIX);
+-	    file = fopen(line, "r");
+-	    if(file) {
+-		/* We'll get it on the .la open */
+-		fclose(file);
+-		return SASL_FAIL;
+-	    }
+-	}
+-	strcpy(out, prefix);
+-	strcat(out, in);
+-	return SASL_OK;
+-    }
+-
+-    strcpy(line, prefix);
+-    strcat(line, in);
+-
+-    file = fopen(line, "r");
+-    if(!file) {
+-	_sasl_log(NULL, SASL_LOG_WARN,
+-		  "unable to open LA file: %s", line);
+-	return SASL_FAIL;
+-    }
+-    
+-    while(!feof(file)) {
+-	if(!fgets(line, MAX_LINE, file)) break;
+-	if(line[strlen(line) - 1] != '\n') {
+-	    _sasl_log(NULL, SASL_LOG_WARN,
+-		      "LA file has too long of a line: %s", in);
+-	    return SASL_BUFOVER;
+-	}
+-	if(line[0] == '\n' || line[0] == '#') continue;
+-	if(!strncmp(line, "dlname=", sizeof("dlname=") - 1)) {
+-	    /* We found the line with the name in it */
+-	    char *end;
+-	    char *start;
+-	    size_t len;
+-	    end = strrchr(line, '\'');
+-	    if(!end) continue;
+-	    start = &line[sizeof("dlname=")-1];
+-	    len = strlen(start);
+-	    if(len > 3 && start[0] == '\'') {
+-		ntmp=&start[1];
+-		*end='\0';
+-		/* Do we have dlname="" ? */
+-		if(ntmp == end) {
+-		    _sasl_log(NULL, SASL_LOG_DEBUG,
+-			      "dlname is empty in .la file: %s", in);
+-		    return SASL_FAIL;
+-		}
+-		strcpy(out, prefix);
+-		strcat(out, ntmp);
+-	    }
+-	    break;
+-	}
+-    }
+-    if(ferror(file) || feof(file)) {
+-	_sasl_log(NULL, SASL_LOG_WARN,
+-		  "Error reading .la: %s\n", in);
+-	fclose(file);
+-	return SASL_FAIL;
+-    }
+-    fclose(file);
+-
+-    if(!(*out)) {
+-	_sasl_log(NULL, SASL_LOG_WARN,
+-		  "Could not find a dlname line in .la file: %s", in);
+-	return SASL_FAIL;
+-    }
+-
+-    return SASL_OK;
+-}
+ #endif /* DO_DLOPEN */
+ 
+ /* loads a plugin library */
+@@ -499,18 +400,18 @@
+ 		if (length + pos>=PATH_MAX) continue; /* too big */
+ 
+ 		if (strcmp(dir->d_name + (length - strlen(SO_SUFFIX)),
+-			   SO_SUFFIX)
+-		    && strcmp(dir->d_name + (length - strlen(LA_SUFFIX)),
+-			   LA_SUFFIX))
++			   SO_SUFFIX))
+ 		    continue;
+ 
++		/* We only use .so files for loading plugins */
++
+ 		memcpy(name,dir->d_name,length);
+ 		name[length]='\0';
+ 
+-		result = _parse_la(prefix, name, tmp);
+-		if(result != SASL_OK)
+-		    continue;
+-		
++		/* Create full name with path */
++		strncpy(tmp, prefix, PATH_MAX);
++		strncat(tmp, name, PATH_MAX);
++
+ 		/* skip "lib" and cut off suffix --
+ 		   this only need be approximate */
+ 		strcpy(plugname, name + 3);
+--- a/lib/Makefile.am	2012-10-12 16:05:48.000000000 +0200
++++ b/lib/Makefile.am	2013-05-11 18:48:14.737718633 +0200
+@@ -45,7 +45,7 @@
+ # CURRENT:REVISION:AGE
+ sasl_version = 3:0:0
+ 
+-INCLUDES=-DLIBSASL_EXPORTS=1 -I$(top_srcdir)/include -I$(top_srcdir)/plugins -I$(top_builddir)/include -I$(top_srcdir)/sasldb
++AM_CPPFLAGS=-DLIBSASL_EXPORTS=1 -I$(top_srcdir)/include -I$(top_srcdir)/plugins -I$(top_builddir)/include -I$(top_srcdir)/sasldb
+ 
+ EXTRA_DIST = windlopen.c staticopen.h NTMakefile
+ EXTRA_LIBRARIES = libsasl2.a
+@@ -64,8 +64,8 @@
+ lib_LTLIBRARIES = libsasl2.la
+ 
+ libsasl2_la_SOURCES = $(common_sources) $(common_headers)
+-libsasl2_la_LDFLAGS = -version-info $(sasl_version)
+-libsasl2_la_DEPENDENCIES = $(LTLIBOBJS)
++libsasl2_la_LDFLAGS = -version-info $(sasl_version) -Wl,--version-script=$(top_srcdir)/Versions
++libsasl2_la_DEPENDENCIES = $(LTLIBOBJS) $(top_srcdir)/Versions
+ libsasl2_la_LIBADD = $(LTLIBOBJS) $(SASL_DL_LIB) $(LIB_SOCKET) $(LIB_DOOR)
+ 
+ if MACOSX
+--- a/Makefile.am	2012-10-12 16:05:48.000000000 +0200
++++ b/Makefile.am	2013-05-11 18:48:14.737718633 +0200
+@@ -43,6 +43,8 @@
+ #
+ ################################################################
+ 
++ACLOCAL_AMFLAGS = -I cmulocal -I config
++
+ if SASLAUTHD
+ SAD = saslauthd
+ else
+--- a/plugins/Makefile.am	2012-10-12 16:05:48.000000000 +0200
++++ b/plugins/Makefile.am	2013-05-11 18:48:14.737718633 +0200
+@@ -49,7 +49,7 @@
+ # CURRENT:REVISION:AGE
+ plugin_version = 3:0:0
+ 
+-INCLUDES=-I$(top_srcdir)/include -I$(top_srcdir)/lib -I$(top_srcdir)/sasldb -I$(top_builddir)/include
++AM_CPPFLAGS=-I$(top_srcdir)/include -I$(top_srcdir)/lib -I$(top_srcdir)/sasldb -I$(top_builddir)/include
+ AM_LDFLAGS = -module -export-dynamic -rpath $(plugindir) -version-info $(plugin_version)
+ 
+ COMPAT_OBJS = @LTGETADDRINFOOBJS@ @LTGETNAMEINFOOBJS@ @LTSNPRINTFOBJS@
+--- a/pwcheck/Makefile.am	2012-01-28 00:31:36.000000000 +0100
++++ b/pwcheck/Makefile.am	2013-05-11 18:48:14.737718633 +0200
+@@ -24,7 +24,7 @@
+ 
+ sbin_PROGRAMS = pwcheck
+ 
+-INCLUDES = -I../include -I../lib
++AM_CPPFLAGS = -I../include -I../lib
+ 
+ pwcheck_SOURCES = pwcheck.c
+ EXTRA_pwcheck_SOURCES = pwcheck_getpwnam.c pwcheck_getspnam.c
+--- a/pwcheck/pwcheck_getspnam.c	2012-01-28 00:31:36.000000000 +0100
++++ b/pwcheck/pwcheck_getspnam.c	2013-05-11 18:48:14.737718633 +0200
+@@ -24,6 +24,7 @@
+ ******************************************************************/
+ 
+ #include <shadow.h>
++#include <string.h>
+ 
+ extern char *crypt();
+ 
+--- a/sample/Makefile.am	2012-10-16 15:07:55.000000000 +0200
++++ b/sample/Makefile.am	2013-05-11 18:48:14.737718633 +0200
+@@ -42,7 +42,7 @@
+ #
+ ################################################################
+ 
+-INCLUDES=-I$(top_srcdir)/include
++AM_CPPFLAGS=-I$(top_srcdir)/include
+ 
+ noinst_PROGRAMS = client server
+ EXTRA_PROGRAMS = sample-client sample-server
+--- a/saslauthd/configure.in	2012-10-12 16:05:48.000000000 +0200
++++ b/saslauthd/configure.in	2013-05-11 18:48:14.737718633 +0200
+@@ -1,7 +1,8 @@
+ AC_INIT(mechanisms.h)
+ AC_PREREQ([2.54])
+ 
+-AC_CONFIG_AUX_DIR(config)
++AC_CONFIG_MACRO_DIR([../cmulocal], [../config])
++AC_CONFIG_AUX_DIR([config])
+ AC_CANONICAL_HOST
+ 
+ dnl Should we enable SASLAUTHd at all?
+@@ -25,6 +26,7 @@
+ AC_PROG_MAKE_SET
+ AC_PROG_LN_S
+ AC_PROG_INSTALL
++AC_PROG_LIBTOOL
+ 
+ dnl Checks for build foo
+ CMU_C___ATTRIBUTE__
+@@ -163,30 +165,30 @@
+ 
+ dnl Checks for which function macros exist
+ AC_MSG_CHECKING(whether $CC implements __func__)
+-AC_CACHE_VAL(have_func,
++AC_CACHE_VAL(_cv_have_func,
+ [AC_TRY_LINK([#include <stdio.h>],[printf("%s", __func__);],
+-have_func=yes,
+-have_func=no)])
+-AC_MSG_RESULT($have_func)
+-if test "$have_func" = yes; then
++_cv_have_func=yes,
++_cv_have_func=no)])
++AC_MSG_RESULT($_cv_have_func)
++if test "$_cv_have_func" = yes; then
+        AC_DEFINE(HAVE_FUNC,[],[Does the compiler understand __func__])
+ else
+        AC_MSG_CHECKING(whether $CC implements __PRETTY_FUNCTION__)
+-       AC_CACHE_VAL(have_pretty_function,
++       AC_CACHE_VAL(_cv_have_pretty_function,
+        [AC_TRY_LINK([#include <stdio.h>],[printf("%s", __PRETTY_FUNCTION__);],
+-       have_pretty_function=yes,
+-       have_pretty_function=no)])
+-       AC_MSG_RESULT($have_pretty_function)
+-       if test "$have_pretty_function" = yes; then
++       _cv_have_pretty_function=yes,
++       _cv_have_pretty_function=no)])
++       AC_MSG_RESULT($_cv_have_pretty_function)
++       if test "$_cv_have_pretty_function" = yes; then
+                AC_DEFINE(HAVE_PRETTY_FUNCTION,[],[Does compiler understand __PRETTY_FUNCTION__])
+        else
+                AC_MSG_CHECKING(whether $CC implements __FUNCTION__)
+-               AC_CACHE_VAL(have_function,
++               AC_CACHE_VAL(_cv_have_function,
+                [AC_TRY_LINK([#include <stdio.h>],[printf("%s", __FUNCTION__);],
+-               have_function=yes,
+-               have_function=no)])
+-               AC_MSG_RESULT($have_function)
+-               if test "$have_function" = yes; then
++               _cv_have_function=yes,
++               _cv_have_function=no)])
++               AC_MSG_RESULT($_cv_have_function)
++               if test "$_cv_have_function" = yes; then
+                        AC_DEFINE(HAVE_FUNCTION,[],[Does compiler understand __FUNCTION__])
+                fi
+        fi
+--- a/saslauthd/Makefile.am	2012-01-28 00:31:36.000000000 +0100
++++ b/saslauthd/Makefile.am	2013-05-11 18:48:14.737718633 +0200
+@@ -1,4 +1,6 @@
+ AUTOMAKE_OPTIONS = 1.7
++ACLOCAL_AMFLAGS = -I ../cmulocal -I ../config
++
+ sbin_PROGRAMS	= saslauthd testsaslauthd
+ EXTRA_PROGRAMS  = saslcache
+ 
+@@ -16,7 +18,7 @@
+ saslauthd_DEPENDENCIES = saslauthd-main.o @LTLIBOBJS@
+ saslauthd_LDADD	= @SASL_KRB_LIB@ \
+ 		  @GSSAPIBASE_LIBS@ @GSSAPI_LIBS@ @LIB_CRYPT@ @LIB_SIA@ \
+-		  @LIB_SOCKET@ @SASL_DB_LIB@ @LIB_PAM@ @LDAP_LIBS@ @LTLIBOBJS@
++		  @LIB_SOCKET@ ../sasldb/libsasldb.la @LIB_PAM@ @LDAP_LIBS@ @LTLIBOBJS@
+ 
+ testsaslauthd_SOURCES = testsaslauthd.c utils.c
+ testsaslauthd_LDADD = @LIB_SOCKET@
+@@ -25,7 +27,7 @@
+ 
+ EXTRA_DIST	= saslauthd.8 saslauthd.mdoc config include \
+ 		  getnameinfo.c getaddrinfo.c LDAP_SASLAUTHD
+-INCLUDES	= -I$(top_srcdir)/include -I$(top_builddir)/include -I$(top_srcdir)/../include
++AM_CPPFLAGS	= -I$(top_srcdir)/include -I$(top_builddir)/include -I$(top_srcdir)/../include
+ DEFS            = @DEFS@ -DSASLAUTHD_CONF_FILE_DEFAULT=\"@sysconfdir@/saslauthd.conf\" -I. -I$(srcdir) -I..
+ 
+ 
+--- a/sasldb/Makefile.am	2012-01-28 00:31:36.000000000 +0100
++++ b/sasldb/Makefile.am	2013-05-11 18:48:14.737718633 +0200
+@@ -44,7 +44,7 @@
+ # Note that this doesn't necessaraly follow the libsasl2 verison info
+ sasl_version = 1:25:0
+ 
+-INCLUDES=-I$(top_srcdir)/include -I$(top_builddir)/include @SASL_DB_INC@
++AM_CPPFLAGS=-I$(top_srcdir)/include -I$(top_builddir)/include @SASL_DB_INC@
+ 
+ extra_common_sources = db_none.c db_ndbm.c db_gdbm.c db_berkeley.c
+ 
+@@ -55,8 +55,8 @@
+ 
+ libsasldb_la_SOURCES = allockey.c sasldb.h
+ EXTRA_libsasldb_la_SOURCES = $(extra_common_sources)
+-libsasldb_la_DEPENDENCIES = $(SASL_DB_BACKEND)
+-libsasldb_la_LIBADD = $(SASL_DB_BACKEND) 
++libsasldb_la_DEPENDENCIES = $(SASL_DB_BACKEND)
++libsasldb_la_LIBADD = $(SASL_DB_BACKEND) $(SASL_DB_LIB)
+ 
+ # Prevent make dist stupidity
+ libsasldb_a_SOURCES =
+--- a/utils/Makefile.am	2012-01-28 00:31:36.000000000 +0100
++++ b/utils/Makefile.am	2013-05-11 18:48:14.737718633 +0200
+@@ -89,7 +89,7 @@
+ libsfsasl2_la_LIBADD = sfsasl.lo
+ libsfsasl2_la_LDFLAGS = -version-info 1:0:0 -export-dynamic -rpath $(libdir)
+ 
+-INCLUDES=-I$(top_srcdir)/include -I$(top_builddir)/include @SASL_DB_INC@
++AM_CPPFLAGS=-I$(top_srcdir)/include -I$(top_builddir)/include @SASL_DB_INC@
+ EXTRA_DIST = saslpasswd2.8 sasldblistusers2.8 pluginviewer.8 sfsasl.h sfsasl.c smtptest.c testsuite.c pluginviewer.c NTMakefile
+ 
+ sfsasl.lo: sfsasl.c
+--- a/Versions	1970-01-01 01:00:00.000000000 +0100
++++ b/Versions	2013-05-11 18:48:14.737718633 +0200
+@@ -0,0 +1,7 @@
++SASL2 {
++    global:
++        sasl_*; prop_*; auxprop_plugin_info; _sasl_MD5*;
++};
++
++HIDDEN { local: __*; _rest*; _save*; *; };
++

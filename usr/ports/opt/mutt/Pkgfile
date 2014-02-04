@@ -4,17 +4,15 @@
 # Depends on:  gdbm ncurses openssl zlib
 
 name=mutt
-version=1.5.21
-release=2
-source=(ftp://ftp.mutt.org/mutt/devel/$name-$version.tar.gz
-        $name-$version-0e4f1782ea2e.patch)
+version=1.5.22
+release=1
+source=(ftp://ftp.mutt.org/mutt/devel/$name-$version.tar.gz)
 
 build () {
     cd $name-$version
 
-    patch -p0 -i $SRC/$name-$version-0e4f1782ea2e.patch
-
     ./configure --prefix=/usr \
+		--sysconfdir=/etc \
                 --mandir=/usr/man \
                 --with-docdir=/usr/share/mutt \
                 --with-mailpath=/var/spool/mail \
@@ -29,7 +27,8 @@ build () {
     make DESTDIR=$PKG install
 
     find $PKG/usr/share/mutt/* ! -name manual.txt -delete
-    rm $PKG/usr/etc/{Muttrc,mime.types}.dist 
+    rm $PKG/etc/{Muttrc,mime.types}.dist 
+    rm $PKG/etc/mime.types
     rm $PKG/usr/bin/{flea,muttbug}
     rm $PKG/usr/man/man1/{flea.1,muttbug.1}
     rm $PKG/usr/man/man5/{mmdf.5,mbox.5}

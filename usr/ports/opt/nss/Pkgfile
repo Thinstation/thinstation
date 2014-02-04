@@ -4,8 +4,8 @@
 # Depends on:  nspr sqlite3
 
 name=nss
-version=3.15.3.1
-_version=$(printf "%i_%i_%i_%i" ${version//./ })
+version=3.15.4
+_version=$(printf "%i_%i_%i" ${version//./ })
 release=1
 source=(ftp://ftp.mozilla.org/pub/mozilla.org/security/nss/releases/NSS_${_version}_RTM/src/$name-$version.tar.gz \
         nss-config.in nss.pc.in)
@@ -25,6 +25,8 @@ build() {
 
     export NSPR_INCLUDE_DIR=/usr/include/nspr
     export NSPR_LIB_DIR=/usr/lib
+    export USE_SYSTEM_ZLIB=1
+    export ZLIB_LIBS=-lz
     export NSS_USE_SYSTEM_SQLITE=1
     export BUILD_OPT=1
 

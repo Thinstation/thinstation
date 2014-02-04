@@ -5,25 +5,26 @@
 # Depends on: perl, openssl, cyrus-sasl
 
 name=openldap
-version=2.4.34
+version=2.4.38
 release=1
 source=(ftp://ftp.openldap.org/pub/OpenLDAP/openldap-release/$name-$version.tgz \
+	openldap-2.4.38-symbol_versions-1.patch
+	openldap-2.4.38-ntlm-1.patch
 	$name-config.patch slurpd slapd)
 
 build() {
 	cd $name-$version
 	patch -p0 -i $SRC/$name-config.patch
+	patch -p1 -i $SRC/openldap-2.4.38-symbol_versions-1.patch
+	patch -p1 -i $SRC/openldap-2.4.38-ntlm-1.patch
 
-	# Workaround for: (ITS#5464) ucred guarded by __USE_GNU in glibc 2.8
-	# http://www.openldap.org/lists/openldap-bugs/200804/msg00074.html
-	export CPPFLAGS="$CPPFLAGS -D_GNU_SOURCE"
+	autoconf
 
 	./configure --prefix=/usr \
                 --mandir=/usr/man \
 		--sysconfdir=/etc \
 		--libexecdir=/usr/sbin \
 		--localstatedir=/var/openldap \
-		--disable-nls \
 		--enable-syslog \
 		--with-threads \
 		--with-tls \
@@ -34,9 +35,6 @@ build() {
 		--enable-modules \
 		--enable-crypt \
 		--enable-rewrite \
-		--enable-ldbm \
-		--enable-ldbm-api=berkeley \
-		--enable-ldbm-type=btree \
 		--enable-bdb \
 		--enable-hdb \
 		--enable-ldap \
@@ -45,12 +43,10 @@ build() {
 		--enable-dnssrv \
 		--enable-null \
 		--enable-perl \
-		--with-dyngroup \
-		--with-proxycache \
 		--enable-wrappers \
-		--enable-slurpd \
 		--enable-aci \
-		--enable-shared
+		--disable-debug \
+		--disable-static
 
 	make depend
 	make

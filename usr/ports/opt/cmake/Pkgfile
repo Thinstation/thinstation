@@ -5,12 +5,14 @@
 # Depends on: curl libarchive expat ncurses
 
 name=cmake
-version=2.8.10
+version=2.8.12.1
 release=1
-source=(http://www.cmake.org/files/v${version%.*}/$name-$version.tar.gz)
+source=(http://www.cmake.org/files/v${version%.*.*}/$name-$version.tar.gz
+	cmake-2.8.12.1-freetype-1.patch)
 
 build() {
 	cd $name-$version
+	patch -Np1 < ../cmake-2.8.12.1-freetype-1.patch
 
 	./bootstrap \
 		--prefix=/usr \
