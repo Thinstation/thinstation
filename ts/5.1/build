@@ -129,7 +129,7 @@ lib_dependencies()
             if [ -n "$libsource" ] && [ -e $libsource ]; then
               echo -e "\t\t\t$libfile"
               if [ ! -e $pkgname/lib ]; then
-                mkdir $pkgname/lib
+                mkdir -p $pkgname/lib
               fi
               cp $libsource $pkgname/lib
               echo "$pkgname/lib/$libfile" >> liblist.added
@@ -147,6 +147,25 @@ lib_dependencies()
   done
   ldconfig -r tmp-tree
   rm lpaths.tmp
+}
+
+copy_module()
+{
+	unset copied
+	local rpath=`find ./kernel/modules-$2 -name $1 -printf %h |cut -d "/" -f4-`
+	local src=./kernel/modules-$2/$rpath/$1
+	local dest=$3/lib/modules/$2/$rpath
+	if [ ! -e $dest/$1 ]; then
+		mkdir -p $dest
+		cp $src $dest/$1 > /dev/null 2>&1
+		if [ "$?" == "0" ]; then
+			copied="$dest/$1"
+			return 0
+		fi
+	else
+		return 0
+	fi
+	return 1
 }
 
 module_module_dependencies()
@@ -176,47 +195,38 @@ done
 
 module_dependencies()
 {
-
-for pkgname in `echo "./tmp-tree" && find $MODDIR/ -mindepth 1 -maxdepth 1 && find $PKGDIR/ -mindepth 1 -maxdepth 1`
-do
-  if [ -e $pkgname/lib/modules/$KERNVER ] ; then
-     # This checks to see if we are doing a first or second run of module_dependencies
-     if [ ! -e $pkgname/modules.final ] ; then
-	     ls $pkgname/lib/modules/$KERNVER | grep \.ko > $pkgname/modules.final
-	     cp $pkgname/modules.final ./modules.list
-     else
-	     ls $pkgname/lib/modules/$KERNVER | grep \.ko > ./modules.list
-
-     fi
-     while [ -s $pkgname/modules.final ]
-     do
-	for module in `cat $pkgname/modules.final`
-	do
-		modulelist="`cat ./modules.tmp | grep $module: | cut -f2 -d:`"
-		# Checks for already existing modules
-		for moduleinbase in $modulelist
-		do
-			if [ ! -e ./tmp-tree/lib/modules/$KERNVER/`basename $moduleinbase` ] ; then
-				modulefinal="$modulefinal $moduleinbase "
+echo -e "\nAdding modules that are dependencies of selected modules\n"
+for pkgname in `echo "./tmp-tree" && find $MODDIR/ -mindepth 1 -maxdepth 1 && find $PKGDIR/ -mindepth 1 -maxdepth 1`; do
+	if [ -e $pkgname/lib/modules/$KERNVER ]; then
+		find $pkgname/lib/modules/$KERNVER -name \*.ko > ./modules.list
+		while [ -s ./modules.list ]; do
+			for module in `cat modules.list`; do
+				depends="`modinfo -F depends $module |sed -e 's/,/ /g'`"
+				# Checks for already existing modules
+				for depend in $depends; do
+					if [ -z "`find ./tmp-tree/lib/modules/$KERNVER -name ${depend}.ko`" ] &&
+					   [ -z "`find $pkgname/lib/modules/$KERNVER -name ${depend}.ko`" ]; then
+						needed="$needed ${depend}.ko"
+					fi
+				done
+				if [ -n "$needed" ]; then
+					echo "Adding dependency in `basename $pkgname` for module `basename $module`"
+					for depend in $needed; do
+						if copy_module $depend $KERNVER $pkgname; then
+							echo $copied >> modules.copied
+							allfirm $depend
+						fi
+					done
+				fi
+				unset needed
+			done
+			rm modules.list
+			if [ -e modules.copied ]; then
+				mv modules.copied modules.list
 			fi
 		done
-		echo "Adding dependency in `basename $pkgname` for module $module"
-		if [ -n "$modulefinal" ] ; then
-		    cp `echo $modulefinal | sed -e "s@/lib/modules/@./kernel/lib/modules/@g"`\
-		       $pkgname/lib/modules/$KERNVER > /dev/null 2>&1
-		fi
-		modulefinal=""
-	done
-        ls $pkgname/lib/modules/$KERNVER | grep .ko > ./modules.after
-        diff -e ./modules.list ./modules.after | grep \.ko > $pkgname/modules.final
-        cp ./modules.after ./modules.list
-	rm ./modules.after
-  done
-  rm $pkgname/modules.final
-  rm ./modules.list
- fi
+	fi
 done
-
 }
 
 strip_files()
@@ -462,7 +472,7 @@ web_package ()
 ## Add boot splash image
 splash_resize()
 {
-	mkdir "$TOOLSDIR/splash/$ts_boottheme/$res"
+	mkdir -p $TOOLSDIR/splash/$ts_boottheme/$res
 	if [ -e $TOOLSDIR/splash/$ts_boottheme/scalable ]; then
 		if [ -z "$SPLASH_BG_COLOR" ]; then
 			SPLASH_BG_COLOR=black
@@ -625,6 +635,21 @@ fi
 
 }
 
+allfirm()
+{
+	if is_enabled $ts_allfirmware; then
+		unset firmlist
+		module=`find ./kernel/modules-$KERNVER -name $1`
+		firmlist=`modinfo -F firmware $module`
+		if [ -n "$firmlist" ]; then
+			echo "Adding extra module firmware for `basename $module`"
+			for firmware in $firmlist; do
+				copy_firmware `basename $firmware`
+			done
+		fi
+	fi
+}
+
 keymaps()
 {
 #
@@ -707,7 +732,7 @@ copy_firmware()
 		done
 	else
 		echo "Error, Firmware $1 not found"
-		echo "$1" >> /missing
+#		echo "$1" >> /missing
 	fi
 }
 
@@ -737,7 +762,6 @@ do
 	     $PACDIR/$name.package
 	else
 	   echo "Not Found $name!!"
-#	   sleep 5
 	fi
 	;;
     machine)
@@ -756,39 +780,38 @@ do
 	fi
 	;;
     module)
-	if [ "$ALLMODULES" != "true" ] ; then
-    	if [ -e ./kernel/alias/$name ] ; then
-		name=`cat ./kernel/alias/$name`
-	fi
-	for KERNVER in $KERNVERS; do
-        if [ -e `find ./kernel/modules-$KERNVER/ -follow -name "$name.ko"` ] ; then
-			echo "Module $KERNVER: $name"
-			cp `find ./kernel/modules-$KERNVER/ -follow -name "$name.ko"` ./tmp-tree/lib/modules/$KERNVER/"$name".ko
-		else
-			echo "Error, Module $name not found"
+	if ! is_enabled $ALLMODULES; then
+		if [ -e ./kernel/alias/$name ] ; then
+			name=`cat ./kernel/alias/$name`
 		fi
-	done
+		for KERNVER in $KERNVERS; do
+		        if [ -e `find ./kernel/modules-$KERNVER -name ${name}.ko` ] ; then
+				echo "Module $KERNVER: $name"
+				copy_module ${name}.ko $KERNVER ./tmp-tree
+			else
+				echo "Error, Module $name not found"
+			fi
+		done
 	fi
 	if [ `make_caps X$args` == "XFORCE" ]; then
-	echo $name `echo $args | cut -f1 -d#` >> ./tmp-tree/etc/modules
+		echo $name `echo $args | cut -f1 -d#` >> ./tmp-tree/etc/modules
 	fi
 	;;
     module_pkg)
-	if [ "$ALLMODULES" != "true" ] ; then
-        if [ -e ./kernel/alias/$name ] ; then
-		name=`cat ./kernel/alias/$name`
-	fi
-	for KERNVER in $KERNVERS; do
-        if [ -e `find ./kernel/modules/ -follow -name "$name.ko"` ] ; then
-		echo "Module Pkg: $name"
-		mkdir -p $MODDIR/$name/lib/modules/$KERNVER
-		mkdir $MODDIR/$name/etc
-		cp `find ./kernel/modules-$KERNVER/ -follow -name "$name.ko"` $MODDIR/$name/lib/modules/$KERNVER
-	else
-		echo "Error, Module $name not found"
-	fi
-	done
-	echo $name $args `echo $args | cut -f1 -d#` > $MODDIR/$name/etc/$name.modules
+	if ! is_enabled $ALLMODULES; then
+	        if [ -e ./kernel/alias/$name ] ; then
+			name=`cat ./kernel/alias/$name`
+		fi
+		for KERNVER in $KERNVERS; do
+        		if [ -e `find ./kernel/modules/$KERNVER -name ${name}.ko` ] ; then
+				echo "Module Pkg: $name"
+				copy_module ${name}.ko $KERNVER $MODDIR/$name
+				mkdir -p $MODDIR/$name/etc
+			else
+				echo "Error, Module $name not found"
+			fi
+		done
+		echo $name $args `echo $args | cut -f1 -d#` > $MODDIR/$name/etc/$name.modules
 	fi
 	;;
     firmware)
@@ -808,41 +831,53 @@ done
 # Main TS build script
 main()
 {
-
+echo "+ Building image: "
 if [ -e $PKGDIR ] ; then
 	rm -Rf $PKGDIR/*
 else
-	mkdir $PKGDIR
+	mkdir -p $PKGDIR
 fi
 
 if [ -e ./tmp-tree ]; then
-	rm -Rf ./tmp-tree/*
-	rmdir ./tmp-tree
+	umount -f ./tmp-tree/proc
+	umount -f ./tmp-tree/dev
+	rm -Rf ./tmp-tree
 fi
-#mkdir ./tmp-tree
+
 $TOOLSDIR/unsquashfs -d ./tmp-tree $INITDIR/initrd.devices > /dev/null
-mkdir ./tmp-tree/lib/modules
-mkdir ./tmp-tree/packages
-mkdir $MODDIR
+mkdir -p ./tmp-tree/lib/modules
+mkdir -p ./tmp-tree/packages
+mkdir -p $MODDIR
 
-for KERNVER in $KERNVERS; do
-mkdir ./tmp-tree/lib/modules/$KERNVER
-
-if [ -e ./ALLMODULES ]; then
-	ALLMODULES=true
-fi
-if [ "$ALLMODULES" == "true" ] ; then
-    for line in `find -L ./kernel/modules-$KERNVER -name *.ko -print`
-    do
-	modname=`basename $line`
-	cp $line ./tmp-tree/lib/modules/$KERNVER/$modname
-    done
-fi
-done
-
-echo "+ Building image: "
 read_conf ./build.urls
 read_conf
+
+for KERNVER in $KERNVERS; do
+	mkdir -p ./tmp-tree/lib/modules/$KERNVER
+	if [ -e ./ALLMODULES ]; then
+		ALLMODULES=true
+	fi
+	if [ -e $PACDIR/allfirmware.param ]; then
+		. $PACDIR/allfirmware.param
+		if is_enabled $ts_allfirmware ; then
+			echo "Doing an All Firmware Build!"
+			for microcode in `find ./kernel/firmware/intel-ucode -type f -printf '%f '` \
+					 `find ./kernel/firmware/amd-ucode -type f -printf '%f '`; do
+				copy_firmware $microcode
+			done
+		fi
+	fi
+	if is_enabled $ALLMODULES ; then
+		echo "Doing an All Modules Build!"
+		for module in `find -L ./kernel/modules-$KERNVER -name \*.ko -printf '%f '`; do
+			if copy_module $module $KERNVER ./tmp-tree; then
+				allfirm $module
+			else
+				echo "error! $module not found"
+			fi
+		done
+	fi
+done
 
 # Check if kernel exists
 for KERNVER in $KERNVERS; do
@@ -855,40 +890,37 @@ fi
 
 # Adding additional packages which are dependencies of modules
 echo -e "\nAdding package module dependencies for $KERNVER\n"
-for pkgname in `echo "./tmp-tree" && find $MODDIR/ -mindepth 1 -maxdepth 1`
-do
-  (ls ./kernel/dependencies_module/ ) |
-  while read module
-  do
-    if [ -e $pkgname/lib/modules/$KERNVER/$module.ko ] || [ -e ./tmp-tree/lib/modules/$KERNVER/$module.ko ] ; then
-      (cat ./kernel/dependencies_module/$module ) |
-      while read type name
-      do
-        case $type in
-        package)
-	  if [ ! -e $PACDIR/$name.package ] && [ ! -e $PACDIR/$name.pkg ] ; then
-            if [ -e ./tmp-tree/lib/modules/$KERNVER/$module.ko ] ; then
-	      echo "Package: $name"
-	      if [ -d ./packages/$name ]; then
-	         echo "cp -Rp --remove-destination ./packages/$name/* ./tmp-tree > /dev/null 2>&1">>\
-	           $PACDIR/$name.package
-	      else
-	         echo "Not Found $name!!"
-#	         sleep 5
-	      fi
-	    elif [ -e $pkgname/lib/modules/$KERNVER/$module.ko ] ; then
-              echo "building-pkg $name"
-	      echo -e "cp -Rp ./packages/$name $PKGDIR" >> $PACDIR/$name.pkg
-            fi
-          fi
-        ;;
-        *)
-          continue
-        ;;
-        esac
-      done
-    fi
-  done
+for pkgname in `echo "./tmp-tree" && find $MODDIR/ -mindepth 1 -maxdepth 1`; do
+	(ls ./kernel/dependencies_module/ ) |
+	while read module; do
+		if [ -e `find $pkgname/lib/modules/$KERNVER -name ${module}.ko` ] ||
+		   [ -e `find ./tmp-tree/lib/modules/$KERNVER -name ${module}.ko` ]; then
+			(cat ./kernel/dependencies_module/$module ) |
+			while read type name; do
+				case $type in
+					package)
+					if [ ! -e $PACDIR/$name.package ] && [ ! -e $PACDIR/$name.pkg ] ; then
+						if [ -e `find ./tmp-tree/lib/modules/$KERNVER -name ${module}.ko` ] ; then
+							echo "Package: $name"
+							if [ -d ./packages/$name ]; then
+								echo "cp -Rp --remove-destination ./packages/$name/* ./tmp-tree > /dev/null 2>&1">>\
+								$PACDIR/$name.package
+							else
+								echo "Not Found $name!!"
+							fi
+						elif [ -e `find $pkgname/lib/modules/$KERNVER -name ${module}.ko` ]; then
+							echo "building-pkg $name"
+							echo -e "cp -Rp ./packages/$name $PKGDIR" >> $PACDIR/$name.pkg
+						fi
+					fi
+					;;
+					*)
+						continue
+					;;
+				esac
+			done
+		fi
+	done
 done
 done
 
@@ -1077,7 +1109,7 @@ echo -e "Checking for Key File"
 if [ -e $PACDIR/keyfile.param ]; then
 	if [ -e "$ts_keyfile" ] ; then
 		if [ ! -e ./tmp-tree/etc/.ssh ] ; then
-			mkdir ./tmp-tree/etc/.ssh
+			mkdir -p ./tmp-tree/etc/.ssh
 		fi
 		cp $ts_keyfile ./tmp-tree/etc/.ssh
 	else
@@ -1160,90 +1192,72 @@ lib_dependencies
 for KERNVER in $KERNVERS; do
 echo -e "\nBuilding dependencies for $KERNVER Modules...\n"
 
-if [ "$ALLMODULES" != "true" ] ; then
-
-$TOOLSDIR/depmod -b ./kernel -e -F kernel/System.map-$KERNVER -n $KERNVER > ./modules.dep
-
-cat ./modules.dep | sed '/^[	 ]*$/d' | sed '/[\]/ N;s/[\]\n//g' \
-	| sed '/[\]/ N;s/[\]\n//g'  > ./modules.tmp
+if ! is_enabled $ALLMODULES; then
 
 module_dependencies
 
 # Adding additional modules which are dependencies of other modules
 echo -e "\nAdding $KERNVER module dependencies on other modules not picked up by depmod\n"
-for pkgname in `echo "./tmp-tree" && find $MODDIR/ -mindepth 1 -maxdepth 1`
-do
-  (ls ./kernel/dependencies_module/ ) |
-  while read module
-  do
-   if [ -e $pkgname/lib/modules/$KERNVER/$module.ko ] || [ -e ./tmp-tree/lib/modules/$KERNVER/$module.ko ] ; then
-     (cat ./kernel/dependencies_module/$module ) |
-     while read type name
-     do
-       case $type in
-       module)
-	  if [ ! -e ./tmp-tree/lib/modules/$KERNVER/$name.ko ] && [ ! -e $pkgname/lib/modules/$KERNVER/$name.ko ]  ; then
-            if [ -e ./tmp-tree/lib/modules/$KERNVER/$module.ko ] ; then
-	      echo "Module : $name"
-	      cp `find ./kernel/modules-$KERNVER/ -follow -name "$name.ko"` ./tmp-tree/lib/modules/$KERNVER
-#	      echo $name >> ./tmp-tree/etc/modules
-	      echo "$name.ko" >> ./tmp-tree/modules.final
-	    elif [ -e $pkgname/lib/modules/$KERNVER/$module.ko ] ; then
-              echo "Module-pkg $name"
-	      cp `find ./kernel/modules-$KERNVER/ -follow -name "$name.ko"` $pkgname/lib/modules/$KERNVER
-	      echo $name >> $pkgname/etc/`basename $pkgname`.modules
-	      echo "$name.ko" >> $pkgname/modules.final
-            fi
-   	 fi
-       ;;
-       *)
-         continue
-       ;;
-       esac
-     done
-   fi
-  done
+for pkgname in `echo "./tmp-tree" && find $MODDIR/ -mindepth 1 -maxdepth 1`; do
+	(ls ./kernel/dependencies_module/ ) |
+	while read module; do
+		if [ -e `find $pkgname/lib/modules/$KERNVER -name ${module}.ko` ] ||
+		   [ -e `find ./tmp-tree/lib/modules/$KERNVER -name ${module}.ko` ] ; then
+			(cat ./kernel/dependencies_module/$module ) |
+			while read type name; do
+				case $type in
+					module)
+						if [ ! -e `find ./tmp-tree/lib/modules/$KERNVER -name ${name}.ko` ] &&
+						   [ ! -e `find $pkgname/lib/modules/$KERNVER -name ${name}.ko` ]; then
+							echo "Module : $name"
+							copy_module ${name}.ko $KERNVER ./tmp-tree
+						elif [ -e `find $pkgname/lib/modules/$KERNVER -name ${module}.ko` ]; then
+							echo "Module-pkg $name"
+							copy_module ${name}.ko $KERNVER $pkgname
+							echo $name >> $pkgname/etc/`basename $pkgname`.modules
+						fi
+					;;
+					*)
+						continue
+					;;
+				esac
+			done
+		fi
+	done
 done
 
-# Adding additional modules which are dependencies of packages 
+# Adding additional modules which are dependencies of packages
 echo -e "\nAdding $KERNVER module dependencies on other packages\n"
 (ls ./kernel/dependencies_package/ ) |
-while read name
-do
-     (cat ./kernel/dependencies_package/$name ) |
-     while read module
-     do
-	  if [ -e $PACDIR/$name.package ] ; then
-            if [ ! -e ./tmp-tree/lib/modules/$KERNVER/$module.ko ] ; then
-	      echo "Package : $name   Module: $module"
-	      if ! cp `find ./kernel/modules-$KERNVER/ -follow -name "$module.ko"` ./tmp-tree/lib/modules/$KERNVER ; then
-		echo "Could not find $KERNVER module $module"
-	      fi
-	      echo "$module.ko" >> ./tmp-tree/modules.final
-            fi
-	  elif [ -e $PACDIR/$name.pkg ] ; then
-	    if [ ! -e $PKGDIR/$name/lib/modules/$KERNVER/$module.ko ] ; then
-              echo "Pkg     : $name   Module: $module"
-	      if [ ! -e $PKGDIR/$name/lib/modules/$KERNVER ] ; then
-	              mkdir -p $PKGDIR/$name/lib/modules/$KERNVER
-	      fi
-	      cp `find ./kernel/modules-$KERNVER/ -follow -name "$module.ko"` $PKGDIR/$name/lib/modules/$KERNVER
-	      echo "$module.ko" >> $PKGDIR/$name/modules.final
-            fi
-          fi
-     done
-done
+	while read name; do
+		(cat ./kernel/dependencies_package/$name ) |
+			while read module; do
+				if [ -e $PACDIR/$name.package ] ; then
+					if [ ! -e `find ./tmp-tree/lib/modules/$KERNVER -name ${module}.ko` ] ; then
+						echo "Package : $name   Module: $module"
+						if ! copy_module ${module}.ko $KERNVER ./tmp-tree; then
+							echo "Could not find $KERNVER module $module"
+						fi
+					fi
+				elif [ -e $PACDIR/$name.pkg ] ; then
+					if [ ! -e `find $PKGDIR/$name/lib/modules/$KERNVER -name ${module}.ko` ] ; then
+						echo "Pkg     : $name   Module: $module"
+						if ! copy_module ${module}.ko $KERNVER $PKGDIR/$name; then
+							echo "Could not find $KERNVER module $module"
+						fi
+					fi
+				fi
+			done
+	done
 
 #Additional Module dependencies check for new modules
 echo -e "\nChecking for additional dependencies for Modules...\n"
 
-module_dependencies 
+module_dependencies
 
-#Now check for supporting modules for all modules selected
-module_module_dependencies
+##Now check for supporting modules for all modules selected
+#module_module_dependencies
 
-rm ./modules.tmp
-rm ./modules.dep
 fi
 
 #Run depmod on modules included to generate modules.* files
@@ -1276,7 +1290,7 @@ ln -sf /lib/zoneinfo/$TIME_ZONE ./tmp-tree/etc/localtime
 # Building Sample Thinstation.conf file
 echo -e "\nBuilding Sample Thinstation.conf File\n"
 
-mkdir ./tmp-tree/conf
+mkdir -p ./tmp-tree/conf
 echo > ./thinstation.conf.sample
 for filename in `find $PKGDIR -maxdepth 1 -name "*" && echo "./tmp-tree"`
 do
@@ -1379,20 +1393,6 @@ for filename in `ls -1 $PKGDIR/` ; do
 		PKGFILES="$filename"
 	fi
 done
-
-# Allfirmware
-if is_enabled $ts_allfirmware; then
-	for module in `find ./tmp-tree/lib/modules -name \*.ko`; do
-		unset firmlist
-		firmlist=`modinfo -F firmware $module`
-		if [ -n "$firmlist" ]; then
-			echo "Adding extra module firmware for `basename $module`"
-			for firmware in $firmlist; do
-				copy_firmware `basename $firmware`
-			done
-		fi
-	done
-fi
 
 # Building Module packages
 echo -e "\nBuilding Module PKG Packages\n"
