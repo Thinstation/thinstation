@@ -38,11 +38,22 @@ showhelp()
 
 ## Remove Temp files
 
+unmount_tmp()
+{
+	if mounted ./tmp-tree/proc; then
+		umount -f ./tmp-tree/proc
+	fi
+	if mounted ./tmp-tree/dev; then
+		umount -f ./tmp-tree/dev
+	fi
+}
+
 remove_files()
 {
 #	But only if we don't want to save them for debugging
 	if [ -z "$SAVEDIR" ]; then
 		if [ -e ./tmp-tree ] ; then
+			unmount_tmp
 			rm -Rf ./tmp-tree/*
 			rmdir ./tmp-tree
 		fi
@@ -79,6 +90,12 @@ addpkgs()
     	cp $PKGDIR/*.pkg $1
     fi
   fi
+}
+
+mounted()
+{
+	mountpoint $1 &>/dev/null
+	return $?
 }
 
 lib_in_path()
@@ -168,35 +185,23 @@ copy_module()
 	return 1
 }
 
-module_module_dependencies()
+list_all_packages()
 {
-echo -e "\nAdding modules that are dependencies of selected modules\n"
-for line in `ls ./tmp-tree/lib/modules/$KERNVER/*` ;
-do
-    modname=`basename $line`
-    deplist=`grep /${modname}: ./modules.dep`
-    modlist=${deplist#*:}
-    for modpath in $modlist
-    do
-	mod=`basename $modpath`
-	if [ ! -e "./tmp-tree/lib/modules/$KERNVER/$mod" ] ; then
-    	    if [ -e "./kernel/modules-$KERNVER/$modpath" ] ; then
-		cp "./kernel/modules-$KERNVER/$modpath" ./tmp-tree/lib/modules/$KERNVER/$mod
-		echo "Including $mod as a dependency of $modname"
-	    elif [ -e "./tmp-tree/lib/modules/$KERNVER/$mod" ] ; then
-		echo "already there" >/dev/null
-	    else
-		echo "Error, Dependent module $mod for $modname not found"
-	    fi
-	fi
-    done
-done
+	echo "./tmp-tree"
+	find $MODDIR/ -mindepth 1 -maxdepth 1
+	find $PKGDIR/ -mindepth 1 -maxdepth 1
+}
+
+list_mod_packages()
+{
+	echo "./tmp-tree"
+	find $MODDIR/ -mindepth 1 -maxdepth 1
 }
 
 module_dependencies()
 {
-echo -e "\nAdding modules that are dependencies of selected modules\n"
-for pkgname in `echo "./tmp-tree" && find $MODDIR/ -mindepth 1 -maxdepth 1 && find $PKGDIR/ -mindepth 1 -maxdepth 1`; do
+echo -e "\nAdding modules that are dependencies of selected modules"
+for pkgname in `list_all_packages`; do
 	if [ -e $pkgname/lib/modules/$KERNVER ]; then
 		find $pkgname/lib/modules/$KERNVER -name \*.ko > ./modules.list
 		while [ -s ./modules.list ]; do
@@ -204,7 +209,7 @@ for pkgname in `echo "./tmp-tree" && find $MODDIR/ -mindepth 1 -maxdepth 1 && fi
 				depends="`modinfo -F depends $module |sed -e 's/,/ /g'`"
 				# Checks for already existing modules
 				for depend in $depends; do
-					if [ -z "`find ./tmp-tree/lib/modules/$KERNVER -name ${depend}.ko`" ] &&
+					if [ -z "`find ./tmp-tree/lib/modules/$KERNVER -name ${depend}.ko`" ] && \
 					   [ -z "`find $pkgname/lib/modules/$KERNVER -name ${depend}.ko`" ]; then
 						needed="$needed ${depend}.ko"
 					fi
@@ -212,6 +217,7 @@ for pkgname in `echo "./tmp-tree" && find $MODDIR/ -mindepth 1 -maxdepth 1 && fi
 				if [ -n "$needed" ]; then
 					echo "Adding dependency in `basename $pkgname` for module `basename $module`"
 					for depend in $needed; do
+						echo -e "\t\t\t\t$depend"
 						if copy_module $depend $KERNVER $pkgname; then
 							echo $copied >> modules.copied
 							allfirm $depend
@@ -227,6 +233,68 @@ for pkgname in `echo "./tmp-tree" && find $MODDIR/ -mindepth 1 -maxdepth 1 && fi
 		done
 	fi
 done
+}
+
+module_package_dependencies()
+{
+	# Adding additional modules and packages which are dependencies of other modules
+	echo -e "\nAdding $KERNVER module dependencies on other modules and packages not picked up by depmod"
+	for pkgname in `list_mod_packages`; do
+		(ls ./kernel/dependencies_module/ ) |
+		while read module; do
+			if [ -n "`find ./tmp-tree/lib/modules/$KERNVER -name ${module}.ko`" ] || \
+			   [ -n "`find $pkgname/lib/modules/$KERNVER -name ${module}.ko`" ]; then
+				(cat ./kernel/dependencies_module/$module ) |
+				while read type name; do
+					case $type in
+						module)
+							if [ -z "`find ./tmp-tree/lib/modules/$KERNVER -name ${name}.ko`" ] && \
+							   [ -z "`find $pkgname/lib/modules/$KERNVER -name ${name}.ko`" ]; then
+								if ! is_enabled $DISPLAYED; then
+									echo "Adding module dependencies for $module"
+									DISPLAYED=true
+								fi
+								echo -e "\t\t\t\tModule : $name"
+								copy_module ${name}.ko $KERNVER $pkgname
+								touch /tmp/dirty
+							fi
+						;;
+						package)
+							if [ ! -e $PACDIR/$name.package ] && \
+							   [ ! -e $PACDIR/$name.pkg ]; then
+								if [ -d ./packages/$name ]; then
+									if ! is_enabled $DISPLAYED; then
+										echo "Adding module dependencies for $module"
+										DISPLAYED=true
+									fi
+									echo "cp -Rp --remove-destination ./packages/$name/* ./tmp-tree > /dev/null 2>&1">>\
+										$PACDIR/$name.package
+									touch /tmp/dirty
+									echo -e "\t\t\t\tPackage : $name"
+								else
+									echo "Not Found $name!!"
+								fi
+							elif [ -z "`find ./tmp-tree/lib/modules -name ${module}.ko`" ] && \
+								 [ -n "`find $pkgname/lib/modules/$KERNVER -name ${module}.ko`" ] && \
+								 [ ! -e $PACDIR/$name.pkg ]; then
+								if [ -d  ./packages/$name ]; then
+									echo "building-pkg $name"
+									echo -e "cp -Rp ./packages/$name $PKGDIR" >> $PACDIR/$name.pkg
+									touch /tmp/dirty
+								else
+									echo "Not Found $name!!"
+								fi
+							fi
+						;;
+						*)
+							continue
+						;;
+					esac
+				done
+				unset DISPLAYED
+			fi
+		done
+	done
 }
 
 strip_files()
@@ -303,64 +371,90 @@ make_initrd()
 
 package_dependencies ()
 {
+	ls $PACDIR/*.$1 > packages.list 2>/dev/null
+	while [ -s packages.list ]; do
+		(cat packages.list ) |
+		while read filename; do
+			package=`basename $filename .$1`
+			if [ -s packages/$package/dependencies ] ; then
+				(cat packages/$package/dependencies |grep -v ^#) |
+				while read name cross; do
+					if	[ "$1" = "package" ] || \
+						[ "$name" = "base" ]; then
+						if	[ ! -e $PACDIR/$name.package ] && \
+							[ ! -e $PACDIR/$name.pkg ]; then
+							if	[ -e $PACDIR/$cross.package ] || \
+								[ -e $PACDIR/$cross.pkg ] || \
+								[ -z "$cross" ]; then
+								if ! is_enabled $DISPLAYED; then
+									echo "Adding dependent packages of $package:"
+									DISPLAYED=TRUE
+								fi
+								echo "                              package $name"
+								echo "cp -Rp --remove-destination ./packages/$name/* ./tmp-tree > /dev/null 2>&1">>\
+									$PACDIR/$name.package
+								echo $name.package >> packages.added
+								touch /tmp/dirty
+							fi
+						fi
+					elif [ "$1" = "pkg" ] ; then
+						if	[ ! -e $PACDIR/$name.package ] && \
+							[ ! -e $PACDIR/$name.pkg ]; then
+							if	[ -e $PACDIR/$cross.package ] || \
+								[ -e $PACDIR/$cross.pkg ] || \
+								[ -z "$cross" ]; then
+								if ! is_enabled $DISPLAYED; then
+									echo "Adding Dependent Pkgs of $package:"
+									DISPLAYED=TRUE
+								fi
+								echo "                         pkg $name"
+								echo -e "cp -Rp --remove-destination ./packages/$name $PKGDIR" >>\
+									$PACDIR/$name.pkg
+								echo $name.pkg >> packages.added
+								touch /tmp/dirty
+							fi
+						fi
+					fi
+				done
+				unset DISPLAYED
+			elif [ ! -e packages/$package/dependencies ]; then
+				echo "Not Found $package dependency!!"
+			fi
+		done
+		rm packages.list
+		if [ -e packages.added ]; then
+			mv packages.added packages.list
+		fi
+	done
+}
 
- ls $PACDIR/*.$1 > packages.final 2>/dev/null
-
- cp packages.final packages.list
-
- while [ -s packages.final ]; do
-  (cat packages.final ) |
-  while read filename
-  do
-    package=`basename $filename .$1`
-    if [ -s packages/$package/dependencies ] ; then
-      (cat packages/$package/dependencies |grep -v ^#) |
-      while read name cross
-      do
-       	if [ "$1" = "package" ] || [ "$name" = "base" ] ; then
-          if [ ! -e $PACDIR/$name.package ] && [ ! -e $PACDIR/$name.pkg ] ; then
-           if [ -e $PACDIR/$cross.package ] || [ -e $PACDIR/$cross.pkg ] || [ -z "$cross" ] ; then
-	    if [ "$DISPLAYED" != "TRUE" ]; then
-		echo "Adding dependent packages of $package:"
-		DISPLAYED=TRUE
-	    fi
-            echo "                              package $name"
-            echo "cp -Rp --remove-destination ./packages/$name/* ./tmp-tree > /dev/null 2>&1">>\
-              $PACDIR/$name.package
-	   fi
-          fi
-        elif [ "$1" = "pkg" ] ; then
-          if [ ! -e $PACDIR/$name.package ] && [ ! -e $PACDIR/$name.pkg ] ; then
-           if [ -e $PACDIR/$cross.package ] || [ -e $PACDIR/$cross.pkg ] || [ -z "$cross" ] ; then
-	    if [ "$DISPLAYED" != "TRUE" ]; then
-                echo "Adding Dependent Pkgs of $package:"
-                DISPLAYED=TRUE
-            fi
-            echo "                         pkg $name"
-	    echo -e "cp -Rp --remove-destination ./packages/$name $PKGDIR" >> $PACDIR/$name.pkg
-	   fi
-          fi
-        fi
-      done
-      unset DISPLAYED
-    elif [ ! -e packages/$package/dependencies ]; then
-	echo "Not Found $package dependency!!"
-    fi
-  done
-  ls $PACDIR/*.$1 > packages.after
-  diff -e packages.list packages.after | grep \.$1 > packages.final
-  cp packages.after packages.list
-  rm ./packages.after
- done
- if [ -z "$SAVEPKGLIST" ]; then
-   rm ./packages.final
-   rm ./packages.list
- else
-   cat ./packages.final >> ./packages.final.saved
-   cat ./packages.list >> ./packages.list.saved
-   rm ./packages.final
-   rm ./packages.list
- fi
+package_module_dependencies()
+{
+	# Adding additional modules which are dependencies of packages
+	echo -e "\nAdding $KERNVER module dependencies on other packages"
+	(ls ./kernel/dependencies_package/ ) |
+	while read name; do
+		(cat ./kernel/dependencies_package/$name ) |
+		while read module; do
+			if [ -e $PACDIR/$name.package ]; then
+				if [ -z "`find ./tmp-tree/lib/modules/$KERNVER -name ${module}.ko`" ]; then
+					echo "Package : $name   Module: $module"
+					touch /tmp/dirty
+					if ! copy_module ${module}.ko $KERNVER ./tmp-tree; then
+						echo "Could not find $KERNVER module $module"
+					fi
+				fi
+			elif [ -e $PACDIR/$name.pkg ]; then
+				if [ -z "`find $PKGDIR/$name/lib/modules/$KERNVER -name ${module}.ko`" ]; then
+					echo "Pkg     : $name   Module: $module"
+					touch /tmp/dirty
+					if ! copy_module ${module}.ko $KERNVER $PKGDIR/$name; then
+						echo "Could not find $KERNVER module $module"
+					fi
+				fi
+			fi
+		done
+	done
 }
 
 get_file ()
@@ -752,7 +846,7 @@ do
     \#*|"") continue
 	    ;;
     param)
-	echo "Package: $name"
+	echo "Parameter: $name"
 	echo "ts_$name=$args" >> $PACDIR/$name.param
 	;;
     package)
@@ -828,22 +922,72 @@ do
 done
 }
 
+install_non_distributable()
+{
+	echo -e "\nAdding and install non-distributable binaries\n"
+	for package in `ls $PACDIR | grep -v "\.param"`; do
+		package=`echo $package | cut -f1 -d.`
+		# Check if need to add full locale support for package
+		if [ -e ./packages/$package/build/fulllocales ] ; then
+			ts_forcelocales="true"
+		fi
+		if [ ! -e ./packages/$package/build/installed ] && [ -e ./packages/$package/build/install ] ; then
+			if [ -e $PACDIR/"$package"url.param ]; then
+				. $PACDIR/"$package"url.param
+				URL=`eval echo '$ts_'$package'url'`
+				if [ -n "$URL" ] ; then
+					web_package $URL $package
+				else
+					echo "$package url param not set in build.conf"
+					echo -e "Build Aborted\n"
+					remove_files
+					exit 1
+				fi
+			elif [ "`cat ./packages/$package/build/install |grep -c -e repackage`" -gt "0" ]; then
+				if ./packages/$package/build/install ; then
+					touch ./packages/$package/build/installed
+					echo -e "$package: Setup complete"
+				else
+					echo -e "\nError has occured while installing package"
+					echo -e "Build Aborted\n"
+					remove_files
+					exit 1
+				fi
+			fi
+		fi
+		if [ -e ./packages/$package/build/license ] ; then
+			if [ "`make_caps $LICENSE`" = "DECLINE" ] ; then
+				CHOICE=NO
+			elif [ "`make_caps $LICENSE`" != "ACCEPT" ] ; then
+				cat ./packages/$package/build/license | more
+				echo "Do you agree to this notice (YES/NO)"
+				read CHOICE
+				CHOICE=`make_caps $CHOICE`
+			else
+				CHOICE=YES
+			fi
+			if [ "$CHOICE" = "YES" ] ; then
+				echo "INFO: $package included"
+			else
+				if [ -e $PACDIR/$package.package ] ; then
+					rm $PACDIR/$package.package
+				elif [ -e $PACDIR/$package.pkg ] ; then
+					rm $PACDIR/$package.pkg
+				fi
+				echo "INFO: $package not included"
+			fi
+		fi
+	done
+}
+
 # Main TS build script
 main()
 {
 echo "+ Building image: "
 if [ -e $PKGDIR ] ; then
 	rm -Rf $PKGDIR/*
-else
-	mkdir -p $PKGDIR
 fi
-
-if [ -e ./tmp-tree ]; then
-	umount -f ./tmp-tree/proc
-	umount -f ./tmp-tree/dev
-	rm -Rf ./tmp-tree
-fi
-
+mkdir -p $PKGDIR
 $TOOLSDIR/unsquashfs -d ./tmp-tree $INITDIR/initrd.devices > /dev/null
 mkdir -p ./tmp-tree/lib/modules
 mkdir -p ./tmp-tree/packages
@@ -851,6 +995,15 @@ mkdir -p $MODDIR
 
 read_conf ./build.urls
 read_conf
+
+# Check if kernel exists
+for KERNVER in $KERNVERS; do
+	if [ ! -e ./kernel/vmlinuz-$KERNVER ] ; then
+		echo -e "\nError Kernel $KERNVER not found!!!"
+		remove_files
+		exit 0
+	fi
+done
 
 for KERNVER in $KERNVERS; do
 	mkdir -p ./tmp-tree/lib/modules/$KERNVER
@@ -879,125 +1032,39 @@ for KERNVER in $KERNVERS; do
 	fi
 done
 
-# Check if kernel exists
 for KERNVER in $KERNVERS; do
+	touch /tmp/dirty
+	while [ -e /tmp/dirty ]; do
+		rm /tmp/dirty
+		if ! is_enabled $ALLMODULES; then
+			# Adding dependent modules via modinfo
+			echo -e "\nBuilding dependencies for $KERNVER Modules..."
+			module_dependencies
+		fi
+		
+		# Adding additional packages and modules which are dependencies of modules
+		module_package_dependencies
 
-if [ ! -e ./kernel/vmlinuz-$KERNVER ] ; then
-	echo -e "\nError Kernel $KERNVER not found!!!"
-	remove_files
-	exit 0
-fi
+		# Adding dependent packages
+		echo -e "\nAdding Package Dependencies"
 
-# Adding additional packages which are dependencies of modules
-echo -e "\nAdding package module dependencies for $KERNVER\n"
-for pkgname in `echo "./tmp-tree" && find $MODDIR/ -mindepth 1 -maxdepth 1`; do
-	(ls ./kernel/dependencies_module/ ) |
-	while read module; do
-		if [ -e `find $pkgname/lib/modules/$KERNVER -name ${module}.ko` ] ||
-		   [ -e `find ./tmp-tree/lib/modules/$KERNVER -name ${module}.ko` ]; then
-			(cat ./kernel/dependencies_module/$module ) |
-			while read type name; do
-				case $type in
-					package)
-					if [ ! -e $PACDIR/$name.package ] && [ ! -e $PACDIR/$name.pkg ] ; then
-						if [ -e `find ./tmp-tree/lib/modules/$KERNVER -name ${module}.ko` ] ; then
-							echo "Package: $name"
-							if [ -d ./packages/$name ]; then
-								echo "cp -Rp --remove-destination ./packages/$name/* ./tmp-tree > /dev/null 2>&1">>\
-								$PACDIR/$name.package
-							else
-								echo "Not Found $name!!"
-							fi
-						elif [ -e `find $pkgname/lib/modules/$KERNVER -name ${module}.ko` ]; then
-							echo "building-pkg $name"
-							echo -e "cp -Rp ./packages/$name $PKGDIR" >> $PACDIR/$name.pkg
-						fi
-					fi
-					;;
-					*)
-						continue
-					;;
-				esac
-			done
+		package_dependencies package
+		package_dependencies pkg
+
+		# Adding modules that are dependencies of packages
+		package_module_dependencies
+		
+		# Did we add anything?
+		if [ -e /tmp/dirty ]; then
+			echo -e "\nDependencies are dirty. Restarting!"
 		fi
 	done
+	echo -e "\nDependencies are clean!"
+	#Run depmod on modules included to generate modules.* files
+	./utils/tools/depmod -b ./tmp-tree $KERNVER
 done
-done
 
-
-# Adding dependent packages
-
-echo -e "\nAdding Package Dependencies\n"
-
-package_dependencies package
-package_dependencies pkg
-
-# Adding dependent packages
-
-echo -e "\nAdding and install non-distributable binaries\n"
-
-for package in `ls $PACDIR | grep -v "\.param"`
-do
-  package=`echo $package | cut -f1 -d.`
-  # Check if need to add full locale support for package
-  if [ -e ./packages/$package/build/fulllocales ] ; then
-	ts_forcelocales="true"
-  fi
-  if [ ! -e ./packages/$package/build/installed ] && [ -e ./packages/$package/build/install ] ; then
-	if [ -e $PACDIR/"$package"url.param ]; then
-		. $PACDIR/"$package"url.param
-		URL=`eval echo '$ts_'$package'url'`
-		if [ -n "$URL" ] ; then
-			web_package $URL $package
-		else
-			echo "$package url param not set in build.conf"
-      			echo -e "Build Aborted\n"
-			remove_files
-			exit 1
-		fi
-	elif [ "`cat ./packages/$package/build/install |grep -c -e repackage`" -gt "0" ]; then
-		if ./packages/$package/build/install ; then
-	        	touch ./packages/$package/build/installed
-        		echo -e "$package: Setup complete"
-        	else
-          		echo -e "\nError has occured while installing package"
-          		echo -e "Build Aborted\n"
-          		remove_files
-          		exit 1
-		fi
-	fi
-  fi
-
-  if [ -e ./packages/$package/build/license ] ; then
-   if [ "`make_caps $LICENSE`" = "DECLINE" ] ; then
-     CHOICE=NO
-   elif [ "`make_caps $LICENSE`" != "ACCEPT" ] ; then
-     cat ./packages/$package/build/license | more
-     echo "Do you agree to this notice (YES/NO)"
-     read CHOICE
-     CHOICE=`make_caps $CHOICE`
-   else
-     CHOICE=YES
-   fi
-
-   if [ "$CHOICE" = "YES" ] ; then
-#	echo
-	echo "INFO: $package included"
-#	echo
-#	sleep 1
-   else
-	if [ -e $PACDIR/$package.package ] ; then
-		rm $PACDIR/$package.package
-	elif [ -e $PACDIR/$package.pkg ] ; then
-		rm $PACDIR/$package.pkg
-	fi
-#	echo
-	echo "INFO: $package not included"
-#	echo
-#	sleep 4
-   fi
-  fi
-done
+install_non_distributable
 
 # Add all packages to filetree
 
@@ -1188,81 +1255,6 @@ keymaps
 
 lib_dependencies
 
-# Adding dependent modules
-for KERNVER in $KERNVERS; do
-echo -e "\nBuilding dependencies for $KERNVER Modules...\n"
-
-if ! is_enabled $ALLMODULES; then
-
-module_dependencies
-
-# Adding additional modules which are dependencies of other modules
-echo -e "\nAdding $KERNVER module dependencies on other modules not picked up by depmod\n"
-for pkgname in `echo "./tmp-tree" && find $MODDIR/ -mindepth 1 -maxdepth 1`; do
-	(ls ./kernel/dependencies_module/ ) |
-	while read module; do
-		if [ -e `find $pkgname/lib/modules/$KERNVER -name ${module}.ko` ] ||
-		   [ -e `find ./tmp-tree/lib/modules/$KERNVER -name ${module}.ko` ] ; then
-			(cat ./kernel/dependencies_module/$module ) |
-			while read type name; do
-				case $type in
-					module)
-						if [ ! -e `find ./tmp-tree/lib/modules/$KERNVER -name ${name}.ko` ] &&
-						   [ ! -e `find $pkgname/lib/modules/$KERNVER -name ${name}.ko` ]; then
-							echo "Module : $name"
-							copy_module ${name}.ko $KERNVER ./tmp-tree
-						elif [ -e `find $pkgname/lib/modules/$KERNVER -name ${module}.ko` ]; then
-							echo "Module-pkg $name"
-							copy_module ${name}.ko $KERNVER $pkgname
-							echo $name >> $pkgname/etc/`basename $pkgname`.modules
-						fi
-					;;
-					*)
-						continue
-					;;
-				esac
-			done
-		fi
-	done
-done
-
-# Adding additional modules which are dependencies of packages
-echo -e "\nAdding $KERNVER module dependencies on other packages\n"
-(ls ./kernel/dependencies_package/ ) |
-	while read name; do
-		(cat ./kernel/dependencies_package/$name ) |
-			while read module; do
-				if [ -e $PACDIR/$name.package ] ; then
-					if [ ! -e `find ./tmp-tree/lib/modules/$KERNVER -name ${module}.ko` ] ; then
-						echo "Package : $name   Module: $module"
-						if ! copy_module ${module}.ko $KERNVER ./tmp-tree; then
-							echo "Could not find $KERNVER module $module"
-						fi
-					fi
-				elif [ -e $PACDIR/$name.pkg ] ; then
-					if [ ! -e `find $PKGDIR/$name/lib/modules/$KERNVER -name ${module}.ko` ] ; then
-						echo "Pkg     : $name   Module: $module"
-						if ! copy_module ${module}.ko $KERNVER $PKGDIR/$name; then
-							echo "Could not find $KERNVER module $module"
-						fi
-					fi
-				fi
-			done
-	done
-
-#Additional Module dependencies check for new modules
-echo -e "\nChecking for additional dependencies for Modules...\n"
-
-module_dependencies
-
-##Now check for supporting modules for all modules selected
-#module_module_dependencies
-
-fi
-
-#Run depmod on modules included to generate modules.* files
-./utils/tools/depmod -b ./tmp-tree $KERNVER
-done
 
 # Add user defined defaults
 if [ -e ./$ts_defaultconfig ] && [ ! -z "$ts_defaultconfig" ] ; then
@@ -1412,82 +1404,87 @@ for filename in `ls -1 $MODDIR/` ; do
 done
 
 rmdir $MODDIR
-# fix font directories
-echo -e "Running File System Fixups"
-echo "TS_VERSION=$TSVER" >> ./tmp-tree/etc/thinstation.env
-if [ -e ./tmp-tree/etc/icewm/toolbar ]; then
-	echo -e "\tFixing IceWM toolbar"
-	sed -i "s/\$XTERM_CMD/$XTERM_CMD/g" ./tmp-tree/etc/icewm/toolbar
-	sed -i "s/\$XTERM_CMD/$XTERM_CMD/g" ./tmp-tree/etc/icewm/keys
-fi
-if [ -e ./tmp-tree/lib/gconv ] ; then
-	echo -e "\tBuilding Charmap Cache"
-	for i in `ls ./tmp-tree/lib/gconv --color=never |cut -d . -f1`;
-		 do cat /usr/lib/gconv/gconv-modules|grep -e "$i" >>./tmp-tree/lib/gconv/gconv-modules
-		 done
+
+filesystem_fixups
+}
+
+filesystem_fixups()
+{
+	# Various filesystem fixups
+	echo -e "Running File System Fixups"
+	echo "TS_VERSION=$TSVER" >> ./tmp-tree/etc/thinstation.env
+	if [ -e ./tmp-tree/etc/icewm/toolbar ]; then
+		echo -e "\tFixing IceWM toolbar"
+		sed -i "s/\$XTERM_CMD/$XTERM_CMD/g" ./tmp-tree/etc/icewm/toolbar
+		sed -i "s/\$XTERM_CMD/$XTERM_CMD/g" ./tmp-tree/etc/icewm/keys
+	fi
+	if [ -e ./tmp-tree/lib/gconv ] ; then
+		echo -e "\tBuilding Charmap Cache"
+		for i in `ls ./tmp-tree/lib/gconv --color=never |cut -d . -f1`; do
+			cat /usr/lib/gconv/gconv-modules|grep -e "$i" >>./tmp-tree/lib/gconv/gconv-modules
+		done
         cp -H utils/tools/iconvconfig ./tmp-tree/bin/.
         chroot ./tmp-tree /bin/iconvconfig
         rm ./tmp-tree/bin/iconvconfig
-	find ./tmp-tree -name .gitignore |xargs rm
-fi
-if [ ! -d ./tmp-tree/etc/X11 ] ;then
-	echo -e "\tRemoving Extra Font Files"
+		find ./tmp-tree -name .gitignore -delete
+	fi
+	if [ ! -d ./tmp-tree/etc/X11 ] ;then
+		echo -e "\tRemoving Extra Font Files"
         rm -rf ./tmp-tree/lib/fonts/X11
         rm -rf ./tmp-tree/lib/X11
         rm -rf ./tmp-tree/lib/keymaps
-	rm ./tmp-tree/etc/background.jpg
-	rm ./tmp-tree/bin/vmmouse_detect
-else
-	echo -e "\tRunning mkfontdir and mkfontscale"
-	for fontdir in `find ./tmp-tree/lib/fonts/X11 -mindepth 1 -type d`; do
-		if [ ! -e $fontdir/fonts.scale ]; then
-			mkfontscale $fontdir
-		fi
-                mkfontdir $fontdir
+		rm ./tmp-tree/etc/background.jpg
+		rm ./tmp-tree/bin/vmmouse_detect
+	else
+		echo -e "\tRunning mkfontdir and mkfontscale"
+		for fontdir in `find ./tmp-tree/lib/fonts/X11 -mindepth 1 -type d`; do
+			if [ ! -e $fontdir/fonts.scale ]; then
+				mkfontscale $fontdir
+			fi
+			mkfontdir $fontdir
         done
-	if [ -e ./tmp-tree/lib/gdk-pixbuf-2.0/2.10.0/loaders ] ; then
-	echo -e "\tCaching pixbuf loaders"
-		cp -H utils/tools/gdk-pixbuf-query-loaders ./tmp-tree/bin/.
-		chroot ./tmp-tree /bin/gdk-pixbuf-query-loaders >./tmp-tree/lib/gdk-pixbuf-2.0/2.10.0/loaders.cache
-		rm ./tmp-tree/bin/gdk-pixbuf-query-loaders
+		if [ -e ./tmp-tree/lib/gdk-pixbuf-2.0/2.10.0/loaders ] ; then
+			echo -e "\tCaching pixbuf loaders"
+			cp -H utils/tools/gdk-pixbuf-query-loaders ./tmp-tree/bin/.
+			chroot ./tmp-tree /bin/gdk-pixbuf-query-loaders >./tmp-tree/lib/gdk-pixbuf-2.0/2.10.0/loaders.cache
+			rm ./tmp-tree/bin/gdk-pixbuf-query-loaders
+		fi
+		if [ -d ./tmp-tree/lib/pango ] ;then
+			echo -e "\tCaching pango modules"
+			cp -H utils/tools/pango-querymodules ./tmp-tree/bin/.
+			chroot ./tmp-tree /bin/pango-querymodules >./tmp-tree/etc/pango/pango.modules
+			rm ./tmp-tree/bin/pango-querymodules
+		fi
+		if [ -e ./tmp-tree/lib/glib-2.0/schemas ]; then
+			echo -e "\tCompiling Schemas"
+			cp -H utils/tools/glib-compile-schemas ./tmp-tree/bin/.
+			chroot ./tmp-tree /bin/glib-compile-schemas /lib/glib-2.0/schemas 2>/dev/null
+			rm ./tmp-tree/bin/glib-compile-schemas
+			gio-querymodules ./tmp-tree/lib/gio/modules
+		fi
 	fi
-	if [ -d ./tmp-tree/lib/pango ] ;then
-	echo -e "\tCaching pango modules"
-		cp -H utils/tools/pango-querymodules ./tmp-tree/bin/.
-		chroot ./tmp-tree /bin/pango-querymodules >./tmp-tree/etc/pango/pango.modules
-		rm ./tmp-tree/bin/pango-querymodules
-	fi
-	if [ -e ./tmp-tree/lib/glib-2.0/schemas ]; then
-	echo -e "\tCompiling Schemas"
-		cp -H utils/tools/glib-compile-schemas ./tmp-tree/bin/.
-		chroot ./tmp-tree /bin/glib-compile-schemas /lib/glib-2.0/schemas 2>/dev/null
-		rm ./tmp-tree/bin/glib-compile-schemas
-		gio-querymodules ./tmp-tree/lib/gio/modules
-	fi
-fi
-echo -e "\tLinking BusyBox\n"
-chroot ./tmp-tree /bin/busybox --install -s
+	echo -e "\tLinking BusyBox\n"
+	chroot ./tmp-tree /bin/busybox --install -s
 
-if [ -e ./tmp-tree/finalize ]; then
-  echo -e "\tRunning Finalize\n"
-  mount --bind /dev ./tmp-tree/dev
-  mount --bind /proc ./tmp-tree/proc
-  sed -e "/if.*proc\/cmdline/d" tmp-tree/etc/thinstation.global > ./tmp-tree/build.finalize
-  cat ./tmp-tree/finalize/* >> ./tmp-tree/build.finalize
-  chroot ./tmp-tree /bin/sh /build.finalize
-  while fuser ./tmp-tree ; do
-	sleep .1
-  done
-  umount ./tmp-tree/proc
-  umount ./tmp-tree/dev
-  rm ./tmp-tree/build.finalize
-  rm -rf ./tmp-tree/finalize
-  rm -rf ./tmp-tree/tmp/*
-  #Run depmod one last time, in case a finalize script removed a module
-  for KERNVER in $KERNVERS; do
-	./utils/tools/depmod -b ./tmp-tree $KERNVER
-  done
-fi
+	if [ -e ./tmp-tree/finalize ]; then
+		echo -e "\tRunning Finalize\n"
+		mount --bind /dev ./tmp-tree/dev
+		mount --bind /proc ./tmp-tree/proc
+		sed -e "/if.*proc\/cmdline/d" tmp-tree/etc/thinstation.global > ./tmp-tree/build.finalize
+		cat ./tmp-tree/finalize/* >> ./tmp-tree/build.finalize
+		chroot ./tmp-tree /bin/sh /build.finalize
+		while fuser ./tmp-tree ; do
+			sleep .1
+		done
+		unmount_tmp
+		rm ./tmp-tree/build.finalize
+		rm -rf ./tmp-tree/finalize
+		rm -rf ./tmp-tree/tmp/*
+		#Run depmod one last time, in case a finalize script removed a module
+		for KERNVER in $KERNVERS; do
+			./utils/tools/depmod -b ./tmp-tree $KERNVER
+		done
+	fi
 }
 
 # this is the starting point =>
