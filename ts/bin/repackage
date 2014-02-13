@@ -54,6 +54,13 @@ extract_archive()
 	tar -zxf $archive -C $pkgpath 2>/dev/null
 }
 
+preserve_empty_working()
+{
+	for usefuldir in `find $pkgpath -type d -empty`; do
+		touch $usefuldir/.gitignore
+	done
+}
+
 shallow_usr()
 {
 	for usr_dir in usr usr/local ; do
@@ -99,7 +106,7 @@ redirect_shared()
 
 extra_dirs()
 {
-	extra_dirs="man pkgconfig aclocal gtk-doc help vala gir-1.0 girepository-1.0 locale bash-completion cmake"
+	extra_dirs="man pkgconfig aclocal gtk-doc help vala gir-1.0 girepository-1.0 locale bash-completion cmake omf"
 	if [ "$package" != "python" ] ; then
 		extra_dirs="$extra_dirs include"
 	fi
@@ -211,6 +218,7 @@ main()
 {
 	package_path
 	extract_archive
+	preserve_empty_working
 	shallow_usr
 	redirect_shared
 	extra_dirs

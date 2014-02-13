@@ -63,6 +63,12 @@ remove_files()
 		if [ -e ./liblist ] ; then
 			rm ./liblist
 		fi
+		if [ -e ./packages.list ]; then
+			rm ./packages.list
+		fi
+		if [ -e ./modules.list ]; then
+			rm ./modules.list
+		fi
 		if [ -e ./wget_tmp ] ; then
 			rm -Rf ./wget_tmp
 		fi
@@ -231,6 +237,7 @@ for pkgname in `list_all_packages`; do
 				mv modules.copied modules.list
 			fi
 		done
+		rm -f modules.list
 	fi
 done
 }
@@ -426,6 +433,7 @@ package_dependencies ()
 			mv packages.added packages.list
 		fi
 	done
+	rm -f packages.list
 }
 
 package_module_dependencies()
@@ -439,16 +447,18 @@ package_module_dependencies()
 			if [ -e $PACDIR/$name.package ]; then
 				if [ -z "`find ./tmp-tree/lib/modules/$KERNVER -name ${module}.ko`" ]; then
 					echo "Package : $name   Module: $module"
-					touch /tmp/dirty
-					if ! copy_module ${module}.ko $KERNVER ./tmp-tree; then
+					if copy_module ${module}.ko $KERNVER ./tmp-tree; then
+						touch /tmp/dirty
+					else
 						echo "Could not find $KERNVER module $module"
 					fi
 				fi
 			elif [ -e $PACDIR/$name.pkg ]; then
 				if [ -z "`find $PKGDIR/$name/lib/modules/$KERNVER -name ${module}.ko`" ]; then
 					echo "Pkg     : $name   Module: $module"
-					touch /tmp/dirty
-					if ! copy_module ${module}.ko $KERNVER $PKGDIR/$name; then
+					if copy_module ${module}.ko $KERNVER $PKGDIR/$name; then
+						touch /tmp/dirty
+					else
 						echo "Could not find $KERNVER module $module"
 					fi
 				fi
@@ -657,8 +667,6 @@ if [ ! -z "$ts_bootresolution" ] ;then
 	if [ ! -z "$ts_boottheme" ] ; then splashvar="$splashvar,theme:$ts_boottheme" ; fi
 	if [ ! -z "$ts_silenttty" ] ; then splashvar="$splashvar,tty:$ts_silenttty" ; fi
 	KERNEL_PARAMETERS="$KERNEL_PARAMETERS $splashvar"
-	cd $TOOLSDIR
-	cd ../..
 	echo -e "+ Adding splash boot logo\n"
 	res=${ts_bootresolution%-*}
 	echo $res

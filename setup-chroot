@@ -75,17 +75,36 @@ do_mounts()
 	if ! mounted dev/pts ; then mount --bind /dev/pts dev/pts ; fi
 }
 
+copy_host_essential()
+{
+	cp -f /etc/resolv.conf etc/resolv.conf
+	if [ -e ~/.ssh ]; then
+		mkdir -p root
+		cp -Prfd ~/.ssh	root/.
+	fi
+}
+
 launch_chroot()
 {
 	do_mounts
-	cp -f /etc/resolv.conf etc/resolv.conf
+	if first_or_last; then
+		copy_host_essential
+	fi
 	chroot /$PWD /bin/bash --rcfile ./ts/TS_ENV
 	howdiditgo=$?
 	if first_or_last ; then
 		do_unmounts
+		secure_keys
 		if [ -e cleanstage2 ] ; then
                 	ts/bin/clean_chroot
         	fi
+	fi
+}
+
+secure_keys()
+{
+	if [ -e root/.ssh ]; then
+		rm -rf root/.ssh
 	fi
 }
 

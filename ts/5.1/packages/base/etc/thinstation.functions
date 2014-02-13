@@ -829,6 +829,7 @@ check_last_session ()
 			#TERM=linux exec openvt -c 4 -s -w $NO_XORG_CMD
 			. /etc/splash.functions
 			splash_exit
+			show_cursor
 			TERM=linux exec $NO_XORG_CMD
 		fi
 	fi
@@ -836,5 +837,10 @@ check_last_session ()
 
 hide_cursor ()
 {
-	echo -e '\033[?1c'
+	echo -en "\033[?25l"
+}
+
+show_cursor ()
+{
+	echo -en "\033[?12l\033[?25h"
 }

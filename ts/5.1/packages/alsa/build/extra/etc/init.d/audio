@@ -2,35 +2,51 @@
 
 . $TS_GLOBAL
 
+have_control()
+{
+	if amixer sget -c $card $1 > /dev/null 2>&1; then
+		return 0
+	else
+		return 1
+	fi
+}
+
 case "$1" in
 init)
 	if ! pkg_initialized $PACKAGE; then
 		alsactl init
-		if [ -n "$AUDIO_LEVEL" ]; then
-			for control in Master PCM CD Video; do
-				amixer sset $control $AUDIO_LEVEL%
-			done
-		fi
-		if [ -n "$MIC_LEVEL" ]; then
+		for card in `cat /proc/asound/cards |grep -e ":" |cut -c2`; do
+			if [ -n "$AUDIO_LEVEL" ]; then
+				for control in Master PCM CD Video; do
+					if have_control $control; then
+						amixer sset -c $card $control $AUDIO_LEVEL% unmute
+#						amixer sset -c $card $control unmute
+					fi
+				done
+			fi
 			if [ "$MIC_LEVEL" -gt "0" ]; then
 				if [ -z "$MIC_DEVICE" ]; then MIC_DEVICE=Mic; fi
-				amixer sset Capture $MIC_LEVEL% unmute
-				amixer sset $MIC_DEVICE playback mute
-				amixer sset $MIC_DEVICE $MIC_LEVEL% cap
-			else
-				amixer sset Capture 0%
+				if have_control $MIC_DEVICE; then
+					if have_control Capture; then
+						amixer sset Capture $MIC_LEVEL% unmute
+					fi
+					amixer sset $MIC_DEVICE playback mute
+					amixer sset $MIC_DEVICE $MIC_LEVEL% cap
+				elif have_control Capture; then
+					amixer sset Capture 0%
+				fi
 			fi
-		fi
-		if [ -n "$UNMUTE" ]; then
 			for control in $UNMUTE; do
-				amixer sset $control unmute
+				if have_control $control; then
+					amixer sset -c $card $control unmute
+				fi
 			done
-		fi
-		if [ -n "$MUTE" ]; then
 			for control in $MUTE; do
-				amixer sset $control mute
+				if have_control $control; then
+					amixer sset -c $card $control mute
+				fi
 			done
-		fi
+		done
 		pkg_set_init_flag $PACKAGE
 	fi
 	;;

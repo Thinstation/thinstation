@@ -7,10 +7,14 @@
 name=pulseaudio-TS
 version=4.0
 release=2
-source=(http://freedesktop.org/software/pulseaudio/releases/pulseaudio-$version.tar.xz)
+source=(http://freedesktop.org/software/pulseaudio/releases/pulseaudio-$version.tar.xz \
+	norootwarn.patch)
 
 build() {
 	cd ${name%-TS}-$version
+
+	patch -p0 -i $SRC/norootwarn.patch
+
 	./configure \
 		--prefix=/usr \
 		--libdir=/usr/lib \

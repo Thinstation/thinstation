@@ -2,31 +2,33 @@ if [ -n "$DEBUG_INIT" ] ; then
         echo_log "Doing Mounts"
 fi
 
-if [ ! -e /proc/mounts ]; then
-	mount -t proc proc /proc
-fi
-if [ ! -e /sys/bus ] ; then
-	mount -t sysfs sys /sys
-fi
+mount -n -t proc 	proc 	/proc	-o rw,nosuid,nodev,noexec,relatime
+mount -n -t sysfs 	sys 	/sys	-o rw,nosuid,nodev,noexec,relatime
+mount -n -t devtmpfs 	dev 	/dev	-o rw,nosuid,mode=0755
+mount -n -t tmpfs 	tmpfs 	/tmp	-o rw
+
+mkdir /dev/shm
+mount -n -t tmpfs	tmpfs	/dev/shm -o rw,nosuid,nodev
+
+mkdir /dev/pts
+mount -n -t devpts	devpts	/dev/pts -o rw,nosuid,noexec,relatime,mode=600
+
 
 if is_enabled $MEMORY_CONSTRAINED ; then
 	echo 100 > /proc/sys/vm/swappiness
-        mount -n -t tmpfs tmpfs /tmp
-        mount -n -t devtmpfs -o exec,nosuid,noatime,mode=0755,nr_blocks=128 dev /dev
-        mkdir /dev/shm
-        mount -n -t tmpfs -o exec,nosuid,noatime,mode=0755,nr_blocks=128 shm /dev/shm
 else
 	echo 0 > /proc/sys/vm/swappiness
-        mount -n -t tmpfs tmpfs /tmp
-        mount -n -t devtmpfs dev /dev
-        mkdir /dev/shm
-        mount -n -t tmpfs shm /dev/shm
 fi
 
-mkdir /dev/pts
-mount -t devpts devpts /dev/pts
-mkdir -m 1755 /tmp/ts
+let x=0
+while [ -n "`eval echo '$MOUNT_'$x`" ]; do
+	mount=`eval echo '$MOUNT_'$x`
+	echo -e "`echo \"$mount\" |sed -e 's/[ ]\+/\t/g'`" >> /etc/fstab
+	mount_point=`echo $mount |sed -e 's/[ ]\+/:/g' |cut -d ":" -f2`
+	let x=x+1
+done
 
+mkdir -m 1755 /tmp/ts
 ICEDIR='/tmp/.ICE-unix'
 mkdir ${ICEDIR}
 chown root:wheel ${ICEDIR}
