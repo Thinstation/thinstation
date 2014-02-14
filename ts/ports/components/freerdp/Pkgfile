@@ -4,25 +4,36 @@
 # Depends on: xorg-libx11
 
 name=freerdp
-version=stable-1.1
-release=git-stable
+version=1.1
+release=stable
 source=()
 
 build() {
-        git config --global http.sslVerify false
-        git clone https://github.com/FreeRDP/FreeRDP.git #-b stable-1.1
-        cd FreeRDP
-        git checkout origin/$version
-        cmake . -DDOCBOOKXSL_DIR=/usr/share/sgml/docbook-xsl-1.77.1/ \
-		-DCMAKE_INSTALL_PREFIX=/usr \
-                -DCMAKE_INSTALL_LIBDIR=/usr/lib \
-		-DWITH_PULSE=ON \
+	git clone git://github.com/FreeRDP/FreeRDP.git -b ${release}-$version
+	cd FreeRDP
+	cmake .	-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DCMAKE_BUILD_TYPE=Release \
 		-DWITH_PCSC=ON \
-		-DWITH_SMARTCARD=ON \
+		-DBUILD_SHARED_LIBS=ON \
+		-DWITH_CHANNELS=ON \
+		-DWITH_SERVER=OFF \
+		-DWITH_CLIENT=ON \
+		-DWITH_PULSE=ON \
+		-DWITH_ALSA=ON \
 		-DWITH_CUPS=ON \
+		-DWITH_FFMPEG=ON \
+		-DCHANNEL_URBDRC_CLIENT=ON \
+		-DWITH_GSTREAMER=ON \
+		-DWITH_DIRECTFB=OFF \
+		-DWITH_XINERAMA=ON \
+		-DWITH_CUNIT=OFF \
 		-DWITH_JPEG=ON \
+		-DWITH_IPP=OFF \
+		-DWITH_NPP=OFF \
+		-DWITH_MANPAGES=OFF \
 		-DWITH_SAMPLE=ON
 
-        make
-        make DESTDIR=$PKG install
+	make
+	make DESTDIR=$PKG install
 }

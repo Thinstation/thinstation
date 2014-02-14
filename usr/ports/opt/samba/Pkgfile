@@ -1,66 +1,56 @@
 # Description: SMB server and client for unix
 # URL:         http://www.samba.org
 # Maintainer:  Juergen Daubert, jue at crux dot nu
-# Depends on:  ncurses openssl readline zlib tdb talloc libcap acl
+# Depends on:  ncurses openssl readline zlib tdb talloc libcap acl libaio popt
 
 name=samba
-version=3.6.13
+version=4.1.4
 release=1
 source=(http://www.samba.org/samba/ftp/stable/$name-$version.tar.gz \
-        samba-config.patch samba)
+        samba)
 
 build () {
-    cd $name-$version/source3
+    cd $name-$version
 
-    patch -d .. -p1 -i $SRC/samba-config.patch
+_samba4_idmap_modules=idmap_ad,idmap_rid,idmap_adex,idmap_hash,idmap_tdb2
+_samba4_pdb_modules=pdb_tdbsam,pdb_ldap,pdb_ads,pdb_smbpasswd,pdb_wbc_sam,pdb_samba4
+_samba4_auth_modules=auth_unix,auth_wbc,auth_server,auth_netlogond,auth_script,auth_samba4
 
-    ./configure --prefix=/usr \
-                --localstatedir=/var \
-                --with-fhs \
-                --with-configdir=/etc \
-                --with-modulesdir=/usr/lib/samba \
-                --with-lockdir=/var/run/samba \
-                --with-piddir=/var/run/samba \
-                --with-nmbdsocketdir=/var/run/samba \
-                --with-mandir=/usr/man \
-                --with-logfilebase=/var/log/samba \
-                --disable-swat \
-                --disable-smbtorture4 \
-                --enable-cups \
-                --enable-iprint \
-                --enable-relro \
-                --enable-shared-libs \
-                --with-included-popt \
-                --enable-external-{libtb,libtalloc} \
-                --without-libtalloc \
-                --without-dmapi \
-                --without-dnsupdate \
-                --without-sys-quotas \
-                --without-utmp \
-                --without-cluster-support
+    local JOBS=$(awk 'BEGIN{RS="-j|--jobs="} NR==2 {print $1}' <<< $MAKEFLAGS)
+    test -n "$JOBS" && export JOBS="$JOBS"
+
+	./configure --enable-fhs \
+              --prefix=/usr \
+              --sbindir=/usr/bin \
+              --libdir=/usr/lib \
+              --localstatedir=/var \
+              --with-configdir=/etc/samba \
+              --with-sockets-dir=/var/run/samba \
+              --with-piddir=/var/run \
+              --with-ads \
+              --with-ldap \
+              --with-winbind \
+              --with-acl-support \
+              --enable-gnutls \
+              --with-pam \
+              --with-pammodulesdir=/usr/lib/security \
+              --with-shared-modules=${_samba4_idmap_modules},${_samba4_pdb_modules},${_samba4_auth_modules} \
+              --disable-rpath-install
 
     make
     make DESTDIR=$PKG install
 
-    # pkg-config files
-    install -d $PKG/usr/lib/pkgconfig
-    install pkgconfig/*.pc $PKG/usr/lib/pkgconfig
-
-    # nsswitch extensions
-    install -d $PKG/lib
-    install ../nsswitch/libnss_win{s,bind}.so $PKG/lib
-    ln -s libnss_wins.so $PKG/lib/libnss_wins.so.2
-    ln -s libnss_winbind.so $PKG/lib/libnss_winbind.so.2
-
-    # spool/log/lib directory
-    install -d $PKG/var/{lib,log}/samba
-    install -d -m 1777 $PKG/var/spool/samba
-
-    # config-file and start-script
-    install -m 600 ../examples/smb.conf.default $PKG/etc/samba
-    install -D -m 755  $SRC/samba $PKG/etc/rc.d/samba
-
+    # man pages
+    install -d $PKG/usr/man/man{1,5,8}
+    install -m 644 docs/manpages/*.1 $PKG/usr/man/man1
+    install -m 644 docs/manpages/*.5 $PKG/usr/man/man5
+    install -m 644 docs/manpages/*.8 $PKG/usr/man/man8
+    
     # cleanup
-    rm -r $PKG/usr/share
-    rm $PKG/usr/man/man8/{swat.8,tdb*.8}
+    chmod 1777 $PKG/var/lock/samba
+    
+    # config-file and start-script
+    install -d $PKG/etc/{samba,rc.d}
+    install -m 0600 packaging/LSB/smb.conf $PKG/etc/samba/smb.conf.default
+    install -m 0755 $SRC/samba $PKG/etc/rc.d
 }

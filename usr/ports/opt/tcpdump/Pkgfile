@@ -1,0 +1,19 @@
+# Description: Network sniffer with command line interface
+# URL:         http://www.tcpdump.org
+# Maintainer:  Juergen Daubert, jue at crux dot nu
+# Depends on:  libpcap, openssl
+
+name=tcpdump
+version=4.5.1
+release=1
+source=(http://www.tcpdump.org/release/$name-$version.tar.gz)
+
+build() {
+    cd $name-$version
+    ./configure --prefix=/usr \
+                --mandir=/usr/man \
+                --enable-ipv6 
+    make
+    make DESTDIR=$PKG install
+    rm $PKG/usr/sbin/tcpdump.$version
+}

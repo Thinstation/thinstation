@@ -1,0 +1,11 @@
+#!/bin/sh
+
+# check for pulseaudio group or add one
+getent group pulse || /usr/sbin/groupadd -g 90 pulse
+getent group pulse-access || /usr/sbin/groupadd -g 91 pulse-access
+
+# check for pulseaudio user or add one
+getent passwd pulse || /usr/sbin/useradd -g pulse -u 90 -d /var/run/pulse -s /bin/false -c "Pulseaudio User" pulse
+
+# lock the account
+/usr/bin/passwd -l pulse
