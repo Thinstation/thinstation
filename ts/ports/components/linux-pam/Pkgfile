@@ -3,16 +3,33 @@
 # Maintainer:	Alan Mizrahi, alan at mizrahi dot com dot ve
 
 name=linux-pam
-version=1.1.6
+version=1.1.8
 release=1
-source=(https://fedorahosted.org/releases/l/i/linux-pam/Linux-PAM-$version.tar.bz2 pam.conf)
+source=(https://fedorahosted.org/releases/l/i/linux-pam/Linux-PAM-$version.tar.bz2 pam.conf \
+	other \
+	system-auth \
+	system-local-login \
+	system-login \
+	system-remote-login \
+	system-services)
 
 build() {
 	cd Linux-PAM-$version
 
-	./configure --sysconfdir=/etc --prefix=/usr --mandir=/usr/man --disable-nls
+	./configure	--sysconfdir=/etc \
+			--prefix=/usr \
+			--mandir=/usr/man \
+			--disable-nls \
+			--disable-audit \
+			--disable-selinux
+
 	make
 	make DESTDIR=$PKG install
+
 	rm -rf $PKG/usr/share $PKG/lib/*.la $PKG/lib/security/*.la
 	install -D -m 644 $SRC/pam.conf $PKG/etc/pam.conf
+
+	mkdir -p $PKG/etc/pam.d
+
+	mv $SRC/{system-{auth,local-login,login,remote-login,services},other} $PKG/etc/pam.d
 }
