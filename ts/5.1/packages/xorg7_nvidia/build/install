@@ -2,7 +2,7 @@
 
 gzname=`basename $1`
 version=`echo $gzname |cut -d "-" -f4 |cut -d "." -f1-2`
-release=`cat ./utils/KERNEL_VERSION`
+release=`cat /boot/KERNEL_VERSION`
 
 
 INSTALLDIR="/build/packages/xorg7_nvidia"
@@ -19,7 +19,8 @@ cd wget_tmp
 sh $gzname -x
 cd NVIDIA-Linux-x86-$version
 
-./nvidia-installer -s -z -k ${release} --no-x-check --no-runlevel-check --no-kernel-module --log-file-name=./nvidia-installer.log --utility-prefix=$INSTALLDIR --documentation-prefix=$INSTALLDIR --opengl-prefix=$INSTALLDIR --x-library-path=$INSTALLDIR/lib --x-module-path=$INSTALLDIR/lib/xorg/modules
+export REPORT_KERNEL=3.10.14TS
+./nvidia-installer -s -z -k ${release} --no-cc-version-check --no-x-check --no-runlevel-check --no-kernel-module --log-file-name=./nvidia-installer.log --utility-prefix=$INSTALLDIR --documentation-prefix=$INSTALLDIR --opengl-prefix=$INSTALLDIR --x-library-path=$INSTALLDIR/lib --x-module-path=$INSTALLDIR/lib/xorg/modules
 
 mkdir -p $INSTALLDIR/lib/licenses/nvidia
 mv $INSTALLDIR/share/doc/NVIDIA_GLX-1.0/LICENSE $INSTALLDIR/lib/licenses/nvidia/.

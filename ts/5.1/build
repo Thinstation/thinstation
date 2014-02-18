@@ -149,6 +149,11 @@ lib_dependencies()
               DISPLAYED=TRUE
             fi
             libsource="`prt-get fsearch $libfile |grep -v Found |cut -d " " -f3 |head -n1`"
+		if [ "$libfile" == "libGL.so.1" ]; then
+			libfile=`readlink $libsource`
+			libsource="`prt-get fsearch $libfile |grep -v Found |cut -d " " -f3 |head -n1`"
+			ln -sf `basename $libsource` ./tmp-tree/lib/libGL.so.1
+		fi
             if [ -n "$libsource" ] && [ -e $libsource ]; then
               echo -e "\t\t\t$libfile"
               if [ ! -e $pkgname/lib ]; then
@@ -699,43 +704,32 @@ fi
 
 locales()
 {
-for i in `cat ./tmp-tree/build/*.template` ;
-	do
-		inputfile=`echo $i|cut -d , -f1` ;
-		charmap=`echo $i|cut -d , -f2` ;
-		name=`echo $i|cut -d , -f3` ;
-		localedef -i $inputfile -f $charmap $name --prefix=./tmp-tree ;
-	done
+	# Removes extended locale libs if not selected
 
-# Removes extended locale libs if not selected
-
-if [ -n "$ts_forcelocales" ] ; then
-	ts_fulllocales=true
-fi
-
-if [ -z "$ts_fulllocales" ] ; then
-	if [ ! -e $PACDIR/fulllocales.param ]; then
-		ts_fulllocales="false"
+	if [ -n "$ts_forcelocales" ]; then
+		ts_fulllocales=true
 	fi
-fi
+	if [ -z "$ts_fulllocales" ]; then
+		if [ ! -e $PACDIR/fulllocales.param ]; then
+			ts_fulllocales="false"
+		fi
+	fi
 
-if [ "$ts_fulllocales" != "true" ] ; then
-      for filename in `find $PKGDIR -maxdepth 1 -name "keymaps-*" && echo "./tmp-tree"`
-      do
-        if [ -e $filename/full ] ; then
-           rm -R $filename/full
- 	fi
-      done
-else
-	 for filename in `find $PKGDIR -maxdepth 1 -name "keymaps-*" && echo "./tmp-tree"`
-	 do
-           if [ -e $filename/full ] ; then
-	     cp -Rp $filename/full/* $filename/
-	     rm -R $filename/full
-           fi
-         done
-fi
-
+	if [ "$ts_fulllocales" != "true" ] ; then
+		for localedef in `cat ./tmp-tree/build/*.template |grep -e UTF`; do
+			inputfile=`echo $localedef|cut -d , -f1`
+			charmap=`echo $localedef|cut -d , -f2`
+			name=`echo $localedef|cut -d , -f3`
+			localedef -i $inputfile -f $charmap $name --prefix=./tmp-tree
+		done
+	else
+        	for localedef in `cat ./tmp-tree/build/*.template`; do
+                	inputfile=`echo $localedef|cut -d , -f1`
+	                charmap=`echo $localedef|cut -d , -f2`
+        	        name=`echo $localedef|cut -d , -f3`
+                	localedef -i $inputfile -f $charmap $name --prefix=./tmp-tree
+	        done
+	fi
 }
 
 allfirm()
