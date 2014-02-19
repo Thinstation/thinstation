@@ -183,6 +183,10 @@ copy_module()
 	local rpath=`find /lib/modules/$2 -name $1 -printf %h |cut -d "/" -f5-`
 	local src=/lib/modules/$2/$rpath/$1
 	local dest=$3/lib/modules/$2/$rpath
+	if [ ! -e $src ]; then
+		echo "Notice! Module $1 not found for kernel $2"
+		return 1
+	fi
 	if [ ! -e $dest/$1 ]; then
 		mkdir -p $dest
 		cp $src $dest/$1 #> /dev/null 2>&1
@@ -211,7 +215,7 @@ list_mod_packages()
 
 module_dependencies()
 {
-echo -e "\nAdding modules that are dependencies of selected modules"
+echo -e "\nAdding modules that are dependencies of selected modules\n"
 for pkgname in `list_all_packages`; do
 	if [ -e $pkgname/lib/modules/$KERNVER ]; then
 		find $pkgname/lib/modules/$KERNVER -name \*.ko > ./modules.list
@@ -332,6 +336,7 @@ make_initrd()
    cd tmp-tree
 	if [ "$ts_fastboot" == "true" ] || [ "$ts_fastboot" == "lotsofmem" ] ;then
 		echo -e "\nMaking initramfs - Fastboot Enabled"
+		export ts_fastbootcmd
 		../fastboot/fastboot-mangle $INITDIR $ts_fastboot $ts_hardlinkfs
 	else
 		if [ -e $INITDIR/lib.squash ] ; then
@@ -701,10 +706,16 @@ if [ ! -z "$ts_bootresolution" ] ;then
 fi
 }
 
+write_locale()
+{
+        echo "locale: $name"
+        localedef -i $inputfile -f $charmap $name --prefix=./tmp-tree
+}
 
 locales()
 {
 	# Removes extended locale libs if not selected
+	echo -e "\nAdding locales to archive.\n"
 
 	if [ -n "$ts_forcelocales" ]; then
 		ts_fulllocales=true
@@ -715,21 +726,20 @@ locales()
 		fi
 	fi
 
-	if [ "$ts_fulllocales" != "true" ] ; then
-		for localedef in `cat ./tmp-tree/build/*.template |grep -e UTF`; do
-			inputfile=`echo $localedef|cut -d , -f1`
-			charmap=`echo $localedef|cut -d , -f2`
-			name=`echo $localedef|cut -d , -f3`
-			localedef -i $inputfile -f $charmap $name --prefix=./tmp-tree
-		done
-	else
-        	for localedef in `cat ./tmp-tree/build/*.template`; do
-                	inputfile=`echo $localedef|cut -d , -f1`
-	                charmap=`echo $localedef|cut -d , -f2`
-        	        name=`echo $localedef|cut -d , -f3`
-                	localedef -i $inputfile -f $charmap $name --prefix=./tmp-tree
-	        done
-	fi
+	for localedef in `cat ./tmp-tree/build/*.template`; do
+		inputfile=`echo $localedef|cut -d , -f1`
+		charmap=`echo $localedef|cut -d , -f2`
+		name=`echo $localedef|cut -d , -f3`
+	        if ! is_enabled $ts_fulllocales; then
+			if [ "$charmap" == "UTF-8" ]; then
+				write_locale
+			fi
+		else
+			write_locale
+		fi
+	done
+	echo "locale: $name"
+	localedef -i $inputfile -f $charmap $name --prefix=./tmp-tree
 }
 
 allfirm()
@@ -766,7 +776,7 @@ keymaps()
 # Removes uneeded keymap package types
 # Also places the keymap components in the correct package
 
-echo -e "Checking if extended locale support is enabled\n"
+echo -e "\nChecking if extended locale support is enabled\n"
 
 for packagename in x-common base rdesktop blackbox ica_wfc
 do
@@ -1029,7 +1039,7 @@ for KERNVER in $KERNVERS; do
 	fi
 	if is_enabled $ALLMODULES ; then
 		echo "Doing an All Modules Build!"
-		for module in `find -L /lib/modules/$KERNVER -name \*.ko -printf '%f '`; do
+		for module in `find /lib/modules/$KERNVER -name \*.ko -printf '%f '`; do
 			if copy_module $module $KERNVER ./tmp-tree; then
 				allfirm $module
 			else
