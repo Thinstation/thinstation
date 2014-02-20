@@ -3,22 +3,20 @@
 # Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 
 name=open-vm-tools
-version=2013.04.16-1098359
-kver=3.10.14
+version=2013.09.16-1328054
+kver=3.13.3
 release=1
 source=(http://downloads.sourceforge.net/project/open-vm-tools/open-vm-tools/Development%20Snapshots/open-vm-tools-$version.tar.gz
-	open-vm-tools-2013.04.16-1098359-vmhgfs-linux-310.patch)
+	vmhgfs-d_count-kernel-3.11-tools-9.6.0.patch)
 
 build() {
-	cd $name-$version
+	cd $name-$version/modules/linux/vmhgfs/
 
-	patch -p0 < ../open-vm-tools-2013.04.16-1098359-vmhgfs-linux-310.patch
+	patch -p1 -i $SRC/vmhgfs-d_count-kernel-3.11-tools-9.6.0.patch
 
-	export CUSTOM_PROCPS_NAME=procps
-	export CUSTOM_PROCPS_LIBS=-L/usr/lib/libprocps.so
-#	sed -i -e 's/s_frozen/s_writers.frozen/g' modules/linux/vmsync/sync.c
+	cd $SRC/$name-$version
 
-	CFLAGS="$CFLAGS -Wno-deprecated-declarations" ./configure --prefix=/usr \
+	CFLAGS="$CFLAGS -Wno-error=unused-variable -Wno-deprecated-declarations" ./configure --prefix=/usr \
 			--sysconfdir=/etc \
 			--mandir=/usr/man \
 			--with-kernel-release=${kver}TS_SMP \
@@ -31,7 +29,7 @@ build() {
 	make DESTDIR=$PKG install
 	make clean
 
-        CFLAGS="$CFLAGS -Wno-deprecated-declarations" ./configure --prefix=/usr \
+        CFLAGS="$CFLAGS -Wno-error=unused-variable -Wno-deprecated-declarations" ./configure --prefix=/usr \
 			--sysconfdir=/etc \
 			--mandir=/usr/man \
 			--with-kernel-release=${kver}TS \

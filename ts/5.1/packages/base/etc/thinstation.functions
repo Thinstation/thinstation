@@ -844,3 +844,11 @@ show_cursor ()
 {
 	echo -en "\033[?12l\033[?25h"
 }
+
+splash_progress ()
+{
+        step=`expr 65536 / $splash_total`
+        pbar=`expr $progress \* $step`
+                echo "progress $pbar" > ${spl_fifo}
+                echo "paint" > ${spl_fifo}
+}

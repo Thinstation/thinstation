@@ -6,8 +6,8 @@
 # Depends on:
 
 name=usb-redirector
-version=2.8
-kernver=3.10.14
+version=3.0
+kernver=3.13.3
 release=1
 source=(http://www.incentivespro.com/usb-redirector-linux-i386.tar.gz
 	installer.sh.diff
@@ -15,7 +15,7 @@ source=(http://www.incentivespro.com/usb-redirector-linux-i386.tar.gz
 	rc.usbsrvd-excludes)
 
 build() {
-	export REPORT_KERNEL=3.10.14TS
+	export REPORT_KERNEL=${kernver}TS
 	echo $PKG
 	mkdir -p $PKG/bin \
 		 $PKG/etc/{init.d,rc5.d} \
@@ -25,7 +25,7 @@ build() {
 	install -m 755 $SRC/rc.usbsrvd-excludes $PKG/etc/init.d/rc.usbsrvd-excludes
 	cd usb-redirector-linux-i386
 	patch -p1 -i ../installer.sh.diff
-	sed -i -e "s|3.8.0|3.11.0|g" installer.sh
+	sed -i -e "s|3.11.1|$kernver|g" installer.sh
 	./installer.sh install
 	sed -i -e "s|INSTALLDIR=|#INSTALLDIR=|g" $PKG/etc/init.d/rc.usbsrvd
 	sed -i -e "s|'start'|'start'\|'init'|g" $PKG/etc/init.d/rc.usbsrvd
