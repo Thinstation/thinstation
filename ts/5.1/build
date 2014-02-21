@@ -332,16 +332,17 @@ fi
 
 make_initrd()
 {
-
+	for oldfile in lib.squash initrd vmlinuz image.md5; do
+		if [ -e $INITDIR/$oldfile ]; then
+			rm $INITDIR/$oldfile
+		fi
+	done
    cd tmp-tree
 	if [ "$ts_fastboot" == "true" ] || [ "$ts_fastboot" == "lotsofmem" ] ;then
 		echo -e "\nMaking initramfs - Fastboot Enabled"
 		export ts_fastbootcmd
 		../fastboot/fastboot-mangle $INITDIR $ts_fastboot $ts_hardlinkfs
 	else
-		if [ -e $INITDIR/lib.squash ] ; then
-			rm $INITDIR/lib.squash
-		fi
 		echo -e "\nMaking initramfs"
 	fi
 	echo -e "\tFixing-Up links"
@@ -1480,25 +1481,29 @@ filesystem_fixups()
 					>> ./tmp-tree/lib/pango/$pver/modules.cache
 			done
 		fi
-		echo -e "\tCaching gtk-2.0 immodules"
-		gver=`find ./tmp-tree/lib/gtk-2.0 -type d -name immodules | cut -d "/" -f5`
-		if [ -n "$gver" ]; then
-			for immodule in `find ./tmp-tree/lib/gtk-2.0/$gver/immodules -type f -printf "%f "`; do
-				immodule=`find /usr/lib/gtk-2.0/$gver/immodules -name $immodule`
-				gtk-query-immodules-2.0 $immodule | \
-					grep -v "#" \
-					>> ./tmp-tree/lib/gtk-2.0/$gver/immodules.cache
-			done
+		if [ -d ./tmp-tree/lib/gtk-2.0 ]; then
+			echo -e "\tCaching gtk-2.0 immodules"
+			gver=`find ./tmp-tree/lib/gtk-2.0 -type d -name immodules | cut -d "/" -f5`
+			if [ -n "$gver" ]; then
+				for immodule in `find ./tmp-tree/lib/gtk-2.0/$gver/immodules -type f -printf "%f "`; do
+					immodule=`find /usr/lib/gtk-2.0/$gver/immodules -name $immodule`
+					gtk-query-immodules-2.0 $immodule | \
+						grep -v "#" \
+						>> ./tmp-tree/lib/gtk-2.0/$gver/immodules.cache
+				done
+			fi
 		fi
-		echo -e "\tCaching gtk-3.0 immodules"
-		gver=`find ./tmp-tree/lib/gtk-3.0 -type d -name immodules | cut -d "/" -f5`
-		if [ -n "$gver" ]; then
-			for immodule in `find ./tmp-tree/lib/gtk-3.0/$gver/immodules -type f -printf "%f "`; do
-				immodule=`find /usr/lib/gtk-3.0/$gver/immodules -name $immodule`
-				gtk-query-immodules-3.0 $immodule | \
-					grep -v "#" \
-					>> ./tmp-tree/lib/gtk-3.0/$gver/immodules.cache
-			done
+		if [ -d ./tmp-tree/lib/gtk-3.0 ]; then
+			echo -e "\tCaching gtk-3.0 immodules"
+			gver=`find ./tmp-tree/lib/gtk-3.0 -type d -name immodules | cut -d "/" -f5`
+			if [ -n "$gver" ]; then
+				for immodule in `find ./tmp-tree/lib/gtk-3.0/$gver/immodules -type f -printf "%f "`; do
+					immodule=`find /usr/lib/gtk-3.0/$gver/immodules -name $immodule`
+					gtk-query-immodules-3.0 $immodule | \
+						grep -v "#" \
+						>> ./tmp-tree/lib/gtk-3.0/$gver/immodules.cache
+				done
+			fi
 		fi
 		if [ -e ./tmp-tree/lib/glib-2.0/schemas ]; then
 			echo -e "\tCompiling Schemas"
@@ -1769,7 +1774,7 @@ rm -f vmlinuz*
 md5sum initrd > image.md5
 for KERNVER in $KERNVERS; do
 	if [ ! -e /boot/vmlinuz$k ]; then
-		ln -sf /boot/vmlinuz-$KERNVER ./vmlinuz$k
+		ln /boot/vmlinuz-$KERNVER ./vmlinuz$k
 	fi
 	md5sum vmlinuz$k >> image.md5
 	let k=k+1
@@ -1779,15 +1784,6 @@ if [ -e lib.squash ]; then
 	md5sum lib.squash >> image.md5
 fi
 cd ../..
-
-image_fastboot()
-{
-	if [ "$ts_fastboot" == "true" ] || [ "$ts_fastboot" == "lotsofmem" ] ; then
-		cp -p $INITDIR/lib.squash $IMAGEDIR
-	elif [ -e $IMAGEDIR/lib.squash ]; then
-		rm $IMAGEDIR/lib.squash
-	fi
-}
 
 if [ -z "$ts_bootimages" ]; then
 	ts_bootimages="syslinux pxe iso"
@@ -1803,6 +1799,32 @@ if [ -e build.image ]; then
 	rm build.image
 fi
 
+merge_boot()
+{
+	loadersource="`prt-get fsearch $LOADER |grep -Ev 'Found|/$' |cut -d " " -f3 |head -n1`"
+
+	rm -rf $IMAGEDIR
+	mkdir -p $IMAGEDIR/`dirname $CONFIGFILE`
+
+	cp $loadersource $IMAGEDIR
+	cp -a boot-images/templates/$ts_syslinuxtheme/* $IMAGEDIR
+
+	cat $IMAGEDIR/syslinux.cfg.tpl |sed -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS LM=$LM/g"> $IMAGEDIR/$CONFIGFILE
+	sed -i -e "s/\$LM/$LM/g" $IMAGEDIR/$CONFIGFILE
+	rm $IMAGEDIR/syslinux.cfg.tpl
+
+	for kernel in `find $INITDIR -maxdepth 1 -type f -name vmlinuz\* -printf '%f '`; do
+		ln $INITDIR/$kernel $IMAGEDIR/$kernel
+	done
+	ln $INITDIR/initrd $IMAGEDIR/initrd
+	ln $INITDIR/image.md5 $IMAGEDIR/image.md5
+	if [ -e $INITDIR/lib.squash ]; then
+		ln $INITDIR/lib.squash $IMAGEDIR/lib.squash
+	fi
+
+	addpkgs $IMAGEDIR
+}
+
 # Skips Images if NOIMAGES is set, useful for TS-O-Matic
 if [ -z "$NOIMAGES" ]; then
 	for image in $ts_bootimages; do
@@ -1810,66 +1832,27 @@ if [ -z "$NOIMAGES" ]; then
 		case $image in
 			syslinux)
 				IMAGEDIR=boot-images/syslinux
-				if [ -e boot-images/initrd/syslinux.files ]; then
-					cat boot-images/initrd/syslinux.files | awk "{ print \"$IMAGEDIR/\" \$1 }" | xargs rm -rf
-				fi
-				cp -a boot-images/templates/$ts_syslinuxtheme/* $IMAGEDIR
-				cat $IMAGEDIR/syslinux.cfg.tpl |sed -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS LM=2/g"> $IMAGEDIR/syslinux.cfg
-				sed -i -e 's/LM=4/LM=2/g' $IMAGEDIR/syslinux.cfg
-				rm $IMAGEDIR/syslinux.cfg.tpl
-				rm -f $IMAGEDIR/vmlinuz*
-				cp $INITDIR/vmlinuz* $IMAGEDIR
-				cp -p $INITDIR/initrd $IMAGEDIR
-				cp $INITDIR/image.md5 $IMAGEDIR
-				image_fastboot
-				addpkgs $IMAGEDIR
+				CONFIGFILE=syslinux.cfg
+				LOADER=syslinux
+				LM=2
+				merge_boot
 			;;
 			pxe)
 				IMAGEDIR=boot-images/pxe
-				if [ -e boot-images/initrd/syslinux.files ]; then
-					cat boot-images/initrd/syslinux.files | awk "{ print \"$IMAGEDIR/\" \$1 }" | xargs rm -rf
-				fi
-				mkdir -p $IMAGEDIR/pxelinux.cfg
-				cp -a boot-images/templates/$ts_syslinuxtheme/* $IMAGEDIR/
-				cat $IMAGEDIR/syslinux.cfg.tpl | sed -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS LM=3/g"> $IMAGEDIR/pxelinux.cfg/default
-				sed -i -e 's/LM=4/LM=3/g' $IMAGEDIR/pxelinux.cfg/default
-				rm $IMAGEDIR/syslinux.cfg.tpl
-				rm -f $IMAGEDIR/vmlinuz*
-				cp $INITDIR/vmlinuz* $IMAGEDIR
-				cp -p $INITDIR/initrd $IMAGEDIR
-				cp $INITDIR/image.md5 $IMAGEDIR
-				image_fastboot
-				addpkgs $IMAGEDIR
+				CONFIGFILE=pxelinux.cfg/default
+				LOADER=pxelinux.0
+				LM=3
+				merge_boot
 			;;
 			iso)
-				IMAGEDIR=boot-images/iso
-				if [ -e boot-images/common ]; then
-					cp -a boot-images/common/* $IMAGEDIR/source
-				fi
-				if [ -e boot-images/initrd/syslinux.files ]; then
-					cat boot-images/initrd/syslinux.files | awk "{ print \"$IMAGEDIR/source/\" \$1 }" | xargs rm -rf
-				fi
-				cp -a boot-images/templates/$ts_syslinuxtheme/* $IMAGEDIR/source
-				cat $IMAGEDIR/source/syslinux.cfg.tpl | sed -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS LM=4/g" > $IMAGEDIR/source/isolinux.cfg
-				rm $IMAGEDIR/source/syslinux.cfg.tpl
-				if [ -e $IMAGEDIR/source/vmlinuz ]; then
-					rm $IMAGEDIR/source/vmlinuz*
-				fi
-				if [ -e $IMAGEDIR/source/lib.squash ]; then
-					rm $IMAGEDIR/source/lib.squash
-				fi
-				cp $INITDIR/vmlinuz* $IMAGEDIR/source/
-				if [ ! -e $IMAGEDIR/source/initrd ]; then
-					ln -sf ../../initrd/initrd $IMAGEDIR/source/initrd
-				fi
-				cp $INITDIR/image.md5 $IMAGEDIR/source/.
-				if [ "$ts_fastboot" == "true" ] || [ "$ts_fastboot" == "lotsofmem" ] ; then
-					ln -sf ../../initrd/lib.squash $IMAGEDIR/source/lib.squash
-				elif [ -e $IMAGEDIR/source/lib.squash ]; then
-					rm $IMAGEDIR/source/lib.squash
-				fi
-				addpkgs $IMAGEDIR/source
-				genisoimage	-o $IMAGEDIR/thinstation.iso \
+				IMAGEDIR=boot-images/iso/source
+				CONFIGFILE=isolinux.cfg
+				LOADER=isolinux.bin
+				LM=4
+				merge_boot
+				
+				IMAGEDIR_FINAL=`dirname $IMAGEDIR`
+				genisoimage	-o $IMAGEDIR_FINAL/thinstation.iso \
 						-b isolinux.bin\
 						-f \
 						-quiet \
@@ -1879,18 +1862,17 @@ if [ -z "$NOIMAGES" ]; then
 						-boot-info-table \
 						-joliet \
 						-rock \
-						$IMAGEDIR/source
+						$IMAGEDIR_FINAL/source
 
 				if [ -e boot-images/common ]; then
 					ls boot-images/common | \
 					while read i; do
-						rm -rf "$IMAGEDIR/source/`basename "$i"`"
+						rm -rf "$IMAGEDIR/`basename "$i"`"
 					done
 				fi
 			;;
 		esac
 	done
-	ls boot-images/templates/$ts_syslinuxtheme > boot-images/initrd/syslinux.files
 fi
 
 remove_files
