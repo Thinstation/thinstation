@@ -739,8 +739,6 @@ locales()
 			write_locale
 		fi
 	done
-	echo "locale: $name"
-	localedef -i $inputfile -f $charmap $name --prefix=./tmp-tree
 }
 
 allfirm()
@@ -1803,7 +1801,8 @@ merge_boot()
 {
 	loadersource="`prt-get fsearch $LOADER |grep -Ev 'Found|/$' |cut -d " " -f3 |head -n1`"
 
-	rm -rf $IMAGEDIR
+	rm $IMAGEDIR/$CONFIGFILE
+	find $IMAGEDIR -maxdepth 1 -type f -delete
 	mkdir -p $IMAGEDIR/`dirname $CONFIGFILE`
 
 	cp $loadersource $IMAGEDIR
@@ -1850,7 +1849,7 @@ if [ -z "$NOIMAGES" ]; then
 				LOADER=isolinux.bin
 				LM=4
 				merge_boot
-				
+
 				IMAGEDIR_FINAL=`dirname $IMAGEDIR`
 				genisoimage	-o $IMAGEDIR_FINAL/thinstation.iso \
 						-b isolinux.bin\

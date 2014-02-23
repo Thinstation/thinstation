@@ -3,11 +3,26 @@
 # Maintainer: CRUX System Team, core-ports at crux dot nu
 
 name=iana-etc
-version=2.4
+version=2.30
 release=1
-source=(services protocols)
+source=(http://sethwklein.net/${name}-${version}.tar.bz2 \
+	protocols.gawk \
+	services.gawk \
+	newer.patch)
 
 build() {
-	mkdir -m 755 $PKG/etc
-	install -m 644 {services,protocols} $PKG/etc
+	cd "${SRC}/${name}-${version}"
+	cp ../protocols.gawk ../services.gawk .
+	patch -p1 -i ../newer.patch
+
+	cd "${SRC}/${name}-${version}"
+	make get
+	make
+
+	make test
+
+	make DESTDIR="${PKG}" install
+	install -Dm644 COPYING "${PKG}/usr/share/licenses/iana-etc/LICENSE"
+	install -Dm644 port-numbers.iana "${PKG}/usr/share/iana-etc/port-numbers.iana"
+	install -Dm644 protocol-numbers.iana "${PKG}/usr/share/iana-etc/protocol-numbers.iana"
 }
