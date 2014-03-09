@@ -1,0 +1,428 @@
+#!/bin/bash
+####################################################################
+# Copyright 2014 Donald A. Cupp Jr.
+#
+# This file is part of mkgptdrv.
+#
+# mkgptdrv is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# any later version.
+#
+# mkgptdrv is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with mkgptdrv. If not, see http://www.gnu.org/licenses/.
+#####################################################################
+
+test $(id -u) -ne 0 && echo "please run as root" && exit 1
+
+libutil="chain complex cptime display fancyhello hdt ifcpu \
+	 keytest libmenu menu prdhcp pxechn rosh simple test \
+	 test2 vesamenu"
+libcom32="chain cmd complex config display elf ethersel gfxboot \
+	  gpxecmd hdt hexdump host ifcpu ifcpu64 ifmemdsk ifplop \
+	  kbdmap kontron_wdt libmenu linux localboot lua mboot \
+	  pcitest pmload prdhcp pxechn reboot rosh sanboot sdi \
+	  simple sysdump test test2 vesamenu whichsys"
+libmenu="complex display hdt simple test test2"
+libgpl="cpuidtest disk dmitest hdt ifcpu lua vpdtest zzjson"
+liblua="lua"
+
+getopts()
+{
+	index=0
+	while [ -n "$1" ]; do
+		case "$1" in
+			-c|--config)	configdir="$2"; shift;;
+			-m|--min)	min_size="$2"; shift;;
+			-p|--partition)	add_part "$2"; let index+=1 ; shift;;
+			-t|--title)	EFIname="$2"; shift;;
+			--nvdefault)	nvdefault=true;;
+			--msoft)	msoft=true;;
+			*) device="$1";;
+		esac
+		shift
+	done
+	let number_of_parts=$index-1
+}
+
+get_dirs()
+{
+	for knownloc in /usr/share/syslinux /usr/lib/syslinux; do
+		if [ -e $knownloc/bios/ifcpu64.c32 ]; then
+			biosdir=$knownloc/bios
+		elif [ -e $knownloc/ifcpu64.c32 ]; then
+			biosdir=$knownloc
+		fi
+		if [ -e $knownloc/efi64/ifcpu64.c32 ]; then
+			efi64dir=$knownloc/efi64
+		fi
+		if [ -e $knownloc/efi32/ifcpu64.c32 ]; then
+			efi32dir=$knownloc/efi32
+		fi
+	done
+	if [ -z "$configdir" ] || [ ! -e $configdir/syslinux.cfg ]; then
+		echo "You must specify and syslinux theme dir with a syslinux.cfg inside."
+		exit 14
+	fi
+	if [ -z "$biosdir" ] || [ -z "$efi64dir" ] || [ -z "$efi32dir" ]; then
+		echo "We could not get a good read on your syslinux install."
+		exit 11
+	fi
+	if [ ! -e `which extlinux` ]; then
+		echo "Could not find extlinux executable."
+		exit 12
+	fi
+}
+
+is_enabled()
+{
+        if [ -n "$1" ]; then
+		for value in true on yes y 0; do
+			if [ "$value" == "$1" ]; then
+				return 0
+			fi
+		done
+	fi
+        return 1
+}
+
+scan_config()
+{
+	# Scan config file for potentially needed com32 files
+	if [ -e $1 ]; then
+		for com in \
+			pmload vesamenu sdi cpuidtest dmitest whichsys vpdtest \
+			elf cpuid debug linux vesainfo pxechn meminfo \
+			pcitest ifplop ethersel liblua ifmemdsk kbdmap libcom32 \
+			libmenu prdhcp gfxboot hexdump config libutil gpxecmd \
+			kontron_wdt disk zzjson libgpl chain host rosh ifcpu \
+			ifcpu64 hdt menu lua mboot cmd; do
+
+			grep $1 -oe $com.c32 >> /tmp/syslinux-com32
+		done
+	else
+		echo "Could not find config $config."
+		exit 13
+	fi
+}
+
+com_deps()
+{
+	for lib in libutil libcom32 liblua libgpl libmenu; do
+		if ! grep -qe $lib.c32 /tmp/syslinux-com32; then
+			for module in `eval echo "\$"$lib`; do
+				if grep -qe $module.c32 /tmp/syslinux-com32; then
+					echo "$lib.c32" >> /tmp/syslinux-com32
+					if [ "$lib" == "libmenu" ]; then
+						echo libutil.c32 >> /tmp/syslinux-com32
+						echo libcom32.c32 >> /tmp/syslinux-com32
+					fi
+				fi
+			done
+		fi
+	done
+	cat /tmp/syslinux-com32 |sort -u > /tmp/sorted
+	rm /tmp/syslinux-com32
+	mv /tmp/sorted /tmp/syslinux-com32
+}
+
+copy_files()
+{
+	ESP=/tmp/syslinux-mount
+	BIOSDIR=$ESP/boot/syslinux
+	EFI32=$ESP/EFI/"$EFIname"/efi32
+	EFI64=$ESP/EFI/"$EFIname"/efi64
+	MSDIR=$ESP/EFI/Microsoft/Boot
+	NVDIR=$ESP/EFI/BOOT
+	mkdir -p "$BIOSDIR"
+	mkdir -p "$EFI32"
+	mkdir -p "$EFI64" 									
+	cp -rfd $configdir/*		"$BIOSDIR/."
+	cp -rfd $configdir/*		"$EFI32/."
+	cp -rfd $configdir/*		"$EFI64/."
+	if is_enabled $nvdefault; then
+		mkdir -p		"$NVDIR"
+		cp -rfd $configdir/*	"$NVDIR/."
+	fi
+	if is_enabled $msoft; then
+		mkdir -p 		"$MSDIR"
+		cp -rfd $configdir/* 	"$MSDIR/."
+	fi
+	for com in `cat /tmp/syslinux-com32`; do
+		cp $biosdir/$com	"$BIOSDIR/."
+		cp $efi32dir/$com	"$EFI32/."
+		cp $efi64dir/$com	"$EFI64/."
+		if is_enabled $nvdefault; then
+			cp $efi64dir/$com "$NVDIR/."
+		fi
+		if is_enabled $msoft; then
+			cp $efi64dir/$com "$MSDIR/."
+		fi
+	done
+	cp $efi32dir/syslinux.efi	"$EFI32/."
+	cp $efi32dir/ldlinux.e32 	"$EFI32/."
+	cp $efi64dir/syslinux.efi	"$EFI64/."
+	cp $efi64dir/ldlinux.e64	"$EFI64/."
+	if is_enabled $nvdefault; then
+	        cp $efi64dir/syslinux.efi "$NVDIR/bootx64.efi"
+	        cp $efi64dir/ldlinux.e64  "$NVDIR/."
+	fi
+	if is_enabled $msoft; then
+		cp $efi64dir/syslinux.efi "$MSDIR/bootmgfw.efi"
+                cp $efi64dir/ldlinux.e64  "$MSDIR/."
+	fi
+}
+
+efi_ready()
+{
+	if [ -z "$EFIname" ]; then
+		echo "You must specify the name of \"Your\" EFI bootloader"
+		exit 9
+	fi
+	if [ -z "$ESPpart" ]; then
+		echo "You must have at least one ESP partition"
+		exit 10
+	fi
+	return 0
+}
+
+block_device()
+{
+	if [ -n "$1" ] && \
+	   [ -e /sys/block/`basename "$1"`/dev ]; then
+		return 0
+	else
+		echo "No block device specified, or not a block device."
+		exit 1
+	fi
+}
+
+not_being_used()
+{
+	for mount in `list_mounts $1`; do
+		if [ -n "`fuser -m $mount`" ]; then
+			echo "Device $1 is still in use"
+			exit 2
+		fi
+	done
+	return 0
+}
+
+user_agrees()
+{
+	while [ -z "$REPLY" ]; do
+	    echo "All data on the selected device is about to be overwritten!"
+		echo "Are you sure you want to do this?"
+		read -n 1 -r
+		if   [[ "$REPLY" =~ ^[Yy]$ ]]; then
+			echo ""
+			return 0
+		elif [[ "$REPLY" =~ ^[Nn]$ ]]; then
+			exit 3
+		else
+			echo -e "\nInvalid response $REPLY\n"
+			unset REPLY
+		fi
+	done
+}
+
+add_part()
+{
+	oIFS=$IFS
+	IFS='\n'
+	let part[$index]=$index+1 
+	if [ "${part[$index]}" == "128" ]; then
+		echo "Really, you need that many partitions?"
+		exit 5150
+	fi
+	# linux home swap data ESP
+	type[$index]=`echo "$1" |cut -d':' -f1`
+	if echo $1 | grep -qe ":"; then
+		size[$index]=`echo "$1" |cut -d':' -f2`
+		label[$index]=`echo "$1" |cut -d':' -f3`
+	fi
+	if [ -z "${size[$index]}" ]; then
+		size[$index]=0
+	fi
+	case ${type[$index]} in
+		l|linux) type[$index]=8300;;
+		s|swap)	type[$index]=8200;;
+		h|home) type[$index]=8302;;
+		d|data) type[$index]=0700;;
+		LVM)	type[$index]=8e00;;
+		ESP)	type[$index]=ef00
+			if [ -n "$ESPpart" ]; then
+				echo "You can only have one ESP partition"
+				exit 12
+			else
+				ESPpart=${part[$index]}
+			fi
+		;;
+	esac
+	IFS=$oIFS
+}
+
+convert_to_sectors()
+{
+	local size
+	local unit
+	unit="`echo $1 |sed -e s/[0-9]//g`"
+	if [ -n "$unit" ]; then
+		unit=`echo $unit |tr [a-z] [A-Z]`
+		value=${1%?}
+	else
+		unit=B
+		value=$1
+	fi
+	case $unit in
+		B)	let "size=${value}/512";;
+		S)	let "size=${value}";;
+		K)	let "size=${value}*2";;
+		M)	let "size=${value}*2*1024";;
+		G)	let "size=${value}*2*1024*1024";;
+		*)	echo "Invalid Unit $unit"; exit 5;;
+	esac
+	echo $size
+}
+
+enough_room()
+{
+	disk_size=`blockdev --getsz $device`
+	let last_psec=$disk_size-32
+	let last_psec=$last_psec/2048*2048
+	let last_psec=$last_psec-1
+	if [ -n "$min_size" ]; then
+		min_size=`convert_to_sectors $min_size`
+		if [ "$last_psec" -lt "$min_size" ]; then
+			echo "Disk is less than the requested size!"
+			exit 7
+		fi
+	fi
+	total=2048
+	for index in `seq 0 $number_of_parts`; do
+		if [ "$total" == "$last_psec" ]; then
+			echo "Only one partition can be expanded to fill the disk,"
+			echo "and it must be the last one."
+			exit 8
+		fi
+		size=${size[$index]}
+		start[$index]=$total
+		if [ -n "$size" ] && [ "$size" != "0" ]; then
+			size=`convert_to_sectors $size`
+			let end[$index]=${start[$index]}+$size-1
+			let total=$total+$size
+		else
+			end[$index]=$last_psec
+			total=$last_psec
+		fi
+	done
+	if [ "$total" -le "$last_psec" ]; then
+		return 0
+	else
+		echo "There is not enough room on the disk for all the requested partitions!"
+		exit 6
+	fi
+}
+
+install_mbr()
+{
+	dd if=$biosdir/gptmbr.bin of=$device bs=440 count=1 conv=notrunc
+}
+
+main()
+{
+	efi_ready
+	get_dirs
+	# Any text file is a potential config, and there are plenty of ways to get one in there,
+	# so lets look at all of them in the config folder.
+	for file in `find $configdir -type f`;do 
+		if file $file |grep -qe 'ASCII text'; then
+			scan_config $file
+		fi
+	done
+	com_deps
+	if block_device $device && \
+	   not_being_used $device && \
+	   enough_room $device && \
+	   user_agrees; then
+		partition
+		format
+		install_mbr
+		mkdir -p /tmp/syslinux-mount
+		mount ${device}$ESPpart /tmp/syslinux-mount
+		copy_files
+		extlinux -i $BIOSDIR
+		umount /tmp/syslinux-mount
+		rmdir /tmp/syslinux-mount
+		rm  /tmp/syslinux-com32
+	fi
+}
+
+list_mounts()
+{
+	cat /proc/mounts |grep -oe "$1[0-9]*"
+}
+
+partition()
+{
+	for mount in `list_mounts $device`; do
+		umount -f $mount
+	done
+	dd if=/dev/zero of=$device bs=1M count=2
+	dd if=/dev/zero of=$device bs=512 count=32 seek=$(($disk_size - 32))
+	blockdev --rereadpt $device
+	sgdisk -o $device
+	for index in `seq 0 $number_of_parts`; do
+		if [ -n "${label[$index]}" ]; then
+			sgdisk	-n ${part[$index]}:${start[$index]}:${end[$index]} \
+				-t ${part[$index]}:${type[$index]} \
+				-c ${part[$index]}:"${label[$index]}" \
+				$device
+		else
+			sgdisk	-n ${part[$index]}:${start[$index]}:${end[$index]} \
+				-t ${part[$index]}:${type[$index]} \
+				$device
+		fi
+	done
+	sgdisk $device --attributes=1:set:2
+}
+
+format()
+{
+	for index in `seq 0 $number_of_parts`; do
+		case ${type[$index]} in
+			0700|ef00)
+				if [ -n "${label[$index]}" ]; then
+					mkfs.vfat ${device}${part[$index]} -n "${label[$index]}"
+				else
+					mkfs.vfat ${device}${part[$index]}
+				fi
+			;;
+			8300|8302)
+				if [ -n "${label[$index]}" ]; then
+					mkfs.ext4 ${device}${part[$index]} -L "${label[$index]}"
+				else
+					mkfs.ext4 ${device}${part[$index]}
+				fi
+			;;
+			8200)
+				if [ -n "${label[$index]}" ]; then
+					mkswap ${device}${part[$index]} -L "${label[$index]}"
+				else
+					mkswap ${device}${part[$index]}
+				fi
+			;;
+			8e00) pvcreate ${device}${part[$index]};;
+		esac
+	done
+}
+
+getopts "$@"
+main
+
+exit 0

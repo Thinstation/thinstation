@@ -1,0 +1,15 @@
+# Description:	fdisk-like tools for GPT disks
+# Maintainer:	Fredrik Rinnestam, fredrik at crux dot nu
+# Depends on:	popt, icu
+
+name=gptfdisk
+version=0.8.10
+release=1
+source=(http://downloads.sourceforge.net/sourceforge/$name/$name-$version.tar.gz)
+
+build() {
+        cd $name-$version
+        make all
+        mkdir -p $PKG/usr/sbin
+        install -m 755 {cgdisk,gdisk,sgdisk,fixparts} $PKG/usr/sbin
+}
