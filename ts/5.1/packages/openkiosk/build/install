@@ -1,0 +1,37 @@
+#!/bin/sh
+
+gzname=`basename $1`
+INSTALLDIR=./packages/openkiosk/lib
+PREFS=./packages/openkiosk/etc/openkiosk/profile_template/prefs.js
+
+tar -C wget_tmp -jxf wget_tmp/$gzname
+if [ -d wget_tmp/openkiosk ]; then
+    mv wget_tmp/openkiosk $INSTALLDIR/openkiosk
+elif [ -d wget_tmp/OpenKiosk ]; then
+    mv wget_tmp/OpenKiosk $INSTALLDIR/openkiosk
+else
+    exit 1
+fi
+
+returnval=$?
+
+# update openkiosk version
+OPENKIOSK_VERSION=`grep -E "^Version" $INSTALLDIR/openkiosk/application.ini|sed 's/.*=//'`
+
+if [ -n $OPENKIOSK_VERSION ]; then
+    echo "Openkiosk browser version: $OPENKIOSK_VERSION"
+    sed -i -e "s/homepage_override.mstone.*/homepage_override.mstone\", \"${OPENKIOSK_VERSION}\");/" $PREFS
+    sed -i -e "s/enabledAddons.*/enabledAddons\", \"{972ce4c6-7e08-4474-a285-3208198ce6fd}:${OPENKIOSK_VERSION}\");/" $PREFS
+    sed -i -e "s/extensions.lastAppVersion.*/extensions.lastAppVersion\", \"${OPENKIOSK_VERSION}\");/" $PREFS
+    sed -i -e "s/extensions.lastPlatformVersion.*/extensions.lastPlatformVersion\", \"${OPENKIOSK_VERSION}\");/" $PREFS
+    echo $OPENKIOSK_VERSION > ./packages/openkiosk/build/version
+else
+    echo "Error: unable to find openkiosk browser version"
+fi
+
+# enable flash
+mkdir $INSTALLDIR/openkiosk/plugins
+cd $INSTALLDIR/openkiosk/plugins
+ln -s /lib/firefox/plugins/libflashplayer.so .
+
+exit $returnval
