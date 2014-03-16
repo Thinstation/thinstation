@@ -48,6 +48,7 @@ timezone_locale()
 
 	option=`cat /lib/indexed-locale.tab`
 	Xdialog	--no-tags \
+		--rc-file=/etc/gtk-2.0/gtkrc.mono \
 		--title "Locale" \
 		--stdout \
 		--menu "Localization / Keyboard Map" 20 40 4 ${option} \
@@ -128,21 +129,21 @@ disk_setup()
 
 	disk=${disk[$index]}
 	x_echo "Selected Disk" "Using disk $disk"
-	Xdialog	--title "Buggy Bios" \
-		--no-tags \
-		--stdout \
-		--checklist "Do you have a buggy bios that requires the\n start of the partition to be at sector 1\n instead of the default sector of 2048?" \
-			0 0 2 1 "Enable Buggy Bios Support" off \
-			> $tempdir/buggy
-			if [ $? -lt 1 ]; then
-				if [ "`cat $tempdir/buggy`" == "1" ]; then
-					buggybios=true
-				else
-					buggybios=false
-				fi
-			else
-				exit 1
-			fi
+#	Xdialog	--title "Buggy Bios" \
+#		--no-tags \
+#		--stdout \
+#		--checklist "Do you have a buggy bios that requires the\n start of the partition to be at sector 1\n instead of the default sector of 2048?" \
+#			0 0 2 1 "Enable Buggy Bios Support" off \
+#			> $tempdir/buggy
+#			if [ $? -lt 1 ]; then
+#				if [ "`cat $tempdir/buggy`" == "1" ]; then
+#					buggybios=true
+#				else
+#					buggybios=false
+#				fi
+#			else
+#				exit 1
+#			fi
 }
 
 install_it()
@@ -161,7 +162,7 @@ install_it()
 			if [ $? -gt 0 ]; then
         			exit l
 			else
-				$XTERM_CMD -T "Installing" $ARG /bin/install.sh $disk $buggybios
+				$XTERM_CMD -T "Installing" $ARG /bin/install.sh $disk #$buggybios
 			fi
 }
 

@@ -15,6 +15,8 @@ user_pref("browser.search.update", false);
 user_pref("browser.shell.checkDefaultBrowser", false);
 user_pref("browser.tabs.warnOnClose", false);
 user_pref("browser.tabs.warnOnOpen", false);
+user_pref("datareporting.healthreport.uploadEnabled", false);
+user_pref("datareporting.healthreport.service.firstRun", true);
 user_pref("extensions.pendingOperations", false);
 user_pref("extensions.shownSelectionUI", true);
 user_pref("extensions.update.autoUpdateDefault", false);

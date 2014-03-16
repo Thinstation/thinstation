@@ -3,14 +3,17 @@
 # Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 
 name=open-vm-tools
-version=2013.04.16-1098359
-kver=3.6.11
+version=2013.09.16-1328054
+kver=3.12.14
 release=1
-source=(http://downloads.sourceforge.net/project/$name/$name/Development%20Snapshots/${name}-$version.tar.gz)
+source=(http://downloads.sourceforge.net/project/open-vm-tools/open-vm-tools/Development%20Snapshots/open-vm-tools-$version.tar.gz
+	vmhgfs-d_count-kernel-3.11-tools-9.6.0.patch)
 
 build() {
-	cd $name-$version
-	sed -i -e 's/s_frozen/s_writers.frozen/g' modules/linux/vmsync/sync.c
+	cd $name-$version/modules/linux/vmhgfs
+	patch -p1 -i $SRC/vmhgfs-d_count-kernel-3.11-tools-9.6.0.patch
+
+	cd $SRC/$name-$version
 
 	./configure --prefix=/ \
 			--exec-prefix=/ \
@@ -21,7 +24,10 @@ build() {
 			--with-linuxdir=/usr/src/kernels/${kver}TS_SMP \
 			--disable-docs \
 			--with-gtkmm \
-#			--without-pam
+			--without-icu
+
+	sed -i -e s/-Werror//g services/plugins/dndcp/Makefile
+        sed -i -e s/-Werror//g services/plugins/vmbackup/Makefile
 
 	make
 	make DESTDIR=$PKG install
@@ -36,7 +42,10 @@ build() {
 			--with-linuxdir=/usr/src/kernels/${kver}TS \
 			--disable-docs \
 			--with-gtkmm \
-#			--without-pam \
+			--without-icu
+
+	sed -i -e s/-Werror//g services/plugins/dndcp/Makefile
+        sed -i -e s/-Werror//g services/plugins/vmbackup/Makefile
 
 	make
 	make DESTDIR=$PKG install

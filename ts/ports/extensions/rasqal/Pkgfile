@@ -1,0 +1,21 @@
+# Description: Support for Resource Description Framework (RDF): Query Library
+# URL: http://www.librdf.org
+# Maintainer:
+# Depends on:	libmpfr raptor2
+
+name=rasqal
+version=0.9.30
+release=1
+source=(http://download.librdf.org/source/$name-$version.tar.gz)
+
+build() {
+	cd $name-$version
+	./configure \
+		--prefix=/usr \
+		--enable-release \
+		--disable-static \
+		--enable-silent-rules
+	make
+	make install DESTDIR=$PKG
+	rm -rf $PKG/usr/share
+}

@@ -4,18 +4,15 @@
 # Depends on:  db iptables
 
 name=iproute2
-version=2.6.39
+version=3.10.0
 release=1
-source=(http://devresources.linuxfoundation.org/dev/iproute2/download/$name-$version.tar.gz \
-        $name-$version.patch net.iproute2)
+source=(https://www.kernel.org/pub/linux/utils/net/iproute2/$name-$version.tar.bz2)
 
 build() {
     cd $name-$version
-    patch -p1 -i $SRC/$name-$version.patch
     sed -i "s|-O2|$CFLAGS|" Makefile
     ./configure
     make
     make MANDIR=/usr/man DESTDIR=$PKG install
-    rm -r $PKG/share
-    install -D -m 0755 $SRC/net.iproute2 $PKG/etc/rc.d/net
+    rm -r $PKG/usr/share
 }

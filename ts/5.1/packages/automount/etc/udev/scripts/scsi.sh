@@ -3,6 +3,11 @@
 # Mount Hotplug Device
 #
 
+# wait until hostname has been specified
+#while [ "`hostname`" = "(none)" ]; do
+#  sleep 1
+#done
+
 . /etc/thinstation.env
 . $TS_GLOBAL
 
@@ -100,18 +105,23 @@ if [ "$TYPE" == "sr" ] && [ "$ACTION" == "change" ]; then
 	done
 #	export >> /var/log/cdrom
 	if [ "$ID_CDROM_MEDIA" == "1" ]; then
-	       	if [ -e /proc/sys/dev/cdrom ] ; then
+		if [ -e /proc/sys/dev/cdrom ] ; then
 			echo 0 > /proc/sys/dev/cdrom/autoclose
 		fi
 		if is_enabled $LOCK_CDROM ; then
 			echo 0 > /proc/sys/dev/cdrom/lock
 		fi
-	        mtpath=$BASE_MOUNT_PATH/cdrom$node
-	       	mount_opts="$CDROM_MOUNT_OPTIONS"
+		mtpath=$BASE_MOUNT_PATH/cdrom$node
+		let x=0
+		while mounted ${mtpath} ] ; do
+			umount -f ${mtpath}
+		done
+		mount_opts="$CDROM_MOUNT_OPTIONS"
 		do_mounts
 	fi
-elif [ "$TYPE" == "sd" ] && [ "$ACTION" == "add" ] ; then
-	if [ "$ID_BUS" == "usb" ] ; then
+elif ( [ "$TYPE" == "sd" ] || [ "$TYPE" == "mm" ] ) && [ "$ACTION" == "add" ] ; then
+        if ( [ "$ID_BUS" == "usb" ] || [ "$TYPE" == "mm" ] ) ; then
+
 		if is_enabled $USB_STORAGE_SYNC && [ ! -n "`echo $USB_MOUNT_OPTIONS |grep -e sync`" ]; then
 			USB_MOUNT_OPTIONS=$USB_MOUNT_OPTIONS,sync
 		fi

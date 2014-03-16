@@ -1,19 +1,32 @@
-#!/bin/bash
-# little script to build a thinstation package dir from vmware-view technical preview client
-# version 0.5 initial release
-# missing error handling
-# roman petry
+#!/bin/sh
 
 gzname=`basename $1`
-subdir=`basename $1 .orig.tar.gz |sed -r 's/_/-/g'`
+package=vmware-view-client
+version=`basename $gzname .orig.tar.gz |cut -d "_" -f2`
+SRCDIR=./wget_tmp/$package-$version
 INSTALLDIR=./packages/vmviewpcoip
-EXTRADIR=$INSTALLDIR/build/extra
 
-tar -C wget_tmp -zxf wget_tmp/$gzname
-cp -Prfd wget_tmp/$subdir/usr/bin $INSTALLDIR/.
-cp -Prfd wget_tmp/$subdir/usr/lib $INSTALLDIR/.
-cp -Prfd wget_tmp/$subdir/usr/share/* $INSTALLDIR/lib/.
-returnval=$?
-cp -Prfd $EXTRADIR/* $INSTALLDIR/.
+  tar -xf wget_tmp/$gzname -C wget_tmp
+  returnval=$?
+
+mv $SRCDIR/usr/bin $INSTALLDIR/.
+mv $SRCDIR/usr/lib $INSTALLDIR/.
+mv $SRCDIR/usr/share/* $INSTALLDIR/lib/.
+
+find $INSTALLDIR -name "._*" -exec rm {} \;
+
+for elf in `find $INSTALLDIR -type f |xargs file |grep -e ELF |cut -d ":" -f1`; do
+	strip $elf
+done
+
+rm -rf $INSTALLDIR/lib/locale
+rm -rf $INSTALLDIR/usr/share/lintian
+
+ln -s lib/doc/vmware-view-client/VMware-view-client-EULA-en.txt $INSTALLDIR/build/license
+
+mkdir -p $INSTALLDIR/lib/licenses/vmware-view-client
+ln -s /lib/doc/vmware-view-client/VMware-view-client-EULA-en.txt $INSTALLDIR/lib/licenses/vmware-view-client/VMware-view-client-EULA-en.txt
+
+cp -Prfd $INSTALLDIR/build/extra/* $INSTALLDIR/.
 
 exit $returnval

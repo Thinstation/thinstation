@@ -5,70 +5,20 @@
 name=firmware
 version=git
 release=1
-source=(http://www.thekelleys.org.uk/atmel/atmel-firmware-1.3.tar.gz
-	http://download.berlios.de/at76c503a/at76_usb-firmware-0.1.tar.gz
-	ftp://ftp.alsa-project.org/pub/firmware/alsa-firmware-1.0.27.tar.bz2
-	http://dl.ivtvdriver.org/ivtv/firmware/ivtv-firmware-20080701.tar.gz
-	http://downloads.sourceforge.net/zd1211/zd1211-firmware-1.4.tar.bz2
-	http://pkgs.fedoraproject.org/repo/pkgs/ipw2100-firmware/ipw2100-fw-1.3.tgz/46aa75bcda1a00efa841f9707bbbd113/ipw2100-fw-1.3.tgz
-	http://pkgs.fedoraproject.org/repo/pkgs/ipw2200-firmware/ipw2200-fw-3.1.tgz/eaba788643c7cc7483dd67ace70f6e99/ipw2200-fw-3.1.tgz
-	firmware-misc.tar.xz)
+source=()
 
 build() {
 	git clone --depth 1 git://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git
 	cd linux-firmware
+
+	ln -sf libertas/usb8388_v9.bin usb8388.bin
+	ln -sf libertas/sd8686_v9.bin sd8686.bin
+	ln -sf libertas/sd8686_v9_helper.bin sd8686_helper.bin
+	ln -sf libertas/cf8385.bin libertas_cs.fw
+	ln -sf libertas/cf8385_helper.bin libertas_cs_helper.fw
+
 	mkdir -p $PKG/lib/firmware
 	cp -Prfd * $PKG/lib/firmware/.
-	cd ..
-
-	cp atmel-firmware-1.3/images/*.bin	$PKG/lib/firmware/.
-	cp atmel-firmware-1.3/images.usb/*.bin	$PKG/lib/firmware/.
-	cp at76_usb-firmware-0.1/*.bin		$PKG/lib/firmware/.
-	cp atmel-firmware-1.3/COPYING		$PKG/lib/firmware/COPYING.atmel-firmware
-	cp at76_usb-firmware-0.1/COPYRIGHT	$PKG/lib/firmware/COPYRIGHT-usb.atmel-firmware
-	cp at76_usb-firmware-0.1/README		$PKG/lib/firmware/README-usb.atmel-firmware
-	cp atmel-firmware-1.3/README		$PKG/lib/firmware/README.atmel-firmware
-
-	cd alsa-firmware-1.0.27
-	./configure --disable-loader
-	make
-	for i in hdsploader mixartloader pcxhrloader usx2yloader vxloader ca0132; do
-		mv $i/README README.$i
-	done
-	mv aica/license.txt LICENSE.aica_firmware
-	mv aica/Dreamcast_sound.txt aica_dreamcast_sound.txt
-	mv ca0132/creative.txt LICENSE.creative_txt
-	make install DESTDIR=$PKG
-	rm -rf $PKG/usr
-
-	cd ..
-	mv license-end-user.txt $PKG/lib/firmware/ivtv-firmware-license-end-user.txt
-	mv license-oemihvisv.txt $PKG/lib/firmware/ivtv-firmware-license-oemihvisv.txt
-	mv v4l* $PKG/lib/firmware/.
-
-	mv LICENSE $PKG/lib/firmware/LICENSE.ipw2100
-	mv ipw21* $PKG/lib/firmware/.
-	mv ipw2200-fw-3.1/* $PKG/lib/firmware/.
-
-	mv zd1211-firmware $PKG/lib/firmware/zd1211
-	rm $PKG/lib/firmware/zd1211/{*.h,COPYING,README}
-
-	mv misc/* $PKG/lib/firmware/.
-	cd $PKG/lib/firmware
-	rm -rf turtlebeach
-
-	base=`pwd`
-	for link in `find . -type l`; do
-        	source=`readlink $link`
-	        dir=`dirname $link`
-	        file=`basename $link`
-        	if [ "$dir" != "." ]; then
-                	cd $dir
-	        fi
-        	rm $file
-	        cp $source $file
-	        cd $base
-	done
 
 	mkdir -p $PKG/ts/5.1/kernel/
 	mv $PKG/lib/firmware $PKG/ts/5.1/kernel/.

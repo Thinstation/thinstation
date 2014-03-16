@@ -4,20 +4,18 @@
 
 name=kernel-TS
 pname=${name%-*}
-version=3.6.11
-sversion=3.6.11
+version=3.12.14
+sversion=3.12.14
 release=1
-source=(ftp://ftp.kernel.org/pub/linux/kernel/v3.x/linux-$sversion.tar.bz2 \
-https://raw.github.com/mjanusz/homepage/master/projects/fbcondecor/fbcondecor-0.9.6-3.5-rc3.patch \
-/$TSCOMPROOT/aufs/patches/aufs3.patch
-ts.config)
+source=(ftp://ftp.kernel.org/pub/linux/kernel/v3.x/linux-$sversion.tar.xz \
+	/$TSCOMPROOT/aufs/patches/aufs3.patch
+	ts.config)
 
 build() {
 export MAKEFLAGS="-j5"
 	cd linux-$sversion
 	cp $SRC/ts.config ./.config
 
-	patch -p1 <../fbcondecor-0.9.6-3.5-rc3.patch
 	patch -p1 < ../aufs3.patch
 
 	make modules_prepare __headers

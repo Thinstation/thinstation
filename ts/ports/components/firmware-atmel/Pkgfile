@@ -1,0 +1,16 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=firmware-atmel
+version=1.3
+release=1
+source=(http://www.thekelleys.org.uk/atmel/atmel-firmware-$version.tar.gz)
+
+build() {
+	mkdir -p $PKG/lib/firmware
+	cp atmel-firmware-$version/images.usb/*.bin	$PKG/lib/firmware/.
+
+	mkdir -p $PKG/ts/5.1/kernel/
+	mv $PKG/lib/firmware $PKG/ts/5.1/kernel/.
+}

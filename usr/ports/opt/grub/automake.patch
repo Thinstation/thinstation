@@ -1,0 +1,45 @@
+--- grub-0.97/stage1/Makefile.am.orig	2012-02-27 10:28:38.000000000 +0900
++++ grub-0.97/stage1/Makefile.am	2012-02-27 10:29:32.000000000 +0900
+@@ -1,5 +1,5 @@
+-pkglibdir = $(libdir)/$(PACKAGE)/$(host_cpu)-$(host_vendor)
+-nodist_pkglib_DATA = stage1
++stagedir = $(libdir)/$(PACKAGE)/$(host_cpu)-$(host_vendor)
++nodist_stage_DATA = stage1
+ 
+ CLEANFILES = $(nodist_pkglib_DATA)
+ 
+--- grub-0.97/stage2/Makefile.am.orig	2012-02-27 10:29:39.000000000 +0900
++++ grub-0.97/stage2/Makefile.am	2012-02-27 10:30:37.000000000 +0900
+@@ -27,12 +27,12 @@
+ 	-DUSE_MD5_PASSWORDS=1 -DSUPPORT_SERIAL=1 -DSUPPORT_HERCULES=1
+ 
+ # Stage 2 and Stage 1.5's.
+-pkglibdir = $(libdir)/$(PACKAGE)/$(host_cpu)-$(host_vendor)
++stagedir = $(libdir)/$(PACKAGE)/$(host_cpu)-$(host_vendor)
+ 
+ EXTRA_PROGRAMS = nbloader.exec pxeloader.exec diskless.exec
+ 
+ if DISKLESS_SUPPORT
+-pkglib_DATA = stage2 stage2_eltorito e2fs_stage1_5 fat_stage1_5 \
++stage_DATA = stage2 stage2_eltorito e2fs_stage1_5 fat_stage1_5 \
+ 	ffs_stage1_5 iso9660_stage1_5 jfs_stage1_5 minix_stage1_5 \
+ 	reiserfs_stage1_5 ufs2_stage1_5 vstafs_stage1_5 xfs_stage1_5 \
+ 	nbgrub pxegrub
+@@ -43,7 +43,7 @@
+ 	reiserfs_stage1_5.exec ufs2_stage1_5.exec vstafs_stage1_5.exec \
+ 	xfs_stage1_5.exec nbloader.exec pxeloader.exec diskless.exec
+ else
+-pkglib_DATA = stage2 stage2_eltorito e2fs_stage1_5 fat_stage1_5 \
++stage_DATA = stage2 stage2_eltorito e2fs_stage1_5 fat_stage1_5 \
+ 	ffs_stage1_5 iso9660_stage1_5 jfs_stage1_5 minix_stage1_5 \
+ 	reiserfs_stage1_5 ufs2_stage1_5 vstafs_stage1_5 xfs_stage1_5
+ noinst_DATA = pre_stage2 start start_eltorito
+@@ -112,7 +112,7 @@
+ BUILT_SOURCES = stage2_size.h
+ endif
+ 
+-CLEANFILES = $(pkglib_DATA) $(noinst_DATA) $(BUILT_SOURCES)
++CLEANFILES = $(stage_DATA) $(noinst_DATA) $(BUILT_SOURCES)
+ 
+ stage2_size.h: pre_stage2
+ 	-rm -f stage2_size.h

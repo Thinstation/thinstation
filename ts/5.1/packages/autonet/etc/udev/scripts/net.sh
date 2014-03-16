@@ -136,7 +136,7 @@ _wlan()
 		exit
 	fi
 	if [ -n "$WIRELESS_WPAKEY" ];  then
-		if [ ! -x /sbin/wpa_supplicant ]; then
+		if [ ! -x /bin/wpa_supplicant ]; then
 			echo_log "Could not find wpa_supplicant"
 			exit
 		fi

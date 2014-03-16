@@ -1,0 +1,22 @@
+# Description: Support for Resource Description Framework (RDF): Syntax Library
+# URL: http://www.librdf.org
+# Maintainer:
+# Depends on:	curl libxml2 libxslt
+# Nice to have:	libyajl
+
+name=raptor2
+version=2.0.9
+release=1
+source=(http://download.librdf.org/source/$name-$version.tar.gz)
+
+build() {
+	cd $name-$version
+	./configure \
+		--prefix=/usr \
+		--disable-static \
+		--enable-release \
+		--enable-silent-rules
+	make
+	make install DESTDIR=$PKG
+	rm -rf $PKG/usr/share/
+}

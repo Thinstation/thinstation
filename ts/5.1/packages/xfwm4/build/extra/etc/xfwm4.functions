@@ -3,9 +3,9 @@ make_desktop()
 	mkdir -p $ICONDIR
 	LINK=$ICONDIR/`replace_char "$title.desktop" "[ /]" "_"`
 	if [ -n "$menu" ]; then
-		menu="$menu;"
+		menu="`echo $menu | awk -F:: "{ print \\$NF }"`"
 	else
-		menu="X-Xfce-Toplevel;"
+		menu="X-Xfce-Toplevel"
 	fi
 	echo "[Desktop Entry]"			>$LINK
 	echo "Version=1.0"			>>$LINK
@@ -17,7 +17,7 @@ make_desktop()
 	echo "Terminal=false"			>>$LINK
 	echo "Type=Application"			>>$LINK
 	echo "Icon=$icon"			>>$LINK
-	echo "Categories=GTK;GNOME;$menu"	>>$LINK
+	echo "Categories=GTK;GNOME;$menu;"	>>$LINK
 	chmod +x $LINK
 	unset menu
 }
@@ -97,12 +97,14 @@ xfconf_settings()
 	elif [ -e /etc/background.jpg ]; then
 		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/image-path -t string -s /etc/background.jpg -n
 		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/image-show -t bool -s true -n
+		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/image-style -t int -s 3 -n
 		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor1/image-path -t string -s /etc/background.jpg -n
 		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor1/image-show -t bool -s true -n
+		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor1/image-style -t int -s 3 -n
 	fi
 	if [ -n "$XFWM4_RED" ] && [ -n "$XFWM4_BLUE" ] && [ -n "$XFWM4_GREEN" ]; then
-		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/color1 -t uint -t uint -t uint -t uint -s $XFWM4_RED -s $XFWM4_BLUE -s $XFWM4_GREEN -s 65535 -n
-		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor1/color1 -t uint -t uint -t uint -t uint -s $XFWM4_RED -s $XFWM4_BLUE -s $XFWM4_GREEN -s 65535 -n
+		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/color1 -t uint -t uint -t uint -t uint -s $XFWM4_RED -s $XFWM4_GREEN -s $XFWM4_BLUE -s 65535 -n
+		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor1/color1 -t uint -t uint -t uint -t uint -s $XFWM4_RED -s $XFWM4_GREEN -s $XFWM4_BLUE -s 65535 -n
 	fi
 	if [ -n "$XFWM4_START_ICON" ]; then
 		xfconf-query -c xfce4-panel -p /plugins/plugin-1/button-icon -t string -s $XFWM4_START_ICON -n
@@ -113,6 +115,8 @@ xfconf_settings()
 	if [ "`make_caps x$XFWM4_START_POSITION`" == "XBOTTOM" ]; then
 		xfconf-query -c xfce4-panel -p /panels/panel-1/position -t string -s "p=8;x=0;y=0" -n
 	fi
+	xfconf-query -c xfwm4 -p /general/double_click_distance -t int -s 5 -n
+	xprop -root -format _NET_NUMBER_OF_DESKTOPS 32c -set _NET_NUMBER_OF_DESKTOPS 1
 	if is_enabled $XFWM4_COMPOSITING; then
 		xfconf-query -c xfwm4 -p /general/use_compositing -t bool -s true -n
 	else
@@ -173,15 +177,13 @@ wm_menu()
 		while read type title screen position workspace autostart custom icon_mode server options; do
 			if [ "$server" = "." ]; then unset server ; fi
 			if [ "$options" = "." ]; then unset options ; fi
-			if is_enabled $autostart; then mode=auto; else mode=window;fi
+			if is_enabled $autostart; then mode=auto; else mode=$MAXIMIZE_DEFAULT;fi
 			command="pkg $mode $type \"$server\" \"$options\""
 			package=$type
 			icon=$type
 			case "$icon_mode" in
 				ON|MENU)
 					ICONDIR=$HOME/.local/share/applications
-					make_desktop
-					ICONDIR=$HOME/Desktop
 					make_desktop
 				;;
 				SUBMENU|SUBMENUONLY)
@@ -190,6 +192,12 @@ wm_menu()
 					echo $type >> /tmp/typelist
 					make_desktop
 					unset menu
+				;;
+			esac
+			case "$icon_mode" in
+				ON|SUBMENU)
+					ICONDIR=$HOME/Desktop
+					make_desktop
 				;;
 			esac
 			case "$autostart" in
@@ -248,22 +256,25 @@ wm_menu()
 	fi
 	menudir=$HOME/.local/share/desktop-directories
 	mkdir -p $menudir
-	for menu_type in `cat /tmp/typelist |sort -u`; do
-		menudirfile=$menudir/$menu_type.directory
+	cat /tmp/typelist |sort -u | while read menu_type; do
+		menu_dirtype="`echo $menu_type | awk -F:: "{ print \\$NF }"`"
+		menudirfile=$menudir/$menu_dirtype.directory
+		echo $menu_type | awk -F:: "{ for (i=1; i<NF; i++) { print \"<Menu>\"; print \"<Name>\"\$i\"</Name>\" } }"  >>$menufile
 		echo "    <Menu>"								>>$menufile
-		echo "        <Name>$menu_type</Name>"						>>$menufile
-		echo "        <Directory>$menu_type.directory</Directory>"			>>$menufile
+		echo "        <Name>$menu_dirtype</Name>"						>>$menufile
+		echo "        <Directory>$menu_dirtype.directory</Directory>"			>>$menufile
 		echo "        <Include>"							>>$menufile
-		echo "            <Category>$menu_type</Category>"				>>$menufile
+		echo "            <Category>$menu_dirtype</Category>"				>>$menufile
 		echo "        </Include>"							>>$menufile
 		echo "    </Menu>"								>>$menufile
+		echo $menu_type | awk -F:: "{ for (i=1; i<NF; i++) print \"</Menu>\" }"          >>$menufile
 		echo ""										>>$menufile
 		echo "[Desktop Entry]"								>>$menudirfile
 		echo "Version=1.0"								>>$menudirfile
 		echo "Type=Directory"								>>$menudirfile
-		echo "Icon=$menu_type"								>>$menudirfile
-		echo "Name=$menu_type"								>>$menudirfile
-		echo "Comment=$menu_type"							>>$menudirfile
+		echo "Icon=$menu_dirtype"							>>$menudirfile
+		echo "Name=$menu_dirtype"							>>$menudirfile
+		echo "Comment=$menu_dirtype"							>>$menudirfile
 	done
 		echo "</Menu>"									>>$menufile
 }

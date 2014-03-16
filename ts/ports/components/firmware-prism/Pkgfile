@@ -1,0 +1,24 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=firmware-prism
+version=0.3
+release=1
+source=(http://downloads.sourceforge.net/project/orinoco/orinoco-fwutils/0.3/orinoco-fwutils-0.3.tar.gz)
+
+build() {
+	mkdir -p $PKG/lib/firmware
+	cd orinoco-fwutils-$version
+
+	./get_ezusb_fw
+	./get_prism_ap_fw
+	./get_symbol_fw
+
+	cp symbol_sp24t_prim_fw $PKG/lib/firmware/.
+	cp symbol_sp24t_sec_fw $PKG/lib/firmware/.
+	cp orinoco_ezusb_fw $PKG/lib/firmware/.
+	cp tf020004.hex $PKG/lib/firmware/prism_ap_fw.bin
+	mkdir -p $PKG/ts/5.1/kernel/
+	mv $PKG/lib/firmware $PKG/ts/5.1/kernel/.
+}

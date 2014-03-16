@@ -6,7 +6,7 @@ name=splashutils-TS
 pname=${name%-*}
 version=1.5.4.4
 release=1
-source=(http://fbsplash.alanhaggai.org/tarballs/files/${name%-*}-$version.tar.bz2)
+source=(http://sourceforge.net/projects/fbsplash.berlios/files/${name%-*}-$version.tar.bz2)
 
 build() {
 	cd $pname-$version
@@ -25,6 +25,9 @@ build() {
 			--without-mng \
 			--disable-static \
 			--disable-deprecated \
+			--disable-fbcondecor \
+                        --disable-helper \
+                        --disable-misc \
 			--disable-misc \
 			--without-klibc \
 			--enable-shared \
@@ -34,12 +37,12 @@ build() {
 	make DESTDIR=$PKG/$TSCOMPROOT/$pname install
 	rm $PKG/$TSCOMPROOT/$pname/bin/splashy2fbsplash.py
 	rm $PKG/$TSCOMPROOT/$pname/bin/splash_resize
-	rm $PKG/$TSCOMPROOT/$pname/bin/splash_geninitramfs
+#	rm $PKG/$TSCOMPROOT/$pname/bin/splash_geninitramfs
 	rm $PKG/$TSCOMPROOT/$pname/bin/splash-functions.sh
 	rm $PKG/$TSCOMPROOT/$pname/bin/bootsplash2fbsplash
 	rm $PKG/$TSCOMPROOT/$pname/bin/splash_manager
 	rm -rf $PKG/$TSCOMPROOT/$pname/include
 #	rm -rf $PKG/$TSCOMPROOT/$pname/lib
 	rm -rf $PKG/$TSCOMPROOT/$pname/share
-	ln -sf fbsplashd /$PKG/$TSCOMPROOT/$pname/bin/fbsplashd.static
+#	ln -sf fbsplashd /$PKG/$TSCOMPROOT/$pname/bin/fbsplashd.static
 }

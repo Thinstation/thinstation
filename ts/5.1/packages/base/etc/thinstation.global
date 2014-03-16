@@ -1,7 +1,16 @@
 #!/bin/sh
 
+cmd_line()
+{
+	for option in `cat /proc/cmdline`; do
+		if echo $option |grep -q -e "="; then
+			eval $option
+		fi
+	done
+}
+
 if [ -e /etc/thinstation.env ] ; then . /etc/thinstation.env ; fi
-if [ -e /proc/cmdline ] ; then . /proc/cmdline ; fi
+if [ -e /proc/cmdline ] ; then cmd_line; fi
 if [ -e $TS_DEFAULTS ] ; then . $TS_DEFAULTS ; fi
 if [ -e $TS_BUILDTIME ] ; then . $TS_BUILDTIME ; fi
 if [ -e $TS_NETWORK ] ; then . $TS_NETWORK ; fi

@@ -125,41 +125,41 @@ echo_log ()
 
 pkg_is_loaded ()
 {
-    if [ -f /etc/init.d/$1 ] ; then
-	return 0
-    else
-	return 1
-    fi
+	if [ -f /etc/init.d/$1 ] ; then
+		return 0
+	else
+		return 1
+	fi
 }
 
 pkg_is_executable ()
 {
-    if [ -x /bin/$1 ] ; then
-	return 0
-    else
-	return 1
-    fi
+	if [ -x /bin/$1 ] ; then
+		return 0
+	else
+		return 1
+	fi
 }
 
 pkg_initialized ()
 {
-    if [ -f /var/packages/$1 ]; then
-	return 0
-    else
-        return 1
-    fi
+	if [ -f /var/packages/$1 ]; then
+		return 0
+	else
+		return 1
+	fi
 }
 
 pkg_set_init_flag ()
 {
-    touch /var/packages/$1
+	touch /var/packages/$1
 }
 
 ## Make variable capitals
 
 make_caps ()
 {
-	if [ ! -z "$1" ]; then
+	if [ -n "$1" ]; then
 		echo $1 | tr "[a-z]" "[A-Z]"
 	else
 		return 1
@@ -170,209 +170,232 @@ make_caps ()
 
 make_lower ()
 {
-	echo $1 | tr "[A-Z]" "[a-z]"
+	if [ -n "$1" ]; then
+		echo $1 | tr "[A-Z]" "[a-z]"
+	else
+		return 1
+	fi
 }
 
 make_capital ()
 {
-   local word words badlist oneword x=0
+	local word words badlist oneword x=0
 
-   if [ "$1" = "-1" ] ; then
-     oneword="TRUE"
-     shift
-   fi
-   if [ $# -gt 1 ]; then
-	until [ -z "$1" ]
-	do
-	     let x=x+1
-	     case $1 in
-	     VNC|TCP|ZLIB|SSL|CUPSD|JPEG|RDP|PNG|IPPPort|IPPPrinting)
-		word=$1
-		;;
-	     *)
-		if [ -z "$oneword" ] || [ $x -eq 1 ] ; then
-		  word=`echo $1 | cut -c1 | tr "[a-z]" "[A-Z]"`
-		  word=$word`echo $1 | cut -c2- | tr "[A-Z]" "[a-z]"`
-		else
-		  word=`echo $1 | tr "[A-Z]" "[a-z]"`
-		fi
-		;;
-	     esac
-	     shift
-	     words="$words $word"
-	done
-	echo $words
-   else
-	case $1 in
-	VNC|TCP|ZLIB|SSL|CUPSD|JPEG|RDP|PNG|IPPPort|IPPPrinting)
-	   word=$1
-	   ;;
-	*)
-	  word=`echo $1 | cut -c1 | tr "[a-z]" "[A-Z]"`
-	  word=$word`echo $1 | cut -c2- | tr "[A-Z]" "[a-z]"`
-	esac
-	echo $word
-   fi
+	if [ "$1" = "-1" ] ; then
+		oneword="TRUE"
+		shift
+	fi
+	if [ $# -gt 1 ]; then
+		until [ -z "$1" ]; do
+			let x=x+1
+			case $1 in
+				VNC|TCP|ZLIB|SSL|CUPSD|JPEG|RDP|PNG|IPPPort|IPPPrinting)
+					word=$1
+				;;
+				*)
+					if [ -z "$oneword" ] || [ $x -eq 1 ] ; then
+						word=`echo $1 | cut -c1 | tr "[a-z]" "[A-Z]"`
+						word=$word`echo $1 | cut -c2- | tr "[A-Z]" "[a-z]"`
+					else
+						word=`echo $1 | tr "[A-Z]" "[a-z]"`
+					fi
+				;;
+			esac
+			shift
+			words="$words $word"
+		done
+		echo $words
+	else
+		case $1 in
+			VNC|TCP|ZLIB|SSL|CUPSD|JPEG|RDP|PNG|IPPPort|IPPPrinting)
+				word=$1
+			;;
+			*)
+				word=`echo $1 | cut -c1 | tr "[a-z]" "[A-Z]"`
+				word=$word`echo $1 | cut -c2- | tr "[A-Z]" "[a-z]"`
+		esac
+		echo $word
+	fi
 }
 
 # Window Manager dialogs
 
 confirm_exit ()
 {
-        Xdialog --title "Logout" --clear --yesno "Click yes to Confirm Exit?" 10 60
+	Xdialog --title "Logout" --clear --yesno "Click yes to Confirm Exit?" 10 60
 }
 
 dialog_get_username ()
 {
-if [ ! -z "$REMUSER" ]; then
-    DIALOG_USER=$REMUSER
-    echo "$REMUSER" > /tmp/.dialog_$1_options
-elif [ -e /tmp/.dialog_$1_user ]; then
-    DIALOG_USER=$(cat /tmp/.dialog_$1_user)
-fi
+	if [ -n "$REMUSER" ]; then
+		DIALOG_USER=$REMUSER
+		echo "$REMUSER" > /tmp/.dialog_$1_user
+	elif [ -e /tmp/.dialog_$1_user ]; then
+		DIALOG_USER=$(cat /tmp/.dialog_$1_user)
+	fi
 
-notcomplete=true
-while $notcomplete; do
-
-DIALOG_RESPONSE=`Xdialog --stdout --title $1 --left --icon /lib/pixmaps/$1_32x32.xpm \
-	--inputbox "Preparing to run $1" 10 55 "User name" "$DIALOG_USER" ` 2>>$APPLOG
-
-if [ "$?" == "0" ]; then
-    DIALOG_USER=`echo $DIALOG_RESPONSE | cut -d/ -f2`
-    DIALOG_OPTIONS=`echo $DIALOG_RESPONSE | cut -d/ -f3-`
-
-    if [ "$DIALOG_USER" != "" ]; then
-	REMUSER="`echo $DIALOG_USER |grep -E -v '&|;|\(|\`'`"
-	echo "$DIALOG_USER" > /tmp/.dialog_$1_user
-	notcomplete=false
-    else
-	Xdialog --title "$1 Client" --clear --msgbox "You must enter value for user name" 10 60 10000
-    fi
-else
-    if is_enabled $ALLOW_EXIT ; then
-	exit
-    else
-	dialog_no_value
-    fi
-fi
-
-done
+	notcomplete=true
+	while $notcomplete; do
+		DIALOG_RESPONSE=`Xdialog	--stdout \
+						--title $1 \
+						--left \
+						--icon /lib/pixmaps/$1_32x32.xpm \
+						--inputbox "Preparing to run $1" 10 55 "User name" "$DIALOG_USER"` 2>>$APPLOG
+		if [ "$?" == "0" ]; then
+			DIALOG_USER=`echo $DIALOG_RESPONSE | cut -d/ -f2`
+			DIALOG_OPTIONS=`echo $DIALOG_RESPONSE | cut -d/ -f3-`
+			if [ "$DIALOG_USER" != "" ]; then
+				REMUSER="`echo $DIALOG_USER |grep -E -v '&|;|\(|\`'`"
+				echo "$DIALOG_USER" > /tmp/.dialog_$1_user
+				notcomplete=false
+			else
+				Xdialog --title "$1 Client" \
+					--clear \
+					--msgbox "You must enter value for user name" 10 60 10000
+			fi
+		else
+			if is_enabled $ALLOW_EXIT ; then
+				exit
+			else
+				dialog_no_value
+			fi
+		fi
+	done
 }
 
 dialog_get_server_address ()
 {
-if [ ! -z "$SERVER" ]; then
-	echo $SERVER > /tmp/.dialog_$1_server
-fi
-if [ ! -z "$OPTIONS" ]; then
-	echo "$OPTIONS" > /tmp/.dialog_$1_options
-fi
-if [ -e /tmp/.dialog_$1_server ] ; then
-  DIALOG_SERVER=$(cat /tmp/.dialog_$1_server)
-else
-  touch /tmp/.dialog_$1_server
-  DIALOG_SERVER="type server name here"
-fi
+	if [ -n "$SERVER" ]; then
+		echo $SERVER > /tmp/.dialog_$1_server
+	fi
+	if [ -n "$OPTIONS" ]; then
+		echo "$OPTIONS" > /tmp/.dialog_$1_options
+	fi
+	if [ -e /tmp/.dialog_$1_server ] ; then
+		DIALOG_SERVER=$(cat /tmp/.dialog_$1_server)
+	else
+		touch /tmp/.dialog_$1_server
+		DIALOG_SERVER="type server name here"
+	fi
+	if [ -e /tmp/.dialog_$1_options ] ; then
+		DIALOG_OPTIONS=$(cat /tmp/.dialog_$1_options)
+	else
+		touch /tmp/.dialog_$1_options
+	fi
 
-if [ -e /tmp/.dialog_$1_options ] ; then
-  DIALOG_OPTIONS=$(cat /tmp/.dialog_$1_options)
-else
-  touch /tmp/.dialog_$1_options
-fi
+	# Now to business:
+	notcomplete=true
+	while $notcomplete; do
 
-# Now to business:
-notcomplete=true
-while $notcomplete; do
+		DIALOG_RESPONSE=`Xdialog	--stdout \
+						--title $1 \
+						--left \
+						--icon /lib/pixmaps/$1_32x32.xpm \
+						--2inputsbox "Preparing to run $1" 15 55 \
+						"Server name or IP number" "$DIALOG_SERVER" \
+						"Options" "$DIALOG_OPTIONS"` 2>>$APPLOG
 
-DIALOG_RESPONSE=`Xdialog --stdout --title $1 --left --icon /lib/pixmaps/$1_32x32.xpm --2inputsbox "Preparing to run $1" \
-                15 55 "Server name or IP number" "$DIALOG_SERVER" "Options" "$DIALOG_OPTIONS" ` 2>>$APPLOG
+		if [ "$?" == "0" ]; then
+			DIALOG_SERVER=`echo $DIALOG_RESPONSE | cut -d/ -f1`
+			DIALOG_OPTIONS=`echo $DIALOG_RESPONSE | cut -d/ -f2-`
+			# preserve settings
+			echo "$DIALOG_SERVER" > /tmp/.dialog_$1_server
+			echo "$DIALOG_OPTIONS" > /tmp/.dialog_$1_options
 
-if [ "$?" == "0" ]; then
-    DIALOG_SERVER=`echo $DIALOG_RESPONSE | cut -d/ -f1`
-    DIALOG_OPTIONS=`echo $DIALOG_RESPONSE | cut -d/ -f2-`
-    # preserve settings
-    echo "$DIALOG_SERVER" > /tmp/.dialog_$1_server
-    echo "$DIALOG_OPTIONS" > /tmp/.dialog_$1_options
+			if [ "$DIALOG_SERVER" != "type server name here" ]; then
+				SERVER="`echo $DIALOG_SERVER |grep -E -v '&|;|\(|\`'`"
+				OPTIONS="`echo $DIALOG_OPTIONS |grep -E -v '&|;|\(|\`'`"
+			fi
 
-    if [ "$DIALOG_SERVER" != "type server name here" ]; then
-    SERVER="`echo $DIALOG_SERVER |grep -E -v '&|;|\(|\`'`"
-    OPTIONS="`echo $DIALOG_OPTIONS |grep -E -v '&|;|\(|\`'`"
-    fi
-
-    if [ -n "$SERVER" ]; then
-	notcomplete=false
-    else
-	echo "$DIALOG_SERVER" > /tmp/.dialog_$1_server
-	SERVER=""
-	OPTIONS=""
-	Xdialog --title "$1 Client" --clear --msgbox "You must enter value for server name or IP" 10 60 10000
-    fi
-else
-    if is_enabled $ALLOW_EXIT ; then
-	exit
-    else
-	dialog_no_value
-    fi
-fi
-
-done
+			if [ -n "$SERVER" ]; then
+				notcomplete=false
+			else
+				echo "$DIALOG_SERVER" > /tmp/.dialog_$1_server
+				SERVER=""
+				OPTIONS=""
+				Xdialog --title "$1 Client" \
+					--clear \
+					--msgbox "You must enter value for server name or IP" 10 60 10000
+			fi
+		else
+			if is_enabled $ALLOW_EXIT ; then
+				exit
+			else
+				dialog_no_value
+			fi
+		fi
+	done
 }
 
 dialog_no_value ()
 {
-        Xdialog --title "$1 Client" --clear --msgbox "You must enter value, aborted" 10 60 10000
+	Xdialog --title "$1 Client" \
+		--clear \
+		--msgbox "You must enter value, aborted" 10 60 10000
 }
 
 dialog_get_value ()
 {
-        Xdialog --title "$1 Client" --clear --inputbox "Enter $2:" 10 60 2>&1 1>/dev/null |grep -E -v '&|;|\(|\`'
+	Xdialog --title "$1 Client" \
+		--clear \
+		--inputbox "Enter $2:" 10 60 2>&1 1>/dev/null \
+		|grep -Ev '&|;|\(|\`'
 }
 
 check_reconnect ()
 {
-  if [ -e /tmp/.X11-unix/X$DISPLAY_NUMBER ] ; then
-	prompt="`make_caps $RECONNECT_PROMPT | cut -c1-4`" 
-	NO_SESSION=`make_lower $NO_SESSION`
-	if [ "$prompt" = "MENU" ] ; then
-		prompt_time="`make_caps $RECONNECT_PROMPT | cut -c5-`" 
-		if [ -n "$prompt_time" ] ; then
-			kill_time=`date +%M`
-			let kill_time=kill_time+prompt_time+1
-			if [ $kill_time -gt 59 ] ; then
-				let kill_time=kill_time-60
+	if [ -e /tmp/.X11-unix/X$DISPLAY_NUMBER ] ; then
+		prompt="`make_caps $RECONNECT_PROMPT | cut -c1-4`" 
+		NO_SESSION=`make_lower $NO_SESSION`
+		if [ "$prompt" = "MENU" ] ; then
+			prompt_time="`make_caps $RECONNECT_PROMPT | cut -c5-`" 
+			if [ -n "$prompt_time" ] ; then
+				kill_time=`date +%M`
+				let kill_time=kill_time+prompt_time+1
+				if [ $kill_time -gt 59 ] ; then
+					let kill_time=kill_time-60
+				fi
+				echo "$kill_time  * * * * /bin/$NO_SESSION" >> /tmp/shutdown
+				crontab /tmp/shutdown
 			fi
-			echo "$kill_time  * * * * /bin/$NO_SESSION" >> /tmp/shutdown
-			crontab /tmp/shutdown
-		fi
-		unset choice_error
-		while [ "$choice_error" != "0" ] ; do
-	        	choice=$(Xdialog --stdout --title "Reconnect/Shutdown?" --clear --no-cancel --combobox "Choose option then OK to continue." 10 60 Reconnect Shutdown)
-			choice_error=$?
-		done
-		if [ "$choice" = "Shutdown" ] ; then
-			shutdown
-		elif [ -e /tmp/shutdown ] ; then
-			crontab /tmp/crontab
-			rm /tmp/shutdown
+			unset choice_error
+			while [ "$choice_error" != "0" ] ; do
+				choice=$(Xdialog	--stdout \
+							--title "Reconnect/Shutdown?" \
+							--clear \
+							--no-cancel \
+							--combobox "Choose option then OK to continue." 10 60 Reconnect Shutdown)
+				choice_error=$?
+			done
+			if [ "$choice" = "Shutdown" ] ; then
+				shutdown
+			elif [ -e /tmp/shutdown ] ; then
+				crontab /tmp/crontab
+				rm /tmp/shutdown
+				reconnect=0
+			fi
+		elif [ "$prompt" = "AUTO" ] ; then
+			prompt_time="`make_caps $RECONNECT_PROMPT | cut -c5-`" 
+			if [ -z "$prompt_time" ] ; then
+				prompt_time=10
+			fi
+			Xdialog	--title "No Server Response" \
+				--clear \
+				--timeout $prompt_time \
+				--msgbox "Server not responding - waiting $prompt_time seconds" 10 60
 			reconnect=0
+		elif [ "$prompt" == "FORC" ]; then
+			reconnect=0
+		elif [ "$prompt" != "OFF" ] ; then
+			Xdialog	--title "Reconnect?" \
+				--clear \
+				--yesno "Click yes to reconnect." 10 60
+			reconnect=$?
+		else
+			reconnect=1
 		fi
-	elif [ "$prompt" = "AUTO" ] ; then
-		prompt_time="`make_caps $RECONNECT_PROMPT | cut -c5-`" 
-		if [ -z "$prompt_time" ] ; then
-		    prompt_time=10
-		fi
-		Xdialog --title "No Server Response" --clear --timeout $prompt_time --msgbox "Server not responding - waiting $prompt_time seconds" 10 60
-		reconnect=0
-	elif [ "$prompt" == "FORCE" ]; then
-		reconnect=0
-	elif [ "$prompt" != "OFF" ] ; then
-        	Xdialog --title "Reconnect?" --clear --yesno "Click yes to reconnect." 10 60
-		reconnect=$?
-	else
-		reconnect=1
 	fi
-  fi
-echo $reconnect
+	echo $reconnect
 }
 
 ## Replace on or off with #
@@ -422,11 +445,11 @@ restart_xinetd ()
 
 check_reboot ()
 {
-   if is_enabled $DAILY_REBOOT ; then
-	if uptime | grep day; then
-		reboot
+	if is_enabled $DAILY_REBOOT ; then
+		if uptime | grep day; then
+			reboot
+		fi
 	fi
-   fi
 }
 
 # Cleans up X if it shuts down unexpected
@@ -434,9 +457,9 @@ check_reboot ()
 check_xrunning ()
 {
 	if ! ps -ef | grep "$X_SERVER" | grep -q " :$DISPLAY_NUMBER"; then
-          if [ -e /tmp/.X11-unix/X$DISPLAY_NUMBER ] ; then
-		rm /tmp/.X11-unix/X$DISPLAY_NUMBER
-	  fi
+		if [ -e /tmp/.X11-unix/X$DISPLAY_NUMBER ] ; then
+			rm /tmp/.X11-unix/X$DISPLAY_NUMBER
+		fi
 	fi
 }
 
@@ -444,8 +467,7 @@ check_xrunning ()
 
 check_NX ()
 {
-	while ps | grep -v grep | grep "nxssh"
-	do
+	while ps | grep -v grep | grep "nxssh";	do
 		sleep 5
 	done
 }
@@ -482,7 +504,7 @@ check_module ()
 
 module_available ()
 {
-	if modprobe -D $1 -q ; then
+	if modprobe -D $1 &>/dev/null ; then
 		return 0
 	else
 		return 1
@@ -496,28 +518,26 @@ getfreescreen ()
 
 	X_NUMBER=`ps -o args | grep "^Xorg " | cut -f2 -d: | cut -f1 -d" "`
 	x_NUMBER=$X_NUMBER `ps -o args | grep "^Xnest "  | cut -f2 -d: | cut -f1 -d" "`
-        let XNEST_NUMBER=0
-        for x in $x_NUMBER;
-        do
-                if [ "$x" -ge "$XNEST_NUMBER" ] ; then
-                        let XNEST_NUMBER=x+1
-                fi
-        done
+	let XNEST_NUMBER=0
+	for x in $x_NUMBER; do
+		if [ "$x" -ge "$XNEST_NUMBER" ] ; then
+			let XNEST_NUMBER=x+1
+		fi
+	done
 }
 
 get_filesystems ()
 {
-        for filename in $FILESYSTEMS
-        do
-                if [ -e $MOD_PATH/inbuilt/$filename.ko ] || [ -e $MOD_PATH/loaded/$filename.ko ] ; then
+	for filename in $FILESYSTEMS; do
+		if [ -e $MOD_PATH/inbuilt/$filename.ko ] || [ -e $MOD_PATH/loaded/$filename.ko ] ; then
 			if [ "$filename" != "supermount" ] ; then
-                		filesystem=$filename:$filesystem
+				filesystem=$filename:$filesystem
 			fi
-		        if ! check_module $filename ; then
-               			modprobe $filename
-        		fi
-                fi
-        done
+			if ! check_module $filename ; then
+				modprobe $filename
+			fi
+		fi
+	done
 	let length=${#filesystem}-1
 	if [ "$length" -gt 0 ] ; then
 		filesystem=`echo $filesystem | cut -c 1-$length`
@@ -527,12 +547,10 @@ get_filesystems ()
 getpostcontent ()
 {
 	CONTENT=
-	if [ -n "$CONTENT_LENGTH" ]
-	then
+	if [ -n "$CONTENT_LENGTH" ]; then
 		read CONTENT
 	fi
-	if [ -n "$CONTENT" ]
-	then
+	if [ -n "$CONTENT" ]; then
 		eval `echo "&$CONTENT" | sed s/"&"/"\nCGI_"/g`
 	fi
 }
@@ -561,8 +579,8 @@ refresh ()
 
 header ()
 {
-echo -e "Content-Type: text/html\n"
-echo '
+	echo -e "Content-Type: text/html\n"
+	echo '
 <html>
 
 <head>
@@ -640,17 +658,18 @@ verify_password ()
 # args: list of files to save when the cache is umounted
 #       Note that the 'profile' file is already handled and thus shouldn't
 #       be included in the list.
-pgrep () {
-ps |grep $1 |grep -v grep |awk '{print $1}'
+pgrep ()
+{
+	ps |grep $1 |grep -v grep |awk '{print $1}'
 }
 
 mounted ()
 {
-        if [ "`cat /proc/mounts |grep -c -e $1`" -ne "0" ]; then
-                return 0
-        else
-                return 1
-        fi
+	if [ "`cat /proc/mounts |grep -c -e $1`" -ne "0" ]; then
+		return 0
+	else
+		return 1
+	fi
 }
 
 is_enabled ()
@@ -669,7 +688,7 @@ is_enabled ()
 is_disabled ()
 {
 	if [ -n "$1" ]; then
-    	value=`make_caps $1`
+		value=`make_caps $1`
 		for i in FALSE OFF DISABLED NO NEGATIVE N ; do
 			if [ $value == $i ]; then
 				return 0
@@ -688,34 +707,41 @@ screen_res ()
 			SCREEN_RESOLUTION=`echo $video |cut -d ":" -f2 |cut -d "-" -f1`
 		else
 			SCREEN_RESOLUTION=$PREFERED_RES
-        	fi
+		fi
 	fi
 }
 
 use_xrandr ()
 {
 	if is_enabled $USE_XRANDR ; then
-        	echo "Using xrandr to set display resolution." >> $APPLOG
-        	if [ "$XRANDR_OPTIONS" == "" ]; then
-		    	xrandr -s $SCREEN_RESOLUTION 2>/dev/null
-        	else
-                	xrandr $XRANDR_OPTIONS 2>/dev/null
-        	fi
+		echo "Using xrandr to set display resolution." >> $APPLOG
+		if [ -z "$XRANDR_OPTIONS" ]; then
+			XRANDR_OPTIONS="-s $SCREEN_RESOLUTION"
+		elif [ "$XRANDR_OPTIONS" == "dualscreen" ]; then
+			scrns=`xrandr -q | grep " connected" | cut -d " " -f1`
+			numscrns=`echo $scrns | wc -w`
+			if [ $numscrns = 2 ] ; then
+				out1=`echo $scrns | cut -d " " -f1`
+				out2=`echo $scrns | cut -d " " -f2`
+				XRANDR_OPTIONS="--output $out1 --left-of $out2 --primary"
+			fi
+		fi
+		xrandr $XRANDR_OPTIONS 2>/dev/null
 	fi
 }
 
 use_wallpaper ()
 {
 	if is_enabled $USE_WALLPAPER && [ -e /bin/wmsetbg ] && [ "$WMNAME" != "xfwm4" ]; then
-        	if [ -f /etc/background.jpg ] ; then
-                	wmsetbg /etc/background.jpg 2>/dev/null
-        	elif [ -f /etc/background-$SCREEN_RESOLUTION.jpg ] ; then
-                	wmsetbg /etc/background-$SCREEN_RESOLUTION.jpg 2>/dev/null
-        	elif [ -f /etc/background-1024x768.jpg ]; then
-                	wmsetbg /etc/background-1024x768.jpg 2>/dev/null
+		if [ -f /etc/background.jpg ] ; then
+			wmsetbg /etc/background.jpg 2>/dev/null
+		elif [ -f /etc/background-$SCREEN_RESOLUTION.jpg ] ; then
+			wmsetbg /etc/background-$SCREEN_RESOLUTION.jpg 2>/dev/null
+		elif [ -f /etc/background-1024x768.jpg ]; then
+			wmsetbg /etc/background-1024x768.jpg 2>/dev/null
 		else
 			echo_log "No wallpaper found"
-       	fi
+		fi
 	fi
 }
 
@@ -739,17 +765,17 @@ use_idesk ()
 
 x_mod_map ()
 {
- # Add xmodmap modifications
-        if [ -e /lib/kmaps/$KEYBOARD_MAP.xmod ] && [ "$WMNAME" != "xfwm4" ]; then
-                xmodmap /lib/kmaps/$KEYBOARD_MAP.xmod
-        fi
+	# Add xmodmap modifications
+	if [ -e /lib/kmaps/$KEYBOARD_MAP.xmod ] && [ "$WMNAME" != "xfwm4" ]; then
+		xmodmap /lib/kmaps/$KEYBOARD_MAP.xmod
+	fi
 }
 
 x_numlock ()
 {
-        if is_enabled $X_NUMLOCK ; then
-                numlockx `make_lower $X_NUMLOCK`
-        fi
+	if is_enabled $X_NUMLOCK ; then
+		numlockx `make_lower $X_NUMLOCK`
+	fi
 }
 
 x_auth_file ()
@@ -785,7 +811,7 @@ x_mouse ()
 
 make_res_list ()
 {
-	xrandr 2>/dev/null |grep -o -r -e '   [0-9]*x[0-9]*' |sed -r 's/ //g' |sort -u -t'x' -k1n -k2n > /var/run/applications/resolutions
+	xrandr 2>/dev/null |grep -o '   [0-9]*x[0-9]*' |sed -r 's/ //g' |sort -u -t'x' -k1n -k2n > /var/run/applications/resolutions
 }
 
 get_res ()
@@ -796,16 +822,25 @@ get_res ()
 check_last_session ()
 {
 	if [ "`ls -l $APPLOGDIR |grep -e xorg -c`" -gt "0" ]; then
-        	lastlog=`ls -ltr $APPLOGDIR |grep -e xorg |tail -n1 |cut -c 58-`
-        	if [ "`tail -n1 $APPLOGDIR/$lastlog |grep -o -e \(0\)`" == "(0)" ]; then
-                	continue
+		lastlog=`ls -ltr $APPLOGDIR |grep -e xorg |tail -n1 |cut -c 58-`
+		if [ "`tail -n1 $APPLOGDIR/$lastlog |grep -o -e \(0\)`" == "(0)" ]; then
+			continue
 		else
-			TERM=linux exec openvt -c 4 -s -w $NO_XORG_CMD
+			#TERM=linux exec openvt -c 4 -s -w $NO_XORG_CMD
+			. /etc/splash.functions
+			splash_exit
+			show_cursor
+			TERM=linux exec $NO_XORG_CMD
 		fi
 	fi
 }
 
-hide_cursor()
+hide_cursor ()
 {
-	echo -e '\033[?1c'
+	echo -en "\033[?25l"
+}
+
+show_cursor ()
+{
+	echo -en "\033[?12l\033[?25h"
 }

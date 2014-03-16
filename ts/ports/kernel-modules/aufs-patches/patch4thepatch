@@ -1,0 +1,18 @@
+--- aufs3.patch.orig	2014-01-21 19:43:30.842479417 +0000
++++ aufs3.patch	2014-01-21 19:44:30.186448086 +0000
+@@ -307,10 +307,12 @@
+  			unsigned long addr;
+ -			struct file *file = get_file(vma->vm_file);
+ +			struct file *file = vma->vm_file;
+- 
++ 			/* mmap_region may free vma; grab the info now */
++ 			vm_flags = vma->vm_flags;
++-
+++			
+ +			vma_get_file(vma);
+- 			addr = mmap_region(file, start, size,
+- 					vma->vm_flags, pgoff);
++ 			addr = mmap_region(file, start, size, vm_flags, pgoff);
+ -			fput(file);
+ +			vma_fput(vma);
+  			if (IS_ERR_VALUE(addr)) {

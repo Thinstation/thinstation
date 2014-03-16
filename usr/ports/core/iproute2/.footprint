@@ -7,14 +7,9 @@ drwxr-xr-x	root/root	etc/iproute2/
 -rw-r--r--	root/root	etc/iproute2/rt_realms
 -rw-r--r--	root/root	etc/iproute2/rt_scopes
 -rw-r--r--	root/root	etc/iproute2/rt_tables
-drwxr-xr-x	root/root	etc/rc.d/
--rwxr-xr-x	root/root	etc/rc.d/net
-drwxr-xr-x	root/root	lib/
-drwxr-xr-x	root/root	lib/tc/
-lrwxrwxrwx	root/root	lib/tc/m_ipt.so -> m_xt.so
--rwxr-xr-x	root/root	lib/tc/m_xt.so
 drwxr-xr-x	root/root	sbin/
 -rwxr-xr-x	root/root	sbin/arpd
+-rwxr-xr-x	root/root	sbin/bridge
 lrwxrwxrwx	root/root	sbin/ctstat -> lnstat
 -rwxr-xr-x	root/root	sbin/genl
 -rwxr-xr-x	root/root	sbin/ifcfg
@@ -34,34 +29,64 @@ drwxr-xr-x	root/root	usr/
 drwxr-xr-x	root/root	usr/lib/
 drwxr-xr-x	root/root	usr/lib/tc/
 -rw-r--r--	root/root	usr/lib/tc/experimental.dist
+lrwxrwxrwx	root/root	usr/lib/tc/m_ipt.so -> m_xt.so
+-rwxr-xr-x	root/root	usr/lib/tc/m_xt.so
 -rw-r--r--	root/root	usr/lib/tc/normal.dist
 -rw-r--r--	root/root	usr/lib/tc/pareto.dist
 -rw-r--r--	root/root	usr/lib/tc/paretonormal.dist
 drwxr-xr-x	root/root	usr/man/
 drwxr-xr-x	root/root	usr/man/man3/
 -rw-r--r--	root/root	usr/man/man3/libnetlink.3.gz
+drwxr-xr-x	root/root	usr/man/man7/
+-rw-r--r--	root/root	usr/man/man7/tc-hfsc.7.gz
 drwxr-xr-x	root/root	usr/man/man8/
 -rw-r--r--	root/root	usr/man/man8/arpd.8.gz
-lrwxrwxrwx	root/root	usr/man/man8/ctstat.8.gz -> lnstat.8.gz
+-rw-r--r--	root/root	usr/man/man8/bridge.8.gz
+-rw-r--r--	root/root	usr/man/man8/ctstat.8.gz
+-rw-r--r--	root/root	usr/man/man8/ip-address.8.gz
+-rw-r--r--	root/root	usr/man/man8/ip-addrlabel.8.gz
+-rw-r--r--	root/root	usr/man/man8/ip-l2tp.8.gz
+-rw-r--r--	root/root	usr/man/man8/ip-link.8.gz
+-rw-r--r--	root/root	usr/man/man8/ip-maddress.8.gz
+-rw-r--r--	root/root	usr/man/man8/ip-monitor.8.gz
+-rw-r--r--	root/root	usr/man/man8/ip-mroute.8.gz
+-rw-r--r--	root/root	usr/man/man8/ip-neighbour.8.gz
+-rw-r--r--	root/root	usr/man/man8/ip-netconf.8.gz
+-rw-r--r--	root/root	usr/man/man8/ip-netns.8.gz
+-rw-r--r--	root/root	usr/man/man8/ip-ntable.8.gz
+-rw-r--r--	root/root	usr/man/man8/ip-route.8.gz
+-rw-r--r--	root/root	usr/man/man8/ip-rule.8.gz
+-rw-r--r--	root/root	usr/man/man8/ip-tcp_metrics.8.gz
+-rw-r--r--	root/root	usr/man/man8/ip-token.8.gz
+-rw-r--r--	root/root	usr/man/man8/ip-tunnel.8.gz
+-rw-r--r--	root/root	usr/man/man8/ip-xfrm.8.gz
 -rw-r--r--	root/root	usr/man/man8/ip.8.gz
 -rw-r--r--	root/root	usr/man/man8/lnstat.8.gz
-lrwxrwxrwx	root/root	usr/man/man8/nstat.8.gz -> rtacct.8.gz
-lrwxrwxrwx	root/root	usr/man/man8/routef.8.gz -> routel.8.gz
+-rw-r--r--	root/root	usr/man/man8/nstat.8.gz
+-rw-r--r--	root/root	usr/man/man8/routef.8.gz
 -rw-r--r--	root/root	usr/man/man8/routel.8.gz
 -rw-r--r--	root/root	usr/man/man8/rtacct.8.gz
 -rw-r--r--	root/root	usr/man/man8/rtmon.8.gz
-lrwxrwxrwx	root/root	usr/man/man8/rtstat.8.gz -> lnstat.8.gz
+-rw-r--r--	root/root	usr/man/man8/rtstat.8.gz
 -rw-r--r--	root/root	usr/man/man8/ss.8.gz
 -rw-r--r--	root/root	usr/man/man8/tc-bfifo.8.gz
 -rw-r--r--	root/root	usr/man/man8/tc-cbq-details.8.gz
 -rw-r--r--	root/root	usr/man/man8/tc-cbq.8.gz
+-rw-r--r--	root/root	usr/man/man8/tc-choke.8.gz
+-rw-r--r--	root/root	usr/man/man8/tc-codel.8.gz
 -rw-r--r--	root/root	usr/man/man8/tc-drr.8.gz
+-rw-r--r--	root/root	usr/man/man8/tc-ematch.8.gz
+-rw-r--r--	root/root	usr/man/man8/tc-fq_codel.8.gz
+-rw-r--r--	root/root	usr/man/man8/tc-hfsc.8.gz
 -rw-r--r--	root/root	usr/man/man8/tc-htb.8.gz
-lrwxrwxrwx	root/root	usr/man/man8/tc-pfifo.8.gz -> tc-bfifo.8.gz
+-rw-r--r--	root/root	usr/man/man8/tc-netem.8.gz
+-rw-r--r--	root/root	usr/man/man8/tc-pfifo.8.gz
 -rw-r--r--	root/root	usr/man/man8/tc-pfifo_fast.8.gz
 -rw-r--r--	root/root	usr/man/man8/tc-prio.8.gz
 -rw-r--r--	root/root	usr/man/man8/tc-red.8.gz
+-rw-r--r--	root/root	usr/man/man8/tc-sfb.8.gz
 -rw-r--r--	root/root	usr/man/man8/tc-sfq.8.gz
+-rw-r--r--	root/root	usr/man/man8/tc-stab.8.gz
 -rw-r--r--	root/root	usr/man/man8/tc-tbf.8.gz
 -rw-r--r--	root/root	usr/man/man8/tc.8.gz
 drwxr-xr-x	root/root	var/

@@ -5,7 +5,7 @@
 
 name=busybox-TS
 pname=${name%-*}
-version=1.21.0
+version=1.22.1
 release=2
 source=(http://busybox.net/downloads/$pname-$version.tar.bz2 ts.config)
 
@@ -18,11 +18,20 @@ build() {
 
 	make CONFIG_PREFIX=$PKG install
 
-# 	mv $PKG/sbin/* $PKG/bin/.
-#	rm -r $PKG/sbin
-#	rm $PKG/bin/{telnetd,httpd,hwclock}
+	cd networking
+	gcc	-static -static-libgcc -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE \
+		-D_FILE_OFFSET_BITS=64 -Wall -Wshadow -Wwrite-strings -Wundef \
+		-Wstrict-prototypes -Werror -Wold-style-definition -Wdeclaration-after-statement \
+		-Wno-pointer-sign -Wmissing-prototypes -Wmissing-declarations \
+		-Os -fno-builtin-strlen -finline-limit=0 -fomit-frame-pointer \
+		-ffunction-sections -fdata-sections -fno-guess-branch-probability \
+		-funsigned-char -falign-functions=1 -falign-jumps=1 -falign-labels=1 \
+		-falign-loops=1 -march=i386 -mpreferred-stack-boundary=2 -Wl,-Map \
+		-Wl,link.map -Wl,--warn-common -Wl,--sort-common -Wl,--gc-sections \
+		httpd_indexcgi.c -o index.cgi
 
+	install -D -m 755 index.cgi $PKG/var/www/cgi-bin/index.cgi
 mkdir -p $PKG/$TSCOMPROOT/$pname
 mv $PKG/bin $PKG/$TSCOMPROOT/$pname
-#mv $PKG/linuxrc $PKG/$TSCOMPROOT/$pname
+mv $PKG/var $PKG/$TSCOMPROOT/$pname
 }
