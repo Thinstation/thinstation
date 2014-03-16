@@ -1,0 +1,40 @@
+# Description: CGI/FastCGI version of the PHP interpreter
+# URL:         http://www.php.net
+# Maintainer:  Juergen Daubert, jue at crux dot nu
+# Depends on:  xz libpcre libxml2
+
+name=php-fcgi
+version=5.5.9
+release=1
+source=(http://www.php.net/distributions/php-$version.tar.bz2
+        php-fcgi)
+
+build () {
+    cd php-$version
+
+    local PHP_CONFIG="
+    --prefix=/usr \
+    --with-config-file-path=/etc/php \
+    --with-config-file-scan-dir=/etc/php/conf.d \
+    --with-zlib \
+    --with-pcre-regex=/usr \
+    --disable-static --disable-debug \
+    --without-sqlite3 --without-pdo-sqlite \
+    --without-pear"
+
+    EXTENSION_DIR=/usr/lib/php/extensions \
+    ./configure \
+        $PHP_CONFIG \
+        --enable-cgi \
+        --disable-cli 
+
+    make
+    make INSTALL_ROOT=$PKG install
+    install -D -m 755 php.ini-production $PKG/etc/php/php.ini
+    install -D -m 755 $SRC/php-fcgi $PKG/etc/rc.d/php-fcgi
+
+    rm -rf $PKG/usr/include
+    rm -rf $PKG/usr/php
+    rm -rf $PKG/usr/lib/php/build
+    rm -rf $PKG/usr/lib/php/extensions/opcache.a
+}

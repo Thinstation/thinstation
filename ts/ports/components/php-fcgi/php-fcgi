@@ -1,0 +1,30 @@
+#!/bin/sh
+#
+# /etc/rc.d/php-fcgi: start/stop FastCGI php daemon
+#
+
+PHP=/usr/bin/php-cgi
+PORT="127.0.0.1:8000"
+#PORT="/tmp/php_fcgi.sock"
+USR=www
+COUNT=8
+
+case $1 in
+start)
+	export PHP_FCGI_CHILDREN=$COUNT
+	su -s "/bin/sh" $USR -c "$PHP -b $PORT" &
+	;;
+stop)
+	killall -q $PHP
+	;;
+restart)
+	$0 stop
+	sleep 2
+	$0 start
+	;;
+*)
+	echo "usage: $0 [start|stop|restart]"
+	;;
+esac
+
+# End of file

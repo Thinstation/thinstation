@@ -52,20 +52,18 @@ read_pt()
 echo "Starting Partioner"
 touch /tmp/nomount
 un_mount
-dd if=/dev/zero of=$disk bs=1M count=32
+dd if=/dev/zero of=$disk bs=1M count=2
 read_pt
 parted -s $disk mklabel msdos
-if [ "$buggybios" == "true" ]; then
-	parted -s $disk mkpart primary fat32 "2s 4196351s" 1>/dev/null
-else
-	parted -s $disk mkpart primary fat32 "2048s 4196351s" 1>/dev/null
-fi
+parted -s $disk mkpart primary fat32 "2048s 4196351s" 1>/dev/null
 parted -s $disk set 1 boot on
 parted -s $disk mkpart primary ext4 "4196352s 8390655s"
 parted -s $disk mkpart primary linux-swap "8390656s 12584959s"
 parted -s $disk mkpart primary ext4 "12584960s -0"
 read_pt
 un_mount
+dd if=/install/mbr.bin of=$disk bs=440b count=1
+
 echo "Making filesystems"
 mkdosfs -n boot -F 32 -R 32 ${disk}1
 sleep 1
@@ -99,7 +97,7 @@ if [ -e /mnt/cdrom0/thindev-default.tar.xz ]; then
 	tar -xvf /mnt/cdrom0/thindev-default.tar.xz
 else
 	echo "Downloading a Default Image"
-	wget http://www.doncuppjr.net/thindev-default.tar.xz
+	wget "$WEBUPDATEROOT/thindev-default.tar.xz"
 	tar -xvf thindev-default.tar.xz
 	rm thindev-default.tar.xz
 fi

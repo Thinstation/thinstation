@@ -168,7 +168,7 @@ lib_dependencies()
       fi
     done
   done
-  ldconfig -r tmp-tree
+  ldconfig -X -r tmp-tree
   rm lpaths.tmp
 }
 
@@ -327,7 +327,7 @@ make_initrd()
    cd tmp-tree
 	if [ "$ts_fastboot" == "true" ] || [ "$ts_fastboot" == "lotsofmem" ] ;then
 		echo -e "\nMaking initramfs - Fastboot Enabled"
-		../fastboot/fastboot-mangle $INITDIR $ts_fastboot $ts_hardlinkfs
+		../fastboot/fastboot-mangle "$INITDIR" "$ts_fastboot" "$ts_hardlinkfs" "$ts_fb_comp_extra"
 	else
 		if [ -e $INITDIR/lib.squash ] ; then
 			rm $INITDIR/lib.squash

@@ -3,6 +3,7 @@
 LANG=C
 INITDIR=$1
 HARDLINK=$3
+FB_COMP_EXTRA=$4
 echo FASTBOOT=$2 >> etc/thinstation.env
 if [ "$2" == "true" ] ; then
 	mv bin lib/.
@@ -121,7 +122,7 @@ if [ "$2" == "lotsofmem" ]; then
 		hardlink -t -m ../fastboot-tmp
 	fi
 	echo -e "\tMaking lib.squash"
-	mksquashfs ../fastboot-tmp/. ../$INITDIR/lib.squash -always-use-fragments -no-recovery -all-root -no-xattrs -noappend -comp xz -Xbcj x86 -Xdict-size 100%
+	mksquashfs ../fastboot-tmp/. ../$INITDIR/lib.squash -always-use-fragments -no-recovery -all-root -no-xattrs -noappend $FB_COMP_EXTRA
 	cp `which unsquashfs` bin/.
 	cp /usr/lib/liblzma.so.5 lib/.
 fi
