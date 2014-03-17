@@ -1,6 +1,7 @@
 #!/bin/bash
 #set -x
-LANG=C
+
+export LANG=C
 INITDIR=boot-images/initrd
 PKGDIR=boot-images/pkg-packages
 DEVDIR=./packages/base/dev
@@ -582,7 +583,7 @@ splash_resize()
 			SPLASH_BG_COLOR=black
 		fi
 		$TOOLSDIR/splash/bin/splash_resize ./utils/tools/splash $ts_boottheme scalable 1024x768 $res
-		rsvg-convert $TOOLSDIR/splash/$ts_boottheme/scalable/verbose.svg \
+		rsvg-convert $TOOLSDIR/splash/$ts_boottheme/scalable/silent.svg \
 			-w `echo $res |cut -d "x" -f1` \
 			-h `echo $res |cut -d "x" -f2` \
 			-a -o tmp.png
@@ -591,31 +592,13 @@ splash_resize()
 			-resize $res \
 			-gravity center \
 			-extent $res \
-			+repage $TOOLSDIR/splash/$ts_boottheme/$res/verbose.png
+			+repage $TOOLSDIR/splash/$ts_boottheme/$res/silent.png
 		rm tmp.png
-		if [ "`readlink $TOOLSDIR/splash/$ts_boottheme/scalable/silent.svg`" == "verbose.svg" ]; then
-			ln $TOOLSDIR/splash/$ts_boottheme/$res/verbose.png $TOOLSDIR/splash/$ts_boottheme/$res/silent.png
-		else
-			rsvg-convert $TOOLSDIR/splash/$ts_boottheme/scalable/silent.svg \
-				-w `echo $res |cut -d "x" -f1` \
-				-h `echo $res |cut -d "x" -f2` \
-				-a -o tmp.png
-			convert -background $SPLASH_BG_COLOR tmp.png \
-				-define png:color-type=2 \
-				-resize $res \
-				-gravity center \
-				-extent $res \
-				+repage $TOOLSDIR/splash/$ts_boottheme/$res/silent.png
-			rm tmp.png
-		fi
         else
 		$TOOLSDIR/splash/bin/splash_resize ./utils/tools/splash $ts_boottheme 1024x768 1024x768 $res
 		convert -size 1024x768 \
 			$TOOLSDIR/splash/$ts_boottheme/1024x768/silent.jpg \
 			-resize $res\! $TOOLSDIR/splash/$ts_boottheme/$res/silent.jpg
-		convert -size 1024x768 \
-			$TOOLSDIR/splash/$ts_boottheme/1024x768/verbose.jpg \
-			-resize $res\! $TOOLSDIR/splash/$ts_boottheme/$res/verbose.jpg
         fi
 }
 
