@@ -1,0 +1,24 @@
+# Description: Utility for network exploration or security auditing
+# URL: http://nmap.org
+# Maintainer:  Thomas Penteker, tek at serverop dot de
+# Packager: sten, nick dot steeves at shaw dot ca
+# Depends on: libpcap
+
+name=nmap
+version=6.40
+release=1
+source=(http://nmap.org/dist/$name-$version.tar.bz2)
+
+
+build () {
+    cd $name-$version
+    ./configure --prefix=/usr --libexecdir=/usr/lib --mandir=/usr/man \
+    --with-liblua=included --without-zenmap --without-ndiff --disable-nls
+
+    #install -d $PKG/usr/share/nmap
+    make
+    make -j1 DESTDIR=$PKG install
+    rm -rf $PKG/usr/man/man1/zenmap.*
+    rm -f $PKG/usr/share/nmap/nselib/data/psexec/README
+    
+}
