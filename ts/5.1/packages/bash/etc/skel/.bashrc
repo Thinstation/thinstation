@@ -1,1 +1,1 @@
-/etc/profile
+/etc/ashrc
