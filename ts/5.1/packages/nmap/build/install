@@ -1,0 +1,12 @@
+#!/bin/sh
+
+export PACKAGE=nmap
+export PORTS=$PACKAGE
+export DROP_DIRS=lib/ncat
+repackage -e
+returnval=$?
+
+mkdir -p ./packages/$PACKAGE/lib/ncat
+ln -s /etc/ssl/certs/ca-bundle.crt ./packages/$PACKAGE/lib/ncat/
+
+exit $returnval
