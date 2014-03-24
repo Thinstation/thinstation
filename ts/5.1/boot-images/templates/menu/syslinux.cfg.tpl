@@ -1,8 +1,9 @@
-DEFAULT menu.c32
+
+UI menu.c32
+DEFAULT thinstation
 PROMPT 0
 
 LABEL thinstation
-KERNEL vmlinuz
-APPEND initrd=initrd $KERNEL_PARAMETERS
-
-
+MENU LABEL Thinstation
+	KERNEL vmlinuz
+	APPEND initrd=initrd $KERNEL_PARAMETERS
