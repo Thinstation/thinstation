@@ -1,0 +1,17 @@
+#/bin/sh
+. /etc/thinstation.global
+
+confirm_exit
+answer=$?
+  if [ "$answer" == "0" ] ; then
+	XTDPID=`pidof xtdesk`
+	if [ -n "$XTDPID" ] ; then
+	  kill $XTDPID
+	fi
+	if [ -n "$WMNAME" ] ; then
+	  WMPID=`pidof $WMNAME`
+	  if [ -n "$WMPID" ] ; then
+		kill $WMPID
+	  fi
+	fi
+  fi

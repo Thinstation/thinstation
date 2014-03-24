@@ -606,7 +606,7 @@ splash_setup()
 if [ -z "$ts_bootresolution" ] ; then
 	ts_bootresolution=800x600-16
 fi
-if [ ! -z "$ts_bootresolution" ] ;then
+if [ -n "$ts_bootresolution" ] ;then
         uvesafb="mode_option=\"$ts_bootresolution\""
 	screenres=`echo "$ts_bootresolution" |cut -d "-" -f 1`
 	screenbpp=`echo "$ts_bootresolution" |cut -d "-" -f 2`
@@ -643,11 +643,11 @@ if [ ! -z "$ts_bootresolution" ] ;then
 	if [ ! -z $ts_extra_vid ]; then
 		KERNEL_PARAMETERS="$KERNEL_PARAMETERS video=$ts_extra_vid"
 	fi
-  if [ "`make_caps $ts_bootlogo`" = "TRUE" ] ; then
+  if is_enabled $ts_bootlogo ] && [ -e ./tmp-tree/bin/fbsplashd ]; then
 	splashvar="splash=silent"
-	if [ ! -z "$ts_splash" ] ; then splashvar="splash=$ts_splash" ; fi
-	if [ ! -z "$ts_boottheme" ] ; then splashvar="$splashvar,theme:$ts_boottheme" ; fi
-	if [ ! -z "$ts_silenttty" ] ; then splashvar="$splashvar,tty:$ts_silenttty" ; fi
+	if [ -n "$ts_splash" ] ; then splashvar="splash=$ts_splash" ; fi
+	if [ -n "$ts_boottheme" ] ; then splashvar="$splashvar,theme:$ts_boottheme" ; fi
+	if [ -n "$ts_silenttty" ] ; then splashvar="$splashvar,tty:$ts_silenttty" ; fi
 	KERNEL_PARAMETERS="$KERNEL_PARAMETERS $splashvar"
 	echo -e "+ Adding splash boot logo\n"
 	res=${ts_bootresolution%-*}
@@ -672,6 +672,8 @@ if [ ! -z "$ts_bootresolution" ] ;then
 		mv ./tmp-tree/etc/splash/$ts_boottheme/$res/$res.cfg ./tmp-tree/etc/splash/$ts_boottheme/.
 	done
   else
+		rm -rf ./tmp-tree/etc/splash
+		rm -rf ./tmp-tree/lib/splash
 		KERNEL_PARAMETERS="$KERNEL_PARAMETERS splash=off"
   fi
 fi
@@ -680,43 +682,43 @@ fi
 
 locales()
 {
-for i in `cat ./tmp-tree/build/*.template` ;
-	do
-		inputfile=`echo $i|cut -d , -f1` ;
-		charmap=`echo $i|cut -d , -f2` ;
-		name=`echo $i|cut -d , -f3` ;
-		localedef -i $inputfile -f $charmap $name --prefix=./tmp-tree ;
+	local inputfile charmap name i
+	if [ ! -e ./tmp-tree/bin/locale ]; then
+		return 0
+	fi
+	for i in `cat ./tmp-tree/build/*.template`; do
+		inputfile=`echo $i|cut -d , -f1`
+		charmap=`echo $i|cut -d , -f2`
+		name=`echo $i|cut -d , -f3`
+		localedef -i $inputfile -f $charmap $name --prefix=./tmp-tree
 	done
 
 # Removes extended locale libs if not selected
 
-if [ -n "$ts_forcelocales" ] ; then
-	ts_fulllocales=true
-fi
-
-if [ -z "$ts_fulllocales" ] ; then
-	if [ ! -e $PACDIR/fulllocales.param ]; then
-		ts_fulllocales="false"
+	if [ -n "$ts_forcelocales" ]; then
+		ts_fulllocales=true
 	fi
-fi
 
-if [ "$ts_fulllocales" != "true" ] ; then
-      for filename in `find $PKGDIR -maxdepth 1 -name "keymaps-*" && echo "./tmp-tree"`
-      do
-        if [ -e $filename/full ] ; then
-           rm -R $filename/full
- 	fi
-      done
-else
-	 for filename in `find $PKGDIR -maxdepth 1 -name "keymaps-*" && echo "./tmp-tree"`
-	 do
-           if [ -e $filename/full ] ; then
-	     cp -Rp $filename/full/* $filename/
-	     rm -R $filename/full
-           fi
-         done
-fi
+	if [ -z "$ts_fulllocales" ]; then
+		if [ ! -e $PACDIR/fulllocales.param ]; then
+			ts_fulllocales="false"
+		fi
+	fi
 
+	if [ "$ts_fulllocales" != "true" ]; then
+		for filename in `find $PKGDIR -maxdepth 1 -name "keymaps-*" && echo "./tmp-tree"`; do
+			if [ -e $filename/full ]; then
+           			rm -R $filename/full
+	 		fi
+		done
+	else
+		for filename in `find $PKGDIR -maxdepth 1 -name "keymaps-*" && echo "./tmp-tree"`; do
+			if [ -e $filename/full ]; then
+				cp -Rp $filename/full/* $filename/
+				rm -R $filename/full
+			fi
+		done
+	fi
 }
 
 allfirm()
@@ -1080,7 +1082,7 @@ if [ -e $PACDIR/tsuser.param ]; then
 		if [ "$ts_tsuserpasswd" == "!!" ]; then
 			GETPASSWD="!!"
 		else
-			GETPASSWD=`$TOOLSDIR/cryptmd5 $ts_tsuserpasswd`
+			GETPASSWD=`mkpasswd -m md5 $ts_tsuserpasswd`
 		fi
 	fi
     echo "$ts_tsuser:$GETPASSWD:1000:1000:$ts_tsuser:/home/$ts_tsuser:/bin/sh" >> ./tmp-tree/etc/passwd
@@ -1101,7 +1103,7 @@ if [  -e $PACDIR/rootpasswd.param ]; then
     if [ "$ts_rootpasswd" == "!!" ]; then
         GETPASSWD="!!"
     else
-        GETPASSWD=`$TOOLSDIR/cryptmd5 $ts_rootpasswd`
+        GETPASSWD=`mkpasswd -m md5 $ts_rootpasswd`
     fi
     cp ./tmp-tree/etc/passwd ./tmp-tree/etc/passwd.tmp
     echo "root:$GETPASSWD:0:0:root:/root:/bin/sh" >./tmp-tree/etc/passwd
@@ -1413,18 +1415,39 @@ filesystem_fixups()
 		for i in `ls ./tmp-tree/lib/gconv --color=never |cut -d . -f1`; do
 			cat /usr/lib/gconv/gconv-modules|grep -e "$i" >>./tmp-tree/lib/gconv/gconv-modules
 		done
-        cp -H utils/tools/iconvconfig ./tmp-tree/bin/.
-        chroot ./tmp-tree /bin/iconvconfig
-        rm ./tmp-tree/bin/iconvconfig
-		find ./tmp-tree -name .gitignore -delete
+		cp -H utils/tools/iconvconfig ./tmp-tree/bin/.
+		chroot ./tmp-tree /bin/iconvconfig
+		rm ./tmp-tree/bin/iconvconfig
 	fi
+	echo -e "\tRemoving Extra Files"
+	find ./tmp-tree -name .gitignore -delete
+	if [ ! -e ./tmp-tree/etc/init.d/audio ]; then
+		for sound in `find ./tmp-tree/lib/modules -type d -name sound`; do
+			rm -rf $sound
+		done
+	fi
+	if [ -z "`find ./tmp-tree/lib/modules -name udf.ko -o -name isofs.ko`" ]; then
+		for cdrom in `find ./tmp-tree/lib/modules -type d -name cdrom`; do
+			rm -rf $cdrom
+		done
+	fi
+	for KERNVER in $KERNVERS; do
+		if [ ! -e ./tmp-tree/lib/modules/$KERNVER/kernel/fs ]; then
+			for driver in `find ./tmp-tree/lib/modules/$KERNVER -type d -name scsi -o -name ata -o -name fusion`; do
+				rm -rf $driver
+			done
+		fi
+	done
 	if [ ! -d ./tmp-tree/etc/X11 ] ;then
-		echo -e "\tRemoving Extra Font Files"
-        rm -rf ./tmp-tree/lib/fonts/X11
-        rm -rf ./tmp-tree/lib/X11
-        rm -rf ./tmp-tree/lib/keymaps
-		rm ./tmp-tree/etc/background.jpg
-		rm ./tmp-tree/bin/vmmouse_detect
+		rm -rf ./tmp-tree/lib/fonts/X11
+		rm -rf ./tmp-tree/lib/X11
+		rm -rf ./tmp-tree/lib/keymaps
+		rm -f ./tmp-tree/etc/background.jpg
+		rm -f ./tmp-tree/bin/vmmouse_detect
+		# If we are not starting X, why do we need gpu support.
+		for gpu in `find ./tmp-tree/lib/modules -type d -name gpu -o -name agp`; do
+			rm -rf $gpu
+		done
 	else
 		echo -e "\tRunning mkfontdir and mkfontscale"
 		for fontdir in `find ./tmp-tree/lib/fonts/X11 -mindepth 1 -type d`; do
@@ -1432,7 +1455,7 @@ filesystem_fixups()
 				mkfontscale $fontdir
 			fi
 			mkfontdir $fontdir
-        done
+		done
 		if [ -e ./tmp-tree/lib/gdk-pixbuf-2.0/2.10.0/loaders ] ; then
 			echo -e "\tCaching pixbuf loaders"
 			cp -H utils/tools/gdk-pixbuf-query-loaders ./tmp-tree/bin/.

@@ -4,10 +4,10 @@
 # Depends on:  man
 
 name=man-pages
-version=3.35
+version=3.63
 release=1
-source=(http://man7.org/linux/man-pages/download/$name-$version.tar.gz \
-        http://www.kernel.org/pub/linux/docs/man-pages/man-pages-posix/man-pages-posix-2003-a.tar.bz2)
+source=(https://www.kernel.org/pub/linux/docs/man-pages/$name-$version.tar.gz \
+        https://www.kernel.org/pub/linux/docs/man-pages/man-pages-posix/man-pages-posix-2013-a.tar.xz)
 
 build() {
     cd $name-$version
@@ -15,9 +15,10 @@ build() {
     make gz
     make MANDIR=/usr/man DESTDIR=$PKG install
 
-    cd ../$name-posix-2003-a
+    cd ../$name-posix-2013-a
     make gz
     make MANDIR=/usr/man DESTDIR=$PKG install
 
     touch $PKG/usr/man/whatis
+    rm $PKG/usr/man/man3/getspnam.3.gz
 }

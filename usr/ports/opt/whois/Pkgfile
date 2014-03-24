@@ -1,0 +1,22 @@
+# Description: A modern whois client
+# URL:         http://www.linux.it/~md/software/
+# Maintainer:  Juergen Daubert, jue at crux dot nu
+# Packager:    Olle Gustafsson, ogg at linux dot se
+
+name=whois
+version=5.1.1
+release=1
+source=(http://ftp.debian.org/debian/pool/main/w/$name/$name\_$version.tar.xz)
+
+build() {
+    cd $name-$version
+    sed -i "/^CFLAGS/s/=.*$/=$CFLAGS/" Makefile
+    make CONFIG_FILE='/etc/whois.conf' whois
+    make all
+    install -D -m 0755 whois $PKG/usr/bin/whois
+    install -D -m 0644 whois.1 $PKG/usr/man/man1/whois.1
+    install -D -m 0644 whois.conf.5 $PKG/usr/man/man5/whois.conf.5
+    install -D -m 0644 whois.conf $PKG/etc/whois.conf
+    install -D -m 0755 mkpasswd $PKG/usr/bin/mkpasswd
+    install -D -m 0644 mkpasswd.1 $PKG/usr/man/man1/mkpasswd.1
+}
