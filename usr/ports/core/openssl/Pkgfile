@@ -3,15 +3,15 @@
 # Maintainer:  CRUX System Team, core-ports at crux dot nu
 
 name=openssl
-version=1.0.0l
-release=1
+version=1.0.1f
+release=fips205
 source=(http://www.openssl.org/source/$name-$version.tar.gz \
         mksslcert.sh)
 
 build() {
     cd $name-$version
     export MAKEFLAGS="$MAKEFLAGS -j1"
-    ./config --prefix=/usr --openssldir=/etc/ssl shared
+    ./config --prefix=/usr --openssldir=/etc/ssl fips shared
     sed -i "s|-O3|$CFLAGS|" Makefile
     make
     make INSTALL_PREFIX=$PKG LIBDIR=lib MANDIR=/usr/man MANSUFFIX=ssl install

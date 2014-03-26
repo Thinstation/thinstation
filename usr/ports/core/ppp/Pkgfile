@@ -5,14 +5,19 @@
 
 name=ppp
 version=2.4.5
-release=2
+release=3
 source=(http://ppp.samba.org/ftp/ppp/$name-$version.tar.gz \
-        $name-nofilter.patch $name-$version-pppol2tp.patch)
+        $name-nofilter.patch $name-$version-pppol2tp.patch
+	ppp-2.4.5-eaptls-mppe-0.994.patch)
 
 build () {
     cd $name-$version
     patch -p1 -i $SRC/$name-nofilter.patch
     patch -p1 -i $SRC/$name-$version-pppol2tp.patch
+    patch -p1 -i $SRC/ppp-2.4.5-eaptls-mppe-0.994.patch
+
+    sed -i -e "s/\(DESTDIR =\) \(.*\)/\1 \$(INSTROOT)\2/" \
+	pppd/plugins/pppol2tp/Makefile.linux
     ./configure --prefix=/usr --sysconfdir=/etc
     make HAVE_INET6=y
     make -j1 HAVA_INET6=y INSTROOT=$PKG install install-etcppp

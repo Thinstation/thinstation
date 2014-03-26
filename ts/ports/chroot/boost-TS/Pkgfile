@@ -5,18 +5,20 @@
 
 name=boost-TS
 pname=${name%-*}
-version=1.46.0
+version=1.55.0
 release=1
 source=(http://downloads.sourceforge.net/project/$pname/$pname/$version/${pname}_${version//./_}.tar.bz2)
 
 build() {
 	cd ${pname}_${version//./_}
 
+	./bootstrap.sh
+
 	sed -i -e "s|-O3|$CXXFLAGS -Wno-deprecated|" tools/build/v2/tools/gcc.jam
 	local JOBS="$(sed -e 's/.*\(\-j[ 0-9]\+\) .*/\1/' <<< $MAKEFLAGS)"
 
 	pushd tools/bcp
-	bjam \
+	../../bjam \
 		$JOBS -q -d 2 \
 		debug-symbols=off \
 		--toolset=gcc \
@@ -27,7 +29,7 @@ build() {
 	install -m 0755 -D ../../bin.v2/tools/bcp/gcc-$(gcc -dumpversion)/release/link-static/bcp $PKG/usr/bin/bcp
 	popd
 
-	bjam \
+	./bjam \
 		$JOBS -q -d 2 \
 		release \
 		threading=single,multi \
@@ -41,6 +43,8 @@ build() {
 		-sEXPAT_INCLUDE=/usr/include \
 		-sEXPAT_LIBPATH=/usr/lib \
 		install
+
+	install -m 0755 bjam $PKG/usr/bin/bjam
 
 	cd libs/python/pyste/install
 	python setup.py install --root=$PKG

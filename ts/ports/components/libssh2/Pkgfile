@@ -1,0 +1,19 @@
+# Description: ssh library
+# URL:         http://libssh2.org
+# Maintainer:  Thomas Penteker, tek at serverop dot de
+# Depends on:  cmake
+
+name=libssh2
+version=1.4.3
+release=1
+source=(http://www.libssh2.org/download/$name-$version.tar.gz)
+
+build() {
+	cd $name-$version
+
+	./configure --prefix=/usr \
+			--with-openssl \
+			--with-libz
+
+	  make DESTDIR=$PKG install
+}

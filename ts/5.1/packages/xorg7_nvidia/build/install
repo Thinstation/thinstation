@@ -34,13 +34,21 @@ find $INSTALLDIR -type l -name \*.so -delete
 
 cd kernel
 
-make SYSSRC=/usr/src/kernels/${release} module
+if [ -e /etc/ssl/keys/kernel.key ]; then
+  make SYSSRC=/usr/src/kernels/${release} module module-sign MODSECKEY=/etc/ssl/keys/kernel.key MODPUBKEY=/etc/ssl/certs/kernel.crt
+else
+  make SYSSRC=/usr/src/kernels/${release} module
+fi
 mkdir -p $INSTALLDIR/lib/modules/${release}/$KMOD
 cp -a nvidia.ko $INSTALLDIR/lib/modules/${release}/$KMOD
 
 make SYSSRC=/usr/src/kernels/${release} clean
 
-make SYSSRC=/usr/src/kernels/${release}_SMP module
+if [ -e /etc/ssl/keys/kernel.key ]; then
+  make SYSSRC=/usr/src/kernels/${release}_SMP module module-sign MODSECKEY=/etc/ssl/keys/kernel.key MODPUBKEY=/etc/ssl/certs/kernel.crt
+else
+  make SYSSRC=/usr/src/kernels/${release}_SMP module
+fi
 mkdir -p $INSTALLDIR/lib/modules/${release}_SMP/$KMOD
 cp -a nvidia.ko $INSTALLDIR/lib/modules/${release}_SMP/$KMOD
 

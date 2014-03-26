@@ -1,0 +1,23 @@
+# Description: Text based document generation.
+# URL: http://www.methods.co.nz/asciidoc/
+# Maintainer: Danny Rawlins, monster dot romster at gmail dot com
+# Packager: Vincenzo Colosimo, vico at bicisport dot de
+# Depends on: python docbook-xml docbook-xsl
+
+name=asciidoc
+version=8.6.9
+release=1
+source=(http://downloads.sourceforge.net/project/$name/$name/$version/$name-$version.tar.gz)
+
+build() {
+	cd $name-$version
+
+	./configure \
+		--prefix=/usr \
+		--mandir=/usr/man \
+		--sysconfdir=/usr/etc
+
+	make
+	make DESTDIR=$PKG install
+	rm $PKG/usr/etc/asciidoc/images/icons/README
+}
