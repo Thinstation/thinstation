@@ -10,7 +10,7 @@ source=(http://pkg-shadow.alioth.debian.org/releases/$name-$version.tar.bz2
 
 build() {
     cd $name-$version
-    
+
     ./configure --prefix=/usr \
                 --mandir=/usr/man \
                 --sysconfdir=/etc \
@@ -18,7 +18,9 @@ build() {
                 --disable-shadowgrp \
                 --disable-nls \
                 --without-selinux \
-                --without-libpam \
+		--without-nscd \
+                --with-libpam \
+		--with-sha-crypt \
                 --without-audit
 
     make
@@ -30,13 +32,15 @@ build() {
     mv $PKG/bin/{su,groups} $PKG/usr/bin
     touch $PKG/var/log/{lastlog,faillog}
 
-    rm -r $PKG/usr/bin/gpasswd \
-          $PKG/usr/man/man1/gpasswd.1 \
-          $PKG/usr/sbin/{chpasswd,grpconv,grpunconv,logoutd} \
-          $PKG/usr/sbin/{newusers,pwconv,pwunconv} \
-          $PKG/usr/man/man8/{chpasswd.8,grpconv.8,grpunconv.8,logoutd.8} \
-          $PKG/usr/man/man8/{newusers.8,pwconv.8,pwunconv.8} \
-          $PKG/usr/man/man5/gshadow.5 \
-          $PKG/usr/man/man3 \
-          $PKG/etc/{login.access,limits,default}
+    rm -f $PKG/usr/man/man8/nologin.8
+    rm -f $PKG/sbin/nologin
+#    rm -r $PKG/usr/bin/gpasswd \
+#          $PKG/usr/man/man1/gpasswd.1 \
+#          $PKG/usr/sbin/{chpasswd,grpconv,grpunconv,logoutd} \
+#          $PKG/usr/sbin/{newusers,pwconv,pwunconv} \
+#          $PKG/usr/man/man8/{chpasswd.8,grpconv.8,grpunconv.8,logoutd.8} \
+#          $PKG/usr/man/man8/{newusers.8,pwconv.8,pwunconv.8} \
+#          $PKG/usr/man/man5/gshadow.5 \
+#          $PKG/usr/man/man3 \
+#          $PKG/etc/{login.access,limits,default}
 }

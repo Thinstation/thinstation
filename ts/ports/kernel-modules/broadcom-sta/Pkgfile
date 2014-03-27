@@ -8,7 +8,7 @@
 name=broadcom-sta
 version=6.30.223.141
 pversion=6_30_223_141
-release=3.12.14
+release=3.12.15
 source=(http://www.broadcom.com/docs/linux_sta/hybrid-v35-nodebug-pcoem-$pversion.tar.gz
 	linux-recent.patch
 	license.patch)
@@ -17,21 +17,18 @@ build() {
 	patch -p1 -i linux-recent.patch
 	patch -p1 -i license.patch
 
-	KBUILD_NOPEDANTIC=1 make -C /usr/src/kernels/${release}TS M=`pwd` V=1
-	mkdir -p $PKG/$TSCOMPROOT/kernel/kernel/modules-${release}TS/kernel/drivers/net/wireless
-	cp -a wl.ko $PKG/$TSCOMPROOT/kernel/kernel/modules-${release}TS/kernel/drivers/net/wireless
+	KBUILD_NOPEDANTIC=1 make -C /usr/src/kernels/${release}TS M=`pwd`
+	KBUILD_NOPEDANTIC=1 make -C /usr/src/kernels/${release}TS M=`pwd` modules_install MODLIB=$PKG/$TSCOMPROOT/kernel/kernel/modules-${release}TS INSTALL_MOD_DIR=kernel/drivers/net/wireless MODSECKEY=/etc/ssl/keys/kernel.key MODPUBKEY=/etc/ssl/certs/kernel.crt
 
 	KBUILD_NOPEDANTIC=1 make -C /usr/src/kernels/${release}TS M=`pwd` clean
 
 	KBUILD_NOPEDANTIC=1 make -C /usr/src/kernels/${release}TS_SMP M=`pwd`
-	mkdir -p $PKG/$TSCOMPROOT/kernel_SMP/kernel/modules-${release}TS_SMP/kernel/drivers/net/wireless
-	cp -a wl.ko $PKG/$TSCOMPROOT/kernel_SMP/kernel/modules-${release}TS_SMP/kernel/drivers/net/wireless
+	KBUILD_NOPEDANTIC=1 make -C /usr/src/kernels/${release}TS_SMP M=`pwd` modules_install MODLIB=$PKG/$TSCOMPROOT/kernel_SMP/kernel/modules-${release}TS_SMP INSTALL_MOD_DIR=kernel/drivers/net/wireless MODSECKEY=/etc/ssl/keys/kernel.key MODPUBKEY=/etc/ssl/certs/kernel.crt
 
 	mkdir -p  $PKG/$TSCOMPROOT/$name/
 	cp lib/LICENSE.txt $PKG/$TSCOMPROOT/$name/
 
 	echo "# Make sure that the wl driver gets loaded and not the ssb driver" > $PKG/$TSCOMPROOT/$name/$name.conf
-	modinfo wl.ko | grep alias | sed -e 's/alias: *\(.*\)/alias \1 wl/' >> $PKG/$TSCOMPROOT/$name/$name.conf
 	echo "install ssb modprobe wl; modprobe --ignore-install ssb" >> $PKG/$TSCOMPROOT/$name/$name.conf
 
 }

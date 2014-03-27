@@ -1,0 +1,28 @@
+#!/bin/sh
+#
+# /etc/rc.d/samba: start/stop samba daemon
+#
+
+case $1 in
+start)
+	/usr/sbin/nmbd -D
+	/usr/sbin/smbd -D
+	;;
+stop)
+	killall -q smbd
+	killall -q nmbd
+	;;
+restart)
+	$0 stop
+	sleep 2
+	$0 start
+	;;
+reload)
+	/usr/bin/smbcontrol smbd reload-config
+	;;
+*)
+	echo "usage: $0 [start|stop|restart|reload]"
+	;;
+esac
+
+# End of file

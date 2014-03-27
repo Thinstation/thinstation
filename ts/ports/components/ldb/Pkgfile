@@ -1,0 +1,20 @@
+# Description: Simple database API for samba
+# URL: http://ldb.samba.org/
+# Maintainer: Jelmer Vernooij <jelmer@samba.org>
+# Depends on: python
+
+name=ldb
+version=1.1.16
+release=1
+source=(ftp://ftp.samba.org/pub/$name/$name-$version.tar.gz)
+
+build() {
+	cd $name-$version
+
+	./configure --prefix=/usr --mandir=/usr/man \
+		--with-modulesdir=/usr/lib/ldb/modules \
+		--builtin-libraries=ccan
+
+	make
+	make install DESTDIR=$PKG
+}

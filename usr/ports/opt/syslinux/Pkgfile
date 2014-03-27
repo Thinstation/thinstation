@@ -5,23 +5,26 @@
 # Depends on: mtools perl
 
 name=syslinux
-version=4.06
+version=4.07
 release=2
-source=(http://www.kernel.org/pub/linux/utils/boot/$name/$name-$version.tar.bz2)
+source=(http://www.kernel.org/pub/linux/utils/boot/$name/$name-$version.tar.gz)
+#source=(http://www.kernel.org/pub/linux/utils/boot/$name/Testing/${version%-*}/$name-$version.tar.gz)
 
 build() {
-  cd $name-$version
+        cd ${name}-${version}
 
-  # compilation will fail with LDFLAGS
-  unset LDFLAGS
+        make INSTALLROOT=$PKG install #bios
 
-  # fix to install extlinux in /usr/bin
-#  sed -i Makefile -e 's|SBINDIR|BINDIR|g'
+        rm -rf $PKG/usr/share/syslinux/com32
+#        mkdir $PKG/bios
+#        mv $PKG/usr/man/* $PKG/usr/share/.
+#        mv $PKG/usr/share/syslinux/* $PKG/bios/.
+#        mv $PKG/bios $PKG/usr/share/syslinux
 
-  make clean
-  make OPTFLAGS="$CFLAGS" installer
-  make OPTFLAGS="$CFLAGS" INSTALLROOT=$PKG install
+#        make INSTALLROOT=$PKG install efi32
+#        make INSTALLROOT=$PKG install efi64
 
-  # fix perms when building with fakeroot
-#  find $PKG/usr/share/$name/com32 -type d -perm -g+s -exec chmod -v g-s {} \;
+        mkdir -p $PKG/usr/share/doc/syslinux
+        cp -Prfd doc/* $PKG/usr/share/doc/syslinux
+
 }

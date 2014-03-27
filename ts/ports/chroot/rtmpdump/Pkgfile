@@ -11,6 +11,10 @@ build() {
 git clone --depth 1 git://git.ffmpeg.org/rtmpdump
 	cd $name
 
+	sed -i -e s:=/usr/local:=/usr:g Makefile
+	sed -i -e s:=/usr/local:=/usr:g librtmp/Makefile
+#	sed -i -e s:=/usr/local:=/usr:g librtmp/librtmp.pc
+
 	make
 	make DESTDIR=$PKG install
 }

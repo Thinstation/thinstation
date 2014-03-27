@@ -1,0 +1,18 @@
+# Description: Simple database API for samba
+# URL: http://tevent.samba.org/
+# Maintainer: Stefan Metzmacher <metze@samba.org>
+# Depends on: python
+
+name=tevent
+version=0.9.21
+release=1
+source=(ftp://ftp.samba.org/pub/$name/$name-$version.tar.gz)
+
+build() {
+	cd $name-$version
+
+	./configure --prefix=/usr --mandir=/usr/man 
+
+	make
+	make install DESTDIR=$PKG
+}

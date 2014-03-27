@@ -1,9 +1,8 @@
 #!/bin/sh
 trap "" INT QUIT TSTP
 . /etc/thinstation.global
-. /etc/splash.functions
 
-if [ "$TERM" != "xinit" ]; then
+if [ "`tty`" != "$CONSOLE" ]; then
 	exit 0
 fi
 
@@ -17,18 +16,6 @@ stale_tasks()
 		return 1
 	fi
 }
-
-if [ "$1" = "open" ]; then
-	umask 022
-	mkdir -p $HOME
-	hide_cursor
-	splash_exit
-	rm -rf $HOME/.{config,local,gconf,gconfd,gnome2,xinitrc}
-	for file in `ls -A /etc/skel`; do
-		cp -a /etc/skel/$file $HOME/. 2>/dev/null
-	done
-	chown -R $TSUSER.$TSUSER $HOME
-fi
 
 if [ "$1" = "close" ] && [ -z "`pidof shutdown`" ]; then
 	timeout=0

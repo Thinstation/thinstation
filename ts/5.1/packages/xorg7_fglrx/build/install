@@ -1,0 +1,82 @@
+#!/bin/sh
+
+gzname=`basename $1`
+INSTALLDIR=./packages/xorg7_fglrx
+release=`cat ./utils/KERNEL_VERSION`
+pkgname=`echo $gzname | sed -e 's/\.zip//'`
+
+pushd wget_tmp
+rm -rf $pkgname.run $pkgname
+unzip $pkgname.zip
+returnval=$?
+sh $pkgname.run --extract $pkgname
+let returnval=returnval+$?
+popd
+
+cp -a wget_tmp/$pkgname/arch/x86/* $INSTALLDIR
+let returnval=returnval+$?
+cp -a wget_tmp/$pkgname/common/* $INSTALLDIR
+let returnval=returnval+$?
+cp -a wget_tmp/$pkgname/xpic/* $INSTALLDIR
+let returnval=returnval+$?
+
+if [ $returnval != 0 ]; then exit $returnval; fi
+
+pushd $INSTALLDIR/lib/modules/fglrx/build_mod
+cat <<EOF > linux-3.9.patch
+--- a/kcl_acpi.c	2013-12-17 20:05:35.000000000 +0100
++++ b/kcl_acpi.c	2013-12-19 18:40:18.386568588 +0100
+@@ -995,7 +995,11 @@
+ #endif
+     {
+         return KCL_ACPI_ERROR;
+-    }    
++    }
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,9,1)
++    ((acpi_tbl_table_handler)handler)(hdr);
++#else
+     ((acpi_table_handler)handler)(hdr);
++#endif
+     return KCL_ACPI_OK;
+-}
++}
+EOF
+patch -Np1 -i linux-3.9.patch
+
+./make.sh --uname_r ${release}
+let returnval=returnval+$?
+./make.sh --uname_r ${release}_SMP
+let returnval=returnval+$?
+popd
+
+if [ $returnval != 0 ]; then exit $returnval; fi
+
+for kern in ${release} ${release}_SMP; do
+mkdir $INSTALLDIR/lib/modules/$kern
+mv $INSTALLDIR/lib/modules/fglrx/fglrx.$kern.ko $INSTALLDIR/lib/modules/$kern/fglrx.ko
+done
+
+rm -rf $INSTALLDIR/lib/modules/fglrx # done with kernel source
+rm -rf $INSTALLDIR/usr/share/man # man pages aren't usable
+rm -rf $INSTALLDIR/usr/{include,src} # no compilers in runtime
+rm -rf $INSTALLDIR/usr/lib/fglrx # scripts for swapping libGL
+mv $INSTALLDIR/usr/share/* $INSTALLDIR/lib
+rmdir $INSTALLDIR/usr/share
+
+mkdir -p $INSTALLDIR/lib/xorg
+mv $INSTALLDIR/usr/X11R6/bin/* $INSTALLDIR/usr/bin
+mv $INSTALLDIR/usr/X11R6/lib/modules $INSTALLDIR/lib/xorg/
+mv $INSTALLDIR/usr/X11R6/lib/* $INSTALLDIR/lib
+mv $INSTALLDIR/usr/lib/* $INSTALLDIR/lib
+rmdir $INSTALLDIR/usr/lib
+rmdir $INSTALLDIR/usr/X11R6/{lib,bin}
+rmdir $INSTALLDIR/usr/X11R6
+mv $INSTALLDIR/usr/* $INSTALLDIR/
+rmdir $INSTALLDIR/usr
+mv $INSTALLDIR/lib/xorg/modules/dri $INSTALLDIR/lib
+
+rm $INSTALLDIR/lib/libfglrx_dm.a # no compilers to link this to
+
+find $INSTALLDIR/lib/{applications,doc,icons} -type f -exec chmod a-x {} \;
+find $INSTALLDIR/etc -type f -exec chmod a-x {} \;
+chmod a+x $INSTALLDIR/etc/ati/{atiapfxx,authatieventsd.sh}

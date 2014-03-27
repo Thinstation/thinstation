@@ -4,7 +4,7 @@
 
 name=cryptodev-linux
 version=1.6
-release=3.12.14
+release=3.12.15
 source=(http://download.gna.org/cryptodev-linux/cryptodev-linux-$version.tar.gz)
 
 build() {
@@ -12,16 +12,14 @@ build() {
 	export REPORT_KERNEL=${release}TS_SMP
 
 	make
-	mkdir -p $PKG/$TSCOMPROOT/kernel_SMP/kernel/modules-${release}TS_SMP/kernel/extra/
-	cp -a cryptodev.ko $PKG/$TSCOMPROOT/kernel_SMP/kernel/modules-${release}TS_SMP/kernel/extra/.
+	make install PREFIX=$PKG MODLIB=$PKG/$TSCOMPROOT/kernel_SMP/kernel/modules-${release}TS_SMP INSTALL_MOD_DIR=kernel/extra MODSECKEY=/etc/ssl/keys/kernel.key MODPUBKEY=/etc/ssl/certs/kernel.crt
 
-	mkdir -p $PKG/usr/include/crypto
-	cp crypto/cryptodev.h $PKG/usr/include/crypto/.
 	make clean
 
 	export REPORT_KERNEL=${release}TS
 
 	make
-	mkdir -p $PKG/$TSCOMPROOT/kernel/kernel/modules-${release}TS/kernel/extra/
-	cp -a cryptodev.ko $PKG/$TSCOMPROOT/kernel/kernel/modules-${release}TS/kernel/extra/.
+	make install PREFIX=$PKG MODLIB=$PKG/$TSCOMPROOT/kernel/kernel/modules-${release}TS INSTALL_MOD_DIR=kernel/extra MODSECKEY=/etc/ssl/keys/kernel.key MODPUBKEY=/etc/ssl/certs/kernel.crt
+
+	chmod 644 $PKG/usr/include/crypto/cryptodev.h
 }

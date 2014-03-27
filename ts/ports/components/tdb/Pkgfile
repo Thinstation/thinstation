@@ -1,0 +1,18 @@
+# Description: Simple database API for samba
+# URL: http://tdb.samba.org/
+# Maintainer: Rusty Russell <rusty@samba.org>
+# Depends on: python
+
+name=tdb
+version=1.2.12
+release=1
+source=(ftp://ftp.samba.org/pub/$name/$name-$version.tar.gz)
+
+build() {
+	cd $name-$version
+
+	./configure --prefix=/usr --mandir=/usr/man 
+
+	make
+	make install DESTDIR=$PKG
+}

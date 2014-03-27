@@ -1,40 +1,65 @@
 # Description: Directory content manager
 # URL: http://www.kernel.org/pub/software/scm/git/docs
-# Maintainer: Tilman Sauerbeck, tilman at crux dot nu
+# Maintainer:  Thomas Penteker, tek at serverop dot de
+# Packager: Tilman Sauerbeck, tilman at crux dot nu
 # Depends on: expat, curl, python
 # Nice to have: tk
 
 name=git
-version=1.7.6.4
+version=1.9.1
 release=1
-source=(http://www.kernel.org/pub/software/scm/$name/$name-$version.tar.gz \
-	http://www.kernel.org/pub/software/scm/$name/$name-manpages-1.7.6.tar.bz2)
+source=(https://www.kernel.org/pub/software/scm/git/$name-{,manpages-}$version.tar.gz)
 
 build() {
 	cd $name-$version
 
-	# install Error.pm. this pretty much sucks, but i'm too lazy to
-	# investigate whether there's a better way.
-	sed -i -e '23,24d' -e '26d' perl/Makefile.PL
+  export PYTHON_PATH='/usr/bin/python2'
+  cd "$SRC/$name-$version"
+  make prefix=/usr gitexecdir=/usr/lib/git-core \
+    CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" \
+    USE_LIBPCRE=1 \
+    NO_CROSS_DIRECTORY_HARDLINKS=1 \
+    MAN_BOLD_LITERAL=1 \
+    all doc
 
-	make CFLAGS="$CFLAGS" prefix=/usr gitexecdir=/usr/lib/git-core \
-	     DESTDIR=$PKG install
+  make -C contrib/credential/gnome-keyring
 
-	cd $SRC
+  make prefix=/usr gitexecdir=/usr/lib/git-core \
+    CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" \
+    USE_LIBPCRE=1 \
+    NO_CROSS_DIRECTORY_HARDLINKS=1 \
+    MAN_BOLD_LITERAL=1 \
+    INSTALLDIRS=vendor DESTDIR="$PKG" install install-doc
 
-	for i in man*; do
-		install -d $PKG/usr/man/$i
-		install -m 644 $i/* $PKG/usr/man/$i;
-	done
+  # bash completion
+  mkdir -p "$PKG"/usr/share/bash-completion/completions/
+  install -m644 ./contrib/completion/git-completion.bash "$PKG"/usr/share/bash-completion/completions/git
+  # fancy git prompt
+  mkdir -p "$PKG"/usr/share/git/
+  install -m644 ./contrib/completion/git-prompt.sh "$PKG"/usr/share/git/git-prompt.sh
+  # gnome credentials helper
+  install -m755 contrib/credential/gnome-keyring/git-credential-gnome-keyring \
+      "$PKG"/usr/lib/git-core/git-credential-gnome-keyring
+  make -C contrib/credential/gnome-keyring clean
+  # the rest of the contrib stuff
+  cp -a ./contrib/* $PKG/usr/share/git/
 
-	install -d $PKG/usr/man/man3
-	mv $PKG/usr/share/man/man3/{Git,private-Error}.3pm \
-		$PKG/usr/man/man3/
-	rmdir $PKG/usr/share/{man/man3,man}
+  # scripts are for python 2.x
+  sed -i 's|#![ ]*/usr/bin/env python$|#!/usr/bin/env python2|' \
+    $(find "$PKG" -name '*.py') \
+    "$PKG"/usr/lib/git-core/git-p4 \
+    "$PKG"/usr/share/git/gitview/gitview \
+    "$PKG"/usr/share/git/remote-helpers/git-remote-bzr \
+    "$PKG"/usr/share/git/remote-helpers/git-remote-hg
+  sed -i 's|#![ ]*/usr/bin/python$|#!/usr/bin/python2|' \
+    "$PKG"/usr/share/git/svn-fe/svnrdump_sim.py
 
-	find $PKG -name perllocal.pod -delete
-	find $PKG -name .packlist -delete
+  # remove perllocal.pod, .packlist, and empty directories.
+  rm -rf "$PKG"/usr/lib/perl5
 
-	rm -rf $PKG/usr/share/gitk/lib/msgs
-	rmdir $PKG/usr/share/gitk/{lib,}
+
+  mv  $PKG/usr/share/man/man1 $PKG/usr/man/.
+  mv  $PKG/usr/share/man/man5 $PKG/usr/man/.
+  mv  $PKG/usr/share/man/man7 $PKG/usr/man/.
+#  rm -rf $PKG/usr/share
 }

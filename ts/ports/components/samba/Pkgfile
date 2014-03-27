@@ -1,36 +1,41 @@
-# Description: Thinstation essential package
-# URL: http://www.thinstation.org
-# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+# Description: SMB server and client for unix
+# URL:         http://www.samba.org
+# Maintainer:  Juergen Daubert, jue at crux dot nu
+# Depends on:  ncurses openssl readline zlib tdb talloc libcap acl libaio popt
 
 name=samba
-version=3.6.20
+version=4.1.4
 release=1
-source=(http://www.samba.org/samba/ftp/stable/$name-$version.tar.gz)
+source=(http://www.samba.org/samba/ftp/stable/$name-$version.tar.gz \
+        samba)
 
-build() {
-	cd $name-$version/source3
+build () {
+    cd $name-$version
 
-	./configure 	--with-configdir=/etc \
-			--prefix=/usr \
-			--localstatedir=/var \
-			--disable-swat \
-			--disable-smbtorture4 \
-			--enable-cups \
-			--enable-iprint \
-			--enable-relro \
-			--enable-shared-libs \
-			--enable-external-libtalloc \
-			--without-libtalloc \
-			--without-dmapi \
-			--without-dnsupdate \
-			--without-sys-quotas \
-			--without-utmp \
-			--without-cluster-support
+    local JOBS=$(awk 'BEGIN{RS="-j|--jobs="} NR==2 {print $1}' <<< $MAKEFLAGS)
+    test -n "$JOBS" && export JOBS="$JOBS"
 
-	make
-	make DESTDIR=$PKG install
-rm -rf $PKG/swat $PKG/share
-#rm -rf $PKG/{include,share,swat}
-#mkdir -p $PKG/$TSCOMPROOT/$pname
-#mv $PKG/{private,sbin,var,lib,bin} $PKG/$TSCOMPROOT/$pname/.
+    ./configure --enable-fhs \
+                --prefix=/usr \
+                --localstatedir=/var \
+                --mandir=/usr/man \
+                --sysconfdir=/etc \
+                --with-privatedir=/etc/samba/private
+
+    make
+    make DESTDIR=$PKG install
+
+    # man pages
+    install -d $PKG/usr/man/man{1,5,8}
+    install -m 644 docs/manpages/*.1 $PKG/usr/man/man1
+    install -m 644 docs/manpages/*.5 $PKG/usr/man/man5
+    install -m 644 docs/manpages/*.8 $PKG/usr/man/man8
+    
+    # cleanup
+    chmod 1777 $PKG/var/lock
+    
+    # config-file and start-script
+    install -d $PKG/etc/{samba,rc.d}
+    install -m 0600 packaging/LSB/smb.conf $PKG/etc/samba/smb.conf.default
+    install -m 0755 $SRC/samba $PKG/etc/rc.d
 }

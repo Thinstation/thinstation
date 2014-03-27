@@ -1,0 +1,17 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=kernel-keys
+version=3.10.32
+release=1
+source=(request)
+
+build() {
+	mkdir -p $PKG/etc/ssl/{keys,certs}
+        openssl req -new -nodes -utf8 -sha256 -days 36500 \
+                -batch -x509 -config request \
+                -outform DER -out $PKG/etc/ssl/certs/kernel.crt \
+                -keyout $PKG/etc/ssl/keys/kernel.key 2>&1
+	touch $PKG/etc/ssl/certs/kernel-ca.crt
+}
