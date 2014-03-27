@@ -4,25 +4,26 @@
 # Maintainer:   
 
 name=bbswitch
-version=0.7
-release=3.12.14
-source=(https://api.github.com/repos/Bumblebee-Project/bbswitch/tarball/v$version)
+version=0.8
+release=3.12.15
+source=(https://api.github.com/repos/Bumblebee-Project/bbswitch/tarball/v$version makefile.patch)
 
 build() {
     tar xzfv v$version    
     cd Bumblebee-Project-bbswitch-*
-
-    mkdir -p $PKG/usr/include/linux
+    patch -Np1 -i $SRC/makefile.patch
 
     for KERNELTYPE in TS TS_SMP
     do
        KVERSION=${release}$KERNELTYPE
        KCOMPDIR=${KERNELTYPE##TS}
-       make KVERSION=$KVERSION
-       MODDIR=$PKG/$TSCOMPROOT/kernel${KCOMPDIR}/kernel/modules-${KVERSION}/kernel/drivers/video
+       KDIR=/lib/modules/$KVERSION/build
+       MODLIB=$PKG/$TSCOMPROOT/kernel${KCOMPDIR}/kernel/modules-${KVERSION}
+       MODDIR=kernel/drivers/video
 
-       mkdir -p $MODDIR 
-       cp -a ${name}.ko $MODDIR 
+       make KVERSION=$KVERSION
+       make install KVERSION=$KVERSION MODLIB=$MODLIB MODDIR=$MODDIR MODSECKEY=/etc/ssl/keys/kernel.key MODPUBKEY=/etc/ssl/certs/kernel.crt
+
     done
 }
 
