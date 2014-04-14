@@ -643,7 +643,7 @@ if [ -n "$ts_bootresolution" ] ;then
 	if [ ! -z $ts_extra_vid ]; then
 		KERNEL_PARAMETERS="$KERNEL_PARAMETERS video=$ts_extra_vid"
 	fi
-  if is_enabled $ts_bootlogo ] && [ -e ./tmp-tree/bin/fbsplashd ]; then
+  if is_enabled $ts_bootlogo && [ -e ./tmp-tree/bin/fbsplashd ]; then
 	splashvar="splash=silent"
 	if [ -n "$ts_splash" ] ; then splashvar="splash=$ts_splash" ; fi
 	if [ -n "$ts_boottheme" ] ; then splashvar="$splashvar,theme:$ts_boottheme" ; fi
@@ -1033,7 +1033,7 @@ for KERNVER in $KERNVERS; do
 			echo -e "\nBuilding dependencies for $KERNVER Modules..."
 			module_dependencies
 		fi
-		
+
 		# Adding additional packages and modules which are dependencies of modules
 		module_package_dependencies
 
@@ -1045,7 +1045,7 @@ for KERNVER in $KERNVERS; do
 
 		# Adding modules that are dependencies of packages
 		package_module_dependencies
-		
+
 		# Did we add anything?
 		if [ -e /tmp/dirty ]; then
 			echo -e "\nDependencies are dirty. Restarting!"
@@ -1055,6 +1055,12 @@ for KERNVER in $KERNVERS; do
 	#Run depmod on modules included to generate modules.* files
 	./utils/tools/depmod -b ./tmp-tree $KERNVER
 done
+
+# Now that all the package deps are satisfied, do we really need a splash
+#if ! is_enabled $ts_bootlogo; then
+#	echo -e "Boot Logo Disabled. Removing splash package."
+#	rm $PACDIR/splash.package
+#fi
 
 install_non_distributable
 
@@ -1234,7 +1240,7 @@ else
 fi
 
 if [ -z "$DEBUG_KERNEL" ] ; then
-  	DEBUGCONSOLE="console=tty1 loglevel=$ts_bootverbosity"
+  	DEBUGCONSOLE="console=tty1 vt.global_cursor_default=0 loglevel=3"
 fi
 
 # Process locales
@@ -1445,9 +1451,11 @@ filesystem_fixups()
 		rm -f ./tmp-tree/etc/background.jpg
 		rm -f ./tmp-tree/bin/vmmouse_detect
 		# If we are not starting X, why do we need gpu support.
-		for gpu in `find ./tmp-tree/lib/modules -type d -name gpu -o -name agp`; do
-			rm -rf $gpu
-		done
+		if is_enabled $ts_stripmodules; then
+			for gpu in `find ./tmp-tree/lib/modules -type d -name gpu -o -name agp`; do
+				rm -rf $gpu
+			done
+		fi
 	else
 		echo -e "\tRunning mkfontdir and mkfontscale"
 		for fontdir in `find ./tmp-tree/lib/fonts/X11 -mindepth 1 -type d`; do

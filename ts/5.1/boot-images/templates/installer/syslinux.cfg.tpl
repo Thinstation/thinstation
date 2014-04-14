@@ -1,0 +1,1 @@
+INCLUDE menu/default.cfg

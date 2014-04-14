@@ -30,8 +30,8 @@ if [ -z "$CMD_FULLSCREEN" ] ; then CMD_FULLSCREEN=$CMD_GLOBAL ; fi
 if [ -e /etc/cmd/$PACKAGE.getip ] ; then CMD_GETIP=TRUE; fi
 #if [ -e /etc/cmd/$PACKAGE.wm ] ; then wm_menu; fi
 
-if [ -e /etc/cmd/$PACKAGE.change_server_type ] ; then SERVER="\"$2\"" ; elif [ -n "$2" ] ; then SERVER=$2 ; fi
-if [ -n "$3" ] ; then OPTIONS=$3 ; fi
+if [ -e /etc/cmd/$PACKAGE.change_server_type ] ; then SERVER="\"$2\"" ; elif [ -n "$2" ] ; then SERVER="$2" ; fi
+if [ -n "$3" ] ; then OPTIONS="$3" ; fi
 if [ -e /etc/cmd/$PACKAGE.server_first ] ; then	REVERSE_ORDER=TRUE ; fi
 
 APPLOG=$APPLOGDIR/$PACKAGE.$$
@@ -73,21 +73,27 @@ package_input()
 
 order_command()
 {
-   if is_enabled $REVERSE_ORDER ; then
-	ORDERED_COMMAND="$SERVER $OPTIONS"
-   else
-        ORDERED_COMMAND="$OPTIONS $SERVER"
-   fi
-   if [ -e /etc/cmd/$PACKAGE.getuser ]; then
-	ORDERED_COMMAND="$REMUSER $ORDERED_COMMAND"
-   fi
+#	if [ -n "$SERVER" ] && [ -n "$OPTIONS" ]; then
+		if is_enabled $REVERSE_ORDER ; then
+			ORDERED_COMMAND="$SERVER $OPTIONS"
+		else
+			ORDERED_COMMAND="$OPTIONS $SERVER"
+		fi
+#	elif [ -n "$SERVER" ]; then
+#		ORDERED_COMMAND="$SERVER"
+#	elif [ -n "$OPTIONS" ]; then
+#		ORDERED_COMMAND="$OPTIONS"
+#	fi
+	if [ -e /etc/cmd/$PACKAGE.getuser ]; then
+		ORDERED_COMMAND="$REMUSER $ORDERED_COMMAND"
+	fi
 }
 
 ck_wrapper()
 {
-   if [ -x /bin/ck-launch-session ]; then
-	CMD="ck-launch-session $CMD"
-   fi
+	if [ -x /bin/ck-launch-session ]; then
+		CMD="ck-launch-session $CMD"
+	fi
 }
 
 xterm_wrapper()
@@ -99,6 +105,11 @@ xterm_wrapper()
 			arg="-e"
 		fi
 		CMD="$XTERM_CMD $arg $CMD"
+	elif x_wm && [ "$CMD_CONSOLE" == "$XTERM_CMD" ]; then
+		#Rewrite the Xterm CMD to fullscreen like a WM would.
+		if ! echo $CMD |grep -qe "-geometry"; then
+			CMD="$CMD_CONSOLE -geometry `get_res` $ORDERED_COMMAND"
+		fi
 	fi
 }
 
@@ -115,6 +126,9 @@ run_command()
 	if is_enabled $LOG_COMMANDS ; then
 		echo "$CMD" >> $APPLOG
 	fi
+	# One last shore up of the escape charactoers
+	# This needs to be done after the logging and before execution so that we see what the command see's
+	CMD=$(echo $CMD |sed -e 's/\\/\\\\/g')
 	if x_wm ;then
 		eval exec $CMD >> $APPLOG 2>&1
 	else
@@ -148,7 +162,7 @@ auto)
     package_input
     order_command
     CMD="$CMD_CONSOLE $ORDERED_COMMAND"
-    wm_workspaces "$CMD" $4
+    wm_workspaces "$CMD" "$4"
     xterm_wrapper
     run_command
     wait
@@ -192,8 +206,8 @@ window|fullscreen)
     fi
     package_input
     order_command
-    MODE=`make_caps $1`
-    CMD=`eval echo '$'CMD_$MODE`' '$ORDERED_COMMAND
+    MODE=`make_caps "$1"`
+    CMD="`eval echo '$'CMD_$MODE '$'ORDERED_COMMAND`"
     xterm_wrapper
     run_command
     x_check_status

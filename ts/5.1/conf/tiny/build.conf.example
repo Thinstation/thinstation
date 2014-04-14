@@ -59,12 +59,18 @@
 #machine NT-A3500			# Foxconn AMD E-350 Barebone
 #machine NT-535				# Foxconn Intel D525 Barebone
 #machine Dell-FX170			# Dell FX170 D525 Atom Machine
-machine VMWare				# A good set of modules for a VmWare Virtual Machine
+#machine VMWare				# A good set of modules for a VmWare Virtual Machine
 #machine Virtualbox-4.1			# A good set of modules for a Virtualbox Virtual Machine
 #machine VIA-Epia-CLE266		# VIA Epia/Eden based on the the CLE266 chip. Rather common in thin clients a few years old
 #machine classic_generic		# Big list of modules that you can choose by unremarking them
 #machine IGEL-M300C                     # Igel CX700 Via
 #machine HP-t5135                       # HP CX700 Via
+
+module vmw_balloon
+module vmxnet
+module pcnet32
+module e1000
+module e1000e
 
 #!!Wireless Stuff
 #package wpa_supplicant
@@ -324,22 +330,22 @@ package autonet
 
 param rootpasswd     pleasechangeme			# Do Change!  Console/telnet password for root
                                         		# If this is enabled, Telnetd will be enabled.
-param xorgvncpasswd  pleasechangeme			# VNC Access Password
-param storagepasswd  pleasechangeme			# Password for storage server
-param dialuppasswd   pleasechangeme			# Password for dialin account
-param sambapasswd    pleasechangeme  			# Password for samba shares when using user mode security
+#param xorgvncpasswd  pleasechangeme			# VNC Access Password
+#param storagepasswd  pleasechangeme			# Password for storage server
+#param dialuppasswd   pleasechangeme			# Password for dialin account
+#param sambapasswd    pleasechangeme  			# Password for samba shares when using user mode security
 #param kernelcmdline "radeon.modeset=0"                 # Add additional kernel command lines. e.g. disable radeon framebuffer
 #param stripelf       yes				# Strip extraneous information from elf binaries (Maybe not Safe)
-param acpisupport    disable				# Tells the kernel not to load acpi modules. (Breaks some Intel Chipsets if disabled)
+#param acpisupport    disable				# Tells the kernel not to load acpi modules. (Breaks some Intel Chipsets if disabled)
 #param uvesafb        disable				# Disable uvesafb (legacy option like modesetfb)
 #param extra_vid      LVDS-1:d				# Add an extra video= parameter to kernel cmd line (good for disabling outputs on video cards)
-param bootlogo       true				# Enable or Disable the use of the Boot splash.
-param boottheme	     default           			# Backgound picture during boot
+param bootlogo       false				# Enable or Disable the use of the Boot splash.
+#param boottheme	     default           			# Backgound picture during boot
 #param splash	     verbose				# kernel splash setting (0=off, silent or verbose (default=silent)
-param splash	     silent
-param fbmtrr         0                                  # MTRR value for uvesafb (default = 0, 4 is the best) grep your log to make sure you have not set it to high
+#param splash	     silent
+#param fbmtrr         0                                  # MTRR value for uvesafb (default = 0, 4 is the best) grep your log to make sure you have not set it to high
 #param fbnocrtc      true                               # This is usually a good thing.
-param fbsm           ywrap                              # Window scrolling method (redraw, ypan, ywrap) ywrap is best, but may not work correctly for all people
+#param fbsm           ywrap                              # Window scrolling method (redraw, ypan, ywrap) ywrap is best, but may not work correctly for all people
 #param fbvtotal       16                                # Override Video Bios Reported Memory in MB
 #param fbmaxhf        67                                # Override Video Negotiated Max Horizontal Frequency
 #param fbmaxvf        61                                # Override Video Negotiated Max Vertical Frequency
@@ -365,7 +371,7 @@ param baseurl        http://www.doncuppjr.net		# Used to determine url to wget f
 #param keyfile        ./id_rsa       			# Path for private key file used for ssh/scp
 #param knownhosts     ./known_hosts  			# Path for ssh known_hosts file for ssh/scp
 #param localpkgs      false				# to determine is PKG files are to be loaded locally
-param fulllocales    true	      			# Use full locale support for packages
+#param fulllocales    true	      			# Use full locale support for packages
 #param icaencryption  false      			# Use ica encryption support, add 290k to image
 param haltonerror    false				# Will halt on error, default is true
 param hardlinkfs     true

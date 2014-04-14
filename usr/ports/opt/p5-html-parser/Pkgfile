@@ -1,0 +1,25 @@
+# Description: Perl HTML parser class.
+# URL: http://search.cpan.org/dist/HTML-Parser
+# Maintainer: Danny Rawlins, monster dot romster at gmail dot com
+# Packager: Matt Housh, jaeger at morpheus dot net
+# Depends on: p5-html-tagset
+
+name=p5-html-parser
+version=3.71
+release=1
+source=(http://search.cpan.org/CPAN/authors/id/G/GA/GAAS/HTML-Parser-$version.tar.gz)
+
+build() {
+	cd HTML-Parser-$version
+	echo "no" | perl Makefile.PL
+	make OPTIMIZE="$CFLAGS"
+	make DESTDIR=$PKG install
+
+	find $PKG -type f \( \
+		-name '.packlist' -or \
+		-name '*.bs' -or \
+		-name 'autosplit.ix' -or \
+		-name 'perllocal.pod' \) -delete
+
+	find $PKG -depth -empty -exec rm -r {} \;
+}

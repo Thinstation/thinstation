@@ -12,7 +12,7 @@ if [ "`tty`" == "$CONSOLE" ]; then
        	        cp -a /etc/skel/$file $HOME/. 2>/dev/null
         done
         chown -R $TSUSER.$TSUSER $HOME
-	if [ -e /bin/xinit ]; then
+	if [ -e /bin/xinit ] && [ "$SESSION_0_TYPE" != "sh" ]; then
 		check_last_session
 		cd /var/run
 		exec /bin/xinit /etc/xinitrc -- /etc/xserverrc &> /var/run/applications/session.$$

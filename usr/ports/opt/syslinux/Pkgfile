@@ -7,12 +7,18 @@
 name=syslinux
 version=4.07
 release=2
-source=(http://www.kernel.org/pub/linux/utils/boot/$name/$name-$version.tar.gz)
-#source=(http://www.kernel.org/pub/linux/utils/boot/$name/Testing/${version%-*}/$name-$version.tar.gz)
+source=(http://www.kernel.org/pub/linux/utils/boot/$name/$name-$version.tar.gz ifmem.c)
+#source=(http://www.kernel.org/pub/linux/utils/boot/$name/Testing/${version%-*}/$name-$version.tar.gz ifmem.c)
 
 build() {
         cd ${name}-${version}
+	cp $SRC/ifmem.c com32/modules/.
+	sed -i -e "s/ifcpu.c32/ifcpu.c32 ifmem.c32/g" com32/modules/Makefile
 
+#	cd com32
+#	make
+#	cd ..
+	make #bios
         make INSTALLROOT=$PKG install #bios
 
         rm -rf $PKG/usr/share/syslinux/com32
