@@ -10,6 +10,12 @@ drwxr-xr-x	root/root	usr/bin/
 -rwxr-xr-x	root/root	usr/bin/dbwrap_tool
 -rwxr-xr-x	root/root	usr/bin/eventlogadm
 -rwxr-xr-x	root/root	usr/bin/gentest
+-rwxr-xr-x	root/root	usr/bin/ldbadd
+-rwxr-xr-x	root/root	usr/bin/ldbdel
+-rwxr-xr-x	root/root	usr/bin/ldbedit
+-rwxr-xr-x	root/root	usr/bin/ldbmodify
+-rwxr-xr-x	root/root	usr/bin/ldbrename
+-rwxr-xr-x	root/root	usr/bin/ldbsearch
 -rwxr-xr-x	root/root	usr/bin/locktest
 -rwxr-xr-x	root/root	usr/bin/masktest
 -rwxr-xr-x	root/root	usr/bin/ndrdump
@@ -46,6 +52,10 @@ drwxr-xr-x	root/root	usr/bin/
 -rwxr-xr-x	root/root	usr/bin/smbtar
 -rwxr-xr-x	root/root	usr/bin/smbtorture
 -rwxr-xr-x	root/root	usr/bin/smbtree
+-rwxr-xr-x	root/root	usr/bin/tdbbackup
+-rwxr-xr-x	root/root	usr/bin/tdbdump
+-rwxr-xr-x	root/root	usr/bin/tdbrestore
+-rwxr-xr-x	root/root	usr/bin/tdbtool
 -rwxr-xr-x	root/root	usr/bin/testparm
 -rwxr-xr-x	root/root	usr/bin/wbinfo
 drwxr-xr-x	root/root	usr/include/
@@ -165,6 +175,7 @@ drwxr-xr-x	root/root	usr/include/samba-4.0/util/
 -rw-r--r--	root/root	usr/include/samba-4.0/util/xfile.h
 -rw-r--r--	root/root	usr/include/samba-4.0/util_ldb.h
 -rw-r--r--	root/root	usr/include/samba-4.0/wbclient.h
+-rw-r--r--	root/root	usr/include/tdb.h
 drwxr-xr-x	root/root	usr/lib/
 lrwxrwxrwx	root/root	usr/lib/libdcerpc-atsvc.so -> libdcerpc-atsvc.so.0.0.1
 lrwxrwxrwx	root/root	usr/lib/libdcerpc-atsvc.so.0 -> libdcerpc-atsvc.so.0.0.1
@@ -234,6 +245,9 @@ lrwxrwxrwx	root/root	usr/lib/libsmbldap.so -> libsmbldap.so.0
 -rwxr-xr-x	root/root	usr/lib/libsmbldap.so.0
 lrwxrwxrwx	root/root	usr/lib/libsmbsharemodes.so -> libsmbsharemodes.so.0
 -rwxr-xr-x	root/root	usr/lib/libsmbsharemodes.so.0
+lrwxrwxrwx	root/root	usr/lib/libtdb.so -> libtdb.so.1.2.12
+lrwxrwxrwx	root/root	usr/lib/libtdb.so.1 -> libtdb.so.1.2.12
+-rwxr-xr-x	root/root	usr/lib/libtdb.so.1.2.12
 lrwxrwxrwx	root/root	usr/lib/libtevent-util.so -> libtevent-util.so.0.0.1
 lrwxrwxrwx	root/root	usr/lib/libtevent-util.so.0 -> libtevent-util.so.0.0.1
 -rwxr-xr-x	root/root	usr/lib/libtevent-util.so.0.0.1
@@ -264,10 +278,12 @@ drwxr-xr-x	root/root	usr/lib/pkgconfig/
 -rw-r--r--	root/root	usr/lib/pkgconfig/smbclient-raw.pc
 -rw-r--r--	root/root	usr/lib/pkgconfig/smbclient.pc
 -rw-r--r--	root/root	usr/lib/pkgconfig/smbsharemodes.pc
+-rw-r--r--	root/root	usr/lib/pkgconfig/tdb.pc
 -rw-r--r--	root/root	usr/lib/pkgconfig/torture.pc
 -rw-r--r--	root/root	usr/lib/pkgconfig/wbclient.pc
 drwxr-xr-x	root/root	usr/lib/python2.7/
 drwxr-xr-x	root/root	usr/lib/python2.7/site-packages/
+-rwxr-xr-x	root/root	usr/lib/python2.7/site-packages/ldb.so
 -rwxr-xr-x	root/root	usr/lib/python2.7/site-packages/ntdb.so
 drwxr-xr-x	root/root	usr/lib/python2.7/site-packages/samba/
 -rw-r--r--	root/root	usr/lib/python2.7/site-packages/samba/__init__.py
@@ -609,6 +625,7 @@ drwxr-xr-x	root/root	usr/lib/python2.7/site-packages/samba/web_server/
 -rw-r--r--	root/root	usr/lib/python2.7/site-packages/samba/xattr.py
 -rwxr-xr-x	root/root	usr/lib/python2.7/site-packages/samba/xattr_native.so
 -rwxr-xr-x	root/root	usr/lib/python2.7/site-packages/samba/xattr_tdb.so
+-rwxr-xr-x	root/root	usr/lib/python2.7/site-packages/tdb.so
 drwxr-xr-x	root/root	usr/lib/samba/
 drwxr-xr-x	root/root	usr/lib/samba/auth/
 -rwxr-xr-x	root/root	usr/lib/samba/auth/script.so
@@ -627,6 +644,7 @@ drwxr-xr-x	root/root	usr/lib/samba/ldb/
 -rwxr-xr-x	root/root	usr/lib/samba/ldb/acl.so
 -rwxr-xr-x	root/root	usr/lib/samba/ldb/aclread.so
 -rwxr-xr-x	root/root	usr/lib/samba/ldb/anr.so
+-rwxr-xr-x	root/root	usr/lib/samba/ldb/asq.so
 -rwxr-xr-x	root/root	usr/lib/samba/ldb/descriptor.so
 -rwxr-xr-x	root/root	usr/lib/samba/ldb/dirsync.so
 -rwxr-xr-x	root/root	usr/lib/samba/ldb/extended_dn_in.so
@@ -643,9 +661,12 @@ drwxr-xr-x	root/root	usr/lib/samba/ldb/
 -rwxr-xr-x	root/root	usr/lib/samba/ldb/objectclass_attrs.so
 -rwxr-xr-x	root/root	usr/lib/samba/ldb/objectguid.so
 -rwxr-xr-x	root/root	usr/lib/samba/ldb/operational.so
+-rwxr-xr-x	root/root	usr/lib/samba/ldb/paged_results.so
+-rwxr-xr-x	root/root	usr/lib/samba/ldb/paged_searches.so
 -rwxr-xr-x	root/root	usr/lib/samba/ldb/partition.so
 -rwxr-xr-x	root/root	usr/lib/samba/ldb/password_hash.so
 -rwxr-xr-x	root/root	usr/lib/samba/ldb/ranged_results.so
+-rwxr-xr-x	root/root	usr/lib/samba/ldb/rdn_name.so
 -rwxr-xr-x	root/root	usr/lib/samba/ldb/repl_meta_data.so
 -rwxr-xr-x	root/root	usr/lib/samba/ldb/resolve_oids.so
 -rwxr-xr-x	root/root	usr/lib/samba/ldb/rootdse.so
@@ -654,14 +675,18 @@ drwxr-xr-x	root/root	usr/lib/samba/ldb/
 -rwxr-xr-x	root/root	usr/lib/samba/ldb/samba_dsdb.so
 -rwxr-xr-x	root/root	usr/lib/samba/ldb/samba_secrets.so
 -rwxr-xr-x	root/root	usr/lib/samba/ldb/samldb.so
+-rwxr-xr-x	root/root	usr/lib/samba/ldb/sample.so
 -rwxr-xr-x	root/root	usr/lib/samba/ldb/schema_data.so
 -rwxr-xr-x	root/root	usr/lib/samba/ldb/schema_load.so
 -rwxr-xr-x	root/root	usr/lib/samba/ldb/secrets_tdb_sync.so
+-rwxr-xr-x	root/root	usr/lib/samba/ldb/server_sort.so
 -rwxr-xr-x	root/root	usr/lib/samba/ldb/show_deleted.so
 -rwxr-xr-x	root/root	usr/lib/samba/ldb/simple_dn.so
 -rwxr-xr-x	root/root	usr/lib/samba/ldb/simple_ldap_map.so
+-rwxr-xr-x	root/root	usr/lib/samba/ldb/skel.so
 -rwxr-xr-x	root/root	usr/lib/samba/ldb/subtree_delete.so
 -rwxr-xr-x	root/root	usr/lib/samba/ldb/subtree_rename.so
+-rwxr-xr-x	root/root	usr/lib/samba/ldb/tdb.so
 -rwxr-xr-x	root/root	usr/lib/samba/ldb/update_keytab.so
 -rwxr-xr-x	root/root	usr/lib/samba/ldb/wins_ldb.so
 -rwxr-xr-x	root/root	usr/lib/samba/libCHARSET3.so
@@ -721,6 +746,8 @@ lrwxrwxrwx	root/root	usr/lib/samba/libkrb5-samba4.so.26 -> libkrb5-samba4.so.26.
 -rwxr-xr-x	root/root	usr/lib/samba/libkrb5-samba4.so.26.0.0
 -rwxr-xr-x	root/root	usr/lib/samba/libkrb5samba.so
 -rwxr-xr-x	root/root	usr/lib/samba/libldb-cmdline.so
+lrwxrwxrwx	root/root	usr/lib/samba/libldb.so.1 -> libldb.so.1.1.16
+-rwxr-xr-x	root/root	usr/lib/samba/libldb.so.1.1.16
 -rwxr-xr-x	root/root	usr/lib/samba/libldbsamba.so
 -rwxr-xr-x	root/root	usr/lib/samba/liblibcli_lsa3.so
 -rwxr-xr-x	root/root	usr/lib/samba/liblibcli_netlogon3.so
@@ -741,6 +768,8 @@ lrwxrwxrwx	root/root	usr/lib/samba/libntdb.so.0 -> libntdb.so.0.9
 -rwxr-xr-x	root/root	usr/lib/samba/libposix_eadb.so
 -rwxr-xr-x	root/root	usr/lib/samba/libprinting_migrate.so
 -rwxr-xr-x	root/root	usr/lib/samba/libprocess_model.so
+lrwxrwxrwx	root/root	usr/lib/samba/libpyldb-util.so.1 -> libpyldb-util.so.1.1.16
+-rwxr-xr-x	root/root	usr/lib/samba/libpyldb-util.so.1.1.16
 -rwxr-xr-x	root/root	usr/lib/samba/libreplace.so
 lrwxrwxrwx	root/root	usr/lib/samba/libroken-samba4.so.19 -> libroken-samba4.so.19.0.1
 -rwxr-xr-x	root/root	usr/lib/samba/libroken-samba4.so.19.0.1
@@ -844,6 +873,12 @@ drwxr-xr-x	root/root	usr/man/man1/
 -rw-r--r--	root/root	usr/man/man1/dbwrap_tool.1.gz
 -rw-r--r--	root/root	usr/man/man1/findsmb.1.gz
 -rw-r--r--	root/root	usr/man/man1/gentest.1.gz
+-rw-r--r--	root/root	usr/man/man1/ldbadd.1.gz
+-rw-r--r--	root/root	usr/man/man1/ldbdel.1.gz
+-rw-r--r--	root/root	usr/man/man1/ldbedit.1.gz
+-rw-r--r--	root/root	usr/man/man1/ldbmodify.1.gz
+-rw-r--r--	root/root	usr/man/man1/ldbrename.1.gz
+-rw-r--r--	root/root	usr/man/man1/ldbsearch.1.gz
 -rw-r--r--	root/root	usr/man/man1/locktest.1.gz
 -rw-r--r--	root/root	usr/man/man1/log2pcap.1.gz
 -rw-r--r--	root/root	usr/man/man1/masktest.1.gz
@@ -878,6 +913,7 @@ drwxr-xr-x	root/root	usr/man/man3/
 -rw-r--r--	root/root	usr/man/man3/Parse::Pidl::Util.3pm.gz
 -rw-r--r--	root/root	usr/man/man3/Parse::Pidl::Wireshark::Conformance.3pm.gz
 -rw-r--r--	root/root	usr/man/man3/Parse::Pidl::Wireshark::NDR.3pm.gz
+-rw-r--r--	root/root	usr/man/man3/ldb.3.gz
 -rw-r--r--	root/root	usr/man/man3/ntdb.3.gz
 drwxr-xr-x	root/root	usr/man/man5/
 -rw-r--r--	root/root	usr/man/man5/lmhosts.5.gz
@@ -915,6 +951,10 @@ drwxr-xr-x	root/root	usr/man/man8/
 -rw-r--r--	root/root	usr/man/man8/smbpasswd.8.gz
 -rw-r--r--	root/root	usr/man/man8/smbspool.8.gz
 -rw-r--r--	root/root	usr/man/man8/smbta-util.8.gz
+-rw-r--r--	root/root	usr/man/man8/tdbbackup.8.gz
+-rw-r--r--	root/root	usr/man/man8/tdbdump.8.gz
+-rw-r--r--	root/root	usr/man/man8/tdbrestore.8.gz
+-rw-r--r--	root/root	usr/man/man8/tdbtool.8.gz
 -rw-r--r--	root/root	usr/man/man8/vfs_acl_tdb.8.gz
 -rw-r--r--	root/root	usr/man/man8/vfs_acl_xattr.8.gz
 -rw-r--r--	root/root	usr/man/man8/vfs_aio_fork.8.gz

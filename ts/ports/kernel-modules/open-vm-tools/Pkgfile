@@ -4,16 +4,18 @@
 
 name=open-vm-tools
 version=2013.09.16-1328054
-kver=3.12.17
+kver=3.12.18
 release=1
 source=(http://downloads.sourceforge.net/project/open-vm-tools/open-vm-tools/Development%20Snapshots/open-vm-tools-$version.tar.gz
-	vmhgfs-d_count-kernel-3.11-tools-9.6.0.patch)
+	vmhgfs-d_count-kernel-3.11-tools-9.6.0.patch \
+	nowarn.patch)
 
 build() {
 	cd $name-$version/modules/linux/vmhgfs
 	patch -p1 -i $SRC/vmhgfs-d_count-kernel-3.11-tools-9.6.0.patch
 
 	cd $SRC/$name-$version
+#	patch -p0 -i $SRC/nowarn.patch
 
 	./configure --prefix=/ \
 			--exec-prefix=/ \

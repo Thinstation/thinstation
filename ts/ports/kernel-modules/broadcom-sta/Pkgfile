@@ -8,7 +8,7 @@
 name=broadcom-sta
 version=6.30.223.141
 pversion=6_30_223_141
-release=3.12.17
+release=3.12.18
 source=(http://www.broadcom.com/docs/linux_sta/hybrid-v35-nodebug-pcoem-$pversion.tar.gz
 	linux-recent.patch
 	license.patch)
@@ -18,12 +18,12 @@ build() {
 	patch -p1 -i license.patch
 
 	KBUILD_NOPEDANTIC=1 make -C /usr/src/kernels/${release}TS M=`pwd`
-	KBUILD_NOPEDANTIC=1 make -C /usr/src/kernels/${release}TS M=`pwd` modules_install MODLIB=$PKG/$TSCOMPROOT/kernel/kernel/modules-${release}TS INSTALL_MOD_DIR=kernel/drivers/net/wireless MODSECKEY=/etc/ssl/keys/kernel.key MODPUBKEY=/etc/ssl/certs/kernel.crt
+	KBUILD_NOPEDANTIC=1 make -C /usr/src/kernels/${release}TS M=`pwd` modules_install MODLIB=$PKG/lib/modules/${release}TS INSTALL_MOD_DIR=kernel/drivers/net/wireless MODSECKEY=/etc/ssl/keys/kernel.key MODPUBKEY=/etc/ssl/certs/kernel.crt
 
 	KBUILD_NOPEDANTIC=1 make -C /usr/src/kernels/${release}TS M=`pwd` clean
 
 	KBUILD_NOPEDANTIC=1 make -C /usr/src/kernels/${release}TS_SMP M=`pwd`
-	KBUILD_NOPEDANTIC=1 make -C /usr/src/kernels/${release}TS_SMP M=`pwd` modules_install MODLIB=$PKG/$TSCOMPROOT/kernel_SMP/kernel/modules-${release}TS_SMP INSTALL_MOD_DIR=kernel/drivers/net/wireless MODSECKEY=/etc/ssl/keys/kernel.key MODPUBKEY=/etc/ssl/certs/kernel.crt
+	KBUILD_NOPEDANTIC=1 make -C /usr/src/kernels/${release}TS_SMP M=`pwd` modules_install MODLIB=$PKG/lib/modules/${release}TS_SMP INSTALL_MOD_DIR=kernel/drivers/net/wireless MODSECKEY=/etc/ssl/keys/kernel.key MODPUBKEY=/etc/ssl/certs/kernel.crt
 
 	mkdir -p  $PKG/$TSCOMPROOT/$name/
 	cp lib/LICENSE.txt $PKG/$TSCOMPROOT/$name/

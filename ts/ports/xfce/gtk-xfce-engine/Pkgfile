@@ -6,16 +6,23 @@
 # Group: xfce4
 
 name=gtk-xfce-engine
-version=3.0.0
+version=3.0.1
 release=1
-source=(http://archive.xfce.org/xfce/4.10/src/$name-$version.tar.bz2)
+source=(http://git.xfce.org/xfce/$name/snapshot/${name}-${name}-$version.tar.bz2)
 
 build () {
-  cd $name-$version
+  cd ${name}-${name}-$version
+
+  ./autogen.sh
+
+  #Fix missing px in gtk.css
+  for css in `grep -R * -e "text-shadow" |cut -d ":" -f1`; do
+    sed -i -e 's/text-shadow: 1 1/text-shadow: 1px 1px/g' $css
+  done
 
   ./configure --prefix=/usr \
               --disable-static \
-              --disable-debug 
+              --disable-debug
 
   make
   make DESTDIR=$PKG install

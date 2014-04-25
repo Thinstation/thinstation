@@ -4,7 +4,7 @@
 # Depends on: xorg-xproto, xorg-libx11, xorg-xextproto, xorg-libxext, xorg-inputproto
 
 name=xorg-libxi
-version=1.4.3
+version=1.7.2
 release=1
 source=(http://xorg.freedesktop.org/releases/individual/lib/libXi-$version.tar.bz2)
 
@@ -16,7 +16,8 @@ build() {
 	make
 	make DESTDIR=$PKG install
 
-	rm $PKG/usr/share/doc/libXi/doc/porting.xml
-	rm $PKG/usr/share/doc/libXi/specs/{encoding,inputlib,library}.xml
+#	rm $PKG/usr/share/doc/libXi/doc/porting.xml
+#	rm $PKG/usr/share/doc/libXi/specs/{encoding,inputlib,library}.xml
+	rm -rf $PKG/usr/share/doc
 	find $PKG/usr/share -type d -delete
 }

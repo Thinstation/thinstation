@@ -5,12 +5,12 @@
 name=xidle
 version=24102005
 release=1
-source=(ftp://ftp.freebsd.org/pub/FreeBSD/ports/local-distfiles/novel/$name-$version.tar.bz2 \
-        xidle_linux_compat.patch2)
+source=(http://ftp.freebsd.org/pub/FreeBSD/ports/local-distfiles/novel/$name-$version.tar.bz2 \
+        xidle_linux_compat.patch)
 
 build() {
 	cd $name-$version
-	patch -p1 < ../xidle_linux_compat.patch2
+	patch -p1 < ../xidle_linux_compat.patch
 	gcc -o Xidle -lXss -lXext -lX11 -I/usr/include/X11 -L/usr/lib xidle.c
 #	gcc -o Xidle -DDEBUG=1 -lXss -lXext -lX11 -I/usr/include/X11 -L/usr/lib xidle.c
 	strip Xidle

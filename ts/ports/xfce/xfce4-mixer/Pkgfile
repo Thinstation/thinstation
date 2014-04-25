@@ -6,15 +6,18 @@
 # Group: xfce4
 
 name=xfce4-mixer
-version=4.10.0
+version=4.11.0
 release=1
 source=(http://archive.xfce.org/src/apps/$name/${version%.*}/$name-$version.tar.bz2)
 
 build () {
   cd $name-$version
 
+#  sed -i -e 's/gstreamer-plugins-base-0.10/gstreamer-plugins-base-1.0/g' configure
+#  sed -i -e 's/0.10.25/1.0.6/g' configure
+
   ./configure --prefix=/usr \
-              --libexecdir=/usr/lib \
+              --libexecdir=/usr/libexec \
               --disable-static \
               --disable-debug
 
@@ -24,5 +27,5 @@ build () {
   rm -rf $PKG/usr/share/locale
   find $PKG/usr/share -type f -name '*.desktop' \
     -exec sed -r '/\[.+\]=/d' -i {} \;
-  sed -e 's|local/libexec|lib|' -i $PKG/usr/share/applications/$name.desktop 
+  sed -e 's|local/libexec|libexec|' -i $PKG/usr/share/applications/$name.desktop
 }

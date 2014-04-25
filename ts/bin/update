@@ -15,7 +15,7 @@ showhelp()
 	echo -e "single session or permanently by editing /ts/TS_ENV. \n"
 	echo -e "This script will use the .dna file in the root of the package dir for the "
 	echo -e "package specified at the time of invocation."
-	echo -e "\n\nOptions: \n -c = Clean Only \n -d = Do a Dry Run \n -k = Update the Kernel (Optionally Specify Which Kernel) \n -h = Give this Help \n -b = Update boot-images \n -t = Update tools"
+	echo -e "\n\nOptions: \n -c = Clean Only \n -d = Do a Dry Run \n -h = Give this Help \n -b = Update boot-images \n -t = Update tools"
 }
 
 clean()
@@ -44,12 +44,15 @@ clean()
 
 clean_kernel()
 {
-	cmdlist="${cmdlist}rm -rf kernel/vmlinuz*\n"
-	cmdlist="${cmdlist}rm -rf kernel/System.map*\n"
-	cmdlist="${cmdlist}rm -rf kernel/modules*\n"
-	cmdlist="${cmdlist}rm -rf kernel/firmware-*\n"
-	cmdlist="${cmdlist}rm -rf kernel/config*\n"
-	find ./kernel -type l |xargs rm -rf
+#	cmdlist="${cmdlist}rm -rf kernel/vmlinuz*\n"
+#	cmdlist="${cmdlist}rm -rf kernel/System.map*\n"
+#	cmdlist="${cmdlist}rm -rf kernel/modules*\n"
+#	cmdlist="${cmdlist}rm -rf kernel/firmware-*\n"
+#	cmdlist="${cmdlist}rm -rf kernel/config*\n"
+#	find ./kernel -type l |xargs rm -rf
+#        cmdlist="${cmdlist}find ./kernel -mindepth 1 -maxdepth 1 -type l -delete \n"
+#        cmdlist="${cmdlist}find ./kernel/lib -mindepth 1 -maxdepth 1 -type l -delete \n"
+	echo "clean_kernel deprecated"
 }
 
 isversioned()
@@ -151,8 +154,11 @@ updatefiles()
 
 update_kernel()
 {
-	cmdlist="${cmdlist}cp -rf /ts/components/$kernel/kernel .\n"
-	cmdlist="${cmdlist}cp -rf /ts/components/$kernel/utils .\n"
+#	cmdlist="${cmdlist}cp -rf /ts/components/$kernel/kernel .\n"
+#	cmdlist="${cmdlist}cp -rf /ts/components/$kernel/utils .\n"
+#        cmdlist=${cmdlist}'for moddir in `ls /lib/modules`; do ln -sf /lib/modules/$moddir kernel/modules-$moddir ; done\n'
+#	cmdlist=${cmdlist}'for kern_obj in `ls /boot`; do ln -sf /boot/$kern_obj kernel/$kern_obj ; done\n'
+	echo "update_kernel deprecated"
 }
 
 finish_tools()

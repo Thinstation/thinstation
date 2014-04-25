@@ -1,0 +1,18 @@
+# Description: X.Org driver for kernel mode setting (KMS)
+# URL: http://xorg.freedesktop.org
+# Maintainer: CRUX Xorg Team, xorg-ports at crux dot nu
+# Depends on: xorg-server
+
+name=xorg-xf86-video-modesetting
+version=0.8.1
+release=1
+source=(http://xorg.freedesktop.org/archive/individual/driver/xf86-video-modesetting-$version.tar.bz2)
+
+build() {
+	cd xf86-video-modesetting-$version
+
+	./configure --prefix=/usr --mandir=/usr/man
+
+	make
+	make DESTDIR=$PKG install
+}

@@ -5,7 +5,7 @@
 
 name=aufs
 version=3.12.x
-release=3.12.17
+release=3.12.18
 source=()
 
 build() {
@@ -20,10 +20,10 @@ build() {
 
     mkdir -p $PKG/usr/include/linux
     make KDIR=/usr/src/kernels/${release}TS install_headers DESTDIR=$PKG
-    make KDIR=/usr/src/kernels/${release}TS install MODLIB=$PKG/$TSCOMPROOT/kernel/kernel/modules-${release}TS INSTALL_MOD_DIR=kernel/fs/aufs MODSECKEY=/etc/ssl/keys/kernel.key MODPUBKEY=/etc/ssl/certs/kernel.crt
-    
+    make KDIR=/usr/src/kernels/${release}TS install MODLIB=$PKG/lib/modules/${release}TS INSTALL_MOD_DIR=kernel/fs/aufs MODSECKEY=/etc/ssl/keys/kernel.key MODPUBKEY=/etc/ssl/certs/kernel.crt
+   
     make KDIR=/usr/src/kernels/${release}TS clean
 
-    make KDIR=/usr/src/kernels/${release}TS_SMP install MODLIB=$PKG/$TSCOMPROOT/kernel_SMP/kernel/modules-${release}TS_SMP INSTALL_MOD_DIR=kernel/fs/aufs MODSECKEY=/etc/ssl/keys/kernel.key MODPUBKEY=/etc/ssl/certs/kernel.crt
+    make KDIR=/usr/src/kernels/${release}TS_SMP install MODLIB=$PKG/lib/modules/${release}TS_SMP INSTALL_MOD_DIR=kernel/fs/aufs MODSECKEY=/etc/ssl/keys/kernel.key MODPUBKEY=/etc/ssl/certs/kernel.crt
 }
 

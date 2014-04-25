@@ -3,9 +3,10 @@
 # Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 
 name=intel-microcode
-version=20130222
+version=20140122
+trans=23574
 release=1
-source=(http://downloadmirror.intel.com/22508/eng/microcode-$version.tgz
+source=(http://downloadmirror.intel.com/$trans/eng/microcode-$version.tgz
         LICENSE
         intel-microcode2ucode.c)
 
@@ -17,6 +18,4 @@ build() {
   install -d -m755 $PKG/lib/firmware/intel-ucode/
   cp intel-ucode/* $PKG/lib/firmware/intel-ucode/
   install -D -m644 LICENSE $PKG/lib/firmware/intel-ucode/.
-  mkdir -p $PKG/ts/5.1/kernel
-  mv $PKG/lib/firmware $PKG/ts/5.1/kernel/.
 }

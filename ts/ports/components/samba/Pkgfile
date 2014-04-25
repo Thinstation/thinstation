@@ -16,6 +16,7 @@ build () {
     test -n "$JOBS" && export JOBS="$JOBS"
 
     ./configure --enable-fhs \
+		--private-libraries=NONE \
                 --prefix=/usr \
                 --localstatedir=/var \
                 --mandir=/usr/man \
@@ -30,12 +31,21 @@ build () {
     install -m 644 docs/manpages/*.1 $PKG/usr/man/man1
     install -m 644 docs/manpages/*.5 $PKG/usr/man/man5
     install -m 644 docs/manpages/*.8 $PKG/usr/man/man8
-    
+
     # cleanup
     chmod 1777 $PKG/var/lock
-    
+
     # config-file and start-script
     install -d $PKG/etc/{samba,rc.d}
     install -m 0600 packaging/LSB/smb.conf $PKG/etc/samba/smb.conf.default
     install -m 0755 $SRC/samba $PKG/etc/rc.d
+
+    cd lib/tdb
+		./configure --prefix=/usr \
+                --localstatedir=/var \
+                --mandir=/usr/man \
+                --sysconfdir=/etc \
+
+    make
+    make DESTDIR=$PKG install
 }

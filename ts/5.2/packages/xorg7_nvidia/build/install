@@ -1,0 +1,67 @@
+#!/bin/sh
+
+gzname=`basename $1`
+version=`echo $gzname |cut -d "-" -f4 |cut -d "." -f1-2`
+release=`cat /boot/KERNEL_VERSION`
+
+
+INSTALLDIR="/build/packages/xorg7_nvidia"
+DROP_FILES="nvidia-bug-report.sh nvidia-cuda-mps-control nvidia-cuda-mps-server nvidia-debugdump nvidia-installer nvidia-persistenced nvidia-smi nvidia-uninstall \
+libEGL.so.1 libGLESv1_CM.so.$version libOpenCL.so.1.0.0 libnvidia-cfg.so.1 libnvidia-encode.so.$version libnvidia-ifr.so.1 libnvidia-opencl.so.$version \
+libEGL.so.$version libGLESv2.so.2 libcuda.so.1 libnvidia-cfg.so.$version libnvidia-fbc.so.1 libnvidia-ifr.so.$version libGLESv2.so.$version libcuda.so.$version \
+libnvidia-compiler.so.$version libnvidia-fbc.so.$version libOpenCL.so.1 libnvidia-eglcore.so.$version libGLESv1_CM.so.1 libOpenCL.so.1.0 libnvidia-encode.so.1 \
+libnvidia-opencl.so.1 libglx.so libGL.so.1 libnvcuvid.so.$version libnvidia-glsi.so.$version libnvidia-ml.so.$version libnvcuvid.so.1 libnvidia-ml.so.1 libGL.la \
+libnvidia-wfb.so.1 libnvidia-wfb.so.$version"
+
+KMOD=kernel/drivers/video
+
+cd wget_tmp
+sh $gzname -x
+cd NVIDIA-Linux-x86-$version
+
+./nvidia-installer -s -z -k ${release} --no-x-check --no-runlevel-check --no-kernel-module --log-file-name=./nvidia-installer.log --utility-prefix=$INSTALLDIR --documentation-prefix=$INSTALLDIR --opengl-prefix=$INSTALLDIR --x-library-path=$INSTALLDIR/lib --x-module-path=$INSTALLDIR/lib/xorg/modules
+
+mkdir -p $INSTALLDIR/lib/licenses/nvidia
+mv $INSTALLDIR/share/doc/NVIDIA_GLX-1.0/LICENSE $INSTALLDIR/lib/licenses/nvidia/.
+mkdir -p $INSTALLDIR/lib/icons/hicolor/48x48/apps
+mv $INSTALLDIR/share/doc/NVIDIA_GLX-1.0/nvidia-settings.png $INSTALLDIR/lib/icons/hicolor/48x48/apps/.
+
+rm -rf $INSTALLDIR/share
+for file in $DROP_FILES; do
+	find $INSTALLDIR -name $file -delete
+done
+find $INSTALLDIR -type l -name \*.so -delete
+
+cd kernel
+
+if [ -e /etc/ssl/keys/kernel.key ]; then
+  make SYSSRC=/usr/src/kernels/${release} module module-sign MODSECKEY=/etc/ssl/keys/kernel.key MODPUBKEY=/etc/ssl/certs/kernel.crt
+else
+  make SYSSRC=/usr/src/kernels/${release} module
+fi
+mkdir -p $INSTALLDIR/lib/modules/${release}/$KMOD
+cp -a nvidia.ko $INSTALLDIR/lib/modules/${release}/$KMOD
+
+make SYSSRC=/usr/src/kernels/${release} clean
+
+if [ -e /etc/ssl/keys/kernel.key ]; then
+  make SYSSRC=/usr/src/kernels/${release}_SMP module module-sign MODSECKEY=/etc/ssl/keys/kernel.key MODPUBKEY=/etc/ssl/certs/kernel.crt
+else
+  make SYSSRC=/usr/src/kernels/${release}_SMP module
+fi
+mkdir -p $INSTALLDIR/lib/modules/${release}_SMP/$KMOD
+cp -a nvidia.ko $INSTALLDIR/lib/modules/${release}_SMP/$KMOD
+
+rm -rf /var/lib/nvidia
+rm -f /usr/share/kde-settings/kde-profile/default/share/applications/nvidia-settings.desktop
+
+cp -Prfd $INSTALLDIR/build/extra/* $INSTALLDIR/. 
+
+
+#Fix libGL, because nvidia compile completely steps on everybody.
+
+glversion=`prt-get info mesa3d |grep -e Version |cut -c15-`
+gldir=`prt-get info mesa3d |grep -e Path |cut -c15-`
+glrel=`prt-get info mesa3d |grep -e Release |cut -c15-`
+
+pkgadd -f -u $gldir/mesa3d/mesa3d#${glversion}-${glrel}.pkg.tar.gz

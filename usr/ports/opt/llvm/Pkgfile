@@ -1,36 +1,23 @@
 # Description: LLVM including clang
 # URL: http://llvm.org
-# Maintainer: Tilman Sauerbeck, tilman at crux dot nu
+# Maintainer:  Thomas Penteker, tek at serverop dot de
+# Packager: Tilman Sauerbeck, tilman at crux dot nu
+# Depends on: python
 
 name=llvm
-version=3.1
-release=2
-source=(http://llvm.org/releases/$version/{$name,clang}-$version.src.tar.gz \
-	0001-Add-r600-TargetInfo.patch \
-	0001-r600-Add-some-intrinsic-definitions.patch \
-	0002-r600-Add-get_global_size-and-get_local_size-intrinsi.patch \
-	0002-r600-Add-some-target-builtins.patch \
-	0003-r600-Add-read_global_size-and-read_local_size-builti.patch \
-	llvm-2.6-timestamp.patch \
-)
+version=3.4
+release=1
+source=(http://llvm.org/releases/$version/{$name,clang}-$version.src.tar.gz)
 
 build() {
+	mv clang-$version $name-$version/tools/clang
 
-	mv clang-$version.src $name-$version.src/tools/clang
+	cd $name-$version
 
-	cd $name-$version.src
-	patch -p1 < ../llvm-2.6-timestamp.patch
-	patch -p1 < ../0001-r600-Add-some-intrinsic-definitions.patch
-        patch -p1 < ../0002-r600-Add-get_global_size-and-get_local_size-intrinsi.patch
+	export CC=gcc
+	export CXX=c++
 
-	cd tools/clang
-	patch -p1 < $SRC/0001-Add-r600-TargetInfo.patch
-	patch -p1 < $SRC/0002-r600-Add-some-target-builtins.patch
-        patch -p1 < $SRC/0003-r600-Add-read_global_size-and-read_local_size-builti.patch
-
-	cd $SRC/$name-$version.src
-	#CC=gcc CXX=g++
-	./configure --prefix=/usr --without-oprofile
+	./configure --prefix=/usr --without-oprofile --enable-shared
 
 	make
 	make DESTDIR=$PKG install

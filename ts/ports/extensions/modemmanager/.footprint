@@ -7,6 +7,7 @@ drwxr-xr-x	root/root	lib/udev/
 drwxr-xr-x	root/root	lib/udev/rules.d/
 -rw-r--r--	root/root	lib/udev/rules.d/77-mm-ericsson-mbm.rules
 -rw-r--r--	root/root	lib/udev/rules.d/77-mm-longcheer-port-types.rules
+-rw-r--r--	root/root	lib/udev/rules.d/77-mm-nokia-port-types.rules
 -rw-r--r--	root/root	lib/udev/rules.d/77-mm-pcmcia-device-blacklist.rules
 -rw-r--r--	root/root	lib/udev/rules.d/77-mm-platform-serial-whitelist.rules
 -rw-r--r--	root/root	lib/udev/rules.d/77-mm-simtech-port-types.rules
@@ -17,12 +18,15 @@ drwxr-xr-x	root/root	lib/udev/rules.d/
 drwxr-xr-x	root/root	usr/
 drwxr-xr-x	root/root	usr/include/
 drwxr-xr-x	root/root	usr/include/mm/
--rw-r--r--	root/root	usr/include/mm/mm-modem.h
+-rw-r--r--	root/root	usr/include/mm/ModemManager.h
 drwxr-xr-x	root/root	usr/lib/
 drwxr-xr-x	root/root	usr/lib/ModemManager/
 -rw-r--r--	root/root	usr/lib/ModemManager/libmm-plugin-anydata.a
 -rwxr-xr-x	root/root	usr/lib/ModemManager/libmm-plugin-anydata.la
 -rwxr-xr-x	root/root	usr/lib/ModemManager/libmm-plugin-anydata.so
+-rw-r--r--	root/root	usr/lib/ModemManager/libmm-plugin-cinterion.a
+-rwxr-xr-x	root/root	usr/lib/ModemManager/libmm-plugin-cinterion.la
+-rwxr-xr-x	root/root	usr/lib/ModemManager/libmm-plugin-cinterion.so
 -rw-r--r--	root/root	usr/lib/ModemManager/libmm-plugin-generic.a
 -rwxr-xr-x	root/root	usr/lib/ModemManager/libmm-plugin-generic.la
 -rwxr-xr-x	root/root	usr/lib/ModemManager/libmm-plugin-generic.so
@@ -35,6 +39,9 @@ drwxr-xr-x	root/root	usr/lib/ModemManager/
 -rw-r--r--	root/root	usr/lib/ModemManager/libmm-plugin-huawei.a
 -rwxr-xr-x	root/root	usr/lib/ModemManager/libmm-plugin-huawei.la
 -rwxr-xr-x	root/root	usr/lib/ModemManager/libmm-plugin-huawei.so
+-rw-r--r--	root/root	usr/lib/ModemManager/libmm-plugin-iridium.a
+-rwxr-xr-x	root/root	usr/lib/ModemManager/libmm-plugin-iridium.la
+-rwxr-xr-x	root/root	usr/lib/ModemManager/libmm-plugin-iridium.so
 -rw-r--r--	root/root	usr/lib/ModemManager/libmm-plugin-linktop.a
 -rwxr-xr-x	root/root	usr/lib/ModemManager/libmm-plugin-linktop.la
 -rwxr-xr-x	root/root	usr/lib/ModemManager/libmm-plugin-linktop.so
@@ -65,6 +72,9 @@ drwxr-xr-x	root/root	usr/lib/ModemManager/
 -rw-r--r--	root/root	usr/lib/ModemManager/libmm-plugin-simtech.a
 -rwxr-xr-x	root/root	usr/lib/ModemManager/libmm-plugin-simtech.la
 -rwxr-xr-x	root/root	usr/lib/ModemManager/libmm-plugin-simtech.so
+-rw-r--r--	root/root	usr/lib/ModemManager/libmm-plugin-via.a
+-rwxr-xr-x	root/root	usr/lib/ModemManager/libmm-plugin-via.la
+-rwxr-xr-x	root/root	usr/lib/ModemManager/libmm-plugin-via.so
 -rw-r--r--	root/root	usr/lib/ModemManager/libmm-plugin-wavecom.a
 -rwxr-xr-x	root/root	usr/lib/ModemManager/libmm-plugin-wavecom.la
 -rwxr-xr-x	root/root	usr/lib/ModemManager/libmm-plugin-wavecom.so
@@ -88,8 +98,8 @@ drwxr-xr-x	root/root	usr/share/dbus-1/interfaces/
 -rw-r--r--	root/root	usr/share/dbus-1/interfaces/mm-modem-connect-error.xml
 -rw-r--r--	root/root	usr/share/dbus-1/interfaces/mm-modem-error.xml
 -rw-r--r--	root/root	usr/share/dbus-1/interfaces/mm-serial-error.xml
--rw-r--r--	root/root	usr/share/dbus-1/interfaces/org.freedesktop.DBus.Properties.xml
 -rw-r--r--	root/root	usr/share/dbus-1/interfaces/org.freedesktop.ModemManager.Modem.Cdma.xml
+-rw-r--r--	root/root	usr/share/dbus-1/interfaces/org.freedesktop.ModemManager.Modem.Firmware.xml
 -rw-r--r--	root/root	usr/share/dbus-1/interfaces/org.freedesktop.ModemManager.Modem.Gsm.Card.xml
 -rw-r--r--	root/root	usr/share/dbus-1/interfaces/org.freedesktop.ModemManager.Modem.Gsm.Contacts.xml
 -rw-r--r--	root/root	usr/share/dbus-1/interfaces/org.freedesktop.ModemManager.Modem.Gsm.Hso.xml
@@ -99,6 +109,7 @@ drwxr-xr-x	root/root	usr/share/dbus-1/interfaces/
 -rw-r--r--	root/root	usr/share/dbus-1/interfaces/org.freedesktop.ModemManager.Modem.Gsm.xml
 -rw-r--r--	root/root	usr/share/dbus-1/interfaces/org.freedesktop.ModemManager.Modem.Location.xml
 -rw-r--r--	root/root	usr/share/dbus-1/interfaces/org.freedesktop.ModemManager.Modem.Simple.xml
+-rw-r--r--	root/root	usr/share/dbus-1/interfaces/org.freedesktop.ModemManager.Modem.Time.xml
 -rw-r--r--	root/root	usr/share/dbus-1/interfaces/org.freedesktop.ModemManager.Modem.xml
 -rw-r--r--	root/root	usr/share/dbus-1/interfaces/org.freedesktop.ModemManager.xml
 drwxr-xr-x	root/root	usr/share/dbus-1/system-services/

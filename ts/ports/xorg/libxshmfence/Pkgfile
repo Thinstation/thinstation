@@ -1,0 +1,20 @@
+# Description: X DRI3 protocol library
+# URL: http://xorg.freedesktop.org
+# Maintainer: Tilman Sauerbeck, tilman at crux dot nu
+
+name=libxshmfence
+version=1.1
+release=1
+source=(http://cgit.freedesktop.org/xorg/lib/libxshmfence/snapshot/libxshmfence-$version.tar.gz)
+
+build() {
+	cd libxshmfence-$version
+
+	./autogen.sh
+	./configure --prefix=/usr
+
+	make
+	make DESTDIR=$PKG install
+
+	rm -rf $PKG/usr/share
+}

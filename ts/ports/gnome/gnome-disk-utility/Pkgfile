@@ -7,10 +7,13 @@
 name=gnome-disk-utility
 version=2.30.1
 release=1
-source=(http://ftp.gnome.org/pub/GNOME/sources/$name/${version%.*}/$name-$version.tar.bz2)
+source=(http://ftp.gnome.org/pub/GNOME/sources/$name/${version%.*}/$name-$version.tar.bz2 \
+	notify7.patch)
 
 build() {
 	cd $name-$version
+
+	patch -p0 -i $SRC/notify7.patch
 
 	sed -i -e 's/glib\/gthread.h/glib.h/g' src/format-tool/gdu-format-tool.c
 	./configure \

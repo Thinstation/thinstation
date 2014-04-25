@@ -1,0 +1,119 @@
+#!/bin/bash
+
+x_echo()
+{
+        Xdialog --title "$1" --msgbox "$2" 0 0 2> /dev/null
+}
+
+do_update()
+{
+	$XTERM_CMD -T "Update initrd" $ARG update-initrd -w
+	case $? in
+		0) x_echo Update "Update Complete" ;;
+		1) x_echo Update "No Update Needed" ;;
+		2) e_echo Update "Error! Could not check md5" ;;
+		3) e_echo Update "Error! No initrd or vmlinuz found" ;;
+	esac
+}
+
+toggle_smp()
+{
+	if [ ! -e /thinstation/ts/$TS_VERSION/SMP ]; then
+		touch /thinstation/ts/$TS_VERSION/SMP
+		x_echo "Toggle SMP" "SMP kernel enabled for Builds"
+	else
+		rm /thinstation/ts/$TS_VERSION/SMP
+		x_echo "Toggle SMP" "SMP disabled - UP kernel will be used for Builds"
+	fi
+}
+
+toggle_allmodules()
+{
+        if [ ! -e /thinstation/ts/$TS_VERSION/ALLMODULES ]; then
+                touch /thinstation/ts/$TS_VERSION/ALLMODULES
+                x_echo "Toggle ALLMODULES" "Enabled allmodules for Builds"
+        else
+                rm /thinstation/ts/$TS_VERSION/ALLMODULES
+                x_echo "Toggle ALLMODULES" "Disabled allmodules - machine profiles will be used for Builds"
+        fi
+}
+
+toggle_pxe()
+{
+	if [ -n "`find /thinstation/ts/$TS_VERSION/boot-images/ -type d -perm -o=w -name pxe`" ] ; then
+		chmod 755 /thinstation/ts/$TS_VERSION/boot-images/pxe
+		x_echo "Toggle PXE Read/Write" "PXE Server Write Disabled"
+	else
+		chmod 777 /thinstation/ts/$TS_VERSION/boot-images/pxe
+		x_echo "Toggle PXE Read/Write" "PXE Server Write Enabled"
+	fi
+}
+
+do_build()
+{
+	cd /thinstation
+	$XTERM_CMD -T Build $ARG ./setup-chroot -b -o --autodl --license ACCEPT 
+}
+
+make_machine()
+{
+	if [ -e /thinstation/ts/$TS_VERSION/boot-images/pxe/module.list ] ; then
+		DIALOG_RESPONSE=`Xdialog --stdout --title "Machine Name" --left --inputbox "What is the model of the machine" 15 55 "Dell-FX170" ` 2>>/dev/null
+		if [ "$?" == "0" ] && [ ! -z "$DIALOG_RESPONSE" ] ; then
+			cd /thinstation/ts/$TS_VERSION
+			./mkmachine $DIALOG_RESPONSE
+		fi
+	else
+		x_echo "No Source Files" "Please run hwlister.sh on the target machine first"
+	fi
+}
+
+do_reset()
+{
+	Xdialog --title "Warning: Factory Reset" --default-no --yesno "\
+This will wipe out your build env and pull updates from git. \n\
+If you have any customizations, they will be lost. You should \n\
+consider backing them up before proceding. \n\
+\n\
+Are you really sure?" 20 100
+        retval=$?
+        if [ "$retval" -gt "0" ]; then exit $retval ; fi
+	cd /thinstation
+	$XTERM_CMD -T "Wipe" $ARG rm -rf *
+	$XTERM_CMD -T "GIT Pull" $ARG git pull
+	$XTERM_CMD -T "GIT Checkout" $ARG git checkout -f
+	$XTERM_CMD -T "Setup" $ARG ./setup-chroot -i
+	x_echo "Done" "You build env has been reset and updated"
+}
+
+if [ "`basename $XTERM_CMD`" == "xfce4-terminal" ]; then
+	ARG="--disable-server -x"
+else
+	ARG="-e"
+fi
+
+
+case $1 in
+	toggle-smp)
+		toggle_smp
+		;;
+	toggle-modules)
+		toggle_allmodules
+		;;
+	toggle-pxe)
+		toggle_pxe
+		;;
+	make-machine)
+		make_machine
+		;;
+	build)
+		do_build
+		;;
+	reset)
+		do_reset
+		;;
+	update)
+		do_update
+		;;
+esac
+exit 0

@@ -6,11 +6,14 @@
 name=zenity
 version=2.32.1
 release=1
-source=(ftp://ftp.gnome.org/pub/gnome/sources/$name/${version%.*}/$name-$version.tar.bz2)
+source=(ftp://ftp.gnome.org/pub/gnome/sources/$name/${version%.*}/$name-$version.tar.bz2 \
+	notify07.patch)
 
 build() {
 	cd $name-$version
 	export LINGUAS=en
+
+	patch -p0 -i $SRC/notify07.patch
 
 	./configure --prefix=/usr \
 			--disable-nls \

@@ -6,24 +6,24 @@
 # Group: xfce4
 
 name=terminal
-version=0.4.8
+version=0.6.3
 release=1
-source=(http://archive.xfce.org/src/apps/$name/${version%.*}/Terminal-$version.tar.bz2)
+source=(http://archive.xfce.org/src/apps/xfce4-terminal/${version%.*}/xfce4-terminal-$version.tar.bz2)
 
 build () {
-  cd Terminal-$version
+  cd xfce4-terminal-$version
 
   ./configure --prefix=/usr \
               --mandir=/usr/man \
-              --libexecdir=/usr/bin \
+              --libexecdir=/usr/libexec \
               --docdir=/usr/share/Terminal/doc \
               --disable-static \
-              --disable-debug 
+              --disable-debug
 
   make
   make DESTDIR=$PKG install
 
-  mv $PKG/usr/share/pixmaps/{terminal.xpm,Terminal.xpm}
+#  mv $PKG/usr/share/pixmaps/{terminal.xpm,Terminal.xpm}
   rm -rf $PKG/usr/share/locale
   rm -rf $PKG/usr/share/Terminal/doc/{??,??_??}
   rm -rf $PKG/usr/man/{??,??_??}

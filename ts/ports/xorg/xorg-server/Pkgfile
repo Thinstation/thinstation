@@ -4,11 +4,15 @@
 # Depends on: mesa3d, xorg-bdftopcf, xorg-mkfontdir, xorg-mkfontscale, xorg-xf86driproto, xorg-dri2proto, xorg-libxkbui, xorg-xcmiscproto, xorg-scrnsaverproto, xorg-bigreqsproto, xorg-libxtst, xorg-libdmx, xorg-libxxf86misc, xorg-libxaw, xorg-libxvmc, xorg-libxi, xorg-libxres, xorg-libxcomposite, xorg-libxinerama, xorg-libxrandr, xorg-libxft, xorg-libxcursor, xorg-libxxf86dga, xorg-libpixman, xorg-libpciaccess
 
 name=xorg-server
-version=1.11.4
+version=1.15.1
 release=1
 source=(http://xorg.freedesktop.org/releases/individual/xserver/$name-$version.tar.bz2)
 
 build() {
+#	git clone --depth 1 git://anongit.freedesktop.org/xorg/xserver
+#	cd xserver
+#	./autogen.sh
+
 	cd $name-$version
 
 	./configure --prefix=/usr \
@@ -27,19 +31,19 @@ build() {
 			--disable-config-hal \
 			--disable-config-dbus \
 			--with-builder-addr="doncuppjr@yahoo.com" \
-			--enable-kdrive \
+			--disable-kdrive \
 			--disable-xephyr \
   			--disable-xfake \
-			--enable-xfbdev \
-			--enable-kdrive-mouse \
+			--disable-xfbdev \
+			--disable-kdrive-mouse \
 			--enable-xf86bigfont \
-			--enable-kdrive-evdev \
+			--disable-kdrive-evdev \
 			--enable-ipv6 \
 			--with-os-vendor="Thinstation" \
 			--with-vendor-name="ThinStation made by Don Cupp" \
 			--with-vendor-name-short="ThinStation" \
 			--with-vendor-web="http://www.thinstation.org" \
-			--with-os-name="ThinStation 5.0" \
+			--with-os-name="ThinStation 5.2" \
 			--with-builderstring="Donald A. Cupp Jr." \
 		        --with-sha1=libcrypto \
 

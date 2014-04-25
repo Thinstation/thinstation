@@ -1,0 +1,16 @@
+#!/bin/bash
+
+xinitrcd=/etc/X11/xinit/xinitrc.d
+if [ -d $xinitrcd ]; then
+	for file in `ls -A $xinitrcd`; do
+		. $xinitrcd/$file
+	done
+fi
+# Just run xrandr 1 time to populate some settings in case we don't use a window manager
+xrandr
+
+if [ -n "$1" ]; then
+	exec $1
+elif [ -e $WKDIR/windowapps ] ; then
+       	exec $WKDIR/windowapps
+fi

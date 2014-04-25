@@ -6,18 +6,18 @@
 # Group: xfce4
 
 name=xfce4-smartbookmark-plugin
-version=0.4.4
+version=0.4.5
 release=1
 source=(http://archive.xfce.org/src/panel-plugins/$name/${version%.*}/$name-$version.tar.bz2)
 
 build() {
   cd $name-$version
   ./configure --prefix=/usr \
-              --libexecdir=/usr/lib \
+              --libexecdir=/usr/libexec \
               --disable-debug
   make
   make DESTDIR=$PKG install
   rm -rf $PKG/usr/share/locale
-  find $PKG/usr/share/xfce4/panel-plugins -type f -name '*.desktop' \
-    -exec sed -r '/\[.+\]=/d' -i {} \;
+#  find $PKG/usr/share/xfce4/panel-plugins -type f -name '*.desktop' \
+#    -exec sed -r '/\[.+\]=/d' -i {} \;
 }

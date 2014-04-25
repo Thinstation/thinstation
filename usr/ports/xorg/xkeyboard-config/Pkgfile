@@ -4,13 +4,15 @@
 # Depends on: xorg-xkbcomp, intltool
 
 name=xkeyboard-config
-version=2.5
+version=2.11
 release=1
-source=(http://www.x.org/releases/individual/data/$name/$name-$version.tar.bz2)
+source=(http://www.x.org/releases/individual/data/$name/$name-$version.tar.bz2 \
+	nowarn.patch)
 
 build() {
 	cd xkeyboard-config-$version
 
+	patch -p0 -i $SRC/nowarn.patch
 	./configure --prefix=/usr \
 	            --with-xkb-base=/usr/share/X11/xkb \
 	            --with-xkb-rules-symlink=xorg

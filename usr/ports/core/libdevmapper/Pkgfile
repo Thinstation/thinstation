@@ -4,33 +4,34 @@
 # Depends on:  udev
 
 name=libdevmapper
-version=1.02.67
+version=1.02.85
 release=1
-source=(ftp://sources.redhat.com/pub/lvm2/releases/LVM2.2.02.88.tgz
-	lvm2-static_build.patch)
+source=(http://mirrors.kernel.org/sources.redhat.com/lvm2/LVM2.2.02.106.tgz)
 
 build() {
-    cd LVM2.2.02.88
+    cd LVM2.2.02.106
 
-    patch -p1 -i $SRC/lvm2-static_build.patch
+    # needed for static linking with eudev
+    export UDEV_LIBS="$(pkg-config --libs --static libudev)"
+
+    # needed for static linking
+    export LIBS="-lpthread -luuid"
 
     ./configure --prefix=/usr \
-		--exec-prefix= \
-		--datarootdir=/usr \
-		--with-udev-prefix= \
-		--disable-readline \
-		--enable-pkgconfig \
-		--enable-static_link \
-		--enable-udev_sync \
-		--enable-udev_rules \
-		--with-{user,group}=root
+                --exec-prefix= \
+                --datarootdir=/usr \
+                --with-udev-prefix= \
+                --disable-readline \
+                --enable-pkgconfig \
+                --enable-static_link \
+                --enable-udev_sync \
+                --enable-udev_rules \
+                --with-{user,group}=root
 
     make device-mapper
     make DESTDIR=$PKG install_device-mapper
     install -m0644 -D udev/12-dm-permissions.rules $PKG/etc/udev/rules.d/12-dm-permissions.rules.example
 
-    #pkgconfig insists on /lib one or the other way...
+    # pkgconfig insists on /lib one or the other way...
     sed -i '/^libdir=/s|${exec_prefix}|/usr|' $PKG/usr/lib/pkgconfig/devmapper.pc
 }
-
-# vim: sts=4 sw=4 ts=8 noet ft=sh:

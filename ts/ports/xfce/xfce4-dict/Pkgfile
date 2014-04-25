@@ -6,7 +6,7 @@
 # Group: xfce4
 
 name=xfce4-dict
-version=0.6.0
+version=0.7.0
 release=1
 source=(http://archive.xfce.org/src/apps/$name/${version%.*}/$name-$version.tar.bz2)
 
@@ -14,7 +14,7 @@ build() {
   cd $name-$version
 
   ./configure --prefix=/usr \
-              --libexecdir=/usr/lib \
+              --libexecdir=/usr/libexec \
               --mandir=/usr/man \
               --disable-debug
 
@@ -22,6 +22,6 @@ build() {
   make DESTDIR=$PKG install
 
   rm -rf $PKG/usr/share/locale
-  find $PKG/usr/share/xfce4/panel-plugins -type f -name '*.desktop' \
-    -exec sed -r '/\[.+\]=/d' -i {} \;
+#  find $PKG/usr/share/xfce4/panel-plugins -type f -name '*.desktop' \
+#    -exec sed -r '/\[.+\]=/d' -i {} \;
 }
