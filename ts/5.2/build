@@ -699,18 +699,20 @@ locales()
 		fi
 	fi
 
-	for localedef in `cat ./tmp-tree/build/*.template`; do
-		inputfile=`echo $localedef|cut -d , -f1`
-		charmap=`echo $localedef|cut -d , -f2`
-		name=`echo $localedef|cut -d , -f3`
-	        if ! is_enabled $ts_fulllocales; then
-			if [ "$charmap" == "UTF-8" ]; then
+	if [ -n "`find ./tmp-tree/build -maxdepth 1 -name \*.template`" ]; then
+		for localedef in `cat ./tmp-tree/build/*.template`; do
+			inputfile=`echo $localedef|cut -d , -f1`
+			charmap=`echo $localedef|cut -d , -f2`
+			name=`echo $localedef|cut -d , -f3`
+		        if ! is_enabled $ts_fulllocales; then
+				if [ "$charmap" == "UTF-8" ]; then
+					write_locale
+				fi
+			else
 				write_locale
 			fi
-		else
-			write_locale
-		fi
-	done
+		done
+	fi
 }
 
 allfirm()
@@ -1053,10 +1055,13 @@ for KERNVER in $KERNVERS; do
 done
 
 # Now that all the package deps are satisfied, do we really need a splash
-#if ! is_enabled $ts_bootlogo; then
-#	echo -e "Boot Logo Disabled. Removing splash package."
-#	rm $PACDIR/splash.package
-#fi
+if [ -e $PACDIR/bootlogo.param ]; then
+        . $PACDIR/bootlogo.param
+fi
+if ! is_enabled $ts_bootlogo; then
+	echo -e "Boot Logo Disabled. Removing splash package."
+	rm $PACDIR/splash.package
+fi
 
 install_non_distributable
 
@@ -1071,7 +1076,7 @@ for filename in `cat ./filelist | grep "\.pkg"` ; do
 	. $filename
 done
 for filename in `cat ./filelist | grep "\.param"` ; do
-	. $filename
+        . $filename
 done
 rm ./filelist
 
