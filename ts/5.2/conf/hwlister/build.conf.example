@@ -65,6 +65,7 @@
 #machine classic_generic		# Big list of modules that you can choose by unremarking them
 #machine IGEL-M300C                     # Igel CX700 Via
 #machine HP-t5135                       # HP CX700 Via
+machine allmod
 
 module vmw_balloon
 module vmxnet
@@ -80,6 +81,7 @@ module r8169
 #package wireless
 #package wifi-connect
 #!!!Misc Modules
+package aufs
 
 #!!Filesystem Support
 # Every mounted device needs a filesystem, so choose which ones you need.
@@ -369,7 +371,7 @@ param bootlogo       false				# Enable or Disable the use of the Boot splash.
 param defaultconfig  thinstation.conf.buildtime  	# The file with default setup.  No other config file is found
                                                  	#  during boot.
 param basename       thinstation     			# Used for all config/tftp/scp file names
-param basepath       ts5.0               		# Used to determine path to tftp/scp files
+param basepath       ts5.2               		# Used to determine path to tftp/scp files
 param baseurl        http://www.doncuppjr.net		# Used to determine url to wget files
 #param keyfile        ./id_rsa       			# Path for private key file used for ssh/scp
 #param knownhosts     ./known_hosts  			# Path for ssh known_hosts file for ssh/scp
@@ -379,7 +381,7 @@ param baseurl        http://www.doncuppjr.net		# Used to determine url to wget f
 param haltonerror    false				# Will halt on error, default is true
 param hardlinkfs     true
 param sametimestmp   true                               # When enabled, the timestamps for all files and folders will be set to 00:00 of todays date in your timezone
-param initrdcmd	     "gzip"				# Compression mode and level of initrd file. none, gzip -9, lzma -9 ,bzip2 -9
+param initrdcmd	     "squashfs"				# Compression mode and level of initrd file. none, gzip -9, lzma -9 ,bzip2 -9
 param bootverbosity   3          			# Increased vebosity when booting TS
                                 			#   0 no verbose messages
                                 			#   1 boot
@@ -405,4 +407,4 @@ param syslinuxtheme     "default"
 
 #package alltimezone
 #param allres		true		# Includes a lot of resolution splash images for live-cd s
-#param allfirmware	true		# Includes a lot of firmwares for live-cd s
+param allfirmware	true		# Includes a lot of firmwares for live-cd s

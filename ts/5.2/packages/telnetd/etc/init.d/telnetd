@@ -6,8 +6,7 @@ case "$1" in
 init)
     if ! pkg_initialized $PACKAGE; then
       pkg_set_init_flag $PACKAGE
-      NET_TELNETD_ENABLED=`make_caps $NET_TELNETD_ENABLED`
-      if [ "$NET_TELNETD_ENABLED" = "ON" ] ; then
+      if is_enabled $NET_TELNETD_ENABLED; then
 	(
 	        if [ -n "$NET_REMOTE_ACCESS_FROM" ] ; then
 	          echo s%.NET_REMOTE_ACCESS_FROM%$NET_REMOTE_ACCESS_FROM%

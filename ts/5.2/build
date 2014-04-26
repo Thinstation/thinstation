@@ -212,6 +212,7 @@ for pkgname in `list_all_packages`; do
 		find $pkgname/lib/modules/$KERNVER -name \*.ko > ./modules.list
 		while [ -s ./modules.list ]; do
 			for module in `cat modules.list`; do
+				allfirm `basename $module`
 				depends="`modinfo -F depends $module |sed -e 's/,/ /g'`"
 				# Checks for already existing modules
 				for depend in $depends; do
@@ -604,7 +605,7 @@ splash_resize()
 splash_setup()
 {
 if [ -z "$ts_bootresolution" ] ; then
-	ts_bootresolution=800x600-16
+	ts_bootresolution=800x600-32
 fi
 if [ -n "$ts_bootresolution" ] ;then
         uvesafb="mode_option=\"$ts_bootresolution\""
