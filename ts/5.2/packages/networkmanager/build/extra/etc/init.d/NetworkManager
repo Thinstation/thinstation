@@ -2,25 +2,48 @@
 
 . $TS_GLOBAL
 
-case "$1" in  
+case "$1" in
 init)
-    if ! pkg_initialized $PACKAGE; then
-      pkg_set_init_flag $PACKAGE
+	if ! pkg_initialized $PACKAGE; then
+		pkg_set_init_flag $PACKAGE
 
-      HOSTNAME=`hostname`
-      if [ "$HOSTNAME" == "(none)" ]; then
-	HOSTNAME=""
-        hostname localhost
-      fi
+		for INTERFACE in `ls /var/log/net`; do
+		        if [ -n "$INTERFACE" ]; then
+                		export INTERFACE
+	                	/etc/udev/scripts/net.sh
+        		fi
+	        	wait
+		done
 
-      echo "127.0.0.1 $HOSTNAME localhost" >> /etc/hosts
+		if [ -n "`grep -e DEVTYPE=eth /var/log/net/* |cut -d : -f1`" ]; then
+	        	device=$(basename `grep -e DEVTYPE=eth /var/log/net/* |tail -n1 |cut -d : -f1`)
+		else
+		        device=lo
+		fi
 
-      # create system connections (depending on thinstation.conf variables)
-      nmcreatesysconn
+		echo "NET_DEVICE=$device" >> $TS_RUNTIME
+		. /var/log/net/$device
+		hostname $CLIENT_NAME
 
-      NetworkManager
-      #nm-online -t $NET_LINKWAIT
-    fi
+		# Kernel Network setting
+		echo 0 > /proc/sys/net/ipv4/tcp_retrans_collapse
+
+		HOSTNAME=`hostname`
+		if [ "$HOSTNAME" == "(none)" ]; then
+			unset HOSTNAME
+			hostname localhost
+		fi
+		echo "127.0.0.1 $HOSTNAME localhost" >> /etc/hosts
+
+		# create system connections (depending on thinstation.conf variables)
+		nmcreatesysconn
+
+		NetworkManager
+		if is_enabled $NET_FILE_ENABLED; then
+			nm-online -t $NET_LINKWAIT
+			echo -e "\n"
+		fi
+	fi
     ;;
 help)
     echo "Usage: $0 init"
