@@ -73,17 +73,12 @@ package_input()
 
 order_command()
 {
-#	if [ -n "$SERVER" ] && [ -n "$OPTIONS" ]; then
-		if is_enabled $REVERSE_ORDER ; then
-			ORDERED_COMMAND="$SERVER $OPTIONS"
-		else
-			ORDERED_COMMAND="$OPTIONS $SERVER"
-		fi
-#	elif [ -n "$SERVER" ]; then
-#		ORDERED_COMMAND="$SERVER"
-#	elif [ -n "$OPTIONS" ]; then
-#		ORDERED_COMMAND="$OPTIONS"
-#	fi
+
+	if is_enabled $REVERSE_ORDER ; then
+		ORDERED_COMMAND="$SERVER $OPTIONS"
+	else
+		ORDERED_COMMAND="$OPTIONS $SERVER"
+	fi
 	if [ -e /etc/cmd/$PACKAGE.getuser ]; then
 		ORDERED_COMMAND="$REMUSER $ORDERED_COMMAND"
 	fi
