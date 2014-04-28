@@ -1,6 +1,7 @@
 #!/bin/bash
 tempdir=`mktemp -d 2>/dev/null`
-. /etc/thinstation.defaults
+
+. /etc/thinstation.global
 
 x_echo()
 {
@@ -89,7 +90,7 @@ set_res()
 			> $tempdir/reschoice
 			if [ $? -lt 1 ]; then
 				index=`cat $tempdir/reschoice`
-				if is_enabled modeset; then
+				if is_enabled $modeset; then
 					res="video=uvesafb:off"
 				else
 					res="video=uvesafb:"${res[$index]}"-32,mtrr:0,ywrap"
@@ -189,8 +190,6 @@ echo -e '#AUDIO_LEVEL=90
 #SCREEN_STANDBY_TIME=0
 #SCREEN_SUSPEND_TIME=0
 #SCREEN_OFF_TIME=0
-#SCREEN_HORIZSYNC="30-64 | *"
-#SCREEN_VERTREFRESH="56-87 | 60 | 56 | 70 | 72 | 75"
 #NET_USE=WLAN
 #NET_USE_DHCP=off
 #NET_IP_ADDRESS=192.168.0.1
