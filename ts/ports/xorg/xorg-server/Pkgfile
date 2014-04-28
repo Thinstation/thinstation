@@ -6,14 +6,16 @@
 name=xorg-server
 version=1.15.1
 release=1
-source=(http://xorg.freedesktop.org/releases/individual/xserver/$name-$version.tar.bz2)
+source=(http://xorg.freedesktop.org/releases/individual/xserver/$name-$version.tar.bz2 \
+	decor.patch)
 
 build() {
 #	git clone --depth 1 git://anongit.freedesktop.org/xorg/xserver
 #	cd xserver
 #	./autogen.sh
-
 	cd $name-$version
+
+	patch -p1 -R -i $SRC/decor.patch
 
 	./configure --prefix=/usr \
 			--localstatedir=/var \
