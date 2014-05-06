@@ -60,7 +60,10 @@ xfconf_settings()
 		xfconf-query -c xfwm4 -p /general/workspace_count -t int -s 1 -n
 		xfconf-query -c xfwm4 -p /general/workspace_names --reset
 	fi
-	if is_enabled $PANEL_REV_CLOCKSYSTRAY; then
+	if is_disabled $SHOW_CLOCK; then
+		xfconf-query -c xfce4-panel -p /plugins/plugin-5 --reset
+		PANEL="$PANEL -t int -s 6"
+	elif is_enabled $PANEL_REV_CLOCKSYSTRAY; then
 		PANEL="$PANEL -t int -s 6 -t int -s 5"
 	else
 		PANEL="$PANEL -t int -s 5 -t int -s 6"
@@ -122,7 +125,7 @@ xfconf_settings()
 	else
 		xfconf-query -c xfwm4 -p /general/use_compositing -t bool -s false -n
 	fi
-	if [ -n "XFWM4$_THEME" ] && [ "$XFWM4_THEME" != "ALL" ]; then
+	if [ -n "$XFWM4_THEME" ] && [ "$XFWM4_THEME" != "ALL" ]; then
 		if [ -e /lib/themes/$XFWM4_THEME/xfwm4/themerc ]; then
 			xfconf-query -c xfwm4 -p /general/theme -t string -s $XFWM4_THEME -n
 		fi
