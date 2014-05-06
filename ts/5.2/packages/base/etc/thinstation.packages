@@ -94,7 +94,7 @@ ck_wrapper()
 xterm_wrapper()
 {
 	if [ -e /etc/console/$PACKAGE ]; then
-		if [ "`basename $XTERM_CMD`" == "Terminal" ]; then
+		if [ "`basename $XTERM_CMD`" == "xfce4-terminal" ]; then
 			arg="-x"
 		else
 			arg="-e"
@@ -125,7 +125,6 @@ run_command()
 	# This needs to be done after the logging and before execution so that we see what the command see's
 	# CMD=$(echo $CMD |sed -e 's/\\/\\\\/g')
 	if x_wm ;then
-		splash_exit
 		$CMD >> $APPLOG 2>&1
 		wm_exit_code=$?
 		chvt 4
@@ -187,6 +186,7 @@ console)
 	CMD="$CMD_CONSOLE $ORDERED_COMMAND"
 	xterm_wrapper
 #	ck_wrapper
+	splash_exit
 	eula_
         run_command
 	wait
