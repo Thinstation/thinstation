@@ -117,21 +117,20 @@ eula_()
 
 run_command()
 {
-	STATUS=0
 	if is_enabled $LOG_COMMANDS ; then
 		echo "$CMD" >> $APPLOG
 	fi
+
 	# One last shore up of the escape charactoers
 	# This needs to be done after the logging and before execution so that we see what the command see's
-	# CMD=$(echo $CMD |sed -e 's/\\/\\\\/g')
+	CMD=$(echo $CMD |sed -e 's/\\/\\\\/g')
+
+	eval $CMD >> $APPLOG 2>&1
+	STATUS=$?
+
 	if x_wm ;then
-		$CMD >> $APPLOG 2>&1
-		wm_exit_code=$?
 		chvt 4
-		exit $wm_exit_code
-	else
-		$CMD >> $APPLOG 2>&1
-		STATUS=$?
+		exit $STATUS
 	fi
 }
 
