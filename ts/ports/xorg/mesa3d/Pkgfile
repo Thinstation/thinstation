@@ -6,10 +6,14 @@
 name=mesa3d
 version=10.1.1
 release=1
-source=(http://cgit.freedesktop.org/mesa/mesa/snapshot/mesa-$version.tar.gz)
+source=(http://cgit.freedesktop.org/mesa/mesa/snapshot/mesa-$version.tar.gz
+	MesaLib-10.1.1-svga_texture-1.patch
+	MesaLib-10.1-radeonsi_gcc.patch)
 
 build() {
     cd mesa-$version
+    patch -Np1 < ../MesaLib-10.1.1-svga_texture-1.patch
+    patch -Np1 < ../MesaLib-10.1-radeonsi_gcc.patch
 
 #    autoreconf --install --symlink
     ./autogen.sh
@@ -18,7 +22,7 @@ build() {
 		--enable-xa \
 		--with-llvm-shared-libs \
 		--enable-r600-llvm-compiler \
-                --with-gallium-drivers=i915,nouveau,r300,swrast,r600,svga
+                --with-gallium-drivers=i915,nouveau,r300,swrast,r600,svga,radeonsi
 
     make
     make DESTDIR=$PKG install

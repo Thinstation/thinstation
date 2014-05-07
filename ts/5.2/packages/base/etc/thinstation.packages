@@ -29,7 +29,7 @@ if [ -z "$CMD_FULLSCREEN" ] ; then CMD_FULLSCREEN=$CMD_GLOBAL ; fi
 
 if [ -e /etc/cmd/$PACKAGE.getip ] ; then CMD_GETIP=TRUE; fi
 
-if [ -e /etc/cmd/$PACKAGE.change_server_type ] ; then SERVER="\"$2\"" ; elif [ -n "$2" ] ; then SERVER="$2" ; fi
+if [ -n "$2" ] ; then SERVER="$2" ; fi
 if [ -n "$3" ] ; then OPTIONS="$3" ; fi
 if [ -e /etc/cmd/$PACKAGE.server_first ] ; then	REVERSE_ORDER=TRUE ; fi
 
@@ -120,14 +120,8 @@ run_command()
 	if is_enabled $LOG_COMMANDS ; then
 		echo "$CMD" >> $APPLOG
 	fi
-
-	# One last shore up of the escape charactoers
-	# This needs to be done after the logging and before execution so that we see what the command see's
-	CMD=$(echo $CMD |sed -e 's/\\/\\\\/g')
-
-	eval $CMD >> $APPLOG 2>&1
+	$CMD >> $APPLOG 2>&1
 	STATUS=$?
-
 	if x_wm ;then
 		chvt 4
 		exit $STATUS

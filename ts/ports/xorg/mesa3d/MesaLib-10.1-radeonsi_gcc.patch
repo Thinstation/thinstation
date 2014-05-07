@@ -1,0 +1,62 @@
+--- a/src/gallium/drivers/radeonsi/si_descriptors.c	2014-04-19 00:15:08.000000000 +0000
++++ b/src/gallium/drivers/radeonsi/si_descriptors.c	2014-05-06 21:55:20.503525821 +0000
+@@ -963,9 +963,9 @@
+ 
+ 		si_init_sampler_views(sctx, &sctx->samplers[i].views, i);
+ 
+-		sctx->atoms.const_buffers[i] = &sctx->const_buffers[i].desc.atom;
+-		sctx->atoms.rw_buffers[i] = &sctx->rw_buffers[i].desc.atom;
+-		sctx->atoms.sampler_views[i] = &sctx->samplers[i].views.desc.atom;
++		sctx->atoms.items.const_buffers[i] = &sctx->const_buffers[i].desc.atom;
++		sctx->atoms.items.rw_buffers[i] = &sctx->rw_buffers[i].desc.atom;
++		sctx->atoms.items.sampler_views[i] = &sctx->samplers[i].views.desc.atom;
+ 	}
+ 
+ 
+--- a/src/gallium/drivers/radeonsi/si_hw_context.c	2014-04-19 00:15:08.000000000 +0000
++++ b/src/gallium/drivers/radeonsi/si_hw_context.c	2014-05-06 21:55:39.831525796 +0000
+@@ -63,7 +63,7 @@
+ 	}
+ 
+ 	/* Count in framebuffer cache flushes at the end of CS. */
+-	num_dw += ctx->atoms.cache_flush->num_dw;
++	num_dw += ctx->atoms.items.cache_flush->num_dw;
+ 
+ #if SI_TRACE_CS
+ 	if (ctx->screen->b.trace_bo) {
+--- a/src/gallium/drivers/radeonsi/si_pipe.c	2014-04-19 00:15:08.000000000 +0000
++++ b/src/gallium/drivers/radeonsi/si_pipe.c	2014-05-06 21:55:59.064525773 +0000
+@@ -148,9 +148,9 @@
+ 
+ 	/* Initialize cache_flush. */
+ 	sctx->cache_flush = si_atom_cache_flush;
+-	sctx->atoms.cache_flush = &sctx->cache_flush;
++	sctx->atoms.items.cache_flush = &sctx->cache_flush;
+ 
+-	sctx->atoms.streamout_begin = &sctx->b.streamout.begin_atom;
++	sctx->atoms.items.streamout_begin = &sctx->b.streamout.begin_atom;
+ 
+ 	switch (sctx->b.chip_class) {
+ 	case SI:
+--- a/src/gallium/drivers/radeonsi/si_pipe.h	2014-04-19 00:15:08.000000000 +0000
++++ b/src/gallium/drivers/radeonsi/si_pipe.h	2014-05-06 21:54:54.519525856 +0000
+@@ -101,7 +101,7 @@
+ 			 * updated in memory. */
+ 			struct r600_atom *cache_flush;
+ 			struct r600_atom *streamout_begin;
+-		};
++		} items;
+ 		struct r600_atom *array[0];
+ 	} atoms;
+ 
+--- a/src/gallium/drivers/radeonsi/si_state_draw.c	2014-04-19 00:15:08.000000000 +0000
++++ b/src/gallium/drivers/radeonsi/si_state_draw.c	2014-05-06 21:56:14.911525752 +0000
+@@ -961,7 +961,7 @@
+ 
+ 	/* Check flush flags. */
+ 	if (sctx->b.flags)
+-		sctx->atoms.cache_flush->dirty = true;
++		sctx->atoms.items.cache_flush->dirty = true;
+ 
+ 	si_need_cs_space(sctx, 0, TRUE);
+ 
