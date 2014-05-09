@@ -12,11 +12,15 @@ if [ "`tty`" == "$CONSOLE" ]; then
        	        cp -a /etc/skel/$file $HOME/. 2>/dev/null
         done
         chown -R $TSUSER.$TSUSER $HOME
-	if [ -e /bin/xinit ] && [ "$SESSION_0_TYPE" != "sh" ]; then
+	if [ -e $WKDIR/consoleapps ]; then
+		splash_exit
+		show_cursor
+		exec $WKDIR/consoleapps
+	elif [ -e /bin/xinit ] && [ -e $WKDIR/windowapps ]; then
 		if check_last_session; then
 			cd /var/run
 			clear
-			exec /bin/xinit /etc/xinitrc -- /etc/xserverrc &> /var/run/applications/session.$$
+			exec /bin/xinit /etc/xinitrc -- /etc/xserverrc > /var/run/applications/session.$$ 2>&1
 		else
                         splash_exit
                         show_cursor

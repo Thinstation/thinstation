@@ -43,15 +43,19 @@ init)
 					export POSITION=$position
 					if [ "$server" = "." ] ; then server= ; fi
 					if [ "$options" = "." ] ; then options= ; fi
-					if [ -n "$WMNAME" ] && [ "$type" != "$WMNAME" ]; then
-						echo "pkg auto $type \"$server\" \"$options\" \"$WMWORKSPACE\" &" >> $WKDIR/$WMNAME.autostart
-						echo "sleep .2" >> $WKDIR/$WMNAME.autostart
-					elif [ -n "$WMNAME" ] && [ "$type" == "$WMNAME" ]; then
-						echo "export DISPLAY_NUMBER=$DISPLAY_NUMBER" >> $WKDIR/windowapps
-						echo "exec pkg console $type \"$server\" \"$options\"" >> $WKDIR/windowapps
+					if [ ! -e /etc/console/$type ]; then
+						if [ -n "$WMNAME" ] && [ "$type" != "$WMNAME" ]; then
+							echo "pkg auto $type \"$server\" \"$options\" \"$WMWORKSPACE\" &" >> $WKDIR/$WMNAME.autostart
+							echo "sleep .2" >> $WKDIR/$WMNAME.autostart
+						elif [ -n "$WMNAME" ] && [ "$type" == "$WMNAME" ]; then
+							echo "export DISPLAY_NUMBER=$DISPLAY_NUMBER" >> $WKDIR/windowapps
+							echo "exec pkg console $type \"$server\" \"$options\"" >> $WKDIR/windowapps
+						else
+							echo "export DISPLAY_NUMBER=$DISPLAY_NUMBER" >> $WKDIR/windowapps
+							echo "pkg console $type \"$server\" \"$options\" &" >> $WKDIR/windowapps
+						fi
 					else
-						echo "export DISPLAY_NUMBER=$DISPLAY_NUMBER" >> $WKDIR/windowapps
-						echo "pkg console $type \"$server\" \"$options\" &" >> $WKDIR/windowapps
+						echo "pkg console $type \"$server\" \"$options\"" >> $WKDIR/consoleapps
 					fi
 				else
 					no_package
@@ -65,6 +69,9 @@ init)
 	if [ -e $WKDIR/windowapps ]; then
 		echo "wait" >> $WKDIR/windowapps
 		chmod +x $WKDIR/windowapps
+	fi
+	if [ -e $WKDIR/consoleapps ]; then
+		chmod +x $WKDIR/consoleapps
 	fi
 ;;
 *)
