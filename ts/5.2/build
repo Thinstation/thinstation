@@ -18,6 +18,9 @@ export TOOLSDIR
 . thinstation.conf.buildtime
 PATH=/usr/local/bin:/usr/bin:/bin:/sbin:/usr/sbin:/usr/local/sbin:/ts/bin
 
+# set some defaults for builds that would produce unexpected results for legacy build scripts otherwise.
+ts_mesa_3d=enabled
+
 # Show Command line Parameters
 
 showhelp()
@@ -1245,6 +1248,9 @@ if [ -z "$DEBUG_KERNEL" ] ; then
   	DEBUGCONSOLE="console=tty1 vt.global_cursor_default=0 loglevel=3"
 fi
 
+# Should we delete the dri folder?
+mesa
+
 # Process locales
 locales
 
@@ -1408,6 +1414,13 @@ rmdir $MODDIR
 filesystem_fixups
 }
 
+mesa()
+{
+	if is_disabled $ts_mesa_3d; then
+		echo -e "Mesa 3D disabled, deleting the dri folder."
+		rm -rf ./tmp-tree/lib/dri
+	fi
+}
 filesystem_fixups()
 {
 	# Various filesystem fixups
