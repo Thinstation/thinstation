@@ -76,6 +76,7 @@ machine VMWare				# A good set of modules for a VmWare Virtual Machine
 # Every mounted device needs a filesystem, so choose which ones you need.
 #module usb-storage
 #module autofs4          	# Automount and autofs support
+package aufs
 #module isofs            	# ISO9960 file system support for CDRoms
 #module udf			# CDRom UDF file system support
 #module vfat             	# Fat and VFat file system support
@@ -175,7 +176,7 @@ package rdesktop		# X RDP client for Windows Terminal Services (ver 1.7)
 #package tarantella		# Tarantella client support
 #package xnest			# XDM in a window client
 #package urxvt            	# Light Xterm Client (vt102)
-package xterm           	# Xterm Client (vt220)
+#package xterm           	# Xterm Client (vt220)
 #package ssh 			# Secure Shell client
 #package tn5250          	# 5250 terminal emulator
 #package dillo			# Dillo light web browser
@@ -309,7 +310,7 @@ param dialuppasswd   pleasechangeme			# Password for dialin account
 param sambapasswd    pleasechangeme  			# Password for samba shares when using user mode security
 #param kernelcmdline "radeon.modeset=0"                 # Add additional kernel command lines. e.g. disable radeon framebuffer
 #param stripelf       yes				# Strip extraneous information from elf binaries (Maybe not Safe)
-#param acpisupport    disable				# Tells the kernel not to load acpi modules. (Breaks some Intel Chipsets if disabled)
+param acpisupport    disable				# Tells the kernel not to load acpi modules. (Breaks some Intel Chipsets if disabled)
 #param uvesafb        disable				# Disable uvesafb (legacy option like modesetfb)
 #param extra_vid      LVDS-1:d				# Add an extra video= parameter to kernel cmd line (good for disabling outputs on video cards)
 param bootlogo       false				# Enable or Disable the use of the Boot splash.
@@ -349,7 +350,8 @@ param baseurl        http://www.doncuppjr.net		# Used to determine url to wget f
 param haltonerror    false				# Will halt on error, default is true
 param hardlinkfs     true
 param sametimestmp   true                               # When enabled, the timestamps for all files and folders will be set to 00:00 of todays date in your timezone
-param initrdcmd	     "gzip"				# Compression mode and level of initrd file. none, gzip -9, lzma -9 ,bzip2 -9
+param initrdcmd	     "squashfs"				# Compression mode and level of initrd file. none, gzip -9, lzma -9 ,bzip2 -9
+param squashopt      "-comp xz"
 param bootverbosity   3          			# Increased vebosity when booting TS
                                 			#   0 no verbose messages
                                 			#   1 boot
@@ -375,5 +377,5 @@ param syslinuxtheme     "default"
 
 #package alltimezone
 #param allres		true		# Includes a lot of resolution splash images for live-cd s
-#param allfirmware	true		# Includes a lot of firmwares for live-cd s
+param allfirmware	true		# Includes a lot of firmwares for live-cd s
 param mesa_3d disable
