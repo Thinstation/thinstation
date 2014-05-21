@@ -3,16 +3,18 @@
 # Thinstation init script
 #
 # Start setting up the environment
+
 trap "" INT QUIT TSTP
-
-/bin/busybox clear
-
 INITLIST=/tmp/initlist
 KERNEL_VERSION=`uname -r`
 
 if [ -e /etc/thinstation.global ] ; then . /etc/thinstation.global ; fi
 if [ -e /etc/splash.functions ] ; then . /etc/splash.functions ; fi
 
+if is_disabled $DEBUGPAUSE ; then
+	# Clear the screen when we are not going to debug, \
+        /bin/busybox clear
+fi
 hide_cursor
 
 # Runs packages in init level
