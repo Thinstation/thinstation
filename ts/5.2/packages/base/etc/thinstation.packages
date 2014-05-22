@@ -117,7 +117,7 @@ eula_()
 
 run_command()
 {
-	if is_enabled $LOG_COMMANDS ; then
+	if is_enabled $LOG_COMMANDS && [ -z $PASSWORD ]; then
 		echo "$CMD" >> $APPLOG
 	fi
 	$CMD >> $APPLOG 2>&1
