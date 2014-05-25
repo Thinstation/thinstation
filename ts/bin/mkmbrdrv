@@ -17,7 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with mkmbrdrv. If not, see http://www.gnu.org/licenses/.
 #####################################################################
-#set -x
 
 test $(id -u) -ne 0 && echo "please run as root" && exit 1
 
@@ -95,7 +94,7 @@ Partition Types:
           data,d : General Data Partition Formated Fat32
 
 Examples:
-         mkmbrdrv -c /sys-themes/default -o /build  /dev/loop0
+         mkmbrdrv -c /sys-themes/default -o /build /dev/loop0
 
          mkmbrdrv -c /sys-themes/menu \\
                   -o /build \\
@@ -129,7 +128,7 @@ getopts()
 	done
 	let number_of_parts=$part-1
 	if [ -z ${ID[0]} ]; then
-		add_part "d:0:'boot'"
+		add_part "d:0:boot"
 		number_of_parts=0
 	fi
 }
@@ -144,7 +143,7 @@ get_dirs()
 		fi
 	done
 	if [ -z "$configdir" ] || [ ! -e $configdir/syslinux.cfg ]; then
-		usage 14 "You must specify and syslinux theme dir with a syslinux.cfg inside."
+		usage 14 "You must specify a syslinux theme dir with a syslinux.cfg inside."
 	fi
 	if [ -z "$biosdir" ]; then
 		usage 11 "We could not get a good read on your syslinux install."
