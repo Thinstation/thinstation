@@ -477,7 +477,6 @@ partition()
 	dd if=/dev/zero of=$device bs=512 count=32 seek=$(($disk_size - 32)); orbail 17
 	blockdev --rereadpt $device; orbail 18
 	echo ""
-
 	parted -s $device mklabel msdos; orbail 19
 	echo -e "\nCreating Partitions"
 	printf "%3s %4s %12s %-40s\n" ID Type MBytes Label
