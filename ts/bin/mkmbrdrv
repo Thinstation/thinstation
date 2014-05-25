@@ -158,18 +158,6 @@ get_dirs()
 	fi
 }
 
-is_enabled()
-{
-	if [ -n "$1" ]; then
-		for value in true on yes y 0; do
-			if [ "$value" == "$1" ]; then
-				return 0
-			fi
-		done
-	fi
-	return 1
-}
-
 scan_config()
 {
 	# Scan config file for potentially needed com32 files
@@ -220,8 +208,8 @@ copy_files()
 		echo -e "\nCopying com32 files"
 		copy_file "$biosdir/$com"	"$BIOSDIR/$com"
 	done
-	echo -e "\nCopying in the Overlay Directory"
 	if [ -n "$overlay" ]; then
+		echo -e "\nCopying in the Overlay Directory"
 		copy_dir "$overlay"	"$ESP"
 	fi
 }
@@ -315,7 +303,7 @@ convert_to_sectors()
 		K)	let "size=${value}*2";;
 		M)	let "size=${value}*2*1024";;
 		G)	let "size=${value}*2*1024*1024";;
-		*)	echo "Invalid Unit $unit"; usage 5;;
+		*)	usage 5 "Invalid Unit $unit";;
 	esac
 	echo $size
 }
@@ -564,10 +552,12 @@ copy_file()
 		freq='.1'
 	fi
 	if [ $orig_size -gt $cpt ]; then
-		local show_progress=true
+		show_progress=true
+	else
+		show_progress=false
 	fi
 	while ps -p $cppid >/dev/null 2>&1 && [ $timeout -lt 60 ]; do
-		if is_enabled $show_progress; then
+		if $show_progress; then
 			if [ -e "$2" ]; then
 				dest_size=`stat -c %s "$2"`
 			else
@@ -583,7 +573,7 @@ copy_file()
 		fi
 	done
 	if [ `stat -c %s "$2"` -eq $orig_size ]; then
-		if is_enabled $show_progress; then
+		if $show_progress; then
 			printf "$format" "`basename $1`" "`dirname $2`" "100%"
 			echo ""
 		fi
