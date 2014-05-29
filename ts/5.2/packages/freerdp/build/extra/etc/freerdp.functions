@@ -5,6 +5,8 @@ read_options()
         fi
 	if [ -n "$SERVER" ]; then
 		echo "$SERVER" > /tmp/.dialog_${client}_server
+	else
+		ALLOW_SERVER_EDITS=TRUE
 	fi
 	if [ -n "$OPTIONS" ]; then
 		echo "$OPTIONS" > /tmp/.dialog_${client}_options
@@ -20,7 +22,6 @@ read_options()
 	fi
 	if [ -z $DIALOG_SERVER ]; then
 		DIALOG_SERVER="type server name here"
-		ALLOW_SERVER_EDITS=TRUE
 	fi
 	if [ -z $ALLOW_SERVER_EDITS ]; then
 		ALLOW_SERVER_EDITS=FALSE
@@ -157,9 +158,9 @@ dialog_get_server_address()
 			if [ -z "$SERVER" ] && [ -z "$REMUSER" ]; then
 				dialog_no_value $client "Username and Server"
 			elif [ -z "$SERVER" ]; then
-				dialog_no_value $client "Username"
-			elif [ -z "$REMUSER" ]; then
 				dialog_no_value $client "Server name or IP"
+			elif [ -z "$REMUSER" ]; then
+				dialog_no_value $client "Username"
 			fi
 			unset SERVER OPTIONS PASSWORD REMUSER
 		fi
