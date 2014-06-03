@@ -1,0 +1,168 @@
+read_options()
+{
+	if [ -n "$REMUSER" ]; then
+                echo "$REMUSER" > /tmp/.dialog_${client}_user
+        fi
+	if [ -n "$SERVER" ]; then
+		echo "$SERVER" > /tmp/.dialog_${client}_server
+	else
+		ALLOW_SERVER_EDITS=TRUE
+	fi
+	if [ -n "$OPTIONS" ]; then
+		echo "$OPTIONS" > /tmp/.dialog_${client}_options
+	fi
+	if [ -e /tmp/.dialog_${client}_user ]; then
+		DIALOG_USER=$(cat /tmp/.dialog_${client}_user)
+	fi
+	if [ -e /tmp/.dialog_${client}_server ]; then
+		DIALOG_SERVER=$(cat /tmp/.dialog_${client}_server)
+	fi
+	if [ -e /tmp/.dialog_${client}_options ]; then
+		DIALOG_OPTIONS=$(cat /tmp/.dialog_${client}_options)
+	fi
+	if [ -z $DIALOG_SERVER ]; then
+		DIALOG_SERVER="type server name here"
+	fi
+	if [ -z $ALLOW_SERVER_EDITS ]; then
+		ALLOW_SERVER_EDITS=FALSE
+	fi
+}
+
+set_default()
+{
+	if [ -n "$1" ]; then
+		echo "<default>$@</default>"
+	fi
+}
+
+choose_pixmap()
+{
+	if [ -e /lib/icons/hicolor/32x32/apps/$client.png ]; then
+		echo "<input file>/lib/icons/hicolor/32x32/apps/$client.png</input>"
+	else
+		echo "<input file>/lib/pixmaps/${client}_32x32.xpm</input>"
+	fi
+}
+
+dialog_no_value()
+{
+		Xdialog --title "$1 Client" \
+			--clear \
+			--msgbox "You must enter value for $2." 10 60 10000
+}
+
+create_dialog()
+{
+	MAIN_DIALOG='
+<window title="'"$client"'" decorated="true" width-request="325" height-request="220" allow-grow="false" allow-shrink="false">
+	<vbox>
+		<hbox>
+			<pixmap>
+				<height>32</height>
+				<width>32</width>
+				'$(choose_pixmap)'
+			</pixmap>
+			<text use-markup="true" xalign="0.3">
+				<label>Preparing to run '$client'</label>
+			</text>
+			<text space-expand="true" space-fill="true">
+				<label>""</label>
+			</text>
+		</hbox>
+		<hseparator></hseparator>
+	<notebook labels="User|Server">
+                <vbox>
+			<text space-expand="false" space-fill="false" use-markup="true" xalign="0">
+                        	<label>Username</label>
+                	</text>
+                	<entry activates_default="true" has-focus="true">
+                        	'$(set_default $DIALOG_USER)'
+                        	<variable>DIALOG_USER</variable>
+                	</entry>
+			<text space-expand="false" space-fill="false" use-markup="true" xalign="0">
+                        	<label>Password</label>
+                	</text>
+                	<entry visibility="false" caps-lock-warning="true" activates_default="true">
+                        	<variable>DIALOG_PASSWORD</variable>
+                	</entry>
+		</vbox>
+		<vbox>
+			<text space-expand="false" space-fill="false" use-markup="true" xalign="0">
+				<label>Server name or IP number</label>
+			</text>
+			<entry activates_default="true" editable="'"$ALLOW_SERVER_EDITS"'" has-focus="true">
+				'$(set_default $DIALOG_SERVER)'
+				<variable>DIALOG_SERVER</variable>
+			</entry>
+			<text space-expand="false" space-fill="false" use-markup="true" xalign="0">
+				<label>Options</label>
+			</text>
+			<entry activates_default="true" editable="'"$ALLOW_SERVER_EDITS"'">
+				'$(set_default $DIALOG_OPTIONS)'
+				<variable>DIALOG_OPTIONS</variable>
+			</entry>
+		</vbox>
+	</notebook>
+		<hbox homogeneous="true">
+			<button can-default="true" has-default="true" use-stock="true">
+				<input file icon="gtk-ok"></input>
+				<label>"Connect"</label>
+				<action>EXIT:ok</action>
+			</button>
+			<button use-stock="true">
+				<input file icon="gtk-cancel"></input>
+				<label>"Abort"</label>
+				<action>EXIT:abort</action>
+			</button>
+		</hbox>
+	</vbox>
+</window>
+'
+}
+
+dialog_get_server_address()
+{
+	GTKDIALOG=gtkdialog
+	client=$1
+	notcomplete=true
+	while $notcomplete; do
+		read_options
+		create_dialog
+		export MAIN_DIALOG
+
+		I=$IFS; IFS=""
+		for STATEMENTS in  $(gtkdialog --program=MAIN_DIALOG); do
+   			eval $STATEMENTS
+		done
+		IFS=$I
+
+		if [ "$EXIT" == "ok" ]; then
+			# preserve settings
+			echo "$DIALOG_USER" > /tmp/.dialog_${client}_user
+			echo "$DIALOG_SERVER" > /tmp/.dialog_${client}_server
+			echo "$DIALOG_OPTIONS" > /tmp/.dialog_${client}_options
+
+			if [ "$DIALOG_SERVER" != "type server name here" ]; then
+				REMUSER=$(echo $DIALOG_USER |grep -Ev '&|;|\(|`')
+				PASSWORD=$(echo $DIALOG_PASSWORD |grep -Ev '&|;|\(|`')
+				SERVER=$(echo $DIALOG_SERVER |grep -Ev '&|;|\(|`')
+ 				OPTIONS=$(echo $DIALOG_OPTIONS |grep -Ev '&|;|\(|`')
+			fi
+		elif is_enabled $ALLOW_EXIT ; then
+			exit
+		fi
+
+		if [ -n "$SERVER" ] && [ -n "$REMUSER" ]; then
+			notcomplete=false
+		else
+			if [ -z "$SERVER" ] && [ -z "$REMUSER" ]; then
+				dialog_no_value $client "Username and Server"
+			elif [ -z "$SERVER" ]; then
+				dialog_no_value $client "Server name or IP"
+			elif [ -z "$REMUSER" ]; then
+				dialog_no_value $client "Username"
+			fi
+			unset SERVER OPTIONS PASSWORD REMUSER
+		fi
+	done
+}

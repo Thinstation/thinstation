@@ -117,11 +117,12 @@ eula_()
 
 run_command()
 {
-	if is_enabled $LOG_COMMANDS ; then
+	if is_enabled $LOG_COMMANDS && [ -z $PASSWORD ]; then
 		echo "$CMD" >> $APPLOG
 	fi
 	$CMD >> $APPLOG 2>&1
 	STATUS=$?
+	unset PASSWORD CMD
 	if x_wm ;then
 		chvt 4
 		exit $STATUS
@@ -195,6 +196,9 @@ window|fullscreen)
     ALLOW_EXIT=TRUE
     if ! is_disabled $ALWAYS_ENTER_SERVER ; then
 	ALWAYS_ENTER_SERVER=TRUE
+    fi
+    if ! is_disabled $ALLOW_SERVER_EDITS ; then
+	ALLOW_SERVER_EDITS=TRUE
     fi
     package_input
     order_command

@@ -17,7 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with mkmbrdrv. If not, see http://www.gnu.org/licenses/.
 #####################################################################
-#set -x
 
 test $(id -u) -ne 0 && echo "please run as root" && exit 1
 
@@ -95,7 +94,7 @@ Partition Types:
           data,d : General Data Partition Formated Fat32
 
 Examples:
-         mkmbrdrv -c /sys-themes/default -o /build  /dev/loop0
+         mkmbrdrv -c /sys-themes/default -o /build /dev/loop0
 
          mkmbrdrv -c /sys-themes/menu \\
                   -o /build \\
@@ -129,7 +128,7 @@ getopts()
 	done
 	let number_of_parts=$part-1
 	if [ -z ${ID[0]} ]; then
-		add_part "d:0:'boot'"
+		add_part "d:0:boot"
 		number_of_parts=0
 	fi
 }
@@ -144,7 +143,7 @@ get_dirs()
 		fi
 	done
 	if [ -z "$configdir" ] || [ ! -e $configdir/syslinux.cfg ]; then
-		usage 14 "You must specify and syslinux theme dir with a syslinux.cfg inside."
+		usage 14 "You must specify a syslinux theme dir with a syslinux.cfg inside."
 	fi
 	if [ -z "$biosdir" ]; then
 		usage 11 "We could not get a good read on your syslinux install."
@@ -157,18 +156,6 @@ get_dirs()
 	else
 		ever=`extlinux -v 2>&1 |cut -c 10`
 	fi
-}
-
-is_enabled()
-{
-	if [ -n "$1" ]; then
-		for value in true on yes y 0; do
-			if [ "$value" == "$1" ]; then
-				return 0
-			fi
-		done
-	fi
-	return 1
 }
 
 scan_config()
@@ -221,8 +208,8 @@ copy_files()
 		echo -e "\nCopying com32 files"
 		copy_file "$biosdir/$com"	"$BIOSDIR/$com"
 	done
-	echo -e "\nCopying in the Overlay Directory"
 	if [ -n "$overlay" ]; then
+		echo -e "\nCopying in the Overlay Directory"
 		copy_dir "$overlay"	"$ESP"
 	fi
 }
@@ -316,7 +303,7 @@ convert_to_sectors()
 		K)	let "size=${value}*2";;
 		M)	let "size=${value}*2*1024";;
 		G)	let "size=${value}*2*1024*1024";;
-		*)	echo "Invalid Unit $unit"; usage 5;;
+		*)	usage 5 "Invalid Unit $unit";;
 	esac
 	echo $size
 }
@@ -490,7 +477,6 @@ partition()
 	dd if=/dev/zero of=$device bs=512 count=32 seek=$(($disk_size - 32)); orbail 17
 	blockdev --rereadpt $device; orbail 18
 	echo ""
-
 	parted -s $device mklabel msdos; orbail 19
 	echo -e "\nCreating Partitions"
 	printf "%3s %4s %12s %-40s\n" ID Type MBytes Label
@@ -565,10 +551,12 @@ copy_file()
 		freq='.1'
 	fi
 	if [ $orig_size -gt $cpt ]; then
-		local show_progress=true
+		show_progress=true
+	else
+		show_progress=false
 	fi
 	while ps -p $cppid >/dev/null 2>&1 && [ $timeout -lt 60 ]; do
-		if is_enabled $show_progress; then
+		if $show_progress; then
 			if [ -e "$2" ]; then
 				dest_size=`stat -c %s "$2"`
 			else
@@ -584,7 +572,7 @@ copy_file()
 		fi
 	done
 	if [ `stat -c %s "$2"` -eq $orig_size ]; then
-		if is_enabled $show_progress; then
+		if $show_progress; then
 			printf "$format" "`basename $1`" "`dirname $2`" "100%"
 			echo ""
 		fi

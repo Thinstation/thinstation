@@ -52,7 +52,13 @@ xfconf_settings()
 		xfconf-query -c xfce4-desktop -p /desktop-icons/file-icons/show-removable -t bool -s false -n
 	fi
 
-	PANEL="-t int -s 1 -t int -s 3 -t int -s 15"
+	if is_enabled $PANEL_SHOWDESKTOP; then
+		xfconf-query -c xfce4-panel -p /plugins/plugin-16 -t string -s separator -n
+		xfconf-query -c xfce4-panel -p /plugins/plugin-17 -t string -s showdesktop -n
+		PANEL="-t int -s 1 -t int -s 16 -t int -s 17 -t int -s 3 -t int -s 15"
+	else
+		PANEL="-t int -s 1 -t int -s 3 -t int -s 15"
+	fi
 	if is_enabled $PANEL_PAGER; then
 		PANEL="$PANEL -t int -s 4"
 	else

@@ -1140,8 +1140,8 @@ if [ -e $PACDIR/sambapasswd.param ] && [ -e $PACDIR/samba-base.* ] ; then
     echo $ts_sambapasswd > $TOOLSDIR/smbpass
     echo $ts_sambapasswd >> $TOOLSDIR/smbpass
     smbpasswd -L -c $TOOLSDIR/smb.conf -a -U root -s < $TOOLSDIR/smbpass > /dev/null 2>&1
-    mv $TOOLSDIR/passdb.tdb ./tmp-tree/lib/passdb.tdb.ro
-    mv $TOOLSDIR/secrets.tdb ./tmp-tree/lib/secrets.tdb.ro
+    mv $TOOLSDIR/passdb.tdb ./tmp-tree/etc/samba/private/passdb.tdb
+    mv $TOOLSDIR/secrets.tdb ./tmp-tree/etc/samba/private/secrets.tdb
     rm -f $TOOLSDIR/{smbpass,gencache_notrans.tdb,mutex.tdb}
 fi
 
