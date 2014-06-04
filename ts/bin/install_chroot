@@ -48,6 +48,9 @@ stage2()
 		PKG_NAME="`echo $PKG_NAME |cut -d "#" -f1`"
 		echo "Installing Package $PKG_NAME"
 		/usr/bin/pkgadd $PKGARGS $PKG_FILE
+		if [ -e "`dirname $PKG_FILE`"/pre-install ]; then
+                        echo ". `dirname $PKG_FILE`/pre-install" >> $ROOT/post-install.sh
+                fi
 		if [ -e "`dirname $PKG_FILE`"/post-install ]; then
 			echo ". `dirname $PKG_FILE`/post-install" >> $ROOT/post-install.sh
 		fi
