@@ -116,7 +116,7 @@ lib_in_path()
 	done
 	if [ "`echo $filepath |sed -e 's|/|/\n|g' |grep -c '/'`" -gt "2" ]; then
 		likely_rpath=`echo $filepath |cut -d '/' -f1-3`
-		if [ -n "`find  ./tmp-tree$likely_rpath -name $1`" ]; then
+		if [ -n "`find  $pkgname$likely_rpath -name $1`" ]; then
 			return 0
 		fi
 	fi
@@ -144,8 +144,7 @@ lib_dependencies()
 	#Not using ldd anymore
         (objdump -x $filename 2>/dev/null |grep -e NEEDED |cut -c 24-) |
         while read libfile; do
-          filepath=`dirname $filename |cut -d \/ -f3-`
-          filepath=/$filepath
+          filepath=`dirname $filename | sed -e "s,$pkgname,,"`
           if ! lib_in_path $libfile && [ -z "`echo $libloc | grep $pkgname`" ] && [ ! -e $pkgname/lib/$libfile ]; then
             if [ "$DISPLAYED" != "TRUE" ]; then
               echo "Adding library dependencies for `basename $filename`"
@@ -1257,6 +1256,11 @@ locales
 # Process keymaps
 keymaps
 
+# Clean up unncessary folders
+rm ./tmp-tree/dependencies
+rm -Rf ./tmp-tree/build
+rm -Rf ./tmp-tree/.dna
+
 # Adding library dependencies
 
 lib_dependencies
@@ -1368,10 +1372,7 @@ done
 
 # Clean up unncessary folders
 rm -Rf $PACDIR
-rm ./tmp-tree/dependencies
-rm -Rf ./tmp-tree/build
 rm -Rf ./tmp-tree/conf
-rm -Rf ./tmp-tree/.dna
 
 # Building PKG packages
 echo -e "\nBuilding PKG Packages\n"
