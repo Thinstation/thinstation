@@ -6,7 +6,7 @@ name=shadow
 version=4.1.4.3
 release=1
 source=(http://pkg-shadow.alioth.debian.org/releases/$name-$version.tar.bz2
-        pwck login.defs)
+        pwck login.defs other system-auth)
 
 build() {
     cd $name-$version
@@ -28,6 +28,8 @@ build() {
 
     install -d $PKG/etc/cron/daily $PKG/var/log
     install -m 644 $SRC/login.defs $PKG/etc
+    install -m 644 $SRC/system-auth $PKG/etc/pam.d
+    install -m 644 $SRC/other $PKG/etc/pam.d
     install -m 755 $SRC/pwck $PKG/etc/cron/daily
     mv $PKG/bin/{su,groups} $PKG/usr/bin
     touch $PKG/var/log/{lastlog,faillog}
