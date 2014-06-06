@@ -10,7 +10,9 @@ source=(http://ftp.gnu.org/gnu/$name/$name-$version.tar.xz)
 
 build() {
 	cd $name-$version
-	./configure --prefix=/usr \
+	sed -i parted/ui.c -e "s:(CPPFunction\*) complete:(rl_completion_func_t\*) complete:"
+
+	./configure --prefix=/usr --disable-static \
 		--mandir=/usr/man
 	make
 	make DESTDIR=$PKG install

@@ -103,6 +103,7 @@ show=0
 prefix=0
 newdir=0
 verbose=0
+mode=1
 #
 # Isolate the script name for messages
 pname=`basename $0`
@@ -132,6 +133,22 @@ while test $# -gt 0; do
     -s | --show)
         show=1
         ;;
+
+    -r | --root)
+	mode=0
+        ;;
+
+    --ent)
+	mode=2
+	;;
+
+    --xsl)
+	mode=3
+	;;
+
+    --ns)
+	mode=4
+	;;
 
     -v=* | --version=*)
         VERSION=$optarg
@@ -173,8 +190,10 @@ fi
 
 echo Starting run
 #
-# create the catalogs root and docbook specific
+# create the catalogs root
 #
+if [ $mode == 0 ]; then
+
 if [ ! -r $ROOTCATALOG ] ; then
    echo creating XML Catalog root $ROOTCATALOG
    xmlcatalog --noout --create $ROOTCATALOG
@@ -183,6 +202,25 @@ if [ ! -r $ROOTCATALOG ] ; then
    echo Failed creating XML Catalog root $ROOTCATALOG
    exit 1
 fi
+xmlcatalog --noout --add "delegatePublic" \
+    "-//OASIS//ENTITIES DocBook XML" \
+    "file://$CATALOG" $ROOTCATALOG
+xmlcatalog --noout --add "delegatePublic" \
+    "-//OASIS//DTD DocBook XML" \
+    "file://$CATALOG" $ROOTCATALOG
+xmlcatalog --noout --add "delegateSystem" \
+    "http://www.oasis-open.org/docbook/" \
+    "file://$CATALOG" $ROOTCATALOG
+xmlcatalog --noout --add "delegateURI" \
+    "http://www.oasis-open.org/docbook/" \
+    "file://$CATALOG" $ROOTCATALOG
+exit 0
+fi
+
+
+#
+# create the catalogs docbook specific
+#
 if [ ! -r $CATALOG ] ; then
    echo creating DocBook XML Catalog $CATALOG
    xmlcatalog --noout --create $CATALOG
@@ -192,6 +230,8 @@ if [ ! -r $CATALOG ] ; then
    exit 1
 fi
 
+
+if [ $mode == 1 ] || [ $mode == 2 ]; then
 #
 # find the prefix for DocBook DTD
 #
@@ -211,6 +251,7 @@ if [ "$dtd421" = "" ] ; then
     exit 1
 fi
 
+if [ $mode == 1 ]; then
 xmlcatalog --noout --add "public" \
     "-//OASIS//ELEMENTS DocBook XML Information Pool V${VERSION}//EN" \
     "file://$docbookdir/dbpoolx.mod" $CATALOG
@@ -242,35 +283,33 @@ xmlcatalog --noout --add "rewriteURI" \
     "http://www.oasis-open.org/docbook/xml/${VERSION}" \
     "file://$docbookdir" $CATALOG
 
-xmlcatalog --noout --add "delegatePublic" \
-    "-//OASIS//ENTITIES DocBook XML" \
-    "file://$CATALOG" $ROOTCATALOG
-xmlcatalog --noout --add "delegatePublic" \
-    "-//OASIS//DTD DocBook XML" \
-    "file://$CATALOG" $ROOTCATALOG
-xmlcatalog --noout --add "delegateSystem" \
-    "http://www.oasis-open.org/docbook/" \
-    "file://$CATALOG" $ROOTCATALOG
-xmlcatalog --noout --add "delegateURI" \
-    "http://www.oasis-open.org/docbook/" \
-    "file://$CATALOG" $ROOTCATALOG
-
+elif [ $mode == 2 ]; then
 #
 # find the prefix for ISO DocBook entities
 #
+findent()
+{
+found=""
+search=`find $1 -name iso-amsb.ent | grep $VERSION`
+for dtd in $search; do
+    found=$dtd
+    break
+done
+}
+
 top=`dirname $docbookdir`
-found=`find $top -name iso-amsb.ent`
+findent $top
 if [ "$found" = "" ] ; then
-    found=`find /usr/share/xml -name iso-amsb.ent`
+    findent /usr/share/xml
 fi
 if [ "$found" = "" ] ; then
-    found=`find $HOME -name iso-amsb.ent`
+    findent $HOME
 fi
 if [ "$found" = "" ] ; then
-    found=`find /usr/local -name iso-amsb.ent`
+    findent /usr/local
 fi
 if [ "$found" = "" ] ; then
-    found=`find /usr/share/sgml -name iso-amsb.ent`
+    findent /usr/share/sgml
 fi
 if [ "$found" = "" ] ; then
     echo could not locate iso-amsb.ent of ISO DocBook entities
@@ -354,34 +393,23 @@ xmlcatalog --noout --add "public" \
 xmlcatalog --noout --add "delegatePublic" \
     "ISO 8879:1986" \
     "file://$CATALOG" $ROOTCATALOG
+fi
 
+exit 0
+fi
+
+if [ $mode == 3 ]; then
 #
 # find the prefix for XSLT stylesheets
 #
-top=`dirname $docbookdir`
-found=`find $top -name chunk.xsl`
-if [ "$found" = "" ] ; then
-    found=`find /usr/share/xml -name chunk.xsl`
-fi
-if [ "$found" = "" ] ; then
-    found=`find $HOME -name chunk.xsl`
-fi
-if [ "$found" = "" ] ; then
-    found=`find /usr/local -name chunk.xsl`
-fi
-if [ "$found" = "" ] ; then
-    found=`find /usr/share/sgml -name chunk.xsl`
-fi
-if [ "$found" = "" ] ; then
-    echo could not locate chunk-common.xsl of DocBook XSLT stylesheets
-    exit 1
-fi
+for search in /usr/share/sgml /usr/share/xml $HOME /usr/local; do
+    found=`find $search -name "*xsl-$VERSION"`
+    if [ -n "$found" ]; then break; fi
+done
 
 xsldir=""
-for tst in $found; do
-    dir=`dirname $tst`
-    dir=`dirname $dir`
-    if [ -r $dir/html/docbook.xsl -a -r $dir/common/l10n.xml ]; then
+for dir in $found; do
+    if [ -r $dir/html/chunk.xsl -a -r $dir/html/docbook.xsl -a -r $dir/common/l10n.xml ]; then
         xsldir=$dir
         break
     fi
@@ -392,8 +420,7 @@ if [ "$xsldir" = "" ] ; then
     exit 1
 fi
 echo Found DocBook XSLT stylesheets in $xsldir
-for version in current 1.39 1.40 1.41 1.42 1.43 1.44 1.45 1.46 1.47 \
-               1.48 1.49 1.50
+for version in current $VERSION
 do
     xmlcatalog --noout --add "rewriteSystem" \
 	"http://docbook.sourceforge.net/release/xsl/$version" \
@@ -409,6 +436,51 @@ xmlcatalog --noout --add "delegateSystem" \
 xmlcatalog --noout --add "delegateURI" \
     "http://docbook.sourceforge.net/release/xsl/" \
     "file://$CATALOG" $ROOTCATALOG
+
+exit 0
+fi
+
+if [ $mode == 4 ]; then
+#
+# find the prefix for XSLT NS stylesheets
+#
+for search in /usr/share/sgml /usr/share/xml $HOME /usr/local; do
+    found=`find $search -name "*xsl-ns-$VERSION"`
+    if [ -n "$found" ]; then break; fi
+done
+
+xsldir=""
+for dir in $found; do
+    if [ -r $dir/html/chunk.xsl -a -r $dir/html/docbook.xsl -a -r $dir/common/l10n.xml ]; then
+        xsldir=$dir
+        break
+    fi
+done
+
+if [ "$xsldir" = "" ] ; then
+    echo could not locate DocBook XSLT NS stylesheets
+    exit 1
+fi
+echo Found DocBook XSLT NS stylesheets in $xsldir
+for version in current $VERSION
+do
+    xmlcatalog --noout --add "rewriteSystem" \
+	"http://docbook.sourceforge.net/release/xsl-ns/$version" \
+	"file://$xsldir" $CATALOG
+    xmlcatalog --noout --add "rewriteURI" \
+	"http://docbook.sourceforge.net/release/xsl-ns/$version" \
+	"file://$xsldir" $CATALOG
+done
+
+xmlcatalog --noout --add "delegateSystem" \
+    "http://docbook.sourceforge.net/release/xsl-ns/" \
+    "file://$CATALOG" $ROOTCATALOG
+xmlcatalog --noout --add "delegateURI" \
+    "http://docbook.sourceforge.net/release/xsl-ns/" \
+    "file://$CATALOG" $ROOTCATALOG
+
+exit 0
+fi
 
 #
 #

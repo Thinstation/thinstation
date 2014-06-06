@@ -1,0 +1,26 @@
+Submitted By: Fernando de Oliveira <famobr at yahoo dot com dot br>
+Date: 2014-04-10
+Initial Package Version: 10.1.0
+Upstream Status: Unknown
+Origin: Upstream
+URL: https://www.mail-archive.com/mesa-dev@lists.freedesktop.org/msg50990.html
+Description: Fix Xorg crash.
+
+diff --git a/src/gallium/drivers/svga/svga_resource_texture.c 
+b/src/gallium/drivers/svga/svga_resource_texture.c
+index 4feca53..109897f 100644
+--- a/src/gallium/drivers/svga/svga_resource_texture.c
++++ b/src/gallium/drivers/svga/svga_resource_texture.c
+@@ -205,7 +205,10 @@ svga_texture_get_handle(struct pipe_screen *screen,
+    struct svga_winsys_screen *sws = svga_winsys_screen(texture->screen);
+    unsigned stride;
+ 
+-   assert(svga_texture(texture)->key.cachable == 0);
++   if (svga_texture(texture)->key.cachable) {
++      debug_warn_once("svga: texture->key.cachable=1");
++   }
++
+    svga_texture(texture)->key.cachable = 0;
+    stride = util_format_get_nblocksx(texture->format, texture->width0) *
+             util_format_get_blocksize(texture->format);
+

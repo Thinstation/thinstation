@@ -6,10 +6,12 @@
 name=libmpfr
 version=3.1.2
 release=1
-source=(http://www.mpfr.org/mpfr-$version/mpfr-$version.tar.xz)
+source=(http://www.mpfr.org/mpfr-$version/mpfr-$version.tar.xz
+	mpfr-$version-upstream_fixes-1.patch)
 
 build() {
     cd mpfr-$version
+    patch -Np1 < $SRC/mpfr-$version-upstream_fixes-1.patch
     ./configure --prefix=/usr --enable-thread-safe
     make
     make DESTDIR=$PKG install

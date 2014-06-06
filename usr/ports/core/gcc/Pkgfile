@@ -4,7 +4,7 @@
 # Depends on:  zlib libmpc
 
 name=gcc
-version=4.8.2
+version=4.8.3
 release=1
 source=(ftp://gcc.gnu.org/pub/gcc/releases/$name-$version/$name-$version.tar.bz2 \
 	$name-nocheck-fixincludes.patch)
@@ -46,4 +46,7 @@ build() {
 
     mkdir -p $PKG/usr/share/gdb/auto-load
     mv $PKG/usr/lib/*gdb.py $PKG/usr/share/gdb/auto-load
+
+    mkdir -p $PKG/usr/lib/bfd-plugins
+    ln -sfv /usr/lib/gcc/i686-pc-linux-gnu/$version/liblto_plugin.so $PKG/usr/lib/bfd-plugins
 }

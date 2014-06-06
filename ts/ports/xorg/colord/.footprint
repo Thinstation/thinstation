@@ -1,5 +1,4 @@
 drwxr-xr-x	root/root	etc/
--rw-r--r--	root/root	etc/colord.conf
 drwxr-xr-x	root/root	etc/dbus-1/
 drwxr-xr-x	root/root	etc/dbus-1/system.d/
 -rw-r--r--	root/root	etc/dbus-1/system.d/org.freedesktop.ColorManager.conf
@@ -25,12 +24,13 @@ drwxr-xr-x	root/root	usr/include/colord-1/colord/
 -rw-r--r--	root/root	usr/include/colord-1/colord/cd-client-sync.h
 -rw-r--r--	root/root	usr/include/colord-1/colord/cd-client.h
 -rw-r--r--	root/root	usr/include/colord-1/colord/cd-color.h
--rw-r--r--	root/root	usr/include/colord-1/colord/cd-deprecated.h
 -rw-r--r--	root/root	usr/include/colord-1/colord/cd-device-sync.h
 -rw-r--r--	root/root	usr/include/colord-1/colord/cd-device.h
 -rw-r--r--	root/root	usr/include/colord-1/colord/cd-dom.h
+-rw-r--r--	root/root	usr/include/colord-1/colord/cd-edid.h
 -rw-r--r--	root/root	usr/include/colord-1/colord/cd-enum.h
 -rw-r--r--	root/root	usr/include/colord-1/colord/cd-icc-store.h
+-rw-r--r--	root/root	usr/include/colord-1/colord/cd-icc-utils.h
 -rw-r--r--	root/root	usr/include/colord-1/colord/cd-icc.h
 -rw-r--r--	root/root	usr/include/colord-1/colord/cd-interp-akima.h
 -rw-r--r--	root/root	usr/include/colord-1/colord/cd-interp-linear.h
@@ -43,6 +43,7 @@ drwxr-xr-x	root/root	usr/include/colord-1/colord/
 -rw-r--r--	root/root	usr/include/colord-1/colord/cd-quirk.h
 -rw-r--r--	root/root	usr/include/colord-1/colord/cd-sensor-sync.h
 -rw-r--r--	root/root	usr/include/colord-1/colord/cd-sensor.h
+-rw-r--r--	root/root	usr/include/colord-1/colord/cd-spectrum.h
 -rw-r--r--	root/root	usr/include/colord-1/colord/cd-transform.h
 -rw-r--r--	root/root	usr/include/colord-1/colord/cd-version.h
 drwxr-xr-x	root/root	usr/lib/
@@ -59,13 +60,13 @@ drwxr-xr-x	root/root	usr/lib/colord-sensors/
 drwxr-xr-x	root/root	usr/lib/girepository-1.0/
 -rw-r--r--	root/root	usr/lib/girepository-1.0/Colord-1.0.typelib
 -rwxr-xr-x	root/root	usr/lib/libcolord.la
-lrwxrwxrwx	root/root	usr/lib/libcolord.so -> libcolord.so.1.0.22
-lrwxrwxrwx	root/root	usr/lib/libcolord.so.1 -> libcolord.so.1.0.22
--rwxr-xr-x	root/root	usr/lib/libcolord.so.1.0.22
+lrwxrwxrwx	root/root	usr/lib/libcolord.so -> libcolord.so.2.0.1
+lrwxrwxrwx	root/root	usr/lib/libcolord.so.2 -> libcolord.so.2.0.1
+-rwxr-xr-x	root/root	usr/lib/libcolord.so.2.0.1
 -rwxr-xr-x	root/root	usr/lib/libcolordprivate.la
-lrwxrwxrwx	root/root	usr/lib/libcolordprivate.so -> libcolordprivate.so.1.0.22
-lrwxrwxrwx	root/root	usr/lib/libcolordprivate.so.1 -> libcolordprivate.so.1.0.22
--rwxr-xr-x	root/root	usr/lib/libcolordprivate.so.1.0.22
+lrwxrwxrwx	root/root	usr/lib/libcolordprivate.so -> libcolordprivate.so.2.0.1
+lrwxrwxrwx	root/root	usr/lib/libcolordprivate.so.2 -> libcolordprivate.so.2.0.1
+-rwxr-xr-x	root/root	usr/lib/libcolordprivate.so.2.0.1
 drwxr-xr-x	root/root	usr/lib/pkgconfig/
 -rw-r--r--	root/root	usr/lib/pkgconfig/colord.pc
 drwxr-xr-x	root/root	usr/libexec/
@@ -100,6 +101,9 @@ drwxr-xr-x	root/root	usr/share/color/icc/colord/
 -rw-r--r--	root/root	usr/share/color/icc/colord/sRGB.icc
 -rw-r--r--	root/root	usr/share/color/icc/colord/x11-colors.icc
 drwxr-xr-x	root/root	usr/share/colord/
+drwxr-xr-x	root/root	usr/share/colord/cmf/
+-rw-r--r--	root/root	usr/share/colord/cmf/CIE1931-2deg-XYZ.cmf
+-rw-r--r--	root/root	usr/share/colord/cmf/CIE1964-10deg-XYZ.cmf
 drwxr-xr-x	root/root	usr/share/colord/icons/
 -rw-r--r--	root/root	usr/share/colord/icons/color-munki-photo-ambient.svg
 -rw-r--r--	root/root	usr/share/colord/icons/color-munki-photo-attach.svg
@@ -117,6 +121,30 @@ drwxr-xr-x	root/root	usr/share/colord/icons/
 -rw-r--r--	root/root	usr/share/colord/icons/spyder2-attach.svg
 -rw-r--r--	root/root	usr/share/colord/icons/spyder3-attach.svg
 -rw-r--r--	root/root	usr/share/colord/icons/spyder4-attach.svg
+drwxr-xr-x	root/root	usr/share/colord/illuminant/
+-rw-r--r--	root/root	usr/share/colord/illuminant/CIE-A.sp
+-rw-r--r--	root/root	usr/share/colord/illuminant/CIE-B.sp
+-rw-r--r--	root/root	usr/share/colord/illuminant/CIE-C.sp
+-rw-r--r--	root/root	usr/share/colord/illuminant/CIE-D50.sp
+-rw-r--r--	root/root	usr/share/colord/illuminant/CIE-D55.sp
+-rw-r--r--	root/root	usr/share/colord/illuminant/CIE-D65.sp
+-rw-r--r--	root/root	usr/share/colord/illuminant/CIE-D93.sp
+-rw-r--r--	root/root	usr/share/colord/illuminant/CIE-E.sp
+-rw-r--r--	root/root	usr/share/colord/illuminant/CIE-F1.sp
+-rw-r--r--	root/root	usr/share/colord/illuminant/CIE-F10.sp
+-rw-r--r--	root/root	usr/share/colord/illuminant/CIE-F11.sp
+-rw-r--r--	root/root	usr/share/colord/illuminant/CIE-F12.sp
+-rw-r--r--	root/root	usr/share/colord/illuminant/CIE-F2.sp
+-rw-r--r--	root/root	usr/share/colord/illuminant/CIE-F3.sp
+-rw-r--r--	root/root	usr/share/colord/illuminant/CIE-F4.sp
+-rw-r--r--	root/root	usr/share/colord/illuminant/CIE-F5.sp
+-rw-r--r--	root/root	usr/share/colord/illuminant/CIE-F6.sp
+-rw-r--r--	root/root	usr/share/colord/illuminant/CIE-F7.sp
+-rw-r--r--	root/root	usr/share/colord/illuminant/CIE-F8.sp
+-rw-r--r--	root/root	usr/share/colord/illuminant/CIE-F9.sp
+drwxr-xr-x	root/root	usr/share/colord/ref/
+-rw-r--r--	root/root	usr/share/colord/ref/CIE-1986-daylight-SPD.cmf
+-rw-r--r--	root/root	usr/share/colord/ref/CIE-TCS.sp
 drwxr-xr-x	root/root	usr/share/colord/ti1/
 -rw-r--r--	root/root	usr/share/colord/ti1/display-long.ti1
 -rw-r--r--	root/root	usr/share/colord/ti1/display-normal.ti1
@@ -143,7 +171,7 @@ drwxr-xr-x	root/root	usr/share/glib-2.0/schemas/
 drwxr-xr-x	root/root	usr/share/polkit-1/
 drwxr-xr-x	root/root	usr/share/polkit-1/actions/
 -rw-r--r--	root/root	usr/share/polkit-1/actions/org.freedesktop.color.policy
-drwxr-xr-x	root/root	usr/var/
-drwxr-xr-x	root/root	usr/var/lib/
-drwxr-xr-x	root/root	usr/var/lib/colord/
-drwxr-xr-x	root/root	usr/var/lib/colord/icc/
+drwxr-xr-x	root/root	var/
+drwxr-xr-x	root/root	var/lib/
+drwxr-xr-x	root/root	var/lib/colord/
+drwxr-xr-x	root/root	var/lib/colord/icc/

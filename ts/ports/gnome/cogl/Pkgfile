@@ -1,0 +1,24 @@
+# Description: A hardware accelerated graphics API
+# URL: http://cogl3d.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+# Depends on: mesa3d gdk-pixbuf pango gst-plugins-base-1
+
+name=cogl
+version=1.18.0
+release=1
+source=(ftp://ftp.gnome.org/pub/gnome/sources/$name/${version%.*}/$name-$version.tar.xz)
+
+build() {
+	cd $name-$version
+
+	./configure --prefix=/usr \
+			--sysconfdir=/etc \
+			--mandir=/usr/man \
+			--disable-nls \
+			--enable-cogl-gst
+			#--enable-gles1 \
+			#--enable-gles2
+
+	make
+	make DESTDIR=$PKG install
+}

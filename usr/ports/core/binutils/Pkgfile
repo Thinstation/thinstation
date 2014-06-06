@@ -4,22 +4,30 @@
 # Depends on:  zlib
 
 name=binutils
-version=2.23.2
+version=2.24
 release=1
-source=(ftp://ftp.gnu.org/gnu/$name/$name-$version.tar.bz2)
+source=(ftp://ftp.gnu.org/gnu/$name/$name-$version.tar.bz2
+	$name-$version-load_gcc_lto_plugin_by_default-1.patch
+	$name-$version-ld-corrupted-list.patch)
 
 build() {
-    sed -i '/^SUBDIRS/s/doc//' $name-$version/bfd/Makefile.in 
+    # Patch prevents hang of ld when passed -pie -static
+    # This happened during configure of some other applications
+    # Patch came from GIT and can be removed with 2.25
+    patch -d $name-$version -Np1 -i $SRC/$name-$version-ld-corrupted-list.patch
+
+    patch -d $name-$version -Np1 -i $SRC/$name-$version-load_gcc_lto_plugin_by_default-1.patch
+
     mkdir build
     cd build
     ../$name-$version/configure --prefix=/usr \
                                 --mandir=/usr/man \
                                 --enable-shared \
-                                --disable-nls
+                                --disable-nls \
+				--disable-werror
     make tooldir=/usr
     make check
     make tooldir=/usr DESTDIR=$PKG install
-    install -m 0644  ../$name-$version/include/libiberty.h $PKG/usr/include
     rm -r $PKG/usr/share
     sed -i "s|-L$SRC[^ ]* ||g" $PKG/usr/lib/libbfd.la
 }

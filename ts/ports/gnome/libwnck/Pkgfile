@@ -17,13 +17,12 @@ build() {
       -e 's/ENABLE_NLS 1/ENABLE_NLS 0/'
 
   ./configure --prefix=/usr \
-		--disable-introspection \
 		--disable-nls \
 		--disable-static \
 		--enable-shared
 
   make
   make DESTDIR=$PKG install
-  rm -rf $PKG/usr/share
+  rm -rf $PKG/usr/share/gtk-doc
   rm -rf $PKG/usr/bin
 }

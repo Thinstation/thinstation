@@ -4,101 +4,13 @@
 # Depends on: openldap krb5-TS
 
 name=autofs
-version=5.0.7
+version=5.0.9
 release=1
-source=(http://www.kernel.org/pub/linux/daemons/$name/v5/$name-$version.tar.bz2
-	https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.0.8/autofs-5.0.7-fix-nobind-sun-escaped-map-entries.patch
-	https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.0.8/autofs-5.0.7-fix-use-cache-entry-after-free-mistake.patch
-	https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.0.8/autofs-5.0.7-fix-ipv6-proximity-calculation.patch
-	https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.0.8/autofs-5.0.7-fix-parse-buffer-initialization.patch
-	https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.0.8/autofs-5.0.7-fix-typo-in-automount-8.patch
-	https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.0.8/autofs-5.0.7-include-usage-in-usage-message.patch
-	https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.0.8/autofs-5.0.7-dont-wait-forever-to-restart.patch
-	https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.0.8/autofs-5.0.7-add-timeout-option-description-to-man-page.patch
-	https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.0.8/autofs-5.0.7-fix-null-map-entry-order-handling.patch
-	https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.0.8/autofs-5.0.7-make-description-of-default-MOUNT_WAIT-setting-clear.patch
-	https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.0.8/autofs-5.0.7-configure-in-allow-cross-compilation.patch
-	https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.0.8/autofs-5.0.7-README-update-mailing-list-subscription-info.patch
-	https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.0.8/autofs-5.0.7-allow-non-root-user-to-check-status.patch
-	https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.0.8/autofs-5.0.7-configure-allow-cross-compilation-update.patch
-	https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.0.8/autofs-5.0.6-fix-recursive-mount-deadlock.patch
-	https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.0.8/autofs-5.0.6-increase-file-map-read-buffer-size.patch
-	https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.0.8/autofs-5.0.7-handle-new-location-of-systemd.patch
-	https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.0.8/autofs-5.0.7-fix-map-entry-duplicate-offset-detection.patch
-	https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.0.8/autofs-5.0.7-allow-nsswitch_conf-to-not-contain-automount-lines.patch
-	https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.0.8/autofs-5.0.7-fix-nobind-man-page-description.patch
-	https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.0.8/autofs-5.0.7-fix-submount-offset-delete.patch
-	https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.0.8/autofs-5.0.7-fix-init-script-status-return.patch
-	https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.0.8/autofs-5.0.7-fix-use-get_proximity-without-libtirpc.patch
-	https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.0.8/autofs-5.0.7-dont-use-dirent-d_type-to-filter-out-files-in-scandir.patch
-	https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.0.8/autofs-5.0.7-dont-schedule-new-alarms-after-readmap.patch
-	https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.0.8/autofs-5.0.7-use-numeric-protocol-ids-instead-of-protoent-structs.patch
-	https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.0.8/autofs-5.0.7-lib-defaults-use-WITH_LDAP-conditional-around-LDAP-types.patch
-	https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.0.8/autofs-5.0.7-make-yellow-pages-support-optional.patch
-	https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.0.8/autofs-5.0.7-modules-replicated-use-sin6.addr-s6_addr32.patch
-	https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.0.8/autofs-5.0.7-workaround-missing-GNU-versionsort-extension.patch
-	https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.0.8/autofs-5.0.7-dont-fail-on-master-map-self-include.patch
-	https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.0.8/autofs-5.0.7-fix-wildcard-multi-map-regression.patch
-	https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.0.8/autofs-5.0.7-fix-file-descriptor-leak-when-reloading-the-daemon.patch
-	https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.0.8/autofs-5.0.7-depricate-nosymlink-pseudo-option.patch
-	https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.0.8/autofs-5.0.7-add-symlink-pseudo-option.patch
-	https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.0.8/autofs-5.0.7-update-kernel-include-files.patch
-	https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.0.8/autofs-5.0.7-fix-requires-in-spec-file.patch
-	https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.0.8/autofs-5.0.7-fix-libtirpc-build-option.patch
-	https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.0.8/autofs-5.0.7-fix-systemd-unidir-in-spec-file.patch
-	https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.0.8/autofs-5.0.7-document-browse-option-in-man-page.patch
-	https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.0.8/autofs-5.0.7-fix-automounter-support-on-parisc.patch
-	https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.0.8/autofs-5.0.7-fix-some-automount_8-typos.patch
-	https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.0.8/autofs-5.0.7-syncronize-handle_mounts-shutdown.patch
-	https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.0.8/autofs-5.0.7-fix-submount-tree-not-all-expiring.patch)
+source=(http://www.kernel.org/pub/linux/daemons/$name/v5/$name-$version.tar.xz
+	)
 
 build() {
 	cd $name-$version
-
-	patch -p1 -i $SRC/autofs-5.0.7-fix-nobind-sun-escaped-map-entries.patch
-	patch -p1 -i $SRC/autofs-5.0.7-fix-use-cache-entry-after-free-mistake.patch
-	patch -p1 -i $SRC/autofs-5.0.7-fix-ipv6-proximity-calculation.patch
-	patch -p1 -i $SRC/autofs-5.0.7-fix-parse-buffer-initialization.patch
-	patch -p1 -i $SRC/autofs-5.0.7-fix-typo-in-automount-8.patch
-	patch -p1 -i $SRC/autofs-5.0.7-include-usage-in-usage-message.patch
-	patch -p1 -i $SRC/autofs-5.0.7-dont-wait-forever-to-restart.patch
-	patch -p1 -i $SRC/autofs-5.0.7-add-timeout-option-description-to-man-page.patch
-	patch -p1 -i $SRC/autofs-5.0.7-fix-null-map-entry-order-handling.patch
-	patch -p1 -i $SRC/autofs-5.0.7-make-description-of-default-MOUNT_WAIT-setting-clear.patch
-	patch -p1 -i $SRC/autofs-5.0.7-configure-in-allow-cross-compilation.patch
-	patch -p1 -i $SRC/autofs-5.0.7-README-update-mailing-list-subscription-info.patch
-	patch -p1 -i $SRC/autofs-5.0.7-allow-non-root-user-to-check-status.patch
-	patch -p1 -i $SRC/autofs-5.0.7-configure-allow-cross-compilation-update.patch
-	patch -p1 -i $SRC/autofs-5.0.6-fix-recursive-mount-deadlock.patch
-	patch -p1 -i $SRC/autofs-5.0.6-increase-file-map-read-buffer-size.patch
-	patch -p1 -i $SRC/autofs-5.0.7-handle-new-location-of-systemd.patch
-	patch -p1 -i $SRC/autofs-5.0.7-fix-map-entry-duplicate-offset-detection.patch
-	patch -p1 -i $SRC/autofs-5.0.7-allow-nsswitch_conf-to-not-contain-automount-lines.patch
-	patch -p1 -i $SRC/autofs-5.0.7-fix-nobind-man-page-description.patch
-	patch -p1 -i $SRC/autofs-5.0.7-fix-submount-offset-delete.patch
-	patch -p1 -i $SRC/autofs-5.0.7-fix-init-script-status-return.patch
-	patch -p1 -i $SRC/autofs-5.0.7-fix-use-get_proximity-without-libtirpc.patch
-	patch -p1 -i $SRC/autofs-5.0.7-dont-use-dirent-d_type-to-filter-out-files-in-scandir.patch
-	patch -p1 -i $SRC/autofs-5.0.7-dont-schedule-new-alarms-after-readmap.patch
-	patch -p1 -i $SRC/autofs-5.0.7-use-numeric-protocol-ids-instead-of-protoent-structs.patch
-	patch -p1 -i $SRC/autofs-5.0.7-lib-defaults-use-WITH_LDAP-conditional-around-LDAP-types.patch
-	patch -p1 -i $SRC/autofs-5.0.7-make-yellow-pages-support-optional.patch
-	patch -p1 -i $SRC/autofs-5.0.7-modules-replicated-use-sin6.addr-s6_addr32.patch
-	patch -p1 -i $SRC/autofs-5.0.7-workaround-missing-GNU-versionsort-extension.patch
-	patch -p1 -i $SRC/autofs-5.0.7-dont-fail-on-master-map-self-include.patch
-	patch -p1 -i $SRC/autofs-5.0.7-fix-wildcard-multi-map-regression.patch
-	patch -p1 -i $SRC/autofs-5.0.7-fix-file-descriptor-leak-when-reloading-the-daemon.patch
-	patch -p1 -i $SRC/autofs-5.0.7-depricate-nosymlink-pseudo-option.patch
-	patch -p1 -i $SRC/autofs-5.0.7-add-symlink-pseudo-option.patch
-	patch -p1 -i $SRC/autofs-5.0.7-update-kernel-include-files.patch
-	patch -p1 -i $SRC/autofs-5.0.7-fix-requires-in-spec-file.patch
-	patch -p1 -i $SRC/autofs-5.0.7-fix-libtirpc-build-option.patch
-	patch -p1 -i $SRC/autofs-5.0.7-fix-systemd-unidir-in-spec-file.patch
-	patch -p1 -i $SRC/autofs-5.0.7-document-browse-option-in-man-page.patch
-	patch -p1 -i $SRC/autofs-5.0.7-fix-automounter-support-on-parisc.patch
-	patch -p1 -i $SRC/autofs-5.0.7-fix-some-automount_8-typos.patch
-	patch -p1 -i $SRC/autofs-5.0.7-syncronize-handle_mounts-shutdown.patch
-	patch -p1 -i $SRC/autofs-5.0.7-fix-submount-tree-not-all-expiring.patch
 
 	./configure --prefix=/usr --with-confdir=/etc
 	make

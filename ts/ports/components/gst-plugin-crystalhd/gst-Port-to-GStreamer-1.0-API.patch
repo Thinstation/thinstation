@@ -1,0 +1,1093 @@
+From e147888475e1524b45c789a623a263064a2eec2f Mon Sep 17 00:00:00 2001
+Message-Id: <e147888475e1524b45c789a623a263064a2eec2f.1362590776.git.agx@sigxcpu.org>
+From: =?UTF-8?q?Guido=20G=C3=BCnther?= <agx@sigxcpu.org>
+Date: Sat, 23 Feb 2013 11:07:58 +0100
+Subject: [PATCH] gst: Port to GStreamer 1.0 API
+
+---
+ filters/gst/gst-plugin/configure.ac    |    8 +-
+ filters/gst/gst-plugin/src/gstbcmdec.c |  431 ++++++++++++++++----------------
+ filters/gst/gst-plugin/src/gstbcmdec.h |   68 ++---
+ 3 files changed, 248 insertions(+), 259 deletions(-)
+
+--- a/filters/gst/gst-plugin/configure.ac
++++ b/filters/gst/gst-plugin/configure.ac
+@@ -1,9 +1,9 @@
+ AC_INIT
+ 
+ dnl versions of gstreamer and plugins-base
+-GST_MAJORMINOR=0.10
+-GST_REQUIRED=0.10.0
+-GSTPB_REQUIRED=0.10.0
++GST_MAJORMINOR=1.0
++GST_REQUIRED=1.0
++GSTPB_REQUIRED=1.0
+ 
+ dnl fill in your package name and version here
+ dnl the fourth (nano) number should be 0 for a release, 1 for CVS,
+@@ -56,7 +56,7 @@
+ 
+ PKG_CHECK_MODULES(GST, \
+   gstreamer-$GST_MAJORMINOR >= $GST_REQUIRED
+-  gstreamer-video-0.10,
++  gstreamer-video-1.0,
+   HAVE_GST=yes,HAVE_GST=no)
+ 
+ dnl Give error and exit if we don't have gstreamer
+--- a/filters/gst/gst-plugin/src/gstbcmdec.c
++++ b/filters/gst/gst-plugin/src/gstbcmdec.c
+@@ -8,6 +8,7 @@
+  *  AU
+  *
+  *  HISTORY:
++ *     Updated for 1.0 by Guido Guenther <agx@sigxcpu.org>
+  *
+  *******************************************************************
+  *
+@@ -40,6 +41,7 @@
+ #include <glib.h>
+ #include <gst/base/gstadapter.h>
+ #include <gst/video/video.h>
++#include <gst/video/gstvideopool.h>
+ 
+ #ifdef HAVE_CONFIG_H
+ #include <config.h>
+@@ -51,8 +53,8 @@
+ #include "parse.h"
+ #include "gstbcmdec.h"
+ 
+-GST_DEBUG_CATEGORY_STATIC (gst_bcmdec_debug);
+-#define GST_CAT_DEFAULT gst_bcmdec_debug
++GST_DEBUG_CATEGORY_STATIC (gst_bcm_dec_debug);
++#define GST_CAT_DEFAULT gst_bcm_dec_debug
+ 
+ //#define YV12__
+ 
+@@ -64,16 +66,18 @@
+ 						   guint8 flags)
+ {
+ 	BC_STATUS sts = BC_STS_SUCCESS;
++	GstMapInfo info;
+ 
+ 	GST_DEBUG_OBJECT(bcmdec, "Attempting to Send Buffer");
+ 
+ 	sts = decif_send_buffer(&bcmdec->decif, pbuffer, size, tCurrent, flags);
+ 
+ 	if (sts != BC_STS_SUCCESS) {
++	        gst_buffer_map(buf, &info, GST_MAP_READ);
+ 		GST_ERROR_OBJECT(bcmdec, "proc input failed sts = %d", sts);
+ 		GST_ERROR_OBJECT(bcmdec, "Chain: timeStamp = %llu size = %d data = %p",
+-				 GST_BUFFER_TIMESTAMP(buf), GST_BUFFER_SIZE(buf),
+-				 GST_BUFFER_DATA (buf));
++				 GST_BUFFER_DTS(buf), info.size, info.data);
++		gst_buffer_unmap(buf, &info);
+ 		return GST_FLOW_ERROR;
+ 	}
+ 
+@@ -92,7 +96,7 @@
+ };
+ 
+ 
+-GLB_INST_STS *g_inst_sts = NULL;
++static GLB_INST_STS *g_inst_sts = NULL;
+ 
+ /*
+  * the capabilities of the inputs and outputs.
+@@ -111,35 +115,29 @@
+ 
+ #ifdef YV12__
+ static GstStaticPadTemplate src_factory = GST_STATIC_PAD_TEMPLATE("src", GST_PAD_SRC, GST_PAD_ALWAYS,
+-		GST_STATIC_CAPS("video/x-raw-yuv, " "format = (fourcc) { YV12 }, " "width = (int) [ 1, MAX ], "
++		GST_STATIC_CAPS("video/x-raw, " "format = (string) { YV12 }, " "width = (int) [ 1, MAX ], "
+ 				"height = (int) [ 1, MAX ], " "framerate = (fraction) [ 0/1, 2147483647/1 ]"));
+ #define BUF_MULT (12 / 8)
+ #define BUF_MODE MODE420
+ #else
+ static GstStaticPadTemplate src_factory = GST_STATIC_PAD_TEMPLATE("src", GST_PAD_SRC, GST_PAD_ALWAYS,
+-		GST_STATIC_CAPS("video/x-raw-yuv, " "format = (fourcc) { YUY2 } , " "framerate = (fraction) [0,MAX], "
+-				"width = (int) [1,MAX], " "height = (int) [1,MAX]; " "video/x-raw-yuv, "
+-				"format = (fourcc) { UYVY } , " "framerate = (fraction) [0,MAX], " "width = (int) [1,MAX], "
++		GST_STATIC_CAPS("video/x-raw, " "format = (string) { YUY2 } , " "framerate = (fraction) [0,MAX], "
++				"width = (int) [1,MAX], " "height = (int) [1,MAX]; " "video/x-raw, "
++				"format = (string) { UYVY } , " "framerate = (fraction) [0,MAX], " "width = (int) [1,MAX], "
+ 				"height = (int) [1,MAX]; "));
+ #define BUF_MULT (16 / 8)
+ #define BUF_MODE MODE422_YUY2
+ #endif
+ 
+-GST_BOILERPLATE(GstBcmDec, gst_bcmdec, GstElement, GST_TYPE_ELEMENT);
++G_DEFINE_TYPE(GstBcmDec, gst_bcm_dec, GST_TYPE_ELEMENT);
+ 
+ /* GObject vmethod implementations */
+ 
+-static void gst_bcmdec_base_init(gpointer gclass)
++static void gst_bcm_dec_base_init(gpointer gclass)
+ {
+-	static GstElementDetails element_details;
+ 	BC_HW_CAPS hwCaps;
+ 
+-	GST_DEBUG_OBJECT(gclass, "gst_bcmdec_base_init");
+-
+-	element_details.klass = (gchar *)"Codec/Decoder/Video";
+-	element_details.longname = (gchar *)"Generic Video Decoder";
+-	element_details.description = (gchar *)"Decodes various Video Formats using CrystalHD Decoders";
+-	element_details.author = (gchar *)"Broadcom Corp.";
++	GST_DEBUG_OBJECT(gclass, "gst_bcm_dec_base_init");
+ 
+ 	GstElementClass *element_class = GST_ELEMENT_CLASS(gclass);
+ 
+@@ -153,11 +151,15 @@
+ 	}
+ 	else
+ 		gst_element_class_add_pad_template(element_class, gst_static_pad_template_get (&sink_factory_bcm70012));
+-	gst_element_class_set_details(element_class, &element_details);
++	gst_element_class_set_metadata(element_class,
++				      "Codec/Decoder/Video",
++				      "Generic Video Decoder",
++				      "Decodes various Video Formats using CrystalHD Decoders",
++				      "Broadcom Corp.");
+ }
+ 
+ /* initialize the bcmdec's class */
+-static void gst_bcmdec_class_init(GstBcmDecClass *klass)
++static void gst_bcm_dec_class_init(GstBcmDecClass *klass)
+ {
+ 	GObjectClass *gobject_class;
+ 	GstElementClass *gstelement_class;
+@@ -165,13 +167,15 @@
+ 	gobject_class = (GObjectClass *)klass;
+ 	gstelement_class = (GstElementClass *)klass;
+ 
+-	GST_DEBUG_OBJECT(klass, "gst_bcmdec_class_init");
++	GST_DEBUG_OBJECT(klass, "gst_bcm_dec_class_init");
++
++	gst_bcm_dec_base_init(klass);
+ 
+-	gstelement_class->change_state = gst_bcmdec_change_state;
++	gstelement_class->change_state = gst_bcm_dec_change_state;
+ 
+-	gobject_class->set_property = gst_bcmdec_set_property;
+-	gobject_class->get_property = gst_bcmdec_get_property;
+-	gobject_class->finalize     = gst_bcmdec_finalize;
++	gobject_class->set_property = gst_bcm_dec_set_property;
++	gobject_class->get_property = gst_bcm_dec_get_property;
++	gobject_class->finalize     = gst_bcm_dec_finalize;
+ 
+ 	g_object_class_install_property(gobject_class, PROP_SILENT,
+ 					g_param_spec_boolean("silent", "Silent",
+@@ -185,14 +189,14 @@
+  * set pad calback functions
+  * initialize instance structure
+  */
+-static void gst_bcmdec_init(GstBcmDec *bcmdec, GstBcmDecClass *gclass)
++static void gst_bcm_dec_init(GstBcmDec *bcmdec)
+ {
+ 	pid_t pid;
+ 	BC_STATUS sts = BC_STS_SUCCESS;
+ 	int shmid = 0;
+ 	BC_HW_CAPS hwCaps;
+ 
+-	GST_DEBUG_OBJECT(bcmdec, "gst_bcmdec_init");
++	GST_DEBUG_OBJECT(bcmdec, "gst_bcm_dec_init");
+ 
+ 	bcmdec_reset(bcmdec);
+ 
+@@ -204,17 +208,16 @@
+ 	else
+ 		bcmdec->sinkpad = gst_pad_new_from_static_template(&sink_factory_bcm70012, "sink");
+ 
+-	gst_pad_set_event_function(bcmdec->sinkpad, GST_DEBUG_FUNCPTR(gst_bcmdec_sink_event));
++	gst_pad_set_event_function(bcmdec->sinkpad,
++				   GST_DEBUG_FUNCPTR(gst_bcm_dec_sink_event));
+ 
+-	gst_pad_set_setcaps_function(bcmdec->sinkpad, GST_DEBUG_FUNCPTR(gst_bcmdec_sink_set_caps));
+-	gst_pad_set_getcaps_function(bcmdec->sinkpad, GST_DEBUG_FUNCPTR(gst_bcmdec_getcaps));
+-	gst_pad_set_chain_function(bcmdec->sinkpad, GST_DEBUG_FUNCPTR(gst_bcmdec_chain));
++	gst_pad_set_chain_function(bcmdec->sinkpad,
++				   GST_DEBUG_FUNCPTR(gst_bcm_dec_chain));
+ 
+ 	bcmdec->srcpad = gst_pad_new_from_static_template (&src_factory, "src");
+ 
+-	gst_pad_set_getcaps_function(bcmdec->srcpad, GST_DEBUG_FUNCPTR(gst_bcmdec_getcaps));
+-
+-	gst_pad_set_event_function(bcmdec->srcpad, GST_DEBUG_FUNCPTR(gst_bcmdec_src_event));
++	gst_pad_set_event_function(bcmdec->srcpad,
++				   GST_DEBUG_FUNCPTR(gst_bcm_dec_src_event));
+ 
+ 	gst_pad_use_fixed_caps(bcmdec->srcpad);
+ 	bcmdec_negotiate_format(bcmdec);
+@@ -223,7 +226,7 @@
+ 	gst_element_add_pad(GST_ELEMENT(bcmdec), bcmdec->srcpad);
+ 	bcmdec->silent = FALSE;
+ 	pid = getpid();
+-	GST_DEBUG_OBJECT(bcmdec, "gst_bcmdec_init _-- PID = %x",pid);
++	GST_DEBUG_OBJECT(bcmdec, "gst_bcm_dec_init _-- PID = %x",pid);
+ 
+ 	sts = bcmdec_create_shmem(bcmdec, &shmid);
+ 
+@@ -231,25 +234,25 @@
+ }
+ 
+ /* plugin close function*/
+-static void gst_bcmdec_finalize(GObject *object)
++static void gst_bcm_dec_finalize(GObject *object)
+ {
+-	GstBcmDec *bcmdec = GST_BCMDEC(object);
++	GstBcmDec *bcmdec = GST_BCM_DEC(object);
+ 
+ 	bcmdec_del_shmem(bcmdec);
+-	/*gst_bcmdec_cleanup(bcmdec);*/
+-	GST_DEBUG_OBJECT(bcmdec, "gst_bcmdec_finalize");
+-	G_OBJECT_CLASS(parent_class)->finalize(object);
++	/*gst_bcm_dec_cleanup(bcmdec);*/
++	GST_DEBUG_OBJECT(bcmdec, "gst_bcm_dec_finalize");
++	G_OBJECT_CLASS(gst_bcm_dec_parent_class)->finalize(object);
+ }
+ 
+-static void gst_bcmdec_set_property(GObject *object, guint prop_id,
++static void gst_bcm_dec_set_property(GObject *object, guint prop_id,
+ 				    const GValue *value, GParamSpec *pspec)
+ {
+-	GstBcmDec *bcmdec = GST_BCMDEC(object);
++	GstBcmDec *bcmdec = GST_BCM_DEC(object);
+ 
+ 	switch (prop_id) {
+ 	case PROP_SILENT:
+ 		bcmdec->silent = g_value_get_boolean (value);
+-		GST_DEBUG_OBJECT(bcmdec, "gst_bcmdec_set_property PROP_SILENT");
++		GST_DEBUG_OBJECT(bcmdec, "gst_bcm_dec_set_property PROP_SILENT");
+ 		break;
+ 	default:
+ 		G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
+@@ -257,18 +260,18 @@
+ 	}
+ 
+ 	if (!bcmdec->silent)
+-		GST_DEBUG_OBJECT(bcmdec, "gst_bcmdec_set_property");
++		GST_DEBUG_OBJECT(bcmdec, "gst_bcm_dec_set_property");
+ }
+ 
+-static void gst_bcmdec_get_property(GObject *object, guint prop_id,
++static void gst_bcm_dec_get_property(GObject *object, guint prop_id,
+ 				    GValue *value, GParamSpec *pspec)
+ {
+-	GstBcmDec *bcmdec = GST_BCMDEC(object);
++	GstBcmDec *bcmdec = GST_BCM_DEC(object);
+ 
+ 	switch (prop_id) {
+ 	case PROP_SILENT:
+ 		g_value_set_boolean (value, bcmdec->silent);
+-		GST_DEBUG_OBJECT(bcmdec, "gst_bcmdec_get_property PROP_SILENT");
++		GST_DEBUG_OBJECT(bcmdec, "gst_bcm_dec_get_property PROP_SILENT");
+ 		break;
+ 	default:
+ 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+@@ -276,27 +279,33 @@
+ 	}
+ 
+ 	if (!bcmdec->silent)
+-		GST_DEBUG_OBJECT(bcmdec, "gst_bcmdec_get_property");
++		GST_DEBUG_OBJECT(bcmdec, "gst_bcm_dec_get_property");
+ }
+ 
+ /* GstElement vmethod implementations */
+-static gboolean gst_bcmdec_sink_event(GstPad* pad, GstEvent* event)
++static gboolean gst_bcm_dec_sink_event(GstPad* pad,
++				      GstObject* parent,
++				      GstEvent* event)
+ {
+ 	GstBcmDec *bcmdec;
+ 	BC_STATUS sts = BC_STS_SUCCESS;
+-	bcmdec = GST_BCMDEC(gst_pad_get_parent(pad));
++	bcmdec = GST_BCM_DEC(gst_pad_get_parent(pad));
+ 
+ 	gboolean result = TRUE;
+ 
+ 	switch (GST_EVENT_TYPE(event)) {
+-	case GST_EVENT_NEWSEGMENT:
+-		GstFormat newsegment_format;
+-		gint64 newsegment_start;
++	case GST_EVENT_CAPS:
++                 GstCaps *caps;
++		 gst_event_parse_caps (event, &caps);
++		 result = gst_bcm_dec_sink_set_caps (pad, caps);
++		 break;
++
++	case GST_EVENT_SEGMENT:
++	        const GstSegment *newsegment;
+ 
+-		gst_event_parse_new_segment(event, NULL, NULL, &newsegment_format,
+-					    &newsegment_start, NULL, NULL);
++		gst_event_parse_segment(event, &newsegment);
+ 
+-		bcmdec->base_clock_time = newsegment_start;
++		bcmdec->base_clock_time = newsegment->start;
+ 		bcmdec->cur_stream_time = 0;
+ 
+ 		if (!bcmdec->silent)
+@@ -356,30 +365,24 @@
+ 
+ 	gst_object_unref(bcmdec);
+ 	if (!bcmdec->silent)
+-		GST_DEBUG_OBJECT(bcmdec, "gst_bcmdec_sink_event %u", GST_EVENT_TYPE(event));
++		GST_DEBUG_OBJECT(bcmdec, "gst_bcm_dec_sink_event %u", GST_EVENT_TYPE(event));
+ 	return result;
+ }
+ 
+-static GstCaps *gst_bcmdec_getcaps (GstPad * pad)
+-{
+-	return gst_caps_copy (gst_pad_get_pad_template_caps (pad));
+-}
+-
+ /* this function handles the link with other elements */
+-static gboolean gst_bcmdec_sink_set_caps(GstPad *pad, GstCaps *caps)
++static gboolean gst_bcm_dec_sink_set_caps(GstPad *pad, GstCaps *caps)
+ {
+ 	GstBcmDec *bcmdec;
+-	bcmdec = GST_BCMDEC(gst_pad_get_parent(pad));
++	bcmdec = GST_BCM_DEC(gst_pad_get_parent(pad));
+ 	GstStructure *structure;
++	GstMapInfo info;
+ 	GstCaps *intersection;
+ 	const gchar *mime;
+ 	guint num = 0;
+ 	guint den = 0;
+ 	const GValue *g_value;
+ 	int version = 0;
+-	GstBuffer *buffer;
+-	guint8 *data;
+-	guint size;
++	GstBuffer *buffer = NULL;
+ 	guint index;
+ 
+ 	GST_DEBUG_OBJECT (pad, "setcaps called");
+@@ -484,53 +487,66 @@
+ 				GST_DEBUG_OBJECT(bcmdec, "InFmt H.264 (AVC1)");
+ 
+ 				buffer = gst_value_get_buffer(g_value);
+-				data = GST_BUFFER_DATA(buffer);
+-				size = GST_BUFFER_SIZE(buffer);
+-
+-				GST_DEBUG_OBJECT(bcmdec, "codec_data size = %d", size);
++				if(!gst_buffer_map(buffer,
++						   &info,
++						   GST_MAP_READ))
++				   goto map_error;
++				GST_DEBUG_OBJECT(bcmdec,
++						 "codec_data size = %d",
++						 info.size);
+ 
+ 				/* parse the avcC data */
+-				if (size < 7) {
+-					GST_ERROR_OBJECT(bcmdec, "avcC size %u < 7", size);
+-					goto avcc_error;
++				if (info.size < 7) {
++					GST_ERROR_OBJECT(bcmdec,
++							 "avcC size %u < 7",
++							 info.size);
++					goto out;
+ 				}
+ 				/* parse the version, this must be 1 */
+-				if (data[0] != 1)
+-					goto wrong_version;
++				if (info.data[0] != 1) {
++				  GST_ERROR_OBJECT(bcmdec, "wrong avcC version");
++				  goto out;
++				}
+ 
+ 				if (bcmdec->codec_params.sps_pps_buf == NULL)
+-					bcmdec->codec_params.sps_pps_buf = (guint8 *)malloc(size * 2);
+-				if (bcmdec_insert_sps_pps(bcmdec, buffer) != BC_STS_SUCCESS) {
++					bcmdec->codec_params.sps_pps_buf = (guint8 *)malloc(info.size * 2);
++				if (bcmdec_insert_sps_pps(bcmdec, &info) != BC_STS_SUCCESS) {
+ 					bcmdec->codec_params.pps_size = 0;
+ 				}
+ 			} else if (!strcmp("video/x-wmv", mime)) {
+-				buffer = gst_value_get_buffer(g_value);
+-				data = GST_BUFFER_DATA(buffer);
+-				size = GST_BUFFER_SIZE(buffer);
+-
+-				GST_DEBUG_OBJECT(bcmdec, "codec_data size = %d", size);
+-				if (size == 4) {
++			        buffer = gst_value_get_buffer(g_value);
++				if(!gst_buffer_map(buffer,
++						   &info,
++						   GST_MAP_READ))
++				  goto map_error;
++
++				GST_DEBUG_OBJECT(bcmdec,
++						 "codec_data size = %d",
++						 info.size);
++				if (info.size == 4) {
+ 					// Simple or Main Profile
+ 					bcmdec->input_format = BC_MSUBTYPE_WMV3;
+ 					GST_DEBUG_OBJECT(bcmdec, "InFmt VC-1 (SP/MP)");
+ 					if (bcmdec->codec_params.sps_pps_buf == NULL)
+ 						bcmdec->codec_params.sps_pps_buf = (guint8 *)malloc(4);
+-					memcpy(bcmdec->codec_params.sps_pps_buf, data, 4);
++					memcpy(bcmdec->codec_params.sps_pps_buf,
++					       info.data, 4);
+ 					bcmdec->codec_params.pps_size = 4;
+ 				} else {
+ 					bcmdec->input_format = BC_MSUBTYPE_VC1;
+ 					GST_DEBUG_OBJECT(bcmdec, "InFmt VC-1 (AP)");
+-					for (index = 0; index < size; index++) {
+-						data += index;
+-						if (((size - index) >= 4) && (*data == 0x00) && (*(data + 1) == 0x00) &&
+-							(*(data + 2) == 0x01) && (*(data + 3) == 0x0f)) {
++					for (index = 0; index < info.size;
++					     index++) {
++						info.data += index;
++						if (((info.size - index) >= 4) && (*info.data == 0x00) && (*(info.data + 1) == 0x00) &&
++							(*(info.data + 2) == 0x01) && (*(info.data + 3) == 0x0f)) {
+ 							GST_DEBUG_OBJECT(bcmdec, "VC1 Sequence Header Found for Adv Profile");
+ 
+-							if ((size - index + 1) > MAX_ADV_PROF_SEQ_HDR_SZ)
++							if ((info.size - index + 1) > MAX_ADV_PROF_SEQ_HDR_SZ)
+ 								bcmdec->codec_params.pps_size = MAX_ADV_PROF_SEQ_HDR_SZ;
+ 							else
+-								bcmdec->codec_params.pps_size = size - index + 1;
+-							memcpy(bcmdec->codec_params.sps_pps_buf, data, bcmdec->codec_params.pps_size);
++								bcmdec->codec_params.pps_size = info.size - index + 1;
++							memcpy(bcmdec->codec_params.sps_pps_buf, info.data, bcmdec->codec_params.pps_size);
+ 							break;
+ 						}
+ 					}
+@@ -546,16 +562,16 @@
+ 		} else {
+ 			// No Codec data. So try with FourCC for VC1/WMV9
+ 			if (!strcmp("video/x-wmv", mime)) {
+-				guint32 fourcc;
+-				if (gst_structure_get_fourcc (structure, "format", &fourcc)) {
+-					if ((fourcc == GST_MAKE_FOURCC ('W', 'V', 'C', '1')) ||
+-						(fourcc == GST_MAKE_FOURCC ('W', 'M', 'V', 'A'))) {
++				if (gst_structure_has_field (structure, "format")) {
++				  const char* fourcc = gst_structure_get_string(structure, "format");
++
++				  if (!g_strcmp0(fourcc, "WVC1") ||
++				      !g_strcmp0(fourcc, "WMVA")) {
+ 						bcmdec->input_format = BC_MSUBTYPE_VC1;
+ 						GST_DEBUG_OBJECT(bcmdec, "InFmt VC-1 (AP)");
+ 					} else {
+ 						GST_DEBUG_OBJECT(bcmdec, "no codec_data. Don't know how to handle");
+-						gst_object_unref(bcmdec);
+-						return FALSE;
++						goto out;
+ 					}
+ 				}
+ 			}
+@@ -570,8 +586,7 @@
+ 			}
+ 			else {
+ 				GST_DEBUG_OBJECT(bcmdec, "no codec_data. Don't know how to handle");
+-				gst_object_unref(bcmdec);
+-				return FALSE;
++				goto out;
+ 			}
+ 		}
+ 	}
+@@ -581,54 +596,40 @@
+ 		bcmdec_process_play(bcmdec);
+ 	}
+ 
++        gst_buffer_unmap(buffer, &info);
+ 	gst_object_unref(bcmdec);
+ 
+ 	return TRUE;
+ 
+ 	/* ERRORS */
+-avcc_error:
+-	{
+-		gst_object_unref(bcmdec);
+-		return FALSE;
+-	}
+-
+-wrong_version:
+-	{
+-		GST_ERROR_OBJECT(bcmdec, "wrong avcC version");
+-		gst_object_unref(bcmdec);
+-		return FALSE;
+-	}
+-}
+-
+-void bcmdec_msleep(gint msec)
+-{
+-	gint cnt = msec;
+-
+-	while (cnt) {
+-		usleep(1000);
+-		cnt--;
+-	}
++out:
++	if (buffer)
++	  gst_buffer_unmap(buffer, &info);
++map_error:
++	gst_object_unref(bcmdec);
++	return FALSE;
+ }
+ 
+ /*
+  * chain function
+  * this function does the actual processing
+  */
+-static GstFlowReturn gst_bcmdec_chain(GstPad *pad, GstBuffer *buf)
++static GstFlowReturn gst_bcm_dec_chain(GstPad *pad,
++				      GstObject *parent,
++				      GstBuffer *buf)
+ {
+ 	GstBcmDec *bcmdec;
+-//	BC_STATUS sts = BC_STS_SUCCESS;
++	GstMapInfo info;
+ 	guint32 offset = 0;
+ 	GstClockTime tCurrent = 0;
+ 	guint8 *pbuffer;
+ 	guint32 size = 0;
+-//	guint32 vc1_buff_sz = 0;
+-
++	GstFlowReturn ret;
+ 
+ #ifdef FILE_DUMP__
+ 	guint32 bytes_written =0;
+ #endif
+-	bcmdec = GST_BCMDEC (GST_OBJECT_PARENT (pad));
++	bcmdec = GST_BCM_DEC (GST_OBJECT_PARENT (pad));
+ 
+ #ifdef FILE_DUMP__
+ 	if (bcmdec->fhnd == NULL)
+@@ -637,8 +638,8 @@
+ 
+ 	if (bcmdec->flushing) {
+ 		GST_DEBUG_OBJECT(bcmdec, "input while flushing");
+-		gst_buffer_unref(buf);
+-		return GST_FLOW_OK;
++		ret = GST_FLOW_OK;
++		goto out;
+ 	}
+ 
+ 	if (GST_CLOCK_TIME_NONE != GST_BUFFER_TIMESTAMP(buf)) {
+@@ -654,32 +655,44 @@
+ 		bcmdec_process_play(bcmdec);
+ 	} else if (!bcmdec->streaming) {
+ 		GST_DEBUG_OBJECT(bcmdec, "input while streaming is false");
+-		gst_buffer_unref(buf);
+-		return GST_FLOW_WRONG_STATE;
++		ret = GST_FLOW_FLUSHING;
++		goto out;
+ 	}
+ 
+-	pbuffer = GST_BUFFER_DATA (buf);
+-	size = GST_BUFFER_SIZE(buf);
++	if (!gst_buffer_map(buf, &info, GST_MAP_READ)) {
++	  ret = GST_FLOW_ERROR;
++	  goto out;
++	}
++	pbuffer = info.data;
++	size = info.size;
+ 
++	/* FIXME: better send mapinfo? */
+ 	if (GST_FLOW_OK != bcmdec_send_buff_detect_error(bcmdec, buf, pbuffer, size, offset, tCurrent, bcmdec->proc_in_flags)) {
+-		gst_buffer_unref(buf);
+-		return GST_FLOW_ERROR;
++		ret = GST_FLOW_ERROR;
++		goto unmapout;
+ 	}
+ 
+ #ifdef FILE_DUMP__
+ 	bytes_written = fwrite(GST_BUFFER_DATA(buf), sizeof(unsigned char), GST_BUFFER_SIZE(buf), bcmdec->fhnd);
+ #endif
+ 
++	ret = GST_FLOW_OK;
++
++unmapout:
++	gst_buffer_unmap(buf, &info);
++out:
+ 	gst_buffer_unref(buf);
+-	return GST_FLOW_OK;
++	return ret;
+ }
+ 
+-static gboolean gst_bcmdec_src_event(GstPad *pad, GstEvent *event)
++static gboolean gst_bcm_dec_src_event(GstPad *pad,
++				     GstObject *parent,
++				     GstEvent *event)
+ {
+ 	gboolean result;
+ 	GstBcmDec *bcmdec;
+ 
+-	bcmdec = GST_BCMDEC(GST_OBJECT_PARENT(pad));
++	bcmdec = GST_BCM_DEC(GST_OBJECT_PARENT(pad));
+ 
+ 	result = gst_pad_push_event(bcmdec->sinkpad, event);
+ 
+@@ -695,6 +708,7 @@
+ 	GstStructure *s1;
+ 	const GValue *framerate_value;
+ 	GstVideoFormat vidFmt;
++	GstVideoInfo info;
+ 
+ #ifdef YV12__
+ 	vidFmt = GST_VIDEO_FORMAT_YV12;
+@@ -703,21 +717,21 @@
+ #endif
+ 	GST_DEBUG_OBJECT(bcmdec, "framerate = %f", bcmdec->output_params.framerate);
+ 
+-	if(bcmdec->interlace) {
+-		caps = gst_video_format_new_caps_interlaced(vidFmt, bcmdec->output_params.width,
+-													bcmdec->output_params.height, num, den,
+-													bcmdec->output_params.aspectratio_x,
+-													bcmdec->output_params.aspectratio_y,
+-													TRUE);
+-	} else {
+-		caps = gst_video_format_new_caps(vidFmt, bcmdec->output_params.width,
+-													bcmdec->output_params.height, num, den,
+-													bcmdec->output_params.aspectratio_x,
+-													bcmdec->output_params.aspectratio_y);
+-	}
+-
++	gst_video_info_init (&info);
++	gst_video_info_set_format (&info,
++				   vidFmt,
++				   bcmdec->output_params.width,
++				   bcmdec->output_params.height);
++	info.fps_n = num;
++	info.fps_d = den;
++	info.par_n = bcmdec->output_params.aspectratio_x;
++	info.par_d = bcmdec->output_params.aspectratio_y;
++	info.interlace_mode = bcmdec->interlace ?
++	  GST_VIDEO_INTERLACE_MODE_INTERLEAVED :
++	  GST_VIDEO_INTERLACE_MODE_PROGRESSIVE;
++	  caps = gst_video_info_to_caps (&info);
+ 	result = gst_pad_set_caps(bcmdec->srcpad, caps);
+-	GST_DEBUG_OBJECT(bcmdec, "gst_bcmdec_negotiate_format %d", result);
++	GST_DEBUG_OBJECT(bcmdec, "gst_bcm_dec_negotiate_format %d", result);
+ 
+ 	if (bcmdec->output_params.clr_space == MODE422_YUY2) {
+ 		bcmdec->output_params.y_size = bcmdec->output_params.width * bcmdec->output_params.height * BUF_MULT;
+@@ -842,10 +856,10 @@
+ 	return TRUE;
+ }
+ 
+-static GstStateChangeReturn gst_bcmdec_change_state(GstElement *element, GstStateChange transition)
++static GstStateChangeReturn gst_bcm_dec_change_state(GstElement *element, GstStateChange transition)
+ {
+ 	GstStateChangeReturn result = GST_STATE_CHANGE_SUCCESS;
+-	GstBcmDec *bcmdec = GST_BCMDEC(element);
++	GstBcmDec *bcmdec = GST_BCM_DEC(element);
+ 	BC_STATUS sts = BC_STS_SUCCESS;
+ 	int ret = 0;
+ 
+@@ -960,7 +974,7 @@
+ 		GST_DEBUG_OBJECT(bcmdec, "default %d", transition);
+ 		break;
+ 	}
+-	result = GST_ELEMENT_CLASS(parent_class)->change_state(element, transition);
++	result = GST_ELEMENT_CLASS(gst_bcm_dec_parent_class)->change_state(element, transition);
+ 	if (result == GST_STATE_CHANGE_FAILURE) {
+ 		GST_ERROR_OBJECT(bcmdec, "parent class state change failed");
+ 		return result;
+@@ -968,7 +982,7 @@
+ 
+ 	if(transition == GST_STATE_CHANGE_READY_TO_NULL) {
+ 		GST_DEBUG_OBJECT(bcmdec, "GST_STATE_CHANGE_READY_TO_NULL");
+-		sts = gst_bcmdec_cleanup(bcmdec);
++		sts = gst_bcm_dec_cleanup(bcmdec);
+ 		if (sts == BC_STS_SUCCESS)
+ 			GST_DEBUG_OBJECT(bcmdec, "dev close success");
+ 		else
+@@ -978,38 +992,26 @@
+ 	return result;
+ }
+ 
+-
+-GstClockTime gst_get_current_timex (void)
+-{
+-	GTimeVal tv;
+-
+-	g_get_current_time(&tv);
+-	return GST_TIMEVAL_TO_TIME(tv);
+-}
+-
+-clock_t bcm_get_tick_count()
+-{
+-	tms tm;
+-	return times(&tm);
+-}
+-
+-static gboolean bcmdec_get_buffer(GstBcmDec *bcmdec, GstBuffer **obuf)
++static gboolean bcmdec_get_buffer(GstBcmDec *bcmdec,
++				  gint size,
++				  GstBuffer **obuf)
+ {
+ 	GstFlowReturn ret;
+-	GST_DEBUG_OBJECT(bcmdec, "gst_pad_alloc_buffer_and_set_caps ");
++	GST_DEBUG_OBJECT(bcmdec, "%s", __func__);
+ 
+-	ret = gst_pad_alloc_buffer_and_set_caps(bcmdec->srcpad,
+-						GST_BUFFER_OFFSET_NONE,
+-						bcmdec->output_params.width * bcmdec->output_params.height * BUF_MULT,
+-						GST_PAD_CAPS (bcmdec->srcpad), obuf);
+-	if (ret != GST_FLOW_OK) {
++	*obuf = gst_buffer_new_allocate (NULL,
++					size,
++					NULL);
++
++	if (obuf == NULL) {
+ 		GST_ERROR_OBJECT(bcmdec, "gst_pad_alloc_buffer_and_set_caps failed %d ",ret);
+ 		return FALSE;
+ 	}
+ 
++#if 0
+ 	if (((uintptr_t)GST_BUFFER_DATA(*obuf)) % 4)
+ 		GST_DEBUG_OBJECT(bcmdec, "buf is not aligned");
+-
++#endif
+ 	return TRUE;
+ }
+ 
+@@ -1382,6 +1384,7 @@
+ 	GstClockTime cur_stream_time_diff = 0;
+ 	int wait_cnt = 0;
+ 	guint32 nextPicNumFlags = 0;
++	GstMapInfo info;
+ 
+ 	gboolean is_paused = FALSE;
+ 
+@@ -1427,7 +1430,8 @@
+ 			guint8* data_ptr;
+ 			if (gstbuf == NULL) {
+ 				if (!bcmdec->rbuf_thread_running) {
+-					if (!bcmdec_get_buffer(bcmdec, &gstbuf)) {
++				        gint size = bcmdec->output_params.width * bcmdec->output_params.height * BUF_MULT;
++					if (!bcmdec_get_buffer(bcmdec, size, &gstbuf)) {
+ 						usleep(30 * 1000);
+ 						continue;
+ 					}
+@@ -1460,9 +1464,16 @@
+ 			else
+ 				GST_DEBUG_OBJECT(bcmdec, "re-using rbuf, going to proc output");
+ 
+-			data_ptr = GST_BUFFER_DATA(gstbuf);
+-
++			if(!gst_buffer_map(gstbuf,
++					   &info,
++					   GST_MAP_WRITE)) {
++			  GST_ERROR_OBJECT(bcmdec, "Failed to map buffer");
++			  continue;
++			}
++			data_ptr = info.data;
+ 			bcmdec_init_procout(bcmdec, &pout, data_ptr);
++			gst_buffer_unmap(gstbuf, &info);
++
+ 			rx_flush = TRUE;
+ 			pout.PicInfo.picture_number = 0;
+ 			// For interlaced content, if I am holding a buffer but the next buffer is not from the same picture
+@@ -1473,7 +1484,7 @@
+ 					if(pic_number == 0)
+ 						gst_buffer_unref(gstbuf);
+ 					else if (gst_queue_element) {
+-						GST_BUFFER_FLAG_SET(gstbuf, GST_VIDEO_BUFFER_ONEFIELD);
++						GST_BUFFER_FLAG_SET(gstbuf, GST_VIDEO_BUFFER_FLAG_ONEFIELD);
+ 						gst_queue_element->gstbuf = gstbuf;
+ 						bcmdec_ins_buf(bcmdec, gst_queue_element);
+ 						bcmdec->prev_pic = pic_number;
+@@ -1489,7 +1500,7 @@
+ 			}
+ 			if (bEOS) {
+ 				if (gstbuf) {
+-					gst_buffer_unref(gstbuf);
++				        gst_buffer_unref(gstbuf);
+ 					gstbuf = NULL;
+ 				}
+ 				if (gst_queue_element) {
+@@ -1561,14 +1572,6 @@
+ 						GST_DEBUG_OBJECT(bcmdec, "LOST PICTURE pic_no = %d, prev = %d", pic_number, bcmdec->prev_pic);
+ 				}
+ 
+-/*				if ((bcmdec->prev_pic == pic_number) && (bcmdec->ses_nbr  == pout.PicInfo.sess_num) && !bcmdec->interlace) {
+-					if (!bcmdec->silent)
+-						GST_DEBUG_OBJECT(bcmdec, "rp");
+-
+-					if (!(pout.PicInfo.flags &  VDEC_FLAG_LAST_PICTURE))
+-						continue;
+-				}*/
+-
+ 				if (!bcmdec->interlace || bcmdec->sec_field) {
+ 					GST_DEBUG_OBJECT(bcmdec, "Progressive or Second Field");
+ 					GST_BUFFER_OFFSET(gstbuf) = 0;
+@@ -1597,13 +1600,11 @@
+ 					}
+ 				}
+ 
+-				GST_BUFFER_SIZE(gstbuf) = bcmdec->output_params.width * bcmdec->output_params.height * BUF_MULT;
+-
+ 				if (!bcmdec->interlace || bcmdec->sec_field) {
+ 					if (gst_queue_element) {
+ 						// If interlaced, set the GST_VIDEO_BUFFER_TFF flags
+ 						if(bcmdec->sec_field)
+-							GST_BUFFER_FLAG_SET(gstbuf, GST_VIDEO_BUFFER_TFF);
++							GST_BUFFER_FLAG_SET(gstbuf, GST_VIDEO_BUFFER_FLAG_TFF);
+ 						gst_queue_element->gstbuf = gstbuf;
+ 						bcmdec_ins_buf(bcmdec, gst_queue_element);
+ 						bcmdec->prev_pic = pic_number;
+@@ -1674,7 +1675,7 @@
+ 		}
+ 		if (rx_flush) {
+ 			if (!bcmdec->flushing) {
+-// 				GST_DEBUG_OBJECT(bcmdec, "DtsFlushRxCapture called");
++ 				GST_DEBUG_OBJECT(bcmdec, "DtsFlushRxCapture called");
+ // 				sts = decif_flush_rxbuf(&bcmdec->decif, FALSE);
+ // 				if (sts != BC_STS_SUCCESS)
+ // 					GST_DEBUG_OBJECT(bcmdec, "DtsFlushRxCapture failed");
+@@ -1880,11 +1881,11 @@
+ 		GST_ERROR_OBJECT(bcmdec, "flush_dec failed sts %d", sts);
+ }
+ 
+-static BC_STATUS gst_bcmdec_cleanup(GstBcmDec *bcmdec)
++static BC_STATUS gst_bcm_dec_cleanup(GstBcmDec *bcmdec)
+ {
+ 	BC_STATUS sts = BC_STS_SUCCESS;
+ 
+-	GST_DEBUG_OBJECT(bcmdec, "gst_bcmdec_cleanup - enter");
++	GST_DEBUG_OBJECT(bcmdec, "gst_bcm_dec_cleanup - enter");
+ 	bcmdec->streaming = FALSE;
+ 
+ 	bcmdec_release_mem_buf_que_pool(bcmdec);
+@@ -2117,11 +2118,11 @@
+ 	return temp;
+ }
+ 
+-static BC_STATUS bcmdec_insert_sps_pps(GstBcmDec *bcmdec, GstBuffer* gstbuf)
++static BC_STATUS bcmdec_insert_sps_pps(GstBcmDec *bcmdec, GstMapInfo* info)
+ {
+ 	BC_STATUS sts = BC_STS_SUCCESS;
+-	guint8 *data = GST_BUFFER_DATA(gstbuf);
+-	guint32 data_size = GST_BUFFER_SIZE(gstbuf);
++	guint8 *data = info->data;
++	guint32 data_size = info->size;
+ 	gint profile;
+ 	guint nal_size;
+ 	guint num_sps, num_pps, i;
+@@ -2436,7 +2437,6 @@
+ 
+ 		while (bcmdec->streaming && get_buf_start)
+ 		{
+-			//GST_DEBUG_OBJECT(bcmdec, "process get rbuf start....");
+ 			gstbuf = NULL;
+ 
+ 			if (!bcmdec->recv_thread && !bcmdec->streaming) {
+@@ -2446,9 +2446,8 @@
+ 				break;
+ 			}
+ 
+-			// If we have enough buffers from the renderer then don't get any more
+ 			if(bcmdec->gst_padbuf_que_cnt >= GST_RENDERER_BUF_POOL_SZ) {
+-				usleep(100 * 1000);
++			  usleep(100 * 1000); /* we have enought buffers from the renderer */
+ 				GST_DEBUG_OBJECT(bcmdec, "SLEEPING because we have enough buffers");
+ 				continue;
+ 			}
+@@ -2467,13 +2466,10 @@
+ 			bufSz = bcmdec->output_params.width * bcmdec->output_params.height * BUF_MULT;
+ 
+ 			GST_DEBUG_OBJECT(bcmdec, "process get rbuf gst_pad_alloc_buffer_and_set_caps ....");
+-			ret = gst_pad_alloc_buffer_and_set_caps(bcmdec->srcpad, GST_BUFFER_OFFSET_NONE,
+-								bufSz, GST_PAD_CAPS(bcmdec->srcpad), &gstbuf);
+-			if (ret != GST_FLOW_OK) {
+-				if (!bcmdec->silent)
+-					GST_ERROR_OBJECT(bcmdec, "gst_pad_alloc_buffer_and_set_caps failed %d ",ret);
+-				usleep(30 * 1000);
+-				continue;
++			if (!bcmdec_get_buffer(bcmdec, bufSz, &gstbuf)) {
++			  GST_ERROR_OBJECT(bcmdec, "gst_pad_alloc_buffer_and_set_caps failed %d ",ret);
++			  usleep(30 * 1000);
++			  continue;
+ 			}
+ 
+ 			GST_DEBUG_OBJECT(bcmdec, "Got GST Buf RCnt:%d", bcmdec->gst_padbuf_que_cnt);
+@@ -2501,9 +2497,6 @@
+ 	gint ret = 0;
+ 	pthread_attr_t thread_attr;
+ 
+-// 	if (!bcmdec_alloc_mem_rbuf_que_pool(bcmdec))
+-// 		GST_ERROR_OBJECT(bcmdec, "rend pool alloc failed/n");
+-
+ 	bcmdec->gst_padbuf_que_hd = bcmdec->gst_padbuf_que_tl = NULL;
+ 
+ 	ret = sem_init(&bcmdec->rbuf_ins_event, 0, 0);
+@@ -2658,18 +2651,14 @@
+  */
+ static gboolean plugin_init(GstPlugin *bcmdec)
+ {
+-	//printf("BcmDec_init");
+-
+ 	/*
+ 	 * debug category for fltering log messages
+-	 *
+-	 * exchange the string 'Template bcmdec' with your description
+ 	 */
+-	GST_DEBUG_CATEGORY_INIT(gst_bcmdec_debug, "bcmdec", 0, "Broadcom video decoder");
++	GST_DEBUG_CATEGORY_INIT(gst_bcm_dec_debug, "bcmdec", 0, "Broadcom video decoder");
+ 
+-	return gst_element_register(bcmdec, "bcmdec", GST_BCMDEC_RANK, GST_TYPE_BCMDEC);
++	return gst_element_register(bcmdec, "bcmdec", GST_BCM_DEC_RANK, GST_TYPE_BCM_DEC);
+ }
+ 
+ /* gstreamer looks for this structure to register bcmdec */
+-GST_PLUGIN_DEFINE(GST_VERSION_MAJOR, GST_VERSION_MINOR, "bcmdec", "Video decoder", plugin_init, VERSION, "LGPL", "bcmdec", "http://broadcom.com/")
++GST_PLUGIN_DEFINE(GST_VERSION_MAJOR, GST_VERSION_MINOR, bcmdec, "Video decoder", plugin_init, VERSION, "LGPL", "bcmdec", "http://broadcom.com/")
+ 
+--- a/filters/gst/gst-plugin/src/gstbcmdec.h
++++ b/filters/gst/gst-plugin/src/gstbcmdec.h
+@@ -23,11 +23,11 @@
+  * along with this library.  If not, see <http://www.gnu.org/licenses/>.
+  *
+  *******************************************************************/
+-#ifndef __GST_BCMDEC_H__
+-#define __GST_BCMDEC_H__
++#ifndef __GST_BCM_DEC_H__
++#define __GST_BCM_DEC_H__
+ 
+ 
+-#define	GST_BCMDEC_RANK	0xffff
++#define	GST_BCM_DEC_RANK	0xffff
+ 
+ #define CLOCK_BASE 9LL
+ #define CLOC_FREQ_CLOC_BASE * 10000
+@@ -127,16 +127,16 @@
+ 
+ G_BEGIN_DECLS
+ 
+-#define GST_TYPE_BCMDEC \
+-  (gst_bcmdec_get_type())
+-#define GST_BCMDEC(obj) \
+-  (G_TYPE_CHECK_INSTANCE_CAST((obj),GST_TYPE_BCMDEC,GstBcmDec))
+-#define GST_BCMDEC_CLASS(klass) \
+-  (G_TYPE_CHECK_CLASS_CAST((klass),GST_TYPE_BCMDEC,GstBcmDecClass))
+-#define GST_IS_BCMDEC(obj) \
+-  (G_TYPE_CHECK_INSTANCE_TYPE((obj),GST_TYPE_BCMDEC))
+-#define GST_IS_BCMDEC_CLASS(klass) \
+-  (G_TYPE_CHECK_CLASS_TYPE((klass),GST_TYPE_BCMDEC))
++#define GST_TYPE_BCM_DEC \
++  (gst_bcm_dec_get_type())
++#define GST_BCM_DEC(obj) \
++  (G_TYPE_CHECK_INSTANCE_CAST((obj),GST_TYPE_BCM_DEC,GstBcmDec))
++#define GST_BCM_DEC_CLASS(klass) \
++  (G_TYPE_CHECK_CLASS_CAST((klass),GST_TYPE_BCM_DEC,GstBcmDecClass))
++#define GST_IS_BCM_DEC(obj) \
++  (G_TYPE_CHECK_INSTANCE_TYPE((obj),GST_TYPE_BCM_DEC))
++#define GST_IS_BCM_DEC_CLASS(klass) \
++  (G_TYPE_CHECK_CLASS_TYPE((klass),GST_TYPE_BCM_DEC))
+ 
+ typedef struct _GstBcmDec      GstBcmDec;
+ typedef struct _GstBcmDecClass GstBcmDecClass;
+@@ -188,7 +188,7 @@
+ 
+ 	gboolean flushing;
+ 	sem_t push_stop_event;
+-    sem_t push_start_event;
++  sem_t push_start_event;
+ 	sem_t recv_stop_event;
+ 	guint ses_nbr;
+ 	gboolean insert_pps;
+@@ -233,49 +233,50 @@
+   GstElementClass parent_class;
+ };
+ 
+-GType gst_bcmdec_get_type (void);
++GType gst_bcm_dec_get_type (void);
+ 
+ static void
+-gst_bcmdec_base_init (gpointer gclass);
++gst_bcm_dec_base_init (gpointer gclass);
+ 
+ static void
+-gst_bcmdec_class_init(GstBcmDecClass * klass);
++gst_bcm_dec_class_init(GstBcmDecClass * klass);
+ 
+ static void
+-gst_bcmdec_init(GstBcmDec * bcmdec,
+-				GstBcmDecClass * gclass);
++gst_bcm_dec_init(GstBcmDec * bcmdec);
++
+ 
+ static void
+-gst_bcmdec_finalize(GObject * object);
++gst_bcm_dec_finalize(GObject * object);
+ 
+ static GstFlowReturn
+-gst_bcmdec_chain(GstPad * pad,
++gst_bcm_dec_chain(GstPad * pad,
++		 GstObject * parent,
+ 				 GstBuffer * buffer);
+ 
+ static GstStateChangeReturn
+-gst_bcmdec_change_state(GstElement * element,
++gst_bcm_dec_change_state(GstElement * element,
+ 						GstStateChange transition);
+ 
+ static gboolean
+-gst_bcmdec_sink_set_caps(GstPad * pad,
++gst_bcm_dec_sink_set_caps(GstPad * pad,
+ 						 GstCaps * caps);
+ 
+-static GstCaps *gst_bcmdec_getcaps (GstPad * pad);
+-
+ static gboolean
+-gst_bcmdec_src_event(GstPad * pad,
++gst_bcm_dec_src_event(GstPad * pad,
++		     GstObject * parent,
+ 					 GstEvent * event);
+ 
+ static gboolean
+-gst_bcmdec_sink_event(GstPad * pad,
++gst_bcm_dec_sink_event(GstPad * pad,
++		      GstObject * parent,
+ 					  GstEvent * event);
+ 
+ static void
+-gst_bcmdec_set_property (GObject * object, guint prop_id,
++gst_bcm_dec_set_property (GObject * object, guint prop_id,
+ 						const GValue * value, GParamSpec * pspec);
+ 
+ static void
+-gst_bcmdec_get_property (GObject * object, guint prop_id,
++gst_bcm_dec_get_property (GObject * object, guint prop_id,
+ 						GValue * value, GParamSpec * pspec);
+ 
+ static gboolean
+@@ -285,7 +286,7 @@
+ bcmdec_reset(GstBcmDec * bcmdec);
+ 
+ static gboolean
+-bcmdec_get_buffer(GstBcmDec * bcmdec, GstBuffer ** obuf);
++bcmdec_get_buffer(GstBcmDec * bcmdec, gint size, GstBuffer ** obuf);
+ 
+ static void*
+ bcmdec_process_output(void * ctx);
+@@ -300,7 +301,7 @@
+ bcmdec_format_change(GstBcmDec * filter,BC_PIC_INFO_BLOCK* pic_info);
+ 
+ static BC_STATUS
+-gst_bcmdec_cleanup(GstBcmDec *filter);
++gst_bcm_dec_cleanup(GstBcmDec *filter);
+ 
+ static gboolean
+ bcmdec_start_recv_thread(GstBcmDec * bcmdec);
+@@ -339,7 +340,7 @@
+ //bcmdec_insert_startcode(GstBcmDec* filter,GstBuffer* gstbuf, guint8* dest_buf,guint32* sz);
+ 
+ static BC_STATUS
+-bcmdec_insert_sps_pps(GstBcmDec* filter,GstBuffer* gstbuf);
++bcmdec_insert_sps_pps(GstBcmDec* filter, GstMapInfo* gstbuf);
+ 
+ static void
+ bcmdec_set_aspect_ratio(GstBcmDec *filter,BC_PIC_INFO_BLOCK* pic_info);
+@@ -383,7 +384,6 @@
+ static GSTBUF_LIST*
+ bcmdec_rem_padbuf(GstBcmDec *filter);
+ 
+-
+ G_END_DECLS
+ 
+-#endif /* __GST_BCMDEC_H__ */
++#endif /* __GST_BCM_DEC_H__ */

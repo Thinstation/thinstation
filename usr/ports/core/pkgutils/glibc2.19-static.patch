@@ -1,0 +1,11 @@
+--- a/Makefile	2014-04-10 21:10:00.538664359 +0000
++++ b/Makefile	2014-04-10 21:11:01.131001625 +0000
+@@ -34,7 +34,7 @@
+ 
+ LIBARCHIVELIBS := $(shell pkg-config --libs --static libarchive)
+ 
+-LDFLAGS += -static $(LIBARCHIVELIBS)
++LDFLAGS += -Wl,-Bstatic $(LIBARCHIVELIBS) -Wl,-Bdynamic -static-libgcc -static-libstdc++
+ 
+ OBJECTS = main.o pkgutil.o pkgadd.o pkgrm.o pkginfo.o
+ 

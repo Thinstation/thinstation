@@ -1,0 +1,23 @@
+# Description: creates fast, visually rich and animated GUIs
+# URL: http://blogs.gnome.org/clutter
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+# Depends on: cogl atk json-glib
+
+name=clutter
+version=1.18.2
+release=1
+source=(ftp://ftp.gnome.org/pub/gnome/sources/$name/${version%.*}/$name-$version.tar.xz)
+
+build() {
+	cd $name-$version
+
+	./configure --prefix=/usr \
+			--sysconfdir=/etc \
+			--mandir=/usr/man \
+			--disable-nls
+			#--enable-egl-backend
+
+	make
+	make DESTDIR=$PKG install
+	rm -rf $PKG/usr/share/gtk-doc
+}

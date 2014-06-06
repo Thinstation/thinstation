@@ -1,0 +1,18 @@
+# Description:	Next-generation bindings of Telepathy and others using the same XML spec format to the Qt4 world
+# URL:		http://telepathy.freedesktop.org/
+# Maintainer:	Oleksiy V. Khilkevich <grim@asu.ntu-kpi.kiev.ua>
+# Depends on:	git, glib, gtk-doc
+
+name=telepathy-glib
+version=0.24.0
+release=1
+source=(http://cgit.freedesktop.org/telepathy/telepathy-glib/snapshot/telepathy-glib-0.24.0.tar.gz)
+
+build() {
+    cd $name-$version
+    ./autogen.sh
+
+    ./configure --prefix=/usr
+    make
+    make DESTDIR=$PKG install
+}

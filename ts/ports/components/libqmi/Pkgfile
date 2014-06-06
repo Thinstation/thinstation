@@ -1,0 +1,23 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=libqmi
+version=1.10.0
+release=1
+source=(http://cgit.freedesktop.org/libqmi/snapshot/libqmi-$version.tar.gz)
+
+build() {
+	cd $name-$version
+
+	./autogen.sh
+
+	./configure --prefix=/usr \
+			--sysconfdir=/etc \
+			--mandir=/usr/man \
+			--disable-extras \
+			--disable-static
+
+	make
+	make DESTDIR=$PKG install
+}

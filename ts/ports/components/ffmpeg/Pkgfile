@@ -5,7 +5,7 @@
 # Depends on: faac imlib2 lame libsdl libtheora libxvid x264 opencore-amr speex libva
 
 name=ffmpeg
-version=2.1.1
+version=2.2.2
 release=1
 source=(http://ffmpeg.org/releases/$name-$version.tar.bz2)
 
@@ -15,40 +15,47 @@ build() {
 	./configure \
 		--prefix=/usr \
 		--mandir=/usr/man \
+		--target-os=linux \
 		--disable-static \
 		--disable-debug \
-		--disable-neon \
-		--target-os=linux \
-		--disable-muxers \
-		--enable-muxer=spdif \
-		--enable-muxer=adts \
-		--disable-encoders \
-		--enable-encoder=ac3 \
-		--enable-encoder=aac \
-		--enable-libvorbis \
-		--enable-muxer=ogg \
-		--enable-encoder=libvorbis \
-		--disable-decoder=mpeg_xvmc \
-		--disable-ffmpeg \
-		--disable-ffprobe \
-		--disable-ffplay \
-		--disable-ffserver \
-		--enable-shared \
-		--disable-doc \
-		--enable-postproc \
-		--enable-gpl \
-		--enable-vdpau \
-		--enable-vaapi \
-		--enable-optimizations \
-		--enable-protocol=http \
-		--enable-pthreads \
-		--enable-runtime-cpudetect \
-		--disable-hardcoded-tables \
-		--disable-pic \
-		--cc=gcc \
 		--disable-indev=oss \
-		--disable-outdev=oss
+		--disable-outdev=oss \
+		--disable-doc \
+		--enable-avfilter \
+		--enable-avresample \
+		--enable-dxva2 \
+		--enable-fontconfig \
+		--enable-gnutls \
+		--enable-gpl \
+		--enable-libass \
+		--enable-libbluray \
+		--enable-libfreetype \
+		--enable-libmodplug \
+		--enable-libmp3lame \
+		--enable-libopencore_amrnb \
+		--enable-libopencore_amrwb \
+		--enable-libopenjpeg \
+		--enable-libopus \
+		--enable-librtmp \
+		--enable-libspeex \
+		--enable-libtheora \
+		--enable-libvorbis \
+		--enable-libx264 \
+		--enable-libxvid \
+		--enable-pic \
+		--enable-postproc \
+		--enable-pthreads \
+		--enable-shared \
+		--enable-swresample \
+		--enable-vaapi \
+		--enable-vdpau \
+		--enable-version3 \
+		--enable-x11grab
+
+	# Optional components
+	#	--enable-libschroedinger \
 
 	make SHARED_PP='yes'
 	make DESTDIR=$PKG install install-man
+	rm -rf $PKG/usr/share/ffmpeg/examples
 }

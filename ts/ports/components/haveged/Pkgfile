@@ -5,14 +5,13 @@
 # Depends on: kernel-TS kernel-TS_SMP
 
 name=haveged
-version=1.7
-release=c
-source=(http://www.issihosts.com/$name/$name-$version$release.tar.gz)
+version=1.9.1
+release=1
+source=(http://www.issihosts.com/$name/$name-$version.tar.gz)
 
 build() {
-	cd $name-$version$release
-	./configure --prefix=/usr
+	cd $name-$version
+	./configure --prefix=/usr --mandir=/usr/man --disable-static
 	make
 	make install DESTDIR=$PKG
-	rmdir $PKG/usr/bin
 }

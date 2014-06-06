@@ -11,6 +11,12 @@ source=(http://iweb.dl.sourceforge.net/project/inkscape/inkscape/$version/inksca
 
 build() {
 	cd $name-$version
+
+	sed -i src/extension/internal/pdfinput/pdf-parser.cpp \
+	    -e "/GfxColorSpace::parse/s|NULL|&, NULL|g"       \
+	    -e "/lookupPattern/s:NULL:&, NULL:g"              \
+	    -e "/lookupShading/s:NULL:&, NULL:g" 
+
 	patch -Np1 -i ../inkscape-0.48.4-gc-1.patch
 	patch -Np1 -i ../inkscape-0.48.4-freetype-1.patch
 

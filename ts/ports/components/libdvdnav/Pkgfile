@@ -1,0 +1,17 @@
+# Description: DVD reading library.
+# URL: http://dvd.sourceforge.net/
+# Maintainer: Danny Rawlins, monster dot romster at gmail dot com
+# Packager: Danny Rawlins, monster dot romster at gmail dot com
+# Depends on: libdvdread
+
+name=libdvdnav
+version=4.2.1
+release=1
+source=(http://dvdnav.mplayerhq.hu/releases/$name-$version.tar.xz)
+
+build() {
+	cd $name-$version
+	./autogen.sh --prefix=/usr
+	make
+	make DESTDIR=$PKG install
+}

@@ -4,15 +4,16 @@
 # Depends on:  ncurses
 
 name=readline
-version=6.2.4
+version=6.3.0
 release=1
-source=(http://ftp.gnu.org/gnu/$name/$name-${version:0:3}.tar.gz \
-        $name-$version.patch.gz inputrc)
+source=(http://ftp.gnu.org/gnu/$name/$name-${version:0:3}.tar.gz
+#	$name-$version.patch.gz
+	inputrc)
 
 build() {
     cd $name-${version:0:3}
 
-    gunzip -c $SRC/$name-$version.patch.gz | patch -p0
+#    gunzip -c $SRC/$name-$version.patch.gz | patch -p0
 
     # Don't use rpath for linking the shared libs
     sed -i '117s/-Wl,-rpath,$(libdir)//' support/shobj-conf

@@ -4,14 +4,12 @@
 # Depends on:  attr
 
 name=libcap
-version=2.23
+version=2.24
 release=1
-source=(https://www.kernel.org/pub/linux/libs/security/linux-privs/libcap2/$name-$version.tar.xz
-	libcap-2.23-uapi-1.patch)
+source=(https://www.kernel.org/pub/linux/libs/security/linux-privs/libcap2/$name-$version.tar.xz)
 
 build () {
     cd libcap-$version
-    patch -Np1 -i ../libcap-2.23-uapi-1.patch
 
     sed -i "/^CFLAGS/s/-O2/$CFLAGS/" Make.Rules
     sed -i '/install.*STALIBNAME/ s/^/#/' libcap/Makefile

@@ -4,7 +4,7 @@
 # Depends on: iso-codes dbus-python gconf gtk
 
 name=ibus
-version=1.5.2
+version=1.5.5
 release=1
 source=(http://ibus.googlecode.com/files/$name-$version.tar.gz)
 
@@ -13,6 +13,7 @@ build() {
 
 	sed -i -e "s/path=\"\/desktop\//path=\"\/org\/ibus\/desktop\//g" data/dconf/org.freedesktop.ibus.gschema.xml.in
 
-	./configure --prefix=/usr
+	./configure --prefix=/usr --sysconfdir=/etc --mandir=/usr/man
 	make install DESTDIR=$PKG
+	rm -rf $PKG/usr/share/gtk-doc
 }

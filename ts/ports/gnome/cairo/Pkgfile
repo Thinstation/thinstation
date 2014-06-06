@@ -4,7 +4,7 @@
 # Depends on: fontconfig, libpng, xorg-libxext, xorg-libxrender, xorg-libpixman, xorg-xcb-util, glib
 
 name=cairo
-version=1.12.14
+version=1.12.16
 release=1
 source=(http://cairographics.org/releases/$name-$version.tar.xz
 	0001-xlib-Don-t-crash-when-swapping-a-0-sized-glyph.patch
@@ -15,8 +15,11 @@ build() {
 	patch -p1 -i ../0001-xlib-Don-t-crash-when-swapping-a-0-sized-glyph.patch
 	patch -p1 -i ../0002-xcb-Don-t-crash-when-swapping-a-0-sized-glyph.patch
 
+	export CFLAGS
+
         ./configure --prefix=/usr \
 		--enable-xlib \
+		--enable-xlib-xcb \
 		--enable-ft \
 		--enable-tee \
 		--enable-gl \

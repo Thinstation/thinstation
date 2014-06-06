@@ -1,0 +1,23 @@
+# Description: Codec designed for interactive speech and audio transmission over the Internet.
+# URL: http://www.opus-codec.org/
+# Maintainer: Danny Rawlins, monster dot romster at gmail dot com
+# Packager: Danny Rawlins, monster dot romster at gmail dot com
+
+name=opus
+version=1.1
+release=1
+source=(http://downloads.us.xiph.org/releases/$name/$name-$version.tar.gz)
+
+build() {
+	cd $name-$version
+	./configure \
+		--prefix=/usr \
+		--mandir=/usr/man \
+		--disable-static \
+		--enable-custom-modes
+
+	make
+	make DESTDIR=$PKG install
+
+	rm -rf $PKG/usr/share/doc
+}

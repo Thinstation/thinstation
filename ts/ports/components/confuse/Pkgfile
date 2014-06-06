@@ -12,7 +12,7 @@ build() {
     cd ${name/#lib/}-$version
     sed -i 's/-Werror//' src/Makefile.in
     ./configure --prefix=/usr \
-        --enable-shared \
+        --enable-shared --disable-static \
         --disable-nls
     make
     make DESTDIR=$PKG install

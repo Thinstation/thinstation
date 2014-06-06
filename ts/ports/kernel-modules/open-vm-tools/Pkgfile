@@ -3,16 +3,20 @@
 # Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 
 name=open-vm-tools
-version=2013.04.16-1098359
+version=9.4.0-1280544
+dir=stable-9.4.x
+#dir=Development%20Snapshots
 kver=3.10.14
 release=1
-source=(http://downloads.sourceforge.net/project/open-vm-tools/open-vm-tools/Development%20Snapshots/open-vm-tools-$version.tar.gz
-	open-vm-tools-2013.04.16-1098359-vmhgfs-linux-310.patch)
+source=(http://downloads.sourceforge.net/project/$name/$name/$dir/$name-$version.tar.gz
+	open-vm-tools-9.4.0-linux-310.patch
+	open-vm-tools-9.4.0-glib.patch)
 
 build() {
 	cd $name-$version
 
-	patch -p0 < ../open-vm-tools-2013.04.16-1098359-vmhgfs-linux-310.patch
+	patch -p1 < ../open-vm-tools-9.4.0-linux-310.patch
+	patch -p1 < ../open-vm-tools-9.4.0-glib.patch
 
 	export CUSTOM_PROCPS_NAME=procps
 	export CUSTOM_PROCPS_LIBS=-L/usr/lib/libprocps.so

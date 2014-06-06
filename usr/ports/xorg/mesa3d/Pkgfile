@@ -4,17 +4,20 @@
 # Depends on: libdrm, xorg-makedepend, xorg-glproto, xorg-xextproto, xorg-dri2proto, xorg-libx11, xorg-xf86vidmodeproto, xorg-libxext, xorg-libxxf86vm, xorg-libxt, xorg-libxdamage, xorg-libpciaccess, expat, talloc, libxml2-python
 
 name=mesa3d
-version=10.0.1
+version=10.1.4
 release=1
-source=(ftp://ftp.freedesktop.org/pub/mesa/$version/MesaLib-$version.tar.bz2)
+source=(ftp://ftp.freedesktop.org/pub/mesa/${version}/MesaLib-$version.tar.bz2
+	MesaLib-10.1.0-svga_texture-1.patch)
 
 build() {
     cd Mesa-$version
+    patch -Np1 < ../MesaLib-10.1.0-svga_texture-1.patch
 
-    ./configure --prefix=/usr \
+    ./autogen.sh --prefix=/usr \
 		--sysconfdir=/etc \
                 --with-gallium-drivers=i915,r300,r600,svga,radeonsi,swrast,nouveau \
 		--enable-xa \
+		--enable-glx-tls \
 		--with-egl-platforms="drm,x11" \
 		--with-llvm-shared-libs
 

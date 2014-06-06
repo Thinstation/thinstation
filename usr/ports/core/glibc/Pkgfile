@@ -3,14 +3,15 @@
 # Maintainer:  CRUX System Team, core-ports at crux dot nu
 
 name=glibc
-version=2.18
+version=2.19
 release=1
 source=(http://ftp.gnu.org/gnu/glibc/glibc-$version.tar.xz \
 	hosts resolv.conf nsswitch.conf host.conf ld.so.conf \
 	disable-assembler-optimizations.patch)
 
 build() {
-	patch -p1 -d $name-$version -i $SRC/disable-assembler-optimizations.patch
+	#patch -p1 -d $name-$version -i $SRC/disable-assembler-optimizations.patch
+	sed -i 's/\\$$(pwd)/`pwd`/' $name-$version/timezone/Makefile
 
 	mkdir build
 	cd build

@@ -3,7 +3,7 @@
 # Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 
 name=file-roller
-version=3.9.3
+version=3.12.2
 release=1
 source=(http://ftp.gnome.org/pub/gnome/sources/$name/${version%.*}/$name-$version.tar.xz)
 
@@ -11,14 +11,12 @@ build() {
 	cd $name-$version
 
 	./configure --prefix=/usr \
-			--disable-scrollkeeper \
+			--disable-static \
 			--disable-nautilus-actions \
 			--sysconfdir=/etc \
-			--mandir=/usr/man \
-			--disable-extras
+			--mandir=/usr/man
 
 	make
 	make DESTDIR=$PKG install
 	rm -rf $PKG/usr/share/locale
-	sed -i -e 's/multipart\/x-zip;//g' $PKG/usr/share/applications/file-roller.desktop
 }

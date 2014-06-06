@@ -1,0 +1,64 @@
+Submitted By:            Miklos Karacsony <mkaracsony81 at gmail dot com>
+Date:                    2014-05-01
+Initial Package Version: 2.24
+Upstream Status:         Applied
+Origin:                  Upstream
+Description:             Load gcc LTO plugin by default
+
+diff --git a/binutils/ar.c b/binutils/ar.c
+index a11ed15c86bc..f0feaef5b233 100644
+--- a/binutils/ar.c
++++ b/binutils/ar.c
+@@ -138,7 +138,11 @@ static int show_version = 0;
+ 
+ static int show_help = 0;
+ 
++#if BFD_SUPPORTS_PLUGINS
++static const char *plugin_target = "plugin";
++#else
+ static const char *plugin_target = NULL;
++#endif
+ 
+ static const char *target = NULL;
+ 
+@@ -571,7 +575,6 @@ decode_options (int argc, char **argv)
+           break;
+ 	case OPTION_PLUGIN:
+ #if BFD_SUPPORTS_PLUGINS
+-	  plugin_target = "plugin";
+ 	  bfd_plugin_set_plugin (optarg);
+ #else
+ 	  fprintf (stderr, _("sorry - this program has been built without plugin support\n"));
+@@ -632,7 +635,6 @@ ranlib_main (int argc, char **argv)
+ 	  /* PR binutils/13493: Support plugins.  */
+ 	case OPTION_PLUGIN:
+ #if BFD_SUPPORTS_PLUGINS
+-	  plugin_target = "plugin";
+ 	  bfd_plugin_set_plugin (optarg);
+ #else
+ 	  fprintf (stderr, _("sorry - this program has been built without plugin support\n"));
+diff --git a/binutils/nm.c b/binutils/nm.c
+index 156194f21de7..876bbed7a407 100644
+--- a/binutils/nm.c
++++ b/binutils/nm.c
+@@ -177,7 +177,11 @@ static char other_format[] = "%02x";
+ static char desc_format[] = "%04x";
+ 
+ static char *target = NULL;
+-static char *plugin_target = NULL;
++#if BFD_SUPPORTS_PLUGINS
++static const char *plugin_target = "plugin";
++#else
++static const char *plugin_target = NULL;
++#endif
+ 
+ /* Used to cache the line numbers for a BFD.  */
+ static bfd *lineno_cache_bfd;
+@@ -1648,7 +1652,6 @@ main (int argc, char **argv)
+ 
+ 	case OPTION_PLUGIN:	/* --plugin */
+ #if BFD_SUPPORTS_PLUGINS
+-	  plugin_target = "plugin";
+ 	  bfd_plugin_set_plugin (optarg);
+ #else
+ 	  fatal (_("sorry - this program has been built without plugin support\n"));

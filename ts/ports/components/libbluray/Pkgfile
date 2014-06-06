@@ -3,19 +3,17 @@
 # Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 
 name=libbluray
-version=0.2.3
+version=0.5.0
 release=1
-source=()
+source=(http://ftp.videolan.org/pub/videolan/$name/$version/$name-$version.tar.bz2)
 
 build() {
-git clone --depth 1 git://git.videolan.org/libbluray.git
-	cd $name
+	cd $name-$version
 
-	./bootstrap
 	./configure --prefix=/usr \
 			--disable-doxygen-doc \
 			--disable-doxygen-dot \
-			--disable-extras
+			--disable-static
 
 	make
 	make DESTDIR=$PKG install

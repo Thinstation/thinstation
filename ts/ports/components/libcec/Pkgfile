@@ -3,8 +3,8 @@
 # Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 
 name=libcec
-version=2.1.1
-release=1
+version=2.1.4
+release=git
 source=()
 
 build() {
@@ -13,7 +13,7 @@ git clone --depth 1 git://github.com/Pulse-Eight/libcec.git
 	autoreconf -vif
 
 	CFLAGS="$CFLAGS -D_FILE_OFFSET_BITS=64"
-	./configure --prefix=/usr
+	./configure --prefix=/usr --disable-static
 
 	make
 	make DESTDIR=$PKG install

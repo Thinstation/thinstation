@@ -1,0 +1,37 @@
+Submitted By: Ken Moffat <ken at linuxfromscratch dot org>
+Date: 2014-05-26
+Initial Package Version: 1.2.4
+Upstream Status: Not offered, this is a workaround for gcc-4.9.0.
+Origin: Fernando (for gst-0.10), based on
+ https://github.com/HandBrake/HandBrake/blob/master/contrib/lame/P00-darwin-xmmintrin.patch
+Description: Works around inlining failure on i686 with gcc-4.9.0.
+Rediffed to apply without fuzz and massive offset which caused
+configure.orig to get generated.
+
+Do Not Apply to x86_64.
+
+Note: this 1.2.4 version appears to work fine for me on i686.
+
+
+diff -Naur a/configure b/configure
+--- a/configure	2014-04-18 10:26:48.000000000 +0100
++++ b/configure	2014-05-25 18:16:10.921273986 +0100
+@@ -22291,18 +22291,6 @@
+ fi
+ 
+ 
+-for ac_header in xmmintrin.h emmintrin.h
+-do :
+-  as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
+-ac_fn_c_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
+-if eval test \"x\$"$as_ac_Header"\" = x"yes"; then :
+-  cat >>confdefs.h <<_ACEOF
+-#define `$as_echo "HAVE_$ac_header" | $as_tr_cpp` 1
+-_ACEOF
+-
+-fi
+-
+-done
+ 
+ 
+ for ac_header in sys/socket.h

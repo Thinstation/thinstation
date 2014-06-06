@@ -1,0 +1,16 @@
+diff -urN a/ext/fiddle/extconf.rb b/ext/fiddle/extconf.rb
+--- a/ext/fiddle/extconf.rb	2013-05-19 02:42:16.000000000 +0000
++++ b/ext/fiddle/extconf.rb	2014-05-20 23:12:31.615704644 +0000
+@@ -7,7 +7,11 @@
+ pkg_config("libffi")
+ if ver = pkg_config("libffi", "modversion")
+   ver = ver.gsub(/-rc\d+/, '') # If ver contains rc version, just ignored.
+-  $defs.push(%{-DRUBY_LIBFFI_MODVERSION=#{ '%d%03d%03d' % ver.split('.') }})
++  if ver.split('.').length < 3
++    $defs.push(%{-DRUBY_LIBFFI_MODVERSION=#{ '%d%03d000' % ver.split('.') }})
++  else
++    $defs.push(%{-DRUBY_LIBFFI_MODVERSION=#{ '%d%03d%03d' % ver.split('.') }})
++  end
+ end
+ 
+ unless have_header('ffi.h')

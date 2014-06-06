@@ -4,14 +4,15 @@
 # Depends on: gtk, at-spi2-atk, xorg-libxi
 
 name=gtk3
-version=3.9.6
+version=3.12.2
 release=1
 source=(http://download.gnome.org/sources/gtk+/${version%.*}/gtk+-$version.tar.xz)
 
 build () {
     cd gtk+-$version
 
-    ./configure --prefix=/usr --mandir=/usr/man --enable-gtk2-dependency
+    ./configure --prefix=/usr --sysconfdir=/etc \
+	--mandir=/usr/man --enable-gtk2-dependency
     make
     make DESTDIR=$PKG install
     rm -r $PKG/usr/share/{gtk-doc,locale,gtk-3.0}

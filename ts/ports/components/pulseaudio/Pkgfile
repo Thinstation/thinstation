@@ -4,7 +4,7 @@
 # Depends on: json-c libsndfile libtool libcap consolekit
 
 name=pulseaudio
-version=3.0
+version=5.0
 release=1
 source=(http://freedesktop.org/software/pulseaudio/releases/pulseaudio-$version.tar.xz \
 	norootwarn.patch)
@@ -14,11 +14,12 @@ build() {
 
 	patch -p0 -i $SRC/norootwarn.patch
 
-	./configure --prefix=/usr \
+	./configure --prefix=/usr --sysconfdir=/etc --mandir=/usr/man \
+		--disable-oss-output --disable-oss-wrapper
 
 	make
 	make DESTDIR=$PKG install
 
         rm -r $PKG/usr/share/locale
-        rm -r $PKG/usr/etc/xdg
+        rm -r $PKG/etc/xdg
 }

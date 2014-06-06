@@ -5,14 +5,18 @@
 # Depends on: gconf gtk-doc
 
 name=geoclue
-version=0.12.99
+version=0.12.0
 release=1
-source=(http://freedesktop.org/~hadess/$name-$version.tar.gz)
+source=(https://launchpad.net/geoclue/trunk/${version%.*}/+download/$name-$version.tar.gz)
 
 build() {
 	cd $name-$version
 
-	sed -i -e "s/path=\"\/apps\//path=\"\/org\/freedesktop\/apps\//g" src/org.freedesktop.Geoclue.gschema.xml
+	sed -i "s@ -Werror@@" configure &&
+	sed -i "s@libnm_glib@libnm-glib@g" configure &&
+	sed -i "s@geoclue/libgeoclue.la@& -lgthread-2.0@g" \
+	       providers/skyhook/Makefile.in
+
 	./configure \
 		--prefix=/usr \
 		--mandir=/usr/man \

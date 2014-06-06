@@ -5,15 +5,14 @@
 # Group:       apache
 
 name=apache
-version=2.2.24
+version=2.4.9
 release=1
 source=(http://archive.apache.org/dist/httpd/httpd-$version.tar.bz2 \
-        $name-ssl_cert.patch crux.layout apache)
+        crux.layout apache)
 
 build(){
    cd httpd-$version
 
-   patch -p1 < $SRC/$name-ssl_cert.patch
    cat $SRC/crux.layout >> config.layout
 
    ./configure --enable-layout=CRUX \
@@ -23,20 +22,16 @@ build(){
                --enable-so \
                --enable-modules=all \
                --enable-mods-shared=all \
+               --enable-mpms-shared=all \
                --enable-ssl \
-               --enable-proxy \
-               --enable-cache --enable-{disk,file,mem}-cache \
-               --with-mpm=prefork
+               --enable-proxy
    make 
    make -j1 DESTDIR=$PKG install
 
-   mkdir -p $PKG/etc/ssl/{keys,certs}
-   touch $PKG/etc/ssl/keys/apache.key
-   touch $PKG/etc/ssl/certs/apache.crt
    install -D -m 755 $SRC/apache $PKG/etc/rc.d/apache
 
    sed -ri '/^(User|Group)/s/daemon/www/' $PKG/etc/apache/httpd.conf
    sed -i '1s|local/||' $PKG/var/www/cgi-bin/printenv
-   rm -R $PKG/{var/www/htdocs/*,usr/bin}
+   rm -R $PKG/var/www/htdocs/*
    rm $PKG/var/www/{error,icons}/README*
 }

@@ -4,7 +4,7 @@
 # Depends on: gtk-2.0 celt
 
 name=spice
-version=0.19
+version=0.24
 release=1
 source=(http://spice-space.org/download/gtk/spice-gtk-$version.tar.bz2)
 
@@ -14,9 +14,10 @@ build() {
 			--without-python \
 			--sysconfdir=/etc \
 			--mandir=/usr/man \
-			--enable-smartcard=no \
-			--disable-introspection
+			--disable-static \
+			--enable-smartcard=no
 
 	make
 	make DESTDIR=$PKG install
+	rm -rf $PKG/usr/share/gtk-doc
 }

@@ -4,20 +4,14 @@
 # Depends on:  imlib2 imlib-TS
 
 name=wbar
-version=1.3.3
+version=2.3.4
 release=1
-source=(http://$name.googlecode.com/files/$name-$version.tbz2
-$name-$version-dot.wbar.patch $name-${version}_gcc43.patch)
+source=(http://$name.googlecode.com/files/$name-$version.tgz)
 
 build() {
   cd $name-$version
-  patch -p1 -i $SRC/$name-$version-dot.wbar.patch
-  patch -p1 -i $SRC/$name-${version}_gcc43.patch
-  sed -i "/CXXFLAGS/s/-O2/$CXXFLAGS/" Makefile
+  ./configure --prefix=/usr --sysconfdir=/etc --mandir=/usr/man
   make
-  mkdir -p $PKG/usr/share/$name
-  mv iconpack $PKG/usr/share/$name
-  install -D -m 0644 dot.$name $PKG/usr/etc/dot.$name
-  install -D -m 0755 $name $PKG/usr/bin/$name
+  make install DESTDIR=$PKG
 }
 

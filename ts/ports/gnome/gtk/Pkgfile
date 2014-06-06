@@ -4,20 +4,17 @@
 # Depends on: atk, hicolor-icon-theme, gdk-pixbuf, pango, xorg-libsm, xorg-libxcursor, xorg-libxinerama, xorg-libxrandr, xorg-libxcomposite
 
 name=gtk
-version=2.24.19
+version=2.24.23
 release=1
-source=(http://download.gnome.org/sources/gtk+/${version%.*}/${name}+-$version.tar.xz
-	old-icon-symlinks.patch)
+source=(http://download.gnome.org/sources/gtk+/${version%.*}/${name}+-$version.tar.xz)
 
 build () {
 	cd gtk+-$version
 
-#	patch -p1 -i $SRC/old-icon-symlinks.patch
-
 	./configure	--prefix=/usr \
+			--sysconfdir=/etc \
 			--mandir=/usr/man \
 			--enable-debug \
-			--enable-introspection=no \
 			--with-xinput=xfree \
 			--disable-glibtest \
 			--disable-static \

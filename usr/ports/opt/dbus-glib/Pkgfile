@@ -5,14 +5,14 @@
 # Depends on: dbus, glib
 
 name=dbus-glib
-version=0.100.2
+version=0.102
 release=1
 source=(http://dbus.freedesktop.org/releases/$name/$name-$version.tar.gz)
 
 build() {
 	cd $name-$version
 	export PATH="$PATH:/usr/sbin"
-	./configure --prefix=/usr \
+	./configure --prefix=/usr --sysconfdir=/etc \
 		--disable-static
 	make
 	make DESTDIR=$PKG install

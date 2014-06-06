@@ -26,7 +26,8 @@ build() {
         wget http://www.oasis-open.org/docbook/xml/4.5/docbook-xml-4.5.zip
 	wget --no-check-certificate http://www.oasis-open.org/cover/ISOEnts.zip
 	wget http://sourceforge.net/projects/docbook/files/docbook-dsssl/1.79/docbook-dsssl-1.79.zip
-	wget http://sourceforge.net/projects/docbook/files/docbook-xsl/1.77.1/docbook-xsl-1.77.1.zip
+	wget http://sourceforge.net/projects/docbook/files/docbook-xsl/1.78.1/docbook-xsl-1.78.1.zip
+	wget http://sourceforge.net/projects/docbook/files/docbook-xsl-ns/1.78.1/docbook-xsl-ns-1.78.1.zip
 	unwind()
 	{
 		mkdir -p $dir
@@ -106,7 +107,15 @@ echo "SGML_CATALOGS_DIR=/etc/sgml" >> $PKG/etc/sgml/sgml.conf
 		cp $temp $catalog
 		rm $temp
 	done
-        xsl=docbook-xsl-1.77.1
+        xsl=docbook-xsl-1.78.1
+        archive=$SRC/$xsl.zip
+        dir=$PKG/usr/share/sgml/$xsl
+        mkdir -p $dir
+        unzip $archive -d $dir
+        mv $dir/$xsl/* $dir
+        rmdir $dir/$xsl
+        rm $archive
+        xsl=docbook-xsl-ns-1.78.1
         archive=$SRC/$xsl.zip
         dir=$PKG/usr/share/sgml/$xsl
         mkdir -p $dir

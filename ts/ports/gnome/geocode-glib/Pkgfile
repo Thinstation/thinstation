@@ -1,0 +1,21 @@
+# Description: GLIB binding for geocoding
+# URL: 
+# Maintainer: None
+# Depends on: gtk
+
+name=geocode-glib
+version=3.12.2
+release=1
+source=(ftp://ftp.gnome.org/pub/gnome/sources/$name/${version%.*}/$name-$version.tar.xz)
+
+build() {
+	cd $name-$version
+
+	./configure --prefix=/usr \
+			--disable-nls \
+			--sysconfdir=/etc
+
+	make
+	make install DESTDIR=$PKG
+	rm -rf $PKG/usr/share/gtk-doc
+}

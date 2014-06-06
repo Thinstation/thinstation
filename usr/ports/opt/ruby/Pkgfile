@@ -4,15 +4,17 @@
 # Depends on:  gdbm ncurses openssl readline zlib libffi libyaml
 
 name=ruby
-version=1.9.3-p385
-release=2
-source=(ftp://ftp.ruby-lang.org/pub/$name/1.9/$name-$version.tar.bz2 \
-        $name-arch.patch)
+version=2.1.2
+release=1
+source=(ftp://ftp.ruby-lang.org/pub/$name/2.1/$name-$version.tar.bz2
+	$name-$version-ffi_version.patch)
 
 build () {
     cd $name-$version
 
-    patch -p0 -i $SRC/$name-arch.patch
+    patch -Np1 < $SRC/$name-$version-ffi_version.patch
+    sed -i ext/readline/readline.c \
+	-e "s:(Function \*)readline:(rl_hook_func_t \*)readline:"
 
     ./configure --prefix=/usr \
                 --mandir=/usr/man \

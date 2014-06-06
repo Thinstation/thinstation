@@ -4,7 +4,7 @@
 # Depends on:  util-linux, cups, fontconfig, xorg-libxt, xorg-libxext
 
 name=ghostscript
-version=9.10
+version=9.14
 release=1
 source=(http://downloads.ghostscript.com/public/$name-$version.tar.bz2
         http://downloads.sourceforge.net/sourceforge/gs-fonts/$name-fonts-std-8.11.tar.gz)
@@ -13,6 +13,7 @@ build () {
     cd $name-$version
 
     rm -rf expat freetype lcms2 jpeg libpng openjpeg tiff zlib
+    sed -i 's/ZLIBDIR=src/ZLIBDIR=$includedir/' configure.ac configure
 
     ./configure --prefix=/usr \
                 --mandir=/usr/man \

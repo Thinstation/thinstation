@@ -5,15 +5,16 @@
 # Depends on:
 
 name=dosfstools
-version=3.0.15
+version=3.0.22
 release=1
 source=(http://www.daniel-baumann.ch/files/software/$name/$name-$version.tar.xz)
 
 build() {
   cd $name-$version
-  sed -e 's|^install: .*|install: install-bin install-man|' -i Makefile
+  sed -e 's|^install: .*|install: install-bin install-man install-symlinks|' -i Makefile
   make install DESTDIR=$PKG \
                PREFIX=/usr \
                SBINDIR=/sbin \
-               MANDIR=/usr/man
+               MANDIR=/usr/man \
+	       LANGUAGES=
 }

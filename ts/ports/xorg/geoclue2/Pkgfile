@@ -1,0 +1,30 @@
+# Description: A modular geoinformation service.
+# URL: http://geoclue.freedesktop.org/
+# Maintainer: Danny Rawlins, monster dot romster at gmail dot com
+# Packager: Danny Rawlins, monster dot romster at gmail dot com
+# Depends on: gconf gtk-doc
+
+name=geoclue2
+_name=geoclue
+version=2.1.8
+release=1
+source=(http://www.freedesktop.org/software/$_name/releases/${version%.*}/$_name-$version.tar.xz)
+
+build() {
+	cd $_name-$version
+
+	#sed -i "s@ -Werror@@" configure &&
+	#sed -i "s@libnm_glib@libnm-glib@g" configure &&
+	#sed -i "s@geoclue/libgeoclue.la@& -lgthread-2.0@g" \
+	#       providers/skyhook/Makefile.in
+
+	./configure \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--mandir=/usr/man \
+		--disable-static
+
+	make
+	make DESTDIR=$PKG install
+
+}

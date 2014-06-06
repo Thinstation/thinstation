@@ -4,15 +4,16 @@
 # Depends on: 
 
 name=libuser
-version=0.59
+version=0.60
 release=1
 source=(https://fedorahosted.org/released/$name/$name-$version.tar.xz)
 
 build() {
     cd $name-$version
 
-    ./configure --prefix=/usr --disable-nls
+    ./configure --prefix=/usr --sysconfdir=/etc --mandir=/usr/man --disable-nls
 
     make SUBDIRS=po
     make install DESTDIR=$PKG
+    rm -rf $PKG/usr/share/gtk-doc
 }

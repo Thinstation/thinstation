@@ -9,15 +9,18 @@ source=(http://avahi.org/download/avahi-$version.tar.gz)
 
 build() {
 	cd $name-$version
+	sed -i 's/\(CFLAGS=.*\)-Werror \(.*\)/\1\2/' configure
+	sed -i -e 's/-DG_DISABLE_DEPRECATED=1//' \
+		-e '/-DGDK_DISABLE_DEPRECATED/d' avahi-ui/Makefile.in
 	./configure --prefix=/usr \
+		--localstatedir=/var \
 		--disable-nls \
-		--with-distro=slackware \
+		--disable-static \
+		--with-distro=none \
 		--disable-libdaemon \
-		--disable-introspection \
 		--disable-mono \
 		--disable-monodoc \
 		--disable-qt3
-
 
 	make
 	make DESTDIR=$PKG install

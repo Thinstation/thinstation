@@ -10,10 +10,10 @@ source=(http://ftp.de.debian.org/debian/pool/main/libx/libxp/libxp_1.0.2.orig.ta
 build() {
 	cd libXp-$version
 
-	./configure --prefix=/usr --disable-static
+	./configure --prefix=/usr --mandir=/usr/man --disable-static
 
 	make
 	make DESTDIR=$PKG install
 
-rm -rf $PKG/usr/man
+	rm -rf $PKG/usr/man
 }

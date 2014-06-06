@@ -25,6 +25,7 @@ build() {
 			--localstatedir=/var \
 			--sysconfdir=/etc \
 			--mandir=/usr/man \
+			--disable-static \
 			--disable-introspection \
 			--disable-tests \
 			--disable-liblightdm-qt \
@@ -40,6 +41,7 @@ build() {
 	make DESTDIR=$PKG install
 
 	rm -rfv $PKG/etc/apparmor.d/
+	rm -rf $PKG/usr/share/gtk-doc
 
 	mkdir -p $PKG/usr/share/lightdm/remote-sessions
 	mkdir -p $PKG/var/cache/lightdm/

@@ -1,0 +1,28 @@
+# Description: Syntax highlighting for the GtkTextView widget
+# URL: http://mail.gnome.org/mailman/listinfo/gnome-devtools
+# Maintainer: Matt Housh, jaeger at morpheus dot net
+# Depends on: gtk, libxml2, libgnomeprint, gnome-vfs
+# Group: gnome/desktop
+
+name=gtksourceview
+pname=gtksourceview
+version=2.10.5
+release=1
+source=(http://ftp.gnome.org/pub/GNOME/sources/$pname/${version%.*}/$pname-$version.tar.gz)
+
+build() {
+	cd $pname-$version
+	rm po/*.po
+	sed -i -e 's/USE_NLS=yes/USE_NLS=no/' \
+		-e 's/ENABLE_NLS 1/ENABLE_NLS 0/' configure
+
+	./configure --prefix=/usr \
+		--disable-gtk-doc \
+		--disable-nls \
+		--disable-static \
+		--enable-shared
+
+	make
+	make DESTDIR=$PKG install
+	rm -rf $PKG/usr/share/gtk-doc
+}

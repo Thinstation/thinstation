@@ -6,19 +6,23 @@
 # Nice to have: libsdl, libjpeg, libpng, lame, zlib, libogg, libvorbis, cdparanoia, win32-essential-codecs, faac, x264, libdvdnav, libdca
 
 name=mplayer
-version=2013-09-12
+version=2014-06-02
 release=1
-source=(http://crux.nu/~tek/mplayer-$version.tar.bz2
+source=(http://www.mplayerhq.hu/MPlayer/releases/mplayer-export-snapshot.tar.bz2
+  http://ffmpeg.org/releases/ffmpeg-snapshot.tar.bz2
+  mplayer-giflib5.1.patch
+  mplayer-libcdio.patch
   http://www1.mplayerhq.hu/MPlayer/releases/fonts/font-arial-iso-8859-1.tar.bz2
   mplayer.conf)
 
 build() {
-  cd mplayer-$version
-
+  cd mplayer-export-$version
+  mv ../ffmpeg ffmpeg
+  patch -Np1 < ../mplayer-giflib5.1.patch
+  patch -Np1 < ../mplayer-libcdio.patch
+  
   # Keep in line with mplayer CFLAGS, but allow people to set their own march/mtune values.
   export CFLAGS="$(echo $CFLAGS | sed -e 's/-O[s0-3]/-O3/') -ffast-math -fomit-frame-pointer -fno-strict-aliasing"
-
-  rm -f ffmpeg/mp_auto_pull
 
   ./configure --prefix=/usr \
       --mandir=/usr/man \

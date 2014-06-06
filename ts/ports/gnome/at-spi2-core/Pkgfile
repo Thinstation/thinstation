@@ -4,16 +4,16 @@
 # Depends on:	dbus, glib, intltool, xorg-libxtst
 
 name=at-spi2-core
-version=2.9.3
-release=3
+version=2.12.0
+release=1
 source=(http://ftp.gnome.org/pub/gnome/sources/at-spi2-core/${version%.*}/at-spi2-core-$version.tar.xz)
 
 build() {
 	cd $name-$version
 	./configure --prefix=/usr \
+		    --sysconfdir=/etc \
                     --libexecdir=/usr/libexec \
-                    --disable-nls \
-                    --disable-introspection
+                    --disable-nls
 
 	make
 	make DESTDIR=$PKG install

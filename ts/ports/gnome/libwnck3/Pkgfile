@@ -5,7 +5,7 @@
 # Depends on: gtk startup-notification intltool
 
 name=libwnck3
-version=3.4.5
+version=3.4.7
 release=1
 source=(ftp://ftp.gnome.org/pub/gnome/sources/libwnck/${version%.*}/libwnck-$version.tar.xz)
 
@@ -17,12 +17,11 @@ build() {
       -e 's/ENABLE_NLS 1/ENABLE_NLS 0/'
 
   ./configure --prefix=/usr \
-		--disable-introspection \
 		--disable-nls \
 		--disable-static \
 		--enable-shared
 
   make
   make DESTDIR=$PKG install
-  rm -rf $PKG/usr/share
+  rm -rf $PKG/usr/share/gtk-doc
 }

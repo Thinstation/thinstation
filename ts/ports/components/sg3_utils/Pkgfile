@@ -5,13 +5,13 @@
 # Depends on:	glibc 
 
 name=sg3_utils
-version=1.35
+version=1.38
 release=1
 source=(http://sg.danny.cz/sg/p/$name-$version.tgz)
 
 build () {
 	cd $name-$version
-	./configure --prefix=/usr
+	./configure --prefix=/usr --disable-static --mandir=/usr/man
 	make
 	make DESTDIR=$PKG install
 	install -m755 -d $PKG/usr/share/licenses/$name

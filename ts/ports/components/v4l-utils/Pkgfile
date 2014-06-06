@@ -4,14 +4,14 @@
 # Depends on:	qt4 sysfsutils
 
 name=v4l-utils
-version=0.9.5
+version=1.0.1
 release=1
 source=(http://linuxtv.org/downloads/v4l-utils/$name-$version.tar.bz2)
 
 build() {
 	cd $name-$version
 
-	./configure --prefix=/usr
+	./configure --prefix=/usr --sysconfdir=/etc --disable-static --enable-libdvbv5 --mandir=/usr/man
 
 	make
 	make DESTDIR=$PKG install

@@ -5,18 +5,14 @@
 # Depends on: gtk libsigc++
 
 name=yelp-tools
-version=3.6.1
+version=3.12.1
 release=1
 source=(http://ftp.gnome.org/pub/GNOME/sources/$name/${version%.*}/$name-$version.tar.xz)
 
 build() {
 	cd $name-$version
 
-	./configure \
-		--prefix=/usr \
-		--disable-dependency-tracking \
-		--disable-introspection \
-		--disable-gtk-doc-html \
+	./configure --prefix=/usr
 
 	make
 	make DESTDIR=$PKG install

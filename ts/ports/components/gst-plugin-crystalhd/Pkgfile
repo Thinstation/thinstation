@@ -3,15 +3,18 @@
 # Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 
 name=gst-plugin-crystalhd
-version=2.6.11
-release=1
+version=git
+release=2
+source=(gst-Port-to-GStreamer-1.0-API.patch)
 
 build() {
 #export CFLAGS="$CFLAGS -Wno-error=unused-but-set-variable"
 	git clone --depth 1 git://linuxtv.org/jarod/crystalhd.git
+	cd crystalhd
+	patch -Np1 < ../gst-Port-to-GStreamer-1.0-API.patch
 
-	cd crystalhd/filters/gst/gst-plugin/
-	./autogen.sh
+	cd filters/gst/gst-plugin/
+	./autogen.sh --disable-static
 	make
         make DESTDIR=$PKG install
 }

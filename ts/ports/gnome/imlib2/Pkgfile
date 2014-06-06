@@ -5,7 +5,7 @@
 # Depends on: freetype, libid3tag, libpng, libtiff, giflib, xorg-libsm, xorg-libxext
 
 name=imlib2
-version=1.4.5
+version=1.4.6
 release=2
 source=(http://download.sourceforge.net/enlightenment/$name-$version.tar.bz2)
 
@@ -13,9 +13,11 @@ build() {
   cd $name-$version
 
   # fix giflib loader
-  sed -i "/DGifOpen/s:fd:&, NULL:" src/modules/loaders/loader_gif.c
+  sed -i -e "/DGifOpen/s:fd:&, NULL:" -e '/DGifCloseFile/s:gif:&, NULL:' \
+	src/modules/loaders/loader_gif.c
+  sed -i 's/@my_libs@//' imlib2-config.in
 
-  ./configure --prefix=/usr --with-pic
+  ./configure --prefix=/usr --with-pic --disable-static
 
   make
   make DESTDIR=$PKG install
