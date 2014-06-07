@@ -19,13 +19,11 @@ libncurses.so.5 libnss_compat.so.2 libnss_files.so.2 libproc-3.2.8.so libpthread
 libreadline.so.6 librt.so.1 libgobject-2.0.so.0 libglib-2.0.so.0 libgmodule-2.0.so.0 \
 libcap.so.2 libgthread-2.0.so.0 libnsl.so.1 libnss_nis.so.2 libncursesw.so.5"
 
-ulibs="libpcre.so.0 libgmp.so.10 libxml2.so.2 libgstinterfaces-0.10.so.0 libffi.so.5 libz.so.1"
+ulibs="libpcre.so.0 libgmp.so.10 libxml2.so.2 libffi.so.5 libz.so.1"
 
-dirs="proc etc/udev/rules.d etc/init.d bin lib tmp dev/bus/usb usr/share/applications usr/local/lib/netscape/plugins \
-usr/lib/gstreamer-0.10 usr/local/lib/firefox/plugins usr/local/lib/chrome/plugins"
+dirs="proc etc/udev/rules.d etc/init.d bin lib tmp dev/bus/usb usr/share/applications usr/local/lib/netscape/plugins usr/local/lib/firefox/plugins usr/local/lib/chrome/plugins"
 
-clean_dirs="setupwfc lib linuxx86 nls dev bin PkgId tmp etc/nsswitch.conf etc/passwd etc/group etc/mtab etc/issue proc \
-usr/local/lib/chrome usr/local/lib/firefox usr/lib/libgstreamer-0.10.so*"
+clean_dirs="setupwfc lib linuxx86 nls dev bin PkgId tmp etc/nsswitch.conf etc/passwd etc/group etc/mtab etc/issue proc usr/local/lib/chrome usr/local/lib/firefox"
 
 for mdir in $dirs; do
 	mkdir -p $INSTALLDIR/$mdir
@@ -64,8 +62,6 @@ chmod +x $INSTALLDIR/bin/chkconfig
 
 touch $INSTALLDIR/bin/firefox
 touch $INSTALLDIR/bin/chrome
-
-cp -P /usr/lib/{libgstreamer-0.10.so,libgstreamer-0.10.so.0.29.0,libgstreamer-0.10.so.0} $INSTALLDIR/usr/lib/.
 
  tar -C $INSTALLDIR -zxvf ./wget_tmp/$gzname
  let returnval=$?
