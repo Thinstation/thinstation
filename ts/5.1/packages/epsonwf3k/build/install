@@ -1,0 +1,21 @@
+#!/bin/sh
+
+gzname=`basename $1`
+installdir=../packages/epsonwf3k
+
+cd wget_tmp
+ar -xf $gzname
+returnval=$?
+tar -C $installdir -xf data.tar.gz
+let returnval=returnval+$?
+
+mkdir -p $installdir/lib/cups/model
+mv $installdir/opt/epson-inkjet-printer-201212w/ppds $installdir/lib/cups/model/epson-201212w
+let returnval=returnval+$?
+
+strip $installdir/opt/epson-injet-printer-201212w/cups/lib/filter/*
+strip $installdir/opt/epson-injet-printer-201212w/lib/*.so*
+
+cd ..
+
+exit $returnval

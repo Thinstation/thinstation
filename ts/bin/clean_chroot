@@ -37,36 +37,13 @@ stage1()
 	done
 	for i in \
 		/build \
-		$TSWRKNG/boot-images/initrd/kernel_parameters \
 		$TSWRKNG/tmp-tree \
-                $TSWRKNG/boot-images/iso/source/{isolinux.cfg,vmlinuz*,initrd,lib.squash} \
-		$TSWRKNG/boot-images/initrd/{initrd,lib.squash,vmlinuz*} \
-		$TSWRKNG/boot-images/iso/thinstation.iso \
-		$TSWRKNG/boot-images/iso/source/modeset.cfg \
-		$TSWRKNG/boot-images/{syslinux,pxe}/{lib.squash,initrd,vmlinuz*} \
-		$TSWRKNG/boot-images/pkg-packages/* \
-		$TSWRKNG/boot-images/pxe/pxelinux.cfg \
-		$TSWRKNG/boot-images/pxe/*.c32 \
-		$TSWRKNG/boot-images/pxe/{module.list,vbe_modes.list,firmware.list} \
-		$TSWRKNG/{thinstation.conf.sample,background-1024x768.jpg} \
-		$TSWRKNG/boot-images/syslinux/syslinux.cfg ; do
+                $TSWRKNG/boot-images/{pxe,syslinux,extlinux,iso,pkg-packages}/* \
+		$TSWRKNG/boot-images/initrd/{kernel_parameters,initrd,lib.squash,vmlinuz*} \
+		$TSWRKNG/{thinstation.conf.sample,background-1024x768.jpg}; do
 			if [ -e $i ];
 				then rm -rf $i
 			fi
-	done
-	if [ -e $TSWRKNG/boot-images/initrd/syslinux.files ]; then
-		for i in pxe iso/source syslinux; do
-			cat $TSWRKNG/boot-images/initrd/syslinux.files | while read file; do
-				rm -rf $TSWRKNG/boot-images/$i/$file
-			done
-		done
-		rm $TSWRKNG/boot-images/initrd/syslinux.files
-	fi
-	find $TSWRKNG/boot-images -type d -empty -delete
-	for checksum in `find $TSWRKNG/boot-images -name image.md5` ; do
-		if [ -n "$checksum" ]; then
-			rm $checksum
-		fi
 	done
 	for i in `ls --color=never $TSWRKNG/packages` ;
 		do
@@ -94,8 +71,6 @@ stage1()
 					fi
 			fi
 		done
-#	echo -e "\tCleaning kernel files"
-#	update -c -k
 	echo -e "\tCleaning tools"
 	update -c -t
 	echo -e "\tCleaning boot-images"
@@ -131,7 +106,7 @@ stage1()
 
 stage2()
 {
-	for i in run www share home usr/libexec usr/ROX usr/var man bin boot dev etc lib mnt opt proc root sbin sys tmp var ts/components usr/{swat,private,bin,etc,include,lib,man,sbin,share,src,local,GNUstep,www} ;
+	for i in run www share home man bin boot dev etc lib mnt opt proc root sbin sys tmp var ts/components usr/{swat,private,bin,etc,include,lib,man,sbin,share,src,local,GNUstep,www,ROX,var,php,libexec} ;
 		do
 			if [ -e $i ] ;
 				then

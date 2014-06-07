@@ -4,25 +4,19 @@
 
 name=kernel-TS_SMP
 pname=${name%-*}
-version=3.10.14
-sversion=3.10.14
+version=3.13.3
+sversion=3.13.3
 kname=${version}TS_SMP
 release=1
-source=(ftp://ftp.kernel.org/pub/linux/kernel/v3.x/linux-$sversion.tar.bz2 \
-	fbcondecor-0.9.6-3.8.patch \
+source=(ftp://ftp.kernel.org/pub/linux/kernel/v3.x/linux-$sversion.tar.xz \
 	/usr/src/kernels/aufs/patches/aufs3.patch \
 	ts.config)
 
 build() {
-#export MAKEFLAGS="-j5"
+export MAKEFLAGS="-j5"
 	cd linux-$sversion
 	cp $SRC/ts.config ./.config
 
-#	if [ -e ~/.ssh/id_rsa ]; then
-#		ln -sf ~/.ssh/id_rsa signing_key.priv
-#		openssl x509 -outform der -in signing_key.priv -out signing_key.x509
-#	fi
-	patch -p1 <../fbcondecor-0.9.6-3.8.patch
 	patch -p1 < ../aufs3.patch
 
 	make modules_prepare __headers

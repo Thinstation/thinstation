@@ -1,0 +1,29 @@
+diff -Naur old/Makefile new/Makefile
+--- old/Makefile	2008-03-05 08:02:40.000000000 -1000
++++ new/Makefile	2013-11-20 11:30:01.387562517 -1000
+@@ -42,11 +42,11 @@
+ 	    protocol-numbers.iana port-numbers.iana
+ 
+ protocol-numbers.iana:
+-	$(AWK) -f get.gawk -v file=protocol-numbers >protocol-numbers.iana
++	$(AWK) -f get.gawk -v file=protocol-numbers/protocol-numbers.xml >protocol-numbers.iana
+ 	rm -f protocol-numbers
+ 
+ port-numbers.iana:
+-	$(AWK) -f get.gawk -v file=port-numbers >port-numbers.iana
++	$(AWK) -f get.gawk -v file=service-names-port-numbers/service-names-port-numbers.xml >port-numbers.iana
+ 	rm -f port-numbers
+ 
+ protocol-numbers:
+diff -Naur old/get.gawk new/get.gawk
+--- old/get.gawk	2008-03-05 08:04:18.000000000 -1000
++++ new/get.gawk	2013-11-20 11:30:01.387562517 -1000
+@@ -26,7 +26,7 @@
+ 	NR++
+ 
+ 	if (in_content) { print }
+-	if (/^$/)       { in_content=1 }
++	if (/^\r?$/)    { in_content=1 }
+     }
+ 
+     printf "\n" >"/dev/stderr"

@@ -6,23 +6,23 @@ name=open-vm-tools
 version=9.4.0-1280544
 dir=stable-9.4.x
 #dir=Development%20Snapshots
-kver=3.10.14
+kver=3.13.3
 release=1
 source=(http://downloads.sourceforge.net/project/$name/$name/$dir/$name-$version.tar.gz
+	vmhgfs-d_count-kernel-3.11-tools-9.6.0.patch)
 	open-vm-tools-9.4.0-linux-310.patch
 	open-vm-tools-9.4.0-glib.patch)
 
 build() {
-	cd $name-$version
+	cd $name-$version/modules/linux/vmhgfs/
 
 	patch -p1 < ../open-vm-tools-9.4.0-linux-310.patch
 	patch -p1 < ../open-vm-tools-9.4.0-glib.patch
+	patch -p1 -i $SRC/vmhgfs-d_count-kernel-3.11-tools-9.6.0.patch
 
-	export CUSTOM_PROCPS_NAME=procps
-	export CUSTOM_PROCPS_LIBS=-L/usr/lib/libprocps.so
-#	sed -i -e 's/s_frozen/s_writers.frozen/g' modules/linux/vmsync/sync.c
+	cd $SRC/$name-$version
 
-	export CFLAGS="$CFLAGS -Wno-deprecated-declarations -Wno-error=unused-local-typedefs"
+	export CFLAGS="$CFLAGS -Wno-deprecated-declarations -Wno-error=unused-local-typedefs -Wno-error=unused-variable"
 	./configure --prefix=/usr \
 			--sysconfdir=/etc \
 			--mandir=/usr/man \
@@ -36,7 +36,7 @@ build() {
 	make DESTDIR=$PKG install
 	make clean
 
-        CFLAGS="$CFLAGS -Wno-deprecated-declarations" ./configure --prefix=/usr \
+        CFLAGS="$CFLAGS -Wno-error=unused-variable -Wno-deprecated-declarations" ./configure --prefix=/usr \
 			--sysconfdir=/etc \
 			--mandir=/usr/man \
 			--with-kernel-release=${kver}TS \

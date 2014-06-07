@@ -1,0 +1,53 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=kernel-TS_x64
+pname=${name%-*}
+version=3.13.3
+sversion=3.13.3
+kname=${version}TS_x64
+release=1
+source=(ftp://ftp.kernel.org/pub/linux/kernel/v3.x/linux-$sversion.tar.xz \
+	/usr/src/kernels/aufs/patches/aufs3.patch \
+	ts.config)
+
+build() {
+export MAKEFLAGS="-j5"
+export CFLAGS="-O2 -pipe"
+export CXXFLAGS="-O2 -pipe"
+export ARCH=x86_64
+
+	cd linux-$sversion
+	cp $SRC/ts.config ./.config
+
+	patch -p1 < ../aufs3.patch
+
+	make modules_prepare __headers
+	mkdir -p $PKG/usr/src/kernels/$kname
+	cp --parents `find -type f -name "Makefile*" -o -name "Kconfig*"` $PKG/usr/src/kernels/$kname
+	rm -rf $PKG/usr/src/kernels/$kname/Documentation
+	cp -a {include,scripts,.config} $PKG/usr/src/kernels/$kname
+	cp -a arch/x86/include $PKG/usr/src/kernels/$kname/arch/x86
+	rm $PKG/usr/src/kernels/$kname/scripts/{mod,kconfig}/*.o
+
+	make -j5
+	make INSTALL_PATH=$PKG install
+	make INSTALL_MOD_PATH=$PKG modules_install
+
+	cp -a Module.symvers System.map $PKG/usr/src/kernels/$kname
+
+	cd $PKG
+        mkdir -p $PKG/boot
+	mv vmlinuz $PKG/boot/vmlinuz-$kname
+	mv System.map $PKG/boot/System.map-$kname
+	cp $SRC/linux-$sversion/.config $PKG/boot/config-$kname
+#	echo $kname >$PKG/boot/KERNEL_VERSION
+
+        rm lib/modules/$kname/{source,build}
+	ln -sf /usr/src/kernels/$kname $PKG/lib/modules/$kname/build
+	ln -sf build $PKG/lib/modules/$kname/source
+	ln -sf . $PKG/usr/src/kernels/$kname/build
+	rm $PKG/lib/modules/$kname/modules.{alias,alias.bin,builtin.bin,dep,dep.bin,devname,softdep,symbols,symbols.bin}
+	rm -rf $PKG/lib/firmware
+}

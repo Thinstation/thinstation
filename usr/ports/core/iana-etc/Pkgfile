@@ -5,11 +5,24 @@
 name=iana-etc
 version=2.30
 release=1
-source=(http://sethwklein.net/$name-$version.tar.bz2)
+source=(http://sethwklein.net/${name}-${version}.tar.bz2 \
+	protocols.gawk \
+	services.gawk \
+	newer.patch)
 
 build() {
-	cd $name-$version
+	cd "${SRC}/${name}-${version}"
+	cp ../protocols.gawk ../services.gawk .
+	patch -p1 -i ../newer.patch
 
+	cd "${SRC}/${name}-${version}"
+	make get
 	make
-	make install DESTDIR=$PKG
+
+	make test
+
+	make DESTDIR="${PKG}" install
+	install -Dm644 COPYING "${PKG}/usr/share/licenses/iana-etc/LICENSE"
+	install -Dm644 port-numbers.iana "${PKG}/usr/share/iana-etc/port-numbers.iana"
+	install -Dm644 protocol-numbers.iana "${PKG}/usr/share/iana-etc/protocol-numbers.iana"
 }

@@ -1,7 +1,8 @@
-# Description: A sound system for POSIX OSes
-# URL: http://www.freedesktop.org/wiki/Software/PulseAudio
-# Maintainer:  Konstantin Lepa, mad dot skipjack at mail dot ru
-# Depends on: json-c libsndfile libtool libcap consolekit
+# Description:	PulseAudio is a cross-platform, networked sound server
+# URL:		http://pulseaudio.org/
+# Maintainer:	Alan Mizrahi, alan at mizrahi dot com dot ve
+# Depends on:	libsndfile-32 speex-32 json-c-32 orc-32 tdb-32 libtool-32 libcap-32 pulseaudio
+# Optional:	lirc-32 bluez-32 openssl-32 sbc-32
 
 name=pulseaudio
 version=5.0
@@ -14,12 +15,35 @@ build() {
 
 	patch -p0 -i $SRC/norootwarn.patch
 
-	./configure --prefix=/usr --sysconfdir=/etc --mandir=/usr/man \
-		--disable-oss-output --disable-oss-wrapper
+	./configure \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--mandir=/usr/man \
+		--localstatedir=/var \
+		--disable-rpath \
+		--disable-nls \
+		--disable-tcpwrap \
+		--disable-esound \
+		--disable-oss-output \
+		--disable-oss-wrapper \
+		--disable-legacy-database-entry-format \
+		--disable-hal-compat \
+		--disable-systemd \
+		--with-database=tdb \
+		--disable-tests
 
-	make
-	make DESTDIR=$PKG install
+	# Fix missing .desktop error with disable-nls
+	cp src/daemon/pulseaudio.desktop.in src/daemon/pulseaudio.desktop
+	sed -i -e 's/_Name/Name/g' src/daemon/pulseaudio.desktop
+	sed -i -e 's/_Comment/Comment/g' src/daemon/pulseaudio.desktop
 
-        rm -r $PKG/usr/share/locale
-        rm -r $PKG/etc/xdg
+	cp src/daemon/pulseaudio-kde.desktop.in src/daemon/pulseaudio-kde.desktop
+	sed -i -e 's/_Name/Name/g' src/daemon/pulseaudio-kde.desktop
+	sed -i -e 's/_Comment/Comment/g' src/daemon/pulseaudio-kde.desktop
+
+	# fight unused direct deps
+	sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
+
+	make -j 1
+	make -j 1 DESTDIR="$PKG" install
 }

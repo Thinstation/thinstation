@@ -1,11 +1,12 @@
-timeout 0
-default ifcpu
-label ifcpu
+TIMEOUT 0
+DEFAULT ifcpu
+
+LABEL ifcpu
 	com32 ifcpu.c32
-	append pae -- pae -- standard
-label standard
-    kernel vmlinuz
-    append initrd=initrd $KERNEL_PARAMETERS
-label pae
-    kernel vmlinuz1
-    append initrd=initrd $KERNEL_PARAMETERS
+	APPEND pae -- pae -- standard
+LABEL standard
+	KERNEL vmlinuz
+	APPEND initrd=initrd $KERNEL_PARAMETERS
+LABEL pae
+	KERNEL vmlinuz1
+	APPEND initrd=initrd $KERNEL_PARAMETERS

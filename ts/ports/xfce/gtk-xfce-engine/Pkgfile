@@ -11,11 +11,18 @@ release=1
 source=(http://archive.xfce.org/src/xfce/$name/${version%.*}/$name-$version.tar.bz2)
 
 build () {
-  cd $name-$version
+  cd ${name}-${name}-$version
+
+  ./autogen.sh
+
+  #Fix missing px in gtk.css
+  for css in `grep -R * -e "text-shadow" |cut -d ":" -f1`; do
+    sed -i -e 's/text-shadow: 1 1/text-shadow: 1px 1px/g' $css
+  done
 
   ./configure --prefix=/usr \
               --disable-static \
-              --disable-debug 
+              --disable-debug
 
   make
   make DESTDIR=$PKG install

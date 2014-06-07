@@ -18,7 +18,7 @@ case $1 in
 		for dnsserver in $dns ; do
 			echo "nameserver $dnsserver" >> $RESOLV
 	        done
-		echo "search $domain" >> $RESOLV
+		echo "search $domain $NET_DNS_SEARCH" >> $RESOLV
 		ifconfig $interface $ip netmask $subnet
 		route add default gw $router
 		if [ -n "$hostname" ] ;then

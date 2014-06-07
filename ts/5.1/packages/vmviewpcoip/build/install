@@ -1,58 +1,31 @@
 #!/bin/sh
 
-dname=`basename $1`
+gzname=`basename $1`
 package=vmware-view-client
+version=`basename $gzname .orig.tar.gz |cut -d "_" -f2`
+SRCDIR=./wget_tmp/$package-$version
 INSTALLDIR=./packages/vmviewpcoip
 
-cd wget_tmp
-
-if [ -n "`echo $dname | grep \.deb`" ] ; then
-  mkdir $package
-  ar x $dname
+  tar -xf wget_tmp/$gzname -C wget_tmp
   returnval=$?
-  rm debian-binary
-  tar xf data.tar.gz -C $package
-  let returnval=returnval+$?
-  rm data.tar.gz
-  rm control.tar.gz
-else
-  tar xf $dname
-  returnval=$?
-fi
 
-mv $package/usr/bin $package
+mv $SRCDIR/usr/bin $INSTALLDIR/.
+mv $SRCDIR/usr/lib $INSTALLDIR/.
+mv $SRCDIR/usr/share/* $INSTALLDIR/lib/.
 
-if [ -e $package/bin/vmware-view.bin ]; then
-  rm $package/bin/vmware-view
-  mv $package/bin/vmware-view.bin $package/bin/vmware-view
-fi
+find $INSTALLDIR -name "._*" -exec rm {} \;
 
-mv $package/usr/lib $package
+for elf in `find $INSTALLDIR -type f |xargs file |grep -e ELF |cut -d ":" -f1`; do
+	strip $elf
+done
 
-rm -rf $package/usr/share/lintian
-mv $package/usr/share/* $package/lib
-rm -rf $package/usr
+rm -rf $INSTALLDIR/lib/locale
+rm -rf $INSTALLDIR/usr/share/lintian
 
-find $package -name "._*" -exec rm {} \;
-
-strip $package/bin/* 2>/dev/null
-strip $package/lib/libpcoip*.so 2>/dev/null
-strip $package/lib/pcoip/vchan_plugins/*.so 2>/dev/null
-strip $package/lib/vmware/vmware-* 2>/dev/null
-strip $package/lib/vmware/rdpvcbridge/*.so 2>/dev/null
-strip $package/lib/vmware/view/vdpService/*.so 2>/dev/null
-
-rm -rf $package/lib/locale
-
-cd ..
-mkdir -p $INSTALLDIR
-cp -a wget_tmp/$package/* $INSTALLDIR
-let returnval=returnval+$?
-
-ln -s ../lib/doc/vmware-view-client/VMware-view-client-EULA-en.txt $INSTALLDIR/build/license
+ln -s lib/doc/vmware-view-client/VMware-view-client-EULA-en.txt $INSTALLDIR/build/license
 
 mkdir -p $INSTALLDIR/lib/licenses/vmware-view-client
-ln -s /lib/doc/vmware-view-client/VMware-view-client-EULA-en.txt $INSTALLDIR/lib/licenses/vmware-view-client
+ln -s /lib/doc/vmware-view-client/VMware-view-client-EULA-en.txt $INSTALLDIR/lib/licenses/vmware-view-client/VMware-view-client-EULA-en.txt
 
 cp -Prfd $INSTALLDIR/build/extra/* $INSTALLDIR/.
 

@@ -229,7 +229,7 @@ dialog_get_username ()
 {
 	if [ -n "$REMUSER" ]; then
 		DIALOG_USER=$REMUSER
-		echo "$REMUSER" > /tmp/.dialog_$1_options
+		echo "$REMUSER" > /tmp/.dialog_$1_user
 	elif [ -e /tmp/.dialog_$1_user ]; then
 		DIALOG_USER=$(cat /tmp/.dialog_$1_user)
 	fi
@@ -715,11 +715,18 @@ use_xrandr ()
 {
 	if is_enabled $USE_XRANDR ; then
 		echo "Using xrandr to set display resolution." >> $APPLOG
-		if [ "$XRANDR_OPTIONS" == "" ]; then
-			xrandr -s $SCREEN_RESOLUTION 2>/dev/null
-		else
-			xrandr $XRANDR_OPTIONS 2>/dev/null
+		if [ -z "$XRANDR_OPTIONS" ]; then
+			XRANDR_OPTIONS="-s $SCREEN_RESOLUTION"
+		elif [ "$XRANDR_OPTIONS" == "dualscreen" ]; then
+			scrns=`xrandr -q | grep " connected" | cut -d " " -f1`
+			numscrns=`echo $scrns | wc -w`
+			if [ $numscrns = 2 ] ; then
+				out1=`echo $scrns | cut -d " " -f1`
+				out2=`echo $scrns | cut -d " " -f2`
+				XRANDR_OPTIONS="--output $out1 --left-of $out2 --primary"
+			fi
 		fi
+		xrandr $XRANDR_OPTIONS 2>/dev/null
 	fi
 }
 
@@ -823,7 +830,7 @@ check_last_session ()
 			. /etc/splash.functions
 			splash_exit
 			show_cursor
-			exec $NO_XORG_CMD
+			TERM=linux exec $NO_XORG_CMD
 		fi
 	fi
 }
@@ -836,4 +843,12 @@ hide_cursor ()
 show_cursor ()
 {
 	echo -en "\033[?12l\033[?25h"
+}
+
+splash_progress ()
+{
+        step=`expr 65536 / $splash_total`
+        pbar=`expr $progress \* $step`
+                echo "progress $pbar" > ${spl_fifo}
+                echo "paint" > ${spl_fifo}
 }

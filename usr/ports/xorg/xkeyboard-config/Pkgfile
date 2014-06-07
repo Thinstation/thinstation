@@ -6,10 +6,13 @@
 name=xkeyboard-config
 version=2.12
 release=1
-source=(http://xorg.freedesktop.org/releases/individual/data/$name/$name-$version.tar.bz2)
+source=(http://xorg.freedesktop.org/releases/individual/data/$name/$name-$version.tar.bz2 \
+	basic.patch)
 
 build() {
 	cd $name-$version
+
+	patch -p0 -i $SRC/basic.patch
 
 	./configure --prefix=/usr \
 	            --mandir=/usr/man \
