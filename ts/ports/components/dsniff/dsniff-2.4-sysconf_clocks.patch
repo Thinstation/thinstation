@@ -1,0 +1,26 @@
+Patch by <kees@ubuntu.com> for dsniff >= 2.4b1, which adds a clock fix. It
+was improved by Robert Scheck <robert@fedoraproject.org> to work with older
+Linux kernel versions, too.
+
+--- dsniff-2.4b1/sshow.c		2007-12-03 23:50:12.000000000 +0100
++++ dsniff-2.4b1/sshow.c.sysconf_clocks	2007-12-03 23:53:12.000000000 +0100
+@@ -217,6 +217,9 @@
+ {
+ 	clock_t delay;
+ 	int payload;
++#if defined(_SC_CLK_TCK)
++	long CLK_TCK = sysconf(_SC_CLK_TCK);
++#endif
+ 
+ 	delay = add_history(session, 0, cipher_size, plain_range);
+ 
+@@ -265,6 +268,9 @@
+ 	clock_t delay;
+ 	int skip;
+ 	range string_range;
++#if defined(_SC_CLK_TCK)
++	long CLK_TCK = sysconf(_SC_CLK_TCK);
++#endif
+ 	
+ 	delay = add_history(session, 1, cipher_size, plain_range);
+ 	

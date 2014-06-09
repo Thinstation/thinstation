@@ -1,0 +1,41 @@
+# Description: Fast CPU emulator and virtualizer for the x86 platform
+# URL:         http://www.qemu.org
+# Maintainer:  Thomas Penteker, tek at serverop dot de
+# Packager:    Lucas Hazel, lucas at die dot net dot au
+# Depends on:  libsdl
+# Nice to have: libseccomp libiscsi libusb usbredir
+ 
+name=qemu
+version=1.7.1
+release=1
+source=(http://wiki.qemu.org/download/qemu-$version.tar.bz2)
+
+build() {
+  cd $name-$version
+  ./configure --prefix=/usr \
+      --cc="${CC:=gcc}" \
+      --host-cc="${CC:=gcc}" \
+      --sysconfdir=/etc \
+      --disable-docs \
+      --libexecdir=/usr/lib/qemu \
+      --disable-gtk \
+      --localstatedir=/var \
+      --target-list=x86_64-linux-user,i386-linux-user,i386-softmmu,x86_64-softmmu
+
+  # fix include issues with libcap
+  sed -i -e '/#include "qemu\/xattr.h"/d' \
+         -e 's|#include <sys/resource.h>|#include <sys/resource.h>\r\n#include "qemu\/xattr.h"|g' \
+  fsdev/virtfs-proxy-helper.c
+
+  # fix include issues with nspr
+  echo 'QEMU_CFLAGS+=-I/usr/include/nspr' >> libcacard/Makefile
+  make ${MAKEFLAGS:=}
+  make DESTDIR=$PKG install
+
+  make qemu.1 qemu-img.1 qemu-nbd.8
+  install -D -m 644 qemu.1 $PKG/usr/man/man1/qemu.1
+  install -D -m 644 qemu-img.1 $PKG/usr/man/man1/qemu-img.1
+  install -D -m 644 qemu-nbd.8 $PKG/usr/man/man8/qemu-nbd.8
+
+  rm -rf $PKG/usr/share/locale
+}

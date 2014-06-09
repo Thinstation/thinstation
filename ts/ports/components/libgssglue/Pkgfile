@@ -1,0 +1,24 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=libgssglue
+version=0.4
+release=1
+source=(http://www.citi.umich.edu/projects/nfsv4/linux/libgssglue/libgssglue-$version.tar.gz)
+
+build() {
+	cd $name-$version
+
+	./configure --prefix=/usr/ \
+			--exec-prefix=/usr/ \
+			--sysconfdir=/etc \
+			--libexecdir=/lib \
+			--mandir=/usr/man \
+			--disable-extras
+
+	make
+	make DESTDIR=$PKG install
+	mkdir $PKG/etc
+	install -m644 -v doc/gssapi_mech.conf $PKG/etc/gssapi_mech.conf
+}

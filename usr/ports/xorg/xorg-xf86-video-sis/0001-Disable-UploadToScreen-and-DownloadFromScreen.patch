@@ -1,0 +1,66 @@
+From c0ff117d3e19e14829a21d89673e03f9d6389043 Mon Sep 17 00:00:00 2001
+From: Jan de Groot <jgc@archlinux.org>
+Date: Thu, 22 Nov 2012 15:04:42 +0100
+Subject: [PATCH] Disable UploadToScreen and DownloadFromScreen. These
+ functions use invalid pointers, causing crashes. As the
+ driver is technically unmaintained, it's better to rely on
+ software fallback than trying to fix the driver
+ implementation.
+
+---
+ src/sis300_accel.c | 2 ++
+ src/sis310_accel.c | 2 ++
+ src/sis_accel.c    | 2 ++
+ 3 files changed, 6 insertions(+)
+
+diff --git a/src/sis300_accel.c b/src/sis300_accel.c
+index af0527d..2162d76 100644
+--- a/src/sis300_accel.c
++++ b/src/sis300_accel.c
+@@ -1273,9 +1273,11 @@ SiS300AccelInit(ScreenPtr pScreen)
+ 
+ 		 /* Composite not supported */
+ 
++#if 0
+ 		 /* Upload, download to/from Screen */
+ 		 pSiS->EXADriverPtr->UploadToScreen = SiSUploadToScreen;
+ 		 pSiS->EXADriverPtr->DownloadFromScreen = SiSDownloadFromScreen;
++#endif
+ 
+ 	      } else {
+ 
+diff --git a/src/sis310_accel.c b/src/sis310_accel.c
+index 1a6f639..20106ce 100644
+--- a/src/sis310_accel.c
++++ b/src/sis310_accel.c
+@@ -2303,9 +2303,11 @@ SiS315AccelInit(ScreenPtr pScreen)
+ 	      }
+ #endif
+ 
++#if 0
+ 	      /* Upload, download to/from Screen */
+ 	      pSiS->EXADriverPtr->UploadToScreen = SiSUploadToScreen;
+ 	      pSiS->EXADriverPtr->DownloadFromScreen = SiSDownloadFromScreen;
++#endif
+ 
+ 	   }
+ #endif
+diff --git a/src/sis_accel.c b/src/sis_accel.c
+index c2c24c7..bb08296 100644
+--- a/src/sis_accel.c
++++ b/src/sis_accel.c
+@@ -801,9 +801,11 @@ SiSAccelInit(ScreenPtr pScreen)
+ 
+ 	  /* Composite not supported */
+ 
++#if 0
+ 	  /* Upload, download to/from Screen */
+ 	  pSiS->EXADriverPtr->UploadToScreen = SiSUploadToScreen;
+ 	  pSiS->EXADriverPtr->DownloadFromScreen = SiSDownloadFromScreen;
++#endif
+ 
+        }
+ #endif /* EXA */
+-- 
+1.8.0
+

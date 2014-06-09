@@ -12,30 +12,16 @@ source=(http://www.samba.org/samba/ftp/stable/$name-$version.tar.gz \
 build () {
     cd $name-$version
 
-_samba4_idmap_modules=idmap_ad,idmap_rid,idmap_adex,idmap_hash,idmap_tdb2
-_samba4_pdb_modules=pdb_tdbsam,pdb_ldap,pdb_ads,pdb_smbpasswd,pdb_wbc_sam,pdb_samba4
-_samba4_auth_modules=auth_unix,auth_wbc,auth_server,auth_netlogond,auth_script,auth_samba4
-
     local JOBS=$(awk 'BEGIN{RS="-j|--jobs="} NR==2 {print $1}' <<< $MAKEFLAGS)
     test -n "$JOBS" && export JOBS="$JOBS"
 
-	./configure --enable-fhs \
-              --prefix=/usr \
-              --sbindir=/usr/bin \
-              --libdir=/usr/lib \
-              --localstatedir=/var \
-              --with-configdir=/etc/samba \
-              --with-sockets-dir=/var/run/samba \
-              --with-piddir=/var/run \
-              --with-ads \
-              --with-ldap \
-              --with-winbind \
-              --with-acl-support \
-              --enable-gnutls \
-              --with-pam \
-              --with-pammodulesdir=/usr/lib/security \
-              --with-shared-modules=${_samba4_idmap_modules},${_samba4_pdb_modules},${_samba4_auth_modules} \
-              --disable-rpath-install
+    ./configure --enable-fhs \
+		--private-libraries=NONE \
+                --prefix=/usr \
+                --localstatedir=/var \
+                --mandir=/usr/man \
+                --sysconfdir=/etc \
+                --with-privatedir=/etc/samba/private
 
     make
     make DESTDIR=$PKG install
@@ -45,12 +31,21 @@ _samba4_auth_modules=auth_unix,auth_wbc,auth_server,auth_netlogond,auth_script,a
     install -m 644 docs/manpages/*.1 $PKG/usr/man/man1
     install -m 644 docs/manpages/*.5 $PKG/usr/man/man5
     install -m 644 docs/manpages/*.8 $PKG/usr/man/man8
-    
+
     # cleanup
-    chmod 1777 $PKG/var/lock/samba
-    
+    chmod 1777 $PKG/var/lock
+
     # config-file and start-script
     install -d $PKG/etc/{samba,rc.d}
     install -m 0600 packaging/LSB/smb.conf $PKG/etc/samba/smb.conf.default
     install -m 0755 $SRC/samba $PKG/etc/rc.d
+
+    cd lib/tdb
+		./configure --prefix=/usr \
+                --localstatedir=/var \
+                --mandir=/usr/man \
+                --sysconfdir=/etc \
+
+    make
+    make DESTDIR=$PKG install
 }

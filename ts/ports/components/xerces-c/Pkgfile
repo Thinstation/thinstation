@@ -11,11 +11,6 @@ build() {
 	cd $name-$version
 
 	./configure --prefix=/usr --disable-static
-
-	for makefile in `grep -R -e '-rpath,/usr/lib '|cut -d ':' -f1 |sort -u`; do
-		sed -i -e 's|rpath,/usr/lib|rpath|g' $makefile
-	done
-
 	make
 	make DESTDIR=$PKG install
 }

@@ -1,0 +1,16 @@
+# Description: E-component of Network Intrusion Detection System
+# URL: http://libnids.sourceforge.net/
+# Maintainer: 
+# Packager: 
+
+name=libnids
+version=1.24
+release=1
+source=(https://sourceforge.net/projects/$name/files/$name/$version/$name-$version.tar.gz)
+
+build(){
+	cd $name-$version
+	./configure --prefix=/usr --sysconfdir=/etc
+	make shared
+	make _installshared install_prefix=$PKG
+}

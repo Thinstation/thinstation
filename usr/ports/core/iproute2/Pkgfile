@@ -6,8 +6,7 @@
 name=iproute2
 version=3.12.0
 release=1
-source=(http://www.kernel.org/pub/linux/utils/net/$name/$name-$version.tar.xz \
-        net.iproute2)
+source=(http://www.kernel.org/pub/linux/utils/net/$name/$name-$version.tar.xz)
 
 build() {
     cd $name-$version
@@ -15,5 +14,4 @@ build() {
     make CCOPTS="$CFLAGS"
     make MANDIR=/usr/man DESTDIR=$PKG install
     rm -r $PKG/usr/share
-    install -D -m 0755 $SRC/net.iproute2 $PKG/etc/rc.d/net
 }
