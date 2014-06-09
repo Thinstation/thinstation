@@ -1,0 +1,26 @@
+# Description: utilities for parsing and creating messages using MIME.
+# URL: http://spruce.sourceforge.net/gmime/
+# Maintainer: None
+# Depends on: 
+
+name=gmime
+version=2.6.20
+release=1
+source=(ftp://ftp.gnome.org/pub/gnome/sources/$name/${version%.*}/$name-$version.tar.xz)
+
+build() {
+	cd $name-$version
+
+        sed -i -e "s/USE_NLS=yes/USE_NLS=no/" \
+                -e "s/ENABLE_NLS 1/ENABLE_NLS 0/" configure
+
+        ./configure --prefix=/usr \
+		--mandir=/usr/man \
+		--disable-nls \
+		--disable-mono \
+		--enable-shared \
+		--disable-static
+
+	make
+	make install DESTDIR=$PKG
+}
