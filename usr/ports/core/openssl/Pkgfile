@@ -4,14 +4,14 @@
 
 name=openssl
 version=1.0.1f
-release=fips205
+release=205
 source=(http://www.openssl.org/source/$name-$version.tar.gz \
         mksslcert.sh)
 
 build() {
     cd $name-$version
     export MAKEFLAGS="$MAKEFLAGS -j1"
-    ./config --prefix=/usr --openssldir=/etc/ssl fips shared
+    ./config --prefix=/usr --openssldir=/etc/ssl shared
     sed -i "s|-O3|$CFLAGS|" Makefile
     make
     make INSTALL_PREFIX=$PKG LIBDIR=lib MANDIR=/usr/man MANSUFFIX=ssl install

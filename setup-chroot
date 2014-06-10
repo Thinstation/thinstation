@@ -89,6 +89,8 @@ launch_chroot()
 	do_mounts
 	if first_or_last; then
 		copy_host_essential
+		mkdir -p var/lib/dbus
+		dbus-uuidgen --get > var/lib/dbus/machine-id
 	fi
 	chroot /$PWD /bin/bash --rcfile ./ts/TS_ENV
 	howdiditgo=$?
