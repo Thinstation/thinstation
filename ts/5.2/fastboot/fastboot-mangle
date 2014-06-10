@@ -59,7 +59,7 @@ if [ "$2" == "true" ] ; then
 	if [ "$HARDLINK" == "true" ]; then
 		hardlink -t -m lib
 	fi
-	mksquashfs lib ../$INITDIR/lib.squash -always-use-fragments -no-recovery -all-root -no-xattrs -noappend
+	mksquashfs lib ../$INITDIR/lib.squash -always-use-fragments -no-recovery -all-root -no-xattrs -noappend $FB_COMP_EXTRA
 	for i in `ls --color=never lib/ |grep -Ewvf ../fastboot/lib-boot |grep -Ewv 'bin|sbin'` ; do
 		if [ ! -z "$i" ] ; then
 			rm -rf lib/$i
