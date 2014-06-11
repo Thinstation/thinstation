@@ -54,7 +54,7 @@ dialog_no_value()
 create_dialog()
 {
 	MAIN_DIALOG='
-<window title="'"$client"'" decorated="true" width-request="325" height-request="220" allow-grow="false" allow-shrink="false">
+<window title="'"$client"'" decorated="true" width-request="325" height-request="235" allow-grow="false" allow-shrink="false">
 	<vbox>
 		<hbox>
 			<pixmap>
@@ -71,7 +71,7 @@ create_dialog()
 		</hbox>
 		<hseparator></hseparator>
 	<notebook labels="User|Server">
-                <vbox visible="'"$ALLOW_SERVER_EDITS"'">
+                <vbox>
 			<text space-expand="false" space-fill="false" use-markup="true" xalign="0">
                         	<label>Username</label>
                 	</text>
@@ -86,7 +86,7 @@ create_dialog()
                         	<variable>DIALOG_PASSWORD</variable>
                 	</entry>
 		</vbox>
-		<vbox>
+		<vbox visible="'"$ALLOW_SERVER_EDITS"'">
 			<text space-expand="false" space-fill="false" use-markup="true" xalign="0">
 				<label>Server name or IP number</label>
 			</text>
@@ -131,7 +131,7 @@ dialog_get_server_address()
 		export MAIN_DIALOG
 
 		I=$IFS; IFS=""
-		for STATEMENTS in  $(gtkdialog --program=MAIN_DIALOG); do
+		for STATEMENTS in  $(gtkdialog -c --program=MAIN_DIALOG); do
    			eval $STATEMENTS
 		done
 		IFS=$I
