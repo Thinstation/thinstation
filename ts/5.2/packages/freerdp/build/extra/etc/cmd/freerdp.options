@@ -30,8 +30,24 @@ else
 fi
 
 # Modify server param for FreeRDP CLI
-if [ ${SERVER:0:3} != "/v:" ] ; then SERVER="/v:$SERVER" ; fi
-if [ -n $REMUSER ] && [ ${REMUSER:0:3} != "/u:" ]; then REMUSER="/u:$REMUSER"; fi
-if [ -n $PASSWORD ] && [ ${PASSWORD:0:3} != "/p:" ]; then PASSWORD="/p:$PASSWORD"; fi
-if [ -n $PASSWORD ]; then OPTIONS="$PASSWORD $OPTIONS"; fi
-if [ -n $REMUSER ]; then OPTIONS="$REMUSER $OPTIONS"; fi
+if [ -n $SERVER ]; then
+	SERVER_ARG="/v:"
+else
+	unset SERVER_ARG
+fi
+if [ -n $REMUSER ]; then
+	USER_ARG="/u:"
+	if is_enabled $GATEWAY_CREDENTIALS; then
+                MISC_OPTIONS="/gu:$REMUSER"
+	fi
+else
+	unset USER_ARG MISC_OPTIONS
+fi
+if [ -n $PASSWORD ]; then
+	PASSWORD_ARG="/p:"
+	if is_enabled $GATEWAY_CREDENTIALS; then
+                MISC_OPTIONS="$MISC_OPTIONS /gp:$PASSWORD"
+	fi
+else
+	unset PASSWORD_ARG
+fi
