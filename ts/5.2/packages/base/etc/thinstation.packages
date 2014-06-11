@@ -73,14 +73,10 @@ package_input()
 
 order_command()
 {
-
 	if is_enabled $REVERSE_ORDER ; then
-		ORDERED_COMMAND="$SERVER $OPTIONS"
+		ORDERED_COMMAND="$SERVER $OPTIONS $REMUSER $PASSWORD"
 	else
-		ORDERED_COMMAND="$OPTIONS $SERVER"
-	fi
-	if [ -e /etc/cmd/$PACKAGE.getuser ]; then
-		ORDERED_COMMAND="$REMUSER $ORDERED_COMMAND"
+		ORDERED_COMMAND="$OPTIONS $REMUSER $PASSWORD $SERVER"
 	fi
 }
 
@@ -122,7 +118,7 @@ run_command()
 	fi
 	$CMD >> $APPLOG 2>&1
 	STATUS=$?
-	unset PASSWORD CMD
+	unset PASSWORD ORDERED_CMD CMD
 	if x_wm ;then
 		chvt 4
 		exit $STATUS
