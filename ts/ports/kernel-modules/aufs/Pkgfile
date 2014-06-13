@@ -19,14 +19,11 @@ build() {
 	config.mk
 
     mkdir -p $PKG/usr/include/linux
-    mkdir -p $PKG/lib/modules/${release}TS/kernel/fs/aufs
-    make KDIR=/usr/src/kernels/${release}TS all install_headers DESTDIR=$PKG
-    cp -a aufs.ko $PKG/lib/modules/${release}TS/kernel/fs/aufs
-
+    make KDIR=/usr/src/kernels/${release}TS install_headers DESTDIR=$PKG
+    make KDIR=/usr/src/kernels/${release}TS install MODLIB=$PKG/lib/modules/${release}TS INSTALL_MOD_DIR=kernel/fs/aufs MODSECKEY=/etc/ssl/keys/kernel.key MODPUBKEY=/etc/ssl/certs/kernel.crt
+   
     make KDIR=/usr/src/kernels/${release}TS clean
 
-    mkdir -p $PKG/lib/modules/${release}TS_SMP/kernel/fs/aufs
-    make KDIR=/usr/src/kernels/${release}TS_SMP CONFIG_AUFS_PROC_MAP=Y
-    cp -a aufs.ko $PKG/lib/modules/${release}TS_SMP/kernel/fs/aufs
+    make KDIR=/usr/src/kernels/${release}TS_SMP install MODLIB=$PKG/lib/modules/${release}TS_SMP INSTALL_MOD_DIR=kernel/fs/aufs MODSECKEY=/etc/ssl/keys/kernel.key MODPUBKEY=/etc/ssl/certs/kernel.crt
 }
 

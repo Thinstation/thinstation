@@ -6,7 +6,7 @@
 # Nice to have: libseccomp libiscsi libusb usbredir
  
 name=qemu
-version=1.7.1
+version=2.0.0
 release=1
 source=(http://wiki.qemu.org/download/qemu-$version.tar.bz2)
 
@@ -23,12 +23,13 @@ build() {
       --target-list=x86_64-linux-user,i386-linux-user,i386-softmmu,x86_64-softmmu
 
   # fix include issues with libcap
-  sed -i -e '/#include "qemu\/xattr.h"/d' \
-         -e 's|#include <sys/resource.h>|#include <sys/resource.h>\r\n#include "qemu\/xattr.h"|g' \
-  fsdev/virtfs-proxy-helper.c
+  sed -e '/#include <sys\/capability.h>/ d' \
+      -e '/#include "virtio-9p-marshal.h"/ i#include <sys\/capability.h>' \
+      -i fsdev/virtfs-proxy-helper.c
 
   # fix include issues with nspr
   echo 'QEMU_CFLAGS+=-I/usr/include/nspr' >> libcacard/Makefile
+
   make ${MAKEFLAGS:=}
   make DESTDIR=$PKG install
 

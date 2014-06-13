@@ -1,0 +1,33 @@
+# Description: A Multiboot boot loader
+# URL: http://www.gnu.org/software/grub/
+# Maintainer: Matt Housh, jaeger at morpheus dot net
+# Depends on: libdevmapper, freetype
+
+name=grub2
+version=2.00
+release=4
+source=(ftp://ftp.gnu.org/gnu/grub/grub-$version.tar.xz \
+	http://unifoundry.com/unifont-5.1.20080820.pcf.gz \
+	$name-10_linux.diff grub.cfg.sample)
+
+build() {
+	export CFLAGS="${CFLAGS} -Wno-error"
+	cd grub-$version
+	# fix for glibc 'gets' removal
+	sed -i -e '/gets is a/d' grub-core/gnulib/stdio.in.h
+	patch -i $SRC/$name-10_linux.diff util/grub.d/10_linux.in
+
+	sed -i -e "s,<freetype/ftsynth.h>,FT_SYNTHESIS_H," util/grub-mkfont.c
+
+	./configure --prefix=/usr \
+		--sysconfdir=/etc \
+		--enable-device-mapper \
+		--disable-efiemu \
+		--disable-grub-mount
+	make
+	make DESTDIR=$PKG install
+	rm -rf $PKG/usr/share/{info,locale,grub/themes}
+	gzip -d $SRC/unifont-5.1.20080820.pcf.gz
+	./grub-mkfont -o $PKG/usr/share/grub/unifont.pf2 \
+		$SRC/unifont-5.1.20080820.pcf
+}

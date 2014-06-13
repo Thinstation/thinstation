@@ -17,22 +17,18 @@ build() {
 	patch -p1 -i linux-recent.patch
 	patch -p1 -i license.patch
 
-	KBUILD_NOPEDANTIC=1 make -C /usr/src/kernels/${release}TS M=`pwd` V=1
-	mkdir -p $PKG/$TSCOMPROOT/kernel/kernel/modules-${release}TS/kernel/drivers/net/wireless
-	cp -a wl.ko $PKG/$TSCOMPROOT/kernel/kernel/modules-${release}TS/kernel/drivers/net/wireless
+	KBUILD_NOPEDANTIC=1 make -C /usr/src/kernels/${release}TS M=`pwd`
+	KBUILD_NOPEDANTIC=1 make -C /usr/src/kernels/${release}TS M=`pwd` modules_install MODLIB=$PKG/lib/modules/${release}TS INSTALL_MOD_DIR=kernel/drivers/net/wireless MODSECKEY=/etc/ssl/keys/kernel.key MODPUBKEY=/etc/ssl/certs/kernel.crt
 
 	KBUILD_NOPEDANTIC=1 make -C /usr/src/kernels/${release}TS M=`pwd` clean
 
 	KBUILD_NOPEDANTIC=1 make -C /usr/src/kernels/${release}TS_SMP M=`pwd`
-	mkdir -p $PKG/$TSCOMPROOT/kernel_SMP/kernel/modules-${release}TS_SMP/kernel/drivers/net/wireless
-	cp -a wl.ko $PKG/$TSCOMPROOT/kernel_SMP/kernel/modules-${release}TS_SMP/kernel/drivers/net/wireless
+	KBUILD_NOPEDANTIC=1 make -C /usr/src/kernels/${release}TS_SMP M=`pwd` modules_install MODLIB=$PKG/lib/modules/${release}TS_SMP INSTALL_MOD_DIR=kernel/drivers/net/wireless MODSECKEY=/etc/ssl/keys/kernel.key MODPUBKEY=/etc/ssl/certs/kernel.crt
 
 	mkdir -p  $PKG/usr/share/$name
 	cp lib/LICENSE.txt $PKG/usr/share/$name/.
 
 	mkdir -p $PKG/etc/modprobe.d
 	echo "# Make sure that the wl driver gets loaded and not the ssb driver" > $PKG/etc/modprobe.d/$name.conf
-	modinfo wl.ko | grep alias | sed -e 's/alias: *\(.*\)/alias \1 wl/' >> $PKG/etc/modprobe.d/$name.conf
 	echo "install ssb modprobe wl; modprobe --ignore-install ssb" >> $PKG/etc/modprobe.d/$name.conf
-
 }

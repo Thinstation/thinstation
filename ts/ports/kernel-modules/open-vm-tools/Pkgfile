@@ -9,18 +9,20 @@ dir=stable-9.4.x
 kver=3.13.3
 release=1
 source=(http://downloads.sourceforge.net/project/$name/$name/$dir/$name-$version.tar.gz
-	vmhgfs-d_count-kernel-3.11-tools-9.6.0.patch
-	open-vm-tools-9.4.0-linux-310.patch
+	open-vm-tools-linux-3.10.patch
+	open-vm-tools-linux-3.11.patch
+	open-vm-tools-linux-3.12.patch
+	open-vm-tools-linux-3.14.patch
 	open-vm-tools-9.4.0-glib.patch)
 
 build() {
-	cd $name-$version/modules/linux/vmhgfs/
-
-	patch -p1 < ../open-vm-tools-9.4.0-linux-310.patch
+	cd $name-$version
+	# Patches from the pld-linux/open-vm-tools repo on GitHub
+	patch -p1 < ../open-vm-tools-linux-3.10.patch
+	patch -p1 < ../open-vm-tools-linux-3.11.patch
+	patch -p1 < ../open-vm-tools-linux-3.12.patch
+	patch -p1 < ../open-vm-tools-linux-3.14.patch
 	patch -p1 < ../open-vm-tools-9.4.0-glib.patch
-	patch -p1 -i $SRC/vmhgfs-d_count-kernel-3.11-tools-9.6.0.patch
-
-	cd $SRC/$name-$version
 
 	export CFLAGS="$CFLAGS -Wno-deprecated-declarations -Wno-error=unused-local-typedefs -Wno-error=unused-variable"
 	./configure --prefix=/usr \
@@ -55,4 +57,13 @@ build() {
 	rm -r $PKG/usr/{share,include}
 	find $PKG/usr -name *.la -delete
 	find $PKG/usr -name *.a -delete
+
+  if [ -e /etc/ssl/certs/kernel.crt ]; then
+        for module in `find $PKG/lib/modules/${kver}TS` ; do
+        	perl /usr/src/kernels/${kver}TS/scripts/sign-file sha256 /etc/ssl/keys/kernel.key /etc/ssl/certs/kernel.crt $module
+	done
+        for module in `find $PKG/lib/modules/${kver}TS_SMP` ; do
+	        perl /usr/src/kernels/${kver}TS_SMP/scripts/sign-file sha256 /etc/ssl/keys/kernel.key /etc/ssl/certs/kernel.crt $module
+        done
+  fi
 }

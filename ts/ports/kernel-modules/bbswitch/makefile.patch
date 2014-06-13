@@ -1,0 +1,21 @@
+--- a/Makefile	2013-12-04 23:22:06.000000000 +0000
++++ b/Makefile	2014-02-26 13:56:16.573982774 +0000
+@@ -3,6 +3,7 @@
+ 
+ KVERSION := $(shell uname -r)
+ KDIR := /lib/modules/$(KVERSION)/build
++MODDIR := misc
+ PWD := "$$(pwd)"
+ 
+ ifdef DEBUG
+@@ -20,9 +21,7 @@
+ 	insmod $(modname).ko
+ 
+ install:
+-	mkdir -p /lib/modules/$(KVERSION)/misc/$(modname)
+-	install -m 0755 -o root -g root $(modname).ko /lib/modules/$(KVERSION)/misc/$(modname)
+-	depmod -a
++	$(MAKE) -C $(KDIR) M=$(PWD) modules_install INSTALL_MOD_DIR=$(MODDIR)
+ 
+ uninstall:
+ 	rm /lib/modules/$(KVERSION)/misc/$(modname)/$(modname).ko
