@@ -180,6 +180,10 @@ copy_module()
 	local rpath=`find /lib/modules/$2 -name $1 -printf %h |cut -d "/" -f5-`
 	local src=/lib/modules/$2/$rpath/$1
 	local dest=$3/lib/modules/$2/$rpath
+	if [ ! -e $src ]; then
+		echo "Notice! Module $1 not found for kernel $2"
+		return 1
+	fi
 	if [ ! -e $dest/$1 ]; then
 		mkdir -p $dest
 		cp $src $dest/$1 > /dev/null 2>&1
@@ -671,7 +675,7 @@ if [ -n "$ts_bootresolution" ] ;then
 			fi
 		done
 	fi
-	for res in `ls --color=never ./tmp-tree/etc/splash/$ts_boottheme`; do
+	for res in `ls --color=never ./tmp-tree/etc/splash/$ts_boottheme |grep -v "\.ttf"`; do
 		mv ./tmp-tree/etc/splash/$ts_boottheme/$res/$res.cfg ./tmp-tree/etc/splash/$ts_boottheme/.
 	done
   else
@@ -1079,7 +1083,7 @@ for filename in `cat ./filelist | grep "\.pkg"` ; do
 	. $filename
 done
 for filename in `cat ./filelist | grep "\.param"` ; do
-        . $filename
+	. $filename
 done
 rm ./filelist
 
@@ -1461,6 +1465,7 @@ filesystem_fixups()
 		fi
 	done
 	if [ ! -d ./tmp-tree/etc/X11 ] ;then
+		echo -e "\tRemoving Extra Font Files"
 		rm -rf ./tmp-tree/lib/fonts/X11
 		rm -rf ./tmp-tree/lib/X11
 		rm -rf ./tmp-tree/lib/keymaps
@@ -1581,7 +1586,7 @@ if [ -n "$missing_commands" ]; then
 	exit 1
 fi
 
-required_tools="convert cryptmd5 depmod genisoimage mksquashfs smbpasswd vncpasswd"
+required_tools="genisoimage mksquashfs unsquashfs gdk-pixbuf-query-loaders pango-querymodules glib-compile-schemas gio-querymodules rsvg-convert convert cryptmd5 vncpasswd smbpasswd"
 for tool in $required_tools; do
 	if [ ! `which $tool` ]; then
 		missing_tools="$missing_tools $tool"
@@ -1636,19 +1641,6 @@ until [ -z "$1" ]; do
 	fi
 	shift
 done
-
-#if [ -s ./packages/base/linuxrc ]; then
-#  echo "Symbolic Links Ok"
-#else
-#  echo
-#  echo "Symbolic Links not found, error.  You must untar Thinstation" \
-#  "onto a file system which supports symbolic links.  Don't unzip on a" \
-#  "Windows system."
-#  echo
-#  echo "Exiting build, ERROR!!"
-#  remove_files
-#  exit 1
-#fi
 
 if [ -n "$CONFIG_FILE" ]; then
 	if [ ! -e $CONFIG_FILE ] ; then
@@ -1922,11 +1914,11 @@ remove_files
 
 # Echo PKG variables for .conf file to screen
 echo -e "\nNotes about build:"
-if [ -n "$PKGFILES" ] ; then
+if [ -n "$PKGFILES" ]; then
 	echo "Your PKG_PACKAGES for the .conf file should be"
 	echo -e "PKG_PACKAGES=\"$PKGFILES\"\n"
 fi
-if [ -n "$MODFILES" ] ; then
+if [ -n "$MODFILES" ]; then
 	echo "Your MOD_PACKAGES for the .conf file should be"
 	echo "MOD_PACKAGES=\"$MODFILES\""
 fi
