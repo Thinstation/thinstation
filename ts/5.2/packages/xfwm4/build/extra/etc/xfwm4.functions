@@ -13,6 +13,9 @@ make_desktop()
 	echo "Comment=$title"			>>$LINK
 	echo "TryExec=$command"			>>$LINK
 	echo "Exec=$command"			>>$LINK
+	if [ -n "$Path" ]; then
+	echo "Path=$Path"			>>$LINK
+	fi
 	echo "StartupNotify=false"		>>$LINK
 	echo "Terminal=false"			>>$LINK
 	echo "Type=Application"			>>$LINK
@@ -173,6 +176,9 @@ wm_menu()
 				fi
 				if [ -z "$icon" ]; then
 					icon=$package
+				fi
+				if [ -n "$path" ]; then
+					Path=$path
 				fi
 				make_desktop
 				if ! is_enabled $nodesktop ; then
