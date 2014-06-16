@@ -12,7 +12,7 @@ if [ "$SERVER" == "." ] ; then SERVER="" ; fi
 if [ "$OPTIONS" == "." ] ; then OPTIONS="" ; fi
 
 # getfreescreen must be called before $PACKAGE.* because XNEST_NUMBER has to be defined before
-if [ "$PACKAGE" = "xnest" ] ; then getfreescreen ; fi
+if [ "$PACKAGE" == "xnest" ]; then getfreescreen; fi
 
 if [ -e /etc/cmd/$PACKAGE.console ] ; then . /etc/cmd/$PACKAGE.console ; fi
 if [ -e /etc/cmd/$PACKAGE.window ] ; then . /etc/cmd/$PACKAGE.window ; fi
@@ -38,7 +38,7 @@ export APPLOG
 
 gen_menu()
 {
-	if [ -e /etc/cmd/$PACKAGE.wm ] && [ -e /etc/$PACKAGE.functions ] && x_wm ; then
+	if [ -e /etc/cmd/$PACKAGE.wm ] && [ -e /etc/$PACKAGE.functions ] && x_wm; then
 		make_res_list
 		. /etc/splash.functions
 		wm_menu
@@ -48,16 +48,16 @@ gen_menu()
 x_get_ip()
 {
 	if is_enabled $CMD_GETIP; then
-	    if  is_enabled $ALWAYS_ENTER_SERVER || [ -z "$SERVER" ]; then
-		dialog_get_server_address $PACKAGE
-	    fi
+		if is_enabled $ALWAYS_ENTER_SERVER || [ -z "$SERVER" ]; then
+			dialog_get_server_address $PACKAGE
+		fi
 	fi
 }
 
 x_get_user()
 {
 	if [ -e /etc/cmd/$PACKAGE.getuser ] && [ -z "$REMUSER" ]; then
-	    dialog_get_username $PACKAGE
+		dialog_get_username $PACKAGE
 	fi
 }
 
