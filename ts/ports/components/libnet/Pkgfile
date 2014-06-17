@@ -1,0 +1,18 @@
+# Description: Portable framework for low-level network packet construction
+# URL: http://sourceforge.net/projects/libnet-dev/
+# Maintainer: 
+# Packager: 
+
+name=libnet
+version=1.1.6
+release=1
+source=(https://github.com/sam-github/$name/archive/$name-$version.tar.gz)
+
+build(){
+	cd $name-$name-$version/$name
+	sed -i -e "s/\(SUBDIRS =.*\) doc\(.*\)/\1\2/" Makefile.am
+	./autogen.sh
+	./configure --prefix=/usr --sysconfdir=/etc --disable-static
+	make
+	make install DESTDIR=$PKG
+}

@@ -15,7 +15,7 @@ case "$1" in
 init)
 	if ! pkg_initialized $PACKAGE; then
 		alsactl init
-		for card in `cat /proc/asound/cards |grep -e ":" |cut -c2`; do
+		for card in `grep -e ":" /proc/asound/cards |cut -c2`; do
 			if [ -n "$AUDIO_LEVEL" ]; then
 				for control in Master PCM CD Video; do
 					if have_control $control; then
@@ -24,7 +24,7 @@ init)
 					fi
 				done
 			fi
-			if [ "$MIC_LEVEL" -gt "0" ]; then
+			if [ -n "$MIC_LEVEL" ] && [ "$MIC_LEVEL" -gt "0" ]; then
 				if [ -z "$MIC_DEVICE" ]; then MIC_DEVICE=Mic; fi
 				if have_control $MIC_DEVICE; then
 					if have_control Capture; then

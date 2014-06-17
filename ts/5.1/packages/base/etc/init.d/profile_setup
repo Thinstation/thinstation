@@ -4,8 +4,7 @@
 
 case "$1" in
 init)
-  if ! pkg_initialized $PACKAGE; then
-    if [ ! -z "$STORAGE_PREFIX" ] ; then
+    if [ -n "$STORAGE_PREFIX" ] ; then
     	STORAGE_PREFIX=`make_caps $STORAGE_PREFIX`
         if [ "$STORAGE_PREFIX" == "M" ] ; then
         	PREFIX=$CLIENT_MAC
@@ -25,7 +24,7 @@ init)
 
 
 
-    if [ ! -z "$STORAGE_PATH" ] ; then
+    if [ -n "$STORAGE_PATH" ] ; then
 	if [ -e $STORAGE_PATH ] ; then
 	    if [ ! -e $STORAGE_PATH/thinstation.$PREFIX ] ; then
 	      if ! mkdir $STORAGE_PATH/thinstation.$PREFIX ; then
@@ -74,9 +73,6 @@ init)
 	    fi
 	fi
     done
-    pkg_set_init_flag $PACKAGE
-
-  fi
   ;;
 help)
     echo "Usage: $0 init"

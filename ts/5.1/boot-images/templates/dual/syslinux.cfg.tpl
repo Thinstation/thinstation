@@ -2,7 +2,7 @@ TIMEOUT 0
 DEFAULT ifcpu
 
 LABEL ifcpu
-	com32 ifcpu.c32
+	COM32 ifcpu.c32
 	APPEND pae -- pae -- standard
 LABEL standard
 	KERNEL vmlinuz

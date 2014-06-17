@@ -3,18 +3,19 @@
 # Thinstation init script
 #
 # Start setting up the environment
-/bin/busybox clear
 
+trap "" INT QUIT TSTP
 INITLIST=/tmp/initlist
 KERNEL_VERSION=`uname -r`
 
 if [ -e /etc/thinstation.global ] ; then . /etc/thinstation.global ; fi
 if [ -e /etc/splash.functions ] ; then . /etc/splash.functions ; fi
 
+if is_disabled $DEBUGPAUSE ; then
+	# Clear the screen when we are not going to debug, \
+        /bin/busybox clear
+fi
 hide_cursor
-
-umask 022
-trap "" INT QUIT TSTP
 
 # Runs packages in init level
 
@@ -54,12 +55,13 @@ for x in 2 5; do
 done
 rm $INITLIST
 
-splash_exit
-
 if is_enabled $DEBUGPAUSE ; then
 	echo "Debug Pause" >> $LOGFILE;
 	echo_log -d "\n\n\nDebug enabled, Type exit to continue"
 	echo_log -d "If you do not want this to happen, disable the debugpause parameter\n"
 	. $TS_GLOBAL
+	show_cursor
+	trap - INT QUIT TSTP
+	force_splash_exit
 	/bin/ash
 fi

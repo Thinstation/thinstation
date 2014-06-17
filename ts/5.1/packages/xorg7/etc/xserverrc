@@ -9,11 +9,10 @@ LOGFILE=$APPLOGDIR/xorg.$$
 build_command ()
 {
 	# Base Xorg Configuration
-	X_CMD="$X_SERVER :$DISPLAY_NUMBER -br -noreset -nolisten tcp"
+	X_CMD="$X_SERVER :$DISPLAY_NUMBER -br -noreset -novtswitch -nolisten tcp"
 
 	# Get Authenticated console
-	vt=$(fgconsole)
-	X_CMD="$X_CMD vt$vt"
+	X_CMD="$X_CMD vt5"
 
 	# Define Font Paths
 	if [ -n "$SCREEN_X_FONT_SERVER" ]; then
@@ -39,7 +38,7 @@ build_command ()
 
 if [ ! -e /tmp/.xorg-unix/X$DISPLAY_NUMBER ]; then
 	echo "Starting $0 server" >> $LOGFILE
-	if [ -n "$X_COOKIE" ] ; then
+	if [ -n "$X_COOKIE" ]; then
 		xauth -f $XAUTHHOME/.Xauthority add :$DISPLAY_NUMBER.0 - $X_COOKIE >> $LOGFILE 2>&1
 	fi
 	build_command

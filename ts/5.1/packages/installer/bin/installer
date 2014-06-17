@@ -1,7 +1,8 @@
 #!/bin/bash
 
 tempdir=`mktemp -d 2>/dev/null`
-. /etc/thinstation.defaults
+
+. /etc/thinstation.global
 
 x_echo()
 {
@@ -47,8 +48,8 @@ timezone_locale()
 
 	option=`cat /lib/indexed-locale.tab`
 	Xdialog	--no-tags \
+		--rc-file=/etc/gtk-2.0/gtkrc.mono \
 		--title "Locale" \
-		--fixed-font \
 		--stdout \
 		--menu "Localization / Keyboard Map" 20 40 4 ${option} \
 		> $tempdir/locale
@@ -124,21 +125,6 @@ disk_setup()
 
 	disk=${disk[$index]}
 	x_echo "Selected Disk" "Using disk $disk"
-	Xdialog	--title "Buggy Bios" \
-		--no-tags \
-		--stdout \
-		--checklist "Do you have a buggy bios that requires the\n start of the partition to be at sector 1\n instead of the default sector of 2048?" \
-			0 0 2 1 "Enable Buggy Bios Support" off \
-			> $tempdir/buggy
-	if [ $? == 0 ]; then
-		if [ "`cat $tempdir/buggy`" == "1" ]; then
-			buggybios=true
-		else
-			buggybios=false
-		fi
-	else
-		exit 1
-	fi
 }
 
 install_it()
@@ -157,7 +143,7 @@ install_it()
 	if [ $? != 0 ]; then
         	exit l
 	else
-		$XTERM_CMD -T "Installing" $ARG /bin/install.sh $disk $buggybios
+		$XTERM_CMD -T "Installing" $ARG /bin/install.sh $disk
 	fi
 }
 
@@ -173,8 +159,7 @@ fi
 disk_setup
 set_res
 timezone_locale
-
-if [ "`basename $XTERM_CMD`" == "Terminal" ] || [ "`basename $XTERM_CMD`" == "xfce4-terminal" ]; then
+if [ "`basename $XTERM_CMD`" == "xfce4-terminal" ]; then
         ARG="--disable-server -x"
 else
         ARG="-e"

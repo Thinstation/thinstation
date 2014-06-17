@@ -5,9 +5,9 @@ if [ ! -e /tmp/binlist ]; then
 	if [ -n "$2" ]; then
 		location=$2
 	else
-		location="/{bin,boot,etc,home,lib,opt,root,sbin,share,usr,var,www}"
+		location=/{bin,boot,etc,home,lib,opt,root,sbin,share,usr,var,www}
 	fi
-	find $location -type f > /tmp/filelist
+	eval find $location -type f > /tmp/filelist
 	echo "Determining which files are ELF"
 	for file in `file -f /tmp/filelist |grep -e ELF |grep -e shared |cut -d: -f1`; do
 		echo $file >> /tmp/binlist

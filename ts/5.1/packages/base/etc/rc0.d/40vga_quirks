@@ -31,7 +31,7 @@ bb_switch()
 vesa_mode()
 {
 	if is_enabled $VESAMODE; then
-		find /lib/modules -name radeon.ko -delete -o -name vmwgfx.ko -delete -o -name nouveau.ko -delete -o -name i915.ko -delete -o -name gma500_gfx.ko -delete
+		find /lib/modules -name radeon.ko -delete -o -name vmwgfx.ko -delete -o -name nouveau.ko -delete -o -name i915.ko -delete -o -name gma500_gfx.ko -delete -o -name drm_kms_helper.ko -delete
 		depmod
 		echo X_DRIVER_NAME=vesa >> $TS_RUNTIME
 		modprobe uvesafb
@@ -44,21 +44,18 @@ find_vga_drivers()
 {
 	KERNEL=`uname -r`
 
-	RADEON_VENDORS=`	grep /lib/modules/$KERNEL/modules.alias -e radeon	|cut -c 16-19 |uniq`
+	RADEON_VENDORS=`	grep /lib/modules/$KERNEL/modules.alias -e radeon	|cut -c 16-19 |sort -u`
 	RADEON_DEVICES=`	grep /lib/modules/$KERNEL/modules.alias -e radeon	|cut -c 25-28`
 
-	i915_VENDORS=`		grep /lib/modules/$KERNEL/modules.alias -e i915		|cut -c 16-19 |uniq`
+	i915_VENDORS=`		grep /lib/modules/$KERNEL/modules.alias -e i915		|cut -c 16-19 |sort -u`
 	i915_DEVICES=`		grep /lib/modules/$KERNEL/modules.alias -e i915		|cut -c 25-28`
 
-	NOUVEAU_VENDORS=`	grep /lib/modules/$KERNEL/modules.alias -e nouveau	|cut -c 16-19 |uniq`
+	NOUVEAU_VENDORS=`	grep /lib/modules/$KERNEL/modules.alias -e nouveau	|cut -c 16-19`
 
-	VMWGFX_VENDORS=`	grep /lib/modules/$KERNEL/modules.alias -e vmwgfx	|cut -c 16-19 |uniq`
+	VMWGFX_VENDORS=`	grep /lib/modules/$KERNEL/modules.alias -e vmwgfx	|cut -c 16-19`
 	VMWGFX_DEVICES=`	grep /lib/modules/$KERNEL/modules.alias -e vmwgfx	|cut -c 25-28`
 
-	VIA_VENDORS=`		grep /lib/modules/$KERNEL/modules.alias -e via_chrome9	|cut -c 16-19 |uniq`
-	VIA_DEVICES=`		grep /lib/modules/$KERNEL/modules.alias -e via_chrome9	|cut -c 25-28`
-
-	GMA_VENDORS=`		grep /lib/modules/$KERNEL/modules.alias -e gma500_gfx	|cut -c 16-19 |uniq`
+	GMA_VENDORS=`		grep /lib/modules/$KERNEL/modules.alias -e gma500_gfx	|cut -c 16-19`
 	GMA_DEVICES=`		grep /lib/modules/$KERNEL/modules.alias -e gma500_gfx	|cut -c 25-28`
 }
 
@@ -94,16 +91,6 @@ detect_vga_adapters()
 			done
 		fi
 	done
-        for vid in $VIA_VENDORS ; do
-                if [ "$VENDOR" == "$vid" ]; then
-                        for pid in $VIA_DEVICES ; do
-                                if [ "$DEVICE" == "$pid" ]; then
-                                        VIA=true
-                                        kms=true
-                                fi
-                        done
-                fi
-        done
 	for vid in $NOUVEAU_VENDORS ; do
 		if [ "$VENDOR" == "$vid" ]; then
 			NOUVEAU=true

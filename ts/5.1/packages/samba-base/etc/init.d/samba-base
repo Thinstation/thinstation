@@ -9,12 +9,12 @@ init)
 	pkg_set_init_flag $PACKAGE
 
         mkdir /mnt/home
-	mkdir -m 777 /var/spool/samba
+	chmod 777 /var/spool/samba
 
-	cat /lib/smbpassword.ro > /etc/smbpassword
-	cat /lib/secrets.tdb.ro > /etc/secrets.tdb
+#	cat /lib/passdb.tdb.ro > /etc/samba/private/passdb.tdb
+#	cat /lib/secrets.tdb.ro > /etc/samba/private/secrets.tdb
 
-	if [ -z "$SAMBA_WORKGROUP" ] ; then SAMBA_WORKGROUP=None ; fi
+	if [ -z "$SAMBA_WORKGROUP" ] ; then SAMBA_WORKGROUP=WORKGROUP ; fi
 	if [ -z "$SAMBA_SECURITY" ] ; then SAMBA_SECURITY=Server ; fi
 	if [ -z "$SAMBA_SERVER" ] ; then SAMBA_SERVER=None ; fi
 	if [ -z "$SAMBA_HARDDISK" ] ; then SAMBA_HARDDISK=Off ; fi
@@ -53,9 +53,10 @@ init)
 	echo s/\$WINS_ON/`replace_variable $WINS_ON`/g >> /tmp/script
 	echo s\@\$SAMBA_ROOT@$SAMBA_ROOT@g >> /tmp/script
 	echo s\@\$LPR_ROOT@$LPR_ROOT@g >> /tmp/script
-	cat /lib/smb.conf.tpl | sed -f /tmp/script > /etc/smb.conf
+	cat /lib/smb.conf.tpl | sed -f /tmp/script > /etc/samba/smb.conf
 	rm /tmp/script
 
+	nmbd -D
     fi
     ;;
 help)

@@ -1,0 +1,30 @@
+# Description: Mozilla Network Security Services (NSS)
+# URL:         http://www.mozilla.org/projects/security/pki/nss/
+# Maintainer:  Fredrk Rinnestam, fredrik at rinnestam dot se
+# Depends on:  nspr sqlite3
+
+name=ca-bundle
+version=cvs
+release=1
+source=()
+
+build() {
+	certhost='http://mxr.mozilla.org'
+	certdir='/mozilla/source/security/nss/lib/ckfw/builtins'
+	url="$certhost$certdir/certdata.txt?raw=1"
+
+	wget --output-document certdata.txt $url
+	unset certhost certdir url
+	make-ca.sh
+	remove-expired-certs.sh certs
+
+	SSLDIR=$PKG/etc/ssl
+	install -d ${SSLDIR}/certs
+	cp -v certs/*.pem ${SSLDIR}/certs
+	c_rehash ${SSLDIR}/certs
+	install BLFS-ca-bundle*.crt ${SSLDIR}/cert.pem
+	ln ${SSLDIR}/cert.pem ${SSLDIR}/certs/ca-certificates.crt
+	ln ${SSLDIR}/cert.pem ${SSLDIR}/certs/ca-bundle.crt
+	mkdir -p $PKG/etc/pki
+	ln -sf /etc/ssl $PKG/etc/pki/tls
+}
