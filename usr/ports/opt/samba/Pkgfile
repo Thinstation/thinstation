@@ -15,6 +15,8 @@ build () {
     local JOBS=$(awk 'BEGIN{RS="-j|--jobs="} NR==2 {print $1}' <<< $MAKEFLAGS)
     test -n "$JOBS" && export JOBS="$JOBS"
 
+    sed -i -e '36d' pidl/wscript
+
     ./configure --enable-fhs \
 		--private-libraries=NONE \
                 --prefix=/usr \

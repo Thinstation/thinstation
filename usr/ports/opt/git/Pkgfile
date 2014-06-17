@@ -11,7 +11,11 @@ release=1
 source=(https://www.kernel.org/pub/software/scm/git/$name-$version.tar.gz)
 
 build() {
-	cd $name-$version
+  cd $name-$version
+
+  # install Error.pm. this pretty much sucks, but i'm too lazy to
+  # investigate whether there's a better way.
+  sed -i -e '47d' -e '49d' perl/Makefile.PL
 
   export PYTHON_PATH='/usr/bin/python2'
   cd "$SRC/$name-$version"

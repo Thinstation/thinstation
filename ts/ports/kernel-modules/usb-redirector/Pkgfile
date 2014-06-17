@@ -37,13 +37,9 @@ build() {
 	cd $SRC/usb-redirector-linux-i386/files/modules/src/tusbd
 	REPORT_KERNEL=${kernver}TS
 	make clean
-	make
-	mkdir -p $PKG/lib/modules/${kernver}TS/kernel
-	install -m 644 tusbd.ko $PKG/lib/modules/${kernver}TS/kernel
+	make -C /usr/src/kernels/$REPORT_KERNEL M=`pwd` modules modules_install MODLIB=$PKG/lib/modules/$REPORT_KERNEL INSTALL_MOD_DIR=kernel MODSECKEY=/etc/ssl/keys/kernel.key MODPUBKEY=/etc/ssl/certs/kernel.crt
 	make clean
 	REPORT_KERNEL=${kernver}TS_SMP
-	make
-	mkdir -p $PKG/lib/modules/${kernver}TS_SMP/kernel
-        install -m 644 tusbd.ko $PKG/lib/modules/${kernver}TS_SMP/kernel
+	make -C /usr/src/kernels/$REPORT_KERNEL M=`pwd` modules modules_install MODLIB=$PKG/lib/modules/$REPORT_KERNEL INSTALL_MOD_DIR=kernel MODSECKEY=/etc/ssl/keys/kernel.key MODPUBKEY=/etc/ssl/certs/kernel.crt
 	rm $PKG/bin/tusbd.ko
 }
