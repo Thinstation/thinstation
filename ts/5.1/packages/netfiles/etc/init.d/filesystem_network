@@ -5,8 +5,9 @@
 case "$1" in
 init)
     if ! pkg_initialized $PACKAGE; then
-	  if [ -n "$NET_SMB_SERVER" ] && [ -e /bin/smbmount ] &&\
-	           [ -e /bin/smbmnt ] ; then
+	  if [ -n "$NET_SMB_SERVER" ] \
+		&& [ -e /bin/smbmount ] \
+		&& [ -e /bin/smbmnt ]; then
 		   mkdir /mnt/smb
 		   smbmount $NET_SMB_SERVER /mnt/smb -n -o \
 		   username=$NET_SMB_USER,\

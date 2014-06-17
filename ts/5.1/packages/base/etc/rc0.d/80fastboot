@@ -1,27 +1,61 @@
 . $TS_GLOBAL
 
+search()
+{
+	if [ -e $1 ]; then
+		return 0
+	fi
+	if [ -z $squash_location ]; then
+		filename=`basename $1`
+		if [ -e /boot/boot/isolinux/$filename ]; then
+			squash_location="boot/isolinux/"
+		elif [ -e /boot/isolinux/$filename ]; then
+			squash_location="isolinux/"
+		elif [ -e /boot/boot/syslinux/$filename ]; then
+			squash_location="boot/syslinux/"
+		elif [ -e /boot/syslinux/$filename ]; then
+			squash_location="syslinux/"
+		elif [ -e /boot/boot/$filename ]; then
+			squash_location="boot/"
+		fi
+	fi
+	if [ -z $squash_location ]; then
+		return 1
+	else
+		FILE=/boot/"$squash_location"$lib_file
+		UPDATE=/boot/"$squash_location"lib.update
+		return 0
+	fi
+}
+
 syslinux()
 {
 	initrd_file=`basename $initrd`
 	if [ "$initrd_file" == "initrd-backup" ]; then
-		FILE=/boot/"$squash_location"lib.squash-backup
-		while [ ! -e $FILE ]; do sleep .1 ; done
+		lib_file=lib.squash-backup
 	else
-		FILE=/boot/"$squash_location"lib.squash
-		UPDATE=/boot/"$squash_location"lib.update
-		while [ "$BOOTABLE" != "TRUE" ]; do 
-			if [ -e $FILE ] || [ -e $UPDATE ] ; then
-				BOOTABLE=TRUE
-			else
-				BOOTALBE=FALSE
-				echo "Waiting for Storage"
-				sleep .1
-			fi
-		done
-		if [ -e $UPDATE ]; then
-			rm $FILE
-			mv $UPDATE $FILE
+		lib_file=lib.squash
+	fi
+	FILE=/boot/"$squash_location"$lib_file
+	UPDATE=/boot/"$squash_location"lib.update
+	local timeout=0
+	while [ "$BOOTABLE" != "TRUE" ] && [ $timeout -lt 100 ]; do 
+		if search $FILE || search $UPDATE ; then
+			BOOTABLE=TRUE
+		else
+			BOOTALBE=FALSE
+			printf "\rWaiting for Storage"
+			sleep .1
+			let timeout+=1
 		fi
+	done
+	if [ $timeout -eq 100 ]; then
+		echo "Could not find the storage volume!"
+		/bin/sh
+	fi
+	if [ -e $UPDATE ]; then
+		rm $FILE
+		mv $UPDATE $FILE
 	fi
 }
 
@@ -79,6 +113,27 @@ pxelinux()
 isolinux()
 {
 	FILE=/mnt/cdrom0/"$squash_location"lib.squash
+	if [ ! -e $FILE ]; then
+		if [ -z $squash_location ]; then
+			filename=lib.squash
+			if [ -e /mnt/cdrom0/boot/isolinux/$filename ]; then
+				squash_location="boot/isolinux/"
+			elif [ -e /mnt/cdrom0/isolinux/$filename ]; then
+				squash_location="isolinux/"
+			elif [ -e /mnt/cdrom0/boot/syslinux/$filename ]; then
+				squash_location="boot/syslinux/"
+			elif [ -e /mnt/cdrom0/syslinux/$filename ]; then
+				squash_location="syslinux/"
+			elif [ -e /mnt/cdrom0/boot/$filename ]; then
+				squash_location="boot/"
+			fi
+		fi
+		if [ -z $squash_location ]; then
+			echo "Could not find the image on the CDROM!"
+		else
+			FILE=/mnt/cdrom0/"$squash_location"lib.squash
+		fi
+	fi
 }
 
 squash_loc()

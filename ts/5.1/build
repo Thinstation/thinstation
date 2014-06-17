@@ -18,6 +18,9 @@ export TOOLSDIR
 . thinstation.conf.buildtime
 PATH=/usr/local/bin:/usr/bin:/bin:/sbin:/usr/sbin:/usr/local/sbin:/ts/bin
 
+# set some defaults for builds that would produce unexpected results for legacy build scripts otherwise.
+ts_mesa_3d=enabled
+
 # Show Command line Parameters
 
 showhelp()
@@ -113,7 +116,7 @@ lib_in_path()
 	done
 	if [ "`echo $filepath |sed -e 's|/|/\n|g' |grep -c '/'`" -gt "2" ]; then
 		likely_rpath=`echo $filepath |cut -d '/' -f1-3`
-		if [ -n "`find  ./tmp-tree$likely_rpath -name $1`" ]; then
+		if [ -n "`find  $pkgname$likely_rpath -name $1`" ]; then
 			return 0
 		fi
 	fi
@@ -141,19 +144,13 @@ lib_dependencies()
 	#Not using ldd anymore
         (objdump -x $filename 2>/dev/null |grep -e NEEDED |cut -c 24-) |
         while read libfile; do
-          filepath=`dirname $filename |cut -d \/ -f3-`
-          filepath=/$filepath
+          filepath=`dirname $filename | sed -e "s,$pkgname,,"`
           if ! lib_in_path $libfile && [ -z "`echo $libloc | grep $pkgname`" ] && [ ! -e $pkgname/lib/$libfile ]; then
             if [ "$DISPLAYED" != "TRUE" ]; then
               echo "Adding library dependencies for `basename $filename`"
               DISPLAYED=TRUE
             fi
             libsource="`prt-get fsearch $libfile |grep -v Found |cut -d " " -f3 |head -n1`"
-		if [ "$libfile" == "libGL.so.1" ]; then
-			libfile=`readlink $libsource`
-			libsource="`prt-get fsearch $libfile |grep -v Found |cut -d " " -f3 |head -n1`"
-			ln -sf `basename $libsource` ./tmp-tree/lib/libGL.so.1
-		fi
             if [ -n "$libsource" ] && [ -e $libsource ]; then
               echo -e "\t\t\t$libfile"
               if [ ! -e $pkgname/lib ]; then
@@ -173,7 +170,7 @@ lib_dependencies()
       fi
     done
   done
-  ldconfig -r tmp-tree
+  ldconfig -X -r tmp-tree
   rm lpaths.tmp
 }
 
@@ -189,7 +186,7 @@ copy_module()
 	fi
 	if [ ! -e $dest/$1 ]; then
 		mkdir -p $dest
-		cp $src $dest/$1 #> /dev/null 2>&1
+		cp $src $dest/$1 > /dev/null 2>&1
 		if [ "$?" == "0" ]; then
 			copied="$dest/$1"
 			return 0
@@ -215,12 +212,13 @@ list_mod_packages()
 
 module_dependencies()
 {
-echo -e "\nAdding modules that are dependencies of selected modules\n"
+echo -e "\nAdding modules that are dependencies of selected modules"
 for pkgname in `list_all_packages`; do
 	if [ -e $pkgname/lib/modules/$KERNVER ]; then
 		find $pkgname/lib/modules/$KERNVER -name \*.ko > ./modules.list
 		while [ -s ./modules.list ]; do
 			for module in `cat modules.list`; do
+				allfirm `basename $module`
 				depends="`modinfo -F depends $module |sed -e 's/,/ /g'`"
 				# Checks for already existing modules
 				for depend in $depends; do
@@ -332,17 +330,15 @@ fi
 
 make_initrd()
 {
-	for oldfile in lib.squash initrd vmlinuz image.md5; do
-		if [ -e $INITDIR/$oldfile ]; then
-			rm $INITDIR/$oldfile
-		fi
-	done
+
    cd tmp-tree
 	if [ "$ts_fastboot" == "true" ] || [ "$ts_fastboot" == "lotsofmem" ] ;then
 		echo -e "\nMaking initramfs - Fastboot Enabled"
-		export ts_fastbootcmd
-		../fastboot/fastboot-mangle $INITDIR $ts_fastboot $ts_hardlinkfs
+		../fastboot/fastboot-mangle "$INITDIR" "$ts_fastboot" "$ts_hardlinkfs" "$ts_fb_comp_extra"
 	else
+		if [ -e $INITDIR/lib.squash ] ; then
+			rm $INITDIR/lib.squash
+		fi
 		echo -e "\nMaking initramfs"
 	fi
 	echo -e "\tFixing-Up links"
@@ -501,7 +497,7 @@ get_file ()
 	echo -e "\nDownloading from Net....."
         if [ ! -z "$ts_httpproxy" ] ; then
             echo "Using proxy $http_proxy"
-                if ! wget -N $URL -O $2/$outfile -e http_proxy=$ts_httpproxy --no-check-certificate ; then
+                if ! wget -N $URL -O $2/$outfile -e http_proxy=$ts_httpproxy $ts_wgetopts ; then
                         echo -e "\nError has occured downloading file"
                         echo -e "Build Aborted\n"
                         remove_files
@@ -509,7 +505,7 @@ get_file ()
                 fi
         else
             echo "Not using any proxy to connect to internet"
-                if ! wget -N $URL -O $2/$outfile --no-proxy --no-check-certificate ; then
+                if ! wget -N $URL -O $2/$outfile --no-proxy $ts_wgetopts ; then
                         echo -e "\nError has occured downloading file"
                         echo -e "Build Aborted\n"
                         remove_files
@@ -594,7 +590,7 @@ splash_resize()
 			SPLASH_BG_COLOR=black
 		fi
 		$TOOLSDIR/splash/bin/splash_resize ./utils/tools/splash $ts_boottheme scalable 1024x768 $res
-		rsvg-convert $TOOLSDIR/splash/$ts_boottheme/scalable/verbose.svg \
+		rsvg-convert $TOOLSDIR/splash/$ts_boottheme/scalable/silent.svg \
 			-w `echo $res |cut -d "x" -f1` \
 			-h `echo $res |cut -d "x" -f2` \
 			-a -o tmp.png
@@ -603,40 +599,22 @@ splash_resize()
 			-resize $res \
 			-gravity center \
 			-extent $res \
-			+repage $TOOLSDIR/splash/$ts_boottheme/$res/verbose.png
+			+repage $TOOLSDIR/splash/$ts_boottheme/$res/silent.png
 		rm tmp.png
-		if [ "`readlink $TOOLSDIR/splash/$ts_boottheme/scalable/silent.svg`" == "verbose.svg" ]; then
-			ln $TOOLSDIR/splash/$ts_boottheme/$res/verbose.png $TOOLSDIR/splash/$ts_boottheme/$res/silent.png
-		else
-			rsvg-convert $TOOLSDIR/splash/$ts_boottheme/scalable/silent.svg \
-				-w `echo $res |cut -d "x" -f1` \
-				-h `echo $res |cut -d "x" -f2` \
-				-a -o tmp.png
-			convert -background $SPLASH_BG_COLOR tmp.png \
-				-define png:color-type=2 \
-				-resize $res \
-				-gravity center \
-				-extent $res \
-				+repage $TOOLSDIR/splash/$ts_boottheme/$res/silent.png
-			rm tmp.png
-		fi
         else
 		$TOOLSDIR/splash/bin/splash_resize ./utils/tools/splash $ts_boottheme 1024x768 1024x768 $res
 		convert -size 1024x768 \
 			$TOOLSDIR/splash/$ts_boottheme/1024x768/silent.jpg \
 			-resize $res\! $TOOLSDIR/splash/$ts_boottheme/$res/silent.jpg
-		convert -size 1024x768 \
-			$TOOLSDIR/splash/$ts_boottheme/1024x768/verbose.jpg \
-			-resize $res\! $TOOLSDIR/splash/$ts_boottheme/$res/verbose.jpg
         fi
 }
 
 splash_setup()
 {
 if [ -z "$ts_bootresolution" ] ; then
-	ts_bootresolution=800x600-16
+	ts_bootresolution=800x600-32
 fi
-if [ ! -z "$ts_bootresolution" ] ;then
+if [ -n "$ts_bootresolution" ] ;then
         uvesafb="mode_option=\"$ts_bootresolution\""
 	screenres=`echo "$ts_bootresolution" |cut -d "-" -f 1`
 	screenbpp=`echo "$ts_bootresolution" |cut -d "-" -f 2`
@@ -673,11 +651,11 @@ if [ ! -z "$ts_bootresolution" ] ;then
 	if [ ! -z $ts_extra_vid ]; then
 		KERNEL_PARAMETERS="$KERNEL_PARAMETERS video=$ts_extra_vid"
 	fi
-  if [ "`make_caps $ts_bootlogo`" = "TRUE" ] ; then
+  if is_enabled $ts_bootlogo && [ -e ./tmp-tree/bin/fbsplashd ]; then
 	splashvar="splash=silent"
-	if [ ! -z "$ts_splash" ] ; then splashvar="splash=$ts_splash" ; fi
-	if [ ! -z "$ts_boottheme" ] ; then splashvar="$splashvar,theme:$ts_boottheme" ; fi
-	if [ ! -z "$ts_silenttty" ] ; then splashvar="$splashvar,tty:$ts_silenttty" ; fi
+	if [ -n "$ts_splash" ] ; then splashvar="splash=$ts_splash" ; fi
+	if [ -n "$ts_boottheme" ] ; then splashvar="$splashvar,theme:$ts_boottheme" ; fi
+	if [ -n "$ts_silenttty" ] ; then splashvar="$splashvar,tty:$ts_silenttty" ; fi
 	KERNEL_PARAMETERS="$KERNEL_PARAMETERS $splashvar"
 	echo -e "+ Adding splash boot logo\n"
 	res=${ts_bootresolution%-*}
@@ -702,6 +680,8 @@ if [ ! -z "$ts_bootresolution" ] ;then
 		mv ./tmp-tree/etc/splash/$ts_boottheme/$res/$res.cfg ./tmp-tree/etc/splash/$ts_boottheme/.
 	done
   else
+		rm -rf ./tmp-tree/etc/splash
+		rm -rf ./tmp-tree/lib/splash
 		KERNEL_PARAMETERS="$KERNEL_PARAMETERS splash=off"
   fi
 fi
@@ -727,18 +707,20 @@ locales()
 		fi
 	fi
 
-	for localedef in `cat ./tmp-tree/build/*.template`; do
-		inputfile=`echo $localedef|cut -d , -f1`
-		charmap=`echo $localedef|cut -d , -f2`
-		name=`echo $localedef|cut -d , -f3`
-	        if ! is_enabled $ts_fulllocales; then
-			if [ "$charmap" == "UTF-8" ]; then
+	if [ -n "`find ./tmp-tree/build -maxdepth 1 -name \*.template`" ]; then
+		for localedef in `cat ./tmp-tree/build/*.template`; do
+			inputfile=`echo $localedef|cut -d , -f1`
+			charmap=`echo $localedef|cut -d , -f2`
+			name=`echo $localedef|cut -d , -f3`
+		        if ! is_enabled $ts_fulllocales; then
+				if [ "$charmap" == "UTF-8" ]; then
+					write_locale
+				fi
+			else
 				write_locale
 			fi
-		else
-			write_locale
-		fi
-	done
+		done
+	fi
 }
 
 allfirm()
@@ -837,7 +819,7 @@ copy_firmware()
 			fi
 		done
 	else
-		echo "Error, Firmware $1 not found"
+		echo -e "\tError, Firmware $1 not found"
 #		echo "$1" >> /missing
 	fi
 }
@@ -1080,6 +1062,15 @@ for KERNVER in $KERNVERS; do
 	depmod -b ./tmp-tree $KERNVER
 done
 
+# Now that all the package deps are satisfied, do we really need a splash
+if [ -e $PACDIR/bootlogo.param ]; then
+        . $PACDIR/bootlogo.param
+fi
+if ! is_enabled $ts_bootlogo; then
+	echo -e "Boot Logo Disabled. Removing splash package."
+	rm $PACDIR/splash.package
+fi
+
 install_non_distributable
 
 # Add all packages to filetree
@@ -1106,7 +1097,7 @@ if [ -e $PACDIR/tsuser.param ]; then
 		if [ "$ts_tsuserpasswd" == "!!" ]; then
 			GETPASSWD="!!"
 		else
-			GETPASSWD=`cryptmd5 $ts_tsuserpasswd`
+			GETPASSWD=`mkpasswd -m md5 $ts_tsuserpasswd`
 		fi
 	fi
     echo "$ts_tsuser:$GETPASSWD:1000:1000:$ts_tsuser:/home/$ts_tsuser:/bin/sh" >> ./tmp-tree/etc/passwd
@@ -1127,7 +1118,7 @@ if [  -e $PACDIR/rootpasswd.param ]; then
     if [ "$ts_rootpasswd" == "!!" ]; then
         GETPASSWD="!!"
     else
-        GETPASSWD=`cryptmd5 $ts_rootpasswd`
+        GETPASSWD=`mkpasswd -m md5 $ts_rootpasswd`
     fi
     cp ./tmp-tree/etc/passwd ./tmp-tree/etc/passwd.tmp
     echo "root:$GETPASSWD:0:0:root:/root:/bin/sh" >./tmp-tree/etc/passwd
@@ -1152,10 +1143,10 @@ fi
 if [ -e $PACDIR/sambapasswd.param ] && [ -e $PACDIR/samba-base.* ] ; then
     echo $ts_sambapasswd > $TOOLSDIR/smbpass
     echo $ts_sambapasswd >> $TOOLSDIR/smbpass
-    smbpasswd -L -c $TOOLSDIR/smb.conf -a root -s < $TOOLSDIR/smbpass > /dev/null 2>&1
-    mv $TOOLSDIR/smbpassword ./tmp-tree/lib/smbpassword.ro
-    mv $TOOLSDIR/secrets.tdb ./tmp-tree/lib/secrets.tdb.ro
-    rm $TOOLSDIR/smbpass
+    smbpasswd -L -c $TOOLSDIR/smb.conf -a -U root -s < $TOOLSDIR/smbpass > /dev/null 2>&1
+    mv $TOOLSDIR/passdb.tdb ./tmp-tree/etc/samba/private/passdb.tdb
+    mv $TOOLSDIR/secrets.tdb ./tmp-tree/etc/samba/private/secrets.tdb
+    rm -f $TOOLSDIR/{smbpass,gencache_notrans.tdb,mutex.tdb}
 fi
 
 
@@ -1258,14 +1249,22 @@ else
 fi
 
 if [ -z "$DEBUG_KERNEL" ] ; then
-  	DEBUGCONSOLE="console=tty1 loglevel=$ts_bootverbosity"
+  	DEBUGCONSOLE="console=tty1 vt.global_cursor_default=0 loglevel=3"
 fi
+
+# Should we delete the dri folder?
+mesa
 
 # Process locales
 locales
 
 # Process keymaps
 keymaps
+
+# Clean up unncessary folders
+rm ./tmp-tree/dependencies
+rm -Rf ./tmp-tree/build
+rm -Rf ./tmp-tree/.dna
 
 # Adding library dependencies
 
@@ -1378,10 +1377,7 @@ done
 
 # Clean up unncessary folders
 rm -Rf $PACDIR
-rm ./tmp-tree/dependencies
-rm -Rf ./tmp-tree/build
 rm -Rf ./tmp-tree/conf
-rm -Rf ./tmp-tree/.dna
 
 # Building PKG packages
 echo -e "\nBuilding PKG Packages\n"
@@ -1424,6 +1420,13 @@ rmdir $MODDIR
 filesystem_fixups
 }
 
+mesa()
+{
+	if is_disabled $ts_mesa_3d; then
+		echo -e "Mesa 3D disabled, deleting the dri folder."
+		rm -rf ./tmp-tree/lib/dri
+	fi
+}
 filesystem_fixups()
 {
 	# Various filesystem fixups
@@ -1443,14 +1446,38 @@ filesystem_fixups()
         chroot ./tmp-tree /bin/iconvconfig
         rm ./tmp-tree/bin/iconvconfig
         fi
+	echo -e "\tRemoving Extra Files"
 	find ./tmp-tree -name .gitignore -delete
+	if [ ! -e ./tmp-tree/etc/init.d/audio ]; then
+		for sound in `find ./tmp-tree/lib/modules -type d -name sound`; do
+			rm -rf $sound
+		done
+	fi
+	if [ -z "`find ./tmp-tree/lib/modules -name udf.ko -o -name isofs.ko`" ]; then
+		for cdrom in `find ./tmp-tree/lib/modules -type d -name cdrom`; do
+			rm -rf $cdrom
+		done
+	fi
+	for KERNVER in $KERNVERS; do
+		if [ ! -e ./tmp-tree/lib/modules/$KERNVER/kernel/fs ]; then
+			for driver in `find ./tmp-tree/lib/modules/$KERNVER -type d -name scsi -o -name ata -o -name fusion`; do
+				rm -rf $driver
+			done
+		fi
+	done
 	if [ ! -d ./tmp-tree/etc/X11 ] ;then
 		echo -e "\tRemoving Extra Font Files"
 		rm -rf ./tmp-tree/lib/fonts/X11
 		rm -rf ./tmp-tree/lib/X11
 		rm -rf ./tmp-tree/lib/keymaps
-		rm ./tmp-tree/etc/background.jpg
-		rm ./tmp-tree/bin/vmmouse_detect
+		rm -f ./tmp-tree/etc/background.jpg
+		rm -f ./tmp-tree/bin/vmmouse_detect
+		# If we are not starting X, why do we need gpu support.
+		if is_enabled $ts_stripmodules; then
+			for gpu in `find ./tmp-tree/lib/modules -type d -name gpu -o -name agp`; do
+				rm -rf $gpu
+			done
+		fi
 	else
 		echo -e "\tRunning mkfontdir and mkfontscale"
 		for fontdir in `find ./tmp-tree/lib/fonts/X11 -mindepth 1 -type d`; do
@@ -1593,7 +1620,7 @@ echo "OK"
 until [ -z "$1" ]; do
 	if [ "$1" = "--kernel" ]; then
 		shift
-		KERNVEROPT=$1
+		KERNVEROPT="$KERNVEROPT $1"
 	elif [ "$1" = "--license" ]; then
 		shift
 		LICENSE=$1
@@ -1639,18 +1666,19 @@ else
 fi
 
 if [ -z "$KERNVEROPT" ]; then
-	KERNVEROPT=`cat /boot/KERNEL_VERSION`
+	if [ -e ./SMP ]; then
+		KERNVEROPT=SMP
+	else
+		KERNVEROPT=`cat /boot/KERNEL_VERSION`
+	fi
 fi
 
 for KERNVER in $KERNVEROPT; do
 	if [ "$KERNVER" = "UP" ]; then
-		KERNVER=""
+		KERNVER=`cat /boot/KERNEL_VERSION`
 	fi
 
 	# If a specific Kernel version is specified - use it
-	if [ -e ./SMP ]; then
-		KERNVER=SMP
-	fi
 	KERNVER_SHORT=`cat /boot/KERNEL_VERSION |sed -e 's/TS/TS_'$KERNVER'/g'`
 	if [ -n "$KERNVER" ]; then
 		if [ ! -e /lib/modules/$KERNVER ] && [ ! -e /lib/modules/$KERNVER_SHORT ]; then
@@ -1661,8 +1689,6 @@ for KERNVER in $KERNVEROPT; do
 		if [ -e /lib/modules/$KERNVER_SHORT ]; then
 			KERNVER=$KERNVER_SHORT
 		fi
-	else
-		KERNVER=`cat /boot/KERNEL_VERSION`
 	fi
 	echo "Using the $KERNVER Kernel"
 	KERNVERS="$KERNVERS $KERNVER"
@@ -1782,6 +1808,15 @@ if [ -e lib.squash ]; then
 	md5sum lib.squash >> image.md5
 fi
 cd ../..
+
+image_fastboot()
+{
+	if [ "$ts_fastboot" == "true" ] || [ "$ts_fastboot" == "lotsofmem" ] ; then
+		cp -p $INITDIR/lib.squash $IMAGEDIR
+	elif [ -e $IMAGEDIR/lib.squash ]; then
+		rm $IMAGEDIR/lib.squash
+	fi
+}
 
 if [ -z "$ts_bootimages" ]; then
 	ts_bootimages="syslinux pxe iso"

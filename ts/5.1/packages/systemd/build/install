@@ -3,7 +3,12 @@
 export PACKAGE=systemd
 export PORTS="$PACKAGE"
 export DROP_DIRS="lib/systemd/system"
-export DROP_FILES="99-systemd.rules"
+export DROP_FILES="	99-systemd.rules \
+			libgudev-1.0.so \
+			libgudev-1.0.so.0 \
+			libgudev-1.0.so.0.1.3 \
+			libudev.so \
+			accelerometer"
 repackage -e
 
 for file in `find packages/systemd/{etc,bin,sbin,lib,var} -type f |grep -v udev`; do

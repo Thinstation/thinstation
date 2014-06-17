@@ -3,8 +3,10 @@
 cmd_line()
 {
 	for option in `cat /proc/cmdline`; do
-		if echo $option |grep -q -e "="; then
-			eval $option
+		if echo "$option" |grep -q -F '='; then
+			if ! echo "$option" |cut -d '=' -f1 |grep -q -F '.'; then
+				eval "$option"
+			fi
 		fi
 	done
 }

@@ -51,7 +51,7 @@ keyboard_ ()
 		if [ -n "$KEYBOARD_DEVICE" ]; then	echo -e "\tOption      \"Device\" \"$KEYBOARD_DEVICE\""	>> $CONF; fi
 							echo -e "EndSection"					>> $CONF
 	fi
-	if false && [ -n "$XKEYBOARD" ]; then
+	if [ -n "$XKEYBOARD" ]; then
 	CONF=/etc/X11/xorg.conf.d/00-keyboard.conf
 							echo -e "Section \"InputClass\""				> $CONF
 							echo -e "\tIdentifier	\"Keyboard Defaults\""			>> $CONF
@@ -194,7 +194,7 @@ case $1 in
 init|start)
 	X_SERVER=Xorg
 	echo "X_SERVER=$X_SERVER" >> $TS_RUNTIME
-	for section in ServerLayout Files Keyboard Mouse Monitor Device Modes Screen ServerFlags Dri; do
+	for section in ServerLayout Files Keyboard Mouse Monitor Device Modes Screen ServerFlags; do
 		get_options $section
 		`make_lower $section`_
 		if [ -e /tmp/x_$section ]; then rm /tmp/x_$section; fi

@@ -1,0 +1,33 @@
+# Description: GNOME utilities
+# URL: 
+# Maintainer:
+# Depends on:
+# Group: gnome/desktop
+
+name=gnome-utils
+version=2.32.0
+release=1
+source=(http://ftp.gnome.org/pub/GNOME/sources/$name/${version%.*}/$name-$version.tar.bz2
+	deprecated.patch)
+
+build() {
+	cd $name-$version
+	patch -Np1 < $SRC/deprecated.patch
+	rm po/*.po
+
+	sed -i -e 's/USE_NLS=yes/USE_NLS=no/' \
+		-e 's/ENABLE_NLS 1/ENABLE_NLS 0/' configure
+	LINGUAS=en
+	export LINGUAS
+	./configure --prefix=/usr \
+		--libexecdir=/usr/libexec \
+		--with-help-formats="NONE" \
+		--enable-gdict-applet=no \
+		--disable-scrollkeeper \
+		--disable-nls \
+		--disable-static \
+		--enable-shared \
+
+	make
+	make DESTDIR=$PKG install
+}

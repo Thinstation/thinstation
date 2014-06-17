@@ -105,7 +105,7 @@ module squashfs
 #package ts-classic              # The classic ts logic for network/netfiles/hostname/mounting/telnetd/telnet/playcd
 package telnet
 package telnetd
-#package automount
+package automount
 #package autonet
 package networkmanager
 package udisks
@@ -114,9 +114,9 @@ package ntp			# Utility to obtain date & time from network
 #package sound-nasd		#  sound on your thin client from another computer or
                         	#  your remote session.
 package alsa
+package pulseaudio
 package gnome-media
 package gnome-core
-package xfce4-power-manager
 package gnome-control-center
 #package kismet
 package gst-plugins-base
@@ -130,43 +130,18 @@ package cpufreq
 #package wine			# Windows Application Execution Platform
 
 #!!X related
-# --- XOrg 7.6
-#package xorg7-apm
-#package xorg7-ark
-#package xorg7-chips
-#package xorg7-cirrus
-#package xorg7-glint
-#package xorg7-i128
-#package xorg7-mach64
-#package xorg7-mga
-#package xorg7-neomagic
-#package xorg7-r128
-#package xorg7-rendition
-#package xorg7-s3
-#package xorg7-s3virge
-#package xorg7-savage
-#package xorg7-siliconmotion
-#package xorg7-sis
-#package xorg7-sisusb
-#package xorg7-sun
-#package xorg7-tdfx
-#package xorg7-tga
-#package xorg7-trident
-#package xorg7-tseng
+# --- XOrg 7.7
 #package xorg7-v4l
-#package xorg7-vesa		#A fallback driver that works with almost everything. Does allow resolution changes
+package xorg7-vesa		#A fallback driver that works with almost everything. Does allow resolution changes
 package xorg7-vmware
-package xorg7-modesetting
-#package xorg7-ztv
 package xorg7-ati		#ATI video driver for most modern ATI chipsets. Usually requires several firmwares
 #package xorg7-nv		#Old opensource nvidia driver
 #package xorg7-nouveau		#New opensource nvidia driver
 package xorg7_nvidia		#Proprietary nvidia driver
 package xorg7-openchrome	#Via Video Chipsets driver
 #package xorg7-geode		#Geode Video driver
-#package xorg7-i740		#Intel video driver for really old chipsets
 package xorg7-intel		#Intel video driver for most modern chipsets except the GMA3500/3600
-package xorg7-fbdev		#A fallback driver that works with almost everything. Does *not* allow resolution changes
+#package xorg7-sis
 
 #!!Locale or localization files for keyboard and fonts.  (Language/Country)
 package locale-cs_CZ  # Czech
@@ -199,9 +174,10 @@ package locale-tr_TR  # Turkish
 #package vncviewer		# VNC client (vncviewer)
 #package xorg7vnc		# Remote Control Client Workstation
 #package ica			# Citrix ICA client support
+#package tarantella		# Tarantella client support
 #package xnest			# XDM in a window client
 #package urxvt            	# Light Xterm Client (vt102)
-package xterm           	# Xterm Client (vt220)
+#package xterm           	# Xterm Client (vt220)
 package ssh 			# Secure Shell client
 #package tn5250          	# 5250 terminal emulator
 #package dillo			# Dillo light web browser
@@ -240,6 +216,7 @@ package mplayer			# DVD and video player
 #package icewm-theme-liquid
 
 package xfwm4
+package xfce4-power-manager
 #package xfwm4-extra
 package terminal		# Terminal emulator for xfwm4 -- Pulls in xfwm4
 package thunar			# File Manager for xfwm4 -- Pulls in xfwm4
@@ -283,7 +260,7 @@ package icons-cursor		# Anti Aliased Mouse Cursor Theme
 package icons-hicolor           # Hi-Color icons for some applications and themes. Does not really contain any icons.
 package icons-gnome             # gnome Hi-Color icons theme. Needed by most other icon themes.
 #package icons-tango             # tango Hi-Color icons theme
-#package icons-neu               # neu Hi-Color icons theme
+package icons-neu               # neu Hi-Color icons theme
 package fonts-misc
 #package fonts-jis-misc		# Japanese Industrial
 #package fonts-util
@@ -315,7 +292,7 @@ package fonts-Type1-xfree86
 package extensions-x		# Adds various utility s for the X Environment !!!! INCLUDES hwlister.sh !!!!
 package gtkdialog
 #package eGalax                 # eGalax TouchKit Drivers/Utility for serial and usb touchscreens by EETI.
-package installer		# Wipes a drive, makes partitions and downloads thinstation from a pxe server
+#package installer		# Wipes a drive, makes partitions and downloads thinstation from a pxe server
 package devstation		# Starts a tftp server that hosts files from the boot-images/pxe folder
 
 # Parameters
@@ -324,7 +301,7 @@ package devstation		# Starts a tftp server that hosts files from the boot-images
 ########################################
 #!!Basic
 
-#param fastboot       lotsofmem				# Mangles the filesystem a special way as to improve boot spead and reduce
+param fastboot       lotsofmem				# Mangles the filesystem a special way as to improve boot spead and reduce
 							# memory utilization. Cool/Dangerous . Harder to dubug other packages. (Finishing Touch)
 							# Set to 'true' to enable or 'lotsofmem' for slightly slower booting but no squash lag on app launch.
 #param tsuser         tsuser                            # Name of the user that thinstation will run as. Needs userauto package.
@@ -364,7 +341,7 @@ param bootresolution 1280x768-32
 #param bootresolution 1920x1080-32
 #param bootresolution 1400x1050-32
 
-param desktop file:./backgrounds/Like.svg		# Custom image to load as desktop background
+param desktop file:./backgrounds/thundercats.svg		# Custom image to load as desktop background
 param defaultconfig  thinstation.conf.buildtime  	# The file with default setup.  No other config file is found
                                                  	#  during boot.
 param basename       thinstation     			# Used for all config/tftp/scp file names
@@ -378,7 +355,7 @@ param baseurl        http://www.doncuppjr.net		# Used to determine url to wget f
 param haltonerror    false				# Will halt on error, default is true
 param hardlinkfs     true
 param sametimestmp   true                               # When enabled, the timestamps for all files and folders will be set to 00:00 of todays date in your timezone
-param initrdcmd	     "gzip -9"				# Compression mode and level of initrd file. none, gzip -9, lzma -9 ,bzip2 -9
+param initrdcmd	     "gzip"				# Compression mode and level of initrd file. none, gzip -9, lzma -9 ,bzip2 -9
 param bootverbosity   3          			# Increased vebosity when booting TS
                                 			#   0 no verbose messages
                                 			#   1 boot

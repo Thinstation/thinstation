@@ -59,7 +59,7 @@ lock directory = /var/lock
    encrypt passwords = yes
    smb passwd file = /etc/smbpassword
 
-   private dir = /etc
+   private dir = /etc/samba/private
    lock directory = /var/lock
    pid directory = /var/lock
 
@@ -86,7 +86,7 @@ lock directory = /var/lock
 # Configure Samba to use multiple interfaces
 # If you have multiple network interfaces then you must list them
 # here. See the man page for details.
-;   interfaces = 192.168.12.2/24 192.168.13.2/24 
+;   interfaces = 192.168.12.2/24 192.168.13.2/24
 
 # Configure remote browse list synchronisation here
 #  request announcement to, or browse list sync from:
@@ -107,14 +107,14 @@ lock directory = /var/lock
 # Domain Master specifies Samba to be the Domain Master Browser. This
 # allows Samba to collate browse lists between subnets. Don't use this
 # if you already have a Windows NT domain controller doing this job
-;   domain master = yes 
+;   domain master = yes
 
 # Preferred Master causes Samba to force a local browser election on startup
 # and gives it a slightly higher chance of winning the election
 ;   preferred master = yes
 
-# Enable this if you want Samba to be a domain logon server for 
-# Windows95 workstations. 
+# Enable this if you want Samba to be a domain logon server for
+# Windows95 workstations.
 ;   domain logons = yes
 
 # if you enable domain logons then you may want a per-machine or

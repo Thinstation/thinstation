@@ -9,53 +9,45 @@ fi
 
 network_break()
 {
-if is_disabled $HALTONERROR ; then
-	echo_log "Error, Network not initialized. Halt Overrided, Continuing..."
-else
-        echo_log "Error, Network not initialized. Halting..."
-	#sleep 1
-	force_splash_exit
-fi
-for i in `ls --color=never /sys/class/net/`; do
-	if [ "`cat /sys/class/net/$i/carrier`" != "1" ]; then
-	        echo_log "No cable for $device,"
-		echo_log "or you don't have the firmware loaded."
-	else
-        echo_log "DHCP server not found for $lan! Network not initialized."
-        echo_log "This error has probably occured because you haven't got the corrrect"
-        echo_log "module loaded for you network card."
+	if [ -n "$1" ]; then
+		if [ "`cat /sys/class/net/$1/carrier`" != "1" ]; then
+	        	echo_log "No cable for $1,"
+			echo_log "or you don't have the firmware loaded."
+		else
+		        echo_log "DHCP server not found for $1! Network not initialized."
+		        echo_log "This error has probably occured because you haven't got the corrrect"
+	        	echo_log "module loaded for you network card."
+		fi
 	fi
-done
-if pkg_initialized debug ; then
-	echo_log "Debug enabled...continuing boot."
-else
-	echo_log "Debug not enabled, boot halted."
-	force_splash_exit
-	halt
-fi
+	echo_log "Error, Network not initialized!"
+	if pkg_initialized debug || is_disabled $HALTONERROR ; then
+		echo_log "Debug enabled...continuing boot."
+	else
+		echo_log "Debug not enabled, boot halted."
+		force_splash_exit
+		halt
+	fi
 }
 
-devicelist="`grep -e NETWORKUP=TRUE /var/log/net/* |cut -d : -f1`"
-if [ "`echo $devicelist |wc -l`" -lt "1" ]; then
+devicelist=`grep -e NETWORKUP=TRUE /var/log/net/* |cut -d : -f1`
+devicecount=`echo $devicelist |wc -l`
+if [ -z "$devicelist" ]; then
 	network_break
-fi
-if [ "`echo $devicelist |wc -l`" -gt "1" ]; then
-	for i in "$devicelist" ; do
-		if [ "`cat $i |grep -e lan |grep -c -v wlan`" -gt "0" ]; then
-			lan=`basename $i`
-		elif [ "`cat $i |grep -c -e wlan`" -gt "0" ]; then
-			wlan=`basename $i`
-		fi
+elif [ "$devicecount" -gt "1" ]; then
+	for interface in "$devicelist" ; do
+		. $interface
+		case $DEVTYPE in
+			eth)	lan=`basename $i`;;
+			wlan)	wlan=`basename $i`;;
+		esac
 	done
-	if [ -n $lan ] && [ -n $wlan ]; then
+	if [ -n "$lan" ] && [ -n "$wlan" ]; then
 		device=$lan
 		if [ "$NET_USE" != "BOTH" ] || [ "$NET_USE" != "WLAN" ]; then
-				ifconfig $wlan down
+			ifconfig $wlan down
 		fi
-	elif [ "$lan" == "" ] && [ -n $wlan ]; then
+	elif [ -z "$lan" ] && [ -n "$wlan" ]; then
 		device=$wlan
-	else
-		device=$lan
 	fi
 else
 	device=`basename $devicelist`
