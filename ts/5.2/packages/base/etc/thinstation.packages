@@ -73,6 +73,15 @@ package_input()
 
 order_command()
 {
+	if [ -z "$SERVER" ]; then
+		unset SERVER_ARG
+	fi
+	if [ -z "$REMUSER" ]; then
+		unset USER_ARG
+	fi
+	if [ -z "$PASSWORD" ]; then
+		unset PASSWORD_ARG
+	fi
 	if is_enabled $REVERSE_ORDER ; then
 		ORDERED_COMMAND="${SERVER_ARG}$SERVER $OPTIONS ${USER_ARG}$REMUSER {PASSWORD_ARG}$PASSWORD $MISC_OPTIONS"
 	else
