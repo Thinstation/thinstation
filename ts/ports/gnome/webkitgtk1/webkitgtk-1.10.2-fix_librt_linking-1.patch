@@ -1,0 +1,145 @@
+Submitted By:            Armin K. <krejzi at email dot com>
+Date:                    2013-04-02
+Initial Package Version: 1.10.2
+Upstream Status:         Fixed Upstream
+Origin:                  Upstream Bugzilla
+Description:             Forces linking against librt for shm_open() functions.
+
+--- a/configure	2012-12-09 19:20:20.000000000 +0100
++++ b/configure	2013-04-02 16:39:45.809305503 +0200
+@@ -846,6 +846,7 @@
+ GTKDOC_CHECK
+ GTK2_LIBS
+ GTK2_CFLAGS
++SHM_LIBS
+ GTK_UNIX_PRINTING_LIBS
+ GTK_UNIX_PRINTING_CFLAGS
+ COVERAGE_LDFLAGS
+@@ -22603,6 +22604,68 @@
+ $as_echo "#define HAVE_GTK_UNIX_PRINTING 1" >>confdefs.h
+ 
+    fi
++
++   # On some Linux/Unix platforms, shm_* may only be available if linking
++   # against librt
++   if test "$os_win32" = "no"; then
++       { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing shm_open" >&5
++$as_echo_n "checking for library containing shm_open... " >&6; }
++if ${ac_cv_search_shm_open+:} false; then :
++  $as_echo_n "(cached) " >&6
++else
++  ac_func_search_save_LIBS=$LIBS
++cat confdefs.h - <<_ACEOF >conftest.$ac_ext
++/* end confdefs.h.  */
++
++/* Override any GCC internal prototype to avoid an error.
++   Use char because int might match the return type of a GCC
++   builtin and then its argument prototype would still apply.  */
++#ifdef __cplusplus
++extern "C"
++#endif
++char shm_open ();
++int
++main ()
++{
++return shm_open ();
++  ;
++  return 0;
++}
++_ACEOF
++for ac_lib in '' rt; do
++  if test -z "$ac_lib"; then
++    ac_res="none required"
++  else
++    ac_res=-l$ac_lib
++    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
++  fi
++  if ac_fn_c_try_link "$LINENO"; then :
++  ac_cv_search_shm_open=$ac_res
++fi
++rm -f core conftest.err conftest.$ac_objext \
++    conftest$ac_exeext
++  if ${ac_cv_search_shm_open+:} false; then :
++  break
++fi
++done
++if ${ac_cv_search_shm_open+:} false; then :
++
++else
++  ac_cv_search_shm_open=no
++fi
++rm conftest.$ac_ext
++LIBS=$ac_func_search_save_LIBS
++fi
++{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_shm_open" >&5
++$as_echo "$ac_cv_search_shm_open" >&6; }
++ac_res=$ac_cv_search_shm_open
++if test "$ac_res" != no; then :
++  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
++  SHM_LIBS="-lrt"
++fi
++
++
++   fi
+ fi
+ 
+ # Plugin Process
+--- a/configure.ac	2012-12-09 19:01:04.000000000 +0100
++++ b/configure.ac	2013-04-02 16:39:45.809305503 +0200
+@@ -1368,6 +1368,13 @@
+    if test "$have_gtk_unix_printing" = "yes"; then
+        AC_DEFINE([HAVE_GTK_UNIX_PRINTING], [1], [Define if GTK+ UNIX Printing is available])
+    fi
++
++   # On some Linux/Unix platforms, shm_* may only be available if linking
++   # against librt
++   if test "$os_win32" = "no"; then
++       AC_SEARCH_LIBS([shm_open], [rt], [SHM_LIBS="-lrt"])
++       AC_SUBST(SHM_LIBS)
++   fi
+ fi
+ 
+ # Plugin Process
+--- a/GNUmakefile.in	2012-12-09 19:20:20.000000000 +0100
++++ b/GNUmakefile.in	2013-04-02 16:39:45.829305779 +0200
+@@ -11333,6 +11333,7 @@
+ @ENABLE_PLUGIN_PROCESS_TRUE@	$(am__DEPENDENCIES_1) \
+ @ENABLE_PLUGIN_PROCESS_TRUE@	$(am__DEPENDENCIES_1) \
+ @ENABLE_PLUGIN_PROCESS_TRUE@	$(am__DEPENDENCIES_1) \
++@ENABLE_PLUGIN_PROCESS_TRUE@	$(am__DEPENDENCIES_1) \
+ @ENABLE_PLUGIN_PROCESS_TRUE@	$(am__DEPENDENCIES_1)
+ Programs_WebKitPluginProcess_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+ 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+@@ -12030,6 +12031,7 @@
+ SET_MAKE = @SET_MAKE@
+ SHELL = @SHELL@
+ SHLWAPI_LIBS = @SHLWAPI_LIBS@
++SHM_LIBS = @SHM_LIBS@
+ SQLITE3_CFLAGS = @SQLITE3_CFLAGS@
+ SQLITE3_LIBS = @SQLITE3_LIBS@
+ STRIP = @STRIP@
+@@ -22239,10 +22241,10 @@
+ @ENABLE_PLUGIN_PROCESS_TRUE@	$(LIBXML_LIBS) $(LIBXSLT_LIBS) \
+ @ENABLE_PLUGIN_PROCESS_TRUE@	$(OLE32_LIBS) $(OPENGL_LIBS) \
+ @ENABLE_PLUGIN_PROCESS_TRUE@	$(PANGO_LIBS) $(PNG_LIBS) \
+-@ENABLE_PLUGIN_PROCESS_TRUE@	$(SHLWAPI_LIBS) $(SQLITE3_LIBS) \
+-@ENABLE_PLUGIN_PROCESS_TRUE@	$(UNICODE_LIBS) $(XRENDER_LIBS) \
+-@ENABLE_PLUGIN_PROCESS_TRUE@	$(XT_LIBS) $(WINMM_LIBS) \
+-@ENABLE_PLUGIN_PROCESS_TRUE@	$(ZLIB_LIBS)
++@ENABLE_PLUGIN_PROCESS_TRUE@	$(SHLWAPI_LIBS) $(SHM_LIBS) \
++@ENABLE_PLUGIN_PROCESS_TRUE@	$(SQLITE3_LIBS) $(UNICODE_LIBS) \
++@ENABLE_PLUGIN_PROCESS_TRUE@	$(XRENDER_LIBS) $(XT_LIBS) \
++@ENABLE_PLUGIN_PROCESS_TRUE@	$(WINMM_LIBS) $(ZLIB_LIBS)
+ 
+ # libWebCore and libWebCoreModules have circular dependencies that only seem to
+ # be a problem when linking the plugin process; we don't really care about
+--- a/Source/WebKit2/GNUmakefile.am	2012-12-08 17:50:44.000000000 +0100
++++ b/Source/WebKit2/GNUmakefile.am	2013-04-02 16:39:45.829305779 +0200
+@@ -558,6 +558,7 @@
+ 	$(PANGO_LIBS) \
+ 	$(PNG_LIBS) \
+ 	$(SHLWAPI_LIBS) \
++	$(SHM_LIBS) \
+ 	$(SQLITE3_LIBS) \
+ 	$(UNICODE_LIBS) \
+ 	$(XRENDER_LIBS) \

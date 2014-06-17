@@ -1,0 +1,28 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=webkitgtk1
+version=1.10.2
+release=1
+source=(http://webkitgtk.org/releases/webkitgtk-$version.tar.xz
+	webkitgtk-1.10.2-fix_librt_linking-1.patch)
+
+build() {
+	cd webkitgtk-$version
+	sed -i '/parse-param/ a%lex-param {YYLEX_PARAM}' \
+             Source/ThirdParty/ANGLE/src/compiler/glslang.y
+	patch -Np1 -i ../webkitgtk-1.10.2-fix_librt_linking-1.patch
+
+	./configure --prefix=/usr \
+			--with-gtk=2.0 \
+			--disable-webkit2 \
+			--disable-plugin-process \
+			--with-gstreamer=1.0 \
+			--mandir=/usr/man \
+			--enable-introspection
+
+	make
+	make DESTDIR=$PKG install
+	rm -rf $PKG/usr/share/gtk-doc
+}
