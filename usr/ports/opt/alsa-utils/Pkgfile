@@ -4,7 +4,7 @@
 # Depends on: gettext, alsa-lib, dialog
 
 name=alsa-utils
-version=1.0.27.2
+version=1.0.28
 release=1
 source=(ftp://ftp.alsa-project.org/pub/utils/$name-$version.tar.bz2 \
 	rc.alsa)
@@ -12,10 +12,9 @@ source=(ftp://ftp.alsa-project.org/pub/utils/$name-$version.tar.bz2 \
 build() {
 	cd $name-$version
 
-	sed -i -e 's/oneshop/oneshot/g' alsactl/alsa-restore.service.in
-
 	./configure	--prefix=/usr \
 			--disable-nls \
+			--disable-alsaconf \
 			--mandir=/usr/man
 
 	make

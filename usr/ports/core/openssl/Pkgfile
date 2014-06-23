@@ -3,15 +3,13 @@
 # Maintainer:  CRUX System Team, core-ports at crux dot nu
 
 name=openssl
-version=1.0.1g
+version=1.0.1h
 release=1
 source=(http://www.openssl.org/source/$name-$version.tar.gz \
-	$name-$version-fix_pod_syntax-1.patch \
         mksslcert.sh)
 
 build() {
     cd $name-$version
-    patch -Np1 -i ../$name-$version-fix_pod_syntax-1.patch
     export MAKEFLAGS="$MAKEFLAGS -j1"
     ./config --prefix=/usr --openssldir=/etc/ssl shared
     sed -i "s|-O3|$CFLAGS|" Makefile
