@@ -4,14 +4,20 @@
 
 name=open-vm-tools
 version=2013.09.16-1328054
-kver=3.12.21
+kver=3.14.9
 release=1
 source=(http://downloads.sourceforge.net/project/open-vm-tools/open-vm-tools/Development%20Snapshots/open-vm-tools-$version.tar.gz
-	vmhgfs-d_count-kernel-3.11-tools-9.6.0.patch)
+	vmhgfs-d_count-kernel-3.11-tools-9.6.0.patch
+	vmhgfs-uid-gid-kernel-3.12-tools-9.6.1.patch1
+	vmhgfs-uid-gid-kernel-3.12-tools-9.6.1.patch2)
 
 build() {
 	cd $name-$version/modules/linux/vmhgfs
 	patch -p1 -i $SRC/vmhgfs-d_count-kernel-3.11-tools-9.6.0.patch
+	patch -p1 -i $SRC/vmhgfs-uid-gid-kernel-3.12-tools-9.6.1.patch1
+
+	cd ../shared
+	patch -p1 -i $SRC/vmhgfs-uid-gid-kernel-3.12-tools-9.6.1.patch2
 
 	cd $SRC/$name-$version
 
@@ -20,42 +26,42 @@ build() {
 			--sysconfdir=/etc \
 			--libexecdir=/lib \
 			--mandir=/usr/man \
-			--with-kernel-release=${kver}TS_SMP \
 			--with-linuxdir=/usr/src/kernels/${kver}TS_SMP \
 			--disable-docs \
 			--with-gtkmm \
-			--without-icu
+			--without-icu \
+			--without-kernel-modules
 
 	sed -i -e s/-Werror//g services/plugins/dndcp/Makefile
         sed -i -e s/-Werror//g services/plugins/vmbackup/Makefile
 
 	make
 	make DESTDIR=$PKG install
-	make clean
-
-	./configure --prefix=/ \
-			--exec-prefix=/ \
-			--sysconfdir=/etc \
-			--libexecdir=/lib \
-			--mandir=/usr/man \
-			--with-kernel-release=${kver}TS \
-			--with-linuxdir=/usr/src/kernels/${kver}TS \
-			--disable-docs \
-			--with-gtkmm \
-			--without-icu
-
-	sed -i -e s/-Werror//g services/plugins/dndcp/Makefile
-        sed -i -e s/-Werror//g services/plugins/vmbackup/Makefile
-
-	make
-	make DESTDIR=$PKG install
-
-	mkdir -p $PKG/lib/modules
-	mv $PKG/usr/src/kernels/* $PKG/lib/modules/.
-	rm -rf $PKG/{ts,share,include,usr} $PKG/lib/{*.a,*.la,pkgconfig} $PKG/lib/open-vm-tools/plugins/common/*.la $PKG/etc/pam.d
-
-	for module in drivers/net/vmxnet.ko fs/vmhgfs/vmhgfs.ko; do
-	perl /usr/src/kernels/${kver}TS/scripts/sign-file sha256 /etc/ssl/keys/kernel.key /etc/ssl/certs/kernel.crt $PKG/lib/modules/${kver}TS/kernel/$module
-	perl /usr/src/kernels/${kver}TS_SMP/scripts/sign-file sha256 /etc/ssl/keys/kernel.key /etc/ssl/certs/kernel.crt $PKG/lib/modules/${kver}TS_SMP/kernel/$module
-	done
+#	make clean
+#
+#	./configure --prefix=/ \
+#			--exec-prefix=/ \
+#			--sysconfdir=/etc \
+#			--libexecdir=/lib \
+#			--mandir=/usr/man \
+#			--with-kernel-release=${kver}TS \
+#			--with-linuxdir=/usr/src/kernels/${kver}TS \
+#			--disable-docs \
+#			--with-gtkmm \
+#			--without-icu
+#
+#	sed -i -e s/-Werror//g services/plugins/dndcp/Makefile
+#	sed -i -e s/-Werror//g services/plugins/vmbackup/Makefile
+#
+#	make
+#	make DESTDIR=$PKG install
+#
+#	mkdir -p $PKG/lib/modules
+#	mv $PKG/usr/src/kernels/* $PKG/lib/modules/.
+	rm -rf $PKG/{ts,share,include,usr} $PKG/lib/{*.a,*.la} $PKG/lib/open-vm-tools/plugins/common/*.la
+#
+#	for module in drivers/net/vmxnet.ko fs/vmhgfs/vmhgfs.ko; do
+#	perl /usr/src/kernels/${kver}TS/scripts/sign-file sha256 /etc/ssl/keys/kernel.key /etc/ssl/certs/kernel.crt $PKG/lib/modules/${kver}TS/kernel/$module
+#	perl /usr/src/kernels/${kver}TS_SMP/scripts/sign-file sha256 /etc/ssl/keys/kernel.key /etc/ssl/certs/kernel.crt $PKG/lib/modules/${kver}TS_SMP/kernel/$module
+#	done
 }

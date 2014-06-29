@@ -4,8 +4,8 @@
 # Maintainer:   
 
 name=aufs
-version=3.12.x
-release=3.12.21
+version=3.14
+release=3.14.9
 source=()
 
 build() {
@@ -19,11 +19,28 @@ build() {
 	config.mk
 
     mkdir -p $PKG/usr/include/linux
-    make KDIR=/usr/src/kernels/${release}TS install_headers DESTDIR=$PKG
-    make KDIR=/usr/src/kernels/${release}TS install MODLIB=$PKG/lib/modules/${release}TS INSTALL_MOD_DIR=kernel/fs/aufs MODSECKEY=/etc/ssl/keys/kernel.key MODPUBKEY=/etc/ssl/certs/kernel.crt
-   
+    make KDIR=/usr/src/kernels/${release}TS \
+	install_headers DESTDIR=$PKG
+
+    make KDIR=/usr/src/kernels/${release}TS \
+	install MODLIB=$PKG/lib/modules/${release}TS \
+	INSTALL_MOD_DIR=kernel/fs/aufs \
+	MODSECKEY=/etc/ssl/keys/kernel.key \
+	MODPUBKEY=/etc/ssl/certs/kernel.crt
     make KDIR=/usr/src/kernels/${release}TS clean
 
-    make KDIR=/usr/src/kernels/${release}TS_SMP install MODLIB=$PKG/lib/modules/${release}TS_SMP INSTALL_MOD_DIR=kernel/fs/aufs MODSECKEY=/etc/ssl/keys/kernel.key MODPUBKEY=/etc/ssl/certs/kernel.crt
+    make KDIR=/usr/src/kernels/${release}TS_SMP \
+	install MODLIB=$PKG/lib/modules/${release}TS_SMP \
+	INSTALL_MOD_DIR=kernel/fs/aufs \
+	MODSECKEY=/etc/ssl/keys/kernel.key \
+	MODPUBKEY=/etc/ssl/certs/kernel.crt
+    make KDIR=/usr/src/kernels/${release}TS_SMP clean
+
+    make KDIR=/usr/src/kernels/${release}TS_64 \
+	install MODLIB=$PKG/lib/modules/${release}TS_64 \
+	INSTALL_MOD_DIR=kernel/fs/aufs \
+	MODSECKEY=/etc/ssl/keys/kernel.key \
+	MODPUBKEY=/etc/ssl/certs/kernel.crt \
+	CROSS_COMPILE="/opt/cross/x-tools/x86_64-thinstation-linux-gnu/bin/x86_64-thinstation-linux-gnu-"
 }
 

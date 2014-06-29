@@ -150,7 +150,7 @@ lib_dependencies()
               echo "Adding library dependencies for `basename $filename`"
               DISPLAYED=TRUE
             fi
-            libsource="`prt-get fsearch $libfile |grep -v Found |cut -d " " -f3 |head -n1`"
+            libsource="`prt-get fsearch $libfile |grep -Ev 'Found|x-tool|^$' | cut -d " " -f3 |head -n1`"
             if [ -n "$libsource" ] && [ -e $libsource ]; then
               echo -e "\t\t\t$libfile"
               if [ ! -e $pkgname/lib ]; then

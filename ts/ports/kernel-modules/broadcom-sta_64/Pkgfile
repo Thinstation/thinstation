@@ -1,0 +1,33 @@
+# Description: Gobject interface for udev
+# URL: http://gudev.sourceforge.net
+# Maintainer: Jose V Beneyto, sepen at crux dot nu
+# Packager: Jose V Beneyto, sepen at crux dot nu
+# Depends on: udev glib
+# Group: xfce4
+
+name=broadcom-sta_64
+version=6.30.223.141
+pversion=6_30_223_141
+release=3.14.9
+source=(http://www.broadcom.com/docs/linux_sta/hybrid-v35_64-nodebug-pcoem-$pversion.tar.gz \
+	linux-recent.patch \
+	license.patch \
+	gcc.patch)
+
+build() {
+	patch -p1 -i linux-recent.patch
+	patch -p1 -i license.patch
+	patch -p1 -i gcc.patch
+
+	for kernel in TS_64; do
+		KBUILD_NOPEDANTIC=1 make -C /usr/src/kernels/${release}${kernel} M=`pwd`
+		KBUILD_NOPEDANTIC=1 make -C /usr/src/kernels/${release}${kernel} M=`pwd` \
+			modules_install \
+			MODLIB=$PKG/lib/modules/${release}${kernel} \
+			INSTALL_MOD_DIR=kernel/drivers/net/wireless \
+			MODSECKEY=/etc/ssl/keys/kernel.key \
+			MODPUBKEY=/etc/ssl/certs/kernel.crt \
+			CROSS_COMPILE="/opt/cross/x-tools/x86_64-thinstation-linux-gnu/bin/x86_64-thinstation-linux-gnu-"
+		KBUILD_NOPEDANTIC=1 make -C /usr/src/kernels/${release}${kernel} M=`pwd` clean
+	done
+}

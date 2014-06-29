@@ -7,7 +7,7 @@
 
 name=usb-redirector
 version=2.8
-kernver=3.12.21
+kernver=3.14.9
 release=1
 source=(http://www.incentivespro.com/usb-redirector-linux-i386.tar.gz
 	installer.sh.diff
@@ -25,7 +25,7 @@ build() {
 	install -m 755 $SRC/rc.usbsrvd-excludes $PKG/etc/init.d/rc.usbsrvd-excludes
 	cd usb-redirector-linux-i386
 	patch -p1 -i ../installer.sh.diff
-	sed -i -e "s|3.11.1|3.13.1|g" installer.sh
+	sed -i -e "s|3.11.1|3.15.1|g" installer.sh
 	./installer.sh install
 	sed -i -e "s|INSTALLDIR=|#INSTALLDIR=|g" $PKG/etc/init.d/rc.usbsrvd
 	sed -i -e "s|'start'|'start'\|'init'|g" $PKG/etc/init.d/rc.usbsrvd
@@ -41,9 +41,21 @@ build() {
 	mkdir -p $PKG/lib/modules/${kernver}TS/kernel
 	install -m 644 tusbd.ko $PKG/lib/modules/${kernver}TS/kernel
 	make clean
+
 	REPORT_KERNEL=${kernver}TS_SMP
 	make
 	mkdir -p $PKG/lib/modules/${kernver}TS_SMP/kernel
         install -m 644 tusbd.ko $PKG/lib/modules/${kernver}TS_SMP/kernel
-	rm $PKG/bin/tusbd.ko
+	make clean
+
+        REPORT_KERNEL=${kernver}TS_64
+        make CROSS_COMPILE="/opt/cross/x-tools/x86_64-thinstation-linux-gnu/bin/x86_64-thinstation-linux-gnu-"
+        mkdir -p $PKG/lib/modules/${kernver}TS_64/kernel
+        install -m 644 tusbd.ko $PKG/lib/modules/${kernver}TS_64/kernel
+
+        rm $PKG/bin/tusbd.ko
+
+	for module in `find $PKG/lib/modules -name \*.ko`; do
+		perl /usr/src/kernels/${kernver}TS/scripts/sign-file sha256 /etc/ssl/keys/kernel.key /etc/ssl/certs/kernel.crt $module
+	done
 }

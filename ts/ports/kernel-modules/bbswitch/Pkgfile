@@ -5,7 +5,7 @@
 
 name=bbswitch
 version=0.8
-release=3.12.21
+release=3.14.9
 source=(https://api.github.com/repos/Bumblebee-Project/bbswitch/tarball/v$version makefile.patch)
 
 build() {
@@ -13,7 +13,7 @@ build() {
     cd Bumblebee-Project-bbswitch-*
     patch -Np1 -i $SRC/makefile.patch
 
-    for KERNELTYPE in TS TS_SMP
+    for KERNELTYPE in TS TS_SMP TS_64
     do
        KVERSION=${release}$KERNELTYPE
        KCOMPDIR=${KERNELTYPE##TS}
@@ -22,8 +22,12 @@ build() {
        MODDIR=kernel/drivers/video
 
        make KVERSION=$KVERSION
-       make install KVERSION=$KVERSION MODLIB=$MODLIB MODDIR=$MODDIR MODSECKEY=/etc/ssl/keys/kernel.key MODPUBKEY=/etc/ssl/certs/kernel.crt
-
+       make install KVERSION=$KVERSION \
+	MODLIB=$MODLIB \
+	MODDIR=$MODDIR \
+	MODSECKEY=/etc/ssl/keys/kernel.key \
+	MODPUBKEY=/etc/ssl/certs/kernel.crt \
+	CROSS_COMPILE="/opt/cross/x-tools/x86_64-thinstation-linux-gnu/bin/x86_64-thinstation-linux-gnu-"
     done
 }
 
