@@ -2,7 +2,9 @@ make_desktop()
 {
 	mkdir -p $ICONDIR
 	LINK=$ICONDIR/`replace_char "$title.desktop" "[ /]" "_"`
-	if [ -z "$menu" ]; then
+	if [ -n "$menu" ]; then
+		menu="`echo $menu | awk -F:: "{ print \\$NF }"`"
+	else
 		menu="X-Xfce-Toplevel"
 	fi
 	echo "[Desktop Entry]"			>$LINK
@@ -283,8 +285,9 @@ wm_menu()
 	menudir=$HOME/.local/share/desktop-directories
 	mkdir -p $menudir
 	cat /tmp/typelist |sort -u | while read menu_type; do
-		menu_dirtype=$menu_type
+		menu_dirtype="`echo $menu_type | awk -F:: "{ print \\$NF }"`"
 		menudirfile=$menudir/$menu_dirtype.directory
+		echo $menu_type | awk -F:: "{ for (i=1; i<NF; i++) { print \"<Menu>\"; print \"<Name>\"\$i\"</Name>\" } }"  >>$menufile
 		echo "    <Menu>"								>>$menufile
 		echo "        <Name>$menu_dirtype</Name>"						>>$menufile
 		echo "        <Directory>$menu_dirtype.directory</Directory>"			>>$menufile
@@ -292,6 +295,7 @@ wm_menu()
 		echo "            <Category>$menu_dirtype</Category>"				>>$menufile
 		echo "        </Include>"							>>$menufile
 		echo "    </Menu>"								>>$menufile
+		echo $menu_type | awk -F:: "{ for (i=1; i<NF; i++) print \"</Menu>\" }"          >>$menufile
 		echo ""										>>$menufile
 		echo "[Desktop Entry]"								>>$menudirfile
 		echo "Version=1.0"								>>$menudirfile
