@@ -1,0 +1,23 @@
+# Description: PulseAudio Volume Control
+# URL: http://freedesktop.org/software/pulseaudio/pavucontrol/
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=pavucontrol
+version=2.0
+release=1
+source=(http://freedesktop.org/software/pulseaudio/$name/$name-$version.tar.xz
+	gtk-adjustment.patch)
+
+build() {
+	cd $name-$version
+	patch -Np1 < ../gtk-adjustment.patch
+
+	./configure --prefix=/usr \
+			--sysconfdir=/etc \
+			--mandir=/usr/man \
+			--disable-nls \
+			--disable-gtk3
+
+	make
+	make DESTDIR=$PKG install
+}
