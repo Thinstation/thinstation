@@ -7,6 +7,9 @@ case "$1" in
 init)
  if ! pkg_initialized $PACKAGE; then
 	pkg_set_init_flag $PACKAGE
+	if [ -e $HOME/.config/xfce4/helpers.rc ]; then
+		sed -i -e 's/WebBrowser=google-chrome/WebBrowser=firefox/g' $HOME/.config/xfce4/helpers.rc
+	fi
 	if [ ! -e $HOME/.mozilla ] && [ -e /etc/FF.tar.gz ]; then
 		tar -C $HOME -zxvf /etc/FF.tar.gz
 	fi
