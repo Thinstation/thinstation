@@ -55,12 +55,17 @@ ln -s /opt/$optname/program/libnpsoplugin.so $installdir/lib/mozilla/plugins
 mkdir -p $installdir/lib/menu
 icon=`basename $installdir/lib/icons/hicolor/32x32/apps/libreoffice*-main.png | sed -e 's/\.png//'`
 cat > $installdir/lib/menu/libreoffice <<EOF
-package="libreoffice"; icon="$icon"; needs="x11"; title="LibreOffice"; command="libreoffice"
+package="libreoffice"; icon="$icon"; needs="x11"; title="LibreOffice"; command="libreoffice4.2"
 EOF
 
 cp -a $installdir/build/extra/* $installdir
 
 ln -s /opt/$optname $installdir/lib/libreoffice
+echo "Generating icons"
+icon-gen libreoffice
+
+find $installdir -name \*kab\* -delete
+find $installdir -name \*kde\* -delete
 
 #if [ ! -e $installdir/bin/libreoffice ]; then
 #  binname=`basename $installdir/bin/libreoffice*`

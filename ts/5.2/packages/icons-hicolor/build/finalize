@@ -35,7 +35,9 @@ if [ -n "$ICONS_CUT_SIZES" ]; then
 fi
 echo -e "\tCaching icons"
 for icontheme in `ls --color=never /lib/icons`; do
-	rm -f /lib/icons/$icontheme/icon-theme.cache
-	/bin/gtk-update-icon-cache -i /lib/icons/$icontheme 2>/dev/null
+	if [ -d /lib/icons/$icontheme ]; then
+		rm -f /lib/icons/$icontheme/icon-theme.cache
+		/bin/gtk-update-icon-cache -i /lib/icons/$icontheme 2>/dev/null
+	fi
 done
 rm /bin/gtk-update-icon-cache
