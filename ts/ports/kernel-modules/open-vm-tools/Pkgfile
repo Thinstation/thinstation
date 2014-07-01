@@ -23,6 +23,7 @@ build() {
 	patch -p1 < ../open-vm-tools-linux-3.12.patch
 	patch -p1 < ../open-vm-tools-linux-3.14.patch
 	patch -p1 < ../open-vm-tools-9.4.0-glib.patch
+	MODULES="vmxnet vmhgfs vmblock"
 
 	export CFLAGS="$CFLAGS -Wno-deprecated-declarations -Wno-error=unused-local-typedefs -Wno-error=unused-variable"
 	export CUSTOM_PROCPS_NAME=procps
@@ -35,8 +36,8 @@ build() {
 			--with-gtkmm \
 			--without-icu
 
-	make
-	make DESTDIR=$PKG install
+	make MODULES="$MODULES"
+	make MODULES="$MODULES" DESTDIR=$PKG install
 	make clean
 
         CFLAGS="$CFLAGS -Wno-error=unused-variable -Wno-deprecated-declarations" ./configure --prefix=/usr \
@@ -48,8 +49,8 @@ build() {
 			--with-gtkmm \
 			--without-icu
 
-	make
-	make DESTDIR=$PKG install
+	make MODULES="$MODULES"
+	make MODULES="$MODULES" DESTDIR=$PKG install
 
 	mkdir -p $PKG/lib/modules
 	mv $PKG/usr/src/kernels/* $PKG/lib/modules/.
