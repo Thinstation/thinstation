@@ -1,0 +1,39 @@
+#gnome-core 25
+
+#mkdir -p /etc/gconf/gconf.xml.defaults
+#export GCONF_CONFIG_SOURCE=`gconftool-2 --get-default-source`
+#gconftool-2 --makefile-install-rule /etc/gconf/schemas/* > /dev/null
+#rm -rf /etc/gconf/schemas
+#rm -f /etc/gconf/gconf.xml.defaults/%gconf-tree-*.xml
+
+update-mime-database /lib/mime
+if [ ! -e /bin/xfce4-mime-settings ]; then
+	find /lib/mime ! -name mime.cache -type f -delete
+	find /lib/mime -mindepth 1 -type d -delete
+fi
+update-desktop-database /lib/applications
+rm /bin/update-desktop-database
+
+GNOME_HELP="none"
+if [ -n "$GNOME_HELP" ] && [ -d /lib/gnome/help ]; then
+	if [ "$GNOME_HELP" == "none" ]; then
+		rm -rf /lib/gnome/help
+	elif [ "$GNOME_HELP" != "all" ]; then
+		for app in /lib/gnome/help/*; do
+			for lang in $app/*; do
+				KEEP=0
+				for loc in $GNOME_HELP; do
+					if [ "$loc" == "`basename $lang`" ]; then
+						KEEP=1
+					fi
+				done
+				if [ $KEEP == 0 ]; then
+					rm -rf $lang
+				fi
+			done
+			rmdir --ignore-fail-on-non-empty $app
+		done
+		rmdir --ignore-fail-on-non-empty /lib/gnome/help
+	fi
+	rmdir --ignore-fail-on-non-empty /lib/gnome
+fi

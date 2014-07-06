@@ -6,7 +6,7 @@ name=open-vm-tools
 version=9.4.0-1280544
 dir=stable-9.4.x
 #dir=Development%20Snapshots
-kver=3.14.8
+kver=3.14.10
 release=1
 source=(http://downloads.sourceforge.net/project/$name/$name/$dir/$name-$version.tar.gz
 	open-vm-tools-linux-3.10.patch
@@ -27,30 +27,47 @@ build() {
 
 	export CFLAGS="$CFLAGS -Wno-deprecated-declarations -Wno-error=unused-local-typedefs -Wno-error=unused-variable"
 	export CUSTOM_PROCPS_NAME=procps
+
 	./configure --prefix=/usr \
-			--sysconfdir=/etc \
-			--mandir=/usr/man \
-			--with-kernel-release=${kver}TS_SMP \
-			--with-linuxdir=/usr/src/kernels/${kver}TS_SMP \
-			--disable-docs \
-			--with-gtkmm \
-			--without-icu
+                                --sysconfdir=/etc \
+                                --mandir=/usr/man \
+                                --disable-docs \
+                                --with-gtkmm \
+                                --without-icu \
+				--without-kernel-modules
 
-	make MODULES="$MODULES"
-	make MODULES="$MODULES" DESTDIR=$PKG install
-	make clean
 
-        CFLAGS="$CFLAGS -Wno-error=unused-variable -Wno-deprecated-declarations" ./configure --prefix=/usr \
-			--sysconfdir=/etc \
-			--mandir=/usr/man \
-			--with-kernel-release=${kver}TS \
-			--with-linuxdir=/usr/src/kernels/${kver}TS \
-			--disable-docs \
-			--with-gtkmm \
-			--without-icu
+	for ktype in TS TS_SMP TS_64; do
+		./configure --prefix=/usr \
+				--sysconfdir=/etc \
+				--mandir=/usr/man \
+				--with-kernel-release=${kver}${ktype} \
+				--with-linuxdir=/usr/src/kernels/${kver}${ktype} \
+				--disable-docs \
+				--with-gtkmm \
+				--without-icu
 
-	make MODULES="$MODULES"
-	make MODULES="$MODULES" DESTDIR=$PKG install
+		cd modules
+		make CROSS_COMPILE="/opt/cross/x-tools/x86_64-thinstation-linux-gnu/bin/x86_64-thinstation-linux-gnu-" MODULES="$MODULES"
+		make MODULES="$MODULES" DESTDIR=$PKG install
+		make clean
+		if [ -e /etc/ssl/certs/kernel.crt ]; then
+			for module in `find $PKG/usr/src/kernels -name \*.ko` ; do
+				perl /usr/src/kernels/${kver}TS/scripts/sign-file sha256 /etc/ssl/keys/kernel.key /etc/ssl/certs/kernel.crt $module
+			done
+		fi
+		cd ..
+	done
+	./configure --prefix=/usr \
+		--sysconfdir=/etc \
+		--mandir=/usr/man \
+		--disable-docs \
+		--with-gtkmm \
+		--without-icu \
+		--without-kernel-modules
+
+	make
+	make DESTDIR=$PKG install
 
 	mkdir -p $PKG/lib/modules
 	mv $PKG/usr/src/kernels/* $PKG/lib/modules/.
@@ -59,13 +76,4 @@ build() {
 	rm -r $PKG/usr/{share,include}
 	find $PKG/usr -name *.la -delete
 	find $PKG/usr -name *.a -delete
-
-  if [ -e /etc/ssl/certs/kernel.crt ]; then
-        for module in `find $PKG/lib/modules/${kver}TS` ; do
-        	perl /usr/src/kernels/${kver}TS/scripts/sign-file sha256 /etc/ssl/keys/kernel.key /etc/ssl/certs/kernel.crt $module
-	done
-        for module in `find $PKG/lib/modules/${kver}TS_SMP` ; do
-	        perl /usr/src/kernels/${kver}TS_SMP/scripts/sign-file sha256 /etc/ssl/keys/kernel.key /etc/ssl/certs/kernel.crt $module
-        done
-  fi
 }

@@ -1,0 +1,23 @@
+# Description: A general purpose cryptographic library based on GnuPG
+# URL:         http://www.gnupg.org
+# Maintainer:  Thomas Penteker, tek at serverop dot de
+# Packager:    Matt Housh, jaeger at morpheus dot net
+# Depends on:  libgpg-error
+
+name=libgcrypt-compat
+version=1.5.0
+release=1
+source=(ftp://ftp.gnupg.org/gcrypt/libgcrypt/libgcrypt-$version.tar.bz2)
+
+build() {
+  cd libgcrypt-$version
+
+  ./configure \
+      --prefix=/usr \
+      --disable-padlock-support
+  make
+  make DESTDIR=$PKG install
+
+  rm -rf $PKG/usr/{bin,sbin,include,share}
+  rm -rf $PKG/usr/lib/libgcrypt.{la,so}
+}

@@ -1,0 +1,116 @@
+--- a/src/wl/sys/wl_linux.c	2011-10-22 18:55:54.000000000 +0200
++++ b/src/wl/sys/wl_linux.c	2013-07-05 19:52:29.540667919 +0200
+@@ -843,7 +842,7 @@
+ 	pci_set_drvdata(pdev, NULL);
+ }
+ 
+-static struct pci_driver wl_pci_driver = {
++static struct pci_driver wl_pci_driver __refdata = {
+ 	name:		"wl",
+ 	probe:		wl_pci_probe,
+ 	suspend:	wl_suspend,
+@@ -2960,7 +2955,7 @@
+ void
+ wl_tkip_printstats(wl_info_t *wl, bool group_key)
+ {
+-#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 14)
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 14) && LINUX_VERSION_CODE < KERNEL_VERSION(3, 10, 0)
+ 	char debug_buf[512];
+ 	int idx;
+ 	if (wl->tkipmodops) {
+@@ -3120,43 +3115,34 @@
+ }
+ 
+ static int
+-wl_proc_read(char *buffer, char **start, off_t offset, int length, int *eof, void *data)
++wl_proc_read(struct seq_file *seq, void *offset)
+ {
+-	wl_info_t * wl = (wl_info_t *)data;
++	wl_info_t * wl = (wl_info_t *)seq->private;
+ 	int bcmerror, to_user;
+-	int len;
+-
+-	if (offset > 0) {
+-		*eof = 1;
+-		return 0;
+-	}
+ 
+-	if (!length) {
+-		WL_ERROR(("%s: Not enough return buf space\n", __FUNCTION__));
+-		return 0;
+-	}
+ 	WL_LOCK(wl);
+ 	bcmerror = wlc_ioctl(wl->wlc, WLC_GET_MONITOR, &to_user, sizeof(int), NULL);
+-	len = sprintf(buffer, "%d\n", to_user);
+ 	WL_UNLOCK(wl);
+-	return len;
++
++	seq_printf(seq, "%d\n", to_user);
++	return bcmerror;
+ }
+ 
+-static int
+-wl_proc_write(struct file *filp, const char *buff, unsigned long length, void *data)
++static ssize_t wl_proc_write(struct file *file, const char *buff,
++			     size_t length, loff_t *ppos)
+ {
+-	wl_info_t * wl = (wl_info_t *)data;
+-	int from_user = 0;
+-	int bcmerror;
+-
+-	if (length == 0 || length > 2) {
++	struct seq_file *seq = file->private_data;
++	wl_info_t * wl = (wl_info_t *)seq->private;
++	int bcmerror, from_user = 0;
+ 
++	if (length != 1) {
+ 		WL_ERROR(("%s: Invalid data length\n", __FUNCTION__));
+ 		return -EIO;
+ 	}
++
+ 	if (copy_from_user(&from_user, buff, 1)) {
+ 		WL_ERROR(("%s: copy from user failed\n", __FUNCTION__));
+-		return -EIO;
++		return -EFAULT;
+ 	}
+ 
+ 	if (from_user >= 0x30)
+@@ -3170,21 +3156,34 @@
+ 		WL_ERROR(("%s: SET_MONITOR failed with %d\n", __FUNCTION__, bcmerror));
+ 		return -EIO;
+ 	}
++	*ppos += length;
+ 	return length;
+ }
+ 
++static int wl_proc_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, wl_proc_read, PDE_DATA(inode));
++}
++
++static const struct file_operations wl_proc_fops = {
++	.owner = THIS_MODULE,
++	.open = wl_proc_open,
++	.read = seq_read,
++	.write = wl_proc_write,
++	.llseek = seq_lseek,
++	.release = single_release,
++};
++
+ static int
+ wl_reg_proc_entry(wl_info_t *wl)
+ {
+ 	char tmp[32];
+ 	sprintf(tmp, "%s%d", HYBRID_PROC, wl->pub->unit);
+-	if ((wl->proc_entry = create_proc_entry(tmp, 0644, NULL)) == NULL) {
++	wl->proc_entry = proc_create_data(tmp, 0644, NULL, &wl_proc_fops, wl);
++	if (!wl->proc_entry) {
+ 		WL_ERROR(("%s: create_proc_entry %s failed\n", __FUNCTION__, tmp));
+ 		ASSERT(0);
+ 		return -1;
+ 	}
+-	wl->proc_entry->read_proc = wl_proc_read;
+-	wl->proc_entry->write_proc = wl_proc_write;
+-	wl->proc_entry->data = wl;
+ 	return 0;
+ }

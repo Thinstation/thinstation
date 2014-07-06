@@ -4,20 +4,22 @@
 
 name=kernel-TS
 pname=${name%-*}
-version=3.14.8
-sversion=3.14.8
-kname=${version}TS
+version=3.14.10
+sversion=3.14.10
 release=1
+kernel=${version}TS
 source=(ftp://ftp.kernel.org/pub/linux/kernel/v3.x/linux-$sversion.tar.xz \
-	/usr/src/kernels/aufs/patches/aufs3.patch \
-	ts.config)
+	/$TSCOMPROOT/aufs/patches/aufs3.patch
+	ts.config \
+	cs5536.patch)
 
 build() {
 export MAKEFLAGS="-j5"
 	cd linux-$sversion
 	cp $SRC/ts.config ./.config
 
-	patch --no-backup-if-mismatch -p1 < ../aufs3.patch
+	patch --no-backup-if-mismatch -p1 -i $SRC/aufs3.patch
+	patch --no-backup-if-mismatch -p0 -i $SRC/cs5536.patch
 
 	if [ -e /etc/ssl/keys/kernel.key ]; then
 		touch x509.genkey
@@ -27,30 +29,29 @@ export MAKEFLAGS="-j5"
 	fi
 
 	make modules_prepare __headers
-	mkdir -p $PKG/usr/src/kernels/$kname
-	cp --parents `find -type f -name "Makefile*" -o -name "Kconfig*"` $PKG/usr/src/kernels/$kname
-	rm -rf $PKG/usr/src/kernels/$kname/Documentation
-	cp -a {include,scripts,.config} $PKG/usr/src/kernels/$kname
-	cp -a arch/x86/include $PKG/usr/src/kernels/$kname/arch/x86
-	rm $PKG/usr/src/kernels/$kname/scripts/{mod,kconfig}/*.o
+	mkdir -p $PKG/usr/src/kernels/${kernel}
+	cp --parents `find -type f -name "Makefile*" -o -name "Kconfig*"` $PKG/usr/src/kernels/${kernel}
+	cp -a {include,scripts,.config} $PKG/usr/src/kernels/${kernel}
+	cp -a arch/x86/include $PKG/usr/src/kernels/${kernel}/arch/x86
+	rm $PKG/usr/src/kernels/${kernel}/scripts/{mod,kconfig}/*.o
 
-	make -j5
+	make
 	make INSTALL_PATH=$PKG install
 	make INSTALL_MOD_PATH=$PKG modules_install
 
-	cp -a Module.symvers System.map $PKG/usr/src/kernels/$kname
+	cp -a Documentation $PKG/usr/src/kernels/${kernel}
+	cp -a Module.symvers System.map $PKG/usr/src/kernels/${kernel}
 
 	cd $PKG
-        mkdir -p $PKG/boot
-	mv vmlinuz $PKG/boot/vmlinuz-$kname
-	mv System.map $PKG/boot/System.map-$kname
-	cp $SRC/linux-$sversion/.config $PKG/boot/config-$kname
-	echo $kname >$PKG/boot/KERNEL_VERSION
+	mkdir boot
+	mv vmlinuz $PKG/boot/vmlinuz-${kernel}
+	mv System.map $PKG/boot/System.map-${kernel}
+	rm lib/modules/${kernel}/{source,build}
+	rm -rf lib/firmware
+	cp $SRC/linux-$sversion/.config $PKG/boot/config-${kernel}
+	echo ${kernel} >$PKG/boot/KERNEL_VERSION
 
-        rm lib/modules/$kname/{source,build}
-	ln -sf /usr/src/kernels/$kname $PKG/lib/modules/$kname/build
-	ln -sf build $PKG/lib/modules/$kname/source
-	ln -sf . $PKG/usr/src/kernels/$kname/build
-	rm $PKG/lib/modules/$kname/modules.{alias,alias.bin,builtin.bin,dep,dep.bin,devname,softdep,symbols,symbols.bin}
-	rm -rf $PKG/lib/firmware
+	ln -sf /usr/src/kernels/${kernel} $PKG/lib/modules/${kernel}/build
+	ln -sf build $PKG/lib/modules/${kernel}/source
+	ln -sf . $PKG/usr/src/kernels/${kernel}/build
 }

@@ -11,6 +11,8 @@ source=(ftp://ftp.gnome.org/pub/gnome/sources/$name/${version%.*}/$name-$version
 build() {
 	cd $name-$version
 
+	sed -i -e 's|/desktop/gnome/crypto/pgp|/org/gnome/crypto/pgp|g' schema/org.gnome.crypto.pgp.gschema.xml
+
         ./configure --prefix=/usr \
 		--sysconfdir=/etc \
 		--disable-nls \

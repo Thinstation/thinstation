@@ -1,0 +1,43 @@
+#icons-hicolor 43
+
+if [ -n "$ICONS_COMPOSITE_THEME_ORDER" ]; then
+	echo -e "\tCompositing icons"
+	mkdir /lib/icons/Default
+	for theme in $ICONS_COMPOSITE_THEME_ORDER; do
+		if [ -e /lib/icons/$theme ]; then
+			cp -rf /lib/icons/$theme/* /lib/icons/Default/.
+			rm -rf /lib/icons/$theme
+		fi
+	done
+	ICONS_THEME=Default
+else
+	if [ -n "$ICONS_THEME" ]; then
+		continue
+	elif [ -e /lib/icons/Neu ]; then
+		ICONS_THEME=Neu
+	elif [ -e /lib/icons/Tango ]; then
+		ICONS_THEME=Tango
+	elif [ -e /lib/icons/gnome ]; then
+		ICONS_THEME=gnome
+	else 
+		ICONS_THEME=hicolor
+	fi
+fi
+sed -i -e "s/gtk-icon-theme-name = \"gnome\"/gtk-icon-theme-name = \"$ICONS_THEME\"/g" /etc/gtk-2.0/gtkrc
+if [ -n "$ICONS_CUT_SIZES" ]; then
+	for size in $ICONS_CUT_SIZES; do
+		for theme in `ls /lib/icons`; do
+			if [ -e /lib/icons/$theme/$size ]; then
+				rm -rf /lib/icons/$theme/$size
+			fi
+		done
+	done
+fi
+echo -e "\tCaching icons"
+for icontheme in `ls --color=never /lib/icons`; do
+	if [ -d /lib/icons/$icontheme ]; then
+		rm -f /lib/icons/$icontheme/icon-theme.cache
+		/bin/gtk-update-icon-cache -i /lib/icons/$icontheme 2>/dev/null
+	fi
+done
+rm /bin/gtk-update-icon-cache

@@ -16,8 +16,10 @@ build() {
         NSS_LIBS="`pkg-config --libs nss` `pkg-config --libs nspr`"
         export NSS_CFLAGS NSS_LIBS
 
-        sed -i -e "s/USE_NLS=yes/USE_NLS=no/" \
-                                 -e "s/ENABLE_NLS 1/ENABLE_NLS 0/" configure
+	sed -i	-e /updates/d data/org.gnome.settings-daemon.plugins.gschema.xml.in.in
+        sed -i	-e "s/USE_NLS=yes/USE_NLS=no/" \
+		-e "s/ENABLE_NLS 1/ENABLE_NLS 0/" configure
+
 
 	./configure --prefix=/usr \
 		--mandir=/usr/man \
