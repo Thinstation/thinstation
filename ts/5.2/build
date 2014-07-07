@@ -919,7 +919,7 @@ install_non_distributable()
 {
 	echo -e "\nAdding and install non-distributable binaries\n"
 	for package in `ls $PACDIR | grep -v "\.param"`; do
-		package=`echo $package | cut -f1 -d.`
+		package=${package%.package}
 		# Check if need to add full locale support for package
 		if [ -e ./packages/$package/build/fulllocales ] ; then
 			ts_forcelocales="true"

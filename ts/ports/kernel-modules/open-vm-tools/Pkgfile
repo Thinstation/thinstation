@@ -3,65 +3,69 @@
 # Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 
 name=open-vm-tools
-version=2013.09.16-1328054
-kver=3.14.9
+version=9.4.0-1280544
+dir=stable-9.4.x
+#dir=Development%20Snapshots
+kver=3.14.8
 release=1
-source=(http://downloads.sourceforge.net/project/open-vm-tools/open-vm-tools/Development%20Snapshots/open-vm-tools-$version.tar.gz
-	vmhgfs-d_count-kernel-3.11-tools-9.6.0.patch
-	vmhgfs-uid-gid-kernel-3.12-tools-9.6.1.patch1
-	vmhgfs-uid-gid-kernel-3.12-tools-9.6.1.patch2)
+source=(http://downloads.sourceforge.net/project/$name/$name/$dir/$name-$version.tar.gz
+	open-vm-tools-linux-3.10.patch
+	open-vm-tools-linux-3.11.patch
+	open-vm-tools-linux-3.12.patch
+	open-vm-tools-linux-3.14.patch
+	open-vm-tools-9.4.0-glib.patch)
 
 build() {
-	cd $name-$version/modules/linux/vmhgfs
-	patch -p1 -i $SRC/vmhgfs-d_count-kernel-3.11-tools-9.6.0.patch
-	patch -p1 -i $SRC/vmhgfs-uid-gid-kernel-3.12-tools-9.6.1.patch1
+	cd $name-$version
+	# Patches from the pld-linux/open-vm-tools repo on GitHub
+	patch -p1 < ../open-vm-tools-linux-3.10.patch
+	patch -p1 < ../open-vm-tools-linux-3.11.patch
+	patch -p1 < ../open-vm-tools-linux-3.12.patch
+	patch -p1 < ../open-vm-tools-linux-3.14.patch
+	patch -p1 < ../open-vm-tools-9.4.0-glib.patch
+	MODULES="vmxnet vmhgfs vmblock"
 
-	cd ../shared
-	patch -p1 -i $SRC/vmhgfs-uid-gid-kernel-3.12-tools-9.6.1.patch2
-
-	cd $SRC/$name-$version
-
-	./configure --prefix=/ \
-			--exec-prefix=/ \
+	export CFLAGS="$CFLAGS -Wno-deprecated-declarations -Wno-error=unused-local-typedefs -Wno-error=unused-variable"
+	export CUSTOM_PROCPS_NAME=procps
+	./configure --prefix=/usr \
 			--sysconfdir=/etc \
-			--libexecdir=/lib \
 			--mandir=/usr/man \
+			--with-kernel-release=${kver}TS_SMP \
 			--with-linuxdir=/usr/src/kernels/${kver}TS_SMP \
 			--disable-docs \
 			--with-gtkmm \
-			--without-icu \
-			--without-kernel-modules
+			--without-icu
 
-	sed -i -e s/-Werror//g services/plugins/dndcp/Makefile
-        sed -i -e s/-Werror//g services/plugins/vmbackup/Makefile
+	make MODULES="$MODULES"
+	make MODULES="$MODULES" DESTDIR=$PKG install
+	make clean
 
-	make
-	make DESTDIR=$PKG install
-#	make clean
-#
-#	./configure --prefix=/ \
-#			--exec-prefix=/ \
-#			--sysconfdir=/etc \
-#			--libexecdir=/lib \
-#			--mandir=/usr/man \
-#			--with-kernel-release=${kver}TS \
-#			--with-linuxdir=/usr/src/kernels/${kver}TS \
-#			--disable-docs \
-#			--with-gtkmm \
-#			--without-icu
-#
-#	sed -i -e s/-Werror//g services/plugins/dndcp/Makefile
-#	sed -i -e s/-Werror//g services/plugins/vmbackup/Makefile
-#
-#	make
-#	make DESTDIR=$PKG install
-#
-#	mkdir -p $PKG/lib/modules
-#	mv $PKG/usr/src/kernels/* $PKG/lib/modules/.
-	rm -rf $PKG/{ts,share,include,usr} $PKG/lib/{*.a,*.la} $PKG/lib/open-vm-tools/plugins/common/*.la
-#
-#	for module in drivers/net/vmxnet.ko fs/vmhgfs/vmhgfs.ko; do
-#	perl /usr/src/kernels/${kver}TS/scripts/sign-file sha256 /etc/ssl/keys/kernel.key /etc/ssl/certs/kernel.crt $PKG/lib/modules/${kver}TS/kernel/$module
-#	perl /usr/src/kernels/${kver}TS_SMP/scripts/sign-file sha256 /etc/ssl/keys/kernel.key /etc/ssl/certs/kernel.crt $PKG/lib/modules/${kver}TS_SMP/kernel/$module
-#	done
+        CFLAGS="$CFLAGS -Wno-error=unused-variable -Wno-deprecated-declarations" ./configure --prefix=/usr \
+			--sysconfdir=/etc \
+			--mandir=/usr/man \
+			--with-kernel-release=${kver}TS \
+			--with-linuxdir=/usr/src/kernels/${kver}TS \
+			--disable-docs \
+			--with-gtkmm \
+			--without-icu
+
+	make MODULES="$MODULES"
+	make MODULES="$MODULES" DESTDIR=$PKG install
+
+	mkdir -p $PKG/lib/modules
+	mv $PKG/usr/src/kernels/* $PKG/lib/modules/.
+	rm -r $PKG/sbin
+	rm -r $PKG/usr/src
+	rm -r $PKG/usr/{share,include}
+	find $PKG/usr -name *.la -delete
+	find $PKG/usr -name *.a -delete
+
+  if [ -e /etc/ssl/certs/kernel.crt ]; then
+        for module in `find $PKG/lib/modules/${kver}TS` ; do
+        	perl /usr/src/kernels/${kver}TS/scripts/sign-file sha256 /etc/ssl/keys/kernel.key /etc/ssl/certs/kernel.crt $module
+	done
+        for module in `find $PKG/lib/modules/${kver}TS_SMP` ; do
+	        perl /usr/src/kernels/${kver}TS_SMP/scripts/sign-file sha256 /etc/ssl/keys/kernel.key /etc/ssl/certs/kernel.crt $module
+        done
+  fi
 }
