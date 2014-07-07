@@ -1839,7 +1839,9 @@ merge_boot()
 	loadersource="`prt-get fsearch $LOADER |grep -Ev 'Found|/$' |cut -d " " -f3 |head -n1`"
 
 	rm -f $IMAGEDIR/$CONFIGFILE
-	find $IMAGEDIR -maxdepth 1 -type f -delete
+	if [ -e $IMAGEDIR ]; then
+		find $IMAGEDIR -maxdepth 1 -type f -delete
+	fi
 	mkdir -p $IMAGEDIR/`dirname $CONFIGFILE`
 
 	cp $loadersource $IMAGEDIR
