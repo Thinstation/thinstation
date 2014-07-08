@@ -7,9 +7,12 @@ service tftp
 {
 	socket_type		= dgram
 	protocol		= udp
-	wait			= no
+	wait			= yes
 	user			= root
 	server			= /bin/in.tftpd
 	server_args		= -c -s /var/lib/tftpboot --verbose
 	disable			= no
+	per_source		= 11
+	cps			= 100 2
+	flags			= IPv4
 }
