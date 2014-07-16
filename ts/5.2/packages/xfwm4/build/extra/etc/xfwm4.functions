@@ -27,6 +27,19 @@ make_desktop()
 
 xfconf_settings()
 {
+	if [ -n "$XKEYBOARD$XKBMODEL$XKBVARIANT" ]; then
+		xfconf-query -c keyboard-layout -p /Default/XkbDisable -t bool -s false -n
+		if [ -n "$XKEYBOARD" ]; then
+			xfconf-query -c keyboard-layout -p /Default/XkbLayout -t string -s $XKEYBOARD -n
+		fi
+		if [ -n "$XKBMODEL" ]; then
+			xfconf-query -c keyboard-layout -p /Default/XbkModel -t string -s $XKBMODEL -n
+		fi
+		if [ -n "$XKBVARIANT" ]; then
+			xfconf-query -c keyboard-layout -p /Default/XkbVariant -t string -s $XKBVARIANT -n
+		fi
+	fi
+
 	xfconf-query -c xfce4-session -p /general/SaveOnExit -t bool -s false -n
 	if is_disabled $DESKTOP_SHOWTRASH; then
 		xfconf-query -c xfce4-desktop -p /desktop-icons/file-icons/show-trash -t bool -s false -n

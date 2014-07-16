@@ -3,6 +3,7 @@
 gzname=`basename $1`
 version=`echo $gzname |cut -d "-" -f4 |cut -d "." -f1-2`
 release=`cat /boot/KERNEL_VERSION`
+release=${release%TS}
 
 
 INSTALLDIR="/build/packages/xorg7_nvidia"
@@ -34,29 +35,26 @@ find $INSTALLDIR -type l -name \*.so -delete
 
 cd kernel
 
-if [ -e /etc/ssl/keys/kernel.key ]; then
-  make SYSSRC=/usr/src/kernels/${release} module module-sign MODSECKEY=/etc/ssl/keys/kernel.key MODPUBKEY=/etc/ssl/certs/kernel.crt
-else
-  make SYSSRC=/usr/src/kernels/${release} module
-fi
-mkdir -p $INSTALLDIR/lib/modules/${release}/$KMOD
-cp -a nvidia.ko $INSTALLDIR/lib/modules/${release}/$KMOD
-
-make SYSSRC=/usr/src/kernels/${release} clean
-
-if [ -e /etc/ssl/keys/kernel.key ]; then
-  make SYSSRC=/usr/src/kernels/${release}_SMP module module-sign MODSECKEY=/etc/ssl/keys/kernel.key MODPUBKEY=/etc/ssl/certs/kernel.crt
-else
-  make SYSSRC=/usr/src/kernels/${release}_SMP module
-fi
-mkdir -p $INSTALLDIR/lib/modules/${release}_SMP/$KMOD
-cp -a nvidia.ko $INSTALLDIR/lib/modules/${release}_SMP/$KMOD
+for kernel in TS TS_SMP; do
+	if [ -e /etc/ssl/keys/kernel.key ]; then
+		make SYSSRC=/usr/src/kernels/${release}${kernel} \
+			module \
+			module-sign \
+			MODSECKEY=/etc/ssl/keys/kernel.key \
+			MODPUBKEY=/etc/ssl/certs/kernel.crt
+	else
+ 		make SYSSRC=/usr/src/kernels/${release}${kernel} \
+			module
+	fi
+	mkdir -p $INSTALLDIR/lib/modules/${release}${kernel}/$KMOD
+	cp -a nvidia.ko $INSTALLDIR/lib/modules/${release}${kernel}/$KMOD
+	make SYSSRC=/usr/src/kernels/${release}${kernel} clean
+done
 
 rm -rf /var/lib/nvidia
 rm -f /usr/share/kde-settings/kde-profile/default/share/applications/nvidia-settings.desktop
 
-cp -Prfd $INSTALLDIR/build/extra/* $INSTALLDIR/. 
-
+cp -Prfd $INSTALLDIR/build/extra/* $INSTALLDIR/.
 
 #Fix libGL, because nvidia compile completely steps on everybody.
 

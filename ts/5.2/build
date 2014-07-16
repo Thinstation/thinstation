@@ -150,7 +150,7 @@ lib_dependencies()
               echo "Adding library dependencies for `basename $filename`"
               DISPLAYED=TRUE
             fi
-            libsource="`prt-get fsearch $libfile |grep -v Found |cut -d " " -f3 |head -n1`"
+            libsource="`prt-get fsearch $libfile |grep -Ev 'Found|x-tool|^$' | cut -d " " -f3 |head -n1`"
             if [ -n "$libsource" ] && [ -e $libsource ]; then
               echo -e "\t\t\t$libfile"
               if [ ! -e $pkgname/lib ]; then
@@ -936,7 +936,7 @@ install_non_distributable()
 {
 	echo -e "\nAdding and install non-distributable binaries\n"
 	for package in `ls $PACDIR | grep -v "\.param"`; do
-		package=`echo $package | cut -f1 -d.`
+		package=${package%.package}
 		# Check if need to add full locale support for package
 		if [ -e ./packages/$package/build/fulllocales ] ; then
 			ts_forcelocales="true"
@@ -1659,6 +1659,8 @@ fi
 if [ -z "$KERNVEROPT" ]; then
 	if [ -e ./SMP ]; then
 		KERNVEROPT=SMP
+	elif [ -e ./64 ]; then
+                KERNVEROPT=64
 	else
 		KERNVEROPT=`cat /boot/KERNEL_VERSION`
 	fi
