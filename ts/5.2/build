@@ -692,6 +692,23 @@ write_locale()
         localedef -i $inputfile -f $charmap $name --prefix=./tmp-tree
 }
 
+sample_configuration()
+{
+	# Building Sample Thinstation.conf file
+	echo -e "\nBuilding Sample Thinstation.conf File\n"
+
+	mkdir -p ./tmp-tree/conf
+	echo > ./thinstation.conf.sample
+	for filename in `find $PKGDIR -maxdepth 1 -name "*" && echo "./tmp-tree"`; do
+		if [ -e $filename/build/conf ] ; then
+			cp $filename/build/conf/* ./tmp-tree/conf
+		fi
+	done
+	for filename in `ls ./tmp-tree/conf | sort`; do
+		cat ./tmp-tree/conf/$filename >> ./thinstation.conf.sample
+	done
+}
+
 locales()
 {
 	# Removes extended locale libs if not selected
@@ -1257,6 +1274,9 @@ mesa
 # Process locales
 locales
 
+# Building Sample Thinstation.conf file
+sample_configuration
+
 # Process keymaps
 keymaps
 
@@ -1292,22 +1312,6 @@ if [ ! -d ${tzpath%/*} ] ;
 fi
 cp /usr/share/zoneinfo/$TIME_ZONE ${tzpath%/*}/.
 ln -sf /lib/zoneinfo/$TIME_ZONE ./tmp-tree/etc/localtime
-
-# Building Sample Thinstation.conf file
-echo -e "\nBuilding Sample Thinstation.conf File\n"
-
-mkdir -p ./tmp-tree/conf
-echo > ./thinstation.conf.sample
-for filename in `find $PKGDIR -maxdepth 1 -name "*" && echo "./tmp-tree"`
-do
-	if [ -e $filename/build/conf ] ; then
-		cp $filename/build/conf/* ./tmp-tree/conf
-	fi
-done
-for filename in `ls ./tmp-tree/conf | sort`
-do
-		cat ./tmp-tree/conf/$filename >> ./thinstation.conf.sample
-done
 
 # Copy across sample file for www administration interface
 if [ -e $PACDIR/www.* ]; then
