@@ -216,34 +216,41 @@ version()
 
 init()
 {
+	CLEAN=false
+	DRYRUN=false
+	HELP=false
+	KERNEL=false
+	OTHER=false
+	TOOLS=false
+	IMAGES=false
 	unset PACKAGE
 	until [ -z $1 ] ; do
 		case $1 in
-			-c)	CLEAN="1" ;;
-			-d)	DRYRUN="1" ;;
-			-h)	HELP="1" ;;
-			-k)	KERNEL="1" ; OTHER="1" ;;
-			-t)	TOOLS="1" ; OTHER="1" ;;
-			-b)	IMAGES="1" ; OTHER="1" ;;
+			-c)	CLEAN=true ;;
+			-d)	DRYRUN=true ;;
+			-h)	HELP=true ;;
+			-k)	KERNEL=true ; OTHER=true ;;
+			-t)	TOOLS=true ; OTHER=true ;;
+			-b)	IMAGES=true ; OTHER=true ;;
 			*)	PACKAGE="$1" ;;
 		esac
 		shift
 	done
 	DEST="$TSWRKNG/packages/$PACKAGE"
-	if [ "$HELP"  == "1" -o "$PACKAGE" == "" ] && [ "$OTHER" != "1" ] ; then
+	if $HELP || [ -z $PACKAGE ] && ! $OTHER ; then
 		showhelp
 		exit
-	elif	[ "$KERNEL" == "1" ] ; then
-		if [ "$PACKAGE" != "" ]; then
+	elif	$KERNEL ; then
+		if [ -n "$PACKAGE" ]; then
 			kernel=kernel_$PACKAGE
 		else
 			kernel=kernel
 		fi
 		DEST=$TSWRKNG
-	elif	[ "$TOOLS" == "1" ] ; then
+	elif	$TOOLS ; then
 		DEST="$TSWRKNG/utils/tools"
 		FILES="`cat $DEST/.dna`"
-	elif	[ "$IMAGES" == "1" ] ; then
+	elif	$IMAGES ; then
 		DEST="$TSWRKNG/boot-images"
 		FILES="`cat $DEST/.dna`"
 	elif	[ ! -e $DEST/.dna ] ; then
@@ -258,12 +265,18 @@ init()
 main()
 {
 	cd $TSWRKNG
-	if [ "$KERNEL" == "1" ] ; then
+	if $KERNEL ; then
 		clean_kernel
-		if [ "$CLEAN" != "1" ] ; then
+		if $CLEAN ; then
 			update_kernel
 		fi
 	else
+		if [ -e $DEST/build/installed ] && grep -qe repackage $DEST/build/install; then
+			$DEST/build/remove
+			reinstall=true
+		else
+			reinstall=false
+		fi
 		for i in $FILES ; do
 			filedna $i
 			if [ "$deletable" == "0" ] ; then
@@ -271,7 +284,7 @@ main()
 			else
 				isversioned
 				clean
-				if [ "$CLEAN" != "1" ] ; then
+				if $CLEAN ; then
 					if [ "$srcpkg" == "EMPTY" ] ; then
 						empty_file
 					else
@@ -279,14 +292,17 @@ main()
 						updatefiles
 					fi
 					makelinks
-					if [ "$TOOLS" == "1" ] ; then
+					if $TOOLS ; then
 						finish_tools
 					fi
 				fi
 			fi
 		done
+		if $reinstall && ! $CLEAN; then
+			$DEST/build/install
+		fi
 	fi
-	if [ "$DRYRUN" == "1" ] ; then
+	if $DRYRUN ; then
 		echo -e $cmdlist
 	else
 		echo -e $cmdlist >> dothis
