@@ -20,34 +20,137 @@
 
 test $(id -u) -ne 0 && echo "please run as root" && exit 1
 
+PID=$$
+COM32_LIST=`mktemp -t mkgptdrv.XXX`
+MNTDIR=`mktemp -t -d mkgptdrv.XXX`
+ESP=$MNTDIR
+
+needed="sgdisk mkswap mkfs.vfat mkfs.ext4 fuser"
+
 libutil="chain complex cptime display fancyhello hdt ifcpu \
 	 keytest libmenu menu prdhcp pxechn rosh simple test \
 	 test2 vesamenu"
+
 libcom32="chain cmd complex config display elf ethersel gfxboot \
 	  gpxecmd hdt hexdump host ifcpu ifcpu64 ifmemdsk ifplop \
 	  kbdmap kontron_wdt libmenu linux localboot lua mboot \
 	  pcitest pmload prdhcp pxechn reboot rosh sanboot sdi \
 	  simple sysdump test test2 vesamenu whichsys"
+
 libmenu="complex display hdt simple test test2"
+
 libgpl="cpuidtest disk dmitest hdt ifcpu lua vpdtest zzjson"
+
 liblua="lua"
+
+bios=true
+configure_efi=true
+cpt=262144 #default Copy Progress Threshold
+nvdefault=false
+msoft=false
+
+clean_up()
+{
+	while pgrep -P $PID >/dev/null 2>&1; do
+		kill -KILL `pgrep -P $PID` >/dev/null 2>&1
+		sleep .1
+	done
+	sync
+	if mountpoint -q $MNTDIR; then
+		umount -f $MNTDIR
+	fi
+	rm -rf $COM32_LIST $MNTDIR
+	exit $1
+}
+
+trap "clean_up 21" SIGHUP SIGINT SIGTERM
+
+usage()
+{
+	echo "
+Usage:
+
+This is a simple script to turn a block device into a gpt formated disk.
+It does require that a unique name for your Project/Brand be passed with 
+the -t <project> argument. This name will be used to set up the EFI loaders.
+
+Additionally, you will need to tell it where it can find a syslinux theme.
+This is passed as -c <directory with syslinux.cfg>. This file will be scanned for
+the neceassary com32 files, and those files will be copied into the appropriate 
+locations for each loader, along with the config folder.
+
+Multiple partitions are supported, and can be added with -p <type:size:label>
+The order they are entered will be used when creating the ID. At least one
+partition will be made. By default, it will be an ESP partition that will
+fill the disk and it will be labeled 'EFI System Partition'. At least one ESP
+is required.
+
+Sizes can be expressed as <size>B, K, M, G and S for sectors.
+
+Options:
+     --config,-c <dir>             : Path to syslinux.cfg folder.
+        --min,-m <size>            : Minimum disk size allowed.
+  --partition,-p <type:size:label> : Partition shorthand.
+      --title,-t <Project/Brand>   : Will be used to label the EFI Loader Directory.
+    --overlay,-o <dir>             : Additional directory to merge in at the root level.
+       --sync,-s                   : Mount volumes with sync enabled.
+     --device,-d <block device>    : The last argument is interpreted as the device anyways.
+       --help,-h                   : Show this usage.
+
+Partition Types:
+         linux,l : Standard Ext4 Linux Volume
+          home,h : Ext4 Linux Volume with gpt partition type set to home
+          swap,s : Linux Swap Partition
+          data,d : General Data Partition Formated Fat32
+             LVM : Logical Volume Manager Partition
+             ESP : EFI System Partition
+
+Examples:
+         mkgptdrv -c /sys-themes/default -t 'MyProject' -o /build /dev/loop0
+
+         mkgptdrv -c /sys-themes/menu \\
+                  -t 'BobsDistro' \\
+                  -o /build \\
+                  -p ESP:1g:'EFI System Partition' \\
+                  -p s:2g \\
+                  -p l:0:System \\
+                  /dev/sdb
+
+"
+	if [ -n "$2" ]; then
+		echo "$2"
+	fi
+	exit $1
+}
 
 getopts()
 {
-	index=0
+	part=0
 	while [ -n "$1" ]; do
 		case "$1" in
-			-c|--config)	configdir="$2"; shift;;
-			-m|--min)	min_size="$2"; shift;;
-			-p|--partition)	add_part "$2"; let index+=1 ; shift;;
-			-t|--title)	EFIname="$2"; shift;;
+			-c|--config)	configdir="$2";	shift;;
+			-m|--min)	min_size="$2";	shift;;
+			-p|--partition)	add_part "$2";	shift; let part+=1;;
+			-t|--title)	EFIname="$2";	shift;;
+			-o|--overlay)	overlay="$2";	shift;;
+			-d|--device)	device="$2";	shift;;
+			-s|--sync)	mount_opts="-o sync";;
+			--cpt)		let cpt=`convert_to_sectors $2`*512;shift;;
 			--nvdefault)	nvdefault=true;;
 			--msoft)	msoft=true;;
+			--no-bios)	bios=false;;
+			--no-cfg)	configure_efi=false;;
+			--agree)	AGREE=true;;
+			-h|--help)	usage 255;;
 			*) device="$1";;
 		esac
 		shift
 	done
-	let number_of_parts=$index-1
+	let number_of_parts=$part-1
+	if [ -z ${ID[0]} ]; then
+		add_part "ESP:0:'EFI System Partition'"
+		number_of_parts=0
+	fi
 }
 
 get_dirs()
@@ -65,30 +168,22 @@ get_dirs()
 			efi32dir=$knownloc/efi32
 		fi
 	done
-	if [ -z "$configdir" ] || [ ! -e $configdir/syslinux.cfg ]; then
-		echo "You must specify and syslinux theme dir with a syslinux.cfg inside."
-		exit 14
+	if $configure_efi; then
+		if [ -n "$configdir" ] && ! find $configdir -name syslinux.cfg; then
+			usage 14 "You must specify a syslinux theme dir with a syslinux.cfg inside."
+		fi
 	fi
 	if [ -z "$biosdir" ] || [ -z "$efi64dir" ] || [ -z "$efi32dir" ]; then
-		echo "We could not get a good read on your syslinux install."
-		exit 11
+		usage 11 "We could not get a good read on your syslinux install."
 	fi
-	if [ ! -e `which extlinux` ]; then
-		echo "Could not find extlinux executable."
-		exit 12
+	if [ -n "$overlay" ] && [ ! -e "$overlay" ]; then
+		usage 15 "The requested root overlay directory $overlay, does not exist!"
 	fi
-}
-
-is_enabled()
-{
-        if [ -n "$1" ]; then
-		for value in true on yes y 0; do
-			if [ "$value" == "$1" ]; then
-				return 0
-			fi
-		done
+	if $bios; then
+		if [ ! -e `which extlinux` ]; then
+			usage 12 "Could not find extlinux executable."
+		fi
 	fi
-        return 1
 }
 
 scan_config()
@@ -103,90 +198,109 @@ scan_config()
 			kontron_wdt disk zzjson libgpl chain host rosh ifcpu \
 			ifcpu64 hdt menu lua mboot cmd; do
 
-			grep $1 -oe $com.c32 >> /tmp/syslinux-com32
+			grep $1 -oe $com.c32 >> $COM32_LIST
 		done
 	else
-		echo "Could not find config $config."
-		exit 13
+		usage 13 "Could not find config $config."
 	fi
 }
 
 com_deps()
 {
 	for lib in libutil libcom32 liblua libgpl libmenu; do
-		if ! grep -qe $lib.c32 /tmp/syslinux-com32; then
+		if ! grep -qe $lib.c32 $COM32_LIST; then
 			for module in `eval echo "\$"$lib`; do
-				if grep -qe $module.c32 /tmp/syslinux-com32; then
-					echo "$lib.c32" >> /tmp/syslinux-com32
+				if grep -qe $module.c32 $COM32_LIST; then
+					echo "$lib.c32" >> $COM32_LIST
 					if [ "$lib" == "libmenu" ]; then
-						echo libutil.c32 >> /tmp/syslinux-com32
-						echo libcom32.c32 >> /tmp/syslinux-com32
+						echo libutil.c32 >> $COM32_LIST
+						echo libcom32.c32 >> $COM32_LIST
 					fi
 				fi
 			done
 		fi
 	done
-	cat /tmp/syslinux-com32 |sort -u > /tmp/sorted
-	rm /tmp/syslinux-com32
-	mv /tmp/sorted /tmp/syslinux-com32
+	cat $COM32_LIST |sort -u > /tmp/sorted
+	rm $COM32_LIST
+	mv /tmp/sorted $COM32_LIST
 }
 
 copy_files()
 {
-	ESP=/tmp/syslinux-mount
 	BIOSDIR=$ESP/boot/syslinux
 	EFI32=$ESP/EFI/"$EFIname"/efi32
 	EFI64=$ESP/EFI/"$EFIname"/efi64
 	MSDIR=$ESP/EFI/Microsoft/Boot
 	NVDIR=$ESP/EFI/BOOT
 	mkdir -p "$BIOSDIR"
-	mkdir -p "$EFI32"
-	mkdir -p "$EFI64" 									
-	cp -rfd $configdir/*		"$BIOSDIR/."
-	cp -rfd $configdir/*		"$EFI32/."
-	cp -rfd $configdir/*		"$EFI64/."
-	if is_enabled $nvdefault; then
-		mkdir -p		"$NVDIR"
-		cp -rfd $configdir/*	"$NVDIR/."
-	fi
-	if is_enabled $msoft; then
-		mkdir -p 		"$MSDIR"
-		cp -rfd $configdir/* 	"$MSDIR/."
-	fi
-	for com in `cat /tmp/syslinux-com32`; do
-		cp $biosdir/$com	"$BIOSDIR/."
-		cp $efi32dir/$com	"$EFI32/."
-		cp $efi64dir/$com	"$EFI64/."
-		if is_enabled $nvdefault; then
-			cp $efi64dir/$com "$NVDIR/."
+	if [ -n "$configdir" ]; then
+		echo -e "\nCopying Syslinux Theme"
+		copy_dir "$configdir"		"$BIOSDIR"
+		if [ -n "$EFIname" ]; then
+			mkdir -p "$EFI32"
+			mkdir -p "$EFI64"
+			copy_dir "$configdir"		"$EFI32"
+			copy_dir "$configdir"		"$EFI64"
 		fi
-		if is_enabled $msoft; then
-			cp $efi64dir/$com "$MSDIR/."
+	fi
+	if $nvdefault; then
+		mkdir -p "$NVDIR"
+		if [ -n "$configdir" ]; then
+			copy_dir "$configdir"	"$NVDIR"
+		fi
+	fi
+	if $msoft; then
+		mkdir -p "$MSDIR"
+		if [ -n "$configdir" ]; then
+			copy_dir "$configdir" 	"$MSDIR"
+		fi
+	fi
+	for com in `cat $COM32_LIST`; do
+		echo -e "\nCopying com32 files"
+		copy_file "$biosdir/$com"	"$BIOSDIR/$com"
+		if [ -n "$EFIname" ]; then
+			copy_file "$efi32dir/$com"	"$EFI32/$com"
+			copy_file "$efi64dir/$com"	"$EFI64/$com"
+		fi
+		if $nvdefault; then
+			copy_file "$efi64dir/$com" "$NVDIR/$com"
+		fi
+		if $msoft; then
+			copy_file "$efi64dir/$com" "$MSDIR/$com"
 		fi
 	done
-	cp $efi32dir/syslinux.efi	"$EFI32/."
-	cp $efi32dir/ldlinux.e32 	"$EFI32/."
-	cp $efi64dir/syslinux.efi	"$EFI64/."
-	cp $efi64dir/ldlinux.e64	"$EFI64/."
-	if is_enabled $nvdefault; then
-	        cp $efi64dir/syslinux.efi "$NVDIR/bootx64.efi"
-	        cp $efi64dir/ldlinux.e64  "$NVDIR/."
+	if [ -n "$EFIname" ]; then
+		echo -e "\nCopying EFI loaders"
+		copy_file "$efi32dir/syslinux.efi"	"$EFI32/syslinux.efi"
+		copy_file "$efi32dir/ldlinux.e32" 	"$EFI32/ldlinux.e32"
+		copy_file "$efi64dir/syslinux.efi"	"$EFI64/syslinux.efi"
+		copy_file "$efi64dir/ldlinux.e64"	"$EFI64/ldlinux.e64"
 	fi
-	if is_enabled $msoft; then
-		cp $efi64dir/syslinux.efi "$MSDIR/bootmgfw.efi"
-                cp $efi64dir/ldlinux.e64  "$MSDIR/."
+	if $nvdefault; then
+		copy_file "$efi64dir/syslinux.efi" "$NVDIR/bootx64.efi"
+		copy_file "$efi64dir/ldlinux.e64"  "$NVDIR/ldlinux.e64"
+	fi
+	if $msoft; then
+		copy_file "$efi64dir/syslinux.efi" "$MSDIR/bootmgfw.efi"
+		copy_file "$efi64dir/ldlinux.e64"  "$MSDIR/ldlinux.e64"
+	fi
+}
+
+copy_overlay()
+{
+	if [ -n "$overlay" ]; then
+		echo -e "\nCopying in the Overlay Directory"
+		copy_dir "$overlay"	"$ESP"
 	fi
 }
 
 efi_ready()
 {
 	if [ -z "$EFIname" ]; then
-		echo "You must specify the name of \"Your\" EFI bootloader"
-		exit 9
+		usage 9 "You must specify the name of 'Your' EFI bootloader."
 	fi
 	if [ -z "$ESPpart" ]; then
-		echo "You must have at least one ESP partition"
-		exit 10
+		usage 10 "You must have at least one ESP partition."
 	fi
 	return 0
 }
@@ -197,17 +311,15 @@ block_device()
 	   [ -e /sys/block/`basename "$1"`/dev ]; then
 		return 0
 	else
-		echo "No block device specified, or not a block device."
-		exit 1
+		usage 1 "No block device specified, or not a block device."
 	fi
 }
 
 not_being_used()
 {
-	for mount in `list_mounts $1`; do
+	for mount in `list_mounts "$1"`; do
 		if [ -n "`fuser -m $mount`" ]; then
-			echo "Device $1 is still in use"
-			exit 2
+			usage 2 "Device $1 is still in use."
 		fi
 	done
 	return 0
@@ -215,52 +327,55 @@ not_being_used()
 
 user_agrees()
 {
-	while [ -z "$REPLY" ]; do
-	    echo "All data on the selected device is about to be overwritten!"
-		echo "Are you sure you want to do this?"
-		read -n 1 -r
-		if   [[ "$REPLY" =~ ^[Yy]$ ]]; then
-			echo ""
-			return 0
-		elif [[ "$REPLY" =~ ^[Nn]$ ]]; then
-			exit 3
-		else
-			echo -e "\nInvalid response $REPLY\n"
-			unset REPLY
-		fi
-	done
+	if [ -z "$AGREE" ]; then
+		while [ -z "$REPLY" ]; do
+			echo "All data on the selected device is about to be overwritten!"
+			echo "Are you sure you want to do this?"
+			read -n 1 -r
+			if   [[ "$REPLY" =~ ^[Yy]$ ]]; then
+				echo ""
+				return 0
+			elif [[ "$REPLY" =~ ^[Nn]$ ]]; then
+				exit 3
+			else
+				echo -e "\nInvalid response. $REPLY\n"
+				unset REPLY
+			fi
+		done
+	else
+		return 0
+	fi
 }
 
 add_part()
 {
 	oIFS=$IFS
 	IFS='\n'
-	let part[$index]=$index+1 
-	if [ "${part[$index]}" == "128" ]; then
+	let ID[$part]=$part+1 
+	if [ "${ID[$part]}" == "128" ]; then
 		echo "Really, you need that many partitions?"
 		exit 5150
 	fi
 	# linux home swap data ESP
-	type[$index]=`echo "$1" |cut -d':' -f1`
+	type[$part]=`echo "$1" |cut -d':' -f1`
 	if echo $1 | grep -qe ":"; then
-		size[$index]=`echo "$1" |cut -d':' -f2`
-		label[$index]=`echo "$1" |cut -d':' -f3`
+		size[$part]=`echo "$1" |cut -d':' -f2`
+		label[$part]=`echo "$1" |cut -d':' -f3`
 	fi
-	if [ -z "${size[$index]}" ]; then
-		size[$index]=0
+	if [ -z "${size[$part]}" ]; then
+		size[$part]=0
 	fi
-	case ${type[$index]} in
-		l|linux) type[$index]=8300;;
-		s|swap)	type[$index]=8200;;
-		h|home) type[$index]=8302;;
-		d|data) type[$index]=0700;;
-		LVM)	type[$index]=8e00;;
-		ESP)	type[$index]=ef00
+	case ${type[$part]} in
+		l|linux) type[$part]=8300;;
+		s|swap)	type[$part]=8200;;
+		h|home) type[$part]=8302;;
+		d|data) type[$part]=0700;;
+		LVM)	type[$part]=8e00;;
+		ESP)	type[$part]=ef00
 			if [ -n "$ESPpart" ]; then
-				echo "You can only have one ESP partition"
-				exit 12
+				usage 12 "You can only have one ESP partition."
 			else
-				ESPpart=${part[$index]}
+				ESPpart=${ID[$part]}
 			fi
 		;;
 	esac
@@ -285,7 +400,7 @@ convert_to_sectors()
 		K)	let "size=${value}*2";;
 		M)	let "size=${value}*2*1024";;
 		G)	let "size=${value}*2*1024*1024";;
-		*)	echo "Invalid Unit $unit"; exit 5;;
+		*)	usage 5 "Invalid Unit $unit";;
 	esac
 	echo $size
 }
@@ -295,133 +410,295 @@ enough_room()
 	disk_size=`blockdev --getsz $device`
 	let last_psec=$disk_size-32
 	let last_psec=$last_psec/2048*2048
-	let last_psec=$last_psec-1
+	let last_psec-=1
 	if [ -n "$min_size" ]; then
 		min_size=`convert_to_sectors $min_size`
 		if [ "$last_psec" -lt "$min_size" ]; then
-			echo "Disk is less than the requested size!"
-			exit 7
+			usage 7 "Disk is less than the requested size!"
 		fi
 	fi
 	total=2048
-	for index in `seq 0 $number_of_parts`; do
+	for part in `seq 0 $number_of_parts`; do
 		if [ "$total" == "$last_psec" ]; then
-			echo "Only one partition can be expanded to fill the disk,"
-			echo "and it must be the last one."
-			exit 8
+			usage 8 "Only one partition can be expanded to fill the disk, and it must be the last one."
 		fi
-		size=${size[$index]}
-		start[$index]=$total
-		if [ -n "$size" ] && [ "$size" != "0" ]; then
-			size=`convert_to_sectors $size`
-			let end[$index]=${start[$index]}+$size-1
-			let total=$total+$size
+		start[$part]=$total
+		if [ -n "${size[$part]}" ] && [ "${size[$part]}" != "0" ]; then
+			size[$part]=`convert_to_sectors ${size[$part]}`
+			let end[$part]=${start[$part]}+${size[$part]}-1
+			let total+=${size[$part]}
 		else
-			end[$index]=$last_psec
+			end[$part]=$last_psec
 			total=$last_psec
+			let size[$part]=$last_psec-${start[$part]}+1
 		fi
 	done
 	if [ "$total" -le "$last_psec" ]; then
 		return 0
 	else
-		echo "There is not enough room on the disk for all the requested partitions!"
-		exit 6
+		usage 6 "There is not enough room on the disk for all the requested partitions!"
 	fi
 }
 
 install_mbr()
 {
+	echo -e "\nInstalling Master Boot Record"
 	dd if=$biosdir/gptmbr.bin of=$device bs=440 count=1 conv=notrunc
+}
+
+part_id()
+{
+	short_dev=`basename $device`
+	if grep -qoe "$short_dev[p][0-9]*" /proc/partitions; then
+		p=p
+	fi
+}
+
+mount_dev()
+{
+	mount ${mount_opts} ${device}${p}${ESPpart} $MNTDIR
 }
 
 main()
 {
-	efi_ready
 	get_dirs
-	# Any text file is a potential config, and there are plenty of ways to get one in there,
-	# so lets look at all of them in the config folder.
-	for file in `find $configdir -type f`;do 
-		if file $file |grep -qe 'ASCII text'; then
-			scan_config $file
-		fi
-	done
-	com_deps
+	if $configure_efi && [ -n "$configdir" ]; then
+		efi_ready
+		# Any text file is a potential config, and there are plenty of ways to get one in there,
+		# so lets look at all of them in the config folder.
+		for file in `find $configdir -type f`;do
+			if file $file |grep -qe 'ASCII text'; then
+				scan_config $file
+			fi
+		done
+		com_deps
+	fi
 	if block_device $device && \
 	   not_being_used $device && \
 	   enough_room $device && \
 	   user_agrees; then
 		partition
 		format
-		install_mbr
-		mkdir -p /tmp/syslinux-mount
-		mount ${device}$ESPpart /tmp/syslinux-mount
-		copy_files
-		extlinux -i $BIOSDIR
-		umount /tmp/syslinux-mount
-		rmdir /tmp/syslinux-mount
-		rm  /tmp/syslinux-com32
+		if $bios; then
+			install_mbr
+		fi
+		mount_dev
+		sync
+		if $configure_efi; then
+			copy_files
+		fi
+		copy_overlay
+		_sync
+		if $bios; then
+			echo -e "\nInstalling Bios Bootloader"
+			extlinux -i $BIOSDIR
+		fi
+		sync
+		clean_up 0
+	fi
+}
+
+buffer_size()
+{
+	local dirty writeback buffer
+	dirty=`grep -e Dirty: /proc/meminfo |grep -oe "[0-9]*"`
+	writeback=`grep -e Writeback: /proc/meminfo |grep -oe "[0-9]*"`
+	let buffer=$dirty+$writeback
+	echo $buffer
+}
+
+_sync()
+{
+	echo -e "\nSyncronizing the disk"
+	local max spid persec progress pct last now counter time freq
+	format='\rProgress %4s at %6s Per Second'
+	freq=2
+	counter=0
+	max=`buffer_size`
+	last=$max
+	sync &
+	spid=$!
+	while ps -p $spid >/dev/null 2>&1; do
+		now=`buffer_size`
+		let persec=$last-$now
+		let persec=$persec/$freq
+		let progress=$max-$now
+		let pct=100*$progress/$max
+		printf "$format" "${pct}%" "${persec}K"
+		last=$now
+		sleep $freq
+		let counter+=1
+	done
+	if [ $counter -gt 0 ]; then
+		let time=$counter*$freq
+		let persec=$max/$time
+		printf "$format\n" "100%" "${persec}K"
+	fi
+}
+
+check_needed()
+{
+	local command still_need
+	for command in $needed; do
+		if ! which $command >/dev/null 2>&1; then
+			still_need="$still_need $command"
+		fi
+	done
+	if [ -n "$still_need" ]; then
+		echo "We needed the following commands but were unable to locate them."
+		echo "$still_need"
+		exit 20
 	fi
 }
 
 list_mounts()
 {
-	cat /proc/mounts |grep -oe "$1[0-9]*"
+	grep -oe "$1[0-9]*" /proc/mounts
+}
+
+orbail()
+{
+	if [ $? -gt 0 ]; then 
+		if [ -n "$2" ]; then
+			echo "$2" 
+		else
+			echo "Something went very wrong?"
+		fi
+		exit $1
+	else
+		return 0
+	fi
 }
 
 partition()
 {
-	for mount in `list_mounts $device`; do
-		umount -f $mount
+	part_id
+	for mount in `list_mounts ${device}${p}`; do
+		umount -f $mount; orbail 29
 	done
-	dd if=/dev/zero of=$device bs=1M count=2
-	dd if=/dev/zero of=$device bs=512 count=32 seek=$(($disk_size - 32))
-	blockdev --rereadpt $device
-	sgdisk -o $device
-	for index in `seq 0 $number_of_parts`; do
-		if [ -n "${label[$index]}" ]; then
-			sgdisk	-n ${part[$index]}:${start[$index]}:${end[$index]} \
-				-t ${part[$index]}:${type[$index]} \
-				-c ${part[$index]}:"${label[$index]}" \
-				$device
+	echo -e "\nClearing Head and Tail of Drive"
+	dd if=/dev/zero of=$device bs=1M count=2; orbail 16
+	dd if=/dev/zero of=$device bs=512 count=32 seek=$(($disk_size - 32)); orbail 17
+#	blockdev --rereadpt $device; orbail 18
+	echo ""
+	sgdisk -o $device; orbail 19
+	echo -e "\nCreating Partitions"
+	printf "%3s %4s %12s %-40s\n" ID Type MBytes Label
+	echo "==================================================="
+	for part in `seq 0 $number_of_parts`; do
+		let msize=${size[$part]}/2048
+		printf "%3s %4s %12s %-40s\n" "${ID[$part]}" "${type[$part]}" "$msize" "${label[$part]}"
+		if [ -n "${label[$part]}" ]; then
+			sgdisk	-n ${ID[$part]}:${start[$part]}:${end[$part]} \
+					-t ${ID[$part]}:${type[$part]} \
+					-c ${ID[$part]}:"${label[$part]}" \
+					$device 1>/dev/null; orbail 20
 		else
-			sgdisk	-n ${part[$index]}:${start[$index]}:${end[$index]} \
-				-t ${part[$index]}:${type[$index]} \
-				$device
+			sgdisk	-n ${ID[$part]}:${start[$part]}:${end[$part]} \
+					-t ${ID[$part]}:${type[$part]} \
+					$device 1>/dev/null; orbail 21
 		fi
 	done
-	sgdisk $device --attributes=1:set:2
+	sgdisk $device --attributes=1:set:2 1>/dev/null; orbail 22
 }
 
 format()
 {
-	for index in `seq 0 $number_of_parts`; do
-		case ${type[$index]} in
+	part_id
+	echo -e "\nFormating Partitions"
+	for part in `seq 0 $number_of_parts`; do
+		case ${type[$part]} in
 			0700|ef00)
-				if [ -n "${label[$index]}" ]; then
-					mkfs.vfat ${device}${part[$index]} -n "${label[$index]}"
+				if [ -n "${label[$part]}" ]; then
+					mkfs.vfat ${device}${p}${ID[$part]} -n "${label[$part]}"; orbail 23
 				else
-					mkfs.vfat ${device}${part[$index]}
+					mkfs.vfat ${device}${p}${ID[$part]}; orbail 24
 				fi
 			;;
 			8300|8302)
-				if [ -n "${label[$index]}" ]; then
-					mkfs.ext4 ${device}${part[$index]} -L "${label[$index]}"
+				if [ -n "${label[$part]}" ]; then
+					mkfs.ext4 ${device}${p}${ID[$part]} -L "${label[$part]}"; orbail 25
 				else
-					mkfs.ext4 ${device}${part[$index]}
+					mkfs.ext4 ${device}${p}${ID[$part]}; orbail 26
 				fi
 			;;
 			8200)
-				if [ -n "${label[$index]}" ]; then
-					mkswap ${device}${part[$index]} -L "${label[$index]}"
+				if [ -n "${label[$part]}" ]; then
+					mkswap ${device}${p}${ID[$part]} -L "${label[$part]}"; orbail 27
 				else
-					mkswap ${device}${part[$index]}
+					mkswap ${device}${p}${ID[$part]}; orbail 28
 				fi
 			;;
-			8e00) pvcreate ${device}${part[$index]};;
+			8e00) #pvcreate ${device}${p}${ID[$part]}
+				echo "LVM Partitioned, the rest is up to you"
+			;;
 		esac
 	done
 }
 
+copy_dir()
+{
+	local dir adir file
+	dir=$1
+	if [ "`echo $dir | rev | cut -c1`" == "/" ]; then
+		dir="`echo $dir| rev | cut -c2- | rev`"
+	fi
+	for adir in `find "$dir" -type d | sed -e s:^"$dir"::g |cut -c2-`; do
+		mkdir -p "$2/$adir"
+	done
+	for file in `find "$dir" -type f| sed -e s:^"$dir"/::g`; do
+		copy_file "$dir/$file" "$2/$file"
+	done
+}
+
+copy_file()
+{
+	cp -f "$1" "$2" &
+	cppid=$!
+
+	local orig_size=`stat -c %s "$1"`
+	local dest_size=0
+	local timeout=0
+	local format='Copying %-15s to %-42s %4s Complete\r'
+	local freq show_progress pct 
+	if [ -n "$mount_opts" ]; then
+		freq='1'
+	else
+		freq='.1'
+	fi
+	if [ $orig_size -gt $cpt ]; then
+		show_progress=true
+	else
+		show_progress=false
+	fi
+	while ps -p $cppid >/dev/null 2>&1 && [ $timeout -lt 60 ]; do
+		if $show_progress; then
+			if [ -e "$2" ]; then
+				dest_size=`stat -c %s "$2"`
+			else
+				let timeout+=1
+			fi
+			let pct=100*$dest_size/$orig_size
+			printf "$format" "`basename $1`" "`dirname $2`" "${pct}%"
+			sleep $freq
+		else
+			#We are not gonna stat the file, so it's ok to have a fast timer when sync is on.
+			sleep .1
+			let timeout+=1
+		fi
+	done
+	if [ `stat -c %s "$2"` -eq $orig_size ]; then
+		if $show_progress; then
+			printf "$format" "`basename $1`" "`dirname $2`" "100%"
+			echo ""
+		fi
+	else
+		echo "Something went wrong with the copy!"
+		kill -KILL $cppid
+	fi
+}
+
+check_needed
 getopts "$@"
 main
 

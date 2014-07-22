@@ -1590,7 +1590,7 @@ if [ -n "$missing_commands" ]; then
 	exit 1
 fi
 
-required_tools="genisoimage mksquashfs unsquashfs gdk-pixbuf-query-loaders pango-querymodules glib-compile-schemas gio-querymodules rsvg-convert convert cryptmd5 vncpasswd smbpasswd"
+required_tools="mkisofs mksquashfs unsquashfs gdk-pixbuf-query-loaders pango-querymodules glib-compile-schemas gio-querymodules rsvg-convert convert cryptmd5 vncpasswd smbpasswd"
 for tool in $required_tools; do
 	if [ ! `which $tool` ]; then
 		missing_tools="$missing_tools $tool"
@@ -1893,17 +1893,18 @@ if [ -z "$NOIMAGES" ] ; then
     fi
     addpkgs $IMAGEDIR/source
 
-    genisoimage -o $IMAGEDIR/thinstation.iso \
-        -b isolinux.bin\
-	-f \
-	-quiet \
-	-c boot.cat \
-	-no-emul-boot \
-	-boot-load-size 4 \
-	-boot-info-table \
-	-joliet \
-	-rock \
-	$IMAGEDIR/source
+	IMAGEDIR_FINAL=`dirname $IMAGEDIR`
+	mkisofs	-o $IMAGEDIR_FINAL/thinstation.iso \
+		-b boot/syslinux/isolinux.bin \
+		-c boot.cat \
+		-no-emul-boot \
+		-boot-load-size 4 \
+		-boot-info-table \
+		-joliet \
+		-rock \
+		-f \
+		-quiet \
+		$IMAGEDIR_FINAL/source
 
     if [ -e boot-images/common ]; then
       ls boot-images/common | while read i; do

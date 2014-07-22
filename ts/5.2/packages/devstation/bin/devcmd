@@ -1,5 +1,14 @@
 #!/bin/bash
 
+mounted()
+{
+        if [ "`cat /proc/mounts |grep -e $1 -c`" -ne "0" ]; then
+                return 0
+        else
+                return 1
+        fi
+}
+
 x_echo()
 {
         Xdialog --title "$1" --msgbox "$2" 0 0 2> /dev/null
@@ -11,8 +20,8 @@ do_update()
 	case $? in
 		0) x_echo Update "Update Complete" ;;
 		1) x_echo Update "No Update Needed" ;;
-		2) e_echo Update "Error! Could not check md5" ;;
-		3) e_echo Update "Error! No initrd or vmlinuz found" ;;
+		2) x_echo Update "Error! Could not check md5" ;;
+		3) x_echo Update "Error! No initrd or vmlinuz found" ;;
 	esac
 }
 
@@ -68,6 +77,16 @@ make_machine()
 	fi
 }
 
+do_config()
+{
+	medit --use-session=no -t /thinstation/ts/$TS_VERSION/build.conf /thinstation/ts/$TS_VERSION/thinstation.conf.buildtime /thinstation/ts/$TS_VERSION/thinstation.conf.sample
+}
+
+do_term()
+{
+	xfce4-terminal --working-directory=/thinstation -x ./setup-chroot
+}
+
 do_reset()
 {
 	Xdialog --title "Warning: Factory Reset" --default-no --yesno "\
@@ -86,12 +105,16 @@ Are you really sure?" 20 100
 	x_echo "Done" "You build env has been reset and updated"
 }
 
-if [ "`basename $XTERM_CMD`" == "xfce4-terminal" ]; then
-	ARG="--disable-server -x"
-else
-	ARG="-e"
-fi
+terminal_arg()
+{
+	if [ "`basename $XTERM_CMD`" == "xfce4-terminal" ]; then
+		ARG="--disable-server -x"
+	else
+		ARG="-e"
+	fi
+}
 
+terminal_arg
 
 case $1 in
 	toggle-smp)
@@ -109,11 +132,17 @@ case $1 in
 	build)
 		do_build
 		;;
+	configure)
+		do_config
+		;;
 	reset)
 		do_reset
 		;;
 	update)
 		do_update
+		;;
+	terminal)
+		do_term
 		;;
 esac
 exit 0
