@@ -5,12 +5,17 @@
 # Depends on: mtools perl
 
 name=syslinux-efi64
-version=6.03-pre6
+version=6.03-pre18
 release=1
-source=(https://www.kernel.org/pub/linux/utils/boot/syslinux/Testing/6.03/syslinux-$version.tar.xz)
+source=(https://www.kernel.org/pub/linux/utils/boot/syslinux/Testing/6.03/syslinux-$version.tar.xz \
+	ifmem.c)
 
 build() {
 	cd syslinux-${version}
+
+	cp $SRC/ifmem.c com32/modules/.
+        sed -i -e "s/ifcpu.c32/ifcpu.c32 ifmem.c32/g" com32/modules/Makefile
+
         make INSTALLROOT=$PKG install efi64
 }
 

@@ -55,6 +55,9 @@ remove_files()
 {
 #	But only if we don't want to save them for debugging
 	if [ -z "$SAVEDIR" ]; then
+		if [ -e /tmp/syslinux-com32 ]; then
+			rm /tmp/syslinux-com32
+		fi
 		if [ -e ./tmp-tree ] ; then
 			unmount_tmp
 			rm -Rf ./tmp-tree/*
@@ -85,6 +88,17 @@ remove_files()
 			rm ./build.image
 		fi
 	fi
+}
+
+remove_old_boot_files()
+{
+        if [ -e boot-images/initrd/added.files ]; then
+                for file in `cat boot-images/initrd/added.files`; do
+                        rm $file
+                done
+                rm boot-images/initrd/added.files
+        fi
+#        find boot-images -type d -empty -delete
 }
 
 ## Add PKG Files to local Storage
@@ -693,6 +707,23 @@ write_locale()
         localedef -i $inputfile -f $charmap $name --prefix=./tmp-tree
 }
 
+sample_configuration()
+{
+	# Building Sample Thinstation.conf file
+	echo -e "\nBuilding Sample Thinstation.conf File\n"
+
+	mkdir -p ./tmp-tree/conf
+	echo > ./thinstation.conf.sample
+	for filename in `find $PKGDIR -maxdepth 1 -name "*" && echo "./tmp-tree"`; do
+		if [ -e $filename/build/conf ] ; then
+			cp $filename/build/conf/* ./tmp-tree/conf
+		fi
+	done
+	for filename in `ls ./tmp-tree/conf | sort`; do
+		cat ./tmp-tree/conf/$filename >> ./thinstation.conf.sample
+	done
+}
+
 locales()
 {
 	# Removes extended locale libs if not selected
@@ -1258,6 +1289,9 @@ mesa
 # Process locales
 locales
 
+# Building Sample Thinstation.conf file
+sample_configuration
+
 # Process keymaps
 keymaps
 
@@ -1293,22 +1327,6 @@ if [ ! -d ${tzpath%/*} ] ;
 fi
 cp /usr/share/zoneinfo/$TIME_ZONE ${tzpath%/*}/.
 ln -sf /lib/zoneinfo/$TIME_ZONE ./tmp-tree/etc/localtime
-
-# Building Sample Thinstation.conf file
-echo -e "\nBuilding Sample Thinstation.conf File\n"
-
-mkdir -p ./tmp-tree/conf
-echo > ./thinstation.conf.sample
-for filename in `find $PKGDIR -maxdepth 1 -name "*" && echo "./tmp-tree"`
-do
-	if [ -e $filename/build/conf ] ; then
-		cp $filename/build/conf/* ./tmp-tree/conf
-	fi
-done
-for filename in `ls ./tmp-tree/conf | sort`
-do
-		cat ./tmp-tree/conf/$filename >> ./thinstation.conf.sample
-done
 
 # Copy across sample file for www administration interface
 if [ -e $PACDIR/www.* ]; then
@@ -1599,7 +1617,7 @@ if [ -n "$missing_commands" ]; then
 	exit 1
 fi
 
-required_tools="genisoimage mksquashfs unsquashfs gdk-pixbuf-query-loaders pango-querymodules glib-compile-schemas gio-querymodules rsvg-convert convert cryptmd5 vncpasswd smbpasswd"
+required_tools="mkisofs mksquashfs unsquashfs gdk-pixbuf-query-loaders pango-querymodules glib-compile-schemas gio-querymodules rsvg-convert convert cryptmd5 vncpasswd smbpasswd"
 for tool in $required_tools; do
 	if [ ! `which $tool` ]; then
 		missing_tools="$missing_tools $tool"
@@ -1699,6 +1717,7 @@ done
 # Removal all commerical packages then exit
 if [ -n "$REMOVEALL" ]; then
 	remove_files
+	remove_old_boot_files
 	for package in `ls ./packages`;	do
 		if [ -e ./packages/$package/build/remove ] && [ -e ./packages/$package/build/installed ] ; then
 			./packages/$package/build/remove
@@ -1834,73 +1853,217 @@ if [ -e build.image ]; then
 	rm build.image
 fi
 
-merge_boot()
+add_image()
 {
-	loadersource="`prt-get fsearch $LOADER |grep -Ev 'Found|/$' |cut -d " " -f3 |head -n1`"
-
-	rm -f $IMAGEDIR/$CONFIGFILE
-	if [ -e $IMAGEDIR ]; then
-		find $IMAGEDIR -maxdepth 1 -type f -delete
-	fi
-	mkdir -p $IMAGEDIR/`dirname $CONFIGFILE`
-
-	cp $loadersource $IMAGEDIR
-	cp -a boot-images/templates/$ts_syslinuxtheme/* $IMAGEDIR
-
-	cat $IMAGEDIR/syslinux.cfg.tpl |sed -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS LM=$LM/g"> $IMAGEDIR/$CONFIGFILE
-	sed -i -e "s/\$LM/$LM/g" $IMAGEDIR/$CONFIGFILE
-	rm $IMAGEDIR/syslinux.cfg.tpl
-
 	for kernel in `find $INITDIR -maxdepth 1 -type f -name vmlinuz\* -printf '%f '`; do
-		ln $INITDIR/$kernel $IMAGEDIR/$kernel
+		sys_link hard $INITDIR/$kernel $IMAGEDIR/boot/$kernel
 	done
-	ln $INITDIR/initrd $IMAGEDIR/initrd
-	ln $INITDIR/image.md5 $IMAGEDIR/image.md5
+
+	sys_link hard $INITDIR/initrd $IMAGEDIR/boot/initrd
+
+	sys_link hard $INITDIR/image.md5 $IMAGEDIR/boot/image.md5
+
 	if [ -e $INITDIR/lib.squash ]; then
-		ln $INITDIR/lib.squash $IMAGEDIR/lib.squash
+		sys_link hard $INITDIR/lib.squash $IMAGEDIR/boot/lib.squash
+	fi
+}
+
+syslinux_scan_config()
+{
+	# Scan config file for potentially needed com32 files
+	for com in \
+		pmload vesamenu sdi cpuidtest dmitest whichsys vpdtest \
+		elf cpuid debug linux vesainfo pxechn meminfo \
+		pcitest ifplop ethersel liblua ifmemdsk kbdmap libcom32 \
+		libmenu prdhcp gfxboot hexdump config libutil gpxecmd \
+		kontron_wdt disk zzjson libgpl chain host rosh ifcpu \
+		ifcpu64 hdt menu lua mboot cmd; do
+		grep $1 -oe $com.c32 >> /tmp/syslinux-com32
+	done
+}
+
+syslinux_com_deps()
+{
+	for lib in libutil libcom32 liblua libgpl libmenu; do
+		if ! grep -qe $lib.c32 /tmp/syslinux-com32; then
+			for module in `eval echo "\$"$lib`; do
+				if grep -qe $module.c32 /tmp/syslinux-com32; then
+					echo "$lib.c32" >> /tmp/syslinux-com32
+					if [ "$lib" == "libmenu" ]; then
+						echo libutil.c32 >> /tmp/syslinux-com32
+						echo libcom32.c32 >> /tmp/syslinux-com32
+					fi
+				fi
+			done
+		fi
+	done
+	cat /tmp/syslinux-com32 |sort -u > /tmp/sorted
+	rm /tmp/syslinux-com32
+	mv /tmp/sorted /tmp/syslinux-com32
+}
+
+syslinux_copy_files()
+{
+	biosdir=/usr/share/syslinux/bios
+	efi64dir=/usr/share/syslinux/efi64
+	efi32dir=/usr/share/syslinux/efi32
+	ESP=$IMAGEDIR
+	BIOSDIR=${ESP}/boot$BDIR
+	NVDIR=$ESP/EFI/BOOT
+	CONFIGDIR=`dirname $CONFIGFILE`
+	mkdir -p "$BIOSDIR"
+	mkdir -p "$NVDIR"
+
+	for file in `find $configdir -type f |sed -e "s|$configdir||g"`; do
+		subdirname=`dirname $file |sed -e "s|^/$||g"`
+		mkdir -p "${BIOSDIR}${subdirname}"
+		sys_copy ${configdir}${file} "$BIOSDIR/$file"
+		mkdir -p "${NVDIR}${subdirname}"
+		sys_copy ${configdir}${file} "$NVDIR/$file"
+	done
+
+	mkdir -p $BIOSDIR/$CONFIGDIR
+	cat $BIOSDIR/syslinux.cfg.tpl |sed -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS LM=$LM/g"> $BIOSDIR/$CONFIGFILE
+        sed -i -e "s/\$LM/$LM/g" $BIOSDIR/$CONFIGFILE
+	if [ "$LOADER" == "pxelinux.0" ]; then
+		sed -i -e "s|/boot|../../boot|g" $BIOSDIR/$CONFIGFILE
+	fi
+	echo $BIOSDIR/$CONFIGFILE >> boot-images/initrd/added.files
+
+	find $ESP -name syslinux.cfg.tpl -delete
+
+	for file in `find $ESP -name \*.tpl |sed -e "s|$ESP||g"`; do
+		endfile=`dirname $file`/`basename $file .tpl`
+		cat $ESP/$file |sed -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS LM=$LM/g" > $ESP/$endfile
+		rm $ESP/$file
+	        sed -i -e "s/\$LM/$LM/g" $ESP/$endfile
+		if [ "$LOADER" == "pxelinux.0" ]; then
+			sed -i -e "s|/boot|../../boot|g" $ESP/$endfile
+		fi
+        	echo $ESP/$endfile >> boot-images/initrd/added.files
+	done
+
+	if [ "$LOADER" == "pxelinux.0" ]; then
+		mkdir -p $NVDIR/$CONFIGDIR
+		sys_copy $BIOSDIR/$CONFIGFILE		"$NVDIR/$CONFIGFILE"
+	else
+		sys_copy $BIOSDIR/$CONFIGFILE           "$NVDIR/syslinux.cfg"
 	fi
 
-	addpkgs $IMAGEDIR
+	for com in `cat /tmp/syslinux-com32`; do
+		sys_copy $biosdir/$com	"$BIOSDIR/$com"
+		sys_copy $efi64dir/$com "$NVDIR/$com"
+	done
+
+	loadersource="`prt-get fsearch $LOADER |grep -Ev 'Found|/$' |cut -d " " -f3 |head -n1`"
+	sys_copy $loadersource		"$BIOSDIR/$LOADER"
+
+	sys_copy $biosdir/ldlinux.c32	"$BIOSDIR/ldlinux.c32"
+        sys_copy $efi64dir/syslinux.efi "$NVDIR/bootx64.efi"
+        sys_copy $efi64dir/ldlinux.e64  "$NVDIR/ldlinux.e64"
+}
+
+sys_link()
+{
+	case "$1" in
+		soft) ln -sf "$2" "$3" ;;
+		hard) ln "$2" "$3" ;;
+	esac
+	echo "$3" >> boot-images/initrd/added.files
+}
+
+sys_copy()
+{
+	cp -a "$1" "$2"
+	echo "$2" |sed -E "s|/+|/|g" |sed '/\.tpl/d' >> boot-images/initrd/added.files
 }
 
 # Skips Images if NOIMAGES is set, useful for TS-O-Matic
 if [ -z "$NOIMAGES" ]; then
+	remove_old_boot_files
+	configdir=boot-images/templates/$ts_syslinuxtheme
+	# Any text file is a potential config, and there are plenty of ways to get one in there,
+	# so lets look at all of them in the config folder.
+	for file in `find $configdir -type f`;do
+		if file $file |grep -qe 'ASCII text'; then
+			syslinux_scan_config $file
+		fi
+	done
+        syslinux_com_deps
+
 	for image in $ts_bootimages; do
 		echo -e "\nMaking boot image for $image Type....\n"
 		case $image in
 			syslinux)
 				IMAGEDIR=boot-images/syslinux
+				BDIR=/syslinux
 				CONFIGFILE=syslinux.cfg
 				LOADER=syslinux
 				LM=2
-				merge_boot
+
+				addpkgs $IMAGEDIR
+				syslinux_copy_files
+				add_image
+
 			;;
 			pxe)
 				IMAGEDIR=boot-images/pxe
+				BDIR=pxelinux
 				CONFIGFILE=pxelinux.cfg/default
 				LOADER=pxelinux.0
 				LM=3
-				merge_boot
+
+				addpkgs $IMAGEDIR
+				syslinux_copy_files
+				add_image
 			;;
 			iso)
 				IMAGEDIR=boot-images/iso/source
+				BDIR=/syslinux
 				CONFIGFILE=isolinux.cfg
 				LOADER=isolinux.bin
 				LM=4
-				merge_boot
+
+				addpkgs $IMAGEDIR
+				syslinux_copy_files
+				for file in `ls --color=never boot-images/syslinux/boot/syslinux`; do
+					if [ ! -e $IMAGEDIR/boot/syslinux/$file ]; then
+						sys_copy boot-images/syslinux/boot/syslinux/$file $IMAGEDIR/boot/syslinux/$file
+					fi
+				done
+				add_image
 
 				IMAGEDIR_FINAL=`dirname $IMAGEDIR`
-				genisoimage	-o $IMAGEDIR_FINAL/thinstation.iso \
-						-b isolinux.bin\
-						-f \
-						-quiet \
+#				mkisofs		-o $IMAGEDIR_FINAL/thinstation.iso \
+#						-b boot/syslinux/isolinux.bin \
+#						-c boot.cat \
+#						-no-emul-boot \
+#						-boot-load-size 4 \
+#						-boot-info-table \
+#						-eltorito-alt-boot \
+#						-eltorito-platform efi \
+#						-b EFI/BOOT/bootx64.efi \
+#						-no-emul-boot \
+#						-joliet \
+#						-rock \
+#						-f \
+#						-quiet \
+#						$IMAGEDIR_FINAL/source
+
+				mkisofs		-o $IMAGEDIR_FINAL/thinstation.iso \
+						-b boot/syslinux/isolinux.bin \
 						-c boot.cat \
 						-no-emul-boot \
 						-boot-load-size 4 \
 						-boot-info-table \
 						-joliet \
 						-rock \
+						-f \
+						-quiet \
 						$IMAGEDIR_FINAL/source
+
+
+				echo $IMAGEDIR_FINAL/thinstation.iso >> boot-images/initrd/added.files
 
 				if [ -e boot-images/common ]; then
 					ls boot-images/common | \
