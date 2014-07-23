@@ -1,0 +1,31 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=cdrtools
+version=3.01a24
+release=1
+source=(http://downloads.sourceforge.net/cdrtools/cdrtools-$version.tar.bz2)
+
+build() {
+	cd $name-${version%%a*}
+	sed -i 's|/opt/schily|/usr|g' DEFAULTS/Defaults.linux
+	sed -i 's|DEFINSGRP=.*|DEFINSGRP=root|' DEFAULTS/Defaults.linux
+
+	export GMAKE_NOWARN=true
+	make INS_BASE=/usr INS_RBASE=/ DESTDIR=$PKG install
+
+	rm -rf "$PKG"/usr/include
+	rm -rf "$PKG"/usr/lib/{*.a,profiled}
+
+	# autoload 'sg' module needed by cdrecord
+	install -d -m755 "$PKG"/usr/lib/modules-load.d/
+	echo sg > "$PKG"/usr/lib/modules-load.d/cdrecord.conf
+
+	# create symlinks for cdrkit compatibility
+	cd "$PKG"/usr/bin
+	ln -s cdrecord wodim
+	ln -s readcd readom
+	ln -s mkisofs genisoimage
+	ln -s cdda2wav icedax
+}

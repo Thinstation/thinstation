@@ -1893,18 +1893,17 @@ if [ -z "$NOIMAGES" ] ; then
     fi
     addpkgs $IMAGEDIR/source
 
-	IMAGEDIR_FINAL=`dirname $IMAGEDIR`
-	mkisofs	-o $IMAGEDIR_FINAL/thinstation.iso \
-		-b boot/syslinux/isolinux.bin \
-		-c boot.cat \
-		-no-emul-boot \
-		-boot-load-size 4 \
-		-boot-info-table \
-		-joliet \
-		-rock \
-		-f \
-		-quiet \
-		$IMAGEDIR_FINAL/source
+    mkisofs	-o $IMAGEDIR/thinstation.iso \
+        -b isolinux.bin\
+	-f \
+	-quiet \
+	-c boot.cat \
+	-no-emul-boot \
+	-boot-load-size 4 \
+	-boot-info-table \
+	-joliet \
+	-rock \
+	$IMAGEDIR/source
 
     if [ -e boot-images/common ]; then
       ls boot-images/common | while read i; do
