@@ -1904,6 +1904,8 @@ syslinux_com_deps()
 
 syslinux_copy_files()
 {
+	inet_dev=`ip route list |grep -e default |cut -d " " -f5`
+	local_ip=`ip addr show $inet_dev |grep -e "inet " |cut -d " " -f6 |cut -d "/" -f1`
 	biosdir=/usr/share/syslinux/bios
 	efi64dir=/usr/share/syslinux/efi64
 	efi32dir=/usr/share/syslinux/efi32
@@ -1925,8 +1927,8 @@ syslinux_copy_files()
 	mkdir -p $BIOSDIR/$CONFIGDIR
 	cat $BIOSDIR/syslinux.cfg.tpl |sed -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS LM=$LM/g"> $BIOSDIR/$CONFIGFILE
         sed -i -e "s/\$LM/$LM/g" $BIOSDIR/$CONFIGFILE
-	if [ "$LOADER" == "pxelinux.0" ]; then
-		sed -i -e "s|/boot|../../boot|g" $BIOSDIR/$CONFIGFILE
+	if [ "$LOADER" == "lpxelinux.0" ]; then
+		sed -i -e "s|/boot|http://$local_ip/boot|g" $BIOSDIR/$CONFIGFILE
 	fi
 	echo $BIOSDIR/$CONFIGFILE >> boot-images/initrd/added.files
 
@@ -1937,13 +1939,13 @@ syslinux_copy_files()
 		cat $ESP/$file |sed -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS LM=$LM/g" > $ESP/$endfile
 		rm $ESP/$file
 	        sed -i -e "s/\$LM/$LM/g" $ESP/$endfile
-		if [ "$LOADER" == "pxelinux.0" ]; then
-			sed -i -e "s|/boot|../../boot|g" $ESP/$endfile
+		if [ "$LOADER" == "lpxelinux.0" ]; then
+			sed -i -e "s|/boot|http://$local_ip/boot|g" $ESP/$endfile
 		fi
         	echo $ESP/$endfile >> boot-images/initrd/added.files
 	done
 
-	if [ "$LOADER" == "pxelinux.0" ]; then
+	if [ "$LOADER" == "lpxelinux.0" ]; then
 		mkdir -p $NVDIR/$CONFIGDIR
 		sys_copy $BIOSDIR/$CONFIGFILE		"$NVDIR/$CONFIGFILE"
 	else
@@ -2008,9 +2010,9 @@ if [ -z "$NOIMAGES" ]; then
 			;;
 			pxe)
 				IMAGEDIR=boot-images/pxe
-				BDIR=pxelinux
+				BDIR=/pxelinux
 				CONFIGFILE=pxelinux.cfg/default
-				LOADER=pxelinux.0
+				LOADER=lpxelinux.0
 				LM=3
 
 				addpkgs $IMAGEDIR
