@@ -8,22 +8,23 @@ INSTALLDIR=./packages/ica
 etcs="passwd group nsswitch.conf issue"
 
 bins="attr bash cat chgrp chmod chown cp date dd df echo ed false ln ls mkdir more mount mv \
-ping ps red rm rmdir sed sh sleep tar touch true uname vi"
+ping red rm rmdir sed sh sleep tar touch true uname vi"
 
 sbins="init init ip ss tc telinit"
 
-ubins="awk basename cut dirname egrep expr find gawk grep head id install mktemp sort tr wc which whoami"
+ubins="awk basename cut dirname egrep expr find gawk grep head id install mktemp sort tr wc which whoami ps"
 
-libs="ld-linux.so.2 libacl.so.1 libattr.so.1 libc.so.6 libdl.so.2 libhistory.so.6 libm.so.6 \
-libncurses.so.5 libnss_compat.so.2 libnss_files.so.2 libproc-3.2.8.so libpthread.so.0 \
-libreadline.so.6 librt.so.1 libgobject-2.0.so.0 libglib-2.0.so.0 libgmodule-2.0.so.0 \
-libcap.so.2 libgthread-2.0.so.0 libnsl.so.1 libnss_nis.so.2 libncursesw.so.5"
+libs="ld-linux.so.2 libacl.so.1 libattr.so.1 libc.so.6 libdl.so.2 libhistory.so.6 libm.so.6 libz.so.1 \
+libncurses.so.5 libnss_compat.so.2 libnss_files.so.2 libpthread.so.0 libreadline.so.6 librt.so.1  \
+libcap.so.2 libnsl.so.1 libnss_nis.so.2 libncursesw.so.5"
 
-ulibs="libpcre.so.0 libgmp.so.10 libxml2.so.2 libffi.so.5 libz.so.1"
+ulibs="libpcre.so.1 libprocps.so.3 libgmp.so.10 libxml2.so.2 libffi.so.6 \
+libmpfr.so.4 \
+libgobject-2.0.so.0 libglib-2.0.so.0 libgmodule-2.0.so.0 libgthread-2.0.so.0"
 
-dirs="proc etc/udev/rules.d etc/init.d bin lib tmp dev/bus/usb usr/share/applications usr/local/lib/netscape/plugins usr/local/lib/firefox/plugins usr/local/lib/chrome/plugins"
+dirs="proc etc/udev/rules.d etc/init.d bin lib tmp dev/bus/usb usr/share/applications usr/lib/mozilla/plugins"
 
-clean_dirs="setupwfc lib linuxx86 nls dev bin PkgId tmp etc/nsswitch.conf etc/passwd etc/group etc/mtab etc/issue proc usr/local/lib/chrome usr/local/lib/firefox"
+clean_dirs="setupwfc lib linuxx86 nls dev bin PkgId tmp etc/nsswitch.conf etc/passwd etc/group etc/mtab etc/issue proc"
 
 for mdir in $dirs; do
 	mkdir -p $INSTALLDIR/$mdir
@@ -61,7 +62,6 @@ chmod +x $INSTALLDIR/bin/update-rc.d
 chmod +x $INSTALLDIR/bin/chkconfig
 
 touch $INSTALLDIR/bin/firefox
-touch $INSTALLDIR/bin/chrome
 
  tar -C $INSTALLDIR -zxvf ./wget_tmp/$gzname
  let returnval=$?
@@ -71,8 +71,8 @@ Running the ICA insaller. \n\
 You will need to punch these keys manually. \n\
 Choose 1 to install and then accept the default location. \n\
 Choose y to the next 2 questions. \n\
-Choose 1 to accept the ICA license. \n\
-Choose y for the next 3 questions. \n\
+Choose 1 to accept the ICA license (if prompted). \n\
+Choose y for the next 2 or 3 questions. \n\
 Choose 3 to exit. \n\
 \n\
 Don't worry about the errors. :) \n\
