@@ -9,6 +9,16 @@ release=1
 source=(http://ftp.isu.edu.tw/pub/Linux/Gentoo/distfiles/bluecrux-default-$version.tar.gz)
 
 build() {
+        for xpm in `find . -name *.xpm`; do
+                if [ "`identify $xpm |cut -d " " -f3 |cut -d x -f1`" == "1" ]; then
+                        xwidth=`identify $xpm |cut -d " " -f3 |cut -d x -f2`
+                        convert $xpm -resize 2x$xwidth\! ${xpm}_resize
+                        rm $xpm
+                        mv ${xpm}_resize $xpm
+                        sleep 2
+                fi
+        done
+
 	install -d $PKG/usr/share/icewm/themes/blueCrux
 	cp -rf blueCrux/* $PKG/usr/share/icewm/themes/blueCrux/.
 	find $PKG/ -type f -exec chmod 0644 {} \;
