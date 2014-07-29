@@ -105,14 +105,15 @@ remove_old_boot_files()
 
 addpkgs()
 {
-  if ls $1/*.pkg > /dev/null 2>&1 ; then
-    rm $1/*.pkg
-  fi
-  if [ "`make_caps $ts_localpkgs`" = "TRUE" ] ; then
-    if ls $PKGDIR/*.pkg > /dev/null 2>&1 ; then
-    	cp $PKGDIR/*.pkg $1
-    fi
-  fi
+#  if ls $1/*.pkg > /dev/null 2>&1 ; then
+#    rm $1/*.pkg
+#  fi
+	if [ "`make_caps $ts_localpkgs`" = "TRUE" ] ; then
+		for pkgdirpkg in `ls $PKGDIR/*.pkg 2> /dev/null`; do
+			mkdir -p $1
+			sys_link hard $PKGDIR/*.pkg $1/$pkgdirpkg
+		done
+	fi
 }
 
 mounted()
@@ -1102,6 +1103,15 @@ if ! is_enabled $ts_bootlogo; then
 	rm $PACDIR/splash.package
 fi
 
+# Now that all the package deps are satisfied, do we really need wmsetbg
+if [ -e $PACDIR/desktop.param ]; then
+	. $PACDIR/desktop.param
+fi
+if [ -z "$ts_desktop" ] && [ -e $PACDIR/wmsetbg.package ]; then
+	echo -e "Desktop Image Disabled. Removing wmsetbg package."
+        rm $PACDIR/wmsetbg.package
+fi
+
 install_non_distributable
 
 # Add all packages to filetree
@@ -2029,11 +2039,13 @@ if [ -z "$NOIMAGES" ]; then
 
 				addpkgs $IMAGEDIR
 				syslinux_copy_files
-				for file in `ls --color=never boot-images/syslinux/boot/syslinux`; do
-					if [ ! -e $IMAGEDIR/boot/syslinux/$file ]; then
-						sys_copy boot-images/syslinux/boot/syslinux/$file $IMAGEDIR/boot/syslinux/$file
-					fi
-				done
+				if [ -e boot-images/syslinux/boot/syslinux ]; then
+					for file in `ls --color=never boot-images/syslinux/boot/syslinux`; do
+						if [ ! -e $IMAGEDIR/boot/syslinux/$file ]; then
+							sys_copy boot-images/syslinux/boot/syslinux/$file $IMAGEDIR/boot/syslinux/$file
+						fi
+					done
+				fi
 				add_image
 
 				IMAGEDIR_FINAL=`dirname $IMAGEDIR`
