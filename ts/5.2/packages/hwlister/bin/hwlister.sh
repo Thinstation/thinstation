@@ -31,9 +31,9 @@ for module in `lsmod |cut -d " " -f 1`; do
 	fi
 done
 
-if [ -e /bin/Xorg ] && [ ! -e /var/log/Xorg.0.log ]; then
-	Xorg -configure
-fi
+#if [ -e /bin/Xorg ] && [ ! -e /var/log/Xorg.0.log ]; then
+#	Xorg -configure
+#fi
 if [ -e /var/log/Xorg.0.log ]; then
 	xdriver=`grep /var/log/Xorg.0.log -e "driver 0" |cut -d\) -f2 |cut -d " " -f3`
 	for available in radeon intel geode vmware sis openchrome nv ati radeon nouveau; do
