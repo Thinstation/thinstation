@@ -8,6 +8,7 @@ init)
     if ! pkg_initialized $PACKAGE; then
         pkg_set_init_flag $PACKAGE
 	PKG_PACKAGES="$PKG_PACKAGES $PKG_PACKAGES1 $PKG_PACKAGES2 $PKG_PACKAGES3 $PKG_PACKAGES4 $PKG_PACKAGES5 $PKG_PACKAGES6 $PKG_PACKAGES7 $PKG_PACKAGES8"
+	PKG_PACKAGES_BG="$PKG_PACKAGES_BG $PKG_PACKAGES_BG1 $PKG_PACKAGES_BG2 $PKG_PACKAGES_BG3 $PKG_PACKAGES_BG4 $PKG_PACKAGES_BG5 $PKG_PACKAGES_BG6 $PKG_PACKAGES_BG7 $PKG_PACKAGES_BG8"
 	MOD_PACKAGES="$MOD_PACKAGES $MOD_PACKAGES1 $MOD_PACKAGES2 $MOD_PACKAGES3 $MOD_PACKAGES4 $MOD_PACKAGES5 $MOD_PACKAGES6 $MOD_PACKAGES7 $MOD_PACKAGES8"
 
 	if [ -n "$DEBUG_NETWORK" ] ; then
@@ -15,6 +16,12 @@ init)
 	fi
 
 	mkdir $PKGDIR
+	if [ "$PKG_PACKAGES_BG" != "        " ] ; then
+		echo_log '\n\nLoading extra packages (background)... ' $debug
+		# run the pkg load in background via setsid
+		(setsid sh -c "for package in $PKG_PACKAGES_BG; do pkg load \$package pkg $PKG_PREFIX; done" 2>&1 >/dev/null) &
+		echo_log "\n" $debug
+	fi
 	if [ "$PKG_PACKAGES" != "        " ] ; then
 		echo_log '\n\nLoading extra packages... ' $debug
 		for package in $PKG_PACKAGES; do

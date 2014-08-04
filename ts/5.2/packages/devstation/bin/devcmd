@@ -9,6 +9,15 @@ mounted()
         fi
 }
 
+do_unmounts()
+{
+        for mount in dev/pts dev tmp proc sys ; do
+                while mounted /thinstation/$mount ; do
+                        umount /thinstation/$mount
+                done
+        done
+}
+
 x_echo()
 {
         Xdialog --title "$1" --msgbox "$2" 0 0 2> /dev/null
@@ -98,6 +107,11 @@ Are you really sure?" 20 100
         retval=$?
         if [ "$retval" -gt "0" ]; then exit $retval ; fi
 	cd /thinstation
+	while pidof setup-chroot > /dev/null; do
+		kill -HUP `pidof setup-chroot`
+		sleep .1
+	done
+	do_unmounts
 	$XTERM_CMD -T "Wipe" $ARG rm -rf *
 	$XTERM_CMD -T "GIT Pull" $ARG git pull
 	$XTERM_CMD -T "GIT Checkout" $ARG git checkout -f

@@ -9,17 +9,18 @@ x_echo()
 		--stdout \
 		--msgbox "$2" 18 60 \
 			> /dev/null
+		if [ $? -gt 0 ]; then
+			exit 1
+		fi
 }
 
 readme()
 {
 	Xdialog	--title "Install to HD" \
 		--textbox /README 30 120
-			if [ $? -lt 1 ]; then
-				continue
-			else
-				exit 1
-			fi
+		if [ $? -gt 0 ]; then
+			exit 1
+		fi
 }
 
 mem_check()
@@ -222,6 +223,7 @@ x_echo "Almost Done" "\
 You can now make your first image by going to\n\
 /thinstation and running ./setup-chroot from\n\
 there cd to /ts/$TS_VERSION and run ./build"
+
 x_echo "PXE Booting" "\
 This dev workstation is a PXE boot server.\n\
 You can set it's IP as the next boot server\n\
@@ -229,12 +231,18 @@ in your DHCP server, and set the boot file to\n\
 pxelinux.0 . This will let clients boot directly\n\
 from images created in the build env of this\n\
 workstation."
+
 x_echo "Alldone" "\
 Your system is now bootable with the\n\
 TS dev environment, but the password is\n\
 guessable. Please reboot and if everything\n\
 is ok, Tweak your DevStation and disable\n\
 the telnet serice."
+
+eject
+
+x_echo "Reboot" "Please remove the CD and click ok to reboot"
+reboot
 
 exit 0
 
