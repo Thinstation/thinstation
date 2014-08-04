@@ -9,18 +9,11 @@ Mike Eriksen, Trevor Batley, Miles Roper and Marcos Mamorim
 
 Work To Do / Work in Progress: mail to developer List if you can help
 
-* Integrate better with some of the remote desktop clients
-* clean up old WM / Openbox as support is broken in some ways now
+* We could really use some help on the documentation. A lot has changed since 2.2, and I am afraid the documentation has not kept up. Please create a wiki account and help others with your knowledge.
 
 New:
 
-- Moved to kernel 3.12.21
-- Updated Xorg to 7.7
-- Updated Xfce4 to 4.11
-- Updated Mesa to 10.1.1
-- Updated libnotify to 0.7
-- Removed libpthread-stubs dependency
-- Added support for pulseaudio to gst-plugins-good
+- Moved to kernel 3.14.9
 - Updated nvidia xorg driver and kernel module
 
 **Note that Several modules have been moved inside the kernel**
