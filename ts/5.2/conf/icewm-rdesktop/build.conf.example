@@ -67,7 +67,7 @@ machine VMWare				# A good set of modules for a VmWare Virtual Machine
 #machine HP-t5135                       # HP CX700 Via
 
 #!!Wireless Stuff
-#package wpa_supplicant
+package wpa_supplicant
 #package wireless
 #package wifi-connect
 #!!!Misc Modules
@@ -105,8 +105,10 @@ package aufs
 #package aufs
 #package ts-classic              # The classic ts logic for network/netfiles/hostname/mounting/telnetd/telnet/playcd
 #package automount
+package telnetd
 package autonet
 package netfiles
+package acpi
 #package networkmanager
 #package udisks-glue
 #package ntp			# Utility to obtain date & time from network
@@ -131,7 +133,7 @@ package netfiles
 #!!X related
 # --- XOrg 7.7
 #package xorg7-v4l
-package xorg7-vesa		#A fallback driver that works with almost everything. Does allow resolution changes
+#package xorg7-vesa		#A fallback driver that works with almost everything. Does allow resolution changes
 #package xorg7-vmware
 #package xorg7-ati		#ATI video driver for most modern ATI chipsets. Usually requires several firmwares
 #package xorg7-nouveau		#New opensource nvidia driver
@@ -210,7 +212,7 @@ package icewm			# "ICEWM" window manager.  Makes TS a light workstation.
 #package icewm-theme-xp
 #package icewm-themes		# Extra IceWM themes
 #package icewm-theme-bernstein
-#package icewm-theme-bluecrux
+package icewm-theme-bluecrux
 #package icewm-theme-liquid
 
 #package xfwm4
@@ -221,7 +223,7 @@ package icewm			# "ICEWM" window manager.  Makes TS a light workstation.
 #!!Window Manager Utils
 #package idle-shutdown		# Package that lets you specify automatic shutdown settings and logic.
 #package wbar         		# Adds icons to desktop
-#package idesk
+package idesk
 
 #!!Other services
 #package www 			# Web access to client.  From a browser: "http://<IP number>"
@@ -252,7 +254,7 @@ package icewm			# "ICEWM" window manager.  Makes TS a light workstation.
 
 #!!Miscellaneous
 #package gtk-2.0			# Full gtk-2.0 plus clearlooks theme
-#package icons-cursor		# Anti Aliased Mouse Cursor Theme
+package icons-cursor		# Anti Aliased Mouse Cursor Theme
 #package icons-hicolor           # Hi-Color icons for some applications and themes. Does not really contain any icons.
 #package icons-gnome             # gnome Hi-Color icons theme. Needed by most other icon themes.
 #package icons-tango             # tango Hi-Color icons theme
@@ -289,6 +291,7 @@ package fonts-TTF-BH		# This one works nicely most of the time and is small.
 #package eGalax                 # eGalax TouchKit Drivers/Utility for serial and usb touchscreens by EETI.
 #package installer		# Wipes a drive, makes partitions and downloads thinstation from a pxe server
 #package devstation		# Starts a tftp server that hosts files from the boot-images/pxe folder
+package hwlister
 
 # Parameters
 ########################################
@@ -310,10 +313,10 @@ param dialuppasswd   pleasechangeme			# Password for dialin account
 param sambapasswd    pleasechangeme  			# Password for samba shares when using user mode security
 #param kernelcmdline "radeon.modeset=0"                 # Add additional kernel command lines. e.g. disable radeon framebuffer
 #param stripelf       yes				# Strip extraneous information from elf binaries (Maybe not Safe)
-param acpisupport    disable				# Tells the kernel not to load acpi modules. (Breaks some Intel Chipsets if disabled)
+#param acpisupport    disable				# Tells the kernel not to load acpi modules. (Breaks some Intel Chipsets if disabled)
 #param uvesafb        disable				# Disable uvesafb (legacy option like modesetfb)
 #param extra_vid      LVDS-1:d				# Add an extra video= parameter to kernel cmd line (good for disabling outputs on video cards)
-param bootlogo       false				# Enable or Disable the use of the Boot splash.
+param bootlogo       true				# Enable or Disable the use of the Boot splash.
 param boottheme	     default           			# Backgound picture during boot
 #param splash	     verbose				# kernel splash setting (0=off, silent or verbose (default=silent)
 param splash	     silent
@@ -326,9 +329,9 @@ param fbsm           ywrap                              # Window scrolling metho
 #param fbmaxclk       155                               # Override Video Negotiated Max Clock Frequency
 #param fbnoedid       true                              # Don t do video edid
 #param bootresolution 1024x600-32                       # Resolution used during Thinstation boot.
-#param bootresolution 1024x768-32                        # You can wright your own resolution mode here, if you know it.
+param bootresolution 1024x768-32                        # You can wright your own resolution mode here, if you know it.
 #param bootresolution 1152x864-32
-param bootresolution 1280x768-32
+#param bootresolution 1280x768-32
 #param bootresolution 1366x768-32                       # Otherwise, you may want to refer to the vbe_modes.list you created with hwlister.sh
 #param bootresolution 1280x1024-32                      # for modes that your card supports.
 #param bootresolution 1400x900-32                       # It is also used by xrandr if no xrandr options are specified.
@@ -351,7 +354,7 @@ param haltonerror    false				# Will halt on error, default is true
 param hardlinkfs     true
 param sametimestmp   true                               # When enabled, the timestamps for all files and folders will be set to 00:00 of todays date in your timezone
 param initrdcmd	     "squashfs"				# Compression mode and level of initrd file. none, gzip -9, lzma -9 ,bzip2 -9
-param squashopt      "-comp xz"
+#param squashopt      "-comp xz"
 param bootverbosity   3          			# Increased vebosity when booting TS
                                 			#   0 no verbose messages
                                 			#   1 boot
@@ -375,7 +378,7 @@ param syslinuxtheme     "default"
 
 #param bootfssize     50%                               # Modify the size of the tmpfs filesystem
 
-#package alltimezone
-#param allres		true		# Includes a lot of resolution splash images for live-cd s
+package alltimezone
+param allres		true		# Includes a lot of resolution splash images for live-cd s
 param allfirmware	true		# Includes a lot of firmwares for live-cd s
 param mesa_3d disable
