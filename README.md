@@ -22,7 +22,7 @@ New:
 Just run `./setup_chroot`. The first time this is run, it will expand all binary packages into the right place. It will then populate all the packages that build will use to make images. Afterwards, it will just start the chroot session.
 
 ## Running
-You will need to make sure you are in the chroot `Development Environment` by running `./setup-chroot`. You should then be able to go to `/build` and run `./build` to start making images. Edit build.conf and thinstation.conf.buildtime to make changes
+You will need to make sure you are in the chroot **Development Environment** by running `./setup-chroot`. You should then be able to `cd /build` and run `./build` to start making images. Edit build.conf and thinstation.conf.buildtime to make changes
 
 ## Compiling
 First off, this is a very advanced and not required at all to use thinstation.
