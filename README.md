@@ -47,8 +47,8 @@ The update command will read a `.dna` file and extract the latest and greatest f
 Some package sources were not available in any crux port. 
 In those instances, I made my own port, BUT I did not install the resulting binaries into the chroot, but rather jailed them in `/ts/components`. Ports where I could not locate the source anywhere else but in the old TS chroot are in `/ts/ports/static-source`. You could compile all static source packages with a line like:
 
-    for i in `ls --color=never /ts/ports/static-source/`; do
-        prt-get install $i
+    for pkg in `ls --color=never /ts/ports/static-source/`; do
+        prt-get install $pkg
     done
 
 This will also work with the components directory.
