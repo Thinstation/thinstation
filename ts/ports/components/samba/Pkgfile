@@ -39,13 +39,4 @@ build () {
     install -d $PKG/etc/{samba,rc.d}
     install -m 0600 packaging/LSB/smb.conf $PKG/etc/samba/smb.conf.default
     install -m 0755 $SRC/samba $PKG/etc/rc.d
-
-    cd lib/tdb
-		./configure --prefix=/usr \
-                --localstatedir=/var \
-                --mandir=/usr/man \
-                --sysconfdir=/etc \
-
-    make
-    make DESTDIR=$PKG install
 }

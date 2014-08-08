@@ -1,0 +1,17 @@
+#! /bin/sh
+
+. $TS_GLOBAL
+
+case "$1" in  
+init)
+    if ! pkg_initialized $PACKAGE; then
+	pkg_set_init_flag $PACKAGE
+	exec /etc/init.d/vboxadd-service start
+    fi
+    ;;
+  *)
+    exec /etc/init.d/vboxadd-service $@
+    ;;
+esac
+
+exit 0
