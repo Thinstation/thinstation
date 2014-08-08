@@ -51,7 +51,7 @@ extract_archive()
 	ppath=`prt-get path $package`
 	version=`prt-get current $package`
 	archive=$ppath/${package}#$version.pkg.tar.gz
-	tar -zxf $archive -C $pkgpath 2>/dev/null
+	bsdtar -pzxf $archive -C $pkgpath 2>/dev/null
 }
 
 preserve_empty_working()
@@ -67,7 +67,7 @@ shallow_usr()
 		for essential_dir in sbin bin lib etc var ; do
 			if [ -d $pkgpath/$usr_dir/$essential_dir ] && [ -n "`ls -A $pkgpath/$usr_dir/$essential_dir`" ]; then
 				mkdir -p $pkgpath/$essential_dir
-				cp -Prfd $pkgpath/$usr_dir/$essential_dir $pkgpath/.
+				cp -a $pkgpath/$usr_dir/$essential_dir $pkgpath/.
 				rm -rf $pkgpath/$usr_dir/$essential_dir
 			fi
 		done
@@ -78,7 +78,7 @@ redirect_sbin()
 {
 	if [ -e $pkgpath/sbin ] && [ -n "`ls -A $pkgpath/sbin`" ]; then
 		mkdir -p $pkgpath/bin
-		cp -Prfd $pkgpath/sbin/* $pkgpath/bin
+		cp -a $pkgpath/sbin/* $pkgpath/bin
 		rm -rf $pkgpath/sbin
 	fi
 }
@@ -89,12 +89,12 @@ redirect_shared()
 		if [ -d $pkgpath/$share_dir ] && [ -n "`ls -A $pkgpath/$share_dir`" ]; then
 			if [ -d $pkgpath/$share_dir/dbus-1 ] && [ -n "`ls -A $pkgpath/$share_dir/dbus-1`" ]; then
 				mkdir -p $pkgpath/etc/dbus-1
-				cp -Prfd $pkgpath/$share_dir/dbus-1/* $pkgpath/etc/dbus-1
+				cp -a $pkgpath/$share_dir/dbus-1/* $pkgpath/etc/dbus-1
 				rm -rf $pkgpath/$share_dir/dbus-1
 			fi
 			for shared_object in `ls --color=never $pkgpath/$share_dir` ; do
 				mkdir -p $pkgpath/lib
-				cp -Prfd $pkgpath/$share_dir/$shared_object $pkgpath/lib/.
+				cp -a $pkgpath/$share_dir/$shared_object $pkgpath/lib/.
 				rm -rf $pkgpath/$share_dir/$shared_object
 			done
 		fi
@@ -126,7 +126,7 @@ extra_dirs()
 	done
 	for  include in include local/include ; do
 		if [ -d $pkgpath/usr/$include ] ; then
-			cp -Prfd $pkgpath/usr/$include/* $pkgpath/lib/.
+			cp -a $pkgpath/usr/$include/* $pkgpath/lib/.
 			rm -rf $pkgpath/usr/$include
 			ln -sf /lib $pkgpath/usr/$include
 		fi
