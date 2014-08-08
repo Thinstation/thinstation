@@ -218,186 +218,6 @@ make_capital ()
 	fi
 }
 
-# Window Manager dialogs
-
-confirm_exit ()
-{
-	Xdialog --title "Logout" --clear --yesno "Click yes to Confirm Exit?" 10 60
-}
-
-dialog_get_username ()
-{
-	if [ -n "$REMUSER" ]; then
-		DIALOG_USER=$REMUSER
-		echo "$REMUSER" > /tmp/.dialog_$1_user
-	elif [ -e /tmp/.dialog_$1_user ]; then
-		DIALOG_USER=$(cat /tmp/.dialog_$1_user)
-	fi
-
-	notcomplete=true
-	while $notcomplete; do
-		DIALOG_RESPONSE=$(Xdialog	--stdout \
-						--title $1 \
-						--left \
-						--icon /lib/pixmaps/$1_32x32.xpm \
-						--inputbox "Preparing to run $1" 10 55 "User name" "$DIALOG_USER") 2>>$APPLOG
-		if [ "$?" == "0" ]; then
-			DIALOG_USER=$(echo $DIALOG_RESPONSE | cut -d/ -f2)
-			DIALOG_OPTIONS=$(echo $DIALOG_RESPONSE | cut -d/ -f3-)
-			if [ -n "$DIALOG_USER" ]; then
-				REMUSER=$(echo $DIALOG_USER |grep -Ev '&|;|\(|`')
-				echo "$DIALOG_USER" > /tmp/.dialog_$1_user
-				notcomplete=false
-			else
-				Xdialog --title "$1 Client" \
-					--clear \
-					--msgbox "You must enter value for user name" 10 60 10000
-			fi
-		else
-			if is_enabled $ALLOW_EXIT ; then
-				exit
-			else
-				dialog_no_value
-			fi
-		fi
-	done
-}
-
-dialog_get_server_address ()
-{
-	if [ -n "$SERVER" ]; then
-		echo "$SERVER" > /tmp/.dialog_$1_server
-	fi
-	if [ -n "$OPTIONS" ]; then
-		echo "$OPTIONS" > /tmp/.dialog_$1_options
-	fi
-	if [ -e /tmp/.dialog_$1_server ] ; then
-		DIALOG_SERVER=$(cat /tmp/.dialog_$1_server)
-	else
-		touch /tmp/.dialog_$1_server
-		DIALOG_SERVER="type server name here"
-	fi
-	if [ -e /tmp/.dialog_$1_options ] ; then
-		DIALOG_OPTIONS=$(cat /tmp/.dialog_$1_options)
-	else
-		touch /tmp/.dialog_$1_options
-	fi
-
-	# Now to business:
-	notcomplete=true
-	while $notcomplete; do
-
-		DIALOG_RESPONSE=$(Xdialog	--stdout \
-						--title $1 \
-						--left \
-						--icon /lib/pixmaps/$1_32x32.xpm \
-						--2inputsbox "Preparing to run $1" 15 55 \
-						"Server name or IP number" "$DIALOG_SERVER" \
-						"Options" "$DIALOG_OPTIONS") 2>>$APPLOG
-
-		if [ "$?" == "0" ]; then
-			DIALOG_SERVER=$(echo "$DIALOG_RESPONSE" | cut -d/ -f1)
-			DIALOG_OPTIONS=$(echo "$DIALOG_RESPONSE" | cut -d/ -f2-)
-			# preserve settings
-			echo "$DIALOG_SERVER" > /tmp/.dialog_$1_server
-			echo "$DIALOG_OPTIONS" > /tmp/.dialog_$1_options
-
-			if [ "$DIALOG_SERVER" != "type server name here" ]; then
-				SERVER=$(echo $DIALOG_SERVER |grep -Ev '&|;|\(|`')
-				OPTIONS=$(echo $DIALOG_OPTIONS |grep -Ev '&|;|\(|`')
-			fi
-
-			if [ -n "$SERVER" ]; then
-				notcomplete=false
-			else
-				echo "$DIALOG_SERVER" > /tmp/.dialog_$1_server
-				SERVER=""
-				OPTIONS=""
-				Xdialog --title "$1 Client" \
-					--clear \
-					--msgbox "You must enter value for server name or IP" 10 60 10000
-			fi
-		else
-			if is_enabled $ALLOW_EXIT ; then
-				exit
-			else
-				dialog_no_value
-			fi
-		fi
-	done
-}
-
-dialog_no_value ()
-{
-	Xdialog --title "$1 Client" \
-		--clear \
-		--msgbox "You must enter value, aborted" 10 60 10000
-}
-
-dialog_get_value ()
-{
-	Xdialog --title "$1 Client" \
-		--clear \
-		--inputbox "Enter $2:" 10 60 2>&1 1>/dev/null \
-		|grep -Ev '&|;|\(|`'
-}
-
-check_reconnect ()
-{
-	if [ -e /tmp/.X11-unix/X$DISPLAY_NUMBER ] ; then
-		prompt=$(make_caps $RECONNECT_PROMPT | cut -c1-4)
-		NO_SESSION=$(make_lower $NO_SESSION)
-		if [ "$prompt" = "MENU" ] ; then
-			prompt_time=$(make_caps $RECONNECT_PROMPT | cut -c5-)
-			if [ -n "$prompt_time" ] ; then
-				kill_time=$(date +%M)
-				let kill_time=kill_time+prompt_time+1
-				if [ $kill_time -gt 59 ] ; then
-					let kill_time=kill_time-60
-				fi
-				echo "$kill_time  * * * * $NO_SESSION" >> /tmp/shutdown
-				crontab /tmp/shutdown
-			fi
-			unset choice_error
-			while [ "$choice_error" != "0" ] ; do
-				choice=$(Xdialog	--stdout \
-							--title "Reconnect/Shutdown?" \
-							--clear \
-							--no-cancel \
-							--combobox "Choose option then OK to continue." 10 60 Reconnect Shutdown)
-				choice_error=$?
-			done
-			if [ "$choice" = "Shutdown" ] ; then
-				shutdown
-			elif [ -e /tmp/shutdown ] ; then
-				crontab /tmp/crontab
-				rm /tmp/shutdown
-				reconnect=0
-			fi
-		elif [ "$prompt" = "AUTO" ] ; then
-			prompt_time=$(make_caps $RECONNECT_PROMPT | cut -c5-)
-			if [ -z "$prompt_time" ] ; then
-				prompt_time=10
-			fi
-			Xdialog	--title "No Server Response" \
-				--clear \
-				--timeout $prompt_time \
-				--msgbox "Server not responding - waiting $prompt_time seconds" 10 60
-			reconnect=0
-		elif [ "$prompt" == "FORC" ]; then
-			reconnect=0
-		elif [ "$prompt" != "OFF" ] ; then
-			Xdialog	--title "Reconnect?" \
-				--clear \
-				--yesno "Click yes to reconnect." 10 60
-			reconnect=$?
-		else
-			reconnect=1
-		fi
-	fi
-#	echo $reconnect
-}
-
 ## Replace on or off with #
 
 replace_variable ()
@@ -425,7 +245,6 @@ replace_invalid ()
 
 
 # Overwrite file with sed command
-
 sed_file ()
 {
 	cat $1 | sed -e $2 > /tmp/sed.tmp
@@ -434,7 +253,6 @@ sed_file ()
 }
 
 ## Restart xinetd
-
 restart_xinetd ()
 {
 	XPID=$(pidof xinetd)
@@ -442,7 +260,6 @@ restart_xinetd ()
 }
 
 # Checks when to reboot PC
-
 check_reboot ()
 {
 	if is_enabled $DAILY_REBOOT ; then
@@ -453,7 +270,6 @@ check_reboot ()
 }
 
 # Cleans up X if it shuts down unexpected
-
 check_xrunning ()
 {
 	if ! ps -ef | grep "$X_SERVER" | grep -q " :$DISPLAY_NUMBER"; then
@@ -464,31 +280,11 @@ check_xrunning ()
 }
 
 # Checks to see if nxssh is running
-
 check_NX ()
 {
 	while ps | grep -v grep | grep "nxssh";	do
 		sleep 5
 	done
-}
-
-
-# Start X
-
-start_x ()
-{
-	if [ -e /etc/init.d/x ] && [ ! -e /tmp/.X11-unix/X$DISPLAY_NUMBER ]; then
-		if is_enabled $X_NO_CLEAR; then
-			continue
-		else
-			clear
-			chvt 4
-		fi
-		/etc/init.d/x start
-	elif [ ! -e /etc/init.d/x ] ; then
-		echo "Can't find X" >> $LOGFILE
-		sleep 1
-	fi
 }
 
 
