@@ -138,6 +138,9 @@ read_options()
 	if [ -z $SHOW_USER ]; then
 		SHOW_USER=false
 	fi
+	if [ -z $DIALOG_TITLE ]; then
+		DIALOG_TITLE=$client
+	fi
 }
 
 set_default()
@@ -166,7 +169,7 @@ dialog_no_value()
 create_dialog()
 {
 	MAIN_DIALOG='
-<window title="'"$client"'" decorated="true" width-request="325" height-request="235" allow-grow="false" allow-shrink="false">
+<window title="'"$DIALOG_TITLE"'" decorated="true" width-request="325" height-request="235" allow-grow="false" allow-shrink="false">
 	<vbox>
 		<hbox>
 			<pixmap>
@@ -175,7 +178,7 @@ create_dialog()
 				'$(choose_pixmap)'
 			</pixmap>
 			<text use-markup="true" xalign="0.3">
-				<label>Preparing to run '$client'</label>
+				<label>Preparing to run '$DIALOG_TITLE'</label>
 			</text>
 			<text space-expand="true" space-fill="true">
 				<label>""</label>
