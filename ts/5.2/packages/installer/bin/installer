@@ -161,20 +161,23 @@ install_it()
 readme
 mem_check
 
-if proxy-setup ; then
+if proxy-setup --logging; then
 	continue
 else
 	x_echo "Broken Internet" "No Internet Connectivity. Exiting."
 	exit $?
 fi
+
 disk_setup
 set_res
 timezone_locale
+
 if [ "`basename $XTERM_CMD`" == "xfce4-terminal" ]; then
         ARG="--disable-server -x"
 else
         ARG="-e"
 fi
+
 install_it
 
 echo "LOCALE=$LOCALE" > /root/thinstation.conf.user

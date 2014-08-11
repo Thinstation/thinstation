@@ -101,11 +101,25 @@ else
 	tar -xvf thindev-default.tar.xz
 	rm thindev-default.tar.xz
 fi
+
 cp /boot/initrd /boot/initrd-backup
 cp /boot/vmlinuz /boot/vmlinuz-backup
 cp /boot/lib.update /boot/lib.squash-backup
 cd /thinstation
 rm -rf *
+
 echo "Gitting thinstation repo"
-git clone --depth 1 git://github.com/Thinstation/thinstation.git -b 5.2-Stable /thinstation
+if ! git clone --depth 1 git://github.com/Thinstation/thinstation.git -b 5.2-Stable /thinstation; then
+	echo -e "Clone failed via git even though initial testing suggested it should succeed."
+	echo -e "This could be a weird proxy error."
+	answered=false
+	while ! $answered; do
+		read -p "Would you like to try the checkout via https instead? Y/N : " answer
+		case $answer in
+			Y|y) git clone --depth 1 https://github.com/Thinstation/thinstation.git -b 5.2-Stable /thinstation; answered=true;;
+			N|n) exit 2; answered=true;;
+			*) answered=false;;
+		esac
+	done
+fi
 ./setup-chroot -i
