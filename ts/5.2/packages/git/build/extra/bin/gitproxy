@@ -1,22 +1,5 @@
 #!/bin/bash
 
-if [ -e /tmp/.dialog_proxy_server ]; then
-	PROXY_SERVER=`cat /tmp/.dialog_proxy_server`
-	PROXY_PORT=`cat /tmp/.dialog_proxy_port`
-	PROXY_AUTH=`cat /tmp/.dialog_proxy_auth`
-elif [ -e ~/proxy ] ; then
-	. ~/proxy
-elif [ -e /tmp/proxy ] ; then
-	. /tmp/proxy
-fi
-
-if [ "$PROXY_AUTH" == "username:password" ]; then
-	unset PROXY_AUTH
-fi
-
-if [ -z "$PROXY_AUTH" ]; then
-	exec socat STDIO PROXY:$PROXY_SERVER:$1:$2,proxyport=$PROXY_PORT
-else
-	exec socat STDIO PROXY:$PROXY_SERVER:$1:$2,proxyport=$PROXY_PORT,proxyauth=$PROXY_AUTH
-fi
-
+secure_host=`gconftool-2 -g /system/proxy/secure_host`
+secure_port=`gconftool-2 -g /system/proxy/secure_port`
+exec socat STDIO PROXY:$secure_host:$1:$2,proxyport=$secure_port
