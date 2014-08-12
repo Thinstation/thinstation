@@ -1,4 +1,6 @@
 #!/bin/bash
+. /etc/ashrc
+
 tempdir=`mktemp -d 2>/dev/null`
 disk=$1
 buggybios=$2
@@ -49,6 +51,19 @@ read_pt()
 	sleep 1
 }
 
+git_fallback()
+{
+        Xdialog --title "Git ERROR!" --yesno "\
+Clone failed via git even though initial \
+testing suggested it should succeed. \n\
+This could be a weird proxy error.\n\
+\n\
+Would you like to try via the https instead? \n\
+\n\
+* Dowloading objects may not be displayed!
+" 15 50
+}
+
 echo "Starting Partioner"
 touch /tmp/nomount
 un_mount
@@ -92,7 +107,10 @@ cd /boot
 cp /install/* .
 ./syslinux -s ${disk}1
 ./syslinux ${disk}1
+
 proxy-setup
+. /tmp/.proxy
+
 if [ -e /mnt/cdrom0/thindev-default.tar.xz ]; then
 	tar -xvf /mnt/cdrom0/thindev-default.tar.xz
 else
@@ -109,17 +127,7 @@ cd /thinstation
 rm -rf *
 
 echo "Gitting thinstation repo"
-if ! git clone --depth 1 git://github.com/Thinstation/thinstation.git -b 5.2-Stable /thinstation; then
-	echo -e "Clone failed via git even though initial testing suggested it should succeed."
-	echo -e "This could be a weird proxy error."
-	answered=false
-	while ! $answered; do
-		read -p "Would you like to try the checkout via https instead? Y/N : " answer
-		case $answer in
-			Y|y) git clone --depth 1 https://github.com/Thinstation/thinstation.git -b 5.2-Stable /thinstation; answered=true;;
-			N|n) exit 2; answered=true;;
-			*) answered=false;;
-		esac
-	done
-fi
+
+git clone --depth 1 https://github.com/Thinstation/thinstation.git -b 5.2-Stable /thinstation
+
 ./setup-chroot -i

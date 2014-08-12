@@ -1,5 +1,57 @@
 # Shell Setup
 
+if [ -e /etc/thinstation.user ]; then
+	. /etc/thinstation.user
+fi
+
+get_gnome_proxy()
+{
+        mode=`gconftool-2 -g /system/proxy/mode`
+        use_http_proxy=`gconftool-2 -g /system/http_proxy/use_http_proxy`
+        use_same_proxy=`gconftool-2 -g /system/http_proxy/use_same_proxy`
+        use_authentication=`gconftool-2 -g /system/http_proxy/use_authentication`
+        authentication_user=`gconftool-2 -g /system/http_proxy/authentication_user`
+        authentication_password=`gconftool-2 -g /system/http_proxy/authentication_password`
+        host=`gconftool-2 -g /system/http_proxy/host`
+        port=`gconftool-2 -g /system/http_proxy/port`
+        secure_host=`gconftool-2 -g /system/proxy/secure_host`
+        secure_port=`gconftool-2 -g /system/proxy/secure_port`
+        ftp_host=`gconftool-2 -g /system/proxy/ftp_host`
+        ftp_port=`gconftool-2 -g /system/proxy/ftp_port`
+
+        if [ -z "$use_authentication" ]; then use_authentication=false ; fi
+}
+
+set_proxy()
+{
+	if [ "$mode" == "manual" ]; then
+		if $use_http_proxy && [ -n "$host" ] && [ -n "$port" ] ; then
+			if $use_authentication; then
+				if [ -n "$authentication_user" ] && [ -n "$authentication_password" ]; then
+					PROXY_AUTH="$authentication_user:$authentication_password"
+				elif [ -n "$authentication_user" ]; then
+					PROXY_AUTH="$authentication_user"
+				fi
+				export http_proxy=http://${PROXY_AUTH}@$host:$port
+	                        if [ -n "$ftp_host" ] && [ -n "$ftp_port" ]; then
+					export ftp_proxy=http://${PROXY_AUTH}@$ftp_host:$ftp_port
+				fi
+			else
+				if [ -n "$ftp_host" ] && [ -n "$ftp_port" ]; then
+					export ftp_proxy=http://$ftp_host:$ftp_port
+				fi
+				export http_proxy=http://$host:$port
+			fi
+			if [ -n "$secure_host" ] && [ -n "$secure_port" ]; then
+				export https_proxy=https://$secure_host:$secure_port
+			fi
+		fi
+	fi
+}
+
+get_gnome_proxy
+set_proxy
+
 cd ~
 
 PS1='\h:\w\$ '

@@ -3,7 +3,7 @@
 get_opts()
 {
 	until [ -z $1 ] ; do
-                case $1 in
+		case $1 in
 			-l|--log) logging=true;;
 			-r|--reset) reset=true;;
 			*) echo "Unknown argument: $1"; exit 1;;
@@ -16,9 +16,9 @@ get_opts()
 
 pretty_box()
 {
-        COUNT=10
-        (while test $COUNT != 100 ; do
-	        echo $COUNT
+	COUNT=10
+	(while test $COUNT != 100 ; do
+		echo $COUNT
 		let COUNT+=1
 		if [ -e /tmp/http_tested ]; then
 			COUNT=34
@@ -26,72 +26,51 @@ pretty_box()
 		fi
 		if [ -e /tmp/https_tested ]; then
 			COUNT=67
-			rm /tmp/http_tested
-		fi
-		if pidof git > /dev/null; then
-			let gitcount+=1
-			if [ $gitcount -gt 15 ]; then
-				kill -HUP `pidof git`
-			fi
+			rm /tmp/https_tested
 		fi
 		sleep 1
-        done
-        ) | Xdialog --title "Testing Connection" --progress "Checking Internet Connectivity" 10 60 0 &
-        prettybox=$!
+	done
+	) | Xdialog --title "Testing Connection" --progress "Checking Internet Connectivity" 10 60 0 &
+	prettybox=$!
 }
 
 test_http()
 {
-        if ! wget -t 2 -T 10 http://sourceforge.net/projects/thinstation/files/DevStation-Source/image.md5 ; then
-                http=false
+	if ! wget -t 2 -T 10 http://sourceforge.net/projects/thinstation/files/DevStation-Source/image.md5 ; then
+		http=false
 		http_display=Fail
-                return 1
-        else
-                http=true
+		return 1
+	else
+		http=true
 		http_display=Success
-                rm image.md5
+		rm image.md5
 		touch /tmp/http_tested
 		return 0
-        fi
+	fi
 }
 
 test_https()
 {
-        if !  wget -t 2 -T 10 https://www.ssllabs.com/ssltest/viewMyClient.html ; then
-                https=false
+	if !  wget -t 2 -T 10 https://www.ssllabs.com/ssltest/viewMyClient.html ; then
+		https=false
 		https_display=Fail
-                return 1
-        else
-                https=true
+		return 1
+	else
+		https=true
 		https_display=Success
-                rm -r viewMyClient.html
+		rm -r viewMyClient.html
 		touch /tmp/https_tested
 		return 0
-        fi
-}
-
-test_git()
-{
-        if ! git clone git://thinstation.git.sourceforge.net/gitroot/thinstation/test ; then
-                git=false
-		git_display=Fail
-                return 1
-        else
-                git=true
-		git_display=Success
-                rm -rf test
-		return 0
-        fi
+	fi
 }
 
 test_internet()
 {
-        pretty_box
+	pretty_box
 
 	https_display=Untested
-	git_display=Untested
 
-	if test_http && test_https && test_git; then
+	if test_http && test_https; then
 		internet=true
 	else
 		internet=false
@@ -110,6 +89,7 @@ get_existing()
 
 get_gnome_proxy()
 {
+	mode=`gconftool-2 -g /system/proxy/mode`
 	use_http_proxy=`gconftool-2 -g /system/http_proxy/use_http_proxy`
 	use_same_proxy=`gconftool-2 -g /system/http_proxy/use_same_proxy`
 	use_authentication=`gconftool-2 -g /system/http_proxy/use_authentication`
@@ -119,6 +99,11 @@ get_gnome_proxy()
 	port=`gconftool-2 -g /system/http_proxy/port`
 	secure_host=`gconftool-2 -g /system/proxy/secure_host`
 	secure_port=`gconftool-2 -g /system/proxy/secure_port`
+	socks_host=`gconftool-2 -g /system/proxy/socks_host`
+	socks_port=`gconftool-2 -g /system/proxy/socks_port`
+	ftp_host=`gconftool-2 -g /system/proxy/ftp_host`
+	ftp_port=`gconftool-2 -g /system/proxy/ftp_port`
+
 	if [ -z "$use_authentication" ]; then use_authentication=false ; fi
 }
 
@@ -128,7 +113,7 @@ log_proxy()
 		echo "internet=$internet" > /tmp/.proxy
 		echo "http=$http" >> /tmp/.proxy
 		echo "https=$https" >> /tmp/.proxy
-		echo "git=$git" >> /tmp/.proxy
+		echo "mode=$mode" >> /tmp/.proxy
 		echo "use_http_proxy=$use_http_proxy" >> /tmp/.proxy
 		echo "use_same_proxy=$use_same_proxy" >> /tmp/.proxy
 		echo "use_authentication=$use_authentication" >> /tmp/.proxy
@@ -138,62 +123,84 @@ log_proxy()
 		echo "port=$port" >> /tmp/.proxy
 		echo "secure_host=$secure_host" >> /tmp/.proxy
 		echo "secure_port=$secure_port" >> /tmp/.proxy
+		echo "socks_host=$socks_host" >> /tmp/.proxy
+		echo "socks_port=$socks_port" >> /tmp/.proxy
+		echo "ftp_host=$ftp_host" >> /tmp/.proxy
+		echo "ftp_port=$ftp_port" >> /tmp/.proxy
 	fi
 }
 
 set_proxy()
 {
-	reset_gnome
-	reset_http
+#	reset_gnome
+#	reset_http
 	reset_git
 
-	if $use_http_proxy; then
-		gconftool-2 --type bool -s /system/http_proxy/use_http_proxy $use_http_proxy
+	gconftool-2 --type string -s /system/proxy/mode $mode
+	if [ "$mode" == "manual" ]; then
+		if $use_http_proxy; then
+			gconftool-2 --type bool -s /system/http_proxy/use_http_proxy $use_http_proxy
 
-		if [ -n "$host" ] && [ -n "$port" ] ; then
-		        gconftool-2 --type string -s /system/http_proxy/host $host
-			gconftool-2 --type int -s /system/http_proxy/port $port
-		fi
+			if [ -n "$host" ] && [ -n "$port" ] ; then
+				gconftool-2 --type stringcg -s /system/http_proxy/host $host
+				gconftool-2 --type int -s /system/http_proxy/port $port
+			fi
 
-		if [ -n "$use_same_proxy" ]; then
-			gconftool-2 --type bool -s /system/http_proxy/use_same_proxy $use_same_proxy
-			secure_host=$host
-			secure_port=$port
-		fi
+			if [ -n "$use_same_proxy" ]; then
+				gconftool-2 --type bool -s /system/http_proxy/use_same_proxy $use_same_proxy
+				secure_host=$host
+				secure_port=$port
+				socks_host=$host
+				socks_port=$port
+				ftp_host=$host
+				ftp_port=$port
+			fi
 
-		if $use_authentication; then
-			gconftool-2 --type bool -s /system/http_proxy/use_authentication $use_authentication
+			if $use_authentication; then
+				gconftool-2 --type bool -s /system/http_proxy/use_authentication $use_authentication
 
-	                if [ -n "$authentication_user" ] && [ -n "$authentication_password" ]; then
-				gconftool-2 --type string -s /system/http_proxy/authentication_user $authentication_user
-				gconftool-2 --type string -s /system/http_proxy/authentication_password $authentication_password
-	                        PROXY_AUTH="$authentication_user:$authentication_password"
-        	        elif [ -n "$authentication_user" ]; then
-				gconftool-2 --type string -s /system/http_proxy/authentication_user $authentication_user
-                	        PROXY_AUTH="$authentication_user"
-	                fi
-
-			echo "http_proxy=http://${PROXY_AUTH}@$host:$port" > ~/.wgetrc
-		else
-			unset PROXY_AUTH
-			echo "http_proxy=http://$host:$port" > ~/.wgetrc
+				if [ -n "$authentication_user" ] && [ -n "$authentication_password" ]; then
+					gconftool-2 --type string -s /system/http_proxy/authentication_user $authentication_user
+					gconftool-2 --type string -s /system/http_proxy/authentication_password $authentication_password
+#					PROXY_AUTH="$authentication_user:$authentication_password"
+				elif [ -n "$authentication_user" ]; then
+					gconftool-2 --type string -s /system/http_proxy/authentication_user $authentication_user
+#					PROXY_AUTH="$authentication_user"
+				fi
+#				echo "export http_proxy=http://${PROXY_AUTH}@$host:$port" >> /etc/thinstation.user
+#			else
+#				unset PROXY_AUTH
+#				echo "export http_proxy=http://$host:$port" > /etc/thinstation.user
+			fi
 		fi
 
 		if [ -n "$secure_host" ] && [ -n "$secure_port" ]; then
-	        	gconftool-2 --type string -s /system/proxy/secure_host $secure_host
-		        gconftool-2 --type int -s /system/proxy/secure_port $secure_port
-			echo "https_proxy=https://$secure_host:$secure_port" >> ~/.wgetrc
+			gconftool-2 --type string -s /system/proxy/secure_host $secure_host
+			gconftool-2 --type int -s /system/proxy/secure_port $secure_port
+#			echo "export https_proxy=https://$secure_host:$secure_port" >> /etc//thinstation.user
 			git config --global core.gitproxy gitproxy
 		fi
+		if [ -n "$socks_host" ] && [ -n "$socks_port" ]; then
+			gconftool-2 --type string -s /system/proxy/socks_host $socks_host
+			gconftool-2 --type int -s /system/proxy/socks_port $socks_port
+		fi
+		if [ -n "$ftp_host" ] && [ -n "$ftp_port" ]; then
+			gconftool-2 --type string -s /system/proxy/ftp_host $ftp_host
+			gconftool-2 --type int -s /system/proxy/ftp_port $ftp_port
+		fi
 	fi
+#	if [ -e /etc/thinstation.user ]; then
+#		. /etc/thinstation.user
+#	fi
+	. /etc/ashrc
 }
 
 get_proxy()
 {
-       	Xdialog --title "Setup Proxy" --yesno "\
+	Xdialog --title "Setup Proxy" --yesno "\
 Internet Connectivity Test Failed! \n\
 \n\
-    HTTP: $http_display  HTTPS: $https_display GIT: $git_display \n\
+HTTP: $http_display  HTTPS: $https_display \n\
 \n\
  Would you like to setup a Proxy?" 15 50
 }
@@ -203,15 +210,18 @@ reset_git()
 	git config --global --unset core.gitproxy
 }
 
-reset_http()
-{
-	if [ -e ~/.wgetrc ] ; then
-		rm -rf ~/.wgetrc
-	fi
-}
+#reset_http()
+#{
+#	if [ -e /etc/thinstation.user ] ; then
+#		sed -e /http_proxy/d -i `readlink /etc/thinstation.user`
+#		sed -e /https_proxy/d -i `readlink /etc/thinstation.user`
+#		unset http_proxy https_proxy
+#	fi
+#}
 
 reset_gnome()
 {
+	gconftool-2 -u /system/proxy/mode
 	gconftool-2 -u /system/http_proxy/use_http_proxy
 	gconftool-2 -u /system/http_proxy/use_same_proxy
 	gconftool-2 -u /system/http_proxy/use_authentication
@@ -221,18 +231,20 @@ reset_gnome()
 	gconftool-2 -u /system/http_proxy/port
 	gconftool-2 -u /system/proxy/secure_host
 	gconftool-2 -u /system/proxy/secure_port
+	gconftool-2 -u /system/proxy/socks_host
+	gconftool-2 -u /system/proxy/socks_port
+	gconftool-2 -u /system/proxy/ftp_host
+	gconftool-2 -u /system/proxy/ftp_port
 }
 
 main()
 {
-	if $reset ] ; then
-		rm /tmp/.proxy
-		internet=false
-		reset_http
+	if $reset ; then
+		rm -f /tmp/.proxy
+#		reset_http
 		reset_git
 		reset_gnome
-		set_proxy
-		log_proxy
+		exit 0
 	fi
 
 	get_existing
@@ -270,5 +282,6 @@ main()
 	log_proxy
 }
 
+get_opts $@
 main
 exit 0
