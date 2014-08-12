@@ -1,0 +1,894 @@
+
+###############################################
+# -- Thinstation sample configuration file -- #
+###############################################
+#
+# This file must be named "thinstation.conf<xxx>" where <xxx> can be:
+# .buildtime   Defines the defaults build into the image (note the leading .)
+# .network     Default global config file loaded from the TFTP server.
+# .user        Config file on local storage.
+# -<name>      Specific config file on the TFTP server for the terminal
+#              "name" (e.g. thinstation.conf-paul). Requires thinstation.hosts. 
+# .group-<id>  Config file for a group of terminals (e.g. with printer setup
+#              for those terminal with local printers. Requires thinstation.hosts.
+# -<IP>        Specific config file on the TFTP server for the terminal with
+#              the IP number <IP> specified (e.g. thinstation.conf-10.0.0.9).
+# -<MAC>       Specific config file on the TFTP server for the terminal with 
+#              the MAC address specified (e.g thinstation.conf-112233445566).
+
+##
+# --- General Options
+#
+# AUDIO_LEVEL        Audio Level for sound, 0-100
+# MIC_LEVEL          Recording level for input devices, 0-100
+# LOCALE             If multiple locales are included in the image, you can use this to
+#                     select one during boot with a .conf file.	
+# TIME_ZONE          Used to set time zone on a TS client with a zone info file. If multiple
+#                      zone-info files are included, this selection can be refined with additional
+#                      .conf files.
+# SYSLOG_SERVER      Log server ip address or hostname.
+#                    If the work "local" is used, then syslog starts logging locally
+#                    If not specified syslogd is not loaded.
+# USB_STORAGE_SYNC   ON    Safer writing
+#                    OFF   Faster writes to USB storage devices
+#                    WARNING: This may lead to data corruption when the device is unplugged
+#                             before buffers have been flushed
+# USB_MOUNT_DIR      Directory to use for mounting usbdisks (default: /mnt/usbdevice/)
+# USB_MOUNT_USELABEL Label to use for individual usb disks
+#                    default is to use the device name (eg. sda1 - /mnt/usbdevice/sda1)
+#                    NO       use default ONLY
+#                    YES      will use label on usb volume if exists or fallback to default
+#                    <label>  will use label on usb volume if exists or <label> otherwise
+#                    adds suffix of n (1,2,3,etc.) if duplicate labels found
+# USB_MOUNT_OPTIONS  additional mount options for usb devices (eg. utf8,shortname=win95)
+# 		     see mount documentation for details (man mount)
+# DISK_STORAGE_SYNC  ON    Safer writing
+#                    OFF   Faster writes to USB storage devices
+#                    WARNING: This may lead to data corruption when the device is unplugged
+#                             before buffers have been flushed
+# DISK_MOUNT_OPTIONS  additional mount options for disk devices (eg. utf8,shortname=win95)
+# 		     see mount documentation for details (man mount)
+# CDROM_MOUNT_OPTIONS  additional mount options for cdrom devices (eg. utf8,shortname=win95)
+# 		     see mount documentation for details (man mount)
+# BIND_MOUNT#        A disk label to bind mount point mapping (eg. boot:/boot or home:/root)
+# DAILY_REBOOT       Will reboot server if up over a day and one of the session
+#                    types is closed
+# AUTOPLAYCD         If enabled this will autoplay music cds when inserted.
+# CUSTOM_CONFIG      Allows choosing custom boot config, On/Off 
+# RECONNECT_PROMPT   This displays the reconnection/shutdown options for when a session is ended
+#
+#                    OFF    No reconnect prompt
+#                    ON     Reconnect prompt will be displayed
+#		     FORCE  Just reconnect
+#                    AUTO   Automatic reconnect
+#                    AUTOXX Automatic reconnect attempt after XX seconds - msg is displayed
+#                    MENU   Shows a menu with a shutdown and reconnection option
+#                    MENUXX As MENU option, but the XX is a time period in minutes.
+#                           After XX minutes shutdown will occur unless the reconnect option
+#                           is choosen
+# NO_SESSION	     What to do in the event that all sessions have exited and not reconnected.
+#		     POWEROFF  Shutdown the terminal.(default)
+#		     REBOOT    Reboot the terminal.
+# DEBUGPAUSE	     Will pause at prompt after load of all modules and packages but before starting
+#		     Only works if debug package included
+#		     true	pause at prompt to allow debug
+#		     false	don't pause (default)
+# CRON_JOBx	     Will add this crontab entry (1 - 9)
+# FASTBOOT_URL       Normally fastboot will try to load lib.squash in the same way that vmlinuz and initrd
+#		     were loaded. This will force fastboot to download lib.squash using a specific protocol
+#		     and location
+
+AUDIO_LEVEL=67
+TIME_ZONE="America/Los_Angeles"
+SYSLOG_SERVER=local
+#USB_STORAGE_SYNC=On
+#USB_MOUNT_DIR="/mnt/usbdevice"
+#USB_MOUNT_USELABEL="Yes"
+#USB_MOUNT_OPTIONS="utf8,shortname=win95"
+BIND_MOUNT0="home:/root"
+BIND_MOUNT1="boot:/boot"
+BIND_MOUNT2="tsdev:/thinstation"
+FASTBOOT_URL="http://www.thinstation.org"
+DAILY_REBOOT=On
+#AUTOPLAYCD=On
+CUSTOM_CONFIG=Off
+RECONNECT_PROMPT=On
+#DEBUGPAUSE=true
+
+##
+# --- Session Defaults
+# -- Default Settings for all sessions
+#
+# AUTOSTART		ON   Application will be executed immediately at startup
+#			OFF  Application will appear in a menu to be started manually
+# WORKSPACE		Workspace in the window manager to run the application in
+# ICONMODE		MANUAL  Default sessions are not created in window manager/idesk or wbar
+#			AUTO    Default sessions types are created in window manager/idesk or wbar
+# ALWAYS_ENTER_SERVER	Whether or not the server entry dialog box is always displayed
+# 			By default, autostarted sessions have this off and menu sessions have this on
+#			OFF will disable the prompt for everything.
+#			ON will enable the prompt for everything.
+# ALLOW_EXIT		Whether or not a user will be allowed to cancel the server address entry.
+# 			By default, autostarted sessions will not be allowed to exit and menu sessions will.
+#			OFF will force entry for everything.
+#			ON will allow exit from everything.
+
+WORKSPACE=1
+AUTOSTART=On
+ICONMODE=AUTO
+ALWAYS_ENTER_SERVER=Off
+ALLOW_EXIT=Off
+
+##
+# --- Session Details
+#
+# Note:                     # is a number equal to or greater than 0
+#
+# SESSION_#_TITLE           Title description for SESSION. Needed for replimenu.
+# SESSION_#_TYPE            Package type, choose beetwen:
+#                           - vncviewer        Start vncviewer in X
+#                           - rdesktop         Start rdesktop in X
+#                           - x                Start x-terminal session (xdm)
+#                           - xnest            Start x-terminal session (xdm) from within blackbox
+#                           - ssh              Start ssh client in linux console
+#                           - telnet           Start telnet client in linux console
+#                           - ica              Start Citrix ICA client in X
+#                           - ica_wfc          Start ICA Manager
+#                           - openbox          Start openbox window manager session
+#                           - icewm            Start icewm window manager session
+#                           - dillo            Start Web Browser in X
+#                           - tftpd            Start tftp daemon
+#                           - tarantella       Start tarantella client
+#                           - rxvt             Start light xterm client
+#                           - xterm            Start xterm client
+#                           - tn5250           Start AS400 client in linux console
+#                           - nx               Start NX Client Session
+# SESSION_#_AUTOSTART       ON      Application will be executed immediately at startup
+#                           OFF     Application will appear in a menu to be started manually
+# SESSION_#_CUSTOM_CONFIG   ON      Allows choosing custom config for when session starts
+#                           OFF     Session boots normally
+# SESSION_#_ICON            ON      Places Icon on Desktop if package xtdesk is selected and
+#                                   in Window Manager Main Menu
+#                           SUBMENU Places Icon on Desktop if package xtdesk is selected and
+#                                   in a Submenu within the window manager
+# SESSION_#_WORKSPACE       Workspace to run program on in a window manager
+# SESSION_#_type_SERVER     IP address/hostname of the server
+# SESSION_#_type_OPTIONS    Command line options for the session type
+#
+# SESSION_#_type_specific   This allows you to specify specific config file details for certain session
+#                           types.  Currently support is NX and ICA.  Any configuration file setting
+#                           can be changed with this setting.  An example of this is
+#                           SESSION_0_NX_GENERAL_DESKTOP="Gnome"
+#                           SESSION_0_ICA_APPSRV_USEFULLSCREEN="Yes"
+#                           See your application manual for documentation on the settings which
+#                           can be used.
+
+# Individual Session Settings, override defaults (Likely Depricated)
+#
+# IMPORTANT:  Make sure you minimum have a SESSION_0. Otherwise you will get an error 
+# on boot. You may have additional sessions: SESSION_1, SESSION_2 ...
+# SESSION_0 is on ctrl-alt-F3
+# SESSION_1 is on ctrl-alt-F4
+# ... etc.
+
+##
+# --- Proxy Options
+#
+# PROXY_HOST             DNS Name or IP Address of HTTP Proxy Server
+# PROXY_PORT             TCP/IP Port to use on HTTP Proxy Server
+# PROXY_IGNORE		 Comma seperated list of hosts for which to bypass the proxy. "localhost,127.0.0.1/8" by default
+# PROXY_USER             HTTP Proxy Authentication User
+# PROXY_PASSWORD         HTTP Proxy User Password
+# PROXY_USE_SAME         True/False, If enabled, HTTP Proxy settings will be used for all Protocols
+# PROXY_SECURE_HOST      HTTPS Proxy Host
+# PROXY_SECURE_PORT      HTTPS Proxy Port
+# PROXY_SOCKS_HOST       SOCKS Proxy Host
+# PROXY_SOCKS_PORT       SOCKS Proxy Port
+# PROXY_FTP_HOST         FTP Proxy Host
+# PROXY_FTP_PORT         FTP Proxy Port
+
+
+#PROXY_HOST=192.168.1.1
+#PROXY_PORT=8080
+#PROXY_USE_SAME=true
+#PROXY_IGNORE="localhost,127.0.0.1/8"
+
+##
+# --- Gtk Theme Engine Selection
+#
+# GTK_THEME              Selects the theme engine that gtk will use to
+#                        render buttons and sliders. Clearlooks by default
+#                        Set to ALL to include all theme engines.
+#                        Available themes:
+#                                         Clearlooks
+#                                         Crux
+#                                         Industrial
+#                                         Mist
+#                                         Redmond
+#                                         ThinIce
+#                                         Xfce   if xfwm4 package is included
+
+
+GTK_THEME=Clearlooks
+
+##
+# XFWM4_COMPOSITING                Boolean that determines whether or not to enable
+#                                  desktop compositing
+# XFWM4_BRIGHTNESS                 Sets the brightness level of the background
+#                                  0 by default. Range -128 to 127
+# XFWM4_SATURATION                 Sets the color saturation level of the background
+#                                  1.0 by default. Range -10.0 to 10.0
+# XFWM4_RED                        Sets the red index for the background color
+#                                  Used in conjunction with BLUE and GREEN
+# XFWM4_BLUE                       Sets the blue index for the background color
+#                                  Used in conjunction with RED and GREEN
+# XFWM4_GREEN                      Sets the green index for the background color
+#                                  Used in conjunction with RED and BLUE
+#
+# --- Xfwm4 Theme Selection
+# XFWM4_THEME                      Selects the theme that xfwm4 will use for window
+#                                  borders and colors. Default by default
+#                                  Set to ALL to include all themes. Otherwise....
+#                                  Available themes:
+#                                         Adept
+#                                         Agua
+#                                         Agualemon
+#                                         Alternate
+#                                         Atlanta
+#                                         Atlanta2
+#                                         B5
+#                                         B6
+#                                         BBS
+#                                         Basix
+#                                         Beastie
+#                                         Biz
+#                                         Blackwall
+#                                         Buzz
+#                                         Coldsteel
+#                                         Coolclean
+#                                         Crux
+#                                         Cruxish
+#                                         Curve
+#                                         Daloa
+#                                         Default
+#                                         Defcon-IV
+#                                         Eazel-blue
+#                                         Elberg
+#                                         Exocet
+#                                         Fbx
+#                                         G2
+#                                         Galaxy
+#                                         Gaudy
+#                                         Gelly
+#                                         Gnububble
+#                                         Gorilla
+#                                         Gtk
+#                                         Iceg
+#                                         Kde
+#                                         Kde1
+#                                         Keramik
+#                                         Kindaker
+#                                         Kleanux
+#                                         Kokodi
+#                                         Koynacity
+#                                         LineArt
+#                                         Linea
+#                                         Meenee
+#                                         Metabox
+#                                         Microcurve
+#                                         Microdeck
+#                                         Microdeck2
+#                                         Microdeck3
+#                                         Microgui
+#                                         Mofit
+#                                         Moheli
+#                                         Next
+#                                         Ops
+#                                         Opta
+#                                         Oroborus
+#                                         Perl
+#                                         Pills
+#                                         Piranha
+#                                         Platinum
+#                                         Prune
+#                                         Quiet-purple
+#                                         Quinx
+#                                         R9X
+#                                         Redmond
+#                                         RedmondXP
+#                                         Retro
+#                                         Silverado
+#                                         Slick
+#                                         Slimline
+#                                         Smallscreen
+#                                         Smoothwall
+#                                         Symphony
+#                                         Synthetic
+#                                         TUX
+#                                         Tabs
+#                                         Tgc
+#                                         Tgc-large
+#                                         Today
+#                                         Totem
+#                                         Trench
+#                                         Triviality
+#                                         Tubular
+#                                         Variation
+#                                         Waza
+#                                         Wildbush
+#                                         Xfce
+#
+# DESKTOP_ICON_SIZE                Sets the size of icons on the desktop
+# DESKTOP_FONT_SIZE                Sets the font size for desktop icons
+# DESKTOP_SHOWTRASH=false          hide/display Trash Icon on XFWM Desktop
+# DEKSTOP_SHOWHOME=false           hide/display Home Icon on XFWM Desktop
+# DESKTOP_SHOWREMOVEABLE=false     hide/display Removeable Icon on XFWM Desktop
+# DESKTOP_SHOWFILESYSTEM=false     hide/display Filesystems Icon on XFWM Desktop
+# DEKSTOP_SHOWHOME=false           hide/display Home Icon on XFWM Desktop
+# PANEL_AUTOHIDE=false             hide/display Panel behind Window
+# PANEL_PAGER=false                hide/display The workspace switcher
+# PANEL_REV_CLOCKSYSTRAY           If enabled, the systray will be to the left of the clock
+# PANEL_USER=false                 Show the logged in user at the far right of the start bar
+# XFWM4_START_POSITION="BOTTOM"    Put the startbar at the bottom of the screen instead of the top
+# XFWM4_START_TITLE="Start"        Change the text displayed on the start button
+# XFWM4_START_ICON="freerdp"       Change the icon displayed on the start button
+
+XFWM4_COMPOSITING=true
+XFWM4_BRIGHTNESS="-33"
+XFWM4_SATURATION=1.0
+XFWM4_RED=0
+XFWM4_BLUE=0
+XFWM4_GREEN=0
+XFWM4_THEME=Xfce
+DESKTOP_ICON_SIZE=38
+DESKTOP_FONT_SIZE=8
+#    /flag (enables flag)
+#    /option:<value> (specifies option with value)
+#    +toggle -toggle (enables or disables toggle, where '/' is a synonym of '+')
+#
+#    /v:<server>[:port]   	Server hostname
+#    /port:<number>       	Server port
+#    /w:<width>           	Width
+#    /h:<height>          	Height
+#    /size:<width>x<height>	Screen size
+#    /f                   	Fullscreen mode
+#    /bpp:<depth>         	Session bpp (color depth)
+#    /kbd:0x<layout id> or <layout name>	Keyboard layout
+#    /kbd-list            	List keyboard layouts
+#    /kbd-type:<type id>  	Keyboard type
+#    /kbd-subtype:<subtype id>	Keyboard subtype
+#    /kbd-fn-key:<function key count>	Keyboard function key count
+#    /admin               	Admin (or console) session
+#    /multimon            	Use multiple monitors
+#    /workarea            	Use available work area
+#    /monitors:<0,1,2...> 	Select monitors to use
+#    /monitor-list        	List detected monitors
+#    /t:<title>           	Window title
+#    +decorations (default:off)	Window decorations
+#    +smart-sizing (default:off)	Scale remote desktop to window size
+#    /a                   	Addin
+#    /vc                  	Static virtual channel
+#    /dvc                 	Dynamic virtual channel
+#    /u:[<domain>\]<user> or <user>[@<domain>]	Username
+#    /p:<password>        	Password
+#    /d:<domain>          	Domain
+#    /g:<gateway>[:port]  	Gateway Hostname
+#    /gu:[<domain>\]<user> or <user>[@<domain>]	Gateway username
+#    /gp:<password>       	Gateway password
+#    /gd:<domain>         	Gateway domain
+#    /load-balance-info:<info string>	Load balance info
+#    /app:||<alias> or <executable path>	Remote application program
+#    /app-name:<app name> 	Remote application name for user interface
+#    /app-icon:<icon path>	Remote application icon for user interface
+#    /app-cmd:<parameters>	Remote application command-line parameters
+#    /app-file:<file name>	File to open with remote application
+#    /app-guid:<app guid> 	Remote application GUID
+#    +compression (default:off)	Compression
+#    /shell               	Alternate shell
+#    /shell-dir           	Shell working directory
+#    /sound               	Audio output (sound)
+#    /microphone          	Audio input (microphone)
+#    /audio-mode          	Audio output mode
+#    /multimedia          	Redirect multimedia (video)
+#    /network             	Network connection type
+#    /drive               	Redirect drive
+#    +drives (default:off)	Redirect all drives
+#    +home-drive (default:off)	Redirect home drive
+#    +clipboard (default:off)	Redirect clipboard
+#    /serial              	Redirect serial device
+#    /parallel            	Redirect parallel device
+#    /smartcard           	Redirect smartcard device
+#    /printer             	Redirect printer device
+#    /usb                 	Redirect USB device
+#    +multitouch (default:off)	Redirect multitouch input
+#    /echo                	Echo channel
+#    +fonts (default:off) 	Smooth fonts (ClearType)
+#    +aero (default:off)  	Desktop composition
+#    +window-drag (default:off)	Full window drag
+#    +menu-anims (default:off)	Menu animations
+#    -themes (default:on) 	Themes
+#    -wallpaper (default:on)	Wallpaper
+#    /gdi:<sw|hw>         	GDI rendering
+#    /rfx                 	RemoteFX
+#    /rfx-mode:<image|video>	RemoteFX mode
+#    /frame-ack:<number>  	Frame acknowledgement
+#    /nsc                 	NSCodec
+#    /jpeg                	JPEG codec
+#    /jpeg-quality:<percentage>	JPEG quality
+#    -nego (default:on)   	protocol security negotiation
+#    /sec:<rdp|tls|nla|ext>	force specific protocol security
+#    -sec-rdp (default:on)	rdp protocol security
+#    -sec-tls (default:on)	tls protocol security
+#    -sec-nla (default:on)	nla protocol security
+#    +sec-ext (default:off)	nla extended protocol security
+#    /cert-name:<name>    	certificate name
+#    /cert-ignore         	ignore certificate
+#    /pcb:<blob>          	Preconnection Blob
+#    /pcid:<id>           	Preconnection Id
+#    /vmconnect:<vmid>    	Hyper-V console (use port 2179, disable negotiation)
+#    -authentication (default:on)	authentication (hack!)
+#    -encryption (default:on)	encryption (hack!)
+#    -grab-keyboard (default:on)	grab keyboard
+#    -toggle-fullscreen (default:on)	Alt+Ctrl+Enter toggles fullscreen
+#    -mouse-motion (default:on)	mouse-motion
+#    /parent-window:<window id>	Parent window id
+#    -bitmap-cache (default:on)	bitmap cache
+#    -offscreen-cache (default:on)	offscreen bitmap cache
+#    -glyph-cache (default:on)	glyph cache
+#    /codec-cache:<rfx|nsc|jpeg>	bitmap codec cache
+#    -fast-path (default:on)	fast-path input/output
+#    /max-fast-path-size:<size>	maximum fast-path update size
+#    +async-input (default:off)	asynchronous input
+#    +async-update (default:off)	asynchronous update
+#    +async-transport (default:off)	asynchronous transport (unstable)
+#    +async-channels (default:off)	asynchronous channels (unstable)
+#    /wm-class:<class name>	set the WM_CLASS hint for the window instance
+#    /version             	print version
+#    /help                	print help
+#    /play-rfx:<pcap file>	Replay rfx pcap file
+#    +auth-only (default:off)	Authenticate only.
+
+# The /bpp: option here specifies the color depth
+# Note certain servers support certain color depths, wrong settings with this
+# may cause your connection to fail.
+#SESSION_#_TITLE="Big Bad Server Donald"
+#SESSION_#_TYPE=freerdp
+#SESSION_#_FREERDP_SERVER=192.168.1.1
+#SESSION_#_FREERDP_OPTIONS="/u:user /p:password /bpp:16"
+#SESSION_#_AUTOSTART=Off
+
+# /u:'' gives a blank user name
+#SESSION_#_TITLE="Big Bad Server Road Runner"
+#SESSION_#_TYPE=freerdp
+#SESSION_#_FREERDP_SERVER=192.168.1.1
+#SESSION_#_FREERDP_OPTIONS="/u:'' /bpp:8"
+#SESSION_#_AUTOSTART=Off
+
+#Example on USB and CD redirection for freerdp
+#SESSION_#_TITLE="Remote Desktop"
+#SESSION_#_TYPE=freerdp
+#SESSION_#_FREERDP_SERVER=192.168.1.1
+#SESSION_#_FREERDP_OPTIONS="+drives /multimedia /rfx +fonts +aero"
+#SESSION_#_AUTOSTART=Off
+
+FREERDP_SELECT_SERVER=true
+FREERDP_SERVER_0="1 Big_Bad_Server_Donald"
+FREERDP_SERVER_0_OPTIONS="-sec-nla"
+FREERDP_KNOWN_HOST_0="Big_Bad_Server_Donald 7a:a4:af:8a:98:da:50:52:ba:33:8d:e6:15:4e:49:7b:b3"
+FREERDP_SERVER_1="2 Big_Bad_Server_Road_Runner"
+FREERDP_SERVER_1_OPTIONS="-sec-nla /cert-ignore"
+
+#	Various Options for controlling icon preferences
+#ICONS_COMPOSITE_THEME_ORDER	Attempts to save space by compositing icon themes
+#				on top of each other from first to last. The last
+#				theme specified should be the most significant.
+#
+#ICONS_CUT_SIZES		Should save some space by dropping some rarely
+#				used icon sizes like scalable and 256x256
+#
+#ICONS_THEME			Sets a specific theme to the default when multiple
+#				themes are included. Don't use with COMPOSITE_THEME
+
+ICONS_COMPOSITE_THEME_ORDER="gnome Tango Neu"
+ICONS_CUT_SIZES="256x256 scalable"
+#ICONS_THEME=Neu
+##
+# --- X Server Options
+#
+# SCREEN_RESOLUTION       Screen resolutions available in the workstations
+# SCREEN_COLOR_DEPTH      Number of bits per pixel (8,16,24), just use ONE value
+# SCREEN_HORIZSYNC        Monitor horizontal sync frequency in Khz.
+#                         If left blank Xorg will try to detect with DDC
+# SCREEN_VERTREFRESH      Monitor vertical refresh frecuency in Hz.
+#                         If left blank Xorg will try to detect with DDC
+# SCREEN_X_FONT_SERVER    IP address or hostname of the font server for X
+#                       
+#                         Screen Saver Settings
+# SCREEN_BLANK_TIME       Minutes to X session goes blank
+# SCREEN_STANDBY_TIME     Minutes to X session goes into standby mode
+# SCREEN_SUSPEND_TIME     Minutes to X session goes into suspend mode
+# SCREEN_OFF_TIME         Minutes to X session turn off
+# DONT_VT_SWITCH_STATE    If true, don't allow vt switching in X
+# DONT_ZAP_STATE	  If true, don't allow hot key exit from X 
+#
+# MOUSE_PROTOCOL          Mouse protocol type (Microsoft, PS/2, etc.)
+#                         (mouse is autodetected, use this only if it fails)
+# MOUSE_DEVICE            Mouse device:  /dev/ttyS0 -> COM1
+#                                   /dev/ttyS1 -> COM2
+#                                   /dev/ttyS2 -> COM3
+#                                   /dev/ttyS3 -> COM4
+#                                   /dev/psaux -> PS/2 mouse port
+#                                   /dev/input/mice -> USB mouse (needs USB package)
+# MOUSE_RESOLUTION        Mouse resolution
+# MOUSE_ACCELERATION      Mouse acceleration
+# X_NUMLOCK		  Set numlock state on boot
+# X_COOKIE                Will set X Cookie if specified
+
+SCREEN_RESOLUTION="800x600 | 1024x768 | 640x480 | *"
+SCREEN_COLOR_DEPTH="24"
+#SCREEN_HORIZSYNC="30-64 | *"
+#SCREEN_VERTREFRESH="56-87 | 60 | 56 | 70 | 72 | 75"
+#SCREEN_X_FONT_SERVER=192.168.1.2:7100
+SCREEN_BLANK_TIME=10
+SCREEN_STANDBY_TIME=20
+SCREEN_SUSPEND_TIME=30
+SCREEN_OFF_TIME=60
+#MOUSE_PROTOCOL=PS/2
+#MOUSE_DEVICE=/dev/psaux
+MOUSE_RESOLUTION=100
+#MOUSE_ACCELERATION=1/2
+X_COOKIE=36d71ab65c10ef065702c111a3d31593
+#X_NUMLOCK=Off
+
+
+##
+# -- Advanced XServer Options - Experts Only
+# X_DRIVER_NAME           Driver for X, this will override the autodetection scripts
+# X_DRIVER_BUSID          Screen Card BusID
+# X_<SECTION>_OPTIONn	Where <SECTION>=SERVERFLAGS,SERVERLAYOUT,MODULES,FILES,DRI,DEVICE,MONITOR,SCREEN,MODES
+# X_DEVICE_OPTION1-9	Addditional options for driver
+# X_MONITOR_OPTION1-9	Addditional options for monitor
+# X_MONITOR_MODELINE	Add user defined ModeLine
+# X_MONITOR_MODELINE1-9	Add more user defined ModeLines
+# X_KEYBOARD_OPTION1-9	Add keyboard options
+# X_MOUSE_OPTION1-9	Add mouse options
+# USE_XRANDR		Use xrandr to set diplay size and orientation
+# XRANDR_OPTIONS	Specific options to pass to xrandr instead of just the bootresolution
+# -- Advanced Options - Experts Only
+#X_DRIVER_NAME="mga"
+#X_DRIVER_BUSID="PCI:1:0:0"
+
+X_DEVICE_OPTION1="swcursor On"
+USE_XRANDR=TRUE
+#XRANDR_OPTIONS="-s 1680x1050"
+#X_DEVICE_OPTION2="ActiveDevice CRT"
+#X_DEVICE_OPTION3="noDDC Off"
+#X_DEVICE_OPTION4="UseBios Off"
+#X_KEYBOARD_OPTION1="XkbModel pc98"
+#X_KEYBOARD_OPTION2="XkbLayout nec/jp,us"
+#X_KEYBOARD_OPTION3="XkbOptions grp:alt_shift_toggle"
+#X_MONITOR_OPTION1="DPMS On"
+#X_MONITOR_OPTION2="TargetRefresh 60"
+#X_MONITOR_MODELINE='"1680x1050" 146.2 1680 1784 1960 2240 1050 1053 1059 1089 -HSync -VSync'
+
+##
+# -- Card Reader Options
+
+#PCSCD_CARDREADER_PORT           # Specify port for serial card, not needed for USB
+#PCSCD_CARDREADER_TYPE           # Can be SERIAL or USB
+
+#PCSCD_CARDREADER_PORT="/dev/ttyS0"
+#PCSCD_CARDREADER_TYPE="USB"
+
+
+##
+# --- Samba Options
+#
+# SAMBA_SERVER_ENABLED    Enable Samba Server Daemons, On/Off
+# SAMBA_SECURITY          Type of security, USER, DOMAIN, SERVER
+# SAMBA_SERVER            Server for security
+# SAMBA_WINS              Server Name to Enable Samba to be a WINS Client
+# SAMBA_HARDDISK          Enable Harddrive support, On/Off
+# SAMBA_CDROM             Enable CDRom Support, On/Off
+# SAMBA_FLOPPY            Enable Floppy Support, On/Off
+# SAMBA_PRINTER           Enable Printer Support, On/Off
+# SAMBA_USB               Enable USB Support, On/Off
+
+#SAMBA_SERVER_ENABLED=Off
+#SAMBA_WORKGROUP=BigPeople
+#SAMBA_SECURITY=Server
+#SAMBA_SERVER=BadMan
+#SAMBA_WINS=BadMan
+#SAMBA_HARDDISK=Off
+#SAMBA_CDROM=On
+#SAMBA_FLOPPY=On
+#SAMBA_PRINTER=On
+#SAMBA_USB=Off
+
+
+##
+# --- PKG Options
+#
+# PKG_PACKAGES       Choice of packages to download for PKG
+#                    You can also use PKG_PACKAGES1-8 for additional package selections
+#                    This is useful for using multiple network group files
+# PKG_PREFIX         Download PKGs from a subdir of /tftpboot or PKG Path if PKG_PATH
+#                    is set in thinstation.conf
+# PKG_PATH           Path to PKG files if not using tftpboot
+#                    Floppy: /mnt/floppy
+#                    CD-ROM: /mnt/cdrom
+#                    HD:     /mnt/disc/hdX/part1   (first disc, first partition)
+#                    NFS:    /mnt/nfs
+#                    Samba:  /mnt/smb
+# MOD_PACKAGES       Choice of modules to download for MPKG
+#                    You can also use MOD_PACKAGES1-8 for additional package selections
+#                    This is useful for using multiple network group files
+# MOD_PREFIX         Downloads and insmod's a module from a subdir of /tftpboot
+#                    if MOD_PREFIX is set in thinstation.conf
+
+#PKG_PACKAGES="blackbox rxvt"
+#PKG_PREFIX=pkg
+#PKG_PATH=/mnt/cdrom
+#MOD_PACKAGES="usb-hid usb-storage"
+#MOD_PREFIX=modules
+
+
+##
+# --- Networking Options
+#
+# NET_HOSTNAME           Hostname to use if not using a thinstation.hosts file, note
+#                        that the machine MAC address will replace any * if used.
+# NET_SMTP_SERVER        Email server address for error logs
+# NET_SMTP_EMAIL         Email address of administrator
+# NET_TIME_SERVER        Time server on network with which to sync. NTP Time Server. Recommend <country code>.pool.ntp.org
+# NET_TELNETD            Enables built-in telnetd server package
+# NET_REMOTE_ACCESS_FROM List of hostnames/ip address accepted by the server
+#                        for remote control, used by telnetd and www packages
+# NET_USE		 Sets which interfaces to try and enable at boot time
+#			 LAN  Only try and initialize wired interfaces
+#			 WLAN Only try and initialize wireless interfaces (You still need to set other parameters)
+#			 BOTH Try and enable all interfaces
+# 
+# -- Mounting networked filesystems --
+#
+# NET_NFS_SERVER         This is the path to the NFS server, ie
+#                        server:/path/to/share.
+# NET_SMB_SERVER         This is the path to the SMB server, ie
+#                        server:/path/to/share. 
+# NET_SMB_WORKGROUP      Workgroup of samba server
+# NET_SMB_USER           This is the username for SMB mounts, password is
+#                        defined at build time in build.conf
+# NET_LINKWAIT		 Amount of time to wait for a link.
+
+NET_LINKWAIT=6
+NET_USE=BOTH
+#NET_HOSTNAME=donald
+NET_HOSTNAME=ts_*
+NET_TIME_SERVER=pool.ntp.org
+NET_DHCP_TIMEOUT=30
+#NET_SMTP_SERVER=donald
+#NET_SMTP_EMAIL=donald@duck.org.nz
+#NET_TIME_SERVER=mickey
+NET_TELNETD_ENABLED=On
+NET_REMOTE_ACCESS_FROM="duck.quak.org.au 192.168.0.0 .disney.us"
+#NET_NFS_SERVER=bigserver:/opt/thinstation
+#NET_SMB_USER=duck
+
+
+# -- For use in thinstation.conf.buildtime only:
+#
+# NET_USE_DHCP           Enable DHCP Resolution
+#                        ON     Use DHCP, fail if it doesn't get a lease
+#                        OFF    Don't use DHCP, manual configuration required
+#                        BOTH   Use DHCP in first instance, failing to get a lease, try manual config
+# NET_IP_ADDRESS         IP Address of client
+# NET_MASK               Network mask of client
+# NET_GATEWAY            IP Address of gateway
+# NET_DHCP_DELAY	 Delay before continuing script after bringing up interface, only needed if
+#                        using spanning tree "port discovery" in a switched environment.  Default is 0 seconds.
+# NET_FILE_METHOD        Method to download files, ie scp or tftp, scp is only available if package ssh
+#                        is selected in build as a "package".
+# NET_FILE_ENABLED       Use server for config file, On/Off
+# NET_FILE_USER          User to connect to SCP server as
+# NET_FILE_ALTERNATE     Alternate server for vmware or non-standard dhcp servers
+# NET_DNS1               DNS Server 1
+# NET_DNS2               DNS Server 2
+# NET_DNS_SEARCH         Default DNS domain to search
+
+#NET_USE_DHCP=Off
+#NET_IP_ADDRESS=192.168.0.1
+#NET_MASK=255.255.255.0
+#NET_GATEWAY=192.168.0.254
+#NET_DHCP_DELAY=30
+#NET_FILE_ENABLED=Off
+#NET_FILE_METHOD=tftp
+#NET_FILE_USER=not_needed_for_tftp
+#NET_FILE_ALTERNATE=192.168.0.4
+#NET_DNS1=192.168.0.2
+#NET_DNS2=192.168.0.3
+#NET_DNS_SEARCH=cartoons.org.nz
+
+
+##
+# --- Networking Options (NetworkManager)
+### PROTOCOL INDEPENDENT   
+#
+## Maximum transmission unit (for either IPv4 or 6)
+# NET_MTU=1480          
+#
+#
+### IPV4
+#
+## IPv4 interface mode: auto->DHCP, 
+##                      manual->static IP
+##                      disabled: interface disabled
+# NET_IPV4_MODE=auto|manual|disabled
+#
+## static IP address to assign (/<CIDR prefix length>)
+## (address & gateway must be provided if "manual" is set)
+# NET_IPV4_ADDRESS=170.20.20.20/12
+# NET_IPV4_GATEWAY=170.20.0.1
+#
+## DNS server(s) to use 
+# NET_IPV4_DNS1=74.82.42.42
+# NET_IPV4_DNS2=
+#
+## DNS search suffix  
+# NET_IPV4_DNS_SEARCH=somedomain.org
+#
+#
+### IPV6
+#
+## IPv6 interface mode: auto->stateless autoconfiguration, 
+##                      manual->static IP
+##                      dhcp->stateful DHCP configuration
+##                      disabled: interface disabled
+##
+## NET_IPV6_MODE=auto|manual|dhcp|disabled
+#NET_IPV6_MODE=manual
+## static IP address to assign (/<CIDR prefix length>)
+## (address & gateway must be provided if "manual" is set)
+#NET_IPV6_ADDRESS=2001:470:8:677::92a3/64
+#NET_IPV6_GATEWAY=2001:470:8:677::2
+#NET_IPV6_DNS1=2001:470:20::2
+#NET_IPV6_DNS2=
+#NET_IPV6_DNS_SEARCH=
+##
+
+# NM System Connection Config - IPv4
+#NET_IPV4_MODE=manual
+#NET_IPV4_ADDRESS=170.20.20.20/12
+#NET_IPV4_GATEWAY=170.20.0.1
+#NET_IPV4_DNS1=74.82.42.42
+#NET_IPV4_DNS2=
+#NET_IPV4_DNS_SEARCH=google.com
+
+# NM System Connection Config - IPv6
+#NET_IPV6_MODE=manual
+#NET_IPV6_ADDRESS=2001:470:8:677::92a3/64
+#NET_IPV6_GATEWAY=2001:470:8:677::2
+#NET_IPV6_DNS1=2001:470:20::2
+#NET_IPV6_DNS2=
+#NET_IPV6_DNS_SEARCH=
+
+# NM System Connection Config - Protocol-independent 
+#NET_MTU=1480
+
+##
+# --- Wireless
+#
+#WIRELESS_ESSID             # ESSID (extended network name) : My Network, any
+#WIRELESS_NWID              # NWID/Domain (cell identifier) : 89AB, 100, off
+#WIRELESS_MODE              # Operation mode : Ad-Hoc, Managed, Master, Repeater, Secondary, auto
+#WIRELESS_FREQ              # 2.422G, 2.46G (frequency)
+#WIRELESS_CHANNEL           # 1, 2, 3 (channel)
+#WIRELESS_SENS              # Sensitivity (cell size + roaming speed) : 1, 2, 3 ; -70 (dBm)
+#WIRELESS_RATE              # Bit rate : auto, 1M, 11M
+#WIRELESS_RTS               # RTS threshold : off, 500
+#WIRELESS_FRAG              # Fragmentation threshold : off, 1000
+#WIRELESS_IWCONFIG          # Other iwconfig parameters : power off, ap 01:23:45:67:89:AB
+#WIRELESS_IWSPY             # iwspy parameters : + 01:23:45:67:89:AB
+#WIRELESS_IWPRIV            # iwpriv parameters : set_port 2, set_histo 50 60
+#WIRELESS_KEY               # Encryption key : 4567-89AB-CD, s:password
+#WIRELESS_WPAKEY            # WPA/WPA2 pre-shared key (PSK): at least 8 ASCII characters
+#WIRELESS_DRIVER            # Driver name for WPA/WPA2 support
+
+WIRELESS_ESSID="ssid"
+WIRELESS_NWID=""
+WIRELESS_MODE="managed"
+#WIRELESS_FREQ=""
+#WIRELESS_CHANNEL=""
+#WIRELESS_SENS=""
+#WIRELESS_RATE=""
+#WIRELESS_RTS=""
+#WIRELESS_FRAG=""
+WIRELESS_IWCONFIG=""
+WIRELESS_IWSPY=""
+WIRELESS_IWPRIV=""
+WIRELESS_WPAKEY=""
+WIRELESS_KEY="abcdef"
+WIRELESS_WPAKEY=""
+WIRELESS_DRIVER=wext
+
+
+##
+# --- Permanent Storage Options
+#
+# STORAGE_PATH           Path to where storage device is mounted to save
+#                        profile settings.  This should be one of
+#                        /mnt/usbdevice/sdX/partX or disc
+#                        /mnt/floppy
+#                        /mnt/disc/hdX/partX
+#                        /mnt/nfs
+#                        /mnt/smb
+#
+#                        Note that the profile settings are stored under
+#                        a subfolder for this path.  So the path to the
+#                        stored settings would be something like
+#                        /mnt/floppy/thinstation.profile
+#                        See the FAQ on the website for more details on this
+#
+#                        Also checkout README.IMPORTANT for the valid
+#                        config files which you can place here
+#                        a typical file to store config file settings is
+#                        /mnt/floppy/thinstation.profile/thinstation.conf.user
+#
+#                        Also note that the .profile can be changed by using
+#                        the below STORAGE_PREFIX
+# STORAGE_PREFIX         This is prefex for the folder name to store settings
+#                        in on the storage device.   You can also use one of the
+#                        special characters below.
+#
+#                        M = Mac Address
+#                        H = Hostname
+#                        I = Ip Address
+#
+#                        Note default prefix for storing the profile is
+#                        .profile
+# STORAGE_CONFIG1-8      This is the path for any user defined settings
+#                        which will always override the profile path above
+#                        The files are tried on order on each device specified
+
+
+#STORAGE_PATH=/mnt/nfs
+#STORAGE_PREFIX=H
+#STORAGE_CONFIG1=/mnt/floppy
+#STORAGE_CONFIG2=/mnt/cdrom
+#STORAGE_CONFIG3=/mnt/disc/hda/part1
+#STORAGE_CONFIG4=/mnt/usbdevice/sda/part1
+
+
+##
+#**** EXPERIMENTAL ****
+# Dual Head Support
+#
+# This allows two seperate X sessions to be started with seperate input devices.  This allows
+# effectively two seperate machines within the same PC.  You will need seperate screen cards
+# to enable this.  It is best to use with 1 AGP card and 1 PCI card.
+
+# Check out http://www.ltn.lv/~aivils/eng-video.html for a list of known compatable screen cards
+
+# Input Device support should be:
+#
+# Primary mouse and keyboard PS/2
+# Secondary mouse and keyboard USB
+#
+# There is some basic detection scripts for this, but these will need to be improved in TS 3.0.
+# If thinstation doesn't detect both a USB keyboard and mouse it will default back to dual
+# screen support, not dual head.
+#
+# This is not considered stable.  If you exit the session, or try to change to a console screen
+# with Alt-F1 etc... it will probably crash the machine.  If it doesn't work with your hardware
+# there is nothing that can be done about it.
+
+# The kernel Advanced Power Management module is disabled when using dual screen as it causes the
+# second screen to crash.
+
+# Note the below option only supports 1-2, anything more than two won't work.  This is provided
+# for future development, to create a machine with more than two seperate sessions.
+
+# SESSION_#_SCREEN_POSITION 1-X When using dual screen support you can specify the position
+#                               of each session.  This allows to seperate sessions to be on
+#                               seperate screens.  If only 1 session is in use, this option will
+#                               make no differnece.  You can specify between 1+ positions
+
