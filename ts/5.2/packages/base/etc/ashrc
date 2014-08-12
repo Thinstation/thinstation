@@ -23,11 +23,12 @@ get_gnome_proxy()
 	        ftp_host=`gconftool-2 -g /system/proxy/ftp_host 2>/dev/null`
 	        ftp_port=`gconftool-2 -g /system/proxy/ftp_port 2>/dev/null`
 	fi
-	        if [ -z "$use_authentication" ]; then use_authentication=false ; fi
+        if [ -z "$use_authentication" ]; then use_authentication=false ; fi
 }
 
 set_proxy()
 {
+	unset http_proxy https_proxy ftp_proxy no_proxy PROXY_AUTH
 	if [ "$mode" == "manual" ]; then
 		if $use_http_proxy && [ -n "$host" ] && [ -n "$port" ] ; then
                         no_proxy=`echo "$ignore_hosts" |sed -e 's/\[//g' |sed -e 's/\]//g'`
@@ -43,7 +44,6 @@ set_proxy()
 					export ftp_proxy=http://${PROXY_AUTH}@$ftp_host:$ftp_port
 				fi
 			else
-				unset PROXY_AUTH
 				if [ -n "$ftp_host" ] && [ -n "$ftp_port" ]; then
 					export ftp_proxy=http://$ftp_host:$ftp_port
 				fi
@@ -53,8 +53,6 @@ set_proxy()
 				export https_proxy=https://$secure_host:$secure_port
 			fi
 		fi
-	else
-		unset http_proxy https_proxy ftp_proxy no_proxy PROXY_AUTH
 	fi
 }
 
