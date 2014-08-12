@@ -97,6 +97,7 @@ get_gnome_proxy()
         authentication_password=`gconftool-2 -g /system/http_proxy/authentication_password 2>/dev/null`
         host=`gconftool-2 -g /system/http_proxy/host 2>/dev/null`
         port=`gconftool-2 -g /system/http_proxy/port 2>/dev/null`
+        ignore_hosts=`gconftool-2 -g /system/http_proxy/ignore_hosts 2>/dev/null`
         socks_host=`gconftool-2 -g /system/proxy/socks_host 2>/dev/null`
         socks_port=`gconftool-2 -g /system/proxy/socks_port 2>/dev/null`
         secure_host=`gconftool-2 -g /system/proxy/secure_host 2>/dev/null`
@@ -121,6 +122,7 @@ log_proxy()
 		echo "authentication_password=$authentication_password" >> /tmp/.proxy
 		echo "host=$host" >> /tmp/.proxy
 		echo "port=$port" >> /tmp/.proxy
+		echo "ignore_hosts=\"$ignore_hosts\"" >> /tmp/.proxy
 		echo "secure_host=$secure_host" >> /tmp/.proxy
 		echo "secure_port=$secure_port" >> /tmp/.proxy
 		echo "socks_host=$socks_host" >> /tmp/.proxy
@@ -144,6 +146,7 @@ set_proxy()
 			if [ -n "$host" ] && [ -n "$port" ] ; then
 				gconftool-2 --type stringcg -s /system/http_proxy/host $host
 				gconftool-2 --type int -s /system/http_proxy/port $port
+				gconftool-2 --type string -s /system/http_proxy/ignore_hosts "$ignore_hosts"
 			fi
 
 			if [ -n "$use_same_proxy" ]; then
@@ -162,22 +165,15 @@ set_proxy()
 				if [ -n "$authentication_user" ] && [ -n "$authentication_password" ]; then
 					gconftool-2 --type string -s /system/http_proxy/authentication_user $authentication_user
 					gconftool-2 --type string -s /system/http_proxy/authentication_password $authentication_password
-#					PROXY_AUTH="$authentication_user:$authentication_password"
 				elif [ -n "$authentication_user" ]; then
 					gconftool-2 --type string -s /system/http_proxy/authentication_user $authentication_user
-#					PROXY_AUTH="$authentication_user"
 				fi
-#				echo "export http_proxy=http://${PROXY_AUTH}@$host:$port" >> /etc/thinstation.user
-#			else
-#				unset PROXY_AUTH
-#				echo "export http_proxy=http://$host:$port" > /etc/thinstation.user
 			fi
 		fi
 
 		if [ -n "$secure_host" ] && [ -n "$secure_port" ]; then
 			gconftool-2 --type string -s /system/proxy/secure_host $secure_host
 			gconftool-2 --type int -s /system/proxy/secure_port $secure_port
-#			echo "export https_proxy=https://$secure_host:$secure_port" >> /etc//thinstation.user
 			git config --global core.gitproxy gitproxy
 		fi
 		if [ -n "$socks_host" ] && [ -n "$socks_port" ]; then
@@ -189,9 +185,6 @@ set_proxy()
 			gconftool-2 --type int -s /system/proxy/ftp_port $ftp_port
 		fi
 	fi
-#	if [ -e /etc/thinstation.user ]; then
-#		. /etc/thinstation.user
-#	fi
 	. /etc/ashrc
 }
 

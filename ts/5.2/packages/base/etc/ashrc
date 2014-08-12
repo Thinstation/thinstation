@@ -14,6 +14,7 @@ get_gnome_proxy()
         authentication_password=`gconftool-2 -g /system/http_proxy/authentication_password 2>/dev/null`
         host=`gconftool-2 -g /system/http_proxy/host 2>/dev/null`
         port=`gconftool-2 -g /system/http_proxy/port 2>/dev/null`
+        ignore_hosts=`gconftool-2 -g /system/http_proxy/ignore_hosts 2>/dev/null`
         socks_host=`gconftool-2 -g /system/proxy/socks_host 2>/dev/null`
         socks_port=`gconftool-2 -g /system/proxy/socks_port 2>/dev/null`
         secure_host=`gconftool-2 -g /system/proxy/secure_host 2>/dev/null`
@@ -28,6 +29,8 @@ set_proxy()
 {
 	if [ "$mode" == "manual" ]; then
 		if $use_http_proxy && [ -n "$host" ] && [ -n "$port" ] ; then
+                        no_proxy=`echo "$ignore_hosts" |sed -e 's/\[//g' |sed -e 's/\]//g'`
+                        export no_proxy
 			if $use_authentication; then
 				if [ -n "$authentication_user" ] && [ -n "$authentication_password" ]; then
 					PROXY_AUTH="$authentication_user:$authentication_password"
