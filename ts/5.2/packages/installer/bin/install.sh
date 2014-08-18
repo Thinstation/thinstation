@@ -51,19 +51,6 @@ read_pt()
 	sleep 1
 }
 
-git_fallback()
-{
-        Xdialog --title "Git ERROR!" --yesno "\
-Clone failed via git even though initial \
-testing suggested it should succeed. \n\
-This could be a weird proxy error.\n\
-\n\
-Would you like to try via the https instead? \n\
-\n\
-* Dowloading objects may not be displayed!
-" 15 50
-}
-
 echo "Starting Partioner"
 touch /tmp/nomount
 un_mount
@@ -98,19 +85,25 @@ e2label ${disk}2 home
 e2label ${disk}4 tsdev
 sleep 1
 #progress 50
+
+
 echo "Remounting"
 rm /tmp/nomount
 read_pt
 do_mounts
 sleep 1
+
+# Syslinux the boot partition
 cd /boot
 cp /install/* .
 ./syslinux -s ${disk}1
 ./syslinux ${disk}1
 
+# Setup proxy for wget and git
 proxy-setup
 . /tmp/.proxy
 
+# Install a default boot and backup-boot image into the boot partition
 if [ -e /mnt/cdrom0/thindev-default.tar.xz ]; then
 	tar -xvf /mnt/cdrom0/thindev-default.tar.xz
 else

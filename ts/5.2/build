@@ -1098,6 +1098,15 @@ if ! is_enabled $ts_bootlogo; then
 	rm $PACDIR/splash.package
 fi
 
+# Now that all the package deps are satisfied, do we really need wmsetbg
+if [ -e $PACDIR/desktop.param ]; then
+	. $PACDIR/desktop.param
+fi
+if [ -z "$ts_desktop" ] && [ -e $PACDIR/wmsetbg.package ]; then
+	echo -e "Desktop Image Disabled. Removing wmsetbg package."
+        rm $PACDIR/wmsetbg.package
+fi
+
 install_non_distributable
 
 # Add all packages to filetree
