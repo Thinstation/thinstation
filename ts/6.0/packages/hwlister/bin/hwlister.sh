@@ -31,9 +31,24 @@ for module in `lsmod |cut -d " " -f 1`; do
 	fi
 done
 
+#if [ -e /bin/Xorg ] && [ ! -e /var/log/Xorg.0.log ]; then
+#	Xorg -configure
+#fi
+if [ -e /var/log/Xorg.0.log ]; then
+	xdriver=`grep /var/log/Xorg.0.log -e "driver 0" |cut -d\) -f2 |cut -d " " -f3`
+	for available in radeon intel geode vmware sis openchrome nv ati radeon nouveau; do
+		if [ "$xdriver" == "$available" ]; then
+			echo package xorg7-$xdriver >> /package.list
+		fi
+	done
+fi
+
 if [ -n "$SERVER_IP" ]; then
 	tftp -p -l /module.list -r module.list $SERVER_IP
 
+	if [ -e /package.list ]; then
+		tftp -p -l /package.list -r package.list $SERVER_IP
+	fi
 	if [ -e /sys/devices/platform/uvesafb.0/vbe_modes ]; then
 		cp /sys/devices/platform/uvesafb.0/vbe_modes /vbe_modes.list
 		tftp -p -l /vbe_modes.list -r vbe_modes.list $SERVER_IP

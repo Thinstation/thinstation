@@ -17,7 +17,7 @@ init)
 	CHROMEPREFS=$HOME/.config/google-chrome/Default/Preferences
 	if [ ! -e $CHROMEPREFS ] ; then
 	    if [ -z $CHROME_HOMEPAGE ]; then
-	    	CHROME_HOMEPAGE="http://www.thinstation.org"
+	    	CHROME_HOMEPAGE="http://www.thinstation.net"
 	    fi
 	    let x=0
 	    # Add any configuration parameters
@@ -31,9 +31,7 @@ init)
 	    if [ -n "$CHROMEHP" ] ; then
 		CHROME_HOMEPAGE=$CHROMEHP
 	    fi
-	    cp /etc/chrome/Default/Preferences.tpl $CHROMEPREFS
-	    echo '  "homepage": "'$CHROME_HOMEPAGE'"' >> $CHROMEPREFS
-	    echo '}'>> $CHROMEPREFS
+	    sed -e 's|http://www.thinstation.org|'$CHROME_HOMEPAGE'|g' /etc/chrome/Default/Preferences.tpl >> $CHROMEPREFS
 	fi
  fi
 ;;

@@ -1,8 +1,10 @@
 #! /bin/bash
 
 . $TS_GLOBAL
+. /etc/ashrc
 PID=$$
 
+if [ -e /etc/dialog.functions ]; then . /etc/dialog.functions; fi
 if [ -e /etc/$PACKAGE.functions ] ; then . /etc/$PACKAGE.functions ; fi
 if [ ! -e /etc/cmd/$PACKAGE.wm ] ; then if [ -n "$WMNAME" ] ; then . /etc/$WMNAME.functions ;fi ;fi
 
@@ -22,16 +24,20 @@ if [ -e /etc/cmd/$PACKAGE.global ] ; then . /etc/cmd/$PACKAGE.global ; fi
 
 if [ -e /etc/cmd/$PACKAGE.extra ] ; then . /etc/cmd/$PACKAGE.extra ; fi
 
+if [ -e /etc/cmd/$PACKAGE.getpass ]; then GET_PASSWORD=true ; else GET_PASSWORD=false; fi
+if [ -e /etc/cmd/$PACKAGE.getuser ]; then GET_USER=true ; else GET_USER=false ; fi
+
+
 if [ -z "$CMD_CONSOLE" ] ; then CMD_CONSOLE=$CMD_GLOBAL ; fi
 if [ -z "$CMD_WINDOW" ] ; then CMD_WINDOW=$CMD_GLOBAL ; fi
 if [ -z "$CMD_MENU" ] ; then CMD_MENU=$CMD_GLOBAL ; fi
 if [ -z "$CMD_FULLSCREEN" ] ; then CMD_FULLSCREEN=$CMD_GLOBAL ; fi
 
-if [ -e /etc/cmd/$PACKAGE.getip ] ; then CMD_GETIP=TRUE; fi
+if [ -e /etc/cmd/$PACKAGE.getip ] ; then CMD_GETIP=true ; else CMD_GETIP=false ; fi
 
 if [ -n "$2" ] ; then SERVER="$2" ; fi
 if [ -n "$3" ] ; then OPTIONS="$3" ; fi
-if [ -e /etc/cmd/$PACKAGE.server_first ] ; then	REVERSE_ORDER=TRUE ; fi
+if [ -e /etc/cmd/$PACKAGE.server_first ] ; then	REVERSE_ORDER=true ; else REVERSE_ORDER=false; fi
 
 APPLOG=$APPLOGDIR/$PACKAGE.$$
 export APPLOG
@@ -47,17 +53,8 @@ gen_menu()
 
 x_get_ip()
 {
-	if is_enabled $CMD_GETIP; then
-		if is_enabled $ALWAYS_ENTER_SERVER || [ -z "$SERVER" ]; then
-			dialog_get_server_address $PACKAGE
-		fi
-	fi
-}
-
-x_get_user()
-{
-	if [ -e /etc/cmd/$PACKAGE.getuser ] && [ -z "$REMUSER" ]; then
-		dialog_get_username $PACKAGE
+	if $GET_USER || $CMD_GETIP; then
+		dialog_get_server_address $PACKAGE
 	fi
 }
 
@@ -67,7 +64,6 @@ package_input()
 		. /etc/cmd/$PACKAGE.options
 	else
 		x_get_ip
-		x_get_user
 	fi
 }
 
@@ -131,24 +127,6 @@ run_command()
 	if x_wm ;then
 		chvt 4
 		exit $STATUS
-	fi
-}
-
-x_check_status()
-{
-	if [ $STATUS != 0 ] && [ ! -e /etc/console/$PACKAGE ]; then
-		Xdialog --title $PACKAGE \
-			--ok-label "View Log" \
-			--cancel-label "OK" \
-			--icon /lib/pixmaps/${PACKAGE}_32x32.xpm \
-			--yesno "Application $PACKAGE failed with an error ($STATUS)\nWould you like to review the command output log?" 10 80
-
-		if [ $? == 0 ]; then
-			Xdialog --title $PACKAGE \
-				--ok-label "Done" \
-				--no-cancel \
-				--logbox $APPLOG 40 100
-		fi
 	fi
 }
 

@@ -85,7 +85,6 @@ module ext3	            	# Ext3 file system support
 module ext4			# Ext4 file system support
 module nfs	             	# NFS file system support
 module cifs			# CIFS support (use either this or smbfs - not both)
-module squashfs
 
 #################################################
 ### --- Packages to include in boot image --- ###
@@ -135,9 +134,9 @@ package cpufreq
 package xorg7-vesa		#A fallback driver that works with almost everything. Does allow resolution changes
 package xorg7-vmware
 package xorg7-ati		#ATI video driver for most modern ATI chipsets. Usually requires several firmwares
-#package xorg7-nv		#Old opensource nvidia driver
 #package xorg7-nouveau		#New opensource nvidia driver
 package xorg7_nvidia		#Proprietary nvidia driver
+package xorg7_nvidia_64         # Additional 64bit module
 package xorg7-openchrome	#Via Video Chipsets driver
 #package xorg7-geode		#Geode Video driver
 package xorg7-intel		#Intel video driver for most modern chipsets except the GMA3500/3600
@@ -237,6 +236,7 @@ package thunar			# File Manager for xfwm4 -- Pulls in xfwm4
 #package sshd 			# Dropbear secure shell server
 #package tftpd 			# Built in tftpd server. Useful for making a tftpserver
 				#  for thinstation on a WAN over a slow link.
+package cups
 #package samba-server		# Samba server FS Support, allows you to share
 package samba-base
                         	#  local floppy/cdrom/hd/printer to other Windows
@@ -341,11 +341,11 @@ param bootresolution 1280x768-32
 #param bootresolution 1920x1080-32
 #param bootresolution 1400x1050-32
 
-param desktop file:./backgrounds/thundercats.svg		# Custom image to load as desktop background
+param desktop file:./backgrounds/Glider.svg		# Custom image to load as desktop background
 param defaultconfig  thinstation.conf.buildtime  	# The file with default setup.  No other config file is found
                                                  	#  during boot.
 param basename       thinstation     			# Used for all config/tftp/scp file names
-param basepath       ts5.0               		# Used to determine path to tftp/scp files
+param basepath       ts6.0               		# Used to determine path to tftp/scp files
 param baseurl        http://www.doncuppjr.net		# Used to determine url to wget files
 #param keyfile        ./id_rsa       			# Path for private key file used for ssh/scp
 #param knownhosts     ./known_hosts  			# Path for ssh known_hosts file for ssh/scp

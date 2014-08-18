@@ -1,0 +1,83 @@
+#!/bin/sh
+
+isoname=`basename $1`
+INSTALLDIR=./packages/vboxguest
+xserver=115
+release=`cat /boot/KERNEL_VERSION`
+release=${release%TS}
+
+# Mount the ISO in the temporary directory
+mkdir -p wget_tmp/iso
+mount wget_tmp/$isoname wget_tmp/iso
+returnval=$?
+
+# Run the installer to only extract the TAR
+mkdir -p wget_tmp/additions
+pushd wget_tmp/additions
+../iso/VBoxLinuxAdditions.run --tar xf
+popd
+let returnval=returnval+$?
+
+# Unmount the ISO
+sleep 1
+umount wget_tmp/iso
+let returnval=returnval+$?
+
+# Extract the 32-bit files
+mkdir -p wget_tmp/vbox
+tar -C wget_tmp/vbox -xf wget_tmp/additions/VBoxGuestAdditions-x86.tar.bz2 
+let returnval=returnval+$?
+
+# Install the Xorg driver and mount script we need and remove the rest
+# Not sure what the PAM module is for, and the init scripts are duplicates
+mkdir -p $INSTALLDIR/lib/xorg/modules/drivers
+cp wget_tmp/vbox/lib/VBoxGuestAdditions/vboxvideo_drv_$xserver.so $INSTALLDIR/lib/xorg/modules/drivers/vboxvideo_drv.so
+mkdir -p $INSTALLDIR/sbin
+cp wget_tmp/vbox/lib/VBoxGuestAdditions/mount.vboxsf $INSTALLDIR/sbin
+rm -rf wget_tmp/vbox/lib/VBoxGuestAdditions
+mkdir -p wget_tmp/vbox/lib/dri
+ln -s /lib/VBoxOGL.so wget_tmp/vbox/lib/dri/vboxvideo_dri.so
+
+# Removing the greeter for now (autologon)
+# If put back, other pieces are needed to integrate with lightdm
+rm -f wget_tmp/vbox/sbin/vbox-greeter
+
+# Copy lib, bin, and sbin into the package INSTALLDIR
+cp -a wget_tmp/vbox/{bin,lib,sbin} $INSTALLDIR
+let returnval=returnval+$?
+
+# For share, Install the client application autostart
+# We don't need the selinux modules or the ids needed for Ubuntu
+mkdir -p $INSTALLDIR/etc/xdg/autostart
+cp wget_tmp/vbox/share/VBoxGuestAdditions/vboxclient.desktop $INSTALLDIR/etc/xdg/autostart
+
+# For init, only the service one looks needed
+# We've basically done the x11 init script above, and relying on autoconfig
+# We're installing the modules ourselves, so skip the vboxadd script
+mkdir -p $INSTALLDIR/etc/init.d
+mkdir -p $INSTALLDIR/etc/rc2.d
+cp wget_tmp/vbox/init/vboxadd-service $INSTALLDIR/etc/init.d
+
+do_module() {
+  pushd wget_tmp/vbox/src/vboxguest-*/$2
+  make KERN_DIR=/lib/modules/$1/build clean
+  make KERN_DIR=/lib/modules/$1/build
+  let returnval=returnval+$?
+  perl /usr/src/kernels/$1/scripts/sign-file sha256 /etc/ssl/keys/kernel.key /etc/ssl/certs/kernel.crt $2.ko
+  popd
+  cp wget_tmp/vbox/src/vboxguest-*/$2/$2.ko $INSTALLDIR/lib/modules/$1/misc
+  let returnval=returnval+$?
+}
+
+# Install the modules
+for kernel in ${release}TS ${release}TS_SMP; do
+  mkdir -p $INSTALLDIR/lib/modules/$kernel/misc
+  do_module $kernel vboxguest
+  do_module $kernel vboxsf
+  do_module $kernel vboxvideo
+done
+
+cp -a $INSTALLDIR/build/extra/* $INSTALLDIR
+let returnval=returnval+$?
+
+exit $returnval

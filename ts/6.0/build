@@ -512,19 +512,23 @@ get_file ()
 	echo -e "\nDownloading from Net....."
         if [ ! -z "$ts_httpproxy" ] ; then
             echo "Using proxy $http_proxy"
-                if ! wget -N $URL -O $2/$outfile -e http_proxy=$ts_httpproxy $ts_wgetopts ; then
-                        echo -e "\nError has occured downloading file"
-                        echo -e "Build Aborted\n"
-                        remove_files
-                        exit 1
-                fi
+		if ! wget -t 1 -N $URL -O $2/$outfile -e http_proxy=$ts_httpproxy $ts_wgetopts ; then
+	                if ! wget -t 1 -N $URL -O $2/$outfile -e http_proxy=$ts_httpproxy $ts_wgetopts ; then
+        	                echo -e "\nError has occured downloading file"
+                	        echo -e "Build Aborted\n"
+                        	remove_files
+	                        exit 1
+        	        fi
+		fi
         else
-            echo "Not using any proxy to connect to internet"
-                if ! wget -N $URL -O $2/$outfile --no-proxy $ts_wgetopts ; then
-                        echo -e "\nError has occured downloading file"
-                        echo -e "Build Aborted\n"
-                        remove_files
-                        exit 1
+            echo "Using system proxy, or not using any proxy to connect to Internet."
+                if ! wget -t 1 -N $URL -O $2/$outfile $ts_wgetopts ; then
+			if ! wget -t 1 -N $URL -O $2/$outfile $ts_wgetopts ; then
+	                        echo -e "\nError has occured downloading file"
+        	                echo -e "Build Aborted\n"
+                	        remove_files
+                        	exit 1
+			fi
                 fi
         fi
 	if [ -n "$ts_downloads" ]; then
@@ -729,15 +733,6 @@ locales()
 {
 	# Removes extended locale libs if not selected
 	echo -e "\nAdding locales to archive.\n"
-
-	if [ -n "$ts_forcelocales" ]; then
-		ts_fulllocales=true
-	fi
-	if [ -z "$ts_fulllocales" ]; then
-		if [ ! -e $PACDIR/fulllocales.param ]; then
-			ts_fulllocales="false"
-		fi
-	fi
 
 	if [ -n "`find ./tmp-tree/build -maxdepth 1 -name \*.template`" ]; then
 		for localedef in `cat ./tmp-tree/build/*.template`; do
@@ -954,8 +949,8 @@ install_non_distributable()
 	for package in `ls $PACDIR | grep -v "\.param"`; do
 		package=${package%.package}
 		# Check if need to add full locale support for package
-		if [ -e ./packages/$package/build/fulllocales ] ; then
-			ts_forcelocales="true"
+		if [ -e $PACDIR/fulllocales.param ]; then
+                                . $PACDIR/fulllocales.param
 		fi
 		if [ ! -e ./packages/$package/build/installed ] && [ -e ./packages/$package/build/install ] ; then
 			if [ -e $PACDIR/"$package"url.param ]; then
@@ -1052,13 +1047,29 @@ for KERNVER in $KERNVERS; do
 	fi
 	if is_enabled $ALLMODULES ; then
 		echo "Doing an All Modules Build!"
+		if [ -e $PACDIR/blacklist.param ]; then
+	                . $PACDIR/blacklist.param
+		fi
+		if [ -e $PACDIR/blacklist_grp.param ]; then
+ 			. $PACDIR/blacklist_grp.param
+		fi
+		touch /tmp/blacklist.modules
+		for module in $ts_blacklist; do
+			echo $module >> /tmp/blacklist.modules
+		done
+		for group in $ts_blacklist_grp; do
+			for gdir in `find /lib/modules/$KERNVER -type d -name $group`; do
+				find $gdir -name \*.ko -printf '%f ' >> /tmp/blacklist.modules
+			done
+		done
 		for module in `find /lib/modules/$KERNVER -name \*.ko -printf '%f '`; do
-			if copy_module $module $KERNVER ./tmp-tree; then
+			if grep -qe $module /tmp/blacklist.modules; then
+				echo "Skipping $module"
+			elif copy_module $module $KERNVER ./tmp-tree; then
 				allfirm $module
-			else
-				echo "error! $module not found"
 			fi
 		done
+		rm /tmp/blacklist.modules
 	fi
 done
 
@@ -1066,7 +1077,7 @@ for KERNVER in $KERNVERS; do
 	touch /tmp/dirty
 	while [ -e /tmp/dirty ]; do
 		rm /tmp/dirty
-		if ! is_enabled $ALLMODULES; then
+		if ! is_enabled $ALLMODULES || [ -n "$ts_blacklist$ts_blacklist_grp" ]; then
 			# Adding dependent modules via modinfo
 			echo -e "\nBuilding dependencies for $KERNVER Modules..."
 			module_dependencies
@@ -1456,6 +1467,7 @@ mesa()
 		rm -rf ./tmp-tree/lib/gallium-pipe
 	fi
 }
+
 filesystem_fixups()
 {
 	# Various filesystem fixups

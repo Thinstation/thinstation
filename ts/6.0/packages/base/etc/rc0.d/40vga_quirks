@@ -31,10 +31,17 @@ bb_switch()
 vesa_mode()
 {
 	if is_enabled $VESAMODE; then
-		find /lib/modules -name radeon.ko -delete -o -name vmwgfx.ko -delete -o -name nouveau.ko -delete -o -name i915.ko -delete -o -name gma500_gfx.ko -delete -o -name drm_kms_helper.ko -delete
-		depmod
-		echo X_DRIVER_NAME=vesa >> $TS_RUNTIME
-		modprobe uvesafb
+		for module in `find /lib/modules -name radeon.ko -o -name vmwgfx.ko -o -name nouveau.ko -o -name i915.ko -o -name gma500_gfx.ko -o -name drm_kms_helper.ko`; do
+			rm $module
+			rundepmod=true
+		done
+		if is_enabled $rundepmod; then
+			depmod
+		fi
+		if [ -e /usr/lib/xorg/modules/drivers/vesa_drv.so ]; then
+			echo X_DRIVER_NAME=vesa >> $TS_RUNTIME
+		fi
+		modprobe uvesafb &> /dev/null
 		return 0
 	fi
 	return 1

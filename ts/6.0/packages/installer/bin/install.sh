@@ -1,4 +1,6 @@
 #!/bin/bash
+. /etc/ashrc
+
 tempdir=`mktemp -d 2>/dev/null`
 disk=$1
 buggybios=$2
@@ -101,6 +103,7 @@ cp /lib/install/bios/* .
 
 # Setup proxy for wget and git
 proxy-setup
+. /tmp/.proxy
 
 # Install a default boot and backup-boot image into the boot partition
 if [ -e /mnt/cdrom0/thindev-default.tar.xz ]; then
@@ -111,9 +114,12 @@ else
 	tar -xvf thindev-default.tar.xz
 	rm thindev-default.tar.xz
 fi
+
 cp /boot/initrd /boot/initrd-backup
 cp /boot/vmlinuz /boot/vmlinuz-backup
 cp /boot/lib.update /boot/lib.squash-backup
+cd /thinstation
+rm -rf *
 
 # No longer done during install
 #cd /thinstation
