@@ -267,11 +267,11 @@ check_results()
 	if [ -n "$SERVER" ] && [ -n "$REMUSER" ]; then
 		notcomplete=false
 	else
-		if [ -z "$SERVER" ] && [ -z "$REMUSER" ]; then
+		if $GET_USER && [ -z "$SERVER" ] && [ -z "$REMUSER" ]; then
 			dialog_no_value $client "Username and Server"
 		elif [ -z "$SERVER" ]; then
 			dialog_no_value $client "Server name or IP"
-		elif [ -z "$REMUSER" ]; then
+		elif $GET_USER && [ -z "$REMUSER" ]; then
 			dialog_no_value $client "Username"
 		fi
 		unset SERVER OPTIONS PASSWORD REMUSER
