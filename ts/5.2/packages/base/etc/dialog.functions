@@ -264,16 +264,16 @@ parse_results()
 
 check_results()
 {
-	if [ -n "$SERVER" ] && [ -n "$REMUSER" ]; then
-		notcomplete=false
+	if $GET_USER && [ -z "$SERVER" ] && [ -z "$REMUSER" ]; then
+		dialog_no_value $client "Username and Server"
+	elif [ -z "$SERVER" ]; then
+		dialog_no_value $client "Server name or IP"
+	elif $GET_USER && [ -z "$REMUSER" ]; then
+		dialog_no_value $client "Username"
 	else
-		if $GET_USER && [ -z "$SERVER" ] && [ -z "$REMUSER" ]; then
-			dialog_no_value $client "Username and Server"
-		elif [ -z "$SERVER" ]; then
-			dialog_no_value $client "Server name or IP"
-		elif $GET_USER && [ -z "$REMUSER" ]; then
-			dialog_no_value $client "Username"
-		fi
+		notcomplete=false
+	fi
+	if $notcomplete; then
 		unset SERVER OPTIONS PASSWORD REMUSER
 	fi
 }
