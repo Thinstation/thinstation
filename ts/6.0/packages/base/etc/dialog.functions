@@ -169,7 +169,7 @@ dialog_no_value()
 create_dialog()
 {
 	MAIN_DIALOG='
-<window title="'"$DIALOG_TITLE"'" decorated="true" width-request="325" height-request="235" allow-grow="false" allow-shrink="false">
+<window title="'"$DIALOG_TITLE"'" decorated="false" width-request="325" height-request="235" allow-grow="false" allow-shrink="false">
 	<vbox>
 		<hbox>
 			<pixmap>
@@ -193,6 +193,8 @@ create_dialog()
                 	<entry activates_default="true" has-focus="true">
                         	'$(set_default $DIALOG_USER)'
                         	<variable>DIALOG_USER</variable>
+                                <input>echo "$DIALOG_USER" |sed -e "s|[\&\;\`\(\)\|]||g"</input>
+                                <action signal="focus-out-event">refresh:DIALOG_USER</action>
                 	</entry>
 			<text visible="'"$GET_PASSWORD"'" space-expand="false" space-fill="false" use-markup="true" xalign="0">
                         	<label>Password</label>
@@ -208,6 +210,8 @@ create_dialog()
 			<entry activates_default="true" editable="'"$ALLOW_SERVER_EDITS"'" has-focus="true">
 				'$(set_default $DIALOG_SERVER)'
 				<variable>DIALOG_SERVER</variable>
+                                <input>echo "$DIALOG_SERVER" |sed -e "s|[\&\;\`\(\)\|]||g"</input>
+                                <action signal="focus-out-event">refresh:DIALOG_SERVER</action>
 			</entry>
 			<text space-expand="false" space-fill="false" use-markup="true" xalign="0">
 				<label>Options</label>
@@ -215,19 +219,21 @@ create_dialog()
 			<entry activates_default="true" editable="'"$ALLOW_SERVER_EDITS"'">
 				'$(set_default $DIALOG_OPTIONS)'
 				<variable>DIALOG_OPTIONS</variable>
+                                <input>echo "$DIALOG_OPTIONS" |sed -e "s|[\&\;\`\(\)\|]||g"</input>
+                                <action signal="focus-out-event">refresh:DIALOG_OPTIONS</action>
 			</entry>
 		</vbox>
 	</notebook>
 		<hbox homogeneous="true">
-			<button can-default="true" has-default="true" use-stock="true">
-				<input file icon="gtk-ok"></input>
-				<label>"Connect"</label>
-				<action>EXIT:ok</action>
-			</button>
 			<button use-stock="true">
 				<input file icon="gtk-cancel"></input>
 				<label>"Abort"</label>
 				<action>EXIT:abort</action>
+			</button>
+			<button can-default="true" has-default="true" use-stock="true">
+				<input file icon="gtk-ok"></input>
+				<label>"Connect"</label>
+				<action>EXIT:ok</action>
 			</button>
 		</hbox>
 	</vbox>
@@ -252,11 +258,11 @@ parse_results()
 		echo "$DIALOG_SERVER" > /tmp/.dialog_${client}_server
 		echo "$DIALOG_OPTIONS" > /tmp/.dialog_${client}_options
 		if [ "$DIALOG_SERVER" != "type server name here" ]; then
-			REMUSER=$(echo $DIALOG_USER |grep -Ev '&|;|\(|`')
-			PASSWORD=$(echo $DIALOG_PASSWORD |grep -Ev '&|;|\(|`')
-			SERVER=$(echo $DIALOG_SERVER |grep -Ev '&|;|\(|`')
-			OPTIONS=$(echo $DIALOG_OPTIONS |grep -Ev '&|;|\(|`')
-		fi
+			REMUSER="$DIALOG_USER"
+                       	PASSWORD="$DIALOG_PASSWORD"
+                       	SERVER="$DIALOG_SERVER"
+                        OPTIONS="$DIALOG_OPTIONS"
+               	fi
 	elif is_enabled $ALLOW_EXIT ; then
 		exit
 	fi
@@ -264,16 +270,16 @@ parse_results()
 
 check_results()
 {
-	if [ -n "$SERVER" ] && [ -n "$REMUSER" ]; then
-		notcomplete=false
+	if $GET_USER && [ -z "$SERVER" ] && [ -z "$REMUSER" ]; then
+		dialog_no_value $client "Username and Server"
+	elif [ -z "$SERVER" ]; then
+		dialog_no_value $client "Server name or IP"
+	elif $GET_USER && [ -z "$REMUSER" ]; then
+		dialog_no_value $client "Username"
 	else
-		if [ -z "$SERVER" ] && [ -z "$REMUSER" ]; then
-			dialog_no_value $client "Username and Server"
-		elif [ -z "$SERVER" ]; then
-			dialog_no_value $client "Server name or IP"
-		elif [ -z "$REMUSER" ]; then
-			dialog_no_value $client "Username"
-		fi
+		notcomplete=false
+	fi
+	if $notcomplete; then
 		unset SERVER OPTIONS PASSWORD REMUSER
 	fi
 }
