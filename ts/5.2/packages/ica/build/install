@@ -6,46 +6,53 @@ filename=`basename $1 .tar.gz`
 INSTALLDIR=./packages/ica
 
 etcs="passwd group nsswitch.conf issue"
-
-bins="attr bash cat chgrp chmod chown cp date dd df echo ed false ln ls mkdir more mount mv \
-ping ps red rm rmdir sed sh sleep tar touch true uname vi"
-
+bins="attr bash cat chgrp chmod chown cp date dd df echo ed false ln ls mkdir \
+      more mount mv ping ps red rm rmdir sed sh sleep tar touch true uname vi"
 sbins="init init ip ss tc telinit"
-
 ubins="awk basename cut dirname egrep expr find gawk grep head id install mktemp sort tr wc which whoami"
+libs="ld-linux.so.2 libacl.so.1 libattr.so.1 libc.so.6 libdl.so.2 libhistory.so.6 \
+	libm.so.6 libncurses.so.5 libnss_compat.so.2 libnss_files.so.2 libproc-3.2.8.so \
+	libpthread.so.0 libreadline.so.6 librt.so.1 libgobject-2.0.so.0 libglib-2.0.so.0 \
+	libgmodule-2.0.so.0 libcap.so.2 libgthread-2.0.so.0 libnsl.so.1 libnss_nis.so.2 libncursesw.so.5"
+ulibs="libpcre.so.0 libgmp.so.10 libxml2.so.2 libgstinterfaces-0.10.so.0 libffi.so.5 libz.so.1 \
+	libgstreamer-0.10.so,libgstreamer-0.10.so.0.29.0,libgstreamer-0.10.so.0"
+dirs="proc etc/udev/rules.d etc/init.d bin lib tmp dev/bus/usb \
+	usr/share/applications 	usr/local/lib/netscape/plugins \
+	usr/lib/gstreamer-0.10 usr/local/lib/firefox/plugins \
+	usr/local/lib/chrome/plugins"
+clean_dirs="setupwfc linuxx86 dev PkgId tmp proc usr/lib/gstreamer-0.10 \
+	usr/local/lib/firefox/plugins usr/local/lib/chrome/plugins"
 
-libs="ld-linux.so.2 libacl.so.1 libattr.so.1 libc.so.6 libdl.so.2 libhistory.so.6 libm.so.6 \
-libncurses.so.5 libnss_compat.so.2 libnss_files.so.2 libproc-3.2.8.so libpthread.so.0 \
-libreadline.so.6 librt.so.1 libgobject-2.0.so.0 libglib-2.0.so.0 libgmodule-2.0.so.0 \
-libcap.so.2 libgthread-2.0.so.0 libnsl.so.1 libnss_nis.so.2 libncursesw.so.5"
+new_file()
+{
+        if [ -n "`stat -c '%Y' $1 | grep -v \"$bday\"`" ]; then
+                return 0
+        else
+                return 1
+        fi
+}
 
-ulibs="libpcre.so.0 libgmp.so.10 libxml2.so.2 libgstinterfaces-0.10.so.0 libffi.so.5 libz.so.1"
-
-dirs="proc etc/udev/rules.d etc/init.d bin lib tmp dev/bus/usb usr/share/applications usr/local/lib/netscape/plugins \
-usr/lib/gstreamer-0.10 usr/local/lib/firefox/plugins usr/local/lib/chrome/plugins"
-
-clean_dirs="setupwfc linuxx86 dev PkgId tmp proc usr/lib/gstreamer-0.10 usr/local/lib/firefox/plugins usr/local/lib/chrome/plugins"
-
+# Setup a fake filesystem, so the official installer is all happy with what we are trying to do.
 for mdir in $dirs; do
 	mkdir -p $INSTALLDIR/$mdir
 done
 for cbin in $bins ; do
-	cp -Prf /bin/$cbin $INSTALLDIR/bin/.
+	cp /bin/$cbin $INSTALLDIR/bin/.
 done
 for cbin in $sbins ; do
-	cp -Prf /sbin/$cbin $INSTALLDIR/bin/.
+	cp /sbin/$cbin $INSTALLDIR/bin/.
 done
 for cbin in $ubins ; do
-	cp -Prf /usr/bin/$cbin $INSTALLDIR/bin/.
+	cp /usr/bin/$cbin $INSTALLDIR/bin/.
 done
 for clib in $libs ; do
 	cp /lib/$clib $INSTALLDIR/lib/.
 done
 for clib in $ulibs ; do
-	cp /usr/lib/$clib $INSTALLDIR/lib/
+	cp /usr/lib/$clib $INSTALLDIR/usr/lib/
 done
 for cetc in $etcs ; do
-	cp -Prf /etc/$cetc $INSTALLDIR/etc/.
+	cp /etc/$cetc $INSTALLDIR/etc/.
 done
 if [ -e /bin/uname-auto ] ; then
 	cp /bin/uname-auto $INSTALLDIR/bin/.
@@ -59,56 +66,49 @@ echo "exit 0" > $INSTALLDIR/bin/chkconfig
 chmod +x $INSTALLDIR/bin/install_initd
 chmod +x $INSTALLDIR/bin/update-rc.d
 chmod +x $INSTALLDIR/bin/chkconfig
-
 touch $INSTALLDIR/bin/firefox
 touch $INSTALLDIR/bin/chrome
 
-cp -P /usr/lib/{libgstreamer-0.10.so,libgstreamer-0.10.so.0.29.0,libgstreamer-0.10.so.0} $INSTALLDIR/usr/lib/.
+# Now extract the installer
+tar -C $INSTALLDIR -zxvf ./wget_tmp/$gzname
+let returnval=$?
 
- tar -C $INSTALLDIR -zxvf ./wget_tmp/$gzname
- let returnval=$?
-
-echo -e "
-Running the ICA insaller. \n\
-You will need to punch these keys manually. \n\
-Choose 1 to install and then accept the default location. \n\
-Choose y to the next 2 questions. \n\
-Choose 1 to accept the ICA license. \n\
-Choose y for the next 3 questions. \n\
-Choose 3 to exit. \n\
-\n\
-Don't worry about the errors. :) \n\
-"
-
+# This will mark all the files before we run install, so that we know what to remove afterwards.
 timestamp="`date +%Y%m%d`0000.00"
 for file in `find $INSTALLDIR`; do
 	touch -c -h -t $timestamp $file
 done
 bday=`stat -c %Y $INSTALLDIR/linuxx86/linuxx86.psf`
 
-for dir in `find $INSTALLDIR -type d -empty`; do
-        touch $dir/.gitignore
-done
-
-
-new_file()
-{
-        if [ -n "`stat -c '%Y' $1 | grep -v \"$bday\"`" ]; then
-                return 0
-        else
-                return 1
-        fi
-}
-
-read -p "Press [Enter] key to start ICA installer"
-
+# Start the installer in a chroot session.
 mount -t proc proc $INSTALLDIR/proc
-chroot $INSTALLDIR ./setupwfc #< $INSTALLDIR/build/answerfile
+# Pipe the answers
+(
+	sleep 1
+	echo 1
+	sleep .1
+	echo -e "\n"
+	sleep .1
+	echo y
+	sleep .1
+	echo y
+	sleep 2
+	echo y
+	sleep .1
+	echo 3
+) \
+| chroot $INSTALLDIR ./setupwfc
 chroot $INSTALLDIR ./etc/init.d/ctxusbd stop
 umount $INSTALLDIR/proc
 sleep 1
 
-for dir in `find $INSTALLDIR -mindepth 1 -maxdepth 1 -type d ! -name build`; do 
+# Pin open empty folders, they may get used on a running system
+for dir in `find $INSTALLDIR -type d -empty`; do
+        touch $dir/.gitignore
+done
+
+# Remove any files not placed by the installer according to the bday set earlier
+for dir in `find $INSTALLDIR -mindepth 1 -maxdepth 1 -type d ! -name build`; do
 	for file in `find $dir -type f -o -type l`; do
 		if ! new_file $file; then
 			rm $file
@@ -116,19 +116,27 @@ for dir in `find $INSTALLDIR -mindepth 1 -maxdepth 1 -type d ! -name build`; do
 	done
 done
 
+# Remove folders and files that we know must go.
 for dirs in $clean_dirs ; do
 	rm -rf $INSTALLDIR/$dirs
 done
 
+# A little bit of shifing about for "our" filesystem layout.
 cp -a $INSTALLDIR/usr/local/lib $INSTALLDIR/.
 rm -rf $INSTALLDIR/usr/local/lib
 mv $INSTALLDIR/usr/share/applications $INSTALLDIR/lib/.
 mv $INSTALLDIR/lib/netscape $INSTALLDIR/lib/mozilla
+
+# Define wfica is a mimetype handler for .ica files
 echo "MimeType=application/x-ica;" >> $INSTALLDIR/opt/Citrix/ICAClient/desktop/wfica.desktop
 
+# Record special file ownerships to be re-established according the running system gid's
 find $INSTALLDIR -group sys |cut -d '/' -f4- > $INSTALLDIR/etc/ICA-Perms
 
+# Merge static files and folders
 mkdir -p $INSTALLDIR/lib/pcsc/drivers
 cp -Prf $INSTALLDIR/build/extra/* $INSTALLDIR/.
+
+# Remove any now empty folders
 find $INSTALLDIR -type d -empty -delete
 
