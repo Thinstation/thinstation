@@ -83,21 +83,10 @@ bday=`stat -c %Y $INSTALLDIR/linuxx86/linuxx86.psf`
 # Start the installer in a chroot session.
 mount -t proc proc $INSTALLDIR/proc
 # Pipe the answers
-(
-	sleep 1
-	echo 1
-	sleep .1
-	echo -e "\n"
-	sleep .1
-	echo y
-	sleep .1
-	echo y
-	sleep 2
-	echo y
-	sleep .1
-	echo 3
-) \
-| chroot $INSTALLDIR ./setupwfc
+(for answer in 1 '\n' y y y 3; do
+		sleep .2
+		echo -e "$answer"
+done)|chroot $INSTALLDIR ./setupwfc
 chroot $INSTALLDIR ./etc/init.d/ctxusbd stop
 umount $INSTALLDIR/proc
 sleep 1
@@ -139,4 +128,3 @@ cp -Prf $INSTALLDIR/build/extra/* $INSTALLDIR/.
 
 # Remove any now empty folders
 find $INSTALLDIR -type d -empty -delete
-
