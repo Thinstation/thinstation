@@ -87,7 +87,7 @@ empty_file()
 {
         if [ "$loc" == "" ] ; then
 		cmdlist="${cmdlist}touch $DEST/$file\n"
-        elif    [ ! -d $DEST/$loc ] || [ "$DRYRUN" == "1" ] ; then
+        elif    [ ! -d $DEST/$loc ] || $DRYRUN ; then
                 cmdlist="${cmdlist}mkdir -p $DEST/$loc\n"
 		cmdlist="${cmdlist}touch $DEST/$loc/$file\n"
         else
@@ -141,7 +141,7 @@ updatefiles()
 	if [ -n "$lfile" ]; then
 		if [ "$loc" == "" ] ; then
 			cmdlist="${cmdlist}cp /$lfile $DEST/.\n"
-		elif	[ ! -d $DEST/$loc ] || [ "$DRYRUN" == "1" ] ; then
+		elif	[ ! -d $DEST/$loc ] || $DRYRUN ; then
 			cmdlist="${cmdlist}mkdir -p $DEST/$loc\n"
 			cmdlist="${cmdlist}cp /$lfile $DEST/$loc/.\n"
 		else
@@ -176,7 +176,7 @@ makelinks()
 		linkname=`basename ${link[$index]}`
 		if [ "$lndepth" -gt "0" ] ; then
 			linkloc=`dirname ${link[$index]}`
-			if [ ! -d $DEST/$linkloc ] || [ "$DRYRUN" == "1" ]; then
+			if [ ! -d $DEST/$linkloc ] || $DRYRUN ; then
 			    cmdlist="${cmdlist}mkdir -p $DEST/$linkloc\n"
 			fi
 		else
