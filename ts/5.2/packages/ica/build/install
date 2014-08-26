@@ -111,7 +111,6 @@ sleep 1
 for dir in `find $INSTALLDIR -mindepth 1 -maxdepth 1 -type d ! -name build`; do 
 	for file in `find $dir -type f -o -type l`; do
 		if ! new_file $file; then
-			echo $file
 			rm $file
 		fi
 	done
@@ -124,6 +123,8 @@ done
 cp -a $INSTALLDIR/usr/local/lib $INSTALLDIR/.
 rm -rf $INSTALLDIR/usr/local/lib
 mv $INSTALLDIR/usr/share/applications $INSTALLDIR/lib/.
+mv $INSTALLDIR/lib/netscape $INSTALLDIR/lib/mozilla
+echo "MimeType=application/x-ica;" >> $INSTALLDIR/opt/Citrix/ICAClient/desktop/wfica.desktop
 
 find $INSTALLDIR -group sys |cut -d '/' -f4- > $INSTALLDIR/etc/ICA-Perms
 
