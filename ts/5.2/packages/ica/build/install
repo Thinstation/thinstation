@@ -24,8 +24,7 @@ ulibs="libpcre.so.0 libgmp.so.10 libxml2.so.2 libgstinterfaces-0.10.so.0 libffi.
 dirs="proc etc/udev/rules.d etc/init.d bin lib tmp dev/bus/usb usr/share/applications usr/local/lib/netscape/plugins \
 usr/lib/gstreamer-0.10 usr/local/lib/firefox/plugins usr/local/lib/chrome/plugins"
 
-clean_dirs="setupwfc lib linuxx86 nls dev bin PkgId tmp etc/nsswitch.conf etc/passwd etc/group etc/mtab etc/issue proc \
-usr/local/lib/chrome usr/local/lib/firefox usr/lib/libgstreamer-0.10.so*"
+clean_dirs="setupwfc linuxx86 dev PkgId tmp proc usr/lib/gstreamer-0.10 usr/local/lib/firefox/plugins usr/local/lib/chrome/plugins"
 
 for mdir in $dirs; do
 	mkdir -p $INSTALLDIR/$mdir
@@ -53,7 +52,6 @@ if [ -e /bin/uname-auto ] ; then
 fi
 
 cat /proc/mounts |grep -Ev 'gvfs|mapper|media' > $INSTALLDIR/etc/mtab
-mount -t proc proc $INSTALLDIR/proc
 
 echo "exit 0" > $INSTALLDIR/bin/install_initd
 echo "exit 0" > $INSTALLDIR/bin/update-rc.d
@@ -81,26 +79,55 @@ Choose 3 to exit. \n\
 \n\
 Don't worry about the errors. :) \n\
 "
+
+timestamp="`date +%Y%m%d`0000.00"
+for file in `find $INSTALLDIR`; do
+	touch -c -h -t $timestamp $file
+done
+bday=`stat -c %Y $INSTALLDIR/linuxx86/linuxx86.psf`
+
+for dir in `find $INSTALLDIR -type d -empty`; do
+        touch $dir/.gitignore
+done
+
+
+new_file()
+{
+        if [ -n "`stat -c '%Y' $1 | grep -v \"$bday\"`" ]; then
+                return 0
+        else
+                return 1
+        fi
+}
+
 read -p "Press [Enter] key to start ICA installer"
 
+mount -t proc proc $INSTALLDIR/proc
 chroot $INSTALLDIR ./setupwfc #< $INSTALLDIR/build/answerfile
 chroot $INSTALLDIR ./etc/init.d/ctxusbd stop
 umount $INSTALLDIR/proc
 sleep 1
 
+for dir in `find $INSTALLDIR -mindepth 1 -maxdepth 1 -type d ! -name build`; do 
+	for file in `find $dir -type f -o -type l`; do
+		if ! new_file $file; then
+			echo $file
+			rm $file
+		fi
+	done
+done
+
 for dirs in $clean_dirs ; do
 	rm -rf $INSTALLDIR/$dirs
 done
-mv $INSTALLDIR/usr/lib $INSTALLDIR/.
+
+cp -a $INSTALLDIR/usr/local/lib $INSTALLDIR/.
+rm -rf $INSTALLDIR/usr/local/lib
 mv $INSTALLDIR/usr/share/applications $INSTALLDIR/lib/.
-rm -rf $INSTALLDIR/usr
-rm $INSTALLDIR/opt/Citrix/ICAClient/util/gst_play
-rm $INSTALLDIR/opt/Citrix/ICAClient/util/gst_read
-rm $INSTALLDIR/opt/Citrix/ICAClient/util/libgstflatstm.so
-ln -sf gst_play.32 $INSTALLDIR/opt/Citrix/ICAClient/util/gst_play
-ln -sf gst_read.32 $INSTALLDIR/opt/Citrix/ICAClient/util/gst_read
-ln -sf libgstflatstm.32.so $INSTALLDIR/opt/Citrix/ICAClient/util/libgstflatstm.so
-rm $INSTALLDIR/opt/Citrix/ICAClient/util/libgstflatstm.64.so $INSTALLDIR/opt/Citrix/ICAClient/util/gst_read.64 $INSTALLDIR/opt/Citrix/ICAClient/util/gst_play.64
+
 find $INSTALLDIR -group sys |cut -d '/' -f4- > $INSTALLDIR/etc/ICA-Perms
+
 mkdir -p $INSTALLDIR/lib/pcsc/drivers
 cp -Prf $INSTALLDIR/build/extra/* $INSTALLDIR/.
+find $INSTALLDIR -type d -empty -delete
+
