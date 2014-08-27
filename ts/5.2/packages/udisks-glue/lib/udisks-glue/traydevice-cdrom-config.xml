@@ -48,6 +48,24 @@
   </menuitem>
 
 <!--
+    Unmount optical disk
+-->
+  <menuitem icon="gtk.STOCK_REMOVE" text="Unmount cdrom">
+    <command executable="/usr/bin/udisks">
+        <arg>--unmount</arg>
+        <ref>DeviceFile</ref>
+    </command>
+
+    <enabled_if>
+     <and>
+      <match key="DeviceIsMounted" bool="true"/>
+      <match key="DeviceIsOpticalDisc" bool="true"/>
+      <match key="OpticalDiscIsBlank" bool="false"/>
+     </and>
+    </enabled_if>
+  </menuitem>
+
+<!--
     Eject optical disk. This unmounts a mounted device prior to the eject
 -->
   <menuitem icon="gtk.STOCK_REMOVE" text="Eject cdrom">

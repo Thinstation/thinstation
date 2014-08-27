@@ -1,0 +1,222 @@
+diff -ur a/src/handlers.c b/src/handlers.c
+--- a/src/handlers.c	2014-08-14 08:09:21.221708670 +0000
++++ b/src/handlers.c	2014-08-14 11:09:21.074184054 +0000
+@@ -19,6 +19,20 @@
+ 
+ static GHashTable *tracked_objects;
+ 
++static void post_add_procedure(tracked_object *tobj)
++{
++    gchar *device_file = tracked_object_get_device_file(tobj);
++    g_print("Device %s added\n", device_file);
++
++    // Get the post insertion command and run it
++    const char *command = tracked_object_get_post_add_command(tobj);
++    if (command && command[0]) {
++        gchar *expanded = str_replace((gchar *)command, "%device_file", device_file);
++        run_command(expanded);
++        g_free(expanded);
++    }
++}
++
+ static void post_insertion_procedure(tracked_object *tobj)
+ {
+     gchar *device_file = tracked_object_get_device_file(tobj);
+@@ -84,6 +98,20 @@
+     }
+ }
+ 
++static void post_remove_procedure(tracked_object *tobj)
++{
++    gchar *device_file = tracked_object_get_device_file(tobj);
++    g_print("Device %s removed\n", device_file);
++
++    // Run the post-removal command
++    const char *command = tracked_object_get_post_remove_command(tobj);
++    if (command && command[0]) {
++        gchar *expanded = str_replace((gchar *)command, "%device_file", device_file);
++        run_command(expanded);
++        g_free(expanded);
++    }
++}
++
+ static int load_devices(DBusGProxy *proxy)
+ {
+     // Get a list of devices
+@@ -155,6 +183,8 @@
+     // Add the tracked object to the list of tracked objects
+     g_hash_table_insert(tracked_objects, g_strdup(object_path), tobj);
+ 
++    post_add_procedure(tobj);
++
+     // If loading devices on init and device is already mounted
+     if (is_mounted) {
+         tracked_object_set_status(tobj, TRACKED_OBJECT_STATUS_MOUNTED);
+@@ -197,6 +227,7 @@
+         // If media was inserted just now, run the post-insertion procedure
+         case TRACKED_OBJECT_STATUS_NO_MEDIA:
+             if (is_media_available) {
++                post_add_procedure(tobj);
+                 tracked_object_set_status(tobj, TRACKED_OBJECT_STATUS_INSERTED);
+                 post_insertion_procedure(tobj);
+             }
+@@ -249,5 +280,6 @@
+ 
+     // Run the post-removal procedure and free the tracked object
+     post_removal_procedure(tobj);
++    post_remove_procedure(tobj);
+     tracked_object_free(tobj);
+ }
+diff -ur a/src/match.c b/src/match.c
+--- a/src/match.c	2014-08-14 08:09:21.221708670 +0000
++++ b/src/match.c	2014-08-14 09:20:47.650591605 +0000
+@@ -18,10 +18,12 @@
+     int automount;
+     gchar *automount_filesystem;
+     gchar **automount_options;
++    char *post_add_command;
+     char *post_insertion_command;
+     char *post_mount_command;
+     char *post_unmount_command;
+     char *post_removal_command;
++    char *post_remove_command;
+ };
+ 
+ match *match_create(cfg_t *sec, filter *f)
+@@ -39,6 +41,8 @@
+             m->automount_options[i] = g_strdup(cfg_getnstr(sec, "automount_options", i));
+     }
+ 
++    if (cfg_size(sec, "post_add_command"))
++        m->post_add_command = cfg_getstr(sec, "post_add_command");
+     if (cfg_size(sec, "post_insertion_command"))
+         m->post_insertion_command = cfg_getstr(sec, "post_insertion_command");
+     if (cfg_size(sec, "post_mount_command"))
+@@ -47,6 +51,8 @@
+         m->post_unmount_command = cfg_getstr(sec, "post_unmount_command");
+     if (cfg_size(sec, "post_removal_command"))
+         m->post_removal_command = cfg_getstr(sec, "post_removal_command");
++    if (cfg_size(sec, "post_remove_command"))
++        m->post_remove_command = cfg_getstr(sec, "post_remove_command");
+ 
+     return m;
+ }
+@@ -66,10 +72,12 @@
+         CFG_BOOL("automount", cfg_false, CFGF_NONE),
+         CFG_STR("automount_filesystem", NULL, CFGF_NODEFAULT),
+         CFG_STR_LIST("automount_options", NULL, CFGF_NODEFAULT),
++        CFG_STR("post_add_command", NULL, CFGF_NODEFAULT),
+         CFG_STR("post_insertion_command", NULL, CFGF_NODEFAULT),
+         CFG_STR("post_mount_command", NULL, CFGF_NODEFAULT),
+         CFG_STR("post_unmount_command", NULL, CFGF_NODEFAULT),
+         CFG_STR("post_removal_command", NULL, CFGF_NODEFAULT),
++        CFG_STR("post_remove_command", NULL, CFGF_NODEFAULT),
+         CFG_END()
+     };
+     return opts;
+@@ -84,6 +92,11 @@
+     return m->filter_obj ? filter_matches(m->filter_obj, proxy, cache) : 1;
+ }
+ 
++const char *match_get_post_add_command(match *m)
++{
++    return m->post_add_command;
++}
++
+ const char *match_get_post_insertion_command(match *m)
+ {
+     return m->post_insertion_command;
+@@ -104,6 +117,11 @@
+     return m->post_removal_command;
+ }
+ 
++const char *match_get_post_remove_command(match *m)
++{
++    return m->post_remove_command;
++}
++
+ int match_get_automount(match *m)
+ {
+     return m->automount;
+diff -ur a/src/match.h b/src/match.h
+--- a/src/match.h	2014-08-14 08:09:21.221708670 +0000
++++ b/src/match.h	2014-08-14 09:21:29.666398014 +0000
+@@ -30,9 +30,11 @@
+ gchar *match_get_automount_filesystem(match *m);
+ gchar **match_get_automount_options(match *m);
+ 
++const char *match_get_post_add_command(match *m);
+ const char *match_get_post_insertion_command(match *m);
+ const char *match_get_post_mount_command(match *m);
+ const char *match_get_post_unmount_command(match *m);
+ const char *match_get_post_removal_command(match *m);
++const char *match_get_post_remove_command(match *m);
+ 
+ #endif
+diff -ur a/src/tracked_object.c b/src/tracked_object.c
+--- a/src/tracked_object.c	2014-08-14 08:09:21.224708585 +0000
++++ b/src/tracked_object.c	2014-08-14 11:21:10.415901910 +0000
+@@ -27,6 +27,7 @@
+     gchar *mount_point;
+     match *match_obj;
+     int match_obj_loaded;
++    int added;
+ };
+ 
+ tracked_object *tracked_object_create(const char *object_path)
+@@ -54,6 +55,8 @@
+     tobj->match_obj = matches_find_match(tobj->props_proxy, tobj->props_cache);
+     tobj->match_obj_loaded = 1;
+ 
++    tobj->added = 0;
++
+     return tobj;
+ }
+ 
+@@ -151,6 +154,17 @@
+             return NULL; \
+     } while (0)
+ 
++const char *tracked_object_get_post_add_command(tracked_object *tobj)
++{
++    if (tobj->added)
++        return NULL;
++    LOAD_MATCH_OBJ;
++    const char *command = match_get_post_add_command(tobj->match_obj);
++    if (command)
++        tobj->added = 1;
++    return command;
++}
++
+ const char *tracked_object_get_post_insertion_command(tracked_object *tobj)
+ {
+     LOAD_MATCH_OBJ;
+@@ -175,6 +189,12 @@
+     return match_get_post_removal_command(tobj->match_obj);
+ }
+ 
++const char *tracked_object_get_post_remove_command(tracked_object *tobj)
++{
++    LOAD_MATCH_OBJ;
++    return match_get_post_remove_command(tobj->match_obj);
++}
++
+ void tracked_object_automount_if_needed(tracked_object *tobj)
+ {
+     if (!tobj->match_obj_loaded) {
+diff -ur a/src/tracked_object.h b/src/tracked_object.h
+--- a/src/tracked_object.h	2014-08-14 08:09:21.224708585 +0000
++++ b/src/tracked_object.h	2014-08-14 09:31:40.319845899 +0000
+@@ -35,10 +35,12 @@
+ int tracked_object_get_bool_property(tracked_object *tobj, const char *name, int cached);
+ gchar *tracked_object_get_string_property(tracked_object *tobj, const char *name, int cached);
+ 
++const char *tracked_object_get_post_add_command(tracked_object *tobj);
+ const char *tracked_object_get_post_insertion_command(tracked_object *tobj);
+ const char *tracked_object_get_post_mount_command(tracked_object *tobj);
+ const char *tracked_object_get_post_unmount_command(tracked_object *tobj);
+ const char *tracked_object_get_post_removal_command(tracked_object *tobj);
++const char *tracked_object_get_post_remove_command(tracked_object *tobj);
+ 
+ void tracked_object_automount_if_needed(tracked_object *tobj);
+ 

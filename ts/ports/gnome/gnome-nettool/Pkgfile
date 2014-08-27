@@ -7,10 +7,11 @@
 name=gnome-nettool
 version=2.32.0
 release=1
-source=(http://ftp.gnome.org/pub/GNOME/sources/$name/${version%.*}/$name-$version.tar.bz2)
+source=(http://ftp.gnome.org/pub/GNOME/sources/$name/${version%.*}/$name-$version.tar.bz2 busybox-ping.patch)
 
 build() {
 	cd $name-$version
+	patch -Np1 < ../busybox-ping.patch
 
 	sed -i -e 's/USE_NLS=yes/USE_NLS=no/' \
 		-e 's/ENABLE_NLS 1/ENABLE_NLS 0/' configure

@@ -1,0 +1,27 @@
+diff -ur a/src/ping.h b/src/ping.h
+--- a/src/ping.h	2010-03-30 04:11:19.000000000 +0000
++++ b/src/ping.h	2014-08-21 12:30:24.811993582 +0000
+@@ -26,9 +26,9 @@
+ /* The ping usage and output is different between Unix flavours */
+ #if defined(__linux__)
+     /*  <path to program> ping -b [-c <count>] -n <host> */
+-#   define PING_PROGRAM_FORMAT "%s ping -b%s-n %s"
+-#   define PING_PROGRAM_FORMAT_6 "%s ping6%s-n %s"
+-#   define PING_FORMAT "%d bytes from %s icmp_seq=%d ttl=%d time=%s %s"
++#   define PING_PROGRAM_FORMAT "%s ping%s%s"
++#   define PING_PROGRAM_FORMAT_6 "%s ping6%s %s"
++#   define PING_FORMAT "%d bytes from %s seq=%d ttl=%d time=%s %s"
+ #   define PING_PARAMS_6
+ #elif defined(__OSF__) || defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || defined(__OpenBSD__) || defined(__NetBSD__) || defined(__DragonFly__)
+     /*  <path to program> ping [-c <count>] -n <host> */
+diff -ur a/src/ping.c b/src/ping.c
+--- a/src/ping.c	2010-09-28 06:27:52.000000000 +0000
++++ b/src/ping.c	2014-08-21 14:10:23.016755694 +0000
+@@ -534,6 +534,7 @@
+ 	count = sscanf (line, PING_FORMAT,
+ 			&(data)->bytes, data->ip, &(data)->icmp_seq,
+ 			&(data)->ttl, data->srtt, data->unit);
++	data->icmp_seq++;
+ #endif
+ 	if (count != 5 && count != 6) {
+ 	}

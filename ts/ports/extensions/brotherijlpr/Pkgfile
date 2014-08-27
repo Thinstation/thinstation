@@ -1,0 +1,20 @@
+# Description: LPR Driver for Brother HL- Printers
+# URL: http://welcome.solutions.brother.com
+# Maintainer: None
+
+name=brotherijlpr
+version=1.1.3
+release=1
+source=(http://www.brother.com/pub/bsc/linux/dlf/mfc495cwlpr-1.1.3-1.i386.deb
+	license)
+
+build() {
+ for printer in mfc495cw; do
+   ar xf ${printer}lpr-*.i386.deb
+   tar xf data.tar.gz -C $PKG
+ done
+
+ rm -rf $PKG/var
+ mkdir -p $PKG/usr/share/doc/brother-inkjetprinters
+ cp $SRC/license $PKG/usr/share/doc/brother-inkjetprinters
+}

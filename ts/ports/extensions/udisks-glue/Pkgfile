@@ -1,8 +1,8 @@
 # Maintainer: Mikhail Borisov <borisov.mikhail@gmail.com>
 
 name=udisks-glue
-version=20110219
-release=2
+version=1.3.5
+release=1
 pkgdesc="A tool to associate udisks events to user-defined actions"
 url="http://github.com/fernandotcl/udisks-glue"
 license=('BSD')
@@ -12,11 +12,11 @@ makedepends=('git')
 provides=('udisks-glue')
 conflicts=('udisks-glue')
 
-_gitroot="http://github.com/fernandotcl/udisks-glue.git"
+_gitroot="git://github.com/fernandotcl/udisks-glue.git"
 _gitname="udisks-glue"
+_gitcommit="release-1.3.5"
 
-#source=(http://aur.archlinux.org/packages/ud/udisks-glue-git/udisks-glue-git.tar.gz)
-source=(udisks-glue.desktop)
+source=(udisks-glue.desktop udisks-glue-cdrom-addremove.patch)
 
 build() {
   cd $SRC
@@ -28,9 +28,17 @@ build() {
     git clone $_gitroot
   fi
 
+  if [ -n "$_gitcommit" ]; then
+    cd $_gitname
+    git checkout $_gitcommit
+    cd ..
+  fi
+
   rm -rf ${_gitname}-build
   cp -r $_gitname ${_gitname}-build
   cd ${_gitname}-build
+
+  patch -Np1 < ../udisks-glue-cdrom-addremove.patch
 
   echo "Starting build process."
   ./autogen.sh

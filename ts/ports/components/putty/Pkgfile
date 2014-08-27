@@ -1,0 +1,28 @@
+# Description: PuTTY is an SSH client, primarily for Windows users
+# URL: http://www.chiark.greenend.org.uk/~sgtatham/putty
+# Maintainer: 
+
+name=putty
+version=0.63
+release=1
+source=(http://the.earth.li/~sgtatham/$name/$version/$name-$version.tar.gz)
+
+build() {
+	cd $name-$version
+
+	./configure --prefix=/usr \
+			--sysconfdir=/etc \
+			--mandir=/usr/man
+
+	make
+	make DESTDIR=$PKG install
+
+	cd icons
+	make
+	for s in 16 32 48; do
+	  mkdir -p $PKG/usr/share/icons/hicolor/${s}x${s}/apps
+	  for i in putty puttygen pscp pterm; do
+	    cp $i-$s.png $PKG/usr/share/icons/hicolor/${s}x${s}/apps/$i.png
+	  done
+	done
+}
