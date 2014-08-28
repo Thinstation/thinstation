@@ -141,6 +141,16 @@ read_options()
 	if [ -z $DIALOG_TITLE ]; then
 		DIALOG_TITLE=$client
 	fi
+	if [ "$CMD_FULLSCREEN" != "$CMD_WINDOW" ] && [ "$mode" != "console" ]; then
+		WINDOWED_SELECTABLE=true
+		if [ "$mode" == "window" ]; then
+			windowed_default=true
+		else
+			windowed_default=false
+		fi
+	else
+		WINDOWED_SELECTABLE=false
+	fi
 }
 
 set_default()
@@ -225,7 +235,13 @@ create_dialog()
 		</vbox>
 	</notebook>
 	<vseparator height-request="5"></vseparator>
-		<hbox yalign="0">
+		<hbox>
+		<checkbox visible="'"$WINDOWED_SELECTABLE"'">
+			<label>Windowed</label>
+			<variable>windowed</variable>
+			<default>'$windowed_default'</default>
+		</checkbox>
+		<hbox>
 			<button>
 				<label>"Exit"</label>
 				<action>EXIT:abort</action>
@@ -234,6 +250,7 @@ create_dialog()
 				<label>"Connect"</label>
 				<action>EXIT:ok</action>
 			</button>
+		</hbox>
 		</hbox>
 	</vbox>
 </window>
@@ -262,6 +279,9 @@ parse_results()
                        	SERVER="$DIALOG_SERVER"
                         OPTIONS="$DIALOG_OPTIONS"
                	fi
+		if $WINDOWED_SELECTABLE && $windowed; then
+			MODE=WINDOW
+		fi
 	elif is_enabled $ALLOW_EXIT ; then
 		exit
 	fi
