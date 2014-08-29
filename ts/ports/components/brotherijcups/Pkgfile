@@ -1,0 +1,39 @@
+# Description: LPR Driver for Brother HL- Printers
+# URL: http://welcome.solutions.brother.com
+# Maintainer: None
+
+name=brotherijcups
+version=1.1.3
+release=1
+source=(http://www.brother.com/pub/bsc/linux/dlf/mfc495cwcupswrapper-1.1.3-1.i386.deb)
+
+build() {
+  mkdir -p $PKG/usr/share/cups/model
+  mkdir -p $PKG/usr/lib/cups/filter
+
+  for printer in mfc495cw; do
+
+  ar xf ${printer}cupswrapper*.i386.deb
+  tar xf data.tar.gz -C $PKG
+
+  mv $PKG/opt/brother/Printers/$printer/cupswrapper/brother_${printer}_printer_en.ppd $PKG/usr/share/cups/model
+
+  write=0
+  while read line; do
+    echo -n a
+    if [ -n "`echo $line | grep ENDOFWFILTER`" ]; then
+      if [ write == 1 ]; then
+        write=0
+      else
+        write=1
+      fi
+    elif [ $write == 1 ]; then
+      echo $line >> $PKG/usr/lib/cups/filter/brlpdwrapper${printer}
+    fi   
+  done < $PKG/opt/brother/Printers/$printer/cupswrapper/cupswrapper${printer}
+
+  chmod 755 $PKG/usr/lib/cups/filter/brlpdwrapper${printer}
+  rm $PKG/opt/brother/Printers/$printer/cupswrapper/cupswrapper${printer}
+
+  done
+}

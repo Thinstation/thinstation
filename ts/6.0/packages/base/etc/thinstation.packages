@@ -83,6 +83,7 @@ order_command()
 	else
 		ORDERED_COMMAND="$OPTIONS ${USER_ARG}$REMUSER ${PASSWORD_ARG}$PASSWORD $MISC_OPTIONS ${SERVER_ARG}$SERVER"
 	fi
+	CMD="`eval echo '$'CMD_$MODE '$'ORDERED_COMMAND`"
 }
 
 ck_wrapper()
@@ -130,13 +131,16 @@ run_command()
 	fi
 }
 
-case "$1" in
+mode=$1
+case "$mode" in
 auto)
   while [ "$reconnect" != "1" ]; do
     echo "Running Auto $PACKAGE" >> $APPLOG
     package_input
+    if [ -z "$MODE" ]; then
+        MODE=CONSOLE
+    fi
     order_command
-    CMD="$CMD_CONSOLE $ORDERED_COMMAND"
     wm_workspaces "$CMD" "$4"
     xterm_wrapper
     run_command
@@ -159,8 +163,8 @@ console)
     use_wallpaper
     while [ -e /tmp/.X11-unix/X$DISPLAY_NUMBER ] && [ "$reconnect" != "1" ]; do
 	package_input
+	MODE=CONSOLE
 	order_command
-	CMD="$CMD_CONSOLE $ORDERED_COMMAND"
 	xterm_wrapper
 	ck_wrapper
 	splash_exit
@@ -175,7 +179,7 @@ console)
     $NO_SESSION
     ;;
 window|fullscreen)
-    echo "Running $1 $PACKAGE" >> $APPLOG
+    echo "Running $mode $PACKAGE" >> $APPLOG
     ALLOW_EXIT=TRUE
     if ! is_disabled $ALWAYS_ENTER_SERVER ; then
 	ALWAYS_ENTER_SERVER=TRUE
@@ -184,9 +188,10 @@ window|fullscreen)
 	ALLOW_SERVER_EDITS=TRUE
     fi
     package_input
+    if [ -z "$MODE" ]; then
+	    MODE=`make_caps "$mode"`
+    fi
     order_command
-    MODE=`make_caps "$1"`
-    CMD="`eval echo '$'CMD_$MODE '$'ORDERED_COMMAND`"
     xterm_wrapper
     run_command
     x_check_status

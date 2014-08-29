@@ -20,6 +20,7 @@ PATH=/usr/local/bin:/usr/bin:/bin:/sbin:/usr/sbin:/usr/local/sbin:/ts/bin
 
 # set some defaults for builds that would produce unexpected results for legacy build scripts otherwise.
 ts_mesa_3d=enabled
+ts_localpkgs=true
 
 # Show Command line Parameters
 
@@ -105,15 +106,15 @@ remove_old_boot_files()
 
 addpkgs()
 {
-#  if ls $1/*.pkg > /dev/null 2>&1 ; then
-#    rm $1/*.pkg
-#  fi
-	if [ "`make_caps $ts_localpkgs`" = "TRUE" ] ; then
-		for pkgdirpkg in `ls $PKGDIR/*.pkg 2> /dev/null`; do
-			mkdir -p $1
-			sys_link hard $PKGDIR/*.pkg $1/$pkgdirpkg
-		done
-	fi
+  if ls $1/*.pkg > /dev/null 2>&1 ; then
+    rm $1/*.pkg
+  fi
+  if is_enabled $ts_localpkgs; then
+    if ls $PKGDIR/*.pkg > /dev/null 2>&1 ; then
+	mkdir -p $1
+    	ln $PKGDIR/*.pkg $1
+    fi
+  fi
 }
 
 mounted()
@@ -125,7 +126,7 @@ mounted()
 lib_in_path()
 {
 	for lpath in `cat lpaths.tmp` $filepath; do
-		if [ -e ./tmp-tree$lpath/$1 ]; then
+		if [ -e ./tmp-tree$lpath/$1 ] || [ -e $pkgname$lpath/$1 ]; then
 			return 0
 		fi
 	done
