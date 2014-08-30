@@ -7,21 +7,23 @@ INSTALLDIR=./packages/ica
 
 etcs="passwd group nsswitch.conf issue"
 bins="attr bash cat chgrp chmod chown cp date dd df echo ed false ln ls mkdir \
-      more mount mv ping ps red rm rmdir sed sh sleep tar touch true uname vi"
+      more mount mv ping red rm rmdir sed sh sleep tar touch true uname vi"
 sbins="init init ip ss tc telinit"
-ubins="awk basename cut dirname egrep expr find gawk grep head id install mktemp sort tr wc which whoami"
+ubins="awk basename cut dirname egrep expr find gawk grep head id install mktemp sort tr wc which whoami locale ps"
+usbins="pidof"
 libs="ld-linux.so.2 libacl.so.1 libattr.so.1 libc.so.6 libdl.so.2 libhistory.so.6 \
 	libm.so.6 libncurses.so.5 libnss_compat.so.2 libnss_files.so.2 libproc-3.2.8.so \
 	libpthread.so.0 libreadline.so.6 librt.so.1 libgobject-2.0.so.0 libglib-2.0.so.0 \
 	libgmodule-2.0.so.0 libcap.so.2 libgthread-2.0.so.0 libnsl.so.1 libnss_nis.so.2 libncursesw.so.5"
 ulibs="libmpfr.so.4 libpcre.so.1 libgmp.so.10 libxml2.so.2 libgstinterfaces-0.10.so.0 libffi.so.5 libz.so.1 \
-	libgstreamer-0.10.so,libgstreamer-0.10.so.0.29.0,libgstreamer-0.10.so.0"
+	libgstreamer-0.10.so.0 libprocps.so.3"
 dirs="proc etc/udev/rules.d etc/init.d bin lib tmp dev/bus/usb \
-	usr/share/applications 	usr/local/lib/netscape/plugins \
-	usr/lib/gstreamer-0.10 usr/local/lib/firefox/plugins \
-	usr/local/lib/chrome/plugins"
-clean_dirs="setupwfc linuxx86 dev PkgId tmp proc usr/lib/gstreamer-0.10 \
-	usr/local/lib/firefox/plugins usr/local/lib/chrome/plugins"
+	lib/applications lib/netscape/plugins \
+	lib/gstreamer-0.10 lib/firefox/plugins \
+	lib/chrome/plugins"
+clean_dirs="setupwfc linuxx86 dev PkgId tmp proc \
+	lib/firefox/plugins lib/chrome/plugins lib/plugins lib/mailcap \
+	lib/mime.types lib/gstreamer-0.10"
 
 new_file()
 {
@@ -42,6 +44,9 @@ done
 for cbin in $sbins ; do
 	cp /sbin/$cbin $INSTALLDIR/bin/.
 done
+for cbin in $usbins ; do
+        cp /usr/sbin/$cbin $INSTALLDIR/bin/.
+done
 for cbin in $ubins ; do
 	cp /usr/bin/$cbin $INSTALLDIR/bin/.
 done
@@ -49,7 +54,7 @@ for clib in $libs ; do
 	cp /lib/$clib $INSTALLDIR/lib/.
 done
 for clib in $ulibs ; do
-	cp /usr/lib/$clib $INSTALLDIR/usr/lib/
+	cp /usr/lib/$clib $INSTALLDIR/lib/.
 done
 for cetc in $etcs ; do
 	cp /etc/$cetc $INSTALLDIR/etc/.
@@ -57,7 +62,14 @@ done
 if [ -e /bin/uname-auto ] ; then
 	cp /bin/uname-auto $INSTALLDIR/bin/.
 fi
-
+mkdir -p $INSTALLDIR/usr/local
+ln -sf /bin $INSTALLDIR/usr/local/sbin
+ln -sf /bin $INSTALLDIR/usr/local/bin
+ln -sf /lib $INSTALLDIR/usr/local/lib
+ln -sf /bin $INSTALLDIR/usr/sbin
+ln -sf /bin $INSTALLDIR/usr/bin
+ln -sf /lib $INSTALLDIR/usr/lib
+ln -sf /lib $INSTALLDIR/usr/share
 cat /proc/mounts |grep -Ev 'gvfs|mapper|media' > $INSTALLDIR/etc/mtab
 
 echo "exit 0" > $INSTALLDIR/bin/install_initd
@@ -106,14 +118,11 @@ for dir in `find $INSTALLDIR -mindepth 1 -maxdepth 1 -type d ! -name build`; do
 done
 
 # Remove folders and files that we know must go.
-for dirs in $clean_dirs ; do
-	rm -rf $INSTALLDIR/$dirs
+for dir in $clean_dirs ; do
+	rm -rf $INSTALLDIR/$dir
 done
 
 # A little bit of shifing about for "our" filesystem layout.
-cp -a $INSTALLDIR/usr/local/lib $INSTALLDIR/.
-rm -rf $INSTALLDIR/usr/local/lib
-mv $INSTALLDIR/usr/share/applications $INSTALLDIR/lib/.
 mv $INSTALLDIR/lib/netscape $INSTALLDIR/lib/mozilla
 
 # Define wfica is a mimetype handler for .ica files
