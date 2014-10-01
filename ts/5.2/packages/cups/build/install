@@ -2,6 +2,8 @@
 
 export PACKAGE=cups
 export PORTS=$PACKAGE
+export DROP_FILES="cups.key cups.crt"
+export DROP_DIRS="etc/rc.d"
 export CREATE_EMPTY_DIRS="
 var/cache/cups
 etc/cups/ssl
@@ -9,6 +11,8 @@ etc/cups/ppd
 etc/cups/interfaces
 "
 repackage -e
+
+mksslcert packages/cups/etc/ssl/keys/cups.key packages/cups/etc/ssl/certs/cups.crt localhost 2>/dev/null
 
 returnval=$?
 

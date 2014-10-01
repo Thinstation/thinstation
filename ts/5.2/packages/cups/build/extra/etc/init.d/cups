@@ -2,16 +2,13 @@
 
 . $TS_GLOBAL
 
+KEY=/etc/ssl/keys/cups.key
+CRT=/etc/ssl/certs/cups.crt
+
 case "$1" in  
 init)
     if ! pkg_initialized $PACKAGE; then
       pkg_set_init_flag $PACKAGE
-
-      chmod 500 /sbin/cupsd
-      chown -R root:lp /etc/cups
-      chmod 640 /etc/cups/*.conf*
-      chmod 755 /etc/cups/interfaces /etc/cups/ppd
-      chmod 700 /etc/cups/ssl
 
       /sbin/cupsd
 
