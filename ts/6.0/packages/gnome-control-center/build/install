@@ -1,10 +1,12 @@
 #!/bin/sh
 
 export PACKAGE=gnome-control-center
-export PORTS="$PACKAGE iso-codes gnome-settings-daemon"
+export PORTS="$PACKAGE iso-codes gnome-settings-daemon gnome-themes-standard"
 export DROP_FILES=""
 repackage -e
-
 returnval=$?
+
+icon-gen gnome-control-center
+returnval=`let returnval=returnval+$?`
 
 exit $returnval

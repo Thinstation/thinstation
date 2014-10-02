@@ -6,7 +6,7 @@
 # Nice to have: tk
 
 name=git
-version=1.9.3
+version=2.1.0
 release=1
 source=(https://www.kernel.org/pub/software/scm/git/$name-$version.tar.gz)
 
@@ -61,8 +61,10 @@ build() {
     "$PKG"/usr/share/git/svn-fe/svnrdump_sim.py
 
   # remove perllocal.pod, .packlist, and empty directories.
-  rm -rf $PKG/usr/lib/perl5/vendor_perl/*/linux-thread-multi/
-
+  for poddir in `find $PKG/usr/lib/perl5/ -type d -name linux-thread-multi`; do
+	rm -rf $poddir
+  done
+  find $PKG/usr/lib/perl5 -type d -empty -delete
 
   mv  $PKG/usr/share/man/man1 $PKG/usr/man/.
   mv  $PKG/usr/share/man/man5 $PKG/usr/man/.

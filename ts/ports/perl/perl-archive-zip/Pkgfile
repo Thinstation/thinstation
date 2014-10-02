@@ -1,0 +1,30 @@
+# Description:	Perl class to access ZIP archive files
+# URL:		http://search.cpan.org/~nedkonz/Archive-Zip-1.13/
+# Maintainer:
+# Depends on:	perl
+
+name=perl-archive-zip
+pname=Archive-Zip
+version=1.30
+release=1
+source=(http://search.cpan.org/CPAN/authors/id/A/AD/ADAMK/$pname-$version.tar.gz)
+
+build() {
+	cd $pname-$version
+
+	unset PERL5LIB PERL_MM_OPT PERL_LOCAL_LIB_ROOT
+        export PERL_MM_USE_DEFAULT=1 PERL_AUTOINSTALL=--skipdeps
+
+        echo "no" | perl Makefile.PL
+
+        make OPTIMIZE="$CFLAGS"
+        make INSTALLDIRS=vendor DESTDIR=$PKG install
+
+        find $PKG -type f \( \
+                -name '.packlist' -or \
+                -name '*.bs' -or \
+                -name 'autosplit.ix' -or \
+                -name 'perllocal.pod' \) -delete
+
+        find $PKG -depth -empty -exec rm -r {} \;
+}

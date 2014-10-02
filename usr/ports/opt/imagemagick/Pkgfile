@@ -5,7 +5,7 @@
 # Depends on:  libtool freetype ghostscript lcms libungif libxml2
 
 name=imagemagick
-version=6.8.9-2
+version=6.8.9-7
 release=1
 source=(ftp://ftp.imagemagick.org/pub/ImageMagick/ImageMagick-$version.tar.xz)
 
@@ -26,4 +26,6 @@ build () {
     find $PKG -regex '.*\(ChangeLog\|LICENSE\|NEWS\.txt\)$' -delete 
     find $PKG -regex '.*\(\.packlist\|perllocal.pod\|\.bs\)$' -delete
     find $PKG -type d -empty -delete
+
+    mv $PKG/usr/lib/perl5/site_perl $PKG/usr/lib/perl5/vendor_perl
 }
