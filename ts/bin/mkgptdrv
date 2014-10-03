@@ -149,6 +149,9 @@ getopts()
 		esac
 		shift
 	done
+	if [ -z "$device" ]; then
+		usage 1 "Error: No block device specified."
+	fi
 	let number_of_parts=$part-1
 	if [ -z ${ID[0]} ]; then
 		add_part "ESP:0:'EFI System Partition'"
@@ -314,7 +317,7 @@ block_device()
 	   [ -e /sys/block/`basename "$1"`/dev ]; then
 		return 0
 	else
-		usage 1 "No block device specified, or not a block device."
+		usage 1 "Error: $1 not a block device."
 	fi
 }
 
@@ -608,6 +611,9 @@ partition()
 					$device 1>/dev/null; orbail 21
 		fi
 		sync
+		if [ ${ID[$part]} != 1 ] && [ ${ID[$part]} == $MOST_VISABLE ]; then
+			sgdisk -r 1:${ID[$part]} $device
+		fi
 		if $hybridmbr; then
 			sgdisk -h ${ID[$part]} $device
 			sync
