@@ -83,7 +83,7 @@ locations for each loader, along with the config folder.
 Multiple partitions are supported, and can be added with -p <type:size:label>
 The order they are entered will be used when creating the ID. At least one
 partition will be made. By default, it will be an ESP partition that will
-fill the disk and it will be labeled 'EFI System Partition'. At least one ESP
+fill the disk and it will be labeled \"EFI System Partition\". At least one ESP
 is required.
 
 Sizes can be expressed as <size>B, K, M, G and S for sectors.
@@ -108,12 +108,12 @@ Partition Types:
              ESP : EFI System Partition
 
 Examples:
-         mkgptdrv -c /sys-themes/default -t 'MyProject' -o /build /dev/loop0
+         mkgptdrv -c /sys-themes/default -t \"MyProject\" -o /build /dev/loop0
 
          mkgptdrv -c /sys-themes/menu \\
-                  -t 'BobsDistro' \\
+                  -t \"BobsDistro\" \\
                   -o /build \\
-                  -p ESP:1g:'EFI System Partition' \\
+                  -p \"ESP:1g:EFI System Partition\" \\
                   -p s:2g \\
                   -p l:0:System \\
                   /dev/sdb
@@ -154,7 +154,7 @@ getopts()
 	fi
 	let number_of_parts=$part-1
 	if [ -z ${ID[0]} ]; then
-		add_part "ESP:0:'EFI System Partition'"
+		add_part "ESP:0:EFI System Partition"
 		number_of_parts=0
 	fi
 }
@@ -375,9 +375,9 @@ add_part()
 		l|linux) type[$part]=8300;mtype[$part]=83;;
 		s|swap)	type[$part]=8200;mtype[$part]=82;;
 		h|home) type[$part]=8302;mtype[$part]=83;;
-		d|data) type[$part]=0700;mtype[$part]=0c;MOST_VISABLE=${ID[$part]};;
+		d|data) type[$part]=0700;mtype[$part]=ef;MOST_VISABLE=${ID[$part]};;
 		LVM)	type[$part]=8e00;mtype[$part]=8e;;
-		ESP)	type[$part]=ef00;mtype[$part]=0c
+		ESP)	type[$part]=ef00;mtype[$part]=ef
 			if [ -n "$ESPpart" ]; then
 				usage 12 "You can only have one ESP partition."
 			else
@@ -580,6 +580,11 @@ orbail()
 	fi
 }
 
+mbr_part_list()
+{
+	$sfdisk -l $device |grep -e ^/ |sed -e "s|$device||g" |sed -E "s|[[:space:]]+|:|g" |cut -d: -f1-2
+}
+	
 partition()
 {
 	sfdisk="sfdisk -f -q -L -uS --no-reread"
@@ -617,15 +622,15 @@ partition()
 		if $hybridmbr; then
 			sgdisk -h ${ID[$part]} $device
 			sync
-			for parts in `$sfdisk -l $device |grep -e ^/ |sed -e "s|$device||g" |sed -E "s|[[:space:]]+|:|g" |cut -d: -f1-2`; do
-				if [ ${parts#*:} == ${start[$part]} ]; then
-					mbrvis=${parts%:*}
-					$sfdisk -c $device $mbrvis $mtype
-					sync
-				fi
-			done
+#			for parts in `mbr_part_list`; do
+#				if [ ${parts#*:} == ${start[$part]} ]; then
+#					mbrvis=${parts%:*}
+#					$sfdisk -c $device $mbrvis $mtype
+#					sync
+#				fi
+#			done
 			if [ ${ID[$part]} == $MOST_VISABLE ]; then
-				for parts in `$sfdisk -l $device |grep -e ^/ |sed -e "s|$device||g" |sed -E "s|[[:space:]]+|:|g" |cut -d: -f1-2`; do
+				for parts in `mbr_part_list`; do
 					if [ ${parts#*:} == ${start[$part]} ]; then
 						mbrvis=${parts%:*}
 						if [ $mbrvis != 1 ]; then
@@ -643,12 +648,13 @@ ${start[$part]} ${size[$part]} ${mtype[$part]}
 y
 EOF
 							sync
+#							dd if=/dev/zero of=$device bs=512 count=1
 						fi
 					fi
 				done
 			fi
 			if [ ${ID[$part]} == $ESPpart ];then
-				for parts in `$sfdisk -l $device |grep -e ^/ |sed -e "s|$device||g" |sed -E "s|[[:space:]]+|:|g" |cut -d: -f1-2`; do
+				for parts in `mbr_part_list`; do
 					if [ ${parts#*:} == ${start[$part]} ]; then
 						$sfdisk -A $device ${parts%:*}
 						sync
