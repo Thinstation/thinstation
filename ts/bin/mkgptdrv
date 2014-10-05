@@ -375,7 +375,7 @@ add_part()
 		l|linux) type[$part]=8300;mtype[$part]=83;;
 		s|swap)	type[$part]=8200;mtype[$part]=82;;
 		h|home) type[$part]=8302;mtype[$part]=83;;
-		d|data) type[$part]=0700;mtype[$part]=ef;MOST_VISABLE=${ID[$part]};;
+		d|data) type[$part]=0700;mtype[$part]=07;MOST_VISABLE=${ID[$part]};;
 		LVM)	type[$part]=8e00;mtype[$part]=8e;;
 		ESP)	type[$part]=ef00;mtype[$part]=ef
 			if [ -n "$ESPpart" ]; then
@@ -616,19 +616,17 @@ partition()
 					$device 1>/dev/null; orbail 21
 		fi
 		sync
+	done
+	set -x
+	if $hybridmbr; then
+		sgdisk -h `seq -s ":" 1 $(( $number_of_parts+1 ))` $device
+		sync
+	fi
+        for part in `seq 0 $number_of_parts`; do
 		if [ ${ID[$part]} != 1 ] && [ ${ID[$part]} == $MOST_VISABLE ]; then
 			sgdisk -r 1:${ID[$part]} $device
 		fi
 		if $hybridmbr; then
-			sgdisk -h ${ID[$part]} $device
-			sync
-#			for parts in `mbr_part_list`; do
-#				if [ ${parts#*:} == ${start[$part]} ]; then
-#					mbrvis=${parts%:*}
-#					$sfdisk -c $device $mbrvis $mtype
-#					sync
-#				fi
-#			done
 			if [ ${ID[$part]} == $MOST_VISABLE ]; then
 				for parts in `mbr_part_list`; do
 					if [ ${parts#*:} == ${start[$part]} ]; then
@@ -648,7 +646,6 @@ ${start[$part]} ${size[$part]} ${mtype[$part]}
 y
 EOF
 							sync
-#							dd if=/dev/zero of=$device bs=512 count=1
 						fi
 					fi
 				done
@@ -663,6 +660,7 @@ EOF
 			fi
 		fi
 	done
+	set +x
 	sgdisk $device --attributes=1:set:2 1>/dev/null; orbail 22
 	sync
 }
