@@ -617,7 +617,6 @@ partition()
 		fi
 		sync
 	done
-	set -x
 	if $hybridmbr; then
 		sgdisk -h `seq -s ":" 1 $(( $number_of_parts+1 ))` $device
 		sync
@@ -660,7 +659,6 @@ EOF
 			fi
 		fi
 	done
-	set +x
 	sgdisk $device --attributes=1:set:2 1>/dev/null; orbail 22
 	sync
 }
