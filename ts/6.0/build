@@ -2020,26 +2020,17 @@ refind_copy_files()
 	configdir=boot-images/templates/refind/$ts_refindtheme
 	ESP=$IMAGEDIR
 	KDIR=${ESP}/boot
-	#EFIDIR=$ESP/EFI/refind
-	EFIDIR=$ESP/EFI/BOOT
-
-#	mkdir -p "$EFIDIR/"{icons,keys}
-#	mkdir -p "$KDIR"
+	EFIDIR=$ESP/EFI/refind
 
 	for file in `find $refdir -type f |grep -Ev 'banners|docs|refind.conf-sample|refind_ia32.efi|refind_x64.efi|README.txt|mkfont.sh' |sed -e "s|$refdir/||g"`; do
 		mkdir -p $EFIDIR/`dirname $file`
 		sys_copy $refdir/$file $EFIDIR/$file
 	done
+
+	EFIDIR=$ESP/EFI/BOOT
+	mkdir -p $EFIDIR
 	sys_copy $refdir/refind_ia32.efi $EFIDIR/bootia32.efi
 	sys_copy $refdir/refind_x64.efi $EFIDIR/bootx64.efi
-
-#	for file in `find $refdir/icons -type f`; do
-#		sys_copy $file $EFIDIR/icons/`basename $file`
-#	done
-
-#	for file in `find $refdir/keys -type f`; do
-#		sys_copy $file $EFIDIR/keys/`basename $file`
-#	done
 
 	for file in `find $configdir -type f |sed -e "s|$configdir||g"`; do
 		subdirname=`dirname $file |sed -e "s|^/$||g"`
