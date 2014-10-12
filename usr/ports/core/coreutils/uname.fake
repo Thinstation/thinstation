@@ -6,7 +6,7 @@ _real()
 }
 
 case $1 in
-	-m) echo "i686" ; exit ;;
+	-m) if [ -n "$REPORT_ARCH" ]; then echo "$REPORT_ARCH"; else _real $@; fi; exit ;;
 	-r) if [ -n "$REPORT_KERNEL" ]; then echo "$REPORT_KERNEL"; else _real $@; fi; exit ;;
 	*) _real $@ ; exit ;;
 esac
