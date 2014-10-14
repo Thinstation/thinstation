@@ -1,0 +1,47 @@
+#!/bin/bash
+
+zipname=`basename $1`
+archivename=`basename $1 .zip`
+INSTALLDIR=./packages/egalax
+
+drivername="eGTouch"
+calibTool="eCalib"
+driverEXE="${drivername}D"
+IniFile="${drivername}L.ini"
+utilityExec="${drivername}U"
+
+
+unzip ./wget_tmp/$zipname -d $INSTALLDIR
+
+mkdir -p $INSTALLDIR/bin
+mkdir -p $INSTALLDIR/etc/X11/xorg.conf.d
+mkdir -p $INSTALLDIR/lib/applications
+mkdir -p $INSTALLDIR/lib/pixmaps
+mkdir -p $INSTALLDIR/lib/icons/hicolor/48x48/apps
+
+chmod +x $INSTALLDIR/eGTouch_v2.5.4330.L-x/eGTouch32/eGTouch32withX/*
+
+mv $INSTALLDIR/eGTouch_v2.5.4330.L-x/Rule/eGTouchU.desktop $INSTALLDIR/lib/applications/
+mv $INSTALLDIR/eGTouch_v2.5.4330.L-x/Rule/52-egalax-virtual.conf $INSTALLDIR/etc/X11/xorg.conf.d/.
+cp $INSTALLDIR/eGTouch_v2.5.4330.L-x/Rule/eGTouchU.png $INSTALLDIR/lib/pixmaps/.
+cp $INSTALLDIR/eGTouch_v2.5.4330.L-x/Rule/eGTouchU.png $INSTALLDIR/lib/icons/hicolor/48x48/apps/.
+cp $INSTALLDIR/eGTouch_v2.5.4330.L-x/Rule/eGTouchU.png $INSTALLDIR/eGTouch_v2.5.4330.L-x/eGTouch32/eGTouch32withX/.
+mv $INSTALLDIR/eGTouch_v2.5.4330.L-x/eGTouch32/eGTouch32withX $INSTALLDIR/.
+mv $INSTALLDIR/eGTouch32withX/$IniFile $INSTALLDIR/etc/.
+
+sed -i -e 's|Touch64|Touch32|g' $INSTALLDIR/lib/applications/eGTouchU.desktop
+
+ln -sf /eGTouch32withX/${driverEXE} $INSTALLDIR/bin
+chmod a+x $INSTALLDIR/bin/${driverEXE}
+ln -sf /eGTouch32withX/${calibTool} $INSTALLDIR/bin
+chmod 4755 $INSTALLDIR/bin/${calibTool}
+ln -sf /eGTouch32withX/${utilityExec} $INSTALLDIR/bin
+chmod a+x $INSTALLDIR/bin/${utilityExec}
+
+cp -a $INSTALLDIR/build/extra/* $INSTALLDIR/.
+
+# Remove any now empty folders
+find $INSTALLDIR -type d -empty -delete
+rm -rf $INSTALLDIR/$archivename
+
+touch $INSTALLDIR/build/installed
