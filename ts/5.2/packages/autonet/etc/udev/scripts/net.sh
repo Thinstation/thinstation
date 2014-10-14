@@ -135,15 +135,17 @@ _wlan()
 		echo_log "No ESSID specified"
 		exit
 	fi
-	if [ -n "$WIRELESS_WPAKEY" ];  then
+	if [ "$WIRELESS_DRIVER" == "" ]; then
+		echo_log "No Wireless Driver Specified"
+		exit
+	fi
+	if [ -n "$WIRELESS_WPAKEY" ] || [ -n "CUSTOM_SUPPLICANT_CONF" ]; then
 		if [ ! -x /sbin/wpa_supplicant ]; then
 			echo_log "Could not find wpa_supplicant"
 			exit
 		fi
-		if [ "$WIRELESS_DRIVER" == "" ]; then
-			echo_log "No Wireless Driver Specified"
-			exit
-		fi
+	fi
+	if [ -n "$WIRELESS_WPAKEY" ];  then
 		echo "WIRELESS_WPAKEY=$WIRELESS_WPAKEY" >> /var/log/net/$INTERFACE
 		wpa_passphrase "$WIRELESS_ESSID" "$WIRELESS_WPAKEY" >> /etc/wpa_supplicant.conf.tmp
 		awk '{print $0;if($0=="network={"){print "\teap=TTLS PEAP TLS"}}' < /etc/wpa_supplicant.conf.tmp > /etc/wpa_supplicant.conf.tmp2
