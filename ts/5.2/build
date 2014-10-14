@@ -56,6 +56,9 @@ remove_files()
 {
 #	But only if we don't want to save them for debugging
 	if [ -z "$SAVEDIR" ]; then
+		if [ -e /tmp/syslinux-com32 ]; then
+			rm /tmp/syslinux-com32
+		fi
 		if [ -e ./tmp-tree ] ; then
 			unmount_tmp
 			rm -Rf ./tmp-tree/*
@@ -86,6 +89,16 @@ remove_files()
 			rm ./build.image
 		fi
 	fi
+}
+
+remove_old_boot_files()
+{
+        if [ -e boot-images/initrd/added.files ]; then
+                for file in `cat boot-images/initrd/added.files`; do
+                        rm $file
+                done
+                rm boot-images/initrd/added.files
+        fi
 }
 
 ## Add PKG Files to local Storage
@@ -172,7 +185,7 @@ lib_dependencies()
       fi
     done
   done
-  ldconfig -X -r tmp-tree
+  ldconfig -X -r tmp-tree 2>/dev/null
   rm lpaths.tmp
 }
 
@@ -1089,7 +1102,7 @@ for KERNVER in $KERNVERS; do
 	done
 	echo -e "\nDependencies are clean!"
 	#Run depmod on modules included to generate modules.* files
-	depmod -b ./tmp-tree $KERNVER
+	depmod -b ./tmp-tree $KERNVER 2>/dev/null
 done
 
 # Now that all the package deps are satisfied, do we really need a splash
@@ -1451,6 +1464,7 @@ mesa()
 	if is_disabled $ts_mesa_3d; then
 		echo -e "Mesa 3D disabled, deleting the dri folder."
 		rm -rf ./tmp-tree/lib/dri
+		rm -rf ./tmp-tree/lib/gallium-pipe
 		rm -f ./tmp-tree/lib/xorg/modules/drivers/modesetting_drv.so
 	fi
 }
@@ -1573,13 +1587,14 @@ filesystem_fixups()
 		rm -rf ./tmp-tree/tmp/*
 		#Run depmod one last time, in case a finalize script removed a module
 		for KERNVER in $KERNVERS; do
-			depmod -b ./tmp-tree $KERNVER
+			depmod -b ./tmp-tree $KERNVER 2>/dev/null
 		done
 	fi
 }
 
 # this is the starting point =>
 remove_files
+rm -rf boot-images/initrd/{kernel_parameters,initrd,image.md5,lib.squash,vmlinuz*}
 
 # Check OS for required commands. If some are missing the build system may fail silently.
 echo -n "Checking for required commands... "
@@ -1715,6 +1730,7 @@ done
 # Removal all commerical packages then exit
 if [ -n "$REMOVEALL" ]; then
 	remove_files
+	remove_old_boot_files
 	for package in `ls ./packages`;	do
 		if [ -e ./packages/$package/build/remove ] && [ -e ./packages/$package/build/installed ] ; then
 			./packages/$package/build/remove
@@ -1837,7 +1853,7 @@ image_fastboot()
 }
 
 if [ -z "$ts_bootimages" ]; then
-	ts_bootimages="syslinux pxe iso"
+	ts_bootimages="syslinux pxe iso refind"
 fi
 
 if [ -z "$ts_syslinuxtheme" ]; then
@@ -1850,95 +1866,295 @@ if [ -e build.image ]; then
 	rm build.image
 fi
 
+add_image()
+{
+	for kernel in `find $INITDIR -maxdepth 1 -type f -name vmlinuz\* -printf '%f '`; do
+		sys_link hard $INITDIR/$kernel $IMAGEDIR/boot/$kernel
+	done
+
+	sys_link hard $INITDIR/initrd $IMAGEDIR/boot/initrd
+
+	sys_link hard $INITDIR/image.md5 $IMAGEDIR/boot/image.md5
+
+	if [ -e $INITDIR/lib.squash ]; then
+		sys_link hard $INITDIR/lib.squash $IMAGEDIR/boot/lib.squash
+	fi
+}
+
+syslinux_scan_config()
+{
+	# Scan config file for potentially needed com32 files
+	for com in \
+		pmload vesamenu sdi cpuidtest dmitest whichsys vpdtest \
+		elf cpuid debug linux vesainfo pxechn meminfo \
+		pcitest ifplop ethersel liblua ifmemdsk kbdmap libcom32 \
+		libmenu prdhcp gfxboot hexdump config libutil gpxecmd \
+		kontron_wdt disk zzjson libgpl chain host rosh ifcpu \
+		ifcpu64 hdt menu lua mboot cmd; do
+		grep $1 -oe $com.c32 >> /tmp/syslinux-com32
+	done
+}
+
+syslinux_com_deps()
+{
+	for lib in libutil libcom32 liblua libgpl libmenu; do
+		if ! grep -qe $lib.c32 /tmp/syslinux-com32; then
+			for module in `eval echo "\$"$lib`; do
+				if grep -qe $module.c32 /tmp/syslinux-com32; then
+					echo "$lib.c32" >> /tmp/syslinux-com32
+					if [ "$lib" == "libmenu" ]; then
+						echo libutil.c32 >> /tmp/syslinux-com32
+						echo libcom32.c32 >> /tmp/syslinux-com32
+					fi
+				fi
+			done
+		fi
+	done
+	cat /tmp/syslinux-com32 |sort -u > /tmp/sorted
+	rm /tmp/syslinux-com32
+	mv /tmp/sorted /tmp/syslinux-com32
+}
+
+syslinux_copy_files_bios()
+{
+	inet_dev=`ip route list |grep -e default |cut -d " " -f5`
+	local_ip=`ip addr show $inet_dev |grep -e "inet " |cut -d " " -f6 |cut -d "/" -f1`
+	biosdir=/usr/share/syslinux/bios
+	ESP=$IMAGEDIR
+	BIOSDIR=${ESP}/boot$BDIR
+	CONFIGDIR=`dirname $CONFIGFILE`
+	mkdir -p "$BIOSDIR"
+
+	for file in `find $configdir -type f |sed -e "s|$configdir||g"`; do
+		subdirname=`dirname $file |sed -e "s|^/$||g"`
+		mkdir -p "${BIOSDIR}${subdirname}"
+		sys_copy ${configdir}${file} "$BIOSDIR/$file"
+	done
+
+	mkdir -p $BIOSDIR/$CONFIGDIR
+	cat $BIOSDIR/syslinux.cfg.tpl |sed -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS LM=$LM/g"> $BIOSDIR/$CONFIGFILE
+        sed -i -e "s/\$LM/$LM/g" $BIOSDIR/$CONFIGFILE
+	if [ "$LOADER" == "lpxelinux.0" ]; then
+		sed -i -e "s|/boot|http://$local_ip/boot|g" $BIOSDIR/$CONFIGFILE
+	fi
+	echo $BIOSDIR/$CONFIGFILE >> boot-images/initrd/added.files
+
+	find $ESP -name syslinux.cfg.tpl -delete
+
+	for file in `find $ESP -name \*.tpl |sed -e "s|$ESP||g"`; do
+		endfile=`dirname $file`/`basename $file .tpl`
+		cat $ESP/$file |sed -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS LM=$LM/g" > $ESP/$endfile
+		rm $ESP/$file
+	        sed -i -e "s/\$LM/$LM/g" $ESP/$endfile
+		if [ "$LOADER" == "lpxelinux.0" ]; then
+			sed -i -e "s|/boot|http://$local_ip/boot|g" $ESP/$endfile
+		fi
+        	echo $ESP/$endfile >> boot-images/initrd/added.files
+	done
+
+	for com in `cat /tmp/syslinux-com32`; do
+		sys_copy $biosdir/$com		"$BIOSDIR/$com"
+	done
+
+	loadersource="`prt-get fsearch $LOADER |grep -Ev 'Found|/$' |cut -d " " -f3 |head -n1`"
+	sys_copy $loadersource			"$BIOSDIR/$LOADER"
+	sys_copy $biosdir/ldlinux.c32	"$BIOSDIR/ldlinux.c32"
+}
+
+syslinux_copy_files_efi()
+{
+	inet_dev=`ip route list |grep -e default |cut -d " " -f5`
+	local_ip=`ip addr show $inet_dev |grep -e "inet " |cut -d " " -f6 |cut -d "/" -f1`
+	efi32dir=/usr/share/syslinux/efi32
+	efi64dir=/usr/share/syslinux/efi64
+	EFI32DIR=$ESP/EFI/syslinux/efi32
+	EFI64DIR=$ESP/EFI/syslinux/efi64
+	mkdir -p "$EFI32DIR"
+	mkdir -p "$EFI64DIR"
+
+	for file in `find $configdir -type f |sed -e "s|$configdir||g"`; do
+		subdirname=`dirname $file |sed -e "s|^/$||g"`
+		mkdir -p "${EFI32DIR}${subdirname}"
+		mkdir -p "${EFI64DIR}${subdirname}"
+		sys_copy ${configdir}${file} "$EFI32DIR/$file"
+		sys_copy ${configdir}${file} "$EFI64DIR/$file"
+	done
+	find $ESP -name syslinux.cfg.tpl -delete
+
+	if [ "$LOADER" == "lpxelinux.0" ]; then
+		mkdir -p $EFI32DIR/$CONFIGDIR
+		mkdir -p $EFI64DIR/$CONFIGDIR
+		sys_copy $BIOSDIR/$CONFIGFILE "$EFI32DIR/$CONFIGFILE"
+		sys_copy $BIOSDIR/$CONFIGFILE "$EFI64DIR/$CONFIGFILE"
+	else
+		sys_copy $BIOSDIR/$CONFIGFILE "$EFI32DIR/syslinux.cfg"
+		sys_copy $BIOSDIR/$CONFIGFILE "$EFI64DIR/syslinux.cfg"
+	fi
+
+	for com in `cat /tmp/syslinux-com32`; do
+		sys_copy $efi32dir/$com "$EFI32DIR/$com"
+		sys_copy $efi64dir/$com "$EFI64DIR/$com"
+	done
+
+	sys_copy $efi32dir/syslinux.efi "$EFI32DIR/syslinux.efi"
+	sys_copy $efi32dir/ldlinux.e32  "$EFI32DIR/ldlinux.e32"
+
+	sys_copy $efi64dir/syslinux.efi "$EFI64DIR/bootx64.efi"
+	sys_copy $efi64dir/ldlinux.e64  "$EFI64DIR/ldlinux.e64"
+}
+
+refind_copy_files()
+{
+	refdir=/boot/efi/EFI/refind
+	configdir=boot-images/templates/refind/$ts_refindtheme
+	ESP=$IMAGEDIR
+	KDIR=${ESP}/boot
+	EFIDIR=$ESP/EFI/refind
+
+	for file in `find $refdir -type f |grep -Ev 'banners|docs|refind.conf-sample|refind_ia32.efi|refind_x64.efi|README.txt|mkfont.sh' |sed -e "s|$refdir/||g"`; do
+		mkdir -p $EFIDIR/`dirname $file`
+		sys_copy $refdir/$file $EFIDIR/$file
+	done
+
+	EFIDIR=$ESP/EFI/BOOT
+	mkdir -p $EFIDIR
+	sys_copy $refdir/refind_ia32.efi $EFIDIR/bootia32.efi
+	sys_copy $refdir/refind_x64.efi $EFIDIR/bootx64.efi
+
+	for file in `find $configdir -type f |sed -e "s|$configdir||g"`; do
+		subdirname=`dirname $file |sed -e "s|^/$||g"`
+		mkdir -p "${EFIDIR}${subdirname}"
+		sys_copy ${configdir}${file} "$EFIDIR/$file"
+	done
+}
+
+sys_link()
+{
+	case "$1" in
+		soft) ln -sf "$2" "$3" ;;
+		hard) ln "$2" "$3" ;;
+	esac
+	echo "$3" >> boot-images/initrd/added.files
+}
+
+sys_copy()
+{
+	cp -a "$1" "$2"
+	echo "$2" |sed -E "s|/+|/|g" |sed '/\.tpl/d' >> boot-images/initrd/added.files
+}
+
 # Skips Images if NOIMAGES is set, useful for TS-O-Matic
-if [ -z "$NOIMAGES" ] ; then
- for image in $ts_bootimages
- do
-  echo -e "\nMaking boot image for $image Type....\n"
-  case $image in
-  syslinux)
-    IMAGEDIR=boot-images/syslinux
-    if [ -e boot-images/initrd/syslinux.files ]; then
-      cat boot-images/initrd/syslinux.files | awk "{ print \"$IMAGEDIR/\" \$1 }" | xargs rm -rf
-    fi
-    cp -a boot-images/templates/$ts_syslinuxtheme/* $IMAGEDIR
-    cat $IMAGEDIR/syslinux.cfg.tpl |sed -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS LM=2/g"> $IMAGEDIR/syslinux.cfg
-    sed -i -e 's/LM=4/LM=2/g' $IMAGEDIR/syslinux.cfg
-    rm $IMAGEDIR/syslinux.cfg.tpl
-    rm -f $IMAGEDIR/vmlinuz*
-    cp $INITDIR/vmlinuz* $IMAGEDIR
-    cp -p $INITDIR/initrd $IMAGEDIR
-    cp $INITDIR/image.md5 $IMAGEDIR
-    image_fastboot
-    addpkgs $IMAGEDIR
-    ;;
-  pxe)
-    IMAGEDIR=boot-images/pxe
-    if [ -e boot-images/initrd/syslinux.files ]; then
-      cat boot-images/initrd/syslinux.files | awk "{ print \"$IMAGEDIR/\" \$1 }" | xargs rm -rf
-    fi
-    mkdir -p $IMAGEDIR/pxelinux.cfg
-    cp -a boot-images/templates/$ts_syslinuxtheme/* $IMAGEDIR/
-    cat $IMAGEDIR/syslinux.cfg.tpl | sed -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS LM=3/g"> $IMAGEDIR/pxelinux.cfg/default
-    sed -i -e 's/LM=4/LM=3/g' $IMAGEDIR/pxelinux.cfg/default
-    rm $IMAGEDIR/syslinux.cfg.tpl
-    rm -f $IMAGEDIR/vmlinuz*
-    cp $INITDIR/vmlinuz* $IMAGEDIR
-    cp -p $INITDIR/initrd $IMAGEDIR
-    cp $INITDIR/image.md5 $IMAGEDIR
-    image_fastboot
-    addpkgs $IMAGEDIR/$ts_basepath/$PKG_PREFIX/
-    ;;
-  iso)
-    IMAGEDIR=boot-images/iso
-    if [ -e boot-images/common ]; then
-      cp -a boot-images/common/* $IMAGEDIR/source
-    fi
-    if [ -e boot-images/initrd/syslinux.files ]; then
-      cat boot-images/initrd/syslinux.files | awk "{ print \"$IMAGEDIR/source/\" \$1 }" | xargs rm -rf
-    fi
-    cp -a boot-images/templates/$ts_syslinuxtheme/* $IMAGEDIR/source
-    cat $IMAGEDIR/source/syslinux.cfg.tpl | sed -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS LM=4/g" > $IMAGEDIR/source/isolinux.cfg
-    rm $IMAGEDIR/source/syslinux.cfg.tpl
-    if [ -e $IMAGEDIR/source/vmlinuz ] ; then
-	    rm $IMAGEDIR/source/vmlinuz*
-    fi
-    if [ -e $IMAGEDIR/source/lib.squash ]; then
-	    rm $IMAGEDIR/source/lib.squash
-    fi
-    cp $INITDIR/vmlinuz* $IMAGEDIR/source/
-    if [ ! -e $IMAGEDIR/source/initrd ]; then
-	ln -sf ../../initrd/initrd $IMAGEDIR/source/initrd
-    fi
-    cp $INITDIR/image.md5 $IMAGEDIR/source/.
-    if [ "$ts_fastboot" == "true" ] || [ "$ts_fastboot" == "lotsofmem" ] ; then
-          ln -sf ../../initrd/lib.squash $IMAGEDIR/source/lib.squash
-    elif [ -e $IMAGEDIR/source/lib.squash ]; then
-	rm $IMAGEDIR/source/lib.squash
-    fi
-    addpkgs $IMAGEDIR/source
+if [ -z "$NOIMAGES" ]; then
+	remove_old_boot_files
+	configdir=boot-images/templates/syslinux/$ts_syslinuxtheme
+	# Any text file is a potential config, and there are plenty of ways to get one in there,
+	# so lets look at all of them in the config folder.
+	for file in `find $configdir -type f`;do
+		if file $file |grep -qe 'ASCII text'; then
+			syslinux_scan_config $file
+		fi
+	done
+        syslinux_com_deps
 
-    mkisofs	-o $IMAGEDIR/thinstation.iso \
-        -b isolinux.bin\
-	-f \
-	-quiet \
-	-c boot.cat \
-	-no-emul-boot \
-	-boot-load-size 4 \
-	-boot-info-table \
-	-joliet \
-	-rock \
-	$IMAGEDIR/source
+	for image in $ts_bootimages; do
+		echo -e "\nMaking boot image for $image Type....\n"
+		case $image in
+			syslinux)
+				IMAGEDIR=boot-images/syslinux
+				BDIR=/syslinux
+				CONFIGFILE=syslinux.cfg
+				LOADER=syslinux
+				LM=2
 
-    if [ -e boot-images/common ]; then
-      ls boot-images/common | while read i; do
-        rm -rf "$IMAGEDIR/source/`basename "$i"`"
-      done
-    fi
-    ;;
-  esac
- done
- ls boot-images/templates/$ts_syslinuxtheme > boot-images/initrd/syslinux.files
+				addpkgs $IMAGEDIR
+				syslinux_copy_files_bios
+				add_image
+
+			;;
+			pxe)
+				IMAGEDIR=boot-images/pxe
+				BDIR=/pxelinux
+				CONFIGFILE=pxelinux.cfg/default
+				LOADER=lpxelinux.0
+				LM=3
+
+				addpkgs $IMAGEDIR
+				syslinux_copy_files_bios
+				syslinux_copy_files_efi
+				add_image
+			;;
+			iso)
+				IMAGEDIR=boot-images/iso/source
+				BDIR=/syslinux
+				CONFIGFILE=isolinux.cfg
+				LOADER=isolinux.bin
+				LM=4
+
+				addpkgs $IMAGEDIR
+				syslinux_copy_files_bios
+				if [ -e boot-images/syslinux/boot/syslinux ]; then
+					for file in `ls --color=never boot-images/syslinux/boot/syslinux`; do
+						if [ ! -e $IMAGEDIR/boot/syslinux/$file ]; then
+							sys_copy boot-images/syslinux/boot/syslinux/$file $IMAGEDIR/boot/syslinux/$file
+						fi
+					done
+				fi
+				add_image
+
+				IMAGEDIR_FINAL=`dirname $IMAGEDIR`
+#				mkisofs		-o $IMAGEDIR_FINAL/thinstation.iso \
+#						-b boot/syslinux/isolinux.bin \
+#						-c boot.cat \
+#						-no-emul-boot \
+#						-boot-load-size 4 \
+#						-boot-info-table \
+#						-eltorito-alt-boot \
+#						-eltorito-platform efi \
+#						-b EFI/BOOT/bootx64.efi \
+#						-no-emul-boot \
+#						-joliet \
+#						-rock \
+#						-f \
+#						-quiet \
+#						$IMAGEDIR_FINAL/source
+
+				mkisofs		-o $IMAGEDIR_FINAL/thinstation.iso \
+						-b boot/syslinux/isolinux.bin \
+						-c boot.cat \
+						-no-emul-boot \
+						-boot-load-size 4 \
+						-boot-info-table \
+						-joliet \
+						-rock \
+						-f \
+						-quiet \
+						$IMAGEDIR_FINAL/source
+
+
+				echo $IMAGEDIR_FINAL/thinstation.iso >> boot-images/initrd/added.files
+
+				if [ -e boot-images/common ]; then
+					ls boot-images/common | \
+					while read i; do
+						rm -rf "$IMAGEDIR/`basename "$i"`"
+					done
+				fi
+			;;
+			refind)
+				IMAGEDIR=boot-images/refind
+                                CONFIGFILE=refind.conf
+                                LM=2
+
+                                addpkgs $IMAGEDIR
+                                refind_copy_files
+
+				syslinuxdir="boot-images/syslinux"
+				for file in `find $syslinuxdir -type f |sed -e "s|$syslinuxdir/||g"`; do
+					mkdir -p `dirname $IMAGEDIR/$file`
+					sys_copy $syslinuxdir/$file $IMAGEDIR/$file
+				done
+		esac
+	done
 fi
 
 remove_files

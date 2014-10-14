@@ -5,7 +5,7 @@
 # Depends on: mtools perl
 
 name=syslinux
-version=4.07
+version=6.03
 release=2
 source=(http://www.kernel.org/pub/linux/utils/boot/$name/$name-$version.tar.gz ifmem.c)
 #source=(http://www.kernel.org/pub/linux/utils/boot/$name/Testing/${version%-*}/$name-$version.tar.gz ifmem.c)
@@ -15,22 +15,13 @@ build() {
 	cp $SRC/ifmem.c com32/modules/.
 	sed -i -e "s/ifcpu.c32/ifcpu.c32 ifmem.c32/g" com32/modules/Makefile
 
-#	cd com32
-#	make
-#	cd ..
-	make #bios
-        make INSTALLROOT=$PKG install #bios
+        make INSTALLROOT=$PKG install bios
 
         rm -rf $PKG/usr/share/syslinux/com32
-#        mkdir $PKG/bios
-#        mv $PKG/usr/man/* $PKG/usr/share/.
-#        mv $PKG/usr/share/syslinux/* $PKG/bios/.
-#        mv $PKG/bios $PKG/usr/share/syslinux
-
-#        make INSTALLROOT=$PKG install efi32
-#        make INSTALLROOT=$PKG install efi64
+	mv $PKG/usr/share/syslinux $PKG/usr/share/bios
+	mkdir $PKG/usr/share/syslinux
+	mv $PKG/usr/share/bios $PKG/usr/share/syslinux/.
 
         mkdir -p $PKG/usr/share/doc/syslinux
         cp -Prfd doc/* $PKG/usr/share/doc/syslinux
-
 }

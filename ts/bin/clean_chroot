@@ -31,121 +31,86 @@ stage1()
 	cp conf/default/* .
 	cd /
 	for theme in `ls $TSWRKNG/utils/tools/splash |grep -v bin`; do
-		for res in `ls $TSWRKNG/utils/tools/splash/$theme |grep -E -v '1024x768|scalable'` ; do
+		for res in `ls $TSWRKNG/utils/tools/splash/$theme |grep -E -v '1024x768|scalable'`; do
 			rm -rf $TSWRKNG/utils/tools/splash/$theme/$res
 		done
 	done
 	for i in \
 		/build \
-		$TSWRKNG/kernel/firmware \
-		$TSWRKNG/boot-images/initrd/kernel_parameters \
 		$TSWRKNG/tmp-tree \
-                $TSWRKNG/boot-images/iso/source/{isolinux.cfg,vmlinuz*,initrd,lib.squash} \
-		$TSWRKNG/boot-images/initrd/{initrd,lib.squash,vmlinuz*} \
-		$TSWRKNG/boot-images/iso/thinstation.iso \
-		$TSWRKNG/boot-images/iso/source/modeset.cfg \
-		$TSWRKNG/boot-images/{syslinux,pxe}/{lib.squash,initrd,vmlinuz*} \
-		$TSWRKNG/boot-images/pkg-packages/* \
-		$TSWRKNG/boot-images/pxe/pxelinux.cfg \
-		$TSWRKNG/boot-images/pxe/*.c32 \
-		$TSWRKNG/boot-images/pxe/{module.list,vbe_modes.list,firmware.list} \
-		$TSWRKNG/{thinstation.conf.sample,background-1024x768.jpg} \
-		$TSWRKNG/utils/KERNEL_VERSION \
-		$TSWRKNG/boot-images/syslinux/syslinux.cfg ; do
-			if [ -e $i ];
-				then rm -rf $i
-			fi
-	done
-	if [ -e $TSWRKNG/boot-images/initrd/syslinux.files ]; then
-		for i in pxe iso/source syslinux; do
-			cat $TSWRKNG/boot-images/initrd/syslinux.files | while read file; do
-				rm -rf $TSWRKNG/boot-images/$i/$file
-			done
-		done
-		rm $TSWRKNG/boot-images/initrd/syslinux.files
-	fi
-	find $TSWRKNG/boot-images -type d -empty -delete
-	for checksum in `find $TSWRKNG/boot-images -name image.md5` ; do
-		if [ -n "$checksum" ]; then
-			rm $checksum
+		$TSWRKNG/{thinstation.conf.sample,background-1024x768.jpg}; do
+		if [ -e $i ]; then
+			rm -rf $i
 		fi
 	done
-	for i in `ls --color=never $TSWRKNG/packages` ;
-		do
-			if [ -e $TSWRKNG/packages/$i/.dna ] ;
-				then
-					cd $TSWRKNG/packages/$i
-					echo -e "\tCleaning package $i"
-					if [ -e /ts/wind_cache/$i.turbo ]; then
-						if cat /ts/wind_cache/$i.turbo |grep -e "#" |cut -d "#" -f2 |md5sum -c --quiet ; then
-							. /ts/wind_cache/$i.turbo
-						else
-							create_wind
-						fi
-					else
-						create_wind
-					fi
-					if [ -e /ts/unwind_cache/$i.turbo ]; then
-						if cat /ts/unwind_cache/$i.turbo|grep -e "#" |cut -d "#" -f2 |md5sum -c --quiet ; then
-							echo "Allready made" >> /dev/null
-						else
-							create_unwind
-						fi
-					else
-						create_unwind
-					fi
+	find $TSWRKNG/boot-images -type d -empty -delete
+	for i in `ls --color=never $TSWRKNG/packages`; do
+		if [ -e $TSWRKNG/packages/$i/.dna ]; then
+			cd $TSWRKNG/packages/$i
+			echo -e "\tCleaning package $i"
+			if [ -e /ts/wind_cache/$i.turbo ]; then
+				if cat /ts/wind_cache/$i.turbo |grep -e "#" |cut -d "#" -f2 |md5sum -c --quiet; then
+					. /ts/wind_cache/$i.turbo
+				else
+					create_wind
+				fi
+			else
+				create_wind
 			fi
-		done
+			if [ -e /ts/unwind_cache/$i.turbo ]; then
+				if cat /ts/unwind_cache/$i.turbo|grep -e "#" |cut -d "#" -f2 |md5sum -c --quiet; then
+					echo "Allready made" >> /dev/null
+				else
+					create_unwind
+				fi
+			else
+				create_unwind
+			fi
+		fi
+	done
 	echo -e "\tCleaning tools"
 	update -c -t
-	echo -e "\tCleaning boot-images"
-	update -c -b
 	echo "Checking Ports Directories for Downloaded Files"
-	for d in /usr/ports/{contrib,core,xorg,opt} /ts/ports/{kernel-modules,xorg,gnome,broken,chroot,static-source,components,lxde,extensions,xfce,ruby};
-		do
-			if [ -d $d ] ; then
+	for d in /usr/ports/{contrib,core,xorg,opt} \
+		/ts/ports/{kernel-modules,xorg,gnome,broken,chroot,static-source,components,lxde,extensions,xfce,ruby}; do
+		if [ -d $d ] ; then
 			cd $d
-			for i in `ls --color=no`;
-				do
-					cd $d/$i
-					f=`find . |grep -e pkg.tar.gz`
-					if [ "$f" != "" ];
-						then
-							mv $f tempfile
-							pkgmk -c
-							mv tempfile $f
-						elif [ "`echo $d |grep -e ts/ports`" != "" ] ; then
-							pkgmk -c
-						else
-							cd $d
-							rm -rf $d/$i
-					fi
-				done
-			fi
-		done
+			for i in `ls --color=no`; do
+				cd $d/$i
+				f=`find . |grep -e pkg.tar.gz`
+				if [ "$f" != "" ]; then
+					mv $f tempfile
+					pkgmk -c
+					mv tempfile $f
+				elif [ "`echo $d |grep -e ts/ports`" != "" ]; then
+					pkgmk -c
+				else
+					cd $d
+					rm -rf $d/$i
+				fi
+			done
+		fi
+	done
 	touch /cleanstage2
-	if [ ! -e /CLEAN ] ; then
+	if [ ! -e /CLEAN ]; then
 		echo "Please Type \"exit\" to Finish the Cleaning Process"
 	fi
 }
 
 stage2()
 {
-	for i in usr/{var,swat,private,bin,etc,include,lib,man,sbin,share,src,local,GNUstep,www,ROX,php,libexec} run www share home man bin boot dev etc lib mnt opt proc root sbin sys tmp var ts/components ;
-		do
-			if [ -e $i ] ;
-				then
-					rm -rf $ROOT/$i
-			fi
-		done
+	for i in usr/{var,swat,private,bin,etc,include,lib,man,sbin,share,src,local,GNUstep,www,ROX,php,libexec} \
+		run www share home man bin boot dev etc lib mnt opt proc root sbin sys tmp var ts/components; do
+		if [ -e $i ]; then
+			rm -rf $ROOT/$i
+		fi
+	done
 	rm cleanstage2
 }
 
 ROOT=$PWD
-if [ -e $ROOT/cleanstage2 ] ;
-	then
-		stage2
-	else
-		stage1
+if [ -e $ROOT/cleanstage2 ]; then
+	stage2
+else
+	stage1
 fi
-
