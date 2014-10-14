@@ -1,0 +1,21 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=epsonescpr
+version=1.4.2
+release=1
+source=(https://download2.ebz.epson.net/dsc/f/03/00/03/12/29/b61d1879159a3f03c8a5b4cc12ef4ee5af1f94c5/epson-inkjet-printer-escpr-$version-${release}lsb3.2.tar.gz
+	http://download.ebz.epson.net/dsc/du/02/eula/global/LINUX_EN.html)
+
+build() {
+	cd epson-inkjet-printer-escpr-$version
+
+	./configure --prefix=/usr --disable-static
+
+	make
+	make DESTDIR=$PKG install
+
+	mkdir -p $PKG/usr/share/doc/epson-escpr
+	cp $SRC/LINUX_EN.html $PKG/usr/share/doc/epson-escpr
+}

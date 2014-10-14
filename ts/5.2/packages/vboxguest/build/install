@@ -59,22 +59,25 @@ mkdir -p $INSTALLDIR/etc/rc2.d
 cp wget_tmp/vbox/init/vboxadd-service $INSTALLDIR/etc/init.d
 
 do_module() {
-  pushd wget_tmp/vbox/src/vboxguest-*/$2
+  pushd wget_tmp/$3/src/vboxguest-*/$2
   make KERN_DIR=/lib/modules/$1/build clean
   make KERN_DIR=/lib/modules/$1/build
   let returnval=returnval+$?
   perl /usr/src/kernels/$1/scripts/sign-file sha256 /etc/ssl/keys/kernel.key /etc/ssl/certs/kernel.crt $2.ko
   popd
-  cp wget_tmp/vbox/src/vboxguest-*/$2/$2.ko $INSTALLDIR/lib/modules/$1/misc
+  cp wget_tmp/$3/src/vboxguest-*/$2/$2.ko $INSTALLDIR/lib/modules/$1/misc
   let returnval=returnval+$?
 }
 
 # Install the modules
-for kernel in ${release}TS ${release}TS_SMP; do
+for kernel in ${release}TS ${release}TS_SMP ${release}TS_64; do
   mkdir -p $INSTALLDIR/lib/modules/$kernel/misc
-  do_module $kernel vboxguest
-  do_module $kernel vboxsf
-  do_module $kernel vboxvideo
+  vbox=vbox
+  if [ "$kernel" != "${release}TS_64" ]; then
+  do_module $kernel vboxguest $vbox
+  fi
+  do_module $kernel vboxsf $vbox
+  do_module $kernel vboxvideo $vbox
 done
 
 cp -a $INSTALLDIR/build/extra/* $INSTALLDIR

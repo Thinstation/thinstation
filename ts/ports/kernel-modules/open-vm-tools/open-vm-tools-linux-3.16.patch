@@ -1,0 +1,199 @@
+diff -ur open-vm-tools-9.4.6-1770165.orig/modules/linux/shared/compat_fs.h open-vm-tools-9.4.6-1770165/modules/linux/shared/compat_fs.h
+--- open-vm-tools-9.4.6-1770165.orig/modules/linux/shared/compat_fs.h	2014-07-02 00:21:14.000000000 +0200
++++ open-vm-tools-9.4.6-1770165/modules/linux/shared/compat_fs.h	2014-08-25 22:33:18.134858340 +0200
+@@ -89,7 +89,8 @@
+  * changed over time, so for simplicity, we'll only enable it from 2.6.19 and
+  * on.
+  */
+-#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 19)
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 19) && \
++         LINUX_VERSION_CODE < KERNEL_VERSION(3, 16, 0)
+ # define VMW_USE_AIO
+ #endif
+ 
+diff -ur open-vm-tools-9.4.6-1770165.orig/modules/linux/shared/compat_netdevice.h open-vm-tools-9.4.6-1770165/modules/linux/shared/compat_netdevice.h
+--- open-vm-tools-9.4.6-1770165.orig/modules/linux/shared/compat_netdevice.h	2014-07-02 00:21:14.000000000 +0200
++++ open-vm-tools-9.4.6-1770165/modules/linux/shared/compat_netdevice.h	2014-08-25 22:28:49.471534485 +0200
+@@ -337,4 +337,8 @@
+ typedef u32 compat_netdev_features_t;
+ #endif
+ 
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 16, 0) || defined(SET_ETHTOOL_OPS)
++#define VMW_HAVE_ETHTOOL_OPS 1
++#endif
++
+ #endif /* __COMPAT_NETDEVICE_H__ */
+diff -ur open-vm-tools-9.4.6-1770165.orig/modules/linux/vmhgfs/file.c open-vm-tools-9.4.6-1770165/modules/linux/vmhgfs/file.c
+--- open-vm-tools-9.4.6-1770165.orig/modules/linux/vmhgfs/file.c	2014-08-25 22:27:54.758203080 +0200
++++ open-vm-tools-9.4.6-1770165/modules/linux/vmhgfs/file.c	2014-08-25 22:33:18.134858340 +0200
+@@ -128,13 +128,17 @@
+    .owner      = THIS_MODULE,
+    .open       = HgfsOpen,
+    .llseek     = HgfsSeek,
+-#if defined VMW_USE_AIO
++#ifdef VMW_USE_AIO
+    .aio_read   = HgfsAioRead,
+    .aio_write  = HgfsAioWrite,
+-#else
++#else /* !VMW_USE_AIO */
++#  if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 16, 0)
++   .read_iter = generic_file_read_iter,
++   .write_iter = generic_file_write_iter,
++# endif
+    .read       = HgfsRead,
+    .write      = HgfsWrite,
+-#endif
++#endif /* !VMW_USE_AIO */
+    .fsync      = HgfsFsync,
+    .mmap       = HgfsMmap,
+    .release    = HgfsRelease,
+@@ -822,8 +826,6 @@
+   out:
+    return result;
+ }
+-
+-
+ #else
+ /*
+  *----------------------------------------------------------------------
+@@ -865,8 +867,11 @@
+       LOG(4, (KERN_DEBUG "VMware hgfs: HgfsRead: invalid dentry\n"));
+       goto out;
+    }
+-
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 16, 0)
++   result = new_sync_read(file, buf, count, offset);
++#else
+    result = generic_file_read(file, buf, count, offset);
++#endif
+   out:
+    return result;
+ }
+@@ -917,7 +922,11 @@
+       goto out;
+    }
+ 
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 16, 0)
++   result = new_sync_write(file, buf, count, offset);
++#else
+    result = generic_file_write(file, buf, count, offset);
++#endif
+   out:
+    return result;
+ }
+diff -ur open-vm-tools-9.4.6-1770165.orig/modules/linux/vmhgfs/file.c.orig open-vm-tools-9.4.6-1770165/modules/linux/vmhgfs/file.c.orig
+--- open-vm-tools-9.4.6-1770165.orig/modules/linux/vmhgfs/file.c.orig	2014-08-25 22:27:54.758203080 +0200
++++ open-vm-tools-9.4.6-1770165/modules/linux/vmhgfs/file.c.orig	2014-08-25 22:32:31.411526655 +0200
+@@ -64,6 +64,7 @@
+ static int HgfsOpen(struct inode *inode,
+                     struct file *file);
+ #if defined VMW_USE_AIO
++#  if LINUX_VERSION_CODE < KERNEL_VERSION(3, 16, 0)
+ static ssize_t HgfsAioRead(struct kiocb *iocb,
+                            const struct iovec *iov,
+                            unsigned long numSegs,
+@@ -72,6 +73,7 @@
+                             const struct iovec *iov,
+                             unsigned long numSegs,
+                             loff_t offset);
++#  endif
+ #else
+ static ssize_t HgfsRead(struct file *file,
+                         char __user *buf,
+@@ -128,13 +130,18 @@
+    .owner      = THIS_MODULE,
+    .open       = HgfsOpen,
+    .llseek     = HgfsSeek,
+-#if defined VMW_USE_AIO
++#ifdef VMW_USE_AIO
++#   if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 16, 0)
++   .read_iter = generic_file_read_iter,
++   .write_iter = generic_file_write_iter,
++#   else
+    .aio_read   = HgfsAioRead,
+    .aio_write  = HgfsAioWrite,
+-#else
++#   endif
++#else /* !VMW_USE_AIO */
+    .read       = HgfsRead,
+    .write      = HgfsWrite,
+-#endif
++#endif /* !VMW_USE_AIO */
+    .fsync      = HgfsFsync,
+    .mmap       = HgfsMmap,
+    .release    = HgfsRelease,
+@@ -658,7 +665,12 @@
+             iparent = dparent->d_inode;
+ 
+             HgfsSetUidGid(iparent, file->f_dentry,
++#if LINUX_VERSION_CODE < KERNEL_VERSION(3, 12, 0)
+                           current_fsuid(), current_fsgid());
++#else
++                          from_kuid(&init_user_ns, current_fsuid()),
++                          from_kgid(&init_user_ns,current_fsgid()));
++#endif
+ 
+             dput(dparent);
+          }
+@@ -724,6 +736,7 @@
+ 
+ 
+ #if defined VMW_USE_AIO
++#  if LINUX_VERSION_CODE < KERNEL_VERSION(3, 16, 0)
+ /*
+  *----------------------------------------------------------------------
+  *
+@@ -818,7 +831,7 @@
+    return result;
+ }
+ 
+-
++#   endif /* if LINUX_VERSION_CODE < KERNEL_VERSION(3, 16, 0) */
+ #else
+ /*
+  *----------------------------------------------------------------------
+diff -ur open-vm-tools-9.4.6-1770165.orig/modules/linux/vmxnet/vmxnet.c open-vm-tools-9.4.6-1770165/modules/linux/vmxnet/vmxnet.c
+--- open-vm-tools-9.4.6-1770165.orig/modules/linux/vmxnet/vmxnet.c	2014-07-02 00:21:14.000000000 +0200
++++ open-vm-tools-9.4.6-1770165/modules/linux/vmxnet/vmxnet.c	2014-08-25 22:28:49.471534485 +0200
+@@ -283,8 +283,7 @@
+ 
+ #endif
+ 
+-
+-#ifdef SET_ETHTOOL_OPS
++#ifdef VMW_HAVE_ETHTOOL_OPS
+ /*
+  *----------------------------------------------------------------------------
+  *
+@@ -530,7 +529,7 @@
+ };
+ 
+ 
+-#else   /* !defined(SET_ETHTOOL_OPS) */
++#else   /* !defined(VMW_HAVE_ETHTOOL_OPS) */
+ 
+ 
+ /*
+@@ -743,7 +742,7 @@
+    }
+    return -EOPNOTSUPP;
+ }
+-#endif /* SET_ETHTOOL_OPS */
++#endif /* !defined(VMW_HAVE_ETHTOOL_OPS) */
+ 
+ 
+ /*
+@@ -1142,8 +1141,12 @@
+    dev->watchdog_timeo = VMXNET_WATCHDOG_TIMEOUT;
+ #endif
+ 
+-#ifdef SET_ETHTOOL_OPS
++#ifdef VMW_HAVE_ETHTOOL_OPS
++#  ifdef SET_ETHTOOL_OPS
+    SET_ETHTOOL_OPS(dev, &vmxnet_ethtool_ops);
++#  else
++   dev->ethtool_ops = &vmxnet_ethtool_ops;
++#  endif
+ #else
+    dev->do_ioctl = vmxnet_ioctl;
+ #endif

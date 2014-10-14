@@ -1,0 +1,109 @@
+--- a/modules/linux/vmhgfs/link.c.orig	2014-04-23 10:11:34.891106441 +0100
++++ a/modules/linux/vmhgfs/link.c	2014-04-23 00:49:03.000000000 +0100
+@@ -148,7 +148,7 @@
+  *
+  *----------------------------------------------------------------------
+  */
+-
++#if LINUX_VERSION_CODE <= KERNEL_VERSION(3, 14, 99)
+ static int
+ HgfsReadlink(struct dentry *dentry,  // IN:  Dentry containing link
+              char __user *buffer,    // OUT: User buffer to copy link into
+@@ -186,3 +186,42 @@
+    }
+    return error;
+ }
++#else
++static int
++HgfsReadlink(struct dentry *dentry,  // IN:  Dentry containing link
++             char __user *buffer,    // OUT: User buffer to copy link into
++             int buflen)             // IN:  Length of user buffer
++
++{
++   HgfsAttrInfo attr;
++   char *fileName = NULL;
++   int error;
++
++   ASSERT(dentry);
++   ASSERT(buffer);
++
++   if (!dentry) {
++      LOG(4, (KERN_DEBUG "VMware hgfs: HgfsReadlink: null input\n"));
++      return -EINVAL;
++   }
++
++   LOG(6, (KERN_DEBUG "VMware hgfs: HgfsReadlink: calling "
++           "HgfsPrivateGetattr\n"));
++   error = HgfsPrivateGetattr(dentry, &attr, &fileName);
++   if (!error) {
++
++      /* Let's make sure we got called on a symlink. */
++      if (attr.type != HGFS_FILE_TYPE_SYMLINK || fileName == NULL) {
++         LOG(6, (KERN_DEBUG "VMware hgfs: HgfsReadlink: got called "
++                 "on something that wasn't a symlink\n"));
++         error = -EINVAL;
++      } else {
++         LOG(6, (KERN_DEBUG "VMware hgfs: HgfsReadlink: calling "
++                 "readlink_copy\n"));
++         error = readlink_copy(buffer, buflen, fileName);
++      }
++      kfree(fileName);
++   }
++   return error;
++}
++#endif
+--- open-vm-tools-9.4.0-1280544/modules/linux/vmblock/linux/inode.c~	2014-07-12 12:00:49.000000000 +0200
++++ open-vm-tools-9.4.0-1280544/modules/linux/vmblock/linux/inode.c	2014-07-12 12:36:59.427802346 +0200
+@@ -191,7 +191,11 @@
+       return -EINVAL;
+    }
+ 
++#if LINUX_VERSION_CODE < KERNEL_VERSION(3, 15, 0)
+    return vfs_readlink(dentry, buffer, buflen, iinfo->name);
++#else
++   return readlink_copy(buffer, buflen, iinfo->name);
++#endif
+ }
+ 
+ 
+--- open-vm-tools-9.4.0-1280544/modules/linux/vsock/linux/notify.c	2014-04-14 23:36:15.779380482 +0200
++++ open-vm-tools-9.4.0-1280544/modules/linux/vsock/linux/notify.c.new	2014-04-14 23:36:41.396381914 +0200
+@@ -516,7 +516,11 @@
+    PKT_FIELD(vsk, sentWaitingRead) = FALSE;
+ #endif
+ 
++#if LINUX_VERSION_CODE < KERNEL_VERSION(3, 15, 0)
+    sk->sk_data_ready(sk, 0);
++#else
++   sk->sk_data_ready(sk);
++#endif
+ }
+ 
+ 
+--- open-vm-tools-9.4.0-1280544/modules/linux/vsock/linux/notifyQState.c	2013-10-18 19:56:12.000000000 +0200
++++ open-vm-tools-9.4.0-1280544/modules/linux/vsock/linux/notifyQState.c.new	2014-04-14 23:37:53.316385936 +0200
+@@ -164,7 +164,11 @@
+                      struct sockaddr_vm *dst,    // IN: unused
+                      struct sockaddr_vm *src)    // IN: unused
+ {
++#if LINUX_VERSION_CODE < KERNEL_VERSION(3, 15, 0)
+    sk->sk_data_ready(sk, 0);
++#else
++   sk->sk_data_ready(sk);
++#endif
+ }
+ 
+ 
+@@ -566,7 +570,12 @@
+       }
+ 
+       /* See the comment in VSockVmciNotifyPktSendPostEnqueue */
++
++#if LINUX_VERSION_CODE < KERNEL_VERSION(3, 15, 0)
+       sk->sk_data_ready(sk, 0);
++#else
++      sk->sk_data_ready(sk);
++#endif
+    }
+ 
+    return err;

@@ -23,31 +23,3 @@
     #define DEPRECATED(_fix) do {} while (0)
  #endif
  
---- open-vm-tools.sept-update/modules/linux/shared/vmci_kernel_if.h	2014-06-23 23:07:00.523379356 +0000
-+++ open-vm-tools.sept-update/modules/linux/shared/vmci_kernel_if.h	2014-06-23 23:07:06.160597401 +0000
-@@ -110,7 +110,11 @@
-   typedef wait_queue_head_t VMCIEvent;
-   typedef struct semaphore VMCIMutex;
-   typedef PPN *VMCIPpnList; /* List of PPNs in produce/consume queue. */
-+#if LINUX_VERSION_CODE < KERNEL_VERSION(3, 14, 0)
-   typedef uid_t VMCIHostUser;
-+#else
-+  typedef kuid_t VMCIHostUser;
-+#endif
-   typedef VA64 VMCIQPGuestMem;
- #elif defined(__APPLE__)
-   typedef IOLock *VMCILock;
---- open-vm-tools.sept-update/modules/linux/vmci/linux/vmciKernelIf.c	2014-06-24 12:40:40.709409617 +0000
-+++ open-vm-tools.sept-update/modules/linux/vmci/linux/vmciKernelIf.c	2014-06-24 12:44:13.193579687 +0000
-@@ -420,7 +420,11 @@
-       return VMCI_ERROR_INVALID_ARGS;
-    }
- 
-+#if LINUX_VERSION_CODE < KERNEL_VERSION(3, 14, 0)
-    if (*user1 == *user2) {
-+#else
-+   if (uid_eq(*user1, *user2)) {
-+#endif
-       return VMCI_SUCCESS;
-    } else {
-       return VMCI_ERROR_GENERIC;

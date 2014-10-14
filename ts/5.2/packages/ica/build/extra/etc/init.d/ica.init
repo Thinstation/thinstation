@@ -1,7 +1,6 @@
 #! /bin/sh
 
 . $TS_GLOBAL
-. /etc/ica.functions
 HOME=/etc/skel
 
 case "$1" in
@@ -11,7 +10,10 @@ if ! pkg_initialized $PACKAGE; then
  pkg_set_init_flag $PACKAGE
  ICA_ROOT=/opt/Citrix/ICAClient
  ICA_DIR=/opt/Citrix/ICAClient/config
+ ICA_CACHETMPL=$ICA_DIR/StoreCache.ctx-template
  ICA_CONF=$HOME/.ICAClient
+ ICA_CACHEDIR=$HOME/.ICAClient/cache/Stores
+ ICA_CACHE=$ICA_CACHEDIR/StoreCache.ctx
  APPSRV_CUSTOM=/tmp/appsrv.ini.new
  WFCLIENT_CUSTOM=/tmp/wfclient.ini.new
 
@@ -20,6 +22,12 @@ if ! pkg_initialized $PACKAGE; then
 
  # Create a cache directory
  if [ ! -e $ICA_CONF/cache ] ; then mkdir $ICA_CONF/cache ; fi
+
+ # Create a cache stores directory
+ if [ ! -e $ICA_CACHEDIR ]; then
+   mkdir $ICA_CACHEDIR
+   cp $ICA_CACHETMPL $ICA_CACHE
+ fi
 
  # Set file Permissions and links to those of a normal ICA install
  if [ ! -e $HOME/.mailcap ] || [ "`grep -c -E ICA $HOME/.mailcap`" == "0" ] ; then
@@ -121,6 +129,22 @@ if ! pkg_initialized $PACKAGE; then
       fi
     fi
 
+    # If the server is a web URL, use the SelfService instead of wfica
+    if [ -n "`echo $ICAX_SERVER | grep https://`" ]; then
+      rm -f /tmp/script
+      cat $ICA_CACHE | while read line; do
+        if [ -n "`echo $line | grep '\/VisibleStores'`" ]; then
+          echo "	<Store name=\"$ICAX_TITLE\" type=\"PNA\">" >> /tmp/script
+          echo "		$ICAX_SERVER" >> /tmp/script
+          echo "	</Store>" >> /tmp/script
+        fi
+        echo $line >> /tmp/script
+      done
+      mv /tmp/script $ICA_CACHE
+      let x=x+1
+      continue
+    fi
+
     if [ -z "$ICAX_ENCRYPTION" ] ; then ICAX_ENCRYPTION=$ICA_ENCRYPTION ;fi
     if [ -z "$ICAX_COMPRESS" ] ; then ICAX_COMPRESS=$ICA_COMPRESS ;fi
     if [ -z "$ICAX_AUDIO_QUALITY" ] ; then ICAX_AUDIO_QUALITY=$ICA_AUDIO_QUALITY ;fi
@@ -189,8 +213,6 @@ if ! pkg_initialized $PACKAGE; then
 	  rm /tmp/appsrv.ini.tmp
   fi
  fi
-
- ica_menu
 
  # Checks for pre-existing files, from permanent storage
  if [ ! -e $ICA_CONF/wfclient.ini ] ; then

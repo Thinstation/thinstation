@@ -1,0 +1,12 @@
+#!/bin/sh
+
+export PACKAGE=epsonescpr
+export PORTS="$PACKAGE"
+
+repackage -e
+returnval=$?
+
+mv packages/$PACKAGE/lib/doc packages/$PACKAGE/lib/licenses
+ln -s ../lib/licenses/epson-escpr/LINUX_EN.html packages/$PACKAGE/build/license
+
+exit $returnval

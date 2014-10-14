@@ -6,16 +6,14 @@
 # Group: xfce4
 
 name=broadcom-sta_64
-version=6.30.223.141
-pversion=6_30_223_141
-release=3.14.9
+version=6.30.223.248
+pversion=6_30_223_248
+release=`cat /boot/KERNEL_VERSION |sed -r s/[A-Z]//g`
 source=(http://www.broadcom.com/docs/linux_sta/hybrid-v35_64-nodebug-pcoem-$pversion.tar.gz \
-	linux-recent.patch \
-	license.patch \
+	license.patch
 	gcc.patch)
 
 build() {
-	patch -p1 -i linux-recent.patch
 	patch -p1 -i license.patch
 	patch -p1 -i gcc.patch
 
