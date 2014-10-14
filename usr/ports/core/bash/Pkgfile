@@ -4,15 +4,27 @@
 # Depends on:  ncurses readline
 
 name=bash
-version=4.2.10
+version=4.3.30
 release=1
-source=(http://ftp.gnu.org/gnu/$name/$name-${version::3}.tar.gz \
-        $name-$version.patch.gz profile)
+source=(http://ftp.gnu.org/gnu/$name/$name-${version:0:3}.tar.gz \
+	profile)
 
 build() {
-    cd $name-${version::3}
+major=`echo $version |cut -d "." -f1`
+minor=`echo $version |cut -d "." -f2`
+patches=`echo $version |cut -d "." -f3`
 
-    gunzip -c $SRC/$name-$version.patch.gz | patch -p0
+    for patch in `seq -w 01 $patches`; do
+        patchname=$name`echo ${version%.*} |sed -e "s|\.||g"`-0$patch
+        wget http://ftp.gnu.org/gnu/$name/$name-${version%.*}-patches/$patchname
+        sed -i -r "s|$name\-$major\.$minor\-patched|$name\-$major\.$minor|g" $patchname
+        sed -i -r "s|$name\-$major\.$minor\.[0-9]+|$name\-$major\.$minor|g" $patchname
+        patch -p1 -i $patchname
+    done
+
+    cd $name-${version:0:3}
+
+#    gunzip -c $SRC/$name-$version.patch.gz | patch -p0
 
     ./configure --prefix=/usr \
                 --exec-prefix= \
