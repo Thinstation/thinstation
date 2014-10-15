@@ -12,6 +12,22 @@ KERNEL_PARAMETERS=""
 CONFDIR=./conf
 export TOOLSDIR
 
+libutil="chain complex cptime display fancyhello hdt ifcpu \
+         keytest libmenu menu prdhcp pxechn rosh simple test \
+         test2 vesamenu"
+
+libcom32="chain cmd complex config display elf ethersel gfxboot \
+          gpxecmd hdt hexdump host ifcpu ifcpu64 ifmemdsk ifplop \
+          kbdmap kontron_wdt libmenu linux localboot lua mboot \
+          pcitest pmload prdhcp pxechn reboot rosh sanboot sdi \
+          simple sysdump test test2 vesamenu whichsys"
+
+libmenu="complex display hdt simple test test2"
+
+libgpl="cpuidtest disk dmitest hdt ifcpu lua vpdtest zzjson"
+
+liblua="lua"
+
 . packages/base/etc/thinstation.functions
 . packages/base/etc/thinstation.env
 . packages/base/etc/thinstation.defaults
@@ -1899,7 +1915,7 @@ syslinux_com_deps()
 {
 	for lib in libutil libcom32 liblua libgpl libmenu; do
 		if ! grep -qe $lib.c32 /tmp/syslinux-com32; then
-			for module in `eval echo "\$"$lib`; do
+			for module in `eval echo "\$"$lib`; do #Actually look at the dependencies variables
 				if grep -qe $module.c32 /tmp/syslinux-com32; then
 					echo "$lib.c32" >> /tmp/syslinux-com32
 					if [ "$lib" == "libmenu" ]; then
@@ -2050,7 +2066,7 @@ if [ -z "$NOIMAGES" ]; then
 	# Any text file is a potential config, and there are plenty of ways to get one in there,
 	# so lets look at all of them in the config folder.
 	for file in `find $configdir -type f`;do
-		if file $file |grep -qe 'ASCII text'; then
+		if file -e tokens $file |grep -qe 'ASCII text'; then
 			syslinux_scan_config $file
 		fi
 	done
