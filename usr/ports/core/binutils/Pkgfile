@@ -4,45 +4,23 @@
 # Depends on:  zlib
 
 name=binutils
-version=2.23.1
-release=1
-source=(ftp://ftp.gnu.org/gnu/$name/$name-${version}.tar.bz2)
+version=2.24
+release=2
+source=(ftp://ftp.gnu.org/gnu/$name/$name-$version.tar.bz2)
 
 build() {
-    sed -i '/^SUBDIRS/s/doc//' $name-$version/bfd/Makefile.in
-    sed -i '/^# RELEASE=y/s/#//' $name-$version/bfd/Makefile.in
-    sed -i -e '/^libopcodes_la_\(DEPENDENCIES\|LIBADD\)/s,$, ../bfd/libbfd.la,' $name-$version/opcodes/Makefile.{am,in}
-    sed -i -e 's/^libbfd_la_LDFLAGS = /&-Wl,-Bsymbolic-functions /' $name-$version/bfd/Makefile.{am,in}
-    sed -i -e 's/^libopcodes_la_LDFLAGS = /&-Wl,-Bsymbolic-functions /' $name-$version/opcodes/Makefile.{am,in}
+    sed -i '/^SUBDIRS/s/doc//' $name-$version/bfd/Makefile.in 
     mkdir build
     cd build
     ../$name-$version/configure --prefix=/usr \
                                 --mandir=/usr/man \
-				--enable-static \
+                                --enable-shared \
                                 --disable-nls
     make tooldir=/usr
     make check
-
-# Rebuild libiberty.a with -fPIC.
-# Future: Remove it together with its header file, projects should bundle it.
-make -C libiberty clean
-make CFLAGS="$CFLAGS -g -fPIC" -C libiberty
-
-# Rebuild libbfd.a with -fPIC.
-# Without the hidden visibility the 3rd party shared libraries would export
-# the bfd non-stable ABI.
-make -C bfd clean
-make CFLAGS="$CFLAGS -g -fPIC -fvisibility=hidden" -C bfd
-
-# Rebuild libopcodes.a with -fPIC.
-make -C opcodes clean
-make CFLAGS="$CLAGS -g -fPIC" -C opcodes
-
-install -D -m 644 bfd/libbfd.a $PKG/usr/lib/libbfd.a
-install -m 644 libiberty/libiberty.a $PKG/usr/lib
-install -m 644 opcodes/libopcodes.a $PKG/usr/lib
     make tooldir=/usr DESTDIR=$PKG install
     install -m 0644  ../$name-$version/include/libiberty.h $PKG/usr/include
     rm -r $PKG/usr/share
-    sed -i "s|-L$SRC[^ ]* ||g" $PKG/usr/lib/libbfd.la
+    sed -i "s|-L$SRC[^ ]* ||g" $PKG/usr/lib/lib{bfd,opcodes}.la
 }
+

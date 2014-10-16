@@ -1,0 +1,38 @@
+--- Make.rules.orig	2014-10-09 11:58:26.806869053 +0000
++++ Make.rules	2014-10-09 12:00:53.125328180 +0000
+@@ -34,7 +34,7 @@
+ %.so: %.o
+ 	$(LD) $(LDFLAGS) $^ -o $@ $(LOADLIBES)
+ 	# check we have no undefined symbols
+-	nm -D $@ | grep ' U ' && exit 1 || exit 0
++	$(NM) -D $@ | grep ' U ' && exit 1 || exit 0
+ 
+ %.h: %.auth
+ 	./xxdi.pl $< > $@
+@@ -49,10 +49,10 @@
+ 	$(CC) $(INCDIR) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
+ 
+ %.efi.o: %.c
+-	$(CC) $(INCDIR) $(CFLAGS) $(CPPFLAGS) -fno-toplevel-reorder -DBUILD_EFI -c $< -o $@
++	$(CCC) $(INCDIR) $(CFLAGS) $(CPPFLAGS) -fno-toplevel-reorder -DBUILD_EFI -c $< -o $@
+ 
+ %.efi.s: %.c
+-	$(CC) -S $(INCDIR) $(CFLAGS) $(CPPFLAGS) -fno-toplevel-reorder -DBUILD_EFI -c $< -o $@
++	$(CCC) -S $(INCDIR) $(CFLAGS) $(CPPFLAGS) -fno-toplevel-reorder -DBUILD_EFI -c $< -o $@
+ 
+ 
+ %.cer: %.crt
+@@ -74,7 +74,12 @@
+ #	sbsign --key KEK.key --cert KEK.crt --output $@ $<
+ 
+ %.a:
+-	ar rcv $@ $^
++	$(AR) rcv $@ $^
++	$(RANLIB) $@
++
++%-efi.a:
++	$(AR) rcv $@ $^
++	$(RANLIB) $@
+ 
+ doc/%.1: doc/%.1.in %
+ 	$(HELP2MAN) --no-info -i $< -o $@ ./$*

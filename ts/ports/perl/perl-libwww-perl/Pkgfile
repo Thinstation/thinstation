@@ -1,0 +1,28 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=perl-libwww-perl
+version=6.08
+release=1
+source=(http://search.cpan.org/CPAN/authors/id/M/MS/MSCHILLI/libwww-perl-$version.tar.gz)
+
+build() {
+	cd libwww-perl-$version
+
+        unset PERL5LIB PERL_MM_OPT PERL_LOCAL_LIB_ROOT
+        export PERL_MM_USE_DEFAULT=1 PERL_AUTOINSTALL=--skipdeps
+
+        echo "no" | perl Makefile.PL
+
+        make OPTIMIZE="$CFLAGS"
+        make INSTALLDIRS=vendor DESTDIR=$PKG install
+
+        find $PKG -type f \( \
+                -name '.packlist' -or \
+                -name '*.bs' -or \
+                -name 'autosplit.ix' -or \
+                -name 'perllocal.pod' \) -delete
+
+        find $PKG -depth -empty -exec rm -r {} \;
+}

@@ -1,0 +1,28 @@
+# Description: A tool for automatically generating simple manual pages from program output.
+# URL: http://www.gnu.org/software/help2man/
+# Maintainer: Danny Rawlins, monster dot romster at gmail dot com
+# Packager: Younes Hafri, ycrux at club-internet dot fr
+
+name=help2man
+version=1.41.1
+release=1
+source=(http://ftp.gnu.org/gnu/$name/$name-$version.tar.gz)
+
+build() {
+	cd $name-$version
+
+	./configure \
+		--prefix=/usr \
+		--mandir=/usr/man \
+		--disable-nls
+
+	make
+	make DESTDIR=$PKG install
+
+	rm -rf $PKG/usr/share/info
+
+	rmdir \
+		$PKG/usr/share \
+		$PKG/usr/lib/help2man \
+		$PKG/usr/lib
+}

@@ -1,0 +1,30 @@
+
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=perl-params-validate
+version=1.13
+release=1
+source=(http://search.cpan.org/CPAN/authors/id/D/DR/DROLSKY/Params-Validate-1.13.tar.gz)
+
+build() {
+        cd Params-Validate-$version
+
+        unset PERL5LIB PERL_MM_OPT PERL_LOCAL_LIB_ROOT
+        export PERL_MM_USE_DEFAULT=1 PERL_AUTOINSTALL=--skipdeps
+
+        /usr/bin/perl Build.PL
+        ./Build
+        ./Build install installdirs=vendor destdir=$PKG
+
+
+        find $PKG -type f \( \
+                -name '.packlist' -or \
+                -name '*.bs' -or \
+                -name 'autosplit.ix' -or \
+                -name 'perllocal.pod' \) -delete
+
+        find $PKG -depth -empty -exec rm -r {} \;
+}
+

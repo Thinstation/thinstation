@@ -1,0 +1,38 @@
+cd /tmp
+
+# set -x
+
+for ptype in lib app driver proto lib util font xserver; do
+	wget --no-remove-listing ftp://ftp.freedesktop.org/pub/xorg/individual/$ptype/ > /dev/null 2>&1
+	pkgs="`cat .listing |grep -Ev '\.asc|\.gz|\.sig|\.\.|intel-gpu-tools' |cut -c 57-|cut -d "-" -f1 |uniq` intel-gpu-tools"
+	if [ "$ptype" == "app" ]; then pkgs="$pkgs intel-gpu-tools"; fi
+	for pkg in `grep /usr/ports/xorg/*/Pkgfile -e individual/$ptype |cut -d "/" -f5`; do 
+		whole_version=`prt-get current $pkg`
+		version=${whole_version%-*}
+		rpkg=`cat /usr/ports/xorg/$pkg/Pkgfile \
+			|grep -oE "/individual/$ptype/[[:graph:]]+" \
+			|sed 's|-$version.tar.bz2||g' \
+			|sed "s|/individual/$ptype/||g" \
+			|sed 's|)||g'`
+		latest_version=`cat .listing \
+			|grep -Ev '\.asc|\.gz|\.sig|\.\.' \
+			|cut -c 57- \
+			|grep -e ^$rpkg- \
+			|sed -e "s/$rpkg-//g" \
+			|sed -e "s/.tar.bz2//g" \
+			|sed -e "s/\r//g" \
+			|sed -e "s/\./x/g" \
+			|sort -t'x' -k1n -k2n -k3n \
+			|tail -n1 \
+			|sed -e "s/x/\./g"`
+		if [ -z "$version" ] || [ -z "$latest_version" ]; then
+			echo "ERROR ERROR ERROR $pkg"
+		elif [ "$version" != "$latest_version" ]; then
+			echo $pkg $version $latest_version
+		else
+			echo "$pkg" >> /tmp/up2date
+		fi
+	done
+done
+
+set +x

@@ -3,16 +3,15 @@
 # Maintainer:  CRUX System Team, core-ports at crux dot nu
 
 name=make
-version=3.82
-release=2
-source=(ftp://ftp.gnu.org/gnu/$name/$name-$version.tar.bz2
-	savannah-bugs.patch)
+version=4.1
+release=1
+source=(ftp://ftp.gnu.org/gnu/$name/$name-$version.tar.bz2)
 
 build() {
     cd $name-$version
-    patch -p0 -i ../savannah-bugs.patch
     ./configure --prefix=/usr --mandir=/usr/man --disable-nls
     make
     make DESTDIR=$PKG install
     rm -r $PKG/usr/share
 }
+

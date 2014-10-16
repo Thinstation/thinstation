@@ -1,15 +1,18 @@
 # Description: 8086 assembler and loader which can generate 32-bit code for the 386+ processors
-# URL:         http://www.debath.co.uk/
+# URL:         http://v3.sk/~lkundrak/dev86/
 # Maintainer:  CRUX System Team, core-ports at crux dot nu
 
 name=bin86
-version=0.16.18
+version=0.16.21
 release=1
-source=(http://rdebath.nfshost.com/dev86/$name-$version.tar.gz)
+source=(http://v3.sk/~lkundrak/dev86/$name-$version.tar.gz \
+        $name-x86_64.patch)
 
 build() {
     cd $name-$version
-    make CFLAGS="$CFLAGS -D_POSIX_SOURCE" PREFIX=/usr
+    patch -p1 -i $SRC/$name-x86_64.patch
+    make -j1 CFLAGS="$CFLAGS -D_POSIX_SOURCE" PREFIX=/usr
     mkdir -p $PKG/usr/{bin,man/man1}
     make PREFIX=$PKG/usr install
 }
+

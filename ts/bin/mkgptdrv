@@ -48,6 +48,7 @@ configure_efi=true
 cpt=262144 #default Copy Progress Threshold
 nvdefault=false
 msoft=false
+hybridmbr=false
 
 clean_up()
 {
@@ -82,7 +83,7 @@ locations for each loader, along with the config folder.
 Multiple partitions are supported, and can be added with -p <type:size:label>
 The order they are entered will be used when creating the ID. At least one
 partition will be made. By default, it will be an ESP partition that will
-fill the disk and it will be labeled 'EFI System Partition'. At least one ESP
+fill the disk and it will be labeled \"EFI System Partition\". At least one ESP
 is required.
 
 Sizes can be expressed as <size>B, K, M, G and S for sectors.
@@ -94,6 +95,7 @@ Options:
       --title,-t <Project/Brand>   : Will be used to label the EFI Loader Directory.
     --overlay,-o <dir>             : Additional directory to merge in at the root level.
        --sync,-s                   : Mount volumes with sync enabled.
+     --hybrid,-y                   : Hybrid MBR (Limited to 3 Partitions for your safty).
      --device,-d <block device>    : The last argument is interpreted as the device anyways.
        --help,-h                   : Show this usage.
 
@@ -106,12 +108,12 @@ Partition Types:
              ESP : EFI System Partition
 
 Examples:
-         mkgptdrv -c /sys-themes/default -t 'MyProject' -o /build /dev/loop0
+         mkgptdrv -c /sys-themes/default -t \"MyProject\" -o /build /dev/loop0
 
          mkgptdrv -c /sys-themes/menu \\
-                  -t 'BobsDistro' \\
+                  -t \"BobsDistro\" \\
                   -o /build \\
-                  -p ESP:1g:'EFI System Partition' \\
+                  -p \"ESP:1g:EFI System Partition\" \\
                   -p s:2g \\
                   -p l:0:System \\
                   /dev/sdb
@@ -135,6 +137,7 @@ getopts()
 			-o|--overlay)	overlay="$2";	shift;;
 			-d|--device)	device="$2";	shift;;
 			-s|--sync)	mount_opts="-o sync";;
+			-y|--hybrid) hybridmbr=true;;
 			--cpt)		let cpt=`convert_to_sectors $2`*512;shift;;
 			--nvdefault)	nvdefault=true;;
 			--msoft)	msoft=true;;
@@ -146,9 +149,12 @@ getopts()
 		esac
 		shift
 	done
+	if [ -z "$device" ]; then
+		usage 1 "Error: No block device specified."
+	fi
 	let number_of_parts=$part-1
 	if [ -z ${ID[0]} ]; then
-		add_part "ESP:0:'EFI System Partition'"
+		add_part "ESP:0:EFI System Partition"
 		number_of_parts=0
 	fi
 }
@@ -311,7 +317,7 @@ block_device()
 	   [ -e /sys/block/`basename "$1"`/dev ]; then
 		return 0
 	else
-		usage 1 "No block device specified, or not a block device."
+		usage 1 "Error: $1 not a block device."
 	fi
 }
 
@@ -352,7 +358,7 @@ add_part()
 	oIFS=$IFS
 	IFS='\n'
 	let ID[$part]=$part+1 
-	if [ "${ID[$part]}" == "128" ]; then
+	if [ "${ID[$part]}" == "128" ] || $hybridmbr && [ "${ID[$part]}" == "3" ]; then
 		echo "Really, you need that many partitions?"
 		exit 5150
 	fi
@@ -366,16 +372,19 @@ add_part()
 		size[$part]=0
 	fi
 	case ${type[$part]} in
-		l|linux) type[$part]=8300;;
-		s|swap)	type[$part]=8200;;
-		h|home) type[$part]=8302;;
-		d|data) type[$part]=0700;;
-		LVM)	type[$part]=8e00;;
-		ESP)	type[$part]=ef00
+		l|linux) type[$part]=8300;mtype[$part]=83;;
+		s|swap)	type[$part]=8200;mtype[$part]=82;;
+		h|home) type[$part]=8302;mtype[$part]=83;;
+		d|data) type[$part]=0700;mtype[$part]=07;MOST_VISABLE=${ID[$part]};;
+		LVM)	type[$part]=8e00;mtype[$part]=8e;;
+		ESP)	type[$part]=ef00;mtype[$part]=ef
 			if [ -n "$ESPpart" ]; then
 				usage 12 "You can only have one ESP partition."
 			else
 				ESPpart=${ID[$part]}
+			fi
+			if [ -z "$MOST_VISABLE" ]; then
+				MOST_VISABLE=${ID[$part]}
 			fi
 		;;
 	esac
@@ -534,6 +543,7 @@ _sync()
 		let persec=$max/$time
 		printf "$format\n" "100%" "${persec}K"
 	fi
+	sleep .1
 }
 
 check_needed()
@@ -570,8 +580,14 @@ orbail()
 	fi
 }
 
+mbr_part_list()
+{
+	$sfdisk -l $device |grep -e ^/ |sed -e "s|$device||g" |sed -E "s|[[:space:]]+|:|g" |cut -d: -f1-2
+}
+	
 partition()
 {
+	sfdisk="sfdisk -f -q -L -uS --no-reread"
 	part_id
 	for mount in `list_mounts ${device}${p}`; do
 		umount -f $mount; orbail 29
@@ -582,6 +598,7 @@ partition()
 #	blockdev --rereadpt $device; orbail 18
 	echo ""
 	sgdisk -o $device; orbail 19
+	sync
 	echo -e "\nCreating Partitions"
 	printf "%3s %4s %12s %-40s\n" ID Type MBytes Label
 	echo "==================================================="
@@ -598,8 +615,52 @@ partition()
 					-t ${ID[$part]}:${type[$part]} \
 					$device 1>/dev/null; orbail 21
 		fi
+		sync
+	done
+	if $hybridmbr; then
+		sgdisk -h `seq -s ":" 1 $(( $number_of_parts+1 ))` $device
+		sync
+	fi
+        for part in `seq 0 $number_of_parts`; do
+		if [ ${ID[$part]} != 1 ] && [ ${ID[$part]} == $MOST_VISABLE ]; then
+			sgdisk -r 1:${ID[$part]} $device
+		fi
+		if $hybridmbr; then
+			if [ ${ID[$part]} == $MOST_VISABLE ]; then
+				for parts in `mbr_part_list`; do
+					if [ ${parts#*:} == ${start[$part]} ]; then
+						mbrvis=${parts%:*}
+						if [ $mbrvis != 1 ]; then
+							cpart=`$sfdisk -l $device |grep -e ${device}1 |sed -e "s|$device||g" |sed -E "s|[[:space:]]+|:|g" |cut -d: -f1-5`
+							cpartstart=`echo "$cpart" |cut -d: -f2`
+							cpartsize=`echo "$cpart" |cut -d: -f4`
+							cparttype=`echo "$cpart" |cut -d: -f5`
+							$sfdisk -N $mbrvis $device <<EOF
+$cpartstart $cpartsize $cparttype
+y
+EOF
+							sync
+							$sfdisk -N 1 $device <<EOF
+${start[$part]} ${size[$part]} ${mtype[$part]}
+y
+EOF
+							sync
+						fi
+					fi
+				done
+			fi
+			if [ ${ID[$part]} == $ESPpart ];then
+				for parts in `mbr_part_list`; do
+					if [ ${parts#*:} == ${start[$part]} ]; then
+						$sfdisk -A $device ${parts%:*}
+						sync
+					fi
+				done
+			fi
+		fi
 	done
 	sgdisk $device --attributes=1:set:2 1>/dev/null; orbail 22
+	sync
 }
 
 format()
