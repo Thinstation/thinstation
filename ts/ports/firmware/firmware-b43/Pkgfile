@@ -1,0 +1,28 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=firmware-b43
+version=6.30.163.46
+lversion=3.130.20.0
+realname=wl_apsta
+release=1
+source=(http://www.lwfinger.com/b43-firmware/broadcom-wl-${version}.tar.bz2
+	http://downloads.openwrt.org/sources/wl_apsta-${lversion}.o)
+
+build() {
+#	cd broadcom-wl-$version
+	DEST=/lib/firmware
+
+	# Directories
+	install -d $PKG/$DEST
+
+	# Application
+	b43-fwcutter -w $PKG/$DEST broadcom-wl-${version}.wl_apsta.o
+
+	# Legacy
+	cd $SRC
+
+	# Install to said directories
+	b43-fwcutter -w $PKG/$DEST  wl_apsta-${lversion}.o || return 1
+}

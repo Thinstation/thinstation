@@ -1,0 +1,36 @@
+# Description: Gobject interface for udev
+# URL: http://gudev.sourceforge.net
+# Maintainer: Jose V Beneyto, sepen at crux dot nu
+# Packager: Jose V Beneyto, sepen at crux dot nu
+# Depends on: udev glib
+# Group: xfce4
+
+name=broadcom-sta
+version=6.30.223.248
+pversion=6_30_223_248
+release=3.14.18
+source=(http://www.broadcom.com/docs/linux_sta/hybrid-v35-nodebug-pcoem-$pversion.tar.gz \
+	license.patch)
+
+build() {
+	patch -p1 -i license.patch
+
+	for kernel in TS TS_SMP; do
+		KBUILD_NOPEDANTIC=1 make -C /usr/src/kernels/${release}${kernel} M=`pwd`
+		KBUILD_NOPEDANTIC=1 make -C /usr/src/kernels/${release}${kernel} M=`pwd` \
+			modules_install \
+			MODLIB=$PKG/lib/modules/${release}${kernel} \
+			INSTALL_MOD_DIR=kernel/drivers/net/wireless \
+			MODSECKEY=/etc/ssl/keys/kernel.key \
+			MODPUBKEY=/etc/ssl/certs/kernel.crt \
+			CROSS_COMPILE="/opt/cross/x-tools/x86_64-thinstation-linux-gnu/bin/x86_64-thinstation-linux-gnu-"
+		KBUILD_NOPEDANTIC=1 make -C /usr/src/kernels/${release}${kernel} M=`pwd` clean
+	done
+
+	mkdir -p $PKG/lib/licenses/broadcom-sta
+	cp lib/LICENSE.txt $PKG/lib/licenses/broadcom-sta/.
+
+	mkdir -p $PKG/etc/modprobe.d
+	echo "# Make sure that the wl driver gets loaded and not the ssb driver" > $PKG/etc/modprobe.d/$name.conf
+	echo "install ssb modprobe wl; modprobe --ignore-install ssb" >> $PKG/etc/modprobe.d/$name.conf
+}

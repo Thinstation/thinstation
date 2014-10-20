@@ -1,0 +1,24 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=firmware-p54
+version=1.0
+release=1
+source=(http://daemonizer.de/prism54/prism54-fw/fw-softmac/2.13.25.0.arm
+        http://daemonizer.de/prism54/prism54-fw/fw-usb/2.13.1.0.lm86.arm
+        http://daemonizer.de/prism54/prism54-fw/fw-usb/2.13.25.0.lm87.arm
+        http://daemonizer.de/prism54/prism54-fw/stlc4560/2.19.0.0.a.14.arm
+)
+
+build() {
+#       Rename the downloaded files appropriately from http://linuxwireless.org/en/users/Drivers/p54
+#       and, move the renamed firmware from the $SRC to the $PKG/lib/firmware
+
+        mkdir -p $PKG/lib/firmware
+
+        mv $SRC/2.13.25.0.arm  $PKG/lib/firmware/isl3886pci
+        mv $SRC/2.13.1.0.lm86.arm  $PKG/lib/firmware/isl3886usb
+        mv $SRC/2.13.25.0.lm87.arm  $PKG/lib/firmware/isl3887usb
+        mv $SRC/2.19.0.0.a.14.arm  $PKG/lib/firmware/3826.arm
+}
