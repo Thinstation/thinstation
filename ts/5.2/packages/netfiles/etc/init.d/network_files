@@ -99,6 +99,12 @@ if [ -e $TS_HOSTS ] ; then
  echo_log "Getting group configurations..." -n $debug
  thingrouplist=`cat $TS_HOSTS |grep -i $CLIENT_MAC |cut -f3- -d" " |cut -f1 -d#`
 
+ # take the first 3 and first 4 character to search for a group file
+ if [ -z "$thingrouplist" ]; then
+   thingrouplist=`echo ${CLIENT_NAME} | cut -b1-3`
+   thingrouplist="${thingrouplist} `echo ${CLIENT_NAME} | cut -b1-4`"
+ fi
+
  if [ -z "$thingrouplist" ] ; then
 	echo_log "Not found!" $debug
  else
