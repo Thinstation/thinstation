@@ -24,6 +24,7 @@ PID=$$
 COM32_LIST=`mktemp -t mkgptdrv.XXX`
 MNTDIR=`mktemp -t -d mkgptdrv.XXX`
 ESP=$MNTDIR
+cpt=262144 #default Copy Progress Threshold
 
 needed="sgdisk mkswap mkfs.vfat mkfs.ext4 fuser"
 
@@ -45,7 +46,6 @@ liblua="lua"
 
 bios=true
 configure_efi=true
-cpt=262144 #default Copy Progress Threshold
 nvdefault=false
 msoft=false
 hybridmbr=false
@@ -60,6 +60,7 @@ clean_up()
 	if mountpoint -q $MNTDIR; then
 		umount -f $MNTDIR
 	fi
+	lodestroy_
 	rm -rf $COM32_LIST $MNTDIR
 	exit $1
 }
@@ -97,6 +98,7 @@ Options:
        --sync,-s                   : Mount volumes with sync enabled.
      --hybrid,-y                   : Hybrid MBR (Limited to 3 Partitions for your safty).
      --device,-d <block device>    : The last argument is interpreted as the device anyways.
+   --loopfile,-l <filename:Size>   : Create a file of <size> and use instead of a real device.
        --help,-h                   : Show this usage.
 
 Partition Types:
@@ -138,6 +140,7 @@ getopts()
 			-d|--device)	device="$2";	shift;;
 			-s|--sync)	mount_opts="-o sync";;
 			-y|--hybrid) hybridmbr=true;;
+			-l|--loop) loopfile=$2;	shift;;
 			--cpt)		let cpt=`convert_to_sectors $2`*512;shift;;
 			--nvdefault)	nvdefault=true;;
 			--msoft)	msoft=true;;
@@ -149,7 +152,11 @@ getopts()
 		esac
 		shift
 	done
-	if [ -z "$device" ]; then
+        if [ -n "$device" ] && [ -n "$loopfile" ]; then
+                usage 22 "Error: You can not have both a device and a loopfile."
+        elif [ -n "$loopfile" ]; then
+                device=`losetup -f`
+        elif [ -z "$device" ]; then
 		usage 1 "Error: No block device specified."
 	fi
 	let number_of_parts=$part-1
@@ -457,6 +464,7 @@ install_mbr()
 
 part_id()
 {
+	blockdev --rereadpt $device
 	short_dev=`basename $device`
 	if grep -qoe "$short_dev[p][0-9]*" /proc/partitions; then
 		p=p
@@ -475,7 +483,7 @@ main()
 		efi_ready
 		# Any text file is a potential config, and there are plenty of ways to get one in there,
 		# so lets look at all of them in the config folder.
-		for file in `find $configdir -type f`;do
+		for file in `find -e tokens $configdir -type f`;do
 			if file $file |grep -qe 'ASCII text'; then
 				scan_config $file
 			fi
@@ -484,26 +492,34 @@ main()
 	fi
 	if block_device $device && \
 	   not_being_used $device && \
-	   enough_room $device && \
 	   user_agrees; then
-		partition
-		format
-		if $bios; then
-			install_mbr
+		if [ -n "$loopfile" ]; then
+			if [ -z "$overlay" ] && [ -z "$configdir" ]; then
+				usage 21 "You must specify an overlay or configdir when creating a loopfile"
+			else
+				losetup_
+			fi
 		fi
-		mount_dev
-		sync
-		if $configure_efi; then
-			copy_files
+		if enough_room $device; then
+			partition
+			format
+			if $bios; then
+				install_mbr
+			fi
+			mount_dev
+			sync
+			if $configure_efi; then
+				copy_files
+			fi
+			copy_overlay
+			_sync
+			if $bios; then
+				echo -e "\nInstalling Bios Bootloader"
+				extlinux -i $BIOSDIR
+			fi
+			sync
+			clean_up 0
 		fi
-		copy_overlay
-		_sync
-		if $bios; then
-			echo -e "\nInstalling Bios Bootloader"
-			extlinux -i $BIOSDIR
-		fi
-		sync
-		clean_up 0
 	fi
 }
 
@@ -566,11 +582,49 @@ list_mounts()
 	grep -oe "$1[0-9]*" /proc/mounts
 }
 
+losetup_()
+{
+        loopdir=`dirname $loopfile`
+        mkdir -p $loopdir; orbail 50
+	if echo $loopfile |grep -qe ":"; then
+		lsize=`echo $loopfile |cut -d ":" -f2`
+		loopfile=`echo $loopfile |cut -d ":" -f1`
+	else
+		if [ -n "$overlay" ]; then
+			osize=`du -s $overlay |cut -f1`
+			lsize=$osize
+		fi
+		if [ -n "$configdir" ]; then
+			csize=`du -s $configdir| cut -f1`
+			lsize=$csize
+		fi
+		if [ -n "$osize" ] && [ -n "$csize" ]; then
+			let lsize=$osize+$csize
+		fi
+		let lsize+=3072
+		lsize=${lsize}K
+	fi
+	lsize=`convert_to_sectors ${lsize}`
+	let lsize=$lsize/2
+	if [ $lsize -lt 6144 ]; then
+		lsize=3
+	else
+		let lsize=$lsize/1024
+	fi
+	dd if=/dev/zero of=$loopfile bs=1M count=$lsize; orbail 51
+	losetup -P $device $loopfile; orbail 52
+}
+
+lodestroy_()
+{
+	losetup -d $device; orbail 53
+}
+
 orbail()
 {
-	if [ $? -gt 0 ]; then 
+	if [ $? -gt 0 ]; then
 		if [ -n "$2" ]; then
-			echo "$2" 
+			echo "$2"
 		else
 			echo "Something went very wrong?"
 		fi
@@ -595,7 +649,8 @@ partition()
 	echo -e "\nClearing Head and Tail of Drive"
 	dd if=/dev/zero of=$device bs=1M count=2; orbail 16
 	dd if=/dev/zero of=$device bs=512 count=32 seek=$(($disk_size - 32)); orbail 17
-#	blockdev --rereadpt $device; orbail 18
+	sync
+	blockdev --rereadpt $device; orbail 18
 	echo ""
 	sgdisk -o $device; orbail 19
 	sync
@@ -671,9 +726,9 @@ format()
 		case ${type[$part]} in
 			0700|ef00)
 				if [ -n "${label[$part]}" ]; then
-					mkfs.vfat ${device}${p}${ID[$part]} -n "${label[$part]}"; orbail 23
+					mkfs.vfat ${device}${p}${ID[$part]} -I -n "${label[$part]}"; orbail 23
 				else
-					mkfs.vfat ${device}${p}${ID[$part]}; orbail 24
+					mkfs.vfat ${device}${p}${ID[$part]}; -I orbail 24
 				fi
 			;;
 			8300|8302)

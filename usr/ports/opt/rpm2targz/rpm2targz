@@ -1,0 +1,66 @@
+#!/bin/sh
+#
+# Modified by Per Liden <per@fukt.bth.se>, 2000, 2004.
+#             Han Boetes <han@mijncomputer.nl>, 2004.
+#
+# Copyright 1997, 1998 Patrick Volkerding, Moorhead, Minnesota USA
+# All rights reserved.
+#
+# Redistribution and use of this script, with or without modification, is
+# permitted provided that the following conditions are met:
+#
+# 1. Redistributions of this script must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+#
+#  THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
+#  WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+#  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO
+#  EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+#  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+#  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+#  OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+#  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+#  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+#  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+
+if [ "$#" = "0" ]; then
+	echo "usage: ${0##*/} <file.rpm> ..."
+	exit 1
+fi
+
+# If $TMPDIR is not set, then use $TMP.
+# If $TMP is not set either, then mktemp(1) will use /tmp.
+${TMPDIR:=$TMP}
+
+for file_rpm in $*; do
+	if [ ! -f $file_rpm ]; then
+		echo "$file_rpm: file not found"
+		continue
+	fi
+
+	dir_tar_gz=`mktemp -d` || exit 1
+	file_cpio=`mktemp` || exit 1
+	file_cpio_z=`mktemp` || exit 1
+	file_tar_gz=${file_rpm%.rpm}.tar.gz
+
+	echo "$file_rpm => $file_tar_gz"
+
+	dd ibs=`/usr/lib/rpm2targz/rpmoffset < $file_rpm` skip=1 if=$file_rpm of=$file_cpio_z 2> /dev/null
+
+	if file $file_cpio_z | grep "bzip2 compressed data"; then
+		bzip2 -dc < $file_cpio_z > $file_cpio
+	else
+		gzip -dc < $file_cpio_z > $file_cpio
+	fi
+
+	(	cd $dir_tar_gz
+		cpio --quiet -i -m -d < $file_cpio
+		find . -type d -perm 700 -exec chmod 755 {} \;
+		tar cf - .
+	) | gzip > $file_tar_gz
+
+	rm -rf $file_cpio $file_cpio_z $dir_tar_gz
+done
+
+# End of file.

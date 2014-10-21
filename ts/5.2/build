@@ -72,6 +72,9 @@ remove_files()
 {
 #	But only if we don't want to save them for debugging
 	if [ -z "$SAVEDIR" ]; then
+		if [ -e ./temp-efi ]; then
+			rmdir ./temp-efi
+		fi
 		if [ -e /tmp/syslinux-com32 ]; then
 			rm /tmp/syslinux-com32
 		fi
@@ -1936,6 +1939,7 @@ syslinux_copy_files_bios()
 	inet_dev=`ip route list |grep -e default |cut -d " " -f5`
 	local_ip=`ip addr show $inet_dev |grep -e "inet " |cut -d " " -f6 |cut -d "/" -f1`
 	biosdir=/usr/share/syslinux/bios
+	configdir=boot-images/templates/syslinux/$ts_syslinuxtheme
 	ESP=$IMAGEDIR
 	BIOSDIR=${ESP}/boot$BDIR
 	CONFIGDIR=`dirname $CONFIGFILE`
@@ -2085,7 +2089,6 @@ if [ -z "$NOIMAGES" ]; then
 				addpkgs $IMAGEDIR
 				syslinux_copy_files_bios
 				add_image
-
 			;;
 			pxe)
 				IMAGEDIR=boot-images/pxe
@@ -2118,34 +2121,37 @@ if [ -z "$NOIMAGES" ]; then
 				add_image
 
 				IMAGEDIR_FINAL=`dirname $IMAGEDIR`
-#				mkisofs		-o $IMAGEDIR_FINAL/thinstation.iso \
-#						-b boot/syslinux/isolinux.bin \
-#						-c boot.cat \
-#						-no-emul-boot \
-#						-boot-load-size 4 \
-#						-boot-info-table \
-#						-eltorito-alt-boot \
-#						-eltorito-platform efi \
-#						-b EFI/BOOT/bootx64.efi \
-#						-no-emul-boot \
-#						-joliet \
-#						-rock \
-#						-f \
-#						-quiet \
-#						$IMAGEDIR_FINAL/source
-
-				mkisofs		-o $IMAGEDIR_FINAL/thinstation.iso \
-						-b boot/syslinux/isolinux.bin \
-						-c boot.cat \
-						-no-emul-boot \
-						-boot-load-size 4 \
-						-boot-info-table \
-						-joliet \
-						-rock \
-						-f \
-						-quiet \
-						$IMAGEDIR_FINAL/source
-
+				if [ -e $INITDIR/boot.efi ]; then
+					mkdir -p $IMAGEDIR/EFI/BOOT
+					sys_copy $INITDIR/boot.efi $IMAGEDIR/EFI/BOOT/boot.efi
+					mkisofs		-o $IMAGEDIR_FINAL/thinstation.iso \
+							-b boot/syslinux/isolinux.bin \
+							-c boot.cat \
+							-no-emul-boot \
+							-boot-load-size 4 \
+							-boot-info-table \
+							-eltorito-alt-boot \
+							-eltorito-platform efi \
+							-b EFI/BOOT/boot.efi \
+							-no-emul-boot \
+							-joliet \
+							-rock \
+							-f \
+							-quiet \
+							$IMAGEDIR_FINAL/source
+				else
+					mkisofs		-o $IMAGEDIR_FINAL/thinstation.iso \
+							-b boot/syslinux/isolinux.bin \
+							-c boot.cat \
+							-no-emul-boot \
+							-boot-load-size 4 \
+							-boot-info-table \
+							-joliet \
+							-rock \
+							-f \
+							-quiet \
+							$IMAGEDIR_FINAL/source
+				fi
 
 				echo $IMAGEDIR_FINAL/thinstation.iso >> boot-images/initrd/added.files
 
@@ -2163,6 +2169,21 @@ if [ -z "$NOIMAGES" ]; then
 
                                 addpkgs $IMAGEDIR
                                 refind_copy_files
+
+				lsize=`du -s $IMAGEDIR |cut -f1`
+				let lsize=$lsize+32
+
+				dd if=/dev/zero of=$INITDIR/boot.efi bs=1K count=$lsize
+				lodev=`losetup -f`
+				losetup $lodev $INITDIR/boot.efi
+				mkfs.vfat -I $lodev
+				mkdir -p temp-efi
+				mount $lodev temp-efi
+				cp -a $IMAGEDIR/* temp-efi
+				umount temp-efi
+				losetup -d $lodev
+				rmdir temp-efi
+				echo $INITDIR/boot.efi >> boot-images/initrd/added.files
 
 				syslinuxdir="boot-images/syslinux"
 				for file in `find $syslinuxdir -type f |sed -e "s|$syslinuxdir/||g"`; do

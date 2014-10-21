@@ -23,7 +23,7 @@ test $(id -u) -ne 0 && echo "please run as root" && exit 1
 PID=$$
 COM32_LIST=`mktemp -t mkmbrdrv.XXX`
 MNTDIR=`mktemp -t -d mkmbrdrv.XXX`
-
+ESP=$MNTDIR
 cpt=262144 #default Copy Progress Threshold
 
 needed="parted mkswap mkfs.vfat mkfs.ext4 fuser"
@@ -54,6 +54,7 @@ clean_up()
 	if mountpoint -q $MNTDIR; then
 		umount -f $MNTDIR
 	fi
+	lodestroy_
 	rm -rf $COM32_LIST $MNTDIR
 	exit $1
 }
@@ -70,7 +71,7 @@ This is a simple script to turn a block device into a mbr formated disk.
 Additionally, you will need to tell it where it can find a syslinux theme.
 This is passed as -c <directory with syslinux.cfg>. This file will be scanned for
 the neceassary com32 files, and those files will be copied into the appropriate
-locations, along with the config folder.
+location, along with the config folder.
 
 Multiple partitions are supported, and can be added with -p <type:size:label>
 The order they are entered will be used when creating the ID. At least one
@@ -86,6 +87,7 @@ Options:
     --overlay,-o <dir>             : Additional directory to merge in at the root level.
        --sync,-s                   : Mount volumes with sync enabled.
      --device,-d <block device>    : The last argument is interpreted as the device anyways.
+   --loopfile,-l <filename:Size>   : Create a file of <size> and use instead of a real device.
        --help,-h                   : Show this usage.
 
 Partition Types:
@@ -120,12 +122,20 @@ getopts()
 			-o|--overlay)	overlay="$2";	shift;;
 			-d|--device)	device="$2";	shift;;
 			-s|--sync)	mount_opts="-o sync";;
+			-l|--loop) loopfile=$2;	shift; device=`losetup -f`;;
 			--cpt)		let cpt=`convert_to_sectors $2`*512;shift;;
 			-h|--help)	usage 255;;
 			*) device="$1";;
 		esac
 		shift
 	done
+        if [ -n "$device" ] && [ -n "$loopfile" ]; then
+                usage 22 "Error: You can not have both a device and a loopfile."
+        elif [ -n "$loopfile" ]; then
+                device=`losetup -f`
+        elif [ -z "$device" ]; then
+		usage 1 "Error: No block device specified."
+	fi
 	let number_of_parts=$part-1
 	if [ -z ${ID[0]} ]; then
 		add_part "d:0:boot"
@@ -142,7 +152,7 @@ get_dirs()
 			biosdir=$knownloc
 		fi
 	done
-	if [ -z "$configdir" ] || [ ! -e $configdir/syslinux.cfg ]; then
+	if [ -n "$configdir" ] && ! find $configdir -name syslinux.cfg; then
 		usage 14 "You must specify a syslinux theme dir with a syslinux.cfg inside."
 	fi
 	if [ -z "$biosdir" ]; then
@@ -199,15 +209,20 @@ com_deps()
 
 copy_files()
 {
-	ESP=$MNTDIR
 	BIOSDIR=$ESP/boot/syslinux
 	mkdir -p "$BIOSDIR"
-	echo -e "\nCopying Syslinux Theme"
-	copy_dir "$configdir"		"$BIOSDIR"
+	if [ -n "$configdir" ]; then
+		echo -e "\nCopying Syslinux Theme"
+		copy_dir "$configdir"		"$BIOSDIR"
+	fi
 	for com in `cat $COM32_LIST`; do
 		echo -e "\nCopying com32 files"
 		copy_file "$biosdir/$com"	"$BIOSDIR/$com"
 	done
+}
+
+copy_overlay()
+{
 	if [ -n "$overlay" ]; then
 		echo -e "\nCopying in the Overlay Directory"
 		copy_dir "$overlay"	"$ESP"
@@ -220,7 +235,7 @@ block_device()
 	   [ -e /sys/block/`basename "$1"`/dev ]; then
 		return 0
 	else
-		usage 1 "No block device specified, or not a block device."
+		usage 1 "Error: $1 not a block device."
 	fi
 }
 
@@ -236,20 +251,24 @@ not_being_used()
 
 user_agrees()
 {
-	while [ -z "$REPLY" ]; do
-		echo "All data on the selected device is about to be overwritten!"
-		echo "Are you sure you want to do this?"
-		read -n 1 -r
-		if   [[ "$REPLY" =~ ^[Yy]$ ]]; then
-			echo ""
-			return 0
-		elif [[ "$REPLY" =~ ^[Nn]$ ]]; then
-			exit 3
-		else
-			echo -e "\nInvalid response. $REPLY\n"
-			unset REPLY
-		fi
-	done
+	if [ -z "$AGREE" ]; then
+		while [ -z "$REPLY" ]; do
+			echo "All data on the selected device is about to be overwritten!"
+			echo "Are you sure you want to do this?"
+			read -n 1 -r
+			if   [[ "$REPLY" =~ ^[Yy]$ ]]; then
+				echo ""
+				return 0
+			elif [[ "$REPLY" =~ ^[Nn]$ ]]; then
+				exit 3
+			else
+				echo -e "\nInvalid response. $REPLY\n"
+				unset REPLY
+			fi
+		done
+	else
+		return 0
+	fi
 }
 
 add_part()
@@ -350,6 +369,7 @@ install_mbr()
 
 part_id()
 {
+	blockdev --rereadpt $device
 	short_dev=`basename $device`
 	if grep -qoe "$short_dev[p][0-9]*" /proc/partitions; then
 		p=p
@@ -364,33 +384,40 @@ mount_dev()
 main()
 {
 	get_dirs
-	# Any text file is a potential config, and there are plenty of ways to get one in there,
-	# so lets look at all of them in the config folder.
-	for file in `find $configdir -type f`;do 
-		if file $file |grep -qe 'ASCII text'; then
-			scan_config $file
-		fi
-	done
-	com_deps
+	if [ -n "$configdir" ]; then
+		# Any text file is a potential config, and there are plenty of ways to get one in there,
+		# so lets look at all of them in the config folder.
+		for file in `find -e tokens $configdir -type f`; do
+			if file $file |grep -qe 'ASCII text'; then
+				scan_config $file
+			fi
+		done
+		com_deps
+	fi
 	if block_device $device && \
 	   not_being_used $device && \
-	   enough_room $device && \
 	   user_agrees; then
-		partition
-		format
-		install_mbr
-		mount_dev
-		sync
-		copy_files
-		_sync
-		echo -e "\nInstalling Bios Bootloader"
-		if [ $ever -eq 6 ]; then
-			extlinux -i $BIOSDIR
-		else
-			syslinux -i -d /boot/syslinux ${device}${p}${ESPpart}
+		if [ -n "$loopfile" ]; then
+			if [ -z "$overlay" ] && [ -z "$configdir" ]; then
+				usage 21 "You must specify an overlay or configdir when creating a loopfile"
+			else
+				losetup_
+			fi
 		fi
-		sync
-		clean_up 0
+		if enough_room $device; then
+			partition
+			format
+			install_mbr
+			mount_dev
+			sync
+			copy_files
+			copy_overlay
+			_sync
+			echo -e "\nInstalling Bios Bootloader"
+			extlinux -i $BIOSDIR
+			sync
+			clean_up 0
+		fi
 	fi
 }
 
@@ -430,6 +457,7 @@ _sync()
 		let persec=$max/$time
 		printf "$format\n" "100%" "${persec}K"
 	fi
+	sleep .1
 }
 
 check_needed()
@@ -452,11 +480,49 @@ list_mounts()
 	grep -oe "$1[0-9]*" /proc/mounts
 }
 
+losetup_()
+{
+        loopdir=`dirname $loopfile`
+        mkdir -p $loopdir; orbail 50
+	if echo $loopfile |grep -qe ":"; then
+		lsize=`echo $loopfile |cut -d ":" -f2`
+		loopfile=`echo $loopfile |cut -d ":" -f1`
+	else
+		if [ -n "$overlay" ]; then
+			osize=`du -s $overlay |cut -f1`
+			lsize=$osize
+		fi
+		if [ -n "$configdir" ]; then
+			csize=`du -s $configdir| cut -f1`
+			lsize=$csize
+		fi
+		if [ -n "$osize" ] && [ -n "$csize" ]; then
+			let lsize=$osize+$csize
+		fi
+		let lsize+=3072
+		lsize=${lsize}K
+	fi
+	lsize=`convert_to_sectors ${lsize}`
+	let lsize=$lsize/2
+	if [ $lsize -lt 6144 ]; then
+		lsize=3
+	else
+		let lsize=$lsize/1024
+	fi
+	dd if=/dev/zero of=$loopfile bs=1M count=$lsize; orbail 51
+	losetup -P $device $loopfile; orbail 52
+}
+
+lodestroy_()
+{
+	losetup -d $device; orbail 53
+}
+
 orbail()
 {
-	if [ $? -gt 0 ]; then 
+	if [ $? -gt 0 ]; then
 		if [ -n "$2" ]; then
-			echo "$2" 
+			echo "$2"
 		else
 			echo "Something went very wrong?"
 		fi
@@ -475,6 +541,7 @@ partition()
 	echo -e "\nClearing Head and Tail of Drive"
 	dd if=/dev/zero of=$device bs=1M count=2; orbail 16
 	dd if=/dev/zero of=$device bs=512 count=32 seek=$(($disk_size - 32)); orbail 17
+	sync
 	blockdev --rereadpt $device; orbail 18
 	echo ""
 	parted -s $device mklabel msdos; orbail 19
@@ -497,9 +564,9 @@ format()
 		case ${type[$part]} in
 			fat32)
 				if [ -n "${label[$part]}" ]; then
-					mkfs.vfat ${device}${p}${ID[$part]} -n "${label[$part]}"; orbail 23
+					mkfs.vfat ${device}${p}${ID[$part]} -I -n "${label[$part]}"; orbail 23
 				else
-					mkfs.vfat ${device}${p}${ID[$part]}; orbail 24
+					mkfs.vfat ${device}${p}${ID[$part]}; -I orbail 24
 				fi
 			;;
 			ext4)

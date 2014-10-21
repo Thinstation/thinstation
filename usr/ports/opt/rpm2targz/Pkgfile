@@ -1,0 +1,14 @@
+# Description: A tool to convert RPM files to TAR.GZ files
+# URL:         http://www.crux.nu
+# Maintainer:  Fredrik Rinnestam, fredrik at crux dot nu
+
+name=rpm2targz
+version=1.0.4
+release=1
+source=(rpm2targz rpmoffset.c)
+
+build() {
+    gcc $CFLAGS rpmoffset.c -o rpmoffset
+    install -D -m 0755 rpm2targz $PKG/usr/bin/rpm2targz
+    install -D -m 0755 rpmoffset $PKG/usr/lib/rpm2targz/rpmoffset
+}
