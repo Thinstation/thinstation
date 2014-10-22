@@ -1,20 +1,21 @@
-# Description: User space IEEE 802.1X/WPA supplicant (wireless client) 
+# Description: User space IEEE 802.1X/WPA supplicant (wireless client)
 # URL:         http://hostap.epitest.fi/wpa_supplicant/
 # Maintainer:  Juergen Daubert, jue at crux dot nu
 # Depends on:  openssl ncurses readline
 
 name=wpa_supplicant
-version=0.7.3
+version=2.3
 release=1
-source=(http://hostap.epitest.fi/releases/$name-$version.tar.gz)
+source=(http://hostap.epitest.fi/releases/$name-$version.tar.gz \
+	config)
 
 build () {
     cd $name-$version/$name
-    cp defconfig .config
-    echo "CONFIG_READLINE=y" >> .config
-    echo "CONFIG_CTRL_IFACE_DBUS_NEW=y" >> .config
-    echo "CONFIG_DRIVER_NL80211=y" >> .config
+
+    cp $SRC/config .config
+
     make
+
     install -d $PKG/{usr/sbin,usr/man/man{8,5},etc}
     install -d $PKG/{etc/dbus-1/system.d,usr/share/dbus-1/system-services}
     install wpa_{cli,passphrase,supplicant} $PKG/usr/sbin
