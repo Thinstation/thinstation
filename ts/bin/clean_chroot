@@ -31,10 +31,10 @@ list_folders()
 
 save_archive()
 {
-	mv $name tempfile
+	mv $port_archive tempfile
 	pkgmk -c
 	find . -type f -name \*.pkg.tar.\* -delete
-	mv tempfile $name
+	mv tempfile $port_archive
 }
 
 stage1()
@@ -101,19 +101,16 @@ stage1()
 	for port_type in `list_folders`; do cd $port_type
 	for port in `list_folders`; do cd $port
 		printf "\rCleaning %-59s" "$port"
-		version=`prt-get current $port |grep -v installed`
-		if [ -n "$version" ]; then
-			name=`find . -maxdepth 1 -type f -name ${port}#$version.pkg.tar.\*`
-			if [ -n "$name" ]; then
-				case $port_type in
-					proprietary|firmware) if $super; then pkgmk -c; else save_archive;fi;;
-					*) save_archive;;
-				esac
-			else
-				printf "\rCould not find pkg file for %-40s\n" "$port"
-			fi
+		. Pkgfile
+		whole_version=$version-$release
+		port_archive=`find . -maxdepth 1 -type f -name ${port}#$whole_version.pkg.tar.\*`
+		if [ -n "$port_archive" ]; then
+			case $port_type in
+				proprietary|firmware) if $super; then pkgmk -c; else save_archive;fi;;
+				*) save_archive;;
+			esac
 		else
-			printf "\rNot installed %-54s\n" "$port"
+			printf "\rCould not find pkg file for %-40s\n" "$port"
 			pkgmk -c
 		fi
 		rm -rf work *.partial
