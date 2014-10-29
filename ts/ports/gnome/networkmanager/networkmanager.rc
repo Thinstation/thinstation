@@ -1,0 +1,76 @@
+#!/bin/bash
+
+NAME=NetworkManager
+USER=root
+RUNDIR=/var/run/$NAME
+PIDFILE=$RUNDIR/$NAME.pid
+STARTCMD="/usr/sbin/NetworkManager"
+STOPCMD=""
+STOPTIMEOUT=300
+
+function getpid() {
+	if [ -z "$PIDFILE" ]; then
+		pid="$(pgrep -xfn "$STARTCMD")"
+	else
+		if [ -f "$PIDFILE" ]; then
+			pid=$(< $PIDFILE)
+			if [ ! -d /proc/"$pid" ]; then
+				echo "$NAME: removing stale pidfile $PIDFILE" >&2
+				rm -f "$PIDFILE"
+				unset pid
+			fi
+		fi
+	fi
+	echo "$pid"
+}
+
+case $1 in
+start)
+	pid=$(getpid)
+	install -d -m 755 -o $USER $RUNDIR || exit 1
+	if [ -n "$pid" ]; then
+		echo "$NAME already running with pid $pid" >&2
+		exit 1
+	fi
+	eval "$STARTCMD"
+	;;
+stop)
+	pid=$(getpid)
+	if [ -n "$pid" ]; then
+		if [ -n "$STOPCMD" ]; then
+			eval "$STOPCMD"
+		else
+			kill "$pid"
+		fi
+		t=$(printf '%(%s)T' -1)
+		tend=$((t+STOPTIMEOUT))
+		while [ -d /proc/$pid -a $t -lt $tend ]; do
+			sleep 0.5
+			t=$(printf '%(%s)T' -1)
+		done
+		if [ -d /proc/"$pid" ]; then
+			echo "$NAME still running with pid $pid" >&2
+		else
+			[ -n "$PIDFILE" ] && rm -f "$PIDFILE"
+		fi
+	else
+		echo "$NAME is not running" >&2
+	fi
+	;;
+restart)
+	$0 stop
+	$0 start
+	;;
+status)
+	pid=$(getpid)
+	if [ -n "$pid" ]; then
+		echo "$NAME is running with pid $pid"
+	else
+		echo "$NAME is not running"
+	fi
+	;;
+*)
+	echo "usage: $0 [start|stop|restart|status]"
+	;;
+esac
+

@@ -1,0 +1,20 @@
+# Description:	resolv.conf management utility
+# URL:		http://roy.marples.name/projects/openresolv
+# Maintainer:	Alan Mizrahi, alan at mizrahi dot com dot ve
+# Depends on:	
+
+name=openresolv
+version=3.6.1
+release=1
+source=(http://roy.marples.name/downloads/openresolv/openresolv-$version.tar.bz2)
+
+build() {
+	cd $name-$version
+	./configure \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--mandir=/usr/man
+
+	make
+	make DESTDIR=$PKG install
+}

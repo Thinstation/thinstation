@@ -1,0 +1,17 @@
+To use NetworkManager for your network connections:
+
+1. Disable any previous network scripts in rc.conf (except for loopback)
+2. Add networkmanager *after* dbus
+3. Create your network configuration files in:
+   /etc/NetworkManager/system-connections
+   The syntax is described here:
+   https://projects.gnome.org/NetworkManager/developers/api/09/ref-settings.html
+   and here:
+   https://developer.gnome.org/NetworkManager/unstable/ref-settings.html
+   The post-install script creates a sample config for each of your interfaces.
+
+Note: To use networkmanager for wifi connections you must compile
+      wpa_supplicant with DBUS support.
+      At the time of writing, the port in opt doesn't have it.
+      See this feature request to find out more:
+      http://crux.nu/bugs/index.php?do=details&task_id=957

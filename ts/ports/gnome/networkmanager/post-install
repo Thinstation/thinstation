@@ -1,0 +1,78 @@
+#!/bin/sh
+#
+# This script creates sample default system-connections files
+# in /etc/NetworkManager/system-connections/ based on your current
+# ethernet and wireless devices.
+#
+# You can skip it if you prefer to configure them yourself
+# by creating the ini-files, via nmcli(1) or the networkmanager applet
+#
+# Note:
+# You may override the default ssid by doing:
+#
+# ssid=my_wifi sh post-install
+
+ssid="${ssid:-at_STARBUCKS_Wi2}"
+name="${name:-Wireless connection for $ssid}"
+
+PATH=/sbin:/usr/sbin:/bin:/usr/bin
+umask 077
+
+# Generate config for each device
+for sysdir in /sys/class/net/eth* /sys/class/net/wlan*; do
+	iface=${sysdir##*/}
+	cfg=/etc/NetworkManager/system-connections/$iface
+	if [ -f $cfg ]; then
+		echo "Skipping $iface: $cfg found"
+		continue
+	fi
+	echo "Generating sample config: $cfg"
+	macaddr=$(<$sysdir/address)
+	uuid=$(uuidgen)
+	timestamp=$(date +%s)
+	case $iface in
+	eth*)
+		cat > $cfg << EOF
+[connection]
+name=Wired connection $iface
+id=$iface
+uuid=$uuid
+type=802-3-ethernet
+autoconnect=true
+timestamp=$timestamp
+
+[802-3-ethernet]
+mac-address=$macaddr
+
+[ipv4]
+method=auto
+EOF
+		;;
+	wlan*)
+		# Convert ssid to an array of bytes
+		ssid_bytes=$(perl -e 'print "$_;" foreach unpack("C*", $ARGV[0])' $ssid)
+		cat > $cfg << EOF
+[connection]
+name=$name
+id=$iface
+uuid=$uuid
+type=802-11-wireless
+# the string below is: $ssid
+ssid=$ssid_bytes
+autoconnect=true
+timestamp=$timestamp
+# security=802-11-wireless-security
+
+[802-11-wireless]
+mac-address=$macaddr
+
+[802-11-wireless-security]
+key-mgmt=wpa-psk
+psk=secret
+
+[ipv4]
+method=auto
+EOF
+		;;
+	esac
+done

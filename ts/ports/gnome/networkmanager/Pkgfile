@@ -1,38 +1,56 @@
-# Description: Network Manager powered by DBUS
-# URL:         http://www.gnome.org/projects/NetworkManager/
-# Maintainer:  None
-# Depends on:  gudev libnl wpa_supplicant dbus-glib dhcpcd polkit
-
+# Description:	Network configuration tool
+# URL:		http://www.gnome.org/projects/NetworkManager/
+# Maintainer:	Alan Mizrahi, alan at mizrahi dot com dot ve
+# Depends on:	dbus libnl p5-xml-parser openresolv dhcpcd polkit upower libsoup iptables nss libndp
+# Optional:	ppp
 
 name=networkmanager
-pname=NetworkManager
 version=0.9.6.4
 release=1
-source=(http://ftp.gnome.org/pub/GNOME/sources/$pname/${version%.*.*}/$pname-$version.tar.xz \
-	tftp.patch)
+source=(
+http://ftp.gnome.org/pub/GNOME/sources/NetworkManager/0.9/NetworkManager-$version.tar.xz
+networkmanager.rc
+NetworkManager.conf
+)
 
 build() {
-	cd $pname-$version
+	cd NetworkManager-$version
 
-	# Network Manager is assuming that NSPR is a requirement of NSS
-	#  this is not the case in CRUX and probably not in general
-	NSS_CFLAGS="`pkg-config --cflags nss` `pkg-config --cflags nspr`"
-	NSS_LIBS="`pkg-config --libs nss` `pkg-config --libs nspr`"
-	export NSS_CFLAGS NSS_LIBS
+        # Network Manager is assuming that NSPR is a requirement of NSS
+        #  this is not the case in CRUX and probably not in general
+        NSS_CFLAGS="`pkg-config --cflags nss` `pkg-config --cflags nspr`"
+        NSS_LIBS="`pkg-config --libs nss` `pkg-config --libs nspr`"
+        export NSS_CFLAGS NSS_LIBS
 
-	patch -p0 -i $SRC/tftp.patch
-
-	./configure --prefix=/usr \
-		--libexecdir=/usr/libexec \
+	CPPFLAGS="-I/usr/include/nspr $CPPFLAGS" \
+	./configure \
+		--prefix=/usr \
 		--sysconfdir=/etc \
 		--localstatedir=/var \
+		--mandir=/usr/man \
 		--disable-nls \
-		--with-distro=slackware \
-		--disable-introspection \
 		--disable-static \
-		--with-dhclient \
-		--enable-shared \
+		--disable-introspection \
+		--enable-polkit \
+		--disable-wimax \
+		--enable-ppp \
+		--enable-gtk-doc=no \
+		--enable-gtk-doc-html=no \
+		--with-crypto=nss \
+		--enable-more-warnings=no \
+		--with-session-tracking=ck \
+		--with-resolvconf=/usr/sbin/resolvconf \
+		--with-distro=slackware
 
 	make
 	make DESTDIR=$PKG install
+
+	# Remove unneeded files
+	rm -rf $PKG/usr/share/bash-completion $PKG/usr/share/gtk-doc
+
+	# Install config file
+	install -D -m 644 -o root -g root $SRC/NetworkManager.conf $PKG/etc/NetworkManager/NetworkManager.conf
+
+	# Install startup script
+	install -D -m 755 -o root -g root $SRC/$name.rc $PKG/etc/rc.d/$name
 }
