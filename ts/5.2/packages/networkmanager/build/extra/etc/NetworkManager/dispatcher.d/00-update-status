@@ -10,14 +10,7 @@ case $ACTION in
 up|dhcp4-change)
   . /var/log/net/$INTERFACE
   NETWORKUP=TRUE
-  if [ "$IP4_NUM_ADDRESSES" -gt 0 ]; then
-    ip=`echo $IP4_ADDRESS_0 | cut -d/ -f1`
-    mask=`echo $IP4_ADDRESS_0 | cut -d/ -f2 | cut -d' ' -f1`
-    gw=`echo $IP4_ADDRESS_0 | cut -d/ -f2 | cut -d' ' -f2`
-  fi
-
-  saddr="$DHCP4_DHCP_SERVER_IDENTIFIER"
-  subnet="$DHCP4_NETWORK_NUMBER"
+  gw=`echo $IP4_ADDRESS_0 | cut -d/ -f2 | cut -d' ' -f2`
 
   sed -i -e "s/NET_DEVICE=.*/NET_DEVICE=$INTERFACE/" $TS_RUNTIME
 ;;
@@ -33,15 +26,15 @@ down)
 
 esac
 
-echo "DEVTYPE=$DEVTYPE" > /var/log/net/$INTERFACE
-echo "CLIENT_NAME=$CLIENT_NAME" >> /var/log/net/$INTERFACE
-echo "CLIENT_MAC=$CLIENT_MAC" >> /var/log/net/$INTERFACE
-echo "CLIENT_IP=$ip" >> /var/log/net/$INTERFACE
-echo "CLIENT_GATEWAY=$gw" >> /var/log/net/$INTERFACE
-echo "SUBNET=$subnet" >> /var/log/net/$INTERFACE
-echo "SERVER_IP=$DHCP4_TFTP_SERVER_NAME" >> /var/log/net/$INTERFACE
-echo "NETWORKUP=$NETWORKUP" >> /var/log/net/$INTERFACE
-echo "NETMASK_SIZE=$mask" >> /var/log/net/$INTERFACE
-echo "SERVER_NAME=$saddr" >> /var/log/net/$INTERFACE
-echo "NET_USE=$NET_USE" >> /var/log/net/$INTERFACE
-echo "NET_DHCP_TIMEOUT=$NET_DHCP_TIMEOUT" >> /var/log/net/$INTERFACE
+echo "DEVTYPE=$DEVTYPE"				> /var/log/net/$INTERFACE
+echo "CLIENT_NAME=$CLIENT_NAME"			>> /var/log/net/$INTERFACE
+echo "CLIENT_MAC=$CLIENT_MAC"			>> /var/log/net/$INTERFACE
+echo "CLIENT_IP=$DHCP4_IP_ADDRESS"		>> /var/log/net/$INTERFACE
+echo "CLIENT_GATEWAY=$gw"			>> /var/log/net/$INTERFACE
+echo "SUBNET=$DHCP4_NETWORK_NUMBER"		>> /var/log/net/$INTERFACE
+echo "SERVER_IP=$DHCP4_NEXT_SERVER"		>> /var/log/net/$INTERFACE
+echo "NETWORKUP=$NETWORKUP"			>> /var/log/net/$INTERFACE
+echo "NETMASK_SIZE=$DHCP4_SUBNET_MASK"		>> /var/log/net/$INTERFACE
+echo "DHCP_SERVER_ID=$DHCP4_DHCP_SERVER_IDENTIFIER">> /var/log/net/$INTERFACE
+echo "NET_USE=$NET_USE"				>> /var/log/net/$INTERFACE
+echo "NET_DHCP_TIMEOUT=$NET_DHCP_TIMEOUT"	>> /var/log/net/$INTERFACE
