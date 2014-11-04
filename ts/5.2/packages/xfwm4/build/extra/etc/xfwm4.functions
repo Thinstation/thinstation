@@ -155,6 +155,11 @@ xfconf_settings()
 	GTK_ICON_THEME=`grep /etc/gtk-2.0/gtkrc -e icon-theme-name |cut -d\" -f2`
 	xfconf-query -c xsettings -p /Net/IconThemeName -t string -s $GTK_ICON_THEME -n
 	xfconf-query -c xsettings -p /Net/ThemeName -t string -s $GTK_THEME -n
+	if [ -z "$X_DPI" ]; then
+		xfconf-query -c xsettings -p /Xft/DPI -t int -s "-1" -n
+	else
+		xfconf-query -c xsettings -p /Xft/DPI -t int -s "$X_DPI" -n
+	fi
 	if is_enabled $PANEL_AUTOHIDE; then
 		xfconf-query -c xfce4-panel -p /panels/panel-1/autohide -t bool -s true -n
 	else
