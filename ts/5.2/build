@@ -307,6 +307,17 @@ module_package_dependencies()
 								touch /tmp/dirty
 							fi
 						;;
+						firmware)
+							if is_enabled $ts_allfirmware; then
+								if [ -z "`find ./tmp-tree/lib/firmware -name ${name}`" ]; then
+									if ! is_enabled $DISPLAYED; then
+                	                                                        echo "Adding module dependencies for $module"
+                        	                                                DISPLAYED=true
+                                	                                fi
+									copy_firmware ${name}
+								fi
+							fi
+						;;
 						package)
 							if [ ! -e $PACDIR/$name.package ] && \
 							   [ ! -e $PACDIR/$name.pkg ]; then

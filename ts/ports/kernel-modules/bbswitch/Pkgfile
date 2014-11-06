@@ -5,7 +5,8 @@
 
 name=bbswitch
 version=0.8
-release=3.14.20
+release=1
+kver=`cat /ts/ports/kernel-modules/VERSION`
 source=(https://api.github.com/repos/Bumblebee-Project/bbswitch/tarball/v$version makefile.patch)
 
 build() {
@@ -15,7 +16,7 @@ build() {
 
     for KERNELTYPE in TS TS_SMP TS_64
     do
-       KVERSION=${release}$KERNELTYPE
+       KVERSION=${kver}$KERNELTYPE
        KCOMPDIR=${KERNELTYPE##TS}
        KDIR=/lib/modules/$KVERSION/build
        MODLIB=$PKG/lib/modules/${KVERSION}

@@ -7,7 +7,7 @@
 
 name=usb-redirector
 version=3.1
-kernver=3.14.20
+kver=`cat /ts/ports/kernel-modules/VERSION`
 release=1
 source=(http://www.incentivespro.com/usb-redirector-linux-i386.tar.gz
 	installer.sh.diff
@@ -15,7 +15,7 @@ source=(http://www.incentivespro.com/usb-redirector-linux-i386.tar.gz
 	rc.usbsrvd-excludes)
 
 build() {
-	export REPORT_KERNEL=${kernver}TS
+	export REPORT_KERNEL=${kver}TS
 	echo $PKG
 	mkdir -p $PKG/bin \
 		 $PKG/etc/{init.d,rc5.d} \
@@ -35,27 +35,27 @@ build() {
 	ln -s /etc/init.d/rc.usbsrvd-excludes $PKG/etc/rc5.d/S90rc.usbsrvd-excludes
 
 	cd $SRC/usb-redirector-linux-i386/files/modules/src/tusbd
-	REPORT_KERNEL=${kernver}TS
+	REPORT_KERNEL=${kver}TS
 	make clean
 	make
-	mkdir -p $PKG/lib/modules/${kernver}TS/kernel
-	install -m 644 tusbd.ko $PKG/lib/modules/${kernver}TS/kernel
+	mkdir -p $PKG/lib/modules/${kver}TS/kernel
+	install -m 644 tusbd.ko $PKG/lib/modules/${kver}TS/kernel
 	make clean
 
-	REPORT_KERNEL=${kernver}TS_SMP
+	REPORT_KERNEL=${kver}TS_SMP
 	make
-	mkdir -p $PKG/lib/modules/${kernver}TS_SMP/kernel
-        install -m 644 tusbd.ko $PKG/lib/modules/${kernver}TS_SMP/kernel
+	mkdir -p $PKG/lib/modules/${kver}TS_SMP/kernel
+        install -m 644 tusbd.ko $PKG/lib/modules/${kver}TS_SMP/kernel
 	make clean
 
-        REPORT_KERNEL=${kernver}TS_64
+        REPORT_KERNEL=${kver}TS_64
         make CROSS_COMPILE="/opt/cross/x-tools/x86_64-thinstation-linux-gnu/bin/x86_64-thinstation-linux-gnu-"
-        mkdir -p $PKG/lib/modules/${kernver}TS_64/kernel
-        install -m 644 tusbd.ko $PKG/lib/modules/${kernver}TS_64/kernel
+        mkdir -p $PKG/lib/modules/${kver}TS_64/kernel
+        install -m 644 tusbd.ko $PKG/lib/modules/${kver}TS_64/kernel
 
         rm $PKG/bin/tusbd.ko
 
 	for module in `find $PKG/lib/modules -name \*.ko`; do
-		perl /usr/src/kernels/${kernver}TS/scripts/sign-file sha256 /etc/ssl/keys/kernel.key /etc/ssl/certs/kernel.crt $module
+		perl /usr/src/kernels/${kver}TS/scripts/sign-file sha256 /etc/ssl/keys/kernel.key /etc/ssl/certs/kernel.crt $module
 	done
 }
