@@ -387,10 +387,11 @@ make_initrd()
 		echo -e "\nMaking initramfs"
 	fi
 	echo -e "\tFixing-Up links"
-	rm usr/bin usr/sbin usr/lib usr/icons usr/X11R7 usr/share usr/etc usr/local share
+	rm usr/bin usr/sbin usr/lib usr/icons usr/X11R7 usr/share usr/etc usr/local share usr/libexec
 	ln -sf /bin usr/bin
 	ln -sf /sbin usr/sbin
 	ln -sf /lib usr/lib
+	ln -sf /libexec usr/libexec
 	ln -sf /etc usr/etc
 	ln -sf /lib usr/share
 	ln -sf /lib share
@@ -2040,15 +2041,14 @@ refind_copy_files()
 	configdir=boot-images/templates/refind/$ts_refindtheme
 	ESP=$IMAGEDIR
 	KDIR=${ESP}/boot
-	EFIDIR=$ESP/EFI/refind
+	EFIDIR=$ESP/EFI/BOOT
+	mkdir -p $EFIDIR
 
-	for file in `find $refdir -type f |grep -Ev 'banners|docs|refind.conf-sample|refind_ia32.efi|refind_x64.efi|README.txt|mkfont.sh' |sed -e "s|$refdir/||g"`; do
+	for file in `find $refdir -type f |grep -Ev 'banners|docs|refind.conf-sample|refind_ia32.efi|refind_x64.efi|README.txt|mkfont.sh|gptsync' |sed -e "s|$refdir/||g"`; do
 		mkdir -p $EFIDIR/`dirname $file`
 		sys_copy $refdir/$file $EFIDIR/$file
 	done
 
-	EFIDIR=$ESP/EFI/BOOT
-	mkdir -p $EFIDIR
 	sys_copy $refdir/refind_ia32.efi $EFIDIR/bootia32.efi
 	sys_copy $refdir/refind_x64.efi $EFIDIR/bootx64.efi
 
@@ -2056,6 +2056,7 @@ refind_copy_files()
 		subdirname=`dirname $file |sed -e "s|^/$||g"`
 		mkdir -p "${EFIDIR}${subdirname}"
 		sys_copy ${configdir}${file} "$EFIDIR/$file"
+		sed -i -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS LM=$LM/g" "$EFIDIR/$file"
 	done
 }
 
@@ -2127,6 +2128,14 @@ if [ -z "$NOIMAGES" ]; then
 						if [ ! -e $IMAGEDIR/boot/syslinux/$file ]; then
 							sys_copy boot-images/syslinux/boot/syslinux/$file $IMAGEDIR/boot/syslinux/$file
 						fi
+					done
+				fi
+
+				refdir=/build/boot-images/refind/EFI
+				if [ -e $refdir ]; then
+					for file in `find $refdir -type f |sed -e "s|$refdir/||g"`; do
+						mkdir -p $IMAGEDIR/EFI/`dirname $file`
+						sys_copy $refdir/$file $IMAGEDIR/EFI/$file
 					done
 				fi
 				add_image

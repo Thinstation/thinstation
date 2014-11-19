@@ -1,17 +1,17 @@
 # Description: XCB utilities library
 # URL: http://xcb.freedesktop.org
-# Maintainer: Tilman Sauerbeck, tilman at crux dot nu
-# Depends on: xorg-libxcb gperf
+# Maintainer: CRUX Xorg Team, xorg-ports at crux dot nu
+# Depends on: xorg-libxcb
 
 name=xorg-xcb-util
 version=0.3.9
-release=1
+release=2
 source=(http://xcb.freedesktop.org/dist/xcb-util-$version.tar.bz2)
 
 build() {
 	cd xcb-util-$version
 
-	./configure --prefix=/usr
+	./configure --prefix=/usr --disable-static
 
 	make
 	make DESTDIR=$PKG install

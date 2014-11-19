@@ -1,0 +1,18 @@
+# Description: ATI Radeon video driver for the Xorg X server
+# URL: http://xorg.freedesktop.org
+# Maintainer: CRUX Xorg Team, xorg-ports at crux dot nu
+# Depends on: xorg-server
+
+name=xorg-glamor-egl
+version=0.6.0
+release=1
+source=(http://xorg.freedesktop.org/releases/individual/driver/glamor-egl-$version.tar.bz2)
+
+build() {
+	cd glamor-egl-$version
+
+	./configure --prefix=/usr --mandir=/usr/man
+
+	make
+	make DESTDIR=$PKG install
+}

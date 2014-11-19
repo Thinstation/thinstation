@@ -1,0 +1,20 @@
+# Description: X DRI2 protocol headers
+# URL: http://xorg.freedesktop.org
+# Maintainer: CRUX Xorg Team, xorg-ports at crux dot nu
+
+name=xorg-dri3proto
+version=1.0
+release=1
+source=(http://xorg.freedesktop.org/releases/individual/proto/dri3proto-$version.tar.bz2)
+
+build() {
+	cd dri3proto-$version
+
+	./configure --prefix=/usr
+
+	make
+	make DESTDIR=$PKG install
+
+	rm -f $PKG/usr/share/doc/dri3proto/dri3proto.txt
+	rmdir $PKG/usr/share/{doc/dri3proto,doc,}
+}

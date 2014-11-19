@@ -31,14 +31,14 @@ init)
 			$PKGDIR/dependencies
 		fi
 		echo_log "\n" $debug
-		depmod
+		depmod 2>/dev/null
 	fi
 	if [ "$MOD_PACKAGES" != "        " ] ; then
 		echo_log '\n\nLoading extra modules... \n' $debug
 		for package in $MOD_PACKAGES; do
 			pkg load $package mpkg $MOD_PREFIX
 		done
-		depmod
+		depmod 2>/dev/null
 		echo_log '\nInstalling extra modules...' $debug
 		if [ -e /etc/modules.mpkg ] ; then
 		  (cat /etc/modules.mpkg; echo) | # make sure there is a LF at the end

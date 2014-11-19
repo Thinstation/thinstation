@@ -9,6 +9,8 @@
 	done
 	if [ -n "`grep -e DEVTYPE=eth /var/log/net/* |cut -d : -f1`" ]; then
 		device=$(basename `grep -e DEVTYPE=eth /var/log/net/* |tail -n1 |cut -d : -f1`)
+	elif [ -n "`grep -e DEVTYPE=wlan /var/log/net/* |cut -d : -f1`" ]; then
+		device=$(basename `grep -e DEVTYPE=wlan /var/log/net/* |tail -n1 |cut -d : -f1`)
 	else
 		device=lo
 	fi

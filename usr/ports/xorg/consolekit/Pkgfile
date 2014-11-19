@@ -1,0 +1,15 @@
+# Description: ConsoleKit - framework for keeping track of the various users, sessions, and seats present on a system
+# URL: http://www.freedesktop.org/wiki/Software/ConsoleKit
+# Maintainer: shin at sterneck dot asia
+# Depends on:
+
+name=consolekit
+version=0.4.6
+release=1
+source=(http://www.freedesktop.org/software/ConsoleKit/dist/ConsoleKit-$version.tar.xz)
+
+build() {
+	cd ConsoleKit-$version
+	./configure --prefix=/usr --sysconfdir=/etc --localstatedir=/var --enable-pam-module
+	make DESTDIR=$PKG install
+}

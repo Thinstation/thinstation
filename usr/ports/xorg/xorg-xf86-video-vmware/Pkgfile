@@ -1,0 +1,20 @@
+# Description: xorg driver xf86-video-vmware
+# URL: http://xorg.freedesktop.org
+# Maintainer: CRUX Xorg Team, xorg-ports at crux dot nu
+# Depends on: xorg-server
+
+name=xorg-xf86-video-vmware
+version=13.0.2
+release=1
+source=()
+#source=(http://xorg.freedesktop.org/releases/individual/driver/xf86-video-vmware-$version.tar.bz2)
+
+build() {
+	git clone --depth 1 git://anongit.freedesktop.org/xorg/driver/xf86-video-vmware
+	cd xf86-video-vmware #-$version
+	./autogen.sh
+	./configure --prefix=/usr --mandir=/usr/man
+
+	make
+	make DESTDIR=$PKG install
+}

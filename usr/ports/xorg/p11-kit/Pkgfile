@@ -1,0 +1,21 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=p11-kit
+version=0.22.1
+release=1
+source=(http://p11-glue.freedesktop.org/releases/$name-$version.tar.gz)
+
+build() {
+	cd $name-$version
+
+	./configure --prefix=/usr \
+			--enable-shared \
+			--disable-rpath \
+			--disable-nls \
+			--disable-static
+
+	make
+	make DESTDIR=$PKG install
+}

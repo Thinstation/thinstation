@@ -5,19 +5,22 @@
 # Depends on: bc fortune libglade libungif netpbm xorg-libxmu mesa3d
 
 name=xscreensaver
-version=5.26
+version=5.29
 release=1
-source=(http://www.jwz.org/$name/$name-$version.tar.gz)
+source=(http://www.jwz.org/$name/$name-$version.tar.gz
+	screensaver-properties.desktop)
 
 build() {
 	cd $name-$version
+	cp ../screensaver-properties.desktop driver
 	
 	sed -i configure \
 	-e 's/USE_NLS=yes/USE_NLS=no/' \
 	-e 's/ENABLE_NLS 1/ENABLE_NLS 0/'
 
-	./configure \
+	LIBS=-lpthread ./configure \
 		--prefix=/usr \
+		--sysconfdir=/etc \
 		--libexecdir=/usr/lib \
 		--mandir=/usr/man \
 		--with-x-app-defaults='/etc/X11/app-defaults' \
@@ -36,6 +39,8 @@ build() {
 		--with-image-directory=/etc \
 		--with-xdbe-ext \
 		--without-setuid-hacks
+
+	sed -i 's/-std=c89//' hacks/Makefile
 
 	make
 	make install_prefix=$PKG install

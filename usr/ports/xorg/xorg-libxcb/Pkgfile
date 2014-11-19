@@ -1,17 +1,24 @@
 # Description: XCB library
 # URL: http://xcb.freedesktop.org
-# Maintainer: Tilman Sauerbeck, tilman at crux dot nu
-# Depends on: xorg-xcb-proto, xorg-libxdmcp, xorg-libxau, libxslt, libpthread-stubs
+# Maintainer: CRUX Xorg Team, xorg-ports at crux dot nu
+# Depends on: xorg-xcb-proto, xorg-libxdmcp, xorg-libxau, libxslt, xorg-xcb-proto
 
 name=xorg-libxcb
-version=1.10
+version=1.11
 release=1
 source=(http://xcb.freedesktop.org/dist/libxcb-$version.tar.bz2)
 
 build() {
 	cd libxcb-$version
 
-	./configure --prefix=/usr
+	# pthreads-stubs is useless on Linux, so disable dependency
+	sed -e "s/pthread-stubs//" -i configure.ac
+	autoreconf -fiv
+
+	./configure --prefix=/usr \
+		--enable-xinput \
+		--enable-xkb \
+		--disable-static
 
 	make
 	make DESTDIR=$PKG install

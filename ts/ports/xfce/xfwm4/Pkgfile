@@ -6,12 +6,21 @@
 # Group: xfce4
 
 name=xfwm4
-version=4.11.1
+version=4.11.2
 release=1
 source=(http://archive.xfce.org/src/xfce/$name/${version%.*}/$name-$version.tar.bz2)
 
 build () {
   cd $name-$version
+
+	for xpm in `find . -name *.xpm`; do
+		if [ "`identify $xpm |cut -d " " -f3 |cut -d x -f1`" == "1" ]; then
+			xwidth=`identify $xpm |cut -d " " -f3 |cut -d x -f2`
+			convert $xpm -resize 2x$xwidth\! ${xpm}_resize
+			rm $xpm
+			mv ${xpm}_resize $xpm
+		fi
+	done
 
   ./configure --prefix=/usr \
 		--libexecdir=/usr/libexec \

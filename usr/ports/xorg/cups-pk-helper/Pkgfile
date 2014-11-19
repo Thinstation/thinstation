@@ -1,0 +1,19 @@
+# Description: PolKit interface between CUPS and System Config Printer
+# URL: http://cyberelk.net/tim/data/system-config-printer/
+# Maintainer: None
+
+name=cups-pk-helper
+version=0.2.1
+release=1
+source=(http://www.freedesktop.org/software/$name/releases/$name-$version.tar.bz2)
+
+build() {
+	cd $name-$version
+	sed -i -e "s/USE_NLS=yes/USE_NLS=no/" \
+               -e "s/ENABLE_NLS 1/ENABLE_NLS 0/" configure
+
+	./configure --sysconfdir=/etc --prefix=/usr --disable-nls
+
+	make
+	make install DESTDIR=$PKG
+}

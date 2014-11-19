@@ -1,0 +1,18 @@
+# Description: xorg driver xf86-video-nv
+# URL: http://xorg.freedesktop.org
+# Maintainer: CRUX Xorg Team, xorg-ports at crux dot nu
+# Depends on: xorg-server
+
+name=xorg-xf86-video-nv
+version=2.1.20
+release=2
+source=(http://xorg.freedesktop.org/releases/individual/driver/xf86-video-nv-$version.tar.bz2 mibstore.patch)
+
+build() {
+	cd xf86-video-nv-$version
+	patch -p1 -i $SRC/mibstore.patch
+	./configure --prefix=/usr --mandir=/usr/man
+
+	make
+	make DESTDIR=$PKG install
+}

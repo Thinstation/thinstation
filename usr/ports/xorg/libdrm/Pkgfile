@@ -1,0 +1,18 @@
+# Description: Userspace interface to kernel DRM services
+# URL: http://dri.freedesktop.org/
+# Maintainer: CRUX Xorg Team, xorg-ports at crux dot nu
+# Depends on: libpthread-stubs xorg-libpciaccess 
+
+name=libdrm
+version=2.4.58
+release=1
+source=(http://dri.freedesktop.org/libdrm/libdrm-$version.tar.bz2)
+
+build() {
+    cd $name-$version
+    sed -e "/pthread-stubs/d" -i configure.ac
+    autoreconf -fiv
+    ./configure --prefix=/usr --mandir=/usr/man --enable-udev
+    make
+    make DESTDIR=$PKG install
+}

@@ -1,0 +1,19 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=xorg-libxp
+version=1.0.2
+release=1
+source=(http://xorg.freedesktop.org/releases/individual/lib/libXp-$version.tar.bz2)
+
+build() {
+	cd libXp-$version
+
+	./configure --prefix=/usr
+
+	make
+	make DESTDIR=$PKG install
+
+rm -rf $PKG/usr/man
+}

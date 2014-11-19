@@ -1,0 +1,13 @@
+--- js-1.8.5/js/src/configure.in	2011-03-31 22:08:36.000000000 +0300
++++ js-1.8.5/js/src/configure.in~	2012-11-10 17:59:02.222497367 +0200
+@@ -5615,8 +5615,8 @@ esac
+ 
+ if test -z "$SKIP_LIBRARY_CHECKS" -a -z "$NO_EDITLINE"; then
+   if test -n "$JS_WANT_READLINE"; then
+-    AC_CHECK_LIB(readline, readline,
+-                 EDITLINE_LIBS="-lreadline",
++    AC_CHECK_LIB(edit, readline,
++                 EDITLINE_LIBS="$(pkg-config --libs libedit)",
+                  AC_MSG_ERROR([No system readline library found.]))
+   else
+     dnl By default, we use editline

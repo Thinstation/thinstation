@@ -23,7 +23,7 @@ bb_switch()
 		# them from being reloaded (which causes discrete card to be switched 
 		# back on)
 		find /lib/modules -name 'nvidia*.ko' -delete
-		depmod
+		depmod 2>/dev/null
 	fi
 	# let udev reload nvidia, if necessary
 }
@@ -36,7 +36,7 @@ vesa_mode()
 			rundepmod=true
 		done
 		if is_enabled $rundepmod; then
-			depmod
+			depmod 2>/dev/null
 		fi
 		if [ -e /usr/lib/xorg/modules/drivers/vesa_drv.so ]; then
 			echo X_DRIVER_NAME=vesa >> $TS_RUNTIME

@@ -1,21 +1,18 @@
 # Description: xorg proto inputproto
 # URL: http://xorg.freedesktop.org
-# Maintainer: Tilman Sauerbeck, tilman at crux dot nu
+# Maintainer: CRUX Xorg Team, xorg-ports at crux dot nu
+# Depends on: xorg-util-macros
 
 name=xorg-inputproto
-version=2.3
-release=1
+version=2.3.1
+release=2
 source=(http://xorg.freedesktop.org/releases/individual/proto/inputproto-$version.tar.bz2)
 
 build() {
 	cd inputproto-$version
 
-	./configure --prefix=/usr
+	./configure --prefix=/usr --without-asciidoc
 
 	make
 	make DESTDIR=$PKG install
-
-	rm $PKG/usr/share/doc/inputproto/{XI,XI2}proto.txt
-	rm -rf $PKG/usr/share/doc
-	find $PKG/usr/share -type d -delete
 }

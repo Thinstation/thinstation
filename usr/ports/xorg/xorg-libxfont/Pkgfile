@@ -1,17 +1,19 @@
 # Description: xorg lib libXfont
 # URL: http://xorg.freedesktop.org
-# Maintainer: Tilman Sauerbeck, tilman at crux dot nu
+# Maintainer: CRUX Xorg Team, xorg-ports at crux dot nu
 # Depends on: freetype, xorg-xproto, xorg-xtrans, xorg-fontsproto, xorg-libfontenc
 
 name=xorg-libxfont
-version=1.4.7
+version=1.5.0
 release=1
 source=(http://xorg.freedesktop.org/releases/individual/lib/libXfont-$version.tar.bz2)
 
 build() {
 	cd libXfont-$version
 
-	./configure --prefix=/usr
+	sed -i 's/fontsproto < 2.1.3/fontsproto/' configure
+
+	./configure --prefix=/usr --disable-static
 
 	make
 	make DESTDIR=$PKG install

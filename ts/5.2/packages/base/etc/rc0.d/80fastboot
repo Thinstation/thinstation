@@ -64,7 +64,10 @@ pxelinux()
 	MEMORY_CONSTRAINED=TRUE
 	FILE=/tmp/lib.squash
 	cd /tmp
-	if [ "$FASTBOOT_URL" != "" ]; then
+	if [ -z "$FASTBOOT_URL" ] && [ ${initrd:0:7} == "http://" ]; then
+		FASTBOOT_URL=${initrd%/*}
+	fi
+	if [ -n "$FASTBOOT_URL" ]; then
 		wget $FASTBOOT_URL/lib.squash 2>&1 |tee /var/log/wget_progress &
 		sleep .2
 		OLDPROGRESS=$progress

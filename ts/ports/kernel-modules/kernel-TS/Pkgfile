@@ -28,11 +28,12 @@ export MAKEFLAGS="-j5"
 		cp /etc/ssl/certs/kernel-ca.crt extra_certificates
 	fi
 
-	make modules_prepare __headers
+	make modules_prepare headers_install
 	mkdir -p $PKG/usr/src/kernels/${kernel}
 	cp --parents `find -type f -name "Makefile*" -o -name "Kconfig*"` $PKG/usr/src/kernels/${kernel}
-	cp -a {include,scripts,.config} $PKG/usr/src/kernels/${kernel}
+	cp -a {include,scripts,.config,usr} $PKG/usr/src/kernels/${kernel}
 	cp -a arch/x86/include $PKG/usr/src/kernels/${kernel}/arch/x86
+	ln -sf /usr/src/kernels/${kernel}/usr/include/asm-generic $PKG/usr/src/kernels/${kernel}/usr/include/asm
 	rm $PKG/usr/src/kernels/${kernel}/scripts/{mod,kconfig}/*.o
 
 	make

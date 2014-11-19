@@ -1,0 +1,29 @@
+# Description: polkit - application-level toolkit to allow unprivieged processes to communicate with privledged processes
+# URL: http://www.linuxfromscratch.org/blfs/view/svn/postlfs/polkit.html
+# Maintainer:
+# Depends on:
+
+name=polkit
+version=0.112
+release=1
+source=(http://www.freedesktop.org/software/polkit/releases/$name-$version.tar.gz)
+
+build() {
+	cd $name-$version
+
+	sed -i -e "s/USE_NLS=yes/USE_NLS=no/" \
+			-e "s/ENABLE_NLS 1/ENABLE_NLS 0/" configure
+
+	./configure --prefix=/usr --sysconfdir=/etc \
+		    --mandir=/usr/man \
+		    --libexecdir=/usr/libexec \
+		    --localstatedir=/var \
+		    --disable-static \
+		    --disable-nls \
+		    --enable-gtk-doc-html=no \
+		    --enable-libsystemd-login=no \
+		    --disable-examples
+
+	make
+	make DESTDIR=$PKG install
+}

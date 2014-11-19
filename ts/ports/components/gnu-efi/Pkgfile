@@ -5,36 +5,25 @@
 name=gnu-efi
 version=3.0w.orig
 release=1
-source=(http://download.sourceforge.net/${name}/${name}_${version}.tar.gz)
+source=(http://download.sourceforge.net/${name}/${name}_${version}.tar.gz
+	makefile.patch)
+
+strip() {
+  if [ -n "`echo $@ | grep lib64/`" ]; then
+    /opt/cross/x-tools/x86_64-thinstaion-linux-gnu/bin/x86_64-thinstation-linux-gnu-strip $@
+  else
+    /usr/bin/strip $@
+  fi
+}
 
 build() {
   cd $name-3.0
-  sed -i "s|/usr/local|$PKG/usr|g" Make.defaults
+  patch -Np1 < $SRC/makefile.patch
+
+  make INSTALLROOT=$PKG PREFIX=/usr install
+  make clean
+
   export REPORT_ARCH=x86_64
   export CFLAGS="-O2 -march=x86-64 -m64 -pipe"
-  make ARCH=x86_64 CROSS_COMPILE="/opt/cross/x-tools/x86_64-thinstation-linux-gnu/bin/x86_64-thinstation-linux-gnu-"
-  make install
-  mkdir -p $PKG/usr/include/efi
-  cp -a inc/*.h $PKG/usr/include/efi
-  cp -a inc/x86_64 $PKG/usr/include/efi
-  cp -a inc/ia32 $PKG/usr/include/efi
-  cp -a inc/protocol $PKG/usr/include/efi
-  mkdir -p $PKG/usr/lib
-  cp -a gnuefi/*.a $PKG/usr/lib
-  cp -a gnuefi/*.lds $PKG/usr/lib
-  cp -a gnuefi/*.o $PKG/usr/lib
-
-  mkdir -p $PKG/opt/cross/x-tools/x86_64-thinstation-linux-gnu/x86_64-thinstation-linux-gnu/sysroot/usr
-  cp -a $PKG/usr/include $PKG/opt/cross/x-tools/x86_64-thinstation-linux-gnu/x86_64-thinstation-linux-gnu/sysroot/usr/.
-
-#  make clean
-#  export CFLAGS="-O2 -march=x86-64 -m64 -pipe"
-#  make ARCH=x86_64 CROSS_COMPILE="/opt/cross/x-tools/x86_64-thinstation-linux-gnu/bin/x86_64-thinstation-linux-gnu-"
-#  cp gnuefi/crt0-efi-x86_64.o $PKG/usr/lib/crt0-efi-x86_64.o
-
-  chmod -R 644 $PKG
-  for d in `find $PKG -type d`; do
-        chmod 755 $d
-  done
-
+  make ARCH=x86_64 CROSS_COMPILE="/opt/cross/x-tools/x86_64-thinstation-linux-gnu/bin/x86_64-thinstation-linux-gnu-" INSTALLROOT=$PKG/opt/cross/x-tools/x86_64-thinstation-linux-gnu/x86_64-thinstation-linux-gnu/sysroot PREFIX=/usr install
 }

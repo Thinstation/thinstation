@@ -3,28 +3,30 @@
 # Maintainer:  CRUX System Team, core-ports at crux dot nu
 
 name=openssl-crosstools
-version=1.0.1i
+version=1.0.1j
 release=1
 source=(http://www.openssl.org/source/openssl-$version.tar.gz)
+cross_prefix=/opt/cross/x-tools/x86_64-thinstation-linux-gnu
+
+strip() {
+    $cross_prefix/bin/x86_64-thinstation-linux-gnu-strip $@
+}
 
 build() {
     cd openssl-$version
     export MAKEFLAGS="$MAKEFLAGS -j1"
     export CFLAGS="-O2 -march=x86-64 -m64 -pipe"
     export REPORT_ARCH=x86_64
-    cross_prefix=/opt/cross/x-tools/x86_64-thinstation-linux-gnu
-    $cross_prefix/bin/x86_64-thinstation-linux-gnu-ranlib $cross_prefix/x86_64-thinstation-linux-gnu/sysroot/usr/lib64/libc_nonshared.a
-    $cross_prefix/bin/x86_64-thinstation-linux-gnu-ranlib $cross_prefix/lib/gcc/x86_64-thinstation-linux-gnu/4.9.0/libgcc.a
+    export CROSS_COMPILE="/opt/cross/x-tools/x86_64-thinstation-linux-gnu/bin/x86_64-thinstation-linux-gnu-"
 
     ./config --prefix=/usr --openssldir=/etc/ssl shared
     sed -i "s|-O3|$CFLAGS|" Makefile
     # Disable static
     sed -i 's# libcrypto.a##;s# libssl.a##' Makefile
-    CROSS_COMPILE="/opt/cross/x-tools/x86_64-thinstation-linux-gnu/bin/x86_64-thinstation-linux-gnu-"
-    sed -i -e "s|CC= gcc|CC= ${CROSS_COMPILE}gcc|g" Makefile
-    sed -i -e "s|AR= ar|AR= ${CROSS_COMPILE}ar|g" Makefile
-    sed -i -e "s|NM= nm|NM= ${CROSS_COMPILE}nm|g" Makefile
-    sed -i -e "s|RANLIB= /usr/bin/ranlib|RANLIB= $cross_prefix/bin/x86_64-thinstation-linux-gnu-ranlib|g" Makefile
+    #sed -i -e "s|CC= gcc|CC= ${CROSS_COMPILE}gcc|g" Makefile
+    #sed -i -e "s|AR= ar|AR= ${CROSS_COMPILE}ar|g" Makefile
+    #sed -i -e "s|NM= nm|NM= ${CROSS_COMPILE}nm|g" Makefile
+    #sed -i -e "s|RANLIB= /usr/bin/ranlib|RANLIB= $cross_prefix/bin/x86_64-thinstation-linux-gnu-ranlib|g" Makefile
     make
     make INSTALL_PREFIX=$PKG LIBDIR=lib MANDIR=/usr/man MANSUFFIX=ssl install
 

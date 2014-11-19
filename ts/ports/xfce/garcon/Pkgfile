@@ -8,12 +8,13 @@
 name=garcon
 version=0.3.0
 release=1
-source=(http://archive.xfce.org/src/xfce/garcon/0.3/$name-$version.tar.bz2)
+source=(http://archive.xfce.org/src/xfce/garcon/${version%.*}/$name-$version.tar.bz2)
 
 build () {
   cd $name-$version
 
   ./configure --prefix=/usr \
+              --sysconfdir=/etc \
               --disable-static \
               --disable-debug
 

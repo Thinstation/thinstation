@@ -1,0 +1,22 @@
+# Description: base MIME and Application database for GNOME
+# URL: http://freshmeat.net/projects/gnome-mime-data/
+# Maintainer: Matt Housh, jaeger at morpheus dot net
+# Depends on: shared-mime-info
+# Group: gnome/platform
+
+name=gmime
+version=2.6.20
+release=1
+source=(http://ftp.gnome.org/pub/GNOME/sources/$name/${version%.*}/$name-$version.tar.xz)
+
+build() {
+	cd $name-$version
+
+	./configure --prefix=/usr \
+		--disable-static \
+		--enable-shared
+
+	make
+	make DESTDIR=$PKG install
+	rm -rf $PKG/usr/share/gtk-doc
+}

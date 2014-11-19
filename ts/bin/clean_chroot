@@ -33,7 +33,7 @@ save_archive()
 {
 	mv $port_archive tempfile
 	pkgmk -c
-	find . -type f -name \*.pkg.tar.\* -delete
+	find -L . -type f -name \*.pkg.tar.\* -delete
 	mv tempfile $port_archive
 }
 
@@ -63,7 +63,7 @@ stage1()
 	done
 
 	# Remove any empty folders
-	find $TSWRKNG -type d -empty -delete
+	find -L $TSWRKNG -type d -empty -delete
 
 	for i in `ls --color=never $TSWRKNG/packages`; do
 		errata=false
@@ -103,7 +103,7 @@ stage1()
 		printf "\rCleaning %-59s" "$port"
 		. Pkgfile
 		whole_version=$version-$release
-		port_archive=`find . -maxdepth 1 -type f -name ${port}#$whole_version.pkg.tar.\*`
+		port_archive=`find -L . -maxdepth 1 -type f -name ${port}#$whole_version.pkg.tar.\*`
 		if [ -n "$port_archive" ]; then
 			case $port_type in
 				proprietary|firmware) if $super; then pkgmk -c; else save_archive;fi;;

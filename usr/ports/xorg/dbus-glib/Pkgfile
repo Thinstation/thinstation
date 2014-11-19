@@ -1,0 +1,20 @@
+# Description: D-Bus GLib bindings  
+# URL: http://freedesktop.org/wiki/Software/DBusBindings
+# Packager: Matt Housh, jaeger at crux dot nu
+# Maintainer: Fredrik Rinnestam, fredrik at crux dot nu
+# Depends on: dbus, glib
+
+name=dbus-glib
+version=0.102
+release=2
+source=(http://dbus.freedesktop.org/releases/$name/$name-$version.tar.gz)
+
+build() {
+	cd $name-$version
+	export PATH="$PATH:/usr/sbin"
+	./configure --prefix=/usr \
+		--disable-static
+	make
+	make DESTDIR=$PKG install
+	rm -rf $PKG/usr/{etc,libexec,share}
+}

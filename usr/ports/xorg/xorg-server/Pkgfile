@@ -1,0 +1,43 @@
+# Description: X Window System server
+# URL: http://xorg.freedesktop.org
+# Maintainer: CRUX Xorg Team, xorg-ports at crux dot nu
+# Depends on: udev util-linux mesa3d xorg-bdftopcf xorg-bigreqsproto xorg-libdmx xorg-libpixman xorg-libxaw xorg-libxcomposite xorg-libxcursor xorg-libxft xorg-libxinerama xorg-libxkbfile xorg-libxrandr xorg-libxres xorg-libxtst xorg-libxvmc xorg-libxxf86dga xorg-mkfontdir xorg-mkfontscale xorg-scrnsaverproto xorg-xcmiscproto xorg-xf86driproto
+
+name=xorg-server
+version=1.16.2
+release=1
+source=(http://xorg.freedesktop.org/releases/individual/xserver/xorg-server-$version.tar.bz2 \
+	xorg-gcc.patch)
+
+build() {
+#    git clone --depth 1 git://anongit.freedesktop.org/xorg/xserver
+#    cd xserver
+#    ./autogen.sh
+    cd $name-$version
+    patch -Np1 -i $SRC/xorg-gcc.patch
+#   patch -Np1 < $SRC/xorg-server-1.15.0-add_prime_support-1.patch
+
+    ./configure --prefix=/usr \
+		--sysconfdir=/etc \
+                --mandir=/usr/man \
+                --localstatedir=/var \
+                --with-fontrootdir=/usr/share/fonts/X11 \
+                --with-xkb-output=/var/lib/xkb \
+		--with-builder-addr="doncuppjr@yahoo.com" \
+		--with-os-vendor="Thinstation" \
+		--with-vendor-name="ThinStation made by Don Cupp" \
+		--with-vendor-name-short="ThinStation" \
+		--with-vendor-web="http://www.thinstation.org" \
+		--with-os-name="ThinStation" \
+		--with-builderstring="Donald A. Cupp Jr." \
+		--enable-xcsecurity \
+		--without-systemd-daemon \
+                --disable-systemd-logind
+
+    make
+    make DESTDIR=$PKG install
+
+    rmdir $PKG/var/log
+
+    install -m 755 -d $PKG/etc/X11/xorg.conf.d
+}

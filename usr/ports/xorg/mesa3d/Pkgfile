@@ -1,0 +1,35 @@
+# Description: Mesa 3D Graphics Library
+# URL: http://www.mesa3d.org
+# Maintainer: CRUX Xorg Team, xorg-ports at crux dot nu
+# Depends on: libdrm, xorg-makedepend, xorg-glproto, xorg-xextproto, xorg-dri2proto, xorg-libx11, xorg-xf86vidmodeproto, xorg-libxext, xorg-libxxf86vm, xorg-libxt, xorg-libxdamage, xorg-libpciaccess, expat, talloc, libxml2-python
+
+name=mesa3d
+version=10.3.3
+release=1
+source=(ftp://ftp.freedesktop.org/pub/mesa/${version}/MesaLib-$version.tar.bz2
+	MesaLib-10.1.0-svga_texture-1.patch)
+
+build() {
+    cd Mesa-$version
+    patch -Np1 < ../MesaLib-10.1.0-svga_texture-1.patch
+
+    ./autogen.sh --prefix=/usr \
+		--sysconfdir=/etc \
+                --with-gallium-drivers=i915,r300,r600,svga,radeonsi,swrast,nouveau \
+		--enable-xa \
+		--enable-glx-tls \
+		--with-egl-platforms="drm,x11" \
+		--enable-r600-llvm-compiler \
+		--enable-llvm-shared-libs
+
+#   These are options that look like they'd normally be used for Mesa outside
+#   of Crux. Also, note that i915 is not typically a Gallium driver
+#		--enable-gles1 \
+#		--enable-gles2 \
+#		--enable-openvg \
+#		--enable-gbm \
+#		--enable-gallium-egl \
+#		--enable-gallium-gbm
+    make
+    make DESTDIR=$PKG install
+}

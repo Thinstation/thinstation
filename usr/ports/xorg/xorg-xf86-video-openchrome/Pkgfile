@@ -1,0 +1,21 @@
+# Description: xorg driver xf86-video-openchrome
+# URL: http://www.openchrome.org
+# Maintainer: CRUX Xorg Team, xorg-ports at crux dot nu
+# Depends on: xorg-server
+
+name=xorg-xf86-video-openchrome
+version=0.3.3+
+release=1
+source=(0001-modified-src-via_id.c.patch)
+
+build() {
+	git clone git://anongit.freedesktop.org/openchrome/xf86-video-openchrome
+        cd xf86-video-openchrome
+
+	git apply $SRC/0001-modified-src-via_id.c.patch
+
+        ./autogen.sh --prefix=/usr --mandir=/usr/man
+
+        make
+	make DESTDIR=$PKG install
+}

@@ -1,0 +1,19 @@
+# Description: Command-line utilities for working with desktop entries
+# URL: http://www.freedesktop.org/software/desktop-file-utils/
+# Maintainer: Jose V Beneyto, sepen at crux dot nu
+# Packager: Matt Housh, jaeger at morpheus dot net
+# Depends on: glib popt pkg-config
+
+name=desktop-file-utils
+version=0.22
+release=1
+source=(http://freedesktop.org/software/$name/releases/$name-$version.tar.xz)
+
+build() {
+	cd $name-$version
+	./configure --prefix=/usr \
+                    --mandir=/usr/man \
+                    --disable-nls
+	make
+	make DESTDIR=$PKG install
+}

@@ -1,0 +1,21 @@
+# Description: xdg-user-dirs
+# URL: http://xorg.freedesktop.org
+# Maintainer: Tilman Sauerbeck, tilman at crux dot nu
+
+name=xdg-user-dirs
+version=0.15
+release=1
+source=(http://user-dirs.freedesktop.org/releases/xdg-user-dirs-$version.tar.gz)
+
+build() {
+	cd $name-$version
+
+	# don't build test programs
+#	sed -i -e 's/^SUBDIRS = pixman test/SUBDIRS = pixman/' Makefile.in
+
+	./configure --prefix=/usr --mandir=/usr/man \
+		--sysconfdir=/etc --disable-nls
+
+	make
+	make DESTDIR=$PKG install
+}

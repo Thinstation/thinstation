@@ -8,12 +8,10 @@
 name=gtk-xfce-engine
 version=3.0.1
 release=1
-source=(http://git.xfce.org/xfce/$name/snapshot/${name}-${name}-$version.tar.bz2)
+source=(http://archive.xfce.org/src/xfce/$name/${version%.*}/$name-$version.tar.bz2)
 
 build () {
-  cd ${name}-${name}-$version
-
-  ./autogen.sh
+  cd ${name}-$version
 
   #Fix missing px in gtk.css
   for css in `grep -R * -e "text-shadow" |cut -d ":" -f1`; do

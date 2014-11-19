@@ -1,0 +1,19 @@
+# Description: A system for managing library compile/link flags
+# URL: http://pkgconfig.freedesktop.org/wiki/
+# Maintainer: CRUX System Team, core-ports at crux dot nu
+# Depends on: glib
+
+name=pkg-config
+version=0.28
+release=1
+source=(http://$name.freedesktop.org/releases/$name-$version.tar.gz)
+
+build() {
+	cd $name-$version
+	./configure --prefix=/usr --mandir=/usr/man
+	make
+	make DESTDIR=$PKG install
+
+	rm $PKG/usr/share/doc/pkg-config/pkg-config-guide.html
+	rmdir $PKG/usr/share/doc/{pkg-config,}
+}

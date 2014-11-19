@@ -1,6 +1,6 @@
 # Description: xorg lib libXt
 # URL: http://xorg.freedesktop.org
-# Maintainer: Tilman Sauerbeck, tilman at crux dot nu
+# Maintainer: CRUX Xorg Team, xorg-ports at crux dot nu
 # Depends on: xorg-libsm, xorg-libx11, xorg-xproto, xorg-kbproto
 
 name=xorg-libxt
@@ -11,8 +11,12 @@ source=(http://xorg.freedesktop.org/releases/individual/lib/libXt-$version.tar.b
 build() {
 	cd libXt-$version
 
-	./configure --prefix=/usr --mandir=/usr/man
+	./configure --prefix=/usr --mandir=/usr/man \
+		--sysconfdir=/etc --disable-static
 
 	make
 	make DESTDIR=$PKG install
+
+	rm -r $PKG/usr/share/doc
+	rmdir $PKG/usr/share
 }

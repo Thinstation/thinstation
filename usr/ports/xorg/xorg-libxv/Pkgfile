@@ -1,6 +1,6 @@
 # Description: X Video extension client library
 # URL: http://xorg.freedesktop.org
-# Maintainer: Tilman Sauerbeck, tilman at crux dot nu
+# Maintainer: CRUX Xorg Team, xorg-ports at crux dot nu
 # Depends on: xorg-libx11, xorg-libxext, xorg-videoproto
 
 name=xorg-libxv
@@ -11,7 +11,8 @@ source=(http://xorg.freedesktop.org/releases/individual/lib/libXv-$version.tar.b
 build() {
 	cd libXv-$version
 
-	./configure --prefix=/usr --mandir=/usr/man
+	./configure --prefix=/usr --mandir=/usr/man \
+		--sysconfdir=/etc --disable-static
 
 	make
 	make DESTDIR=$PKG install

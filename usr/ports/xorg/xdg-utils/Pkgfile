@@ -1,0 +1,19 @@
+# Description: Command line tools for desktop integration tasks.
+# URL: http://portland.freedesktop.org/ 
+# Maintainer: Bartlomiej Palmowski, rotwang at crux dot org dot pl
+# Packager: Victor Martinez, pitillo at ono dot com
+# Depends on: 
+
+name=xdg-utils
+version=1.0.2
+release=1
+source=(http://portland.freedesktop.org/download/xdg-utils-$version.tgz)
+
+build() {
+  cd ${name}-${version}
+  ./configure --prefix=/usr \
+              --mandir=/usr/man \
+              --disable-nls
+  make
+  make DESTDIR=${PKG} install
+}

@@ -1,26 +1,29 @@
 # Description: X keyboard configuration database
 # URL: http://www.freedesktop.org/wiki/Software_2fXKeyboardConfig
-# Maintainer: Tilman Sauerbeck, tilman at crux dot nu
+# Maintainer: CRUX Xorg Team, xorg-ports at crux dot nu
 # Depends on: xorg-xkbcomp, intltool
 
 name=xkeyboard-config
-version=2.11
+version=2.12
 release=1
-source=(http://www.x.org/releases/individual/data/$name/$name-$version.tar.bz2 \
-	nowarn.patch)
+source=(http://xorg.freedesktop.org/releases/individual/data/$name/$name-$version.tar.bz2 \
+	basic.patch)
 
 build() {
-	cd xkeyboard-config-$version
+	cd $name-$version
 
-	patch -p0 -i $SRC/nowarn.patch
+	patch -p0 -i $SRC/basic.patch
+
 	./configure --prefix=/usr \
+	            --mandir=/usr/man \
 	            --with-xkb-base=/usr/share/X11/xkb \
 	            --with-xkb-rules-symlink=xorg
 
-	make
+	make -j1
 	make DESTDIR=$PKG install
 
 	rm -rf $PKG/usr/share/locale
 
 	ln -s /var/lib/xkb $PKG/usr/share/X11/xkb/compiled 
+	find $PKG -name README -delete
 }

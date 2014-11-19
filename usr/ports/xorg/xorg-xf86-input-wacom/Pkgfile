@@ -1,0 +1,18 @@
+# Description: xorg driver xf86-input-mouse
+# URL: http://xorg.freedesktop.org
+# Maintainer: CRUX Xorg Team, xorg-ports at crux dot nu
+# Depends on: xorg-server
+
+name=xorg-xf86-input-wacom
+version=0.25.99.1
+release=1
+source=(http://downloads.sourceforge.net/project/linuxwacom/xf86-input-wacom/xf86-input-wacom-$version.tar.bz2)
+
+build() {
+	cd xf86-input-wacom-$version
+
+	./configure --prefix=/usr --mandir=/usr/man
+
+	make
+	make DESTDIR=$PKG install
+}

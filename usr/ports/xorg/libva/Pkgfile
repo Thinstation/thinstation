@@ -1,0 +1,25 @@
+# Description: Video Acceleration API to enable hardware accelerated video decode/encode.
+# URL: http://freedesktop.org/wiki/Software/vaapi
+# Maintainer: Danny Rawlins, monster dot romster at gmail dot com
+# Packager: Tilman Sauerbeck, tilman at crux dot nu
+# Depends on: mesa3d xorg-libpciaccess
+
+name=libva
+version=1.3.1
+release=1
+source=(http://www.freedesktop.org/software/vaapi/releases/$name/$name-$version.tar.bz2
+	$name-$version-no-wayland-scanner.patch)
+
+build() {
+
+	cd $name-$version
+	patch -Np1 < ../$name-$version-no-wayland-scanner.patch
+
+	./configure \
+		--prefix=/usr \
+        	--enable-glx \
+		--disable-dependency-tracking
+
+	make
+	make DESTDIR=$PKG install
+}
