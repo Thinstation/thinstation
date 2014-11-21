@@ -23,5 +23,9 @@ build() {
 	mv $PKG/usr/share/bios $PKG/usr/share/syslinux/.
 
         mkdir -p $PKG/usr/share/doc/syslinux
-        cp -Prfd doc/* $PKG/usr/share/doc/syslinux
+        cp -a doc/* $PKG/usr/share/doc/syslinux
+
+	make bios
+	chmod 644 bios/com32/modules/ifmem.c32
+	cp -a bios/com32/modules/ifmem.c32 $PKG/usr/share/syslinux/bios/.
 }

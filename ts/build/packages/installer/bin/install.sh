@@ -121,6 +121,6 @@ rm -rf *
 
 echo "Gitting thinstation repo"
 
-git clone --depth 1 https://github.com/Thinstation/thinstation.git -b 5.2-Stable /thinstation
+git clone --depth 1 https://github.com/Thinstation/thinstation.git -b 5.3-Stable /thinstation
 
 ./setup-chroot -i

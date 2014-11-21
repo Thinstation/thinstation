@@ -8,14 +8,22 @@ name=syslinux-efi64
 version=6.03
 release=1
 source=(http://www.kernel.org/pub/linux/utils/boot/syslinux/syslinux-$version.tar.gz \
-	ifmem.c)
+	ifmem.c
+	cross.patch)
 
 build() {
 	cd syslinux-${version}
 
-	cp $SRC/ifmem.c com32/modules/.
+        make INSTALLROOT=$PKG install efi64
+
+        cp $SRC/ifmem.c com32/modules/.
         sed -i -e "s/ifcpu.c32/ifcpu.c32 ifmem.c32/g" com32/modules/Makefile
 
-        make INSTALLROOT=$PKG install efi64
+	patch -p0 -i $SRC/cross.patch
+
+	export CROSS_COMPILE="/opt/cross/x-tools/x86_64-thinstation-linux-gnu/bin/x86_64-thinstation-linux-gnu-"
+        make efi64
+	chmod 644 efi64/com32/modules/ifmem.c32
+        cp -a efi64/com32/modules/ifmem.c32 $PKG/usr/share/syslinux/efi64/.
 }
 
