@@ -1,0 +1,2237 @@
+#!/bin/bash
+#set -x
+LANG=C
+INITDIR=boot-images/initrd
+PKGDIR=boot-images/pkg-packages
+DEVDIR=./packages/base/dev
+MODDIR=boot-images/module-packages
+PACDIR=./tmp-tree/packages
+MAXIMAGE=786432
+TOOLSDIR=./utils/tools
+KERNEL_PARAMETERS=""
+CONFDIR=./conf
+export TOOLSDIR
+
+libutil="chain complex cptime display fancyhello hdt ifcpu \
+         keytest libmenu menu prdhcp pxechn rosh simple test \
+         test2 vesamenu"
+
+libcom32="chain cmd complex config display elf ethersel gfxboot \
+          gpxecmd hdt hexdump host ifcpu ifcpu64 ifmemdsk ifplop \
+          kbdmap kontron_wdt libmenu linux localboot lua mboot \
+          pcitest pmload prdhcp pxechn reboot rosh sanboot sdi \
+          simple sysdump test test2 vesamenu whichsys"
+
+libmenu="complex display hdt simple test test2"
+
+libgpl="cpuidtest disk dmitest hdt ifcpu lua vpdtest zzjson"
+
+liblua="lua"
+
+. packages/base/etc/thinstation.functions
+. packages/base/etc/thinstation.env
+. packages/base/etc/thinstation.defaults
+. thinstation.conf.buildtime
+PATH=/usr/local/bin:/usr/bin:/bin:/sbin:/usr/sbin:/usr/local/sbin:/ts/bin
+
+# set some defaults for builds that would produce unexpected results for legacy build scripts otherwise.
+ts_mesa_3d=enabled
+ts_localpkgs=true
+
+# Show Command line Parameters
+
+showhelp()
+{
+	echo "--license ACCEPT      Accept all licenses automatically"
+	echo "--help                Show help then exit"
+	echo "--autodl              Download all commercial addins automatically"
+	echo "--buildtime FILENAME  Add buildtime conf file to squashfs image and build boot images only"
+	echo "--kernel VERSION      Use this version of the kernel (rather than the default)"
+	echo "--noimages            Build process but don't generate boot images"
+	echo "--regenconf           Copy over default config example files again"
+	echo "--removeall           Remove all commercial binaries then exit"
+	echo "--savedir             Saves the tmp-tree directory for debugging and development purposes"
+	echo "--savepkglist         Saves the package list files for documentation purposes"
+	echo "--update              Will run all package update scripts <package>/build/update"
+	echo "--allmodules          Will install all available kernel modules into the image"
+}
+
+## Remove Temp files
+
+unmount_tmp()
+{
+	if mounted ./tmp-tree/proc; then
+		umount -f ./tmp-tree/proc
+	fi
+	if mounted ./tmp-tree/dev; then
+		umount -f ./tmp-tree/dev
+	fi
+}
+
+remove_files()
+{
+#	But only if we don't want to save them for debugging
+	if [ -z "$SAVEDIR" ]; then
+		if [ -e ./temp-efi ]; then
+			rmdir ./temp-efi
+		fi
+		if [ -e /tmp/syslinux-com32 ]; then
+			rm /tmp/syslinux-com32
+		fi
+		if [ -e ./tmp-tree ] ; then
+			unmount_tmp
+			rm -Rf ./tmp-tree/*
+			rmdir ./tmp-tree
+		fi
+		if [ -e ./fastboot-tmp ] ;then
+			rm -rf ./fastboot-tmp
+		fi
+		if [ -e ./liblist ] ; then
+			rm ./liblist
+		fi
+		if [ -e ./packages.list ]; then
+			rm ./packages.list
+		fi
+		if [ -e ./modules.list ]; then
+			rm ./modules.list
+		fi
+		if [ -e ./wget_tmp ] ; then
+			rm -Rf ./wget_tmp
+		fi
+		if [ -e ./liblist.tmp ] ; then
+			rm ./liblist.tmp
+		fi
+		if [ -e $MODDIR ] ; then
+			rm -R $MODDIR
+		fi
+		if [ -e ./build.image ] ; then
+			rm ./build.image
+		fi
+	fi
+}
+
+remove_old_boot_files()
+{
+        if [ -e boot-images/initrd/added.files ]; then
+                for file in `cat boot-images/initrd/added.files`; do
+                        rm $file
+                done
+                rm boot-images/initrd/added.files
+        fi
+}
+
+## Add PKG Files to local Storage
+
+addpkgs()
+{
+  if ls $1/*.pkg > /dev/null 2>&1 ; then
+    rm $1/*.pkg
+  fi
+  if is_enabled $ts_localpkgs; then
+    if ls $PKGDIR/*.pkg > /dev/null 2>&1 ; then
+	mkdir -p $1
+    	ln $PKGDIR/*.pkg $1
+    fi
+  fi
+}
+
+mounted()
+{
+	mountpoint $1 &>/dev/null
+	return $?
+}
+
+lib_in_path()
+{
+	for lpath in `cat lpaths.tmp` $filepath; do
+		if [ -e ./tmp-tree$lpath/$1 ] || [ -e $pkgname$lpath/$1 ]; then
+			return 0
+		fi
+	done
+	if [ "`echo $filepath |sed -e 's|/|/\n|g' |grep -c '/'`" -gt "2" ]; then
+		likely_rpath=`echo $filepath |cut -d '/' -f1-3`
+		if [ -n "`find  $pkgname$likely_rpath -name $1`" ]; then
+			return 0
+		fi
+	fi
+	return 1
+}
+
+lib_dependencies()
+{
+  echo -e "\nAdding Library Dependencies\n"
+
+  if [ -e ./tmp-tree/etc/ld.so.conf ]; then
+    cat ./tmp-tree/etc/ld.so.conf |grep -v include > lpaths.tmp
+  fi
+  if [ -e ./tmp-tree/etc/ld.so.conf.d ] && [ -n "`ls -A ./tmp-tree/etc/ld.so.conf.d`" ]; then
+    cat ./tmp-tree/etc/ld.so.conf.d/* >> lpaths.tmp
+  fi
+  for pkgname in `echo "./tmp-tree" && find $PKGDIR -mindepth 1 -maxdepth 1`; do
+    find $pkgname -type f > filelist
+    file -e encoding -e tokens -e compress -e ascii -e apptype -e tar -e cdf -f filelist -n -r |grep -e ELF |cut -d: -f1 > liblist.final 2>/dev/null
+    rm filelist
+    while [ -s liblist.final ]; do
+      (cat liblist.final ) |
+      while read filename; do
+	unset DISPLAYED
+	#Not using ldd anymore
+        (objdump -x $filename 2>/dev/null |grep -e NEEDED |cut -c 24-) |
+        while read libfile; do
+          filepath=`dirname $filename | sed -e "s,$pkgname,,"`
+          if ! lib_in_path $libfile && [ -z "`echo $libloc | grep $pkgname`" ] && [ ! -e $pkgname/lib/$libfile ]; then
+            if [ "$DISPLAYED" != "TRUE" ]; then
+              echo "Adding library dependencies for `basename $filename`"
+              DISPLAYED=TRUE
+            fi
+            libsource="`prt-get fsearch $libfile |grep -Ev 'Found|x-tool|^$' | cut -d " " -f3 |head -n1`"
+            if [ -n "$libsource" ] && [ -e $libsource ]; then
+              echo -e "\t\t\t$libfile"
+              if [ ! -e $pkgname/lib ]; then
+                mkdir -p $pkgname/lib
+              fi
+              cp $libsource $pkgname/lib
+              echo "$pkgname/lib/$libfile" >> liblist.added
+            else
+              echo "Could not find $libfile !"
+            fi
+          fi
+        done
+      done
+      rm liblist.final
+      if [ -e liblist.added ]; then
+        mv liblist.added liblist.final
+      fi
+    done
+  done
+  ldconfig -X -r tmp-tree 2>/dev/null
+  rm lpaths.tmp
+}
+
+copy_module()
+{
+	unset copied
+	local rpath=`find /lib/modules/$2 -name $1 -printf %h |cut -d "/" -f5-`
+	local src=/lib/modules/$2/$rpath/$1
+	local dest=$3/lib/modules/$2/$rpath
+	if [ ! -e $src ]; then
+		echo "Notice! Module $1 not found for kernel $2"
+		return 1
+	fi
+	if [ ! -e $dest/$1 ]; then
+		mkdir -p $dest
+		cp $src $dest/$1 > /dev/null 2>&1
+		if [ "$?" == "0" ]; then
+			copied="$dest/$1"
+			return 0
+		fi
+	else
+		return 0
+	fi
+	return 1
+}
+
+list_all_packages()
+{
+	echo "./tmp-tree"
+	find $MODDIR/ -mindepth 1 -maxdepth 1
+	find $PKGDIR/ -mindepth 1 -maxdepth 1
+}
+
+list_mod_packages()
+{
+	echo "./tmp-tree"
+	find $MODDIR/ -mindepth 1 -maxdepth 1
+}
+
+module_dependencies()
+{
+echo -e "\nAdding modules that are dependencies of selected modules"
+for pkgname in `list_all_packages`; do
+	if [ -e $pkgname/lib/modules/$KERNVER ]; then
+		find $pkgname/lib/modules/$KERNVER -name \*.ko > ./modules.list
+		while [ -s ./modules.list ]; do
+			for module in `cat modules.list`; do
+				allfirm `basename $module`
+				depends="`modinfo -F depends $module |sed -e 's/,/ /g'`"
+				# Checks for already existing modules
+				for depend in $depends; do
+					if [ -z "`find ./tmp-tree/lib/modules/$KERNVER -name ${depend}.ko`" ] && \
+					   [ -z "`find $pkgname/lib/modules/$KERNVER -name ${depend}.ko`" ]; then
+						needed="$needed ${depend}.ko"
+					fi
+				done
+				if [ -n "$needed" ]; then
+					echo "Adding dependency in `basename $pkgname` for module `basename $module`"
+					for depend in $needed; do
+						echo -e "\t\t\t\t$depend"
+						if copy_module $depend $KERNVER $pkgname; then
+							echo $copied >> modules.copied
+							allfirm $depend
+						fi
+					done
+				fi
+				unset needed
+			done
+			rm modules.list
+			if [ -e modules.copied ]; then
+				mv modules.copied modules.list
+			fi
+		done
+		rm -f modules.list
+	fi
+done
+}
+
+module_package_dependencies()
+{
+	# Adding additional modules and packages which are dependencies of other modules
+	echo -e "\nAdding $KERNVER module dependencies on other modules and packages not picked up by depmod"
+	for pkgname in `list_mod_packages`; do
+		(ls ./kernel/dependencies_module/ ) |
+		while read module; do
+			if [ -n "`find ./tmp-tree/lib/modules/$KERNVER -name ${module}.ko`" ] || \
+			   [ -n "`find $pkgname/lib/modules/$KERNVER -name ${module}.ko`" ]; then
+				(cat ./kernel/dependencies_module/$module ) |
+				while read type name; do
+					case $type in
+						module)
+							if [ -z "`find ./tmp-tree/lib/modules/$KERNVER -name ${name}.ko`" ] && \
+							   [ -z "`find $pkgname/lib/modules/$KERNVER -name ${name}.ko`" ]; then
+								if ! is_enabled $DISPLAYED; then
+									echo "Adding module dependencies for $module"
+									DISPLAYED=true
+								fi
+								echo -e "\t\t\t\tModule : $name"
+								copy_module ${name}.ko $KERNVER $pkgname
+								touch /tmp/dirty
+							fi
+						;;
+						firmware)
+							if is_enabled $ts_allfirmware; then
+								if [ -z "`find ./tmp-tree/lib/firmware -name ${name}`" ]; then
+									if ! is_enabled $DISPLAYED; then
+                	                                                        echo "Adding module dependencies for $module"
+                        	                                                DISPLAYED=true
+                                	                                fi
+									copy_firmware ${name}
+								fi
+							fi
+						;;
+						package)
+							if [ ! -e $PACDIR/$name.package ] && \
+							   [ ! -e $PACDIR/$name.pkg ]; then
+								if [ -d ./packages/$name ]; then
+									if ! is_enabled $DISPLAYED; then
+										echo "Adding module dependencies for $module"
+										DISPLAYED=true
+									fi
+									echo "cp -Rp --remove-destination ./packages/$name/* ./tmp-tree > /dev/null 2>&1">>\
+										$PACDIR/$name.package
+									touch /tmp/dirty
+									echo -e "\t\t\t\tPackage : $name"
+								else
+									echo "Not Found $name!!"
+								fi
+							elif [ -z "`find ./tmp-tree/lib/modules -name ${module}.ko`" ] && \
+								 [ -n "`find $pkgname/lib/modules/$KERNVER -name ${module}.ko`" ] && \
+								 [ ! -e $PACDIR/$name.pkg ]; then
+								if [ -d  ./packages/$name ]; then
+									echo "building-pkg $name"
+									echo -e "cp -Rp ./packages/$name $PKGDIR" >> $PACDIR/$name.pkg
+									touch /tmp/dirty
+								else
+									echo "Not Found $name!!"
+								fi
+							fi
+						;;
+						*)
+							continue
+						;;
+					esac
+				done
+				unset DISPLAYED
+			fi
+		done
+	done
+}
+
+strip_files()
+{
+if [ "$ts_stripelf" == "yes" ] ;
+	then
+		echo -e "\nStripping Enabled"
+		rampre="`du -s ./tmp-tree|cut -f1`"
+		echo -e "\tRAM Usage before stripping\t$rampre KiloBytes"
+		for i in `find tmp-tree -type f |grep -v -f exclusions |xargs file |grep -e ELF |grep -v /lib/modules/ |grep -v e3$ |cut -d ":" -f1` ;
+			do
+				strip --strip-all -R.note -R.comment $i
+			done
+		rampost="`du -s ./tmp-tree|cut -f1`"
+		echo -e "\tRAM Usage after stripping\t$rampost KiloBytes"
+		echo -e "\tTotal RAM Savings\t\t$(( $rampre - $rampost )) KiloBytes\n"
+fi
+}
+
+make_initrd()
+{
+
+   cd tmp-tree
+	if [ "$ts_fastboot" == "true" ] || [ "$ts_fastboot" == "lotsofmem" ] ;then
+		echo -e "\nMaking initramfs - Fastboot Enabled"
+		../fastboot/fastboot-mangle "$INITDIR" "$ts_fastboot" "$ts_hardlinkfs" "$ts_fb_comp_extra"
+	else
+		if [ -e $INITDIR/lib.squash ] ; then
+			rm $INITDIR/lib.squash
+		fi
+		echo -e "\nMaking initramfs"
+	fi
+	echo -e "\tFixing-Up links"
+	rm usr/bin usr/sbin usr/lib usr/icons usr/X11R7 usr/share usr/etc usr/local share usr/libexec
+	ln -sf /bin usr/bin
+	ln -sf /sbin usr/sbin
+	ln -sf /lib usr/lib
+	ln -sf /libexec usr/libexec
+	ln -sf /etc usr/etc
+	ln -sf /lib usr/share
+	ln -sf /lib share
+	ln -sf / usr/X11R7
+	ln -sf /lib/icons usr/icons
+	ln -sf / usr/local
+
+	if [ "$ts_hardlinkfs" == "true" ]; then
+		hardlink -t -m .
+	fi
+	if [ "$ts_sametimestmp" == "true" ]; then
+		timestamp="`date +%Y%m%d`0000"
+		echo -e "\tSetting all timestamps to $timestamp"
+		for file in `find .`; do
+			touch -c -h -t $timestamp $file
+		done
+	fi
+	if [ "$ts_initrdcmd" == "squashfs" ]; then
+		mksquashfs . ../$INITDIR/initrd $ts_squashopt -always-use-fragments -no-recovery -no-exports -no-xattrs -noappend
+	elif [ "$ts_initrdcmd" == "none" -o "$ts_initrdcmd" == "" ]; then
+		find . -print0 | cpio --null -oV --format=newc > ../$INITDIR/initrd
+	else find . -print0 | cpio --null -oV --format=newc | $ts_initrdcmd > ../$INITDIR/initrd
+	fi
+	cd ..
+   chmod 755 $INITDIR/initrd
+   IMAGESIZE=`du -k $INITDIR/initrd | cut -f1`
+   if [ $IMAGESIZE -gt $MAXIMAGE ] ; then
+           echo "ERROR, Image file is too Big, maximum size is $MAXIMAGE remove"
+           echo "some packages!"
+           echo "Build Aborted!!"
+           echo
+           rm $INITDIR/initrd
+           remove_files
+           exit 1
+   fi
+}
+
+package_dependencies ()
+{
+	ls $PACDIR/*.$1 > packages.list 2>/dev/null
+	while [ -s packages.list ]; do
+		(cat packages.list ) |
+		while read filename; do
+			package=`basename $filename .$1`
+			if [ -s packages/$package/dependencies ] ; then
+				(cat packages/$package/dependencies |grep -v ^#) |
+				while read name cross; do
+					if	[ "$1" = "package" ] || \
+						[ "$name" = "base" ]; then
+						if	[ ! -e $PACDIR/$name.package ] && \
+							[ ! -e $PACDIR/$name.pkg ]; then
+							if	[ -e $PACDIR/$cross.package ] || \
+								[ -e $PACDIR/$cross.pkg ] || \
+								[ -z "$cross" ]; then
+								if ! is_enabled $DISPLAYED; then
+									echo "Adding dependent packages of $package:"
+									DISPLAYED=TRUE
+								fi
+								echo "                              package $name"
+								echo "cp -Rp --remove-destination ./packages/$name/* ./tmp-tree > /dev/null 2>&1">>\
+									$PACDIR/$name.package
+								echo $name.package >> packages.added
+								touch /tmp/dirty
+							fi
+						fi
+					elif [ "$1" = "pkg" ] ; then
+						if	[ ! -e $PACDIR/$name.package ] && \
+							[ ! -e $PACDIR/$name.pkg ]; then
+							if	[ -e $PACDIR/$cross.package ] || \
+								[ -e $PACDIR/$cross.pkg ] || \
+								[ -z "$cross" ]; then
+								if ! is_enabled $DISPLAYED; then
+									echo "Adding Dependent Pkgs of $package:"
+									DISPLAYED=TRUE
+								fi
+								echo "                         pkg $name"
+								echo -e "cp -Rp --remove-destination ./packages/$name $PKGDIR" >>\
+									$PACDIR/$name.pkg
+								echo $name.pkg >> packages.added
+								touch /tmp/dirty
+							fi
+						fi
+					fi
+				done
+				unset DISPLAYED
+			elif [ ! -e packages/$package/dependencies ]; then
+				echo "Not Found $package dependency!!"
+			fi
+		done
+		rm packages.list
+		if [ -e packages.added ]; then
+			mv packages.added packages.list
+		fi
+	done
+	rm -f packages.list
+}
+
+package_module_dependencies()
+{
+	# Adding additional modules which are dependencies of packages
+	echo -e "\nAdding $KERNVER module dependencies on other packages"
+	(ls ./kernel/dependencies_package/ ) |
+	while read name; do
+		(cat ./kernel/dependencies_package/$name ) |
+		while read module; do
+			if [ -e $PACDIR/$name.package ]; then
+				if [ -z "`find ./tmp-tree/lib/modules/$KERNVER -name ${module}.ko`" ]; then
+					echo "Package : $name   Module: $module"
+					if copy_module ${module}.ko $KERNVER ./tmp-tree; then
+						touch /tmp/dirty
+					else
+						echo "Could not find $KERNVER module $module"
+					fi
+				fi
+			elif [ -e $PACDIR/$name.pkg ]; then
+				if [ -z "`find $PKGDIR/$name/lib/modules/$KERNVER -name ${module}.ko`" ]; then
+					echo "Pkg     : $name   Module: $module"
+					if copy_module ${module}.ko $KERNVER $PKGDIR/$name; then
+						touch /tmp/dirty
+					else
+						echo "Could not find $KERNVER module $module"
+					fi
+				fi
+			fi
+		done
+	done
+}
+
+get_file ()
+{
+    URL=$1
+    filetype=`echo $1 | cut -d: -f1`
+    filepath=`echo $1 | cut -d: -f2`
+    if [ -n "$3" ] ; then
+	outfile=$3
+    else
+	outfile=`basename $URL`
+    fi
+
+    case `make_caps $filetype` in
+    HTTP|HTTPS|FTP|FTPS)
+	if [ -e $PACDIR/downloads.param ] ; then
+            . $PACDIR/downloads.param
+	fi
+	if [ -n "$ts_downloads" ] && [ -e "$ts_downloads/$outfile" ]; then
+	    cp $ts_downloads/$outfile $2/$outfile
+	else
+	echo -e "\nDownloading from Net....."
+        if [ ! -z "$ts_httpproxy" ] ; then
+            echo "Using proxy $http_proxy"
+		if ! wget -t 1 -N $URL -O $2/$outfile -e http_proxy=$ts_httpproxy $ts_wgetopts ; then
+	                if ! wget -t 1 -N $URL -O $2/$outfile -e http_proxy=$ts_httpproxy $ts_wgetopts ; then
+        	                echo -e "\nError has occured downloading file"
+                	        echo -e "Build Aborted\n"
+                        	remove_files
+	                        exit 1
+        	        fi
+		fi
+        else
+            echo "Using system proxy, or not using any proxy to connect to Internet."
+                if ! wget -t 1 -N $URL -O $2/$outfile $ts_wgetopts ; then
+			if ! wget -t 1 -N $URL -O $2/$outfile $ts_wgetopts ; then
+	                        echo -e "\nError has occured downloading file"
+        	                echo -e "Build Aborted\n"
+                	        remove_files
+                        	exit 1
+			fi
+                fi
+        fi
+	if [ -n "$ts_downloads" ]; then
+	    cp $2/$outfile $ts_downloads/$outfile
+	fi
+	fi
+    ;;
+    FILE)
+	if ! cp $filepath $2/$3 ; then
+	    echo -e "\nError has occured copying file"
+	    echo -e "Build Aborted\n"
+	    remove_files
+	    exit 1
+	fi
+    ;;
+    NONE)
+	 echo blah >/dev/null
+    ;;
+    *)
+	echo -e "\nCan't determine installation type, should be http(s): or ftp(s) or file:"
+	echo -e "Build Aborted\n"
+	remove_files
+	exit 1
+    ;;
+    esac
+}
+
+web_package ()
+{
+    URL=$1
+    package=$2
+    filename=`make_caps $2`
+
+    if [ -e ./packages/$package ] ; then
+      if [ -e $PACDIR/httpproxy.param ] ; then
+        . $PACDIR/httpproxy.param
+      fi
+      echo -e "\nINSTALLING $filename"
+      if [ -n "$AUTODL" ] ; then
+        CHOICE="Y"
+      else
+	echo -e "$filename is not installed, we need to setup binary file."
+        echo -e "This only needs to be done once.\n"
+        echo "Continue? (Y/N)"
+        read CHOICE
+        CHOICE=`make_caps $CHOICE`
+      fi
+
+      if [ "$CHOICE" = "Y" ] ; then
+ 	mkdir ./wget_tmp
+	get_file $URL ./wget_tmp
+	if ./packages/$package/build/install $URL ; then
+	  touch ./packages/$package/build/installed
+	  echo -e "$package: Setup Complete"
+	else
+	  echo -e "\nError has occured while installing package"
+       	  echo -e "Build Aborted\n"
+	  remove_files
+	  exit 1
+	fi
+	rm -Rf ./wget_tmp
+      fi
+    else
+	  echo "Error has occured"
+	  echo "$package does not exist in packages directory"
+          echo -e "Build Aborted\n"
+	  remove_files
+          exit 1
+    fi
+}
+
+## Add boot splash image
+splash_resize()
+{
+	mkdir -p $TOOLSDIR/splash/$ts_boottheme/$res
+	if [ -e $TOOLSDIR/splash/$ts_boottheme/scalable ]; then
+		if [ -z "$SPLASH_BG_COLOR" ]; then
+			SPLASH_BG_COLOR=black
+		fi
+		$TOOLSDIR/splash/bin/splash_resize ./utils/tools/splash $ts_boottheme scalable 1024x768 $res
+		rsvg-convert $TOOLSDIR/splash/$ts_boottheme/scalable/silent.svg \
+			-w `echo $res |cut -d "x" -f1` \
+			-h `echo $res |cut -d "x" -f2` \
+			-a -o tmp.png
+		convert -background $SPLASH_BG_COLOR tmp.png \
+			-define png:color-type=2 \
+			-resize $res \
+			-gravity center \
+			-extent $res \
+			+repage $TOOLSDIR/splash/$ts_boottheme/$res/silent.png
+		rm tmp.png
+        else
+		$TOOLSDIR/splash/bin/splash_resize ./utils/tools/splash $ts_boottheme 1024x768 1024x768 $res
+		convert -size 1024x768 \
+			$TOOLSDIR/splash/$ts_boottheme/1024x768/silent.jpg \
+			-resize $res\! $TOOLSDIR/splash/$ts_boottheme/$res/silent.jpg
+        fi
+}
+
+splash_setup()
+{
+if [ -z "$ts_bootresolution" ] ; then
+	ts_bootresolution=800x600-32
+fi
+if [ -n "$ts_bootresolution" ] ;then
+        uvesafb="mode_option=\"$ts_bootresolution\""
+	screenres=`echo "$ts_bootresolution" |cut -d "-" -f 1`
+	screenbpp=`echo "$ts_bootresolution" |cut -d "-" -f 2`
+	echo "PREFERED_RES=$ts_bootresolution" |cut -d '-' -f1 >> ./tmp-tree/etc/thinstation.defaults
+        if [ ! -z "$ts_fbmtrr" ] ;then
+	        uvesafb="$uvesafb mtrr=$ts_fbmtrr"
+        fi
+        if [ `make_caps X"$ts_fbnocrtc"` == "XTRUE" ] ;then
+	        uvesafb="$uvesafb nocrtc=1"
+        fi
+	if [ `make_caps X"$ts_fbnoedid"` == "XTRUE" ] ; then
+		uvesafb="$uvesafb noedid=1"
+	fi
+	if [ ! -z "$ts_fbvtotal" ] ; then
+		uvesafb="$uvesafb vram_total=$ts_fbvtotal"
+	fi
+	if [ ! -z "$ts_fbmaxhf" ] ; then
+		uvesafb="$uvesafb maxhf=$ts_fbmaxhf"
+	fi
+	if [ ! -z "$ts_fbmaxvf" ] ; then
+                uvesafb="$uvesafb maxvf=$ts_fbmaxvf"
+        fi
+	if [ ! -z "$ts_fbmaxclk" ] ; then
+                uvesafb="$uvesafb maxclk=$ts_fbmaxclk"
+        fi
+        if [ ! -z "$ts_fbsm" ] ;then
+	        uvesafb="$uvesafb scroll=$ts_fbsm"
+        fi
+	if [ "$ts_uvesafb" == "disable" ]; then
+		KERNEL_PARAMETERS="$KERNEL_PARAMETRS uvesafb=off"
+	fi
+	mkdir -p ./tmp-tree/etc/modprobe.d
+	echo "options uvesafb $uvesafb" > ./tmp-tree/etc/modprobe.d/uvesafb.conf
+	if [ ! -z $ts_extra_vid ]; then
+		KERNEL_PARAMETERS="$KERNEL_PARAMETERS video=$ts_extra_vid"
+	fi
+  if is_enabled $ts_bootlogo && [ -e ./tmp-tree/bin/fbsplashd ]; then
+	splashvar="splash=silent"
+	if [ -n "$ts_splash" ] ; then splashvar="splash=$ts_splash" ; fi
+	if [ -n "$ts_boottheme" ] ; then splashvar="$splashvar,theme:$ts_boottheme" ; fi
+	if [ -n "$ts_silenttty" ] ; then splashvar="$splashvar,tty:$ts_silenttty" ; fi
+	KERNEL_PARAMETERS="$KERNEL_PARAMETERS $splashvar"
+	echo -e "+ Adding splash boot logo\n"
+	res=${ts_bootresolution%-*}
+	echo $res
+	if [ ! -e $TOOLSDIR/splash/$ts_boottheme/$res/$res.cfg ] ; then
+		splash_resize
+	fi
+	mkdir -p ./tmp-tree/etc/splash/$ts_boottheme
+	cp -Prfd $TOOLSDIR/splash/$ts_boottheme/$res ./tmp-tree/etc/splash/$ts_boottheme
+	if is_enabled $ts_allres; then
+		for res in 800x600 1024x600 1024x768 1152x864 1280x720 1280x768 1280x800 1280x960 1280x1024 1366x768 1400x1050 1440x900 1600x1200 1680x1050 1920x1080 1920x1200; do
+			if [ ! -e $TOOLSDIR/splash/$ts_boottheme/$res/$res.cfg ] ; then
+				splash_resize
+			fi
+			if [ ! -e ./tmp-tree/etc/splash/$ts_boottheme/$res/$res.cfg ]; then
+				mkdir -p ./tmp-tree/etc/splash/$ts_boottheme
+				cp -Prfd $TOOLSDIR/splash/$ts_boottheme/$res ./tmp-tree/etc/splash/$ts_boottheme
+			fi
+		done
+	fi
+	for res in `ls --color=never ./tmp-tree/etc/splash/$ts_boottheme |grep -v "\.ttf"`; do
+		mv ./tmp-tree/etc/splash/$ts_boottheme/$res/$res.cfg ./tmp-tree/etc/splash/$ts_boottheme/.
+	done
+  else
+		rm -rf ./tmp-tree/etc/splash
+		rm -rf ./tmp-tree/lib/splash
+		KERNEL_PARAMETERS="$KERNEL_PARAMETERS splash=off"
+  fi
+fi
+}
+
+write_locale()
+{
+        echo "locale: $name"
+        localedef -i $inputfile -f $charmap $name --prefix=./tmp-tree
+}
+
+sample_configuration()
+{
+	# Building Sample Thinstation.conf file
+	echo -e "\nBuilding Sample Thinstation.conf File\n"
+
+	mkdir -p ./tmp-tree/conf
+	echo > ./thinstation.conf.sample
+	for filename in `find $PKGDIR -maxdepth 1 -name "*" && echo "./tmp-tree"`; do
+		if [ -e $filename/build/conf ] ; then
+			cp $filename/build/conf/* ./tmp-tree/conf
+		fi
+	done
+	for filename in `ls ./tmp-tree/conf | sort`; do
+		cat ./tmp-tree/conf/$filename >> ./thinstation.conf.sample
+	done
+}
+
+locales()
+{
+	# Removes extended locale libs if not selected
+	echo -e "\nAdding locales to archive.\n"
+
+	if [ -n "`find ./tmp-tree/build -maxdepth 1 -name \*.template`" ]; then
+		for localedef in `cat ./tmp-tree/build/*.template`; do
+			inputfile=`echo $localedef|cut -d , -f1`
+			charmap=`echo $localedef|cut -d , -f2`
+			name=`echo $localedef|cut -d , -f3`
+		        if ! is_enabled $ts_fulllocales; then
+				if [ "$charmap" == "UTF-8" ]; then
+					write_locale
+				fi
+			else
+				write_locale
+			fi
+		done
+	fi
+}
+
+allfirm()
+{
+	if is_enabled $ts_allfirmware; then
+		unset firmlist
+		module=`find /lib/modules/$KERNVER -name $1`
+		firmlist=`modinfo -F firmware $module`
+		if [ -n "$firmlist" ]; then
+			echo "Adding extra module firmware for `basename $module`"
+			for firmware in $firmlist; do
+				copy_firmware `basename $firmware`
+			done
+		fi
+	fi
+}
+
+keymaps()
+{
+#
+    for filename in `find $PACDIR -maxdepth 1 -name "keymaps-*"`
+    do
+	package=`basename $filename`
+	keymap=${package%%.*}
+	if [ -n "$xkeymap" ] ; then
+	    xkeymap=$xkeymap,${keymap##*-}
+	else
+	    xkeymap=${keymap##*-}
+	fi
+    done
+    echo "XKEYBOARD=$xkeymap" >> ./tmp-tree/etc/thinstation.defaults
+
+
+# Removes uneeded keymap package types
+# Also places the keymap components in the correct package
+
+echo -e "\nChecking if extended locale support is enabled\n"
+
+for packagename in x-common base rdesktop blackbox ica_wfc
+do
+	if [ -e $PACDIR/$packagename.pkg ]; then
+	   for filename in `find $PKGDIR -maxdepth 1 -name "keymaps-*" && echo "./tmp-tree"`
+	   do
+	       if [ -e $filename/$packagename ] ; then
+		 echo "Coping extended $packagename to pkg file"
+	         cp -Rp $filename/$packagename/* $PKGDIR/$packagename
+	         rm -R $filename/$packagename
+               fi
+           done
+	elif [ -e $PACDIR/$packagename.package ] ; then
+	   for filename in `find $PKGDIR -maxdepth 1 -name "keymaps-*" && echo "./tmp-tree"`
+	   do
+	       if [ -e $filename/$packagename ] ; then
+		 echo "Coping extended $packagename to inbuilt image"
+	         cp -Rp $filename/$packagename/* ./tmp-tree
+	         rm -R $filename/$packagename
+               fi
+           done
+	else
+	   for filename in `find $PKGDIR -maxdepth 1 -name "keymaps-*" && echo "./tmp-tree"`
+	   do
+	       if [ -e $filename/$packagename ] ; then
+	         rm -R $filename/$packagename
+	       fi
+           done
+	fi
+done
+
+# Checks for and removes any remaining keymap.pkg files
+# It does this as keymaps are merged into there parent files
+
+for filename in `find $PKGDIR -maxdepth 1 -name "keymaps-*"`
+do
+	rm -R $filename
+	keymapname=`basename $filename`
+	rm $PACDIR/$keymapname.pkg
+done
+}
+
+copy_firmware()
+{
+	if [ -n "$2" ]; then
+		firmfiles=`find -L /lib/firmware/ -name $1\* | grep $2`
+	else
+		firmfiles=`find -L /lib/firmware/ -name $1\*`
+	fi
+	if [ -n "$firmfiles" ]; then
+		for firmfile in $firmfiles; do
+			firmpath=./tmp-tree/lib/firmware/`echo $firmfile |cut -d '/' -f4-`
+			if [ ! -e $firmpath ]; then
+				echo "Firmware: `basename $firmfile`"
+				if [ ! -d ${firmpath%/*} ] ;then
+					mkdir -p ${firmpath%/*}
+				fi
+				cp $firmfile ${firmpath%/*}/.
+			fi
+		done
+	else
+		echo -e "\tError, Firmware $1 not found"
+#		echo "$1" >> /missing
+	fi
+}
+
+read_conf()
+{
+if [ -z "$1" ] ;
+	then CONF_FILE=$CONFIG_FILE
+	else CONF_FILE=$1
+fi
+(cat $CONF_FILE; echo) | # make sure there is a LF at the end
+while read type name args
+do
+    type=`echo $type | sed -e s/\^M//g | sed -e 's/\&/\\\&/g'`
+    name=`echo $name | sed -e s/\^M//g | sed -e 's/\&/\\\&/g'`
+    args=`echo $args | sed -e s/\^M//g | sed -e 's/\&/\\\&/g'`
+    case $type in
+    \#*|"") continue
+	    ;;
+    param)
+	echo "Parameter: $name"
+	echo "ts_$name=$args" >> $PACDIR/$name.param
+	;;
+    package)
+	echo "Package: $name"
+	if [ -d ./packages/$name ]; then
+	   echo "cp -Rp --remove-destination ./packages/$name/* ./tmp-tree > /dev/null 2>&1">>\
+	     $PACDIR/$name.package
+	else
+	   echo "Not Found $name!!"
+	fi
+	;;
+    machine)
+	read_conf ./machine/$name/module.list
+	if [ -e ./machine/$name/firmware.list ]; then
+		read_conf ./machine/$name/firmware.list
+	fi
+	if [ -e ./machine/$name/param.list ]; then
+		read_conf ./machine/$name/param.list
+	fi
+	if [ -e ./machine/$name/package.list ]; then
+		read_conf ./machine/$name/package.list
+	fi
+	if [ -e ./machine/$name/etc ]; then
+		cp -rf ./machine/$name/etc ./tmp-tree/.
+	fi
+	;;
+    module)
+	if ! is_enabled $ALLMODULES; then
+		if [ -e ./kernel/alias/$name ] ; then
+			name=`cat ./kernel/alias/$name`
+		fi
+		for KERNVER in $KERNVERS; do
+		        if [ -e `find /lib/modules/$KERNVER -name ${name}.ko` ] ; then
+				echo "Module $KERNVER: $name"
+				copy_module ${name}.ko $KERNVER ./tmp-tree
+			else
+				echo "Error, Module $name not found"
+			fi
+		done
+	fi
+	if [ `make_caps X$args` == "XFORCE" ]; then
+		echo $name `echo $args | cut -f1 -d#` >> ./tmp-tree/etc/modules
+	fi
+	;;
+    module_pkg)
+	if ! is_enabled $ALLMODULES; then
+	        if [ -e ./kernel/alias/$name ] ; then
+			name=`cat ./kernel/alias/$name`
+		fi
+		for KERNVER in $KERNVERS; do
+        		if [ -e `find /lib/modules/$KERNVER -name ${name}.ko` ] ; then
+				echo "Module Pkg: $name"
+				copy_module ${name}.ko $KERNVER $MODDIR/$name
+				mkdir -p $MODDIR/$name/etc
+			else
+				echo "Error, Module $name not found"
+			fi
+		done
+		echo $name $args `echo $args | cut -f1 -d#` > $MODDIR/$name/etc/$name.modules
+	fi
+	;;
+    firmware)
+	copy_firmware $name $args
+	;;
+    pkg)
+        echo "building-pkg $name"
+	echo -e "cp -Rp --remove-destination ./packages/$name $PKGDIR" >> $PACDIR/$name.pkg
+	;;
+    *)
+	echo "Unknown config line: $type $name $args"
+	;;
+    esac
+done
+}
+
+install_non_distributable()
+{
+	echo -e "\nAdding and install non-distributable binaries\n"
+	for package in `ls $PACDIR | grep -v "\.param"`; do
+		package=${package%.package}
+		package=${package%.pkg}
+		# Check if need to add full locale support for package
+		if [ -e $PACDIR/fulllocales.param ]; then
+                                . $PACDIR/fulllocales.param
+		fi
+		if [ ! -e ./packages/$package/build/installed ] && [ -e ./packages/$package/build/install ] ; then
+			if [ -e $PACDIR/"$package"url.param ]; then
+				. $PACDIR/"$package"url.param
+				URL=`eval echo '$ts_'$package'url'`
+				if [ -n "$URL" ] ; then
+					web_package $URL $package
+				else
+					echo "$package url param not set in build.conf"
+					echo -e "Build Aborted\n"
+					remove_files
+					exit 1
+				fi
+			elif [ "`cat ./packages/$package/build/install |grep -c -e repackage`" -gt "0" ]; then
+				if ./packages/$package/build/install ; then
+					touch ./packages/$package/build/installed
+					echo -e "$package: Setup complete"
+				else
+					echo -e "\nError has occured while installing package"
+					echo -e "Build Aborted\n"
+					remove_files
+					exit 1
+				fi
+			fi
+		fi
+		if [ -e ./packages/$package/build/license ] ; then
+			if [ "`make_caps $LICENSE`" = "DECLINE" ] ; then
+				CHOICE=NO
+			elif [ "`make_caps $LICENSE`" != "ACCEPT" ] ; then
+				cat ./packages/$package/build/license | more
+				echo "Do you agree to this notice (YES/NO)"
+				read CHOICE
+				CHOICE=`make_caps $CHOICE`
+			else
+				CHOICE=YES
+			fi
+			if [ "$CHOICE" = "YES" ] ; then
+				echo "INFO: $package included"
+			else
+				if [ -e $PACDIR/$package.package ] ; then
+					rm $PACDIR/$package.package
+				elif [ -e $PACDIR/$package.pkg ] ; then
+					rm $PACDIR/$package.pkg
+				fi
+				echo "INFO: $package not included"
+			fi
+		fi
+	done
+}
+
+# Main TS build script
+main()
+{
+echo "+ Building image: "
+
+if [ -e $PKGDIR ] ; then
+	rm -Rf $PKGDIR/*
+fi
+
+mkdir -p $PKGDIR
+unsquashfs -d ./tmp-tree $INITDIR/initrd.devices > /dev/null
+mkdir -p ./tmp-tree/lib/modules
+mkdir -p ./tmp-tree/packages
+mkdir -p $MODDIR
+
+read_conf ./build.urls
+read_conf
+
+# Check if kernel exists
+for KERNVER in $KERNVERS; do
+	if [ ! -e /boot/vmlinuz-$KERNVER ] ; then
+		echo -e "\nError Kernel $KERNVER not found!!!"
+		remove_files
+		exit 0
+	fi
+done
+
+for KERNVER in $KERNVERS; do
+	mkdir -p ./tmp-tree/lib/modules/$KERNVER
+        copy_module modules.builtin $KERNVER ./tmp-tree
+        copy_module modules.order $KERNVER ./tmp-tree
+	if [ -e ./ALLMODULES ]; then
+		ALLMODULES=true
+	fi
+	if [ -e $PACDIR/allfirmware.param ]; then
+		. $PACDIR/allfirmware.param
+		if is_enabled $ts_allfirmware ; then
+			echo "Doing an All Firmware Build!"
+			for microcode in `find /lib/firmware/intel-ucode -type f -printf '%f '` \
+					 `find /lib/firmware/amd-ucode -type f -printf '%f '`; do
+				copy_firmware $microcode
+			done
+		fi
+	fi
+	if is_enabled $ALLMODULES ; then
+		echo "Doing an All Modules Build!"
+		if [ -e $PACDIR/blacklist.param ]; then
+	                . $PACDIR/blacklist.param
+		fi
+		if [ -e $PACDIR/blacklist_grp.param ]; then
+ 			. $PACDIR/blacklist_grp.param
+		fi
+		touch /tmp/blacklist.modules
+		for module in $ts_blacklist; do
+			echo $module >> /tmp/blacklist.modules
+		done
+		for group in $ts_blacklist_grp; do
+			for gdir in `find /lib/modules/$KERNVER -type d -name $group`; do
+				find $gdir -name \*.ko -printf '%f ' >> /tmp/blacklist.modules
+			done
+		done
+		for module in `find /lib/modules/$KERNVER -name \*.ko -printf '%f '`; do
+			if grep -qe $module /tmp/blacklist.modules; then
+				echo "Skipping $module"
+			elif copy_module $module $KERNVER ./tmp-tree; then
+				allfirm $module
+			fi
+		done
+		rm /tmp/blacklist.modules
+	fi
+done
+
+for KERNVER in $KERNVERS; do
+	touch /tmp/dirty
+	while [ -e /tmp/dirty ]; do
+		rm /tmp/dirty
+		if ! is_enabled $ALLMODULES || [ -n "$ts_blacklist$ts_blacklist_grp" ]; then
+			# Adding dependent modules via modinfo
+			echo -e "\nBuilding dependencies for $KERNVER Modules..."
+			module_dependencies
+		fi
+
+		# Adding additional packages and modules which are dependencies of modules
+		module_package_dependencies
+
+		# Adding dependent packages
+		echo -e "\nAdding Package Dependencies"
+
+		package_dependencies package
+		package_dependencies pkg
+
+		# Adding modules that are dependencies of packages
+		package_module_dependencies
+
+		# Did we add anything?
+		if [ -e /tmp/dirty ]; then
+			echo -e "\nDependencies are dirty. Restarting!"
+		fi
+	done
+	echo -e "\nDependencies are clean!"
+	#Run depmod on modules included to generate modules.* files
+	depmod -b ./tmp-tree $KERNVER 2>/dev/null
+done
+
+# Now that all the package deps are satisfied, do we really need a splash
+if [ -e $PACDIR/bootlogo.param ]; then
+        . $PACDIR/bootlogo.param
+fi
+if ! is_enabled $ts_bootlogo; then
+	echo -e "Boot Logo Disabled. Removing splash package."
+	rm $PACDIR/splash.package
+fi
+
+# Now that all the package deps are satisfied, do we really need wmsetbg
+if [ -e $PACDIR/desktop.param ]; then
+	. $PACDIR/desktop.param
+fi
+if [ -z "$ts_desktop" ] && [ -e $PACDIR/wmsetbg.package ]; then
+	echo -e "Desktop Image Disabled. Removing wmsetbg package."
+        rm $PACDIR/wmsetbg.package
+fi
+
+install_non_distributable
+
+# Add all packages to filetree
+
+echo -e "\nAdding Packages to Filetree\n"
+ls $PACDIR/* > ./filelist
+for filename in `cat ./filelist | grep "\.package"` ; do
+	. $filename
+done
+for filename in `cat ./filelist | grep "\.pkg"` ; do
+	. $filename
+done
+for filename in `cat ./filelist | grep "\.param"` ; do
+	. $filename
+done
+rm ./filelist
+
+# Set Additional Params
+
+if [ -e $PACDIR/tsuser.param ]; then
+    echo "TSUSER=$ts_tsuser" >> ./tmp-tree/etc/thinstation.defaults
+    echo "HOME=/home/$ts_tsuser" >> ./tmp-tree/etc/thinstation.env
+	if [  -e $PACDIR/tsuserpasswd.param ]; then
+		if [ "$ts_tsuserpasswd" == "!!" ]; then
+			GETPASSWD="!!"
+		else
+			GETPASSWD=`mkpasswd -m md5 $ts_tsuserpasswd`
+		fi
+	fi
+    echo "$ts_tsuser:$GETPASSWD:1000:1000:$ts_tsuser:/home/$ts_tsuser:/bin/sh" >> ./tmp-tree/etc/passwd
+    echo "$ts_tsuser:x:1000:" >> ./tmp-tree/etc/group
+    sed -i -e "s/tsuser/$ts_tsuser/g" ./tmp-tree/etc/group
+    sed -i -e "s/\-a root/\-a $ts_tsuser/g" ./tmp-tree/etc/inittab
+    if [ -e ./tmp-tree/etc/pam.d/login ]; then
+      sed -i -e "s/user = root/user = $ts_tsuser/g" ./tmp-tree/etc/pam.d/login
+    fi
+else
+    echo "HOME=/root" >> ./tmp-tree/etc/thinstation.env
+    echo "TSUSER=root" >> ./tmp-tree/etc/thinstation.env
+fi
+
+echo -e "Setting Passwords"
+
+if [  -e $PACDIR/rootpasswd.param ]; then
+    if [ "$ts_rootpasswd" == "!!" ]; then
+        GETPASSWD="!!"
+    else
+        GETPASSWD=`mkpasswd -m md5 $ts_rootpasswd`
+    fi
+    cp ./tmp-tree/etc/passwd ./tmp-tree/etc/passwd.tmp
+    echo "root:$GETPASSWD:0:0:root:/root:/bin/sh" >./tmp-tree/etc/passwd
+    cat ./tmp-tree/etc/passwd.tmp | grep -v "root" >> ./tmp-tree/etc/passwd
+    rm ./tmp-tree/etc/passwd.tmp
+fi
+
+if [ -e $PACDIR/xorgvncpasswd.param ]; then
+    echo $ts_xorgvncpasswd |vncpasswd -f >./tmp-tree/etc/.vncpasswd
+fi
+
+if [ -e $PACDIR/storagepasswd.param ]; then
+    echo $ts_storagepasswd > ./tmp-tree/etc/.storage
+    chmod 400 ./tmp-tree/etc/.storage
+fi
+
+if [ -e $PACDIR/dialuppasswd.param ]; then
+    echo "DIALUP_PASSWORD=$ts_dialuppasswd" >> ./tmp-tree/etc/thinstation.defaults
+fi
+
+
+if [ -e $PACDIR/sambapasswd.param ] && [ -e $PACDIR/samba-base.* ] ; then
+    echo $ts_sambapasswd > $TOOLSDIR/smbpass
+    echo $ts_sambapasswd >> $TOOLSDIR/smbpass
+    smbpasswd -L -c $TOOLSDIR/smb.conf -a -U root -s < $TOOLSDIR/smbpass > /dev/null 2>&1
+    mv $TOOLSDIR/passdb.tdb ./tmp-tree/etc/samba/private/passdb.tdb
+    mv $TOOLSDIR/secrets.tdb ./tmp-tree/etc/samba/private/secrets.tdb
+    rm -f $TOOLSDIR/{smbpass,gencache_notrans.tdb,mutex.tdb}
+fi
+
+
+echo -e "Setting basepath"
+
+if [ -e $PACDIR/basename.param ]; then
+  if [ -e $PACDIR/basename.param ]; then
+    echo "BASENAME=$ts_basename" >> ./tmp-tree/etc/thinstation.defaults
+  elif [ "$ts_basename" = "." ] ; then
+    echo "BASENAME=" >> ./tmp-tree/etc/thinstation.defaults
+  fi
+else
+    echo "BASENAME=thinstation" >> ./tmp-tree/etc/thinstation.defaults
+fi
+
+if [ -e $PACDIR/basepath.param ]; then
+    echo "BASEPATH=$ts_basepath" >> ./tmp-tree/etc/thinstation.defaults
+else
+    echo "BASEPATH=." >> ./tmp-tree/etc/thinstation.defaults
+fi
+
+if [ -e $PACDIR/bootfssize.param ]; then
+    echo "BOOTFSSIZE=$ts_bootfssize" >> ./tmp-tree/etc/thinstation.defaults
+fi 
+
+echo -e "Setting baseurl"
+
+if [ -e $PACDIR/baseurl.param ]; then
+    echo "BASEURL=$ts_baseurl" >> ./tmp-tree/etc/thinstation.defaults
+fi
+
+echo -e "Checking for Key File"
+
+if [ -e $PACDIR/keyfile.param ]; then
+	if [ -e "$ts_keyfile" ] ; then
+		if [ ! -e ./tmp-tree/etc/.ssh ] ; then
+			mkdir -p ./tmp-tree/etc/.ssh
+		fi
+		cp $ts_keyfile ./tmp-tree/etc/.ssh
+	else
+		echo "Key file not found, build aborted."
+		remove_files
+       		exit 1
+	fi
+fi
+
+echo -e "Checking for Desktop background"
+
+if [ -e $PACDIR/desktop.param ]; then
+    echo -e "Using $ts_desktop as desktop background"
+    if [ "`basename $ts_desktop |cut -d. -f2`" == "svg" ]; then
+	get_file $ts_desktop ./tmp-tree/etc background.svg
+    else
+	get_file $ts_desktop ./tmp-tree/etc background.jpg
+    fi
+fi
+
+echo -e "Checking for Known Hosts File"
+
+if [ -e $PACDIR/knownhosts.param ]; then
+	if [ -e "$ts_knownhosts" ] ; then
+		if [ ! -e ./tmp-tree/etc/skel/.ssh ] ; then
+			mkdir -p ./tmp-tree/etc/skel/.ssh
+		fi
+		cp $ts_knownhosts ./tmp-tree/etc/skel/.ssh
+		echo "" >> ./tmp-tree/etc/skel/.ssh/`basename $ts_knownhosts`
+	else
+		echo "Known Hosts file not found, build aborted."
+		remove_files
+       		exit 1
+	fi
+fi
+
+echo -e "Checking for ICA encryption support"
+
+if [ -e $PACDIR/icaencryption.param ]; then
+    if [ "`make_caps $ts_icaencryption`" != "TRUE" ] ; then
+	    if [ -e $PACDIR/ica.package ] ; then 
+		    rm ./tmp-tree/usr/lib/ICAClient/libctxssl.so
+	    elif [ -e $PACDIR/ica.pkg ] ; then
+		    rm $PKGDIR/ica/usr/lib/ICAClient/libctxssl.so
+	    fi
+    fi
+fi
+
+echo -e "Checking for Debug Verbosity"
+
+if [ -e $PACDIR/bootverbosity.param ]; then
+	echo "DEBUGLEVEL=$ts_bootverbosity" > ./tmp-tree/etc/DEBUGLEVEL
+fi
+
+get_debug_level $ts_bootverbosity
+
+echo -e "Checking for Halt on Error Override"
+
+if [ -e $PACDIR/haltonerror.param ]; then
+	echo "HALTONERROR=$ts_haltonerror" >> ./tmp-tree/etc/thinstation.defaults
+else
+	echo "HALTONERROR=true" >> ./tmp-tree/etc/thinstation.defaults
+fi
+
+if [ -z "$DEBUG_KERNEL" ] ; then
+  	DEBUGCONSOLE="console=tty1 vt.global_cursor_default=0 loglevel=3"
+fi
+
+# Should we delete the dri folder?
+mesa
+
+# Process locales
+locales
+
+# Building Sample Thinstation.conf file
+sample_configuration
+
+# Process keymaps
+keymaps
+
+# Clean up unncessary folders
+rm ./tmp-tree/dependencies
+rm -Rf ./tmp-tree/build
+rm -Rf ./tmp-tree/.dna
+
+# Adding library dependencies
+
+lib_dependencies
+
+
+# Add user defined defaults
+if [ -e ./$ts_defaultconfig ] && [ ! -z "$ts_defaultconfig" ] ; then
+	cat ./$ts_defaultconfig | grep -v "^#" | sed '/^[ \t]*$/d' >> ./tmp-tree/thinstation.defaults
+	sed -e 's/\
+//g' ./tmp-tree/thinstation.defaults >> ./tmp-tree/etc/thinstation.defaults
+	rm ./tmp-tree/thinstation.defaults
+	source $ts_defaultconfig
+fi
+
+# Set up zoneinfo file
+if [ "$TIME_ZONE" == "" ] ;
+	then
+		TIME_ZONE=UTC
+fi
+echo -e "\nSetting Zone Info File to $TIME_ZONE"
+tzpath=./tmp-tree/lib/zoneinfo/$TIME_ZONE
+if [ ! -d ${tzpath%/*} ] ;
+	then
+		mkdir -p ${tzpath%/*}
+fi
+cp /usr/share/zoneinfo/$TIME_ZONE ${tzpath%/*}/.
+ln -sf /lib/zoneinfo/$TIME_ZONE ./tmp-tree/etc/localtime
+
+# Copy across sample file for www administration interface
+if [ -e $PACDIR/www.* ]; then
+  WEBDIR=./tmp-tree/lib/www/html/admin/config
+	if [ ! -d $WEBDIR ] ; then 
+		mkdir -p $WEBDIR
+	fi
+  cat ./thinstation.conf.sample |grep "\-\-\-" |cut -d" " -f3- |sed -e s/Options//g  |sed -e s/\
+//g >$WEBDIR/headings
+  (cat $WEBDIR/headings) |
+  while read heading
+  do
+	awk "/--- $heading/,/##/" ./thinstation.conf.sample  > "$WEBDIR/$heading.sample"
+  done
+fi
+
+
+# Check for ACPI Support
+if [ "$ts_acpisupport" == "disable" ]; then
+	echo -e "\nAdvanced Configuration and Power Interface support disabled\n"
+	kernel_acpi_support=false
+else
+	echo -e "\nAdvanced Configuration and Power Interface support enabled\n"
+fi
+
+
+for package in `ls $PACDIR | grep "\.package" | sed -e "s/\.package//"`
+do
+  if [ -e "./packages/$package/build/finalize" ]; then
+    mkdir -p ./tmp-tree/finalize
+    cp ./packages/$package/build/finalize ./tmp-tree/finalize/`head -n 1 ./packages/$package/build/finalize | cut -d' ' -f 2`$package
+  fi
+  if [ -e "./packages/$package/build/image" ]; then
+    cat ./packages/$package/build/image >> build.image
+  fi
+done
+
+# Adding contributed modifications
+echo -e "\nAdding contributed files\n"
+
+for filename in `find $PKGDIR -maxdepth 1 -name "*" && echo "./tmp-tree"`
+do
+	if [ -e $filename/build/contribs ] ; then
+		for contrib in `find $filename/build/contribs -type f -name "*"`
+		do
+			contribname=`basename $contrib`
+			destdir=`dirname $contrib | sed -e "s/\/build\/contribs//g"`
+			basedir=`dirname $contrib | sed -e "s/.*contribs//g"`
+			# Either appends it with cat or copies it in, pretty basic at 
+			# present, could be expanded later
+			if [ -e $destdir/$contribname ] ; then
+				echo "Appending contributed $contribname to $filename"
+				cat $contrib >> $destdir/$contribname
+			elif [ -e ./tmp-tree/$basedir/$contribname ] ; then
+				echo "Appending contributed $contribname to tmp-tree"
+				cat $contrib >> ./tmp-tree/$basedir/$contribname
+			else
+				echo "File not found, build aborted."
+			  	remove_files
+       			   	exit 1 
+			fi
+		done
+		rm -R $filename/build/contribs
+	fi
+done
+
+# Clean up unncessary folders
+rm -Rf $PACDIR
+rm -Rf ./tmp-tree/conf
+
+# Building PKG packages
+echo -e "\nBuilding PKG Packages\n"
+
+for filename in `ls -1 $PKGDIR/` ; do
+	cd $PKGDIR/$filename
+	if [ -e build ] ; then
+		rm -Rf build
+	fi
+	echo "Building $filename.pkg"
+	tar -cz * > ../$filename.pkg
+	cd ../../..
+	rm -Rf $PKGDIR/$filename
+	if [ -n "$PKGFILES" ] ; then
+		PKGFILES="$PKGFILES $filename"
+	else
+		PKGFILES="$filename"
+	fi
+done
+
+# Building Module packages
+echo -e "\nBuilding Module PKG Packages\n"
+
+for filename in `ls -1 $MODDIR/` ; do
+	cd $MODDIR/$filename
+	echo "Building $filename.mpkg"
+	tar -cz * > ../$filename.mpkg
+	cd ../../..
+	rm -Rf $MODDIR/$filename
+	mv $MODDIR/$filename.mpkg $PKGDIR
+	if [ -n "$MODFILES" ] ; then
+		MODFILES="$MODFILES $filename"
+	else
+		MODFILES="$filename"
+	fi
+done
+
+rmdir $MODDIR
+
+filesystem_fixups
+}
+
+mesa()
+{
+	if is_disabled $ts_mesa_3d; then
+		echo -e "Mesa 3D disabled, deleting the dri folder."
+		rm -rf ./tmp-tree/lib/dri
+		rm -rf ./tmp-tree/lib/gallium-pipe
+		rm -rf ./tmp-tree/lib/vdpau
+#		rm -f ./tmp-tree/lib/xorg/modules/drivers/modesetting_drv.so
+	fi
+}
+
+filesystem_fixups()
+{
+	# Various filesystem fixups
+	echo -e "Running File System Fixups"
+	echo "TS_VERSION=$TSVER" >> ./tmp-tree/etc/thinstation.env
+	if [ -e ./tmp-tree/etc/icewm/toolbar ]; then
+		echo -e "\tFixing IceWM toolbar"
+		sed -i "s/\$XTERM_CMD/$XTERM_CMD/g" ./tmp-tree/etc/icewm/toolbar
+		sed -i "s/\$XTERM_CMD/$XTERM_CMD/g" ./tmp-tree/etc/icewm/keys
+	fi
+	if [ -e ./tmp-tree/lib/gconv ] ; then
+		echo -e "\tBuilding Charmap Cache"
+		for i in `ls ./tmp-tree/lib/gconv --color=never |cut -d . -f1`; do
+			cat /usr/lib/gconv/gconv-modules|grep -e "$i" >>./tmp-tree/lib/gconv/gconv-modules
+		done
+        cp -H `which iconvconfig` ./tmp-tree/bin/.
+        chroot ./tmp-tree /bin/iconvconfig
+        rm ./tmp-tree/bin/iconvconfig
+        fi
+	echo -e "\tRemoving Extra Files"
+	find ./tmp-tree -name .gitignore -delete
+	if [ ! -e ./tmp-tree/etc/init.d/audio ]; then
+		for sound in `find ./tmp-tree/lib/modules -type d -name sound`; do
+			rm -rf $sound
+		done
+	fi
+	if [ -z "`find ./tmp-tree/lib/modules -name udf.ko -o -name isofs.ko`" ]; then
+		for cdrom in `find ./tmp-tree/lib/modules -type d -name cdrom`; do
+			rm -rf $cdrom
+		done
+	fi
+	for KERNVER in $KERNVERS; do
+		if [ ! -e ./tmp-tree/lib/modules/$KERNVER/kernel/fs ]; then
+			for driver in `find ./tmp-tree/lib/modules/$KERNVER -type d -name scsi -o -name ata -o -name fusion`; do
+				rm -rf $driver
+			done
+		fi
+	done
+	if [ ! -d ./tmp-tree/etc/X11 ] ;then
+		echo -e "\tRemoving Extra Font Files"
+		rm -rf ./tmp-tree/lib/fonts/X11
+		rm -rf ./tmp-tree/lib/X11
+		rm -rf ./tmp-tree/lib/keymaps
+		rm -f ./tmp-tree/etc/background.jpg
+		rm -f ./tmp-tree/bin/vmmouse_detect
+		# If we are not starting X, why do we need gpu support.
+		if is_enabled $ts_stripmodules; then
+			for gpu in `find ./tmp-tree/lib/modules -type d -name gpu -o -name agp`; do
+				rm -rf $gpu
+			done
+		fi
+	else
+		echo -e "\tRunning mkfontdir and mkfontscale"
+		for fontdir in `find ./tmp-tree/lib/fonts/X11 -mindepth 1 -type d`; do
+			if [ ! -e $fontdir/fonts.scale ]; then
+				mkfontscale $fontdir
+			fi
+			mkfontdir $fontdir
+		done
+		if [ -e ./tmp-tree/lib/gdk-pixbuf-2.0/2.10.0/loaders ] ; then
+			echo -e "\tCaching pixbuf loaders"
+			for loader in `find ./tmp-tree/lib/gdk-pixbuf-2.0/ -type f -printf "%f "`; do
+				loader=`find /usr/lib/gdk-pixbuf-2.0/ -name $loader`
+				lver=`echo $loader |cut -d "/" -f5`
+				gdk-pixbuf-query-loaders $loader | \
+					grep -v "#" \
+					>>./tmp-tree/lib/gdk-pixbuf-2.0/$lver/loaders.cache
+			done
+		fi
+		if [ -d ./tmp-tree/lib/pango ] ;then
+			echo -e "\tCaching pango modules"
+			for module in `find ./tmp-tree/lib/pango -type f -printf "%f "`; do
+				module=`find /usr/lib/pango -name $module`
+				pver=`echo $module |cut -d "/" -f5`
+				pango-querymodules $module | \
+					grep -v "#" \
+					>> ./tmp-tree/lib/pango/$pver/modules.cache
+			done
+		fi
+		if [ -d ./tmp-tree/lib/gtk-2.0 ]; then
+			echo -e "\tCaching gtk-2.0 immodules"
+			gver=`find ./tmp-tree/lib/gtk-2.0 -type d -name immodules | cut -d "/" -f5`
+			if [ -n "$gver" ]; then
+				for immodule in `find ./tmp-tree/lib/gtk-2.0/$gver/immodules -type f -printf "%f "`; do
+					immodule=`find /usr/lib/gtk-2.0/$gver/immodules -name $immodule`
+					gtk-query-immodules-2.0 $immodule | \
+						grep -v "#" \
+						>> ./tmp-tree/lib/gtk-2.0/$gver/immodules.cache
+				done
+			fi
+		fi
+		if [ -e ./tmp-tree/lib/glib-2.0/schemas ]; then
+			echo -e "\tCompiling Schemas"
+			cp -H `which glib-compile-schemas` ./tmp-tree/bin/.
+			chroot ./tmp-tree /bin/glib-compile-schemas /lib/glib-2.0/schemas 2>/dev/null
+			rm ./tmp-tree/bin/glib-compile-schemas
+			gio-querymodules ./tmp-tree/lib/gio/modules
+		fi
+	fi
+	echo -e "\tLinking BusyBox\n"
+	chroot ./tmp-tree /bin/busybox --install -s
+
+	if [ -e ./tmp-tree/finalize ]; then
+		echo -e "\tRunning Finalize\n"
+		mount --bind /dev ./tmp-tree/dev
+		mount --bind /proc ./tmp-tree/proc
+		sed -e "/if.*proc\/cmdline/d" tmp-tree/etc/thinstation.global > ./tmp-tree/build.finalize
+		cat ./tmp-tree/finalize/* >> ./tmp-tree/build.finalize
+		chroot ./tmp-tree /bin/sh /build.finalize
+		while fuser ./tmp-tree ; do
+			sleep .1
+		done
+		unmount_tmp
+		rm ./tmp-tree/build.finalize
+		rm -rf ./tmp-tree/finalize
+		rm -rf ./tmp-tree/tmp/*
+		#Run depmod one last time, in case a finalize script removed a module
+		for KERNVER in $KERNVERS; do
+			depmod -b ./tmp-tree $KERNVER 2>/dev/null
+		done
+	fi
+}
+
+# this is the starting point =>
+remove_files
+rm -rf boot-images/initrd/{kernel_parameters,initrd,image.md5,lib.squash,vmlinuz*}
+
+# Check OS for required commands. If some are missing the build system may fail silently.
+echo -n "Checking for required commands... "
+
+required_commands="awk basename cat chmod comm cp cut diff dirname du echo file find ldd ln ls mkdir mv rm rmdir sed sleep sort tar touch"
+
+# Check for sed first
+sed --version >/dev/null
+if [ $? -eq 127 ]; then
+	echo "FAIL"
+	echo "Your system does not have the 'sed' command"
+	echo "This build system requires it; aborting build"
+	exit 1
+fi
+
+missing_commands=""
+for command in $required_commands; do
+	found=0
+	for x in `echo $PATH|sed "s/:/ /g"`; do
+		if [ -x $x/$command ]; then
+			found=1
+		fi
+	done
+	if [ $found -eq 0 ]; then
+		missing_commands="$missing_commands $command"
+	fi
+done
+
+if [ -n "$missing_commands" ]; then
+	echo "FAIL"
+	echo "You are missing the following UNIX commands:$missing_commands"
+	echo "This build system requires them; aborting build"
+	exit 1
+fi
+
+required_tools="mkisofs mksquashfs unsquashfs gdk-pixbuf-query-loaders pango-querymodules glib-compile-schemas gio-querymodules rsvg-convert convert cryptmd5 vncpasswd smbpasswd"
+for tool in $required_tools; do
+	if [ ! `which $tool` ]; then
+		missing_tools="$missing_tools $tool"
+	fi
+done
+
+if [ -n "$missing_tools" ]; then
+	echo "FAIL"
+	echo "Your Thinstation installation is broken; the following needed tools"
+	echo "are missing:$missing_tools"
+	echo "This build system requires them; aborting build"
+	echo "Are you inside the chroot environment?"
+	exit 1
+fi
+echo "OK"
+
+# Get positional parameters
+until [ -z "$1" ]; do
+	if [ "$1" = "--kernel" ]; then
+		shift
+		KERNVEROPT="$KERNVEROPT $1"
+	elif [ "$1" = "--license" ]; then
+		shift
+		LICENSE=$1
+	elif [ "$1" = "--buildtime" ]; then
+		shift
+		BUILDTIME=$1
+	elif [ "$1" = "--noimages" ]; then
+		NOIMAGES=true
+	elif [ "$1" = "--help" ]; then
+		showhelp
+		remove_files
+		exit 0
+	elif [ "$1" = "--allmodules" ]; then
+		ALLMODULES=true
+	elif [ "$1" = "--autodl" ]; then
+		AUTODL=true
+	elif [ "$1" = "--removeall" ]; then
+		REMOVEALL=true
+	elif [ "$1" = "--regenconf" ]; then
+		REGENCONF=true
+	elif [ "$1" = "--savedir" ]; then
+		SAVEDIR=true
+		export SAVEDIR
+	elif [ "$1" = "--savepkglist" ]; then
+		SAVEPKGLIST=true
+		export SAVEPKGLIST
+ 	elif [ "$1" = "--update" ]; then
+ 		UPDATE=true
+	else
+		CONFIG_FILE=$1
+	fi
+	shift
+done
+
+if [ -n "$CONFIG_FILE" ]; then
+	if [ ! -e $CONFIG_FILE ] ; then
+		echo "$CONFIG_FILE doesn't exist, ERROR!!"
+		remove_files
+		exit 1
+	fi
+else
+	CONFIG_FILE="build.conf"
+fi
+
+if [ -z "$KERNVEROPT" ]; then
+	if [ -e ./SMP ]; then
+		KERNVEROPT=SMP
+	elif [ -e ./64 ]; then
+                KERNVEROPT=64
+	else
+		KERNVEROPT=`cat /boot/KERNEL_VERSION`
+	fi
+fi
+
+for KERNVER in $KERNVEROPT; do
+	if [ "$KERNVER" = "UP" ]; then
+		KERNVER=`cat /boot/KERNEL_VERSION`
+	fi
+
+	# If a specific Kernel version is specified - use it
+	KERNVER_SHORT=`cat /boot/KERNEL_VERSION |sed -e 's/TS/TS_'$KERNVER'/g'`
+	if [ -n "$KERNVER" ]; then
+		if [ ! -e /lib/modules/$KERNVER ] && [ ! -e /lib/modules/$KERNVER_SHORT ]; then
+			echo "Kernel $KERNVER doesn't exist, ERROR!!"
+			remove_files
+			exit 1
+		fi
+		if [ -e /lib/modules/$KERNVER_SHORT ]; then
+			KERNVER=$KERNVER_SHORT
+		fi
+	fi
+	echo "Using the $KERNVER Kernel"
+	KERNVERS="$KERNVERS $KERNVER"
+done
+
+# Removal all commerical packages then exit
+if [ -n "$REMOVEALL" ]; then
+	remove_files
+	remove_old_boot_files
+	for package in `ls ./packages`;	do
+		if [ -e ./packages/$package/build/remove ] && [ -e ./packages/$package/build/installed ] ; then
+			./packages/$package/build/remove
+		fi
+	done
+	echo "All commerical binaries removed, quitting."
+	exit 0
+fi
+
+# Copy all config files in conf directory
+if [ -n "$REGENCONF" ] ; then
+	rm ./conf/*.conf.sample > /dev/null 2>&1 
+	for filename in `ls ./packages`; do
+		if [ -e ./packages/$filename/build/conf ] ;then
+			for confname in `ls ./packages/$filename/build/conf/*`;	do
+				name=`basename $confname | cut -c3-`
+				cp $confname ./conf/$name.conf.sample
+			done
+		fi
+	done
+	exit 0
+fi
+
+# Run update for all packages with update script
+if [ -n "$UPDATE" ]; then
+	for package in `ls ./packages`;	do
+		if [ -e ./packages/$package/build/update ]; then
+			./packages/$package/build/update
+		fi
+	done
+	echo "All packages updated."
+fi
+
+# Build Image unless adding a buildtime file, for TS-O-Matic
+if [ -z "$BUILDTIME" ]; then
+	main
+	splash_setup
+	strip_files
+	make_initrd
+else
+	if [ -e "$BUILDTIME" ]; then
+		ts_initrdcmd=`grep build.conf -e initrdcmd |cut -d '"' -f2`
+		ts_syslinuxtheme=`grep build.conf -e syslinuxtheme |cut -d '"' -f2`
+		ts_bootimages=`grep build.conf -e bootimages |cut -d '"' -f2`
+		ts_squashopt=`grep build.conf -e squashopt |cut -d '"' -f2`
+		unzip=`echo $ts_initrdcmd |cut -d " " -f1`
+		mkdir ./tmp-tree
+		cd ./tmp-tree
+		if [ "$unzip" != "squashfs" ]; then
+			if [ "$unzip" == "none" -o "$unzip" == "" ] ;
+				then cat ../$INITDIR/initrd |cpio -i
+			else
+				$unzip -dc < ../$INITDIR/initrd |cpio -i
+			fi
+		fi
+		sed -e 's/\
+//g' ../"$BUILDTIME" >> ../tmp-tree/thinstation.buildtime
+		. ../$INITDIR/kernel_parameters
+		if [ "$ts_initrdcmd" == "squashfs" ]; then
+		    mksquashfs . ../$INITDIR/initrd $ts_squashopt -always-use-fragments -no-recovery -no-exports -no-xattrs
+		elif [ "$ts_initrdcmd" == "none" -o "$ts_initrdcmd" == "" ]; then
+			find . -print0 | cpio --null -oV --format=newc > ../$INITDIR/initrd
+		else
+			find . -print0 | cpio --null -oV --format=newc | $ts_initrdcmd > ../$INITDIR/initrd
+		fi
+		cd ..
+		chmod 755 $INITDIR/initrd
+	else
+		echo -e "\nError, no buidtime file found, aborting build"
+		remove_files
+		exit 1
+	fi
+fi
+
+# Add extra kernel commandline parameters
+if [ -n "$ts_kernelcmdline" ]; then
+	KERNEL_PARAMETERS="$KERNEL_PARAMETERS $ts_kernelcmdline"
+fi
+
+if [ "$ts_initrdcmd" == "squashfs" ]; then
+	KERNEL_PARAMETERS="$KERNEL_PARAMETERS load_ramdisk=1 ramdisk_blocksize=4096 root=\/dev\/ram0 ramdisk_size=$MAXIMAGE"
+fi
+
+if [ -z "$kernel_parameters" ]; then
+	KERNEL_PARAMETERS="$KERNEL_PARAMETERS $DEBUGCONSOLE"
+ 	echo "kernel_parameters=\"$KERNEL_PARAMETERS\"" > $INITDIR/kernel_parameters
+else
+	KERNEL_PARAMETERS="$kernel_parameters"
+fi
+
+# Add acpi support to kernel
+if [ -n "$kernel_acpi_support" ]; then
+	KERNEL_PARAMETERS="$KERNEL_PARAMETERS acpi=off"
+fi
+
+# Making all image types
+cd boot-images/initrd
+rm -f vmlinuz*
+md5sum initrd > image.md5
+for KERNVER in $KERNVERS; do
+	if [ ! -e /boot/vmlinuz$k ]; then
+		ln /boot/vmlinuz-$KERNVER ./vmlinuz$k
+	fi
+	md5sum vmlinuz$k >> image.md5
+	let k=k+1
+done
+
+if [ -e lib.squash ]; then
+	md5sum lib.squash >> image.md5
+fi
+cd ../..
+
+image_fastboot()
+{
+	if [ "$ts_fastboot" == "true" ] || [ "$ts_fastboot" == "lotsofmem" ] ; then
+		cp -p $INITDIR/lib.squash $IMAGEDIR
+	elif [ -e $IMAGEDIR/lib.squash ]; then
+		rm $IMAGEDIR/lib.squash
+	fi
+}
+
+if [ -z "$ts_bootimages" ]; then
+	ts_bootimages="syslinux pxe iso refind"
+fi
+
+if [ -z "$ts_syslinuxtheme" ]; then
+	ts_syslinuxtheme="default"
+fi
+
+if [ -e build.image ]; then
+	rm -rf boot-images/common
+	sh build.image boot-images/common
+	rm build.image
+fi
+
+add_image()
+{
+	for kernel in `find $INITDIR -maxdepth 1 -type f -name vmlinuz\* -printf '%f '`; do
+		sys_link hard $INITDIR/$kernel $IMAGEDIR/boot/$kernel
+	done
+
+	sys_link hard $INITDIR/initrd $IMAGEDIR/boot/initrd
+
+	sys_link hard $INITDIR/image.md5 $IMAGEDIR/boot/image.md5
+
+	if [ -e $INITDIR/lib.squash ]; then
+		sys_link hard $INITDIR/lib.squash $IMAGEDIR/boot/lib.squash
+	fi
+}
+
+syslinux_scan_config()
+{
+	# Scan config file for potentially needed com32 files
+	for com in \
+		pmload vesamenu sdi cpuidtest dmitest whichsys vpdtest \
+		elf cpuid debug linux vesainfo pxechn meminfo \
+		pcitest ifplop ethersel liblua ifmemdsk kbdmap libcom32 \
+		libmenu prdhcp gfxboot hexdump config libutil gpxecmd \
+		kontron_wdt disk zzjson libgpl chain host rosh ifcpu \
+		ifcpu64 hdt menu lua mboot cmd; do
+		grep $1 -oe $com.c32 >> /tmp/syslinux-com32
+	done
+}
+
+syslinux_com_deps()
+{
+	for lib in libutil libcom32 liblua libgpl libmenu; do
+		if ! grep -qe $lib.c32 /tmp/syslinux-com32; then
+			for module in `eval echo "\$"$lib`; do #Actually look at the dependencies variables
+				if grep -qe $module.c32 /tmp/syslinux-com32; then
+					echo "$lib.c32" >> /tmp/syslinux-com32
+					if [ "$lib" == "libmenu" ]; then
+						echo libutil.c32 >> /tmp/syslinux-com32
+						echo libcom32.c32 >> /tmp/syslinux-com32
+					fi
+				fi
+			done
+		fi
+	done
+	cat /tmp/syslinux-com32 |sort -u > /tmp/sorted
+	rm /tmp/syslinux-com32
+	mv /tmp/sorted /tmp/syslinux-com32
+}
+
+syslinux_copy_files_bios()
+{
+	inet_dev=`ip route list |grep -e default |cut -d " " -f5`
+	local_ip=`ip addr show $inet_dev |grep -e "inet " |cut -d " " -f6 |cut -d "/" -f1`
+	biosdir=/usr/share/syslinux/bios
+	configdir=boot-images/templates/syslinux/$ts_syslinuxtheme
+	ESP=$IMAGEDIR
+	BIOSDIR=${ESP}/boot$BDIR
+	CONFIGDIR=`dirname $CONFIGFILE`
+	mkdir -p "$BIOSDIR"
+
+	for file in `find $configdir -type f |sed -e "s|$configdir||g"`; do
+		subdirname=`dirname $file |sed -e "s|^/$||g"`
+		mkdir -p "${BIOSDIR}${subdirname}"
+		sys_copy ${configdir}${file} "$BIOSDIR/$file"
+	done
+
+	mkdir -p $BIOSDIR/$CONFIGDIR
+	cat $BIOSDIR/syslinux.cfg.tpl |sed -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS LM=$LM/g"> $BIOSDIR/$CONFIGFILE
+        sed -i -e "s/\$LM/$LM/g" $BIOSDIR/$CONFIGFILE
+	if [ "$LOADER" == "lpxelinux.0" ]; then
+		sed -i -e "s|/boot|http://$local_ip/boot|g" $BIOSDIR/$CONFIGFILE
+	fi
+	echo $BIOSDIR/$CONFIGFILE >> boot-images/initrd/added.files
+
+	find $ESP -name syslinux.cfg.tpl -delete
+
+	for file in `find $ESP -name \*.tpl |sed -e "s|$ESP||g"`; do
+		endfile=`dirname $file`/`basename $file .tpl`
+		cat $ESP/$file |sed -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS LM=$LM/g" > $ESP/$endfile
+		rm $ESP/$file
+	        sed -i -e "s/\$LM/$LM/g" $ESP/$endfile
+		if [ "$LOADER" == "lpxelinux.0" ]; then
+			sed -i -e "s|/boot|http://$local_ip/boot|g" $ESP/$endfile
+		fi
+        	echo $ESP/$endfile >> boot-images/initrd/added.files
+	done
+
+	for com in `cat /tmp/syslinux-com32`; do
+		sys_copy $biosdir/$com		"$BIOSDIR/$com"
+	done
+
+	loadersource="`prt-get fsearch $LOADER |grep -Ev 'Found|/$' |cut -d " " -f3 |head -n1`"
+	sys_copy $loadersource			"$BIOSDIR/$LOADER"
+	sys_copy $biosdir/ldlinux.c32	"$BIOSDIR/ldlinux.c32"
+}
+
+syslinux_copy_files_efi()
+{
+	inet_dev=`ip route list |grep -e default |cut -d " " -f5`
+	local_ip=`ip addr show $inet_dev |grep -e "inet " |cut -d " " -f6 |cut -d "/" -f1`
+	efi32dir=/usr/share/syslinux/efi32
+	efi64dir=/usr/share/syslinux/efi64
+	EFI32DIR=$ESP/EFI/syslinux/efi32
+	EFI64DIR=$ESP/EFI/syslinux/efi64
+	mkdir -p "$EFI32DIR"
+	mkdir -p "$EFI64DIR"
+
+	for file in `find $configdir -type f |sed -e "s|$configdir||g"`; do
+		subdirname=`dirname $file |sed -e "s|^/$||g"`
+		mkdir -p "${EFI32DIR}${subdirname}"
+		mkdir -p "${EFI64DIR}${subdirname}"
+		sys_copy ${configdir}${file} "$EFI32DIR/$file"
+		sys_copy ${configdir}${file} "$EFI64DIR/$file"
+	done
+	find $ESP -name syslinux.cfg.tpl -delete
+
+	if [ "$LOADER" == "lpxelinux.0" ]; then
+		mkdir -p $EFI32DIR/$CONFIGDIR
+		mkdir -p $EFI64DIR/$CONFIGDIR
+		sys_copy $BIOSDIR/$CONFIGFILE "$EFI32DIR/$CONFIGFILE"
+		sys_copy $BIOSDIR/$CONFIGFILE "$EFI64DIR/$CONFIGFILE"
+	else
+		sys_copy $BIOSDIR/$CONFIGFILE "$EFI32DIR/syslinux.cfg"
+		sys_copy $BIOSDIR/$CONFIGFILE "$EFI64DIR/syslinux.cfg"
+	fi
+
+	for com in `cat /tmp/syslinux-com32`; do
+		sys_copy $efi32dir/$com "$EFI32DIR/$com"
+		sys_copy $efi64dir/$com "$EFI64DIR/$com"
+	done
+
+	sys_copy $efi32dir/syslinux.efi "$EFI32DIR/syslinux.efi"
+	sys_copy $efi32dir/ldlinux.e32  "$EFI32DIR/ldlinux.e32"
+
+	sys_copy $efi64dir/syslinux.efi "$EFI64DIR/bootx64.efi"
+	sys_copy $efi64dir/ldlinux.e64  "$EFI64DIR/ldlinux.e64"
+}
+
+refind_copy_files()
+{
+	refdir=/boot/efi/EFI/refind
+	configdir=boot-images/templates/refind/$ts_refindtheme
+	ESP=$IMAGEDIR
+	KDIR=${ESP}/boot
+	EFIDIR=$ESP/EFI/BOOT
+	mkdir -p $EFIDIR
+
+	for file in `find $refdir -type f |grep -Ev 'banners|docs|refind.conf-sample|refind_ia32.efi|refind_x64.efi|README.txt|mkfont.sh|gptsync' |sed -e "s|$refdir/||g"`; do
+		mkdir -p $EFIDIR/`dirname $file`
+		sys_copy $refdir/$file $EFIDIR/$file
+	done
+
+	sys_copy $refdir/refind_ia32.efi $EFIDIR/bootia32.efi
+	sys_copy $refdir/refind_x64.efi $EFIDIR/bootx64.efi
+
+	for file in `find $configdir -type f |sed -e "s|$configdir||g"`; do
+		subdirname=`dirname $file |sed -e "s|^/$||g"`
+		mkdir -p "${EFIDIR}${subdirname}"
+		sys_copy ${configdir}${file} "$EFIDIR/$file"
+		sed -i -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS LM=$LM/g" "$EFIDIR/$file"
+	done
+}
+
+sys_link()
+{
+	case "$1" in
+		soft) ln -sf "$2" "$3" ;;
+		hard) ln "$2" "$3" ;;
+	esac
+	echo "$3" >> boot-images/initrd/added.files
+}
+
+sys_copy()
+{
+	cp -a "$1" "$2"
+	echo "$2" |sed -E "s|/+|/|g" |sed '/\.tpl/d' >> boot-images/initrd/added.files
+}
+
+# Skips Images if NOIMAGES is set, useful for TS-O-Matic
+if [ -z "$NOIMAGES" ]; then
+	remove_old_boot_files
+	configdir=boot-images/templates/syslinux/$ts_syslinuxtheme
+	# Any text file is a potential config, and there are plenty of ways to get one in there,
+	# so lets look at all of them in the config folder.
+	for file in `find $configdir -type f`;do
+		if file -e tokens $file |grep -qe 'ASCII text'; then
+			syslinux_scan_config $file
+		fi
+	done
+        syslinux_com_deps
+
+	for image in $ts_bootimages; do
+		echo -e "\nMaking boot image for $image Type....\n"
+		case $image in
+			syslinux)
+				IMAGEDIR=boot-images/syslinux
+				BDIR=/syslinux
+				CONFIGFILE=syslinux.cfg
+				LOADER=syslinux
+				LM=2
+
+				addpkgs $IMAGEDIR
+				syslinux_copy_files_bios
+				add_image
+			;;
+			pxe)
+				IMAGEDIR=boot-images/pxe
+				BDIR=/pxelinux
+				CONFIGFILE=pxelinux.cfg/default
+				LOADER=lpxelinux.0
+				LM=3
+
+				addpkgs $IMAGEDIR
+				syslinux_copy_files_bios
+				syslinux_copy_files_efi
+				add_image
+			;;
+			iso)
+				IMAGEDIR=boot-images/iso/source
+				BDIR=/syslinux
+				CONFIGFILE=isolinux.cfg
+				LOADER=isolinux.bin
+				LM=4
+
+				addpkgs $IMAGEDIR
+				syslinux_copy_files_bios
+				if [ -e boot-images/syslinux/boot/syslinux ]; then
+					for file in `ls --color=never boot-images/syslinux/boot/syslinux`; do
+						if [ ! -e $IMAGEDIR/boot/syslinux/$file ]; then
+							sys_copy boot-images/syslinux/boot/syslinux/$file $IMAGEDIR/boot/syslinux/$file
+						fi
+					done
+				fi
+
+				refdir=/build/boot-images/refind/EFI
+				if [ -e $refdir ]; then
+					for file in `find $refdir -type f |sed -e "s|$refdir/||g"`; do
+						mkdir -p $IMAGEDIR/EFI/`dirname $file`
+						sys_copy $refdir/$file $IMAGEDIR/EFI/$file
+					done
+				fi
+				add_image
+
+				IMAGEDIR_FINAL=`dirname $IMAGEDIR`
+				if [ -e $INITDIR/boot.efi ]; then
+					mkdir -p $IMAGEDIR/EFI/BOOT
+					sys_copy $INITDIR/boot.efi $IMAGEDIR/EFI/BOOT/boot.efi
+					mkisofs		-o $IMAGEDIR_FINAL/thinstation.iso \
+							-b boot/syslinux/isolinux.bin \
+							-c boot.cat \
+							-no-emul-boot \
+							-boot-load-size 4 \
+							-boot-info-table \
+							-eltorito-alt-boot \
+							-eltorito-platform efi \
+							-b EFI/BOOT/boot.efi \
+							-no-emul-boot \
+							-joliet \
+							-rock \
+							-f \
+							-quiet \
+							$IMAGEDIR_FINAL/source
+				else
+					mkisofs		-o $IMAGEDIR_FINAL/thinstation.iso \
+							-b boot/syslinux/isolinux.bin \
+							-c boot.cat \
+							-no-emul-boot \
+							-boot-load-size 4 \
+							-boot-info-table \
+							-joliet \
+							-rock \
+							-f \
+							-quiet \
+							$IMAGEDIR_FINAL/source
+				fi
+
+				echo $IMAGEDIR_FINAL/thinstation.iso >> boot-images/initrd/added.files
+
+				if [ -e boot-images/common ]; then
+					ls boot-images/common | \
+					while read i; do
+						rm -rf "$IMAGEDIR/`basename "$i"`"
+					done
+				fi
+			;;
+			refind)
+				IMAGEDIR=boot-images/refind
+                                CONFIGFILE=refind.conf
+                                LM=2
+
+                                addpkgs $IMAGEDIR
+                                refind_copy_files
+
+				lsize=`du -s $IMAGEDIR |cut -f1`
+				let lsize=$lsize+32
+
+				dd if=/dev/zero of=$INITDIR/boot.efi bs=1K count=$lsize
+				lodev=`losetup -f`
+				losetup $lodev $INITDIR/boot.efi
+				mkfs.vfat -I $lodev
+				mkdir -p temp-efi
+				mount $lodev temp-efi
+				cp -a $IMAGEDIR/* temp-efi
+				umount temp-efi
+				losetup -d $lodev
+				rmdir temp-efi
+				echo $INITDIR/boot.efi >> boot-images/initrd/added.files
+
+				syslinuxdir="boot-images/syslinux"
+				for file in `find $syslinuxdir -type f |sed -e "s|$syslinuxdir/||g"`; do
+					mkdir -p `dirname $IMAGEDIR/$file`
+					sys_copy $syslinuxdir/$file $IMAGEDIR/$file
+				done
+		esac
+	done
+fi
+
+remove_files
+
+# Echo PKG variables for .conf file to screen
+echo -e "\nNotes about build:"
+if [ -n "$PKGFILES" ]; then
+	echo "Your PKG_PACKAGES for the .conf file should be"
+	echo -e "PKG_PACKAGES=\"$PKGFILES\"\n"
+fi
+if [ -n "$MODFILES" ]; then
+	echo "Your MOD_PACKAGES for the .conf file should be"
+	echo "MOD_PACKAGES=\"$MODFILES\""
+fi
+for KERNVER in $KERNVERS; do
+	echo "Kernel $KERNVER size is `du -L --apparent-size -BK /boot/vmlinuz-$KERNVER |cut -f1`"
+done
+echo "Initrd size is `du --apparent-size -BK boot-images/initrd/initrd |cut -f1`"
+if [ "$ts_fastboot" == "true" ] || [ "$ts_fastboot" == "lotsofmem" ] ; then
+	echo "Squash size is `du --apparent-size -BK boot-images/initrd/lib.squash |cut -f1`"
+fi
+echo -e "\nBuild Complete!"
