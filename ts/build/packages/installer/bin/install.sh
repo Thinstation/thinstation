@@ -123,4 +123,4 @@ echo "Gitting thinstation repo"
 
 git clone --depth 1 https://github.com/Thinstation/thinstation.git -b 5.3-Stable /thinstation
 
-./setup-chroot -i
+./setup-chroot -i -a

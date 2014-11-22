@@ -7,17 +7,16 @@ stage1()
 {
 	echo "Chroot not previuosly setup. Doing it NOW!"
 
-	for i in proc sys home dev mnt downloads;
-		do
-			if [ ! -e $i ] ; then
-				mkdir -m 755 $i
-			fi
-		done
+	for dir in proc sys home dev mnt downloads; do
+		if [ ! -e $dir ] ; then
+				mkdir -m 755 $dir
+		fi
+	done
 
-	if [ ! -e tmp ] ; then
+	if [ ! -e tmp ]; then
 		mkdir -m 1777 tmp
 	fi
-	if [ ! -e root ] ; then
+	if [ ! -e root ]; then
 		mkdir -m 750 root
 	fi
 
@@ -102,7 +101,7 @@ stage4()
 			printf "\n"
                 fi
         done
-	rm -rf autodl
+	rm -f autodl
         printf "\rFirmware Port Installation %-40s\n" "Complete"
 	post_install
 }

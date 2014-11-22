@@ -2131,6 +2131,8 @@ if [ -z "$NOIMAGES" ]; then
 				syslinux_copy_files_efi
 				add_image
 				add_overlay
+				mkdir -p $IMAGEDIR/cgi-bin
+				sys_copy `prt-get fsearch index.cgi |grep -v Found |cut -d " " -f3` $IMAGEDIR/cgi-bin/index.cgi
 			;;
 			iso)
 				IMAGEDIR=boot-images/iso/source
