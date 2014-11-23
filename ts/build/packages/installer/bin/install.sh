@@ -104,13 +104,13 @@ proxy-setup
 . /tmp/.proxy
 
 # Install a default boot and backup-boot image into the boot partition
-if [ -e /mnt/cdrom0/thindev-default.tar.xz ]; then
-	tar -xvf /mnt/cdrom0/thindev-default.tar.xz
+if [ -e /mnt/cdrom0/thindev-default-$TS_VERSION.tar.xz ]; then
+	tar -xvf /mnt/cdrom0/thindev-default-$TS_VERSION.tar.xz
 else
 	echo "Downloading a Default Image"
-	wget "$WEBUPDATEROOT/thindev-default.tar.xz"
-	tar -xvf thindev-default.tar.xz
-	rm thindev-default.tar.xz
+	wget "$WEBUPDATEROOT/thindev-default-$TS_VERSION.tar.xz"
+	tar -xvf thindev-default-$TS_VERSION.tar.xz
+	rm thindev-default-$TS_VERSION.tar.xz
 fi
 
 cp /boot/initrd /boot/initrd-backup
