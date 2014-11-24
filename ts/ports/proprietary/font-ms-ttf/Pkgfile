@@ -1,0 +1,16 @@
+# Description:	Free TTF fonts from Microsoft
+# URL:	http://corefonts.sf.net/
+# Maintainer:	Alan Mizrahi, alan at mizrahi dot com dot ve
+# Depends on:	cabextract
+
+name=font-ms-ttf
+version=1.0
+release=2
+source=(
+http://prdownloads.sf.net/corefonts/the%20fonts/final/{andale32,arial32,arialb32,comic32,courie32,georgi32,impact32,times32,trebuc32,verdan32,webdin32}.exe
+)
+
+build () {
+	mkdir -p $PKG/usr/share/fonts/X11/TTF
+	cabextract -L -d $PKG/usr/share/fonts/X11/TTF -F \*.ttf $SRC/*.exe
+}
