@@ -182,7 +182,12 @@ serverlayout_ ()
 
 files_ ()
 {
-    return 0
+	if [ -n "$SCREEN_X_FONT_SERVER" ]; then
+		CONF=/etc/X11/xorg.conf.d/60-fonts.conf
+		echo -e "Section \"Files\""				> $CONF
+		echo -e "\tFontPath   \"tcp/$SCREEN_X_FONT_SERVER\""	>> $CONF
+		echo -e "EndSection"					>> $CONF
+	fi
 }
 
 modes_ ()

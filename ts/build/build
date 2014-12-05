@@ -761,9 +761,11 @@ sample_configuration()
 
 locales()
 {
-	# Removes extended locale libs if not selected
 	echo -e "\nAdding locales to archive.\n"
-
+	# Removes extended locale libs if not selected
+#	if ! is_enabled $ts_fulllocales; then
+#		rm -rf ./tmp-tree/lib/gconv
+#	fi
 	if [ -n "`find ./tmp-tree/build -maxdepth 1 -name \*.template`" ]; then
 		for localedef in `cat ./tmp-tree/build/*.template`; do
 			inputfile=`echo $localedef|cut -d , -f1`
