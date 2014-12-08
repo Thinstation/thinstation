@@ -1964,8 +1964,10 @@ syslinux_com_deps()
 
 syslinux_copy_files_bios()
 {
-	inet_dev=`ip route list |grep -e default |cut -d " " -f5`
-	local_ip=`ip addr show $inet_dev |grep -e "inet " |cut -d " " -f6 |cut -d "/" -f1`
+	if [ -z "$ts_bootserver" ]; then
+		inet_dev=`ip route list |grep -e default |cut -d " " -f5`
+		ts_bootserver=`ip addr show $inet_dev |grep -e "inet " |cut -d " " -f6 |cut -d "/" -f1`
+	fi
 	biosdir=/usr/share/syslinux/bios
 	configdir=boot-images/templates/syslinux/$ts_syslinuxtheme
 	ESP=$IMAGEDIR
@@ -1985,7 +1987,7 @@ syslinux_copy_files_bios()
 	if [ "$LOADER" == "lpxelinux.0" ]; then
 		for file in `find $BIOSDIR -type f`; do
 			if [ -n "`file -e tokens $file| grep -e ASCII |cut -d ":" -f1`" ];then
-				sed -i -e "s|/boot|http://$local_ip/boot|g" $file
+				sed -i -e "s|/boot|http://$ts_bootserver/boot|g" $file
 			fi
 		done
 	fi
@@ -1999,7 +2001,7 @@ syslinux_copy_files_bios()
 		rm $ESP/$file
 	        sed -i -e "s/\$LM/$LM/g" $ESP/$endfile
 		if [ "$LOADER" == "lpxelinux.0" ]; then
-			sed -i -e "s|/boot|http://$local_ip/boot|g" $ESP/$endfile
+			sed -i -e "s|/boot|http://$ts_bootserver/boot|g" $ESP/$endfile
 		fi
         	echo $ESP/$endfile >> boot-images/initrd/added.files
 	done
@@ -2015,8 +2017,6 @@ syslinux_copy_files_bios()
 
 syslinux_copy_files_efi()
 {
-	inet_dev=`ip route list |grep -e default |cut -d " " -f5`
-	local_ip=`ip addr show $inet_dev |grep -e "inet " |cut -d " " -f6 |cut -d "/" -f1`
 	efi32dir=/usr/share/syslinux/efi32
 	efi64dir=/usr/share/syslinux/efi64
 	EFI32DIR=$ESP/EFI/syslinux/efi32
