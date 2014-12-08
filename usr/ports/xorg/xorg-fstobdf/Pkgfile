@@ -1,0 +1,18 @@
+# Description: Core X fonts converter
+# URL: http://xorg.freedesktop.org
+# Maintainer: CRUX Xorg Team, xorg-ports at crux dot nu
+# Depends on: xorg-libx11
+
+name=xorg-fstobdf
+version=1.0.5
+release=1
+source=(http://xorg.freedesktop.org/releases/individual/app/fstobdf-$version.tar.bz2)
+
+build() {
+	cd fstobdf-$version
+
+	./configure --prefix=/usr --mandir=/usr/man
+
+	make
+	make DESTDIR=$PKG install
+}
