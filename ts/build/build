@@ -1984,6 +1984,12 @@ syslinux_copy_files_bios()
 				sed -i -e "s|/boot|http://$ts_bootserver/boot|g" $file
 			fi
 		done
+	elif [ "$LOADER" == "pxelinux.0" ]; then
+		for file in `find $BIOSDIR -type f`; do
+			if [ -n "`file -e tokens $file| grep -e ASCII |cut -d ":" -f1`" ];then
+				sed -i -e "s|/boot|::/boot|g" $file
+			fi
+		done
 	fi
 	echo $BIOSDIR/$CONFIGFILE >> boot-images/initrd/added.files
 
@@ -1996,6 +2002,8 @@ syslinux_copy_files_bios()
 	        sed -i -e "s/\$LM/$LM/g" $ESP/$endfile
 		if [ "$LOADER" == "lpxelinux.0" ]; then
 			sed -i -e "s|/boot|http://$ts_bootserver/boot|g" $ESP/$endfile
+		elif [ "$LOADER" == "pxelinux.0" ]; then
+			sed -i -e "s|/boot|::/boot|g" $ESP/$endfile
 		fi
         	echo $ESP/$endfile >> boot-images/initrd/added.files
 	done
