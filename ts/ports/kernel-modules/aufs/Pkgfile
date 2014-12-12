@@ -4,16 +4,17 @@
 # Maintainer:   
 
 name=aufs
-version=3.14
+version=3.14.21+
 release=1
 kver=`cat /ts/ports/kernel-modules/VERSION`
-source=()
+source=(a.patch)
 
 build() {
     git clone git://git.code.sf.net/p/aufs/aufs3-standalone \
 	$name
     cd $name
     git checkout origin/aufs$version
+    patch -p1 -i $SRC/a.patch
 
     sed -i -e 's/CONFIG_AUFS_PROC_MAP =.*/CONFIG_AUFS_PROC_MAP = y/' \
 	-e 's/CONFIG_AUFS_DEBUG =.*/CONFIG_AUFS_DEBUG = /' \

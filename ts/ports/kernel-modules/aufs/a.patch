@@ -1,0 +1,25 @@
+commit 56225a307a4a238d7304cd367189700a00281c9d
+Author: J. R. Okajima <hooanon05g@gmail.com>
+Date:   Mon Dec 8 12:19:11 2014 +0900
+
+    aufs: bugfix, prototype declaration of au_cpup_xattr()
+    
+    I was not aware since I always set CONFIG_AUFS_XATTR enabled.
+    
+    Reported-by: brent timothy saner <brent.saner@gmail.com>
+    Signed-off-by: J. R. Okajima <hooanon05g@gmail.com>
+
+diff --git a/fs/aufs/inode.h b/fs/aufs/inode.h
+index 94ca480..c058ddd 100644
+--- a/fs/aufs/inode.h
++++ b/fs/aufs/inode.h
+@@ -302,7 +302,8 @@ int aufs_removexattr(struct dentry *dentry, const char *name);
+ 
+ /* void au_xattr_init(struct super_block *sb); */
+ #else
+-AuStubInt0(au_cpup_xattr, h_dst, h_src, ignore_flags)
++AuStubInt0(au_cpup_xattr, struct dentry *h_dst, struct dentry *h_src,
++	   int ignore_flags);
+ /* AuStubVoid(au_xattr_init, struct super_block *sb); */
+ #endif
+ 

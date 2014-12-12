@@ -4,9 +4,9 @@
 # Maintainer:   
 
 name=aufs-patches
-version=3.14
+version=3.14.21+
 release=1
-source=(21.plus.patch)
+source=()
 
 build() {
 	git clone git://git.code.sf.net/p/aufs/aufs3-standalone \
@@ -15,7 +15,7 @@ build() {
 	git checkout aufs$version
 
 	mkdir -p $PKG/$TSCOMPROOT/aufs/patches
-	patch -p0 -i $SRC/21.plus.patch
+
 	cat aufs3-base.patch aufs3-mmap.patch aufs3-standalone.patch > $PKG/$TSCOMPROOT/aufs/patches/aufs3.patch
 	cd $PKG/$TSCOMPROOT/aufs/patches
 }

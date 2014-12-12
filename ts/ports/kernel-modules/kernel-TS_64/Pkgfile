@@ -34,6 +34,8 @@ export MAKEFLAGS="-j5"
 	ln -sf /usr/src/kernels/${kernel}/usr/include/asm-generic $PKG/usr/src/kernels/${kernel}/usr/include/asm
 	rm $PKG/usr/src/kernels/${kernel}/scripts/{mod,kconfig}/*.o
 
+	sed -i -e 's|objdump|\$\(OBJDUMP\)|g' arch/x86/boot/compressed/Makefile
+
 	make
 	make INSTALL_PATH=$PKG install
 	make INSTALL_MOD_PATH=$PKG modules_install
