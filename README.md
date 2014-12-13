@@ -5,7 +5,7 @@ README - Displaying of this file can be disabled by touching `/ts/etc/READ`
 This env was created for you by Donald A. Cupp Jr. from Crux and Thinstation
 
 Thinstation itself has many many many contributors, but much thanx goes out to
-Mike Eriksen, Trevor Batley, Miles Roper and Marcos Mamorim
+Mike Eriksen, Trevor Batley, Miles Roper and Marcos Amorim
 
 Work To Do / Work in Progress: mail to developer List if you can help
 
