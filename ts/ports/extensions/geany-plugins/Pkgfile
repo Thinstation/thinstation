@@ -1,0 +1,26 @@
+# Description: plugins for geany
+# URL: http://www.geany.org/
+# Maintainer: Jose V Beneyto, sepen at crux dot nu
+# Packager: Hannes Mayer, kontakt at ecarux dot de
+# Depends on: gtk
+# Nice to have: vte
+
+name=geany-plugins
+version=git
+release=1
+source=()
+
+build () {
+git clone --depth 1 https://github.com/geany/geany-plugins.git
+  cd $name
+
+  ./autogen.sh	--prefix=/usr \
+		--mandir=/usr/man \
+		--disable-geanyprj \
+		--disable-gproject \
+		--disable-multiterm
+
+  make
+  make DESTDIR=$PKG install
+  rm -rf $PKG/usr/share/{doc,locale}
+}

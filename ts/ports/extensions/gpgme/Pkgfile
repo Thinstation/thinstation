@@ -1,0 +1,25 @@
+# Description: An API for GnuPG.
+# URL: http://www.gnupg.org/gpgme.html
+# Maintainer: Danny Rawlins, crux at romster dot me
+# Packager: Brett Goulder, predatorfreak at dcaf-security dot org
+# Depends on: gnupg
+
+name=gpgme
+version=1.3.2
+release=1
+source=(ftp://ftp.gnupg.org/gcrypt/$name/$name-$version.tar.bz2)
+
+build() {
+	cd $name-$version
+
+	./configure \
+		--prefix=/usr \
+		--libexecdir=/usr/lib \
+		--with-gpg=/usr/bin/gpg \
+		--with-pth=yes
+
+	make
+	make tests
+	make DESTDIR=$PKG install
+	rm -r $PKG/usr/share/info
+}
