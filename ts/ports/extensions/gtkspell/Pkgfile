@@ -1,0 +1,21 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=gtkspell
+version=2.0.16
+release=1
+source=(http://gtkspell.sourceforge.net/download/gtkspell-$version.tar.gz)
+
+build() {
+	cd $name-$version
+
+	./configure --prefix=/usr \
+			--sysconfdir=/etc \
+			--mandir=/usr/man \
+			--enable-gtk2 \
+			--disable-introspection
+
+	make
+	make DESTDIR=$PKG install
+}

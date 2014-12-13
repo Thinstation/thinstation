@@ -1,0 +1,22 @@
+# Description: A wrapper library for generic spell checking
+# URL: http://www.abisource.com/enchant/
+# Maintainer: Danny Rawlins, crux at romster dot me
+# Packager: James Mills, prologic at shortcircuit dot net dot au
+# Depends on: aspell glib hunspell
+
+name=enchant
+version=1.6.0
+release=2
+source=(http://www.abisource.com/downloads/enchant/$version/enchant-$version.tar.gz)
+
+build() {
+	cd enchant-$version
+
+	./configure \
+		--prefix=/usr \
+		--mandir=/usr/man \
+		--disable-dependency-tracking
+
+	make
+	make DESTDIR=$PKG install
+}
