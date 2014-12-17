@@ -128,8 +128,11 @@ serverflags_ ()
 
 screen_ ()
 {
-	if [ -n "$SCREEN_RESOLUTION" ] || [ -e /etc/X11/xorg.conf.d/10-serverlayout.conf ] || [ -e /etc/X11/xorg.conf.d/08-monitor.conf ]; then
-	CONF=/etc/X11/xorg.conf.d/12-screen.conf
+	if [ -n "$SCREEN_RESOLUTION" ] \
+	|| [ -e /etc/X11/xorg.conf.d/10-serverlayout.conf ] \
+	|| [ -e /etc/X11/xorg.conf.d/08-monitor.conf ] \
+	|| [ -e /etc/X11/xorg.conf.d/60-fonts.conf ]; then
+		CONF=/etc/X11/xorg.conf.d/12-screen.conf
 		for mode in `echo $SCREEN_RESOLUTION |grep -o -e '[0-9]*x[0-9]*'`; do
 			MODES="$MODES\"$mode\" "
 		done
@@ -182,12 +185,18 @@ serverlayout_ ()
 
 files_ ()
 {
-	if [ -n "$SCREEN_X_FONT_SERVER" ]; then
-		CONF=/etc/X11/xorg.conf.d/60-fonts.conf
-		echo -e "Section \"Files\""				> $CONF
-		echo -e "\tFontPath   \"tcp/$SCREEN_X_FONT_SERVER\""	>> $CONF
-		echo -e "EndSection"					>> $CONF
-	fi
+#	if [ -n "$SCREEN_X_FONT_SERVER" ]; then
+#		CONF=/etc/X11/xorg.conf.d/60-fonts.conf
+#		echo -e "Section \"Files\""				> $CONF
+#		echo -e "\tFontPath   \"tcp/$SCREEN_X_FONT_SERVER\""	>> $CONF
+#		echo -e "EndSection"					>> $CONF
+#		echo -e "Section \"ServerLayout\""                      >> $CONF
+#		echo -e "\tIdentifier \"TS Configured\""                >> $CONF
+#		echo -e "\tScreen   0\t\"Screen0\" 0 0"                 >> $CONF
+#		echo -e "\tOption         \"Xinerama\" \"0\""           >> $CONF
+#		echo -e "EndSection"                                    >> $CONF
+#	fi
+	return 0
 }
 
 modes_ ()
@@ -199,7 +208,7 @@ case $1 in
 init|start)
 	X_SERVER=Xorg
 	echo "X_SERVER=$X_SERVER" >> $TS_RUNTIME
-	for section in ServerLayout Files Keyboard Mouse Monitor Device Modes Screen ServerFlags; do
+	for section in ServerLayout Files Keyboard Mouse Monitor Device Modes ServerFlags Screen; do
 		get_options $section
 		`make_lower $section`_
 		if [ -e /tmp/x_$section ]; then rm /tmp/x_$section; fi
