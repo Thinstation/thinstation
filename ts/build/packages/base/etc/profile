@@ -22,6 +22,10 @@ if [ "`tty`" == "$CONSOLE" ]; then
 			clear
 			splash_exit
 			exec /bin/xinit /etc/xinitrc -- /etc/xserverrc > /var/run/applications/session.$$ 2>&1
+		elif ! is_enabled $HALTONERROR; then
+			chvt 1
+			echo "The system was not able to go graphical. This could indicate a problem with missing kernel modules or Xorg drivers."
+			echo ""
 		else
                         splash_exit
                         show_cursor
