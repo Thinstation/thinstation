@@ -4,15 +4,12 @@
 # Depends on:  cups, ncurses, readline
 
 name=gutenprint
-version=5.2.7
-release=2
-source=(http://downloads.sourceforge.net/project/gimp-print/$name-5.2/$version/$name-$version.tar.bz2
-        $name-$version-include_stdio.patch)
+version=5.2.10
+release=1
+source=(http://downloads.sourceforge.net/project/gimp-print/$name-5.2/$version/$name-$version.tar.bz2)
 
 build () {
     cd $name-$version
-
-    patch -p1 -i $SRC/$name-$version-include_stdio.patch
 
     ./configure --prefix=/usr \
                 --mandir=/usr/man \
@@ -21,6 +18,6 @@ build () {
     make
     make DESTDIR=$PKG install
 
-    rm -r $PKG/usr/share/gutenprint/{doc,samples}
+    rm -r $PKG/usr/share/gutenprint/doc
     rm -r $PKG/usr/share/locale
 }

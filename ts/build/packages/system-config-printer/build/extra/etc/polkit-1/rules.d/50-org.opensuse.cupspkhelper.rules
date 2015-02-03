@@ -1,0 +1,5 @@
+polkit.addRule(function(action, subject) {
+  if (action.id.indexOf("org.opensuse.cupspkhelper.mechanism.") == 0 && subject.isInGroup("ts") && subject.active) {
+    return polkit.Result.YES;
+  }
+});

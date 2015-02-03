@@ -106,7 +106,14 @@ stage1()
 		port_archive=`find -L . -maxdepth 1 -type f -name ${port}#$whole_version.pkg.tar.\*`
 		if [ -n "$port_archive" ]; then
 			case $port_type in
-				proprietary|firmware) if $super; then pkgmk -c; else save_archive;fi;;
+				proprietary|binary-core|binary-opt)
+					if $super; then
+						pkgmk -c
+					else
+						save_archive
+					fi
+					echo $port_archive |cut -d "." -f2- > .gitignore
+					;;
 				*) save_archive;;
 			esac
 		else

@@ -516,10 +516,16 @@ use_xrandr ()
 		elif [ "$XRANDR_OPTIONS" == "dualscreen" ]; then
 			scrns=$(xrandr -q | grep " connected" | cut -d " " -f1)
 			numscrns=$(echo $scrns | wc -w)
-			if [ $numscrns = 2 ] ; then
+			if [ $numscrns -gt 1 ] ; then
 				out1=$(echo $scrns | cut -d " " -f1)
 				out2=$(echo $scrns | cut -d " " -f2)
-				XRANDR_OPTIONS="--output $out1 --left-of $out2 --primary"
+				if [ -n "$SCREEN_RESOLUTION" ]; then
+					XRANDR_OPTIONS="--output $out1 --mode $SCREEN_RESOLUTION --left-of $out2 --primary --output $out2 --mode $SCREEN_RESOLUTION"
+				else
+					XRANDR_OPTIONS="--output $out1 --left-of $out2 --primary"
+				fi
+			else
+				XRANDR_OPTIONS="-s $SCREEN_RESOLUTION"
 			fi
 		fi
 		xrandr $XRANDR_OPTIONS 2>/dev/null

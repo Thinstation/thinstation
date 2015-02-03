@@ -40,7 +40,7 @@ stage1()
 
 stage2()
 {
-	for Pkgfile in `find -L $ROOT/{usr,ts}/ports -name Pkgfile |grep -Ev "proprietary|firmware"`;do
+	for Pkgfile in `find -L $ROOT/{usr,ts}/ports -name Pkgfile |grep -Ev "proprietary|binary-core|binary-opt"`;do
 		install_port
 	done
 	printf "\rPort Installation %-40s\n" "Complete"
@@ -80,8 +80,8 @@ stage3()
 stage4()
 {
 	rm /dostage4
-	printf "\rLooking at Firmware ports\n"
-        for Pkgfile in `find -L $ROOT/{usr,ts}/ports -name Pkgfile |grep -E "firmware"`;do
+	printf "\rLooking at core binary ports\n"
+        for Pkgfile in `find -L $ROOT/{usr,ts}/ports -name Pkgfile |grep -E "binary-core"`;do
                 if ! install_port; then
                         port_name=`echo $Pkgfile |cut -d "/" -f6`
 			if ! $autodl; then
@@ -102,7 +102,7 @@ stage4()
                 fi
         done
 	rm -f autodl
-        printf "\rFirmware Port Installation %-40s\n" "Complete"
+        printf "\rBinary Core Port Installation %-40s\n" "Complete"
 	post_install
 }
 

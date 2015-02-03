@@ -1,0 +1,16 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=firmware-ath10k
+version=git
+release=1
+source=()
+
+build() {
+	git clone --depth 1 https://github.com/kvalo/ath10k-firmware
+	cd ath10k-firmware
+
+	mkdir -p $PKG/lib/firmware
+	cp -Prfd ath10k $PKG/lib/firmware/.
+}

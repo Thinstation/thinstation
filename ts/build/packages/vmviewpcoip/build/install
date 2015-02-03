@@ -2,9 +2,87 @@
 
 gzname=`basename $1`
 package=vmware-view-client
+INSTALLDIR=./packages/vmviewpcoip
+bundle="`echo $gzname | grep .bundle`"
+if [ -n "$bundle" ]; then
+
+rm -rf wget_tmp/vmware
+sh wget_tmp/$gzname -x wget_tmp/vmware
+returnval=$?
+
+mkdir -p $INSTALLDIR/{bin,lib/doc/$package,lib/vmware/rdpvcbridge}
+
+for component in client pcoip rtav smartcard usb virtual-printing; do
+dir=wget_tmp/vmware/vmware-horizon-$component
+case $component in
+client)
+cp -a $dir/bin/* $INSTALLDIR/bin
+cp -a $dir/share/* $INSTALLDIR/lib
+cp -a $dir/doc/* $INSTALLDIR/lib/doc/$package
+chmod a+x $INSTALLDIR/bin/vmware-view{,-log-collector}
+;;
+pcoip)
+cp -a $dir/pcoip/lib/* $INSTALLDIR/lib
+cp -a $dir/pcoip/bin/* $INSTALLDIR/bin
+ln $INSTALLDIR/lib/{pcoip/vchan_plugins,vmware/view/vdpService}/libmksvchanclient.so
+chmod a+x $INSTALLDIR/lib/libpcoip_*.so
+chmod a+x $INSTALLDIR/bin/{vmware-remotemks*,vmware-flash-projector}
+;;
+rtav)
+cp -a $dir/lib/* $INSTALLDIR/lib
+;;
+smartcard)
+cp -a $dir/lib/* $INSTALLDIR/lib
+;;
+usb)
+mkdir -p $INSTALLDIR/lib/vmware/view/usb
+cp -a $dir/bin/* $INSTALLDIR/lib/vmware/view/usb
+chmod a+x $INSTALLDIR/lib/vmware/view/usb/*
+rm -f $INSTALLDIR/lib/vmware/view/usb/lib{crypto,ssl}.so.1.0.1
+ln -s /usr/lib/libssl.so.1.0.1 $INSTALLDIR/lib/vmware/view/usb
+ln -s /usr/lib/libcrypto.so.1.0.1 $INSTALLDIR/lib/vmware/view/usb
+;;
+virtual-printing)
+mkdir -p $INSTALLDIR/{etc/thnuclnt,sbin,lib/cups/filter}
+cp -a $dir/bin/conf $INSTALLDIR/etc/cups
+cp -a $dir/bin/init.d/linux $INSTALLDIR/etc/init.d
+chmod a+x $INSTALLDIR/etc/init.d/*
+cp -a $dir/bin/i586-linux-vmAppLd $INSTALLDIR/lib/thnuclnt
+rm $INSTALLDIR/lib/thnuclnt/{thnuchk.so,thnuconf.so,build.spec}
+ln -s thnuclnt.so $INSTALLDIR/lib/thnuclnt/thnuchk.so
+ln -s thnuclnt.so $INSTALLDIR/lib/thnuclnt/thnuconf.so
+cp -a $dir/lib/* $INSTALLDIR/lib/vmware/rdpvcbridge
+chmod a+x $INSTALLDIR/lib/vmware/rdpvcbridge/*
+chmod 4755 $INSTALLDIR/lib/thnuclnt/vmappld
+
+for i in thnuclnt thnuclntd thnuconf thnuchk thnucups thnurdp .thnumod; do
+  j=bin
+  if [ "$i" = "thnucups" ]; then j=lib/cups/filter;
+  elif [ "$i" = ".thnumod" ]; then j=etc/thnuclnt;
+  elif [ "$i" = "thnuclntd" ]; then j=sbin; fi
+  cat > $INSTALLDIR/$j/$i <<EOF
+#! /bin/sh
+exec /usr/lib/thnuclnt/vmappld /usr/lib/thnuclnt/$i.so -0 \$0 \$@
+EOF
+  chmod a+x $INSTALLDIR/$j/$i
+done
+
+;;
+esac
+
+done
+
+chmod a+x $INSTALLDIR/lib/pcoip/vchan_plugins/*
+chmod a+x $INSTALLDIR/lib/vmware/view/vdpService/*
+
+rm -rf $INSTALLDIR/lib/locale
+rm -f $INSTALLDIR/lib/doc/vmware-view-client/VMware-Horizon-Client-EULA-{de,fr,ja,ko,zh_CN,zh_TW}.txt
+ln -s ../lib/doc/vmware-view-client/VMware-Horizon-Client-EULA-en.txt $INSTALLDIR/build/license
+
+else 
+
 version=`basename $gzname .orig.tar.gz |cut -d "_" -f2`
 SRCDIR=./wget_tmp/$package-$version
-INSTALLDIR=./packages/vmviewpcoip
 
   tar -xf wget_tmp/$gzname -C wget_tmp
   returnval=$?
@@ -26,6 +104,8 @@ ln -s lib/doc/vmware-view-client/VMware-view-client-EULA-en.txt $INSTALLDIR/buil
 
 mkdir -p $INSTALLDIR/lib/licenses/vmware-view-client
 ln -s /lib/doc/vmware-view-client/VMware-view-client-EULA-en.txt $INSTALLDIR/lib/licenses/vmware-view-client/VMware-view-client-EULA-en.txt
+
+fi
 
 cp -Prfd $INSTALLDIR/build/extra/* $INSTALLDIR/.
 

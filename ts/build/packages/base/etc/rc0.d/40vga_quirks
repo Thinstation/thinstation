@@ -126,13 +126,13 @@ video_quirks()
 			VENDOR=`echo $card_id |cut -c 1-4`
 			detect_vga_adapters
 		done
-		if [ -z "$uvesafb" ] \
-		|| ! is_disabled $uvesafb; then
-			if module_available uvesafb \
-			&& ! is_enabled $kms \
-			&& [ ! -e /sys/devices/virtual/vtconsole/vtcon1 ]; then
-	                	modprobe uvesafb &> /dev/null
-        		fi
+	fi
+	if ! is_enabled $kms \
+	&& [ ! -e /sys/devices/virtual/vtconsole/vtcon1 ]; then
+		if [ -z "$uvesafb" ] || ! is_disabled $uvesafb; then
+			if module_available uvesafb; then
+				modprobe uvesafb &> /dev/null
+			fi
 		fi
 	fi
 }

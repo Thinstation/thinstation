@@ -10,6 +10,8 @@ release=1
 kernel=${sversion}TS_64
 source=(ftp://ftp.kernel.org/pub/linux/kernel/v3.x/linux-$sversion.tar.xz \
 	/$TSCOMPROOT/aufs/patches/aufs3.patch
+	../kernel-TS/overlayfs.v21.patch
+	../kernel-TS/tmpfs_user_xattr.patch
 	ts.config)
 
 build() {
@@ -17,7 +19,9 @@ export MAKEFLAGS="-j5"
 	cd linux-$sversion
 	cp $SRC/ts.config ./.config
 
+	patch --no-backup-if-mismatch -p1 < ../overlayfs.v21.patch
 	patch --no-backup-if-mismatch -p1 < ../aufs3.patch
+	patch --no-backup-if-mismatch -p1 < ../tmpfs_user_xattr.patch
 
 	if [ -e /etc/ssl/keys/kernel.key ]; then
 		touch x509.genkey
@@ -34,7 +38,6 @@ export MAKEFLAGS="-j5"
 	ln -sf /usr/src/kernels/${kernel}/usr/include/asm-generic $PKG/usr/src/kernels/${kernel}/usr/include/asm
 	rm $PKG/usr/src/kernels/${kernel}/scripts/{mod,kconfig}/*.o
 
-	sed -i -e 's|objdump|\$\(OBJDUMP\)|g' arch/x86/boot/compressed/Makefile
 
 	make
 	make INSTALL_PATH=$PKG install

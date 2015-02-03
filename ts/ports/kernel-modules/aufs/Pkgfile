@@ -7,16 +7,15 @@ name=aufs
 version=3.14.21+
 release=1
 kver=`cat /ts/ports/kernel-modules/VERSION`
-source=(a.patch)
+source=()
 
 build() {
     git clone git://git.code.sf.net/p/aufs/aufs3-standalone \
 	$name
     cd $name
     git checkout origin/aufs$version
-    patch -p1 -i $SRC/a.patch
 
-    sed -i -e 's/CONFIG_AUFS_PROC_MAP =.*/CONFIG_AUFS_PROC_MAP = y/' \
+    sed -i -e 's/CONFIG_AUFS_XATTR =.*/CONFIG_AUFS_XATTR = y/' \
 	-e 's/CONFIG_AUFS_DEBUG =.*/CONFIG_AUFS_DEBUG = /' \
 	config.mk
 

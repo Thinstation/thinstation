@@ -18,6 +18,7 @@ append_ipv4_connection_config() {
 
    ## translate IPv4-related TS_GLOBALs into SCFILE modifications
    [ -n "$NET_IPV4_DNS1" ] && IPV4_DNS_OPT="dns=$NET_IPV4_DNS1;$NET_IPV4_DNS2"
+   [ -n "$NET_IPV4_DNS" ] && IPV4_DNS_OPT="dns=$NET_IPV4_DNS"
    [ -n "$NET_IPV4_DNS_SEARCH" ] \
        && IPV4_DNS_SEARCH_OPT="dns-search=$NET_IPV4_DNS_SEARCH;"
 
@@ -37,7 +38,31 @@ append_ipv4_connection_config() {
       PREFIX=${NET_IPV4_ADDRESS##*/}
       IPV4_ADDRESSES="addresses1=$IPADDR;$PREFIX$GW"
       echo $IPV4_ADDRESSES >> $SCFILE
+
+      x=2
+      while [ -n "`eval echo '$NET_IPV4_ADDRESS'$x`" ]; do
+         GW=";`eval echo '$NET_IPV4_GATEWAY'$x`"
+         IPTMP=`eval echo '$NET_IPV4_ADDRESS'$x`
+         IPADDR=${IPTMP%%/*}
+         PREFIX=${IPTMP##*/}
+         IPV4_ADDRESSES="addresses$x=$IPADDR;$PREFIX$GW"
+         echo $IPV4_ADDRESSES >> $SCFILE
+         let x=x+1
+      done
    fi
+
+   x=1;
+   while [ -n "`eval echo '$NET_IPV4_ROUTE'$x'_IP'`" ]; do
+      GW="`eval echo '$NET_IPV4_ROUTE'$x'_GW'`"
+      METRIC=`eval echo '$NET_IPV4_ROUTE'$x'_METRIC'`
+      IPTMP=`eval echo '$NET_IPV4_ROUTE'$x'_IP'`
+      IPADDR=${IPTMP%%/*}
+      PREFIX=${IPTMP##*/}
+      if [ -z "$METRIC" ]; then METRIC=0; fi
+      IPV4_ROUTE="routes$x=$IPADDR;$PREFIX;$GW;$METRIC;"
+      echo $IPV4_ROUTE >> $SCFILE
+      let x=x+1
+   done
 
    echo "Finished appending IPV4 connection configuration."
 }
