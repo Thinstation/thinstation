@@ -154,6 +154,13 @@ read_options()
 		WINDOWED_SELECTABLE=false
 		windowed_default=false
 	fi
+	if $GET_PASSWORD && $GET_USER && [ -n "$DIALOG_USER" ]; then
+			USER_FOCUS=false
+			PASS_FOCUS=true
+	else
+		USER_FOCUS=true
+		PASS_FOCUS=false
+	fi
 }
 
 set_default()
@@ -203,7 +210,7 @@ create_dialog()
 			<text space-expand="false" space-fill="false" use-markup="true" xalign="0">
                         	<label>Username</label>
                 	</text>
-                	<entry activates_default="true" has-focus="true">
+                	<entry activates_default="true" has-focus="'$USER_FOCUS'">
                         	'$(set_default $DIALOG_USER)'
                         	<variable>DIALOG_USER</variable>
                                 <input>echo "$DIALOG_USER" |sed -e "s|[\&\;\`\(\)\|]||g"</input>
@@ -212,7 +219,7 @@ create_dialog()
 			<text visible="'"$GET_PASSWORD"'" space-expand="false" space-fill="false" use-markup="true" xalign="0">
                         	<label>Password</label>
                 	</text>
-                	<entry visible="'"$GET_PASSWORD"'" visibility="false" caps-lock-warning="true" activates_default="true">
+                	<entry visible="'"$GET_PASSWORD"'" visibility="false" caps-lock-warning="true" has-focus="'$PASS_FOCUS'" activates_default="true">
                         	<variable>DIALOG_PASSWORD</variable>
                 	</entry>
 		</vbox>
