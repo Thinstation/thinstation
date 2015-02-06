@@ -53,19 +53,26 @@ extract_archive()
         archive="`find -L $ppath -type f -name ${name}#${version}-${release}.pkg.tar.\* -printf '%f'`"
         if [ ! -f $ppath/$archive ]; then
 		printf "Port $package has not yet been built.\n"
-		answered=false
-		while ! $answered; do
-			printf "Would you like to try and build it now? Y/N:"
-			read -n 1 answer
-			case $answer in
-				Y|y)	prt-get install --install-scripts -fr -if -im $package
-					answered=true
-					archive="`find -L $ppath -type f -name ${name}#${version}-${release}.pkg.tar.\* -printf '%f'`"
-				;;
-				n|n) answered=true; exit 1;;
-				*) answered=false;;
-			esac
-		done
+		if [ -n "$AUTODL" ] && $AUTODL; then
+			install_port=true
+		else
+			answered=false
+			while ! $answered; do
+				printf "Would you like to try and build it now? Y/N:"
+				read -n 1 answer
+				case $answer in
+					Y|y)	install_port=true
+						answered=true
+					;;
+					n|n) answered=true; exit 1;;
+					*) answered=false;;
+				esac
+			done
+		fi
+		if $install_port; then
+			prt-get install --install-scripts -fr -if -im $package
+			archive="`find -L $ppath -type f -name ${name}#${version}-${release}.pkg.tar.\* -printf '%f'`"
+		fi
         fi
 	bsdtar -pxf $ppath/$archive -C $pkgpath 2>/dev/null
 }
