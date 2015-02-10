@@ -108,7 +108,9 @@ if [ -e /mnt/cdrom0/thindev-default-$TS_VERSION.tar.xz ]; then
 	tar -xvf /mnt/cdrom0/thindev-default-$TS_VERSION.tar.xz
 else
 	echo "Downloading a Default Image"
-	wget "$WEBUPDATEROOT/thindev-default-$TS_VERSION.tar.xz"
+	if ! wget -t 3 -T 30 "$WEBUPDATEROOT/thindev-default-$TS_VERSION.tar.xz"; then
+		exit 2
+	fi
 	tar -xvf thindev-default-$TS_VERSION.tar.xz
 	rm thindev-default-$TS_VERSION.tar.xz
 fi

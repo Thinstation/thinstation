@@ -1,0 +1,20 @@
+# Description: X.509 and CMS support library
+# URL:         http://www.gnupg.org
+# Maintainer:  Thomas Penteker, tek at serverop dot de
+# Packager:    Simon Glossner, viper at hometux dot de
+# Depends on:  libgpg-error
+
+name=libksba
+version=1.3.2
+release=1
+source=(ftp://ftp.gnupg.org/gcrypt/$name/$name-$version.tar.bz2)
+
+build() {
+    cd $name-$version
+
+    ./configure --prefix=/usr
+    make
+    make DESTDIR=$PKG install
+
+    rm -r $PKG/usr/share/info
+}

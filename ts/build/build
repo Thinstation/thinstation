@@ -715,7 +715,7 @@ if [ -n "$ts_bootresolution" ] ;then
 	mkdir -p ./tmp-tree/etc/splash/$ts_boottheme
 	cp -Prfd $TOOLSDIR/splash/$ts_boottheme/$res ./tmp-tree/etc/splash/$ts_boottheme
 	if is_enabled $ts_allres; then
-		for res in 800x600 1024x600 1024x768 1152x864 1280x720 1280x768 1280x800 1280x960 1280x1024 1366x768 1400x1050 1440x900 1600x1200 1680x1050 1920x1080 1920x1200; do
+		for res in 800x600 1024x600 1024x768 1152x864 1280x720 1280x768 1280x800 1280x960 1280x1024 1366x768 1400x1050 1440x900 1600x900 1600x1200 1680x1050 1920x1080 1920x1200; do
 			if [ ! -e $TOOLSDIR/splash/$ts_boottheme/$res/$res.cfg ] ; then
 				splash_resize
 			fi
@@ -2007,6 +2007,10 @@ syslinux_copy_files_bios()
 
 	for com in `cat /tmp/syslinux-com32`; do
 		sys_copy $biosdir/$com		"$BIOSDIR/$com"
+		if [ "$com" == "hdt.c32" ]; then
+			sys_copy /usr/share/pci.ids $BIOSDIR/pci.ids
+			sys_copy `prt-get fsearch modules.alias |grep -v Found |head -n1` $BIOSDIR/modules.alias
+		fi
 	done
 
 	loadersource="`prt-get fsearch $LOADER |grep -Ev 'Found|/$' |cut -d " " -f3 |head -n1`"
@@ -2037,6 +2041,12 @@ syslinux_copy_files_efi()
 	for com in `cat /tmp/syslinux-com32`; do
 		sys_copy $efi32dir/$com "$EFI32DIR/$com"
 		sys_copy $efi64dir/$com "$EFI64DIR/$com"
+		if [ "$com" == "hdt.c32" ]; then
+			sys_copy /usr/share/pci.ids $EFI32DIR/pci.ids
+			sys_copy `prt-get fsearch modules.alias |grep -v Found |head -n1` $EFI32DIR/modules.alias
+			sys_copy /usr/share/pci.ids $EFI64DIR/pci.ids
+			sys_copy `prt-get fsearch modules.alias |grep -v Found |head -n1` $EFI64DIR/modules.alias
+		fi
 	done
 
 	sys_copy $efi32dir/syslinux.efi "$EFI32DIR/syslinux.efi"

@@ -4,15 +4,19 @@
 # Packager:    Matt Housh, jaeger at morpheus dot net
 
 name=libgpg-error
-version=1.10
-release=1
+version=1.17
+release=3
 source=(ftp://ftp.gnupg.org/gcrypt/libgpg-error/$name-$version.tar.bz2)
 
 build() {
   cd $name-$version
 
   ./configure --prefix=/usr --disable-nls \
+              --mandir=/usr/man \
               --enable-static
   make
   make DESTDIR=$PKG install
+
+  rm -r $PKG/usr/share/info/
+
 }

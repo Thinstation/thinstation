@@ -1,0 +1,33 @@
+# Description: GNU privacy guard
+# URL:         http://www.gnupg.org
+# Maintainer:  Thomas Penteker, tek at serverop dot de
+# Packager:    Daniel Mueller, daniel at danm dot de
+# Depends on:  libgcrypt, libassuan, libksba, pinentry, libpth
+
+name=gnupg
+version=2.0.26
+release=1
+source=(ftp://ftp.gnupg.org/gcrypt/$name/$name-$version.tar.bz2)
+        
+
+build () {
+    cd $name-$version 
+
+    ./configure \
+    --prefix=/usr \
+    --libexecdir=/usr/lib \
+    --mandir=/usr/man \
+    --disable-nls \
+    --disable-ldap
+
+    make
+    make DESTDIR=$PKG install
+
+    chmod u+s $PKG/usr/bin/gpg2
+    ln -s /usr/bin/gpg2 $PKG/usr/bin/gpg
+    ln -s /usr/man/man1/gpg2.1.gz $PKG/usr/man/man1/gpg.1.gz
+
+    rm -rf $PKG/usr/share/{info,doc}
+    rm -f $PKG/usr/share/gnupg/{FAQ,faq.html,qualified.txt}
+    rm -f $PKG/usr/share/gnupg/help*
+}

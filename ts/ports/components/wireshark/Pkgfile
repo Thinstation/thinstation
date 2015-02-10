@@ -5,9 +5,9 @@
 # Depends on: gtk libpcap libpcre
 
 name=wireshark
-version=1.8.4
+version=1.12.3
 release=1
-source=(http://www.$name.org/download/src/all-versions/$name-$version.tar.bz2)
+source=(http://www.wireshark.org/download/src/all-versions/$name-$version.tar.bz2)
 
 build() {
 	cd $name-$version
@@ -17,7 +17,8 @@ build() {
 	            --with-plugins=/usr/lib/$name/plugins \
 	            --disable-nls \
 	            --enable-snmp \
-	            --enable-gtk2 \
+	            --with-gtk2=yes \
+                    --with-gtk3=no \
 	            --disable-gcry \
 
 	make
