@@ -4,12 +4,13 @@
 
 name=cryptodev-linux
 version=1.7
-release=`cat /ts/ports/kernel-modules/VERSION`
+release=1
+kernel=`cat /ts/ports/kernel-modules/VERSION`
 source=(http://download.gna.org/cryptodev-linux/cryptodev-linux-$version.tar.gz)
 
 build() {
 	cd $name-$version
-	export REPORT_KERNEL=${release}TS_SMP
+	export REPORT_KERNEL=${kernel}TS_SMP
 
 	make
 	make install PREFIX=$PKG

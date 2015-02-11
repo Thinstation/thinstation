@@ -1,0 +1,33 @@
+# Description:	Disk Management Service 
+# URL:        	http://www.freedesktop.org/wiki/Software/udisks 
+# Packager:		Ivan Rodionov, jean at mosk ru 
+# Maintainer:	Ivan Rodionov, jean at mosk ru
+# Depends on: 	udev, glib2, dbus-glib, gudev, kmod
+
+name=udisks1
+version=1.0.4
+release=1
+source=(http://hal.freedesktop.org/releases/udisks-$version.tar.gz)
+
+build () {
+	cd udisks-$version
+	./configure --prefix=/usr --sysconfdir=/etc --localstatedir=/var \
+		--libexecdir=/usr/lib/udisks --disable-static
+	sed -i -e 's|profile.d|bash_completion.d|' tools/Makefile
+
+#	Before we make we have to remove the command option "-nonet" in the doc/man/Makefile
+#	This is to workaround a bug trying to use -nonet which causes this error
+#	I/O error : Attempt to load network entity http://(path)....docbook.xsl
+	cd $SRC/udisks-$version/doc/man
+	sed -i -e 's/-nonet//g' Makefile
+
+#	Also, we need to remove the "uhelper=udisks," string from the mount command in src/device.c
+#	This fixes the problem with an error: mount: <device> on <location> failed: Invalid argument
+#	when running udisks --mount <device>
+	cd $SRC/udisks-$version/src
+	sed -i -e 's/uhelper=udisks,//g' device.c
+
+	cd $SRC/udisks-$version
+	make
+	make DESTDIR=$PKG install
+}
