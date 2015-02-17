@@ -617,7 +617,9 @@ losetup_()
 
 lodestroy_()
 {
-	losetup -d $device; orbail 53
+	if [ -n "$loopfile" ]; then
+		losetup -d $device; orbail 53
+	fi
 }
 
 orbail()
