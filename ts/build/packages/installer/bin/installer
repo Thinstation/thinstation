@@ -68,39 +68,30 @@ timezone_locale()
 
 set_res()
 {
-	index=0
-	if [ -e /sys/devices/platform/uvesafb.0/vbe_modes ]; then
-		for i in `cat /sys/devices/platform/uvesafb.0/vbe_modes |cut -d "-" -f1 |sort -n |uniq`; do
-        		res[$index]=$i
-        		echo "$index $i" >> /$tempdir/reslist
-        		let index=index+1
-		done
+	if [ ! -e /sys/devices/platform/uvesafb.0/vbe_modes ]; then
+		res="video=uvesafb:off"
 	else
-		modeset=true
-		for i in `xrandr 2>/dev/null |grep -o -r -e '   [0-9]*x[0-9]*' |sed -r 's/ //g' |sort -u -t'x' -k1n -k2n`; do
+		index=0
+		for i in `xrandr 2>/dev/null |grep -o '   [0-9]*x[0-9]*' |sed -r 's/ //g' |sort -u -t'x' -k1n -k2n`; do
 			res[$index]=$i
                 	echo "$index $i" >> /$tempdir/reslist
                 	let index=index+1
 		done
+		list=`cat $tempdir/reslist`
+		Xdialog	--title "Resolution" \
+			--no-label \
+			--no-tags \
+			--stdout \
+			--menu "What is your prefered\n screen resolution?" 20 40 4 $list \
+				> $tempdir/reschoice
+		if [ $? == 0 ]; then
+			index=`cat $tempdir/reschoice`
+			res="video=uvesafb:"${res[$index]}"-32,mtrr:0,ywrap"
+			SCREEN_RESOLUTION=${res[$index]}
+		else
+			exit 1
+		fi
 	fi
-	list=`cat $tempdir/reslist`
-	Xdialog	--title "Resolution" \
-		--no-label \
-		--no-tags \
-		--stdout \
-		--menu "What is your prefered\n screen resolution?" 20 40 4 $list \
-			> $tempdir/reschoice
-			if [ $? -lt 1 ]; then
-				index=`cat $tempdir/reschoice`
-				if is_enabled $modeset; then
-					res="video=uvesafb:off"
-				else
-					res="video=uvesafb:"${res[$index]}"-32,mtrr:0,ywrap"
-				fi
-				SCREEN_RESOLUTION=${res[$index]}
-			else
-				exit 1
-			fi
 }
 
 disk_setup()

@@ -1,0 +1,27 @@
+# Description: BerryXp is a port of the BerryXP them from the program StyleXP.
+# URL: http://icewm2.wz.cz/themes.html
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+# Depends on: icewm
+
+name=icewm-theme-bluecrux
+version=1.1
+release=1
+source=(http://ftp.isu.edu.tw/pub/Linux/Gentoo/distfiles/bluecrux-default-$version.tar.gz)
+
+build() {
+        for xpm in `find . -name *.xpm`; do
+                if [ "`identify $xpm |cut -d " " -f3 |cut -d x -f1`" == "1" ]; then
+                        xwidth=`identify $xpm |cut -d " " -f3 |cut -d x -f2`
+                        convert $xpm -resize 2x$xwidth\! ${xpm}_resize
+                        rm $xpm
+                        mv ${xpm}_resize $xpm
+                        sleep 2
+                fi
+        done
+
+	install -d $PKG/usr/share/icewm/themes/blueCrux
+	cp -rf blueCrux/* $PKG/usr/share/icewm/themes/blueCrux/.
+	find $PKG/ -type f -exec chmod 0644 {} \;
+	chmod 0755 $PKG/usr/share/icewm/themes/blueCrux/{gkrellm,ledclock,mailbox,xxkb,taskbar}
+}
+

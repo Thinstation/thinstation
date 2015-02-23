@@ -1,0 +1,16 @@
+# Description: JSON implementation in C
+# URL:         http://oss.metaparadigm.com/json-c/
+# Maintainer:  Juergen Daubert, jue at crux dot nu
+
+name=json-c
+version=0.11
+release=1
+source=(https://s3.amazonaws.com/json-c_releases/releases/$name-$version.tar.gz)
+
+build() {
+    cd $name-$version
+    sed -i s/-Werror// Makefile.in
+    ./configure --prefix=/usr 
+    make -j1
+    make DESTDIR=$PKG install
+}

@@ -1,0 +1,23 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=tn5250
+version=0.17.4
+release=1
+source=(http://downloads.sourceforge.net/project/tn5250/tn5250/0.17.4/tn5250-0.17.4.tar.gz \
+destructive-backspace.patch)
+
+build() {
+	cd $name-$version
+	patch -p1 < ../destructive-backspace.patch
+	./configure --prefix=/usr \
+			--sysconfdir=/etc \
+			--libexecdir=/lib \
+			--mandir=/usr/man \
+			--disable-static \
+			--disable-extras
+
+	make
+	make DESTDIR=$PKG install
+}

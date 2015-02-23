@@ -1,0 +1,21 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+# depends on: mod_svn
+
+name=lshw
+version=SVN
+release=1
+source=(lshw-nodoc.patch
+	fixgui.patch)
+
+build() {
+svn co http://ezix.org/source/packages/lshw/development lshw
+	cd $name
+	patch src/Makefile -i ../lshw-nodoc.patch
+	patch src/gui/Makefile -i ../fixgui.patch
+	make
+	make gui
+        make DESTDIR=$PKG install
+	make DESTDIR=$PKG install-gui
+}

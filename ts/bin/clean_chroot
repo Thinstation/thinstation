@@ -97,7 +97,7 @@ stage1()
 	echo -e "Cleaning tools"
 	update -c -t
 	echo "Checking Ports Directories for Downloaded Files"
-	for distro in usr ts; do cd /$distro/ports
+	for distro in ts; do cd /$distro/ports
 	for port_type in `list_folders`; do cd $port_type
 	for port in `list_folders`; do cd $port
 		printf "\rCleaning %-59s" "$port"
@@ -134,8 +134,7 @@ stage1()
 
 stage2()
 {
-	for trash in usr/{lib64,var,swat,private,bin,etc,include,lib,man,sbin,share,src,local,GNUstep,www,ROX,php,libexec} \
-		lib64 run www share home man bin boot dev etc lib mnt opt proc root sbin sys tmp var ts/components; do
+	for trash in usr lib64 run www share home man bin boot dev etc lib mnt opt proc root sbin sys tmp var ts/components; do
 		if [ -e $trash ] || [ -h $trash ]; then
 			rm -rf $ROOT/$trash
 		fi

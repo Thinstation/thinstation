@@ -1,0 +1,37 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=splashutils
+version=1.5.4.4
+release=1
+source=(http://downloads.sourceforge.net/project/fbsplash.berlios/$name-$version.tar.bz2
+	splashutils-1.5.4.4-freetype-1.patch)
+
+build() {
+	cd $name-$version
+	patch -Np1 -i ../splashutils-1.5.4.4-freetype-1.patch
+
+	./configure     --prefix=/usr \
+			--sbindir=/bin \
+			--sysconfdir=/etc \
+			--libexecdir=/lib \
+			--mandir=/usr/man \
+			--without-gpm \
+			--with-essential-sbindir=/bin \
+			--without-ttf-kernel \
+			--with-png \
+			--without-mng \
+			--disable-static \
+			--disable-deprecated \
+			--disable-fbcondecor \
+			--disable-helper \
+			--without-ttf \
+			--disable-misc \
+			--without-klibc \
+			--enable-shared \
+			--enable-fast-install \
+			--disable-static-binaries
+	make
+	make DESTDIR=$PKG install
+}

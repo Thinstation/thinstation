@@ -5,24 +5,6 @@ tarname=`basename $1 .gz`
 filename=`basename $1 .tar.gz`
 INSTALLDIR=./packages/ica
 
-etcs="passwd group nsswitch.conf issue"
-bins="attr bash cat chgrp chmod chown cp date dd df echo ed false ln ls mkdir \
-      more mount mv ping ps red rm rmdir sed sh sleep tar touch true uname vi"
-sbins="init init ip ss tc telinit"
-ubins="awk basename cut dirname egrep expr find gawk grep head id install mktemp sort tr wc which whoami"
-libs="ld-linux.so.2 libacl.so.1 libattr.so.1 libc.so.6 libdl.so.2 libhistory.so.6 \
-	libm.so.6 libncurses.so.5 libnss_compat.so.2 libnss_files.so.2 libproc-3.2.8.so \
-	libpthread.so.0 libreadline.so.6 librt.so.1 libgobject-2.0.so.0 libglib-2.0.so.0 \
-	libgmodule-2.0.so.0 libcap.so.2 libgthread-2.0.so.0 libnsl.so.1 libnss_nis.so.2 libncursesw.so.5"
-ulibs="libpcre.so.0 libgmp.so.10 libxml2.so.2 libgstinterfaces-0.10.so.0 libffi.so.5 libz.so.1 \
-	libgstreamer-0.10.so,libgstreamer-0.10.so.0.29.0,libgstreamer-0.10.so.0"
-dirs="proc etc/udev/rules.d etc/init.d bin lib tmp dev/bus/usb \
-	usr/share/applications 	usr/local/lib/netscape/plugins \
-	usr/lib/gstreamer-0.10 usr/local/lib/firefox/plugins \
-	usr/local/lib/chrome/plugins"
-clean_dirs="setupwfc linuxx86 dev PkgId tmp proc usr/lib/gstreamer-0.10 \
-	usr/local/lib/firefox/plugins usr/local/lib/chrome/plugins"
-
 new_file()
 {
         if [ -n "`stat -c '%Y' $1 | grep -v \"$bday\"`" ]; then
@@ -32,34 +14,36 @@ new_file()
         fi
 }
 
-# Setup a fake filesystem, so the official installer is all happy with what we are trying to do.
+etcs="passwd group nsswitch.conf issue"
+bins="attr awk basename bash cat chgrp chmod chown cp cut date dd df \
+	dirname echo ed egrep expr false find gawk grep head id init \
+	install ip ln locale ls mkdir mktemp more mount mv pidof ping \
+	ps red rm rmdir sed sh sleep sort ss tar tc telinit touch tr \
+	true uname vi wc which whoami"
+dirs="proc etc/udev/rules.d etc/init.d bin lib tmp dev/bus/usb usr/local \
+        lib/applications lib/netscape/plugins \
+        lib/gstreamer-0.10 lib/firefox/plugins \
+        lib/chrome/plugins"
+clean_dirs="setupwfc linuxx86 dev PkgId tmp proc \
+        lib/firefox/plugins lib/chrome/plugins lib/plugins lib/mailcap \
+        lib/mime.types lib/gstreamer-0.10"
+libs="/lib/libnss_files.so.2"
+
+# Create all the directories that we are going to need
 for mdir in $dirs; do
-	mkdir -p $INSTALLDIR/$mdir
+        mkdir -p $INSTALLDIR/$mdir
 done
+
+# Fill in the bin folder
 for cbin in $bins ; do
-	cp /bin/$cbin $INSTALLDIR/bin/.
-done
-for cbin in $sbins ; do
-	cp /sbin/$cbin $INSTALLDIR/bin/.
-done
-for cbin in $ubins ; do
-	cp /usr/bin/$cbin $INSTALLDIR/bin/.
-done
-for clib in $libs ; do
-	cp /lib/$clib $INSTALLDIR/lib/.
-done
-for clib in $ulibs ; do
-	cp /usr/lib/$clib $INSTALLDIR/usr/lib/
-done
-for cetc in $etcs ; do
-	cp /etc/$cetc $INSTALLDIR/etc/.
+        cp `which $cbin` $INSTALLDIR/bin/.
+	if [ -n "`file $INSTALLDIR/bin/$cbin |grep -oe ELF`" ]; then
+		libs="$libs \n`ldd $INSTALLDIR/bin/$cbin |grep -v 'linux-gate' |cut -d '>' -f2 |cut -d '(' -f1 |sed -E s/[[:space:]]//g`"
+	fi
 done
 if [ -e /bin/uname-auto ] ; then
-	cp /bin/uname-auto $INSTALLDIR/bin/.
+        cp /bin/uname-auto $INSTALLDIR/bin/.
 fi
-
-cat /proc/mounts |grep -Ev 'gvfs|mapper|media' > $INSTALLDIR/etc/mtab
-
 echo "exit 0" > $INSTALLDIR/bin/install_initd
 echo "exit 0" > $INSTALLDIR/bin/update-rc.d
 echo "exit 0" > $INSTALLDIR/bin/chkconfig
@@ -68,6 +52,26 @@ chmod +x $INSTALLDIR/bin/update-rc.d
 chmod +x $INSTALLDIR/bin/chkconfig
 touch $INSTALLDIR/bin/firefox
 touch $INSTALLDIR/bin/chrome
+
+# Fill in the lib folder
+for clib in `echo -e $libs |sort -u`; do
+        cp $clib $INSTALLDIR/lib/.
+done
+
+# Fill in the etc folder
+for cetc in $etcs ; do
+        cp /etc/$cetc $INSTALLDIR/etc/.
+done
+cat /proc/mounts |grep -Ev 'gvfs|mapper|media' > $INSTALLDIR/etc/mtab
+
+# Add some links to fool any tests
+ln -sf /bin $INSTALLDIR/usr/local/sbin
+ln -sf /bin $INSTALLDIR/usr/local/bin
+ln -sf /lib $INSTALLDIR/usr/local/lib
+ln -sf /bin $INSTALLDIR/usr/sbin
+ln -sf /bin $INSTALLDIR/usr/bin
+ln -sf /lib $INSTALLDIR/usr/lib
+ln -sf /lib $INSTALLDIR/usr/share
 
 # Now extract the installer
 tar -C $INSTALLDIR -zxvf ./wget_tmp/$gzname
@@ -106,17 +110,14 @@ for dir in `find $INSTALLDIR -mindepth 1 -maxdepth 1 -type d ! -name build`; do
 done
 
 # Remove folders and files that we know must go.
-for dirs in $clean_dirs ; do
-	rm -rf $INSTALLDIR/$dirs
+for dir in $clean_dirs ; do
+	rm -rf $INSTALLDIR/$dir
 done
 
 # A little bit of shifing about for "our" filesystem layout.
-cp -a $INSTALLDIR/usr/local/lib $INSTALLDIR/.
-rm -rf $INSTALLDIR/usr/local/lib
-mv $INSTALLDIR/usr/share/applications $INSTALLDIR/lib/.
 mv $INSTALLDIR/lib/netscape $INSTALLDIR/lib/mozilla
 
-# Define wfica is a mimetype handler for .ica files
+# Define wfica as a mimetype handler for .ica files
 echo "MimeType=application/x-ica;" >> $INSTALLDIR/opt/Citrix/ICAClient/desktop/wfica.desktop
 
 # Record special file ownerships to be re-established according the running system gid's

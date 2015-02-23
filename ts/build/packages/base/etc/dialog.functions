@@ -3,20 +3,20 @@
 x_check_status()
 {
 	if is_enabled $SHOW_ERROR_REPORT; then
-	        if [ $STATUS != 0 ] && [ ! -e /etc/console/$PACKAGE ]; then
-        	        Xdialog --title $PACKAGE \
-                	        --ok-label "View Log" \
-	                        --cancel-label "OK" \
-				--icon /lib/pixmaps/${PACKAGE}_32x32.xpm \
-                        	--yesno "Application $PACKAGE failed with an error ($STATUS)\nWould you like to review the command output log?" 10 80
+		if [ $STATUS != 0 ] && [ ! -e /etc/console/$PACKAGE ]; then
+			Xdialog --title $PACKAGE \
+					--ok-label "View Log" \
+					--cancel-label "OK" \
+					--icon /lib/pixmaps/${PACKAGE}_32x32.xpm \
+					--yesno "Application $PACKAGE failed with an error ($STATUS)\nWould you like to review the command output log?" 10 80
 
-	                if [ $? == 0 ]; then
-        	                Xdialog --title $PACKAGE \
-                	                --ok-label "Done" \
-                        	        --no-cancel \
-                                	--logbox $APPLOG 40 100
-	                fi
-        	fi
+					if [ $? == 0 ]; then
+						Xdialog --title $PACKAGE \
+						--ok-label "Done" \
+						--no-cancel \
+						--logbox $APPLOG 40 100
+					fi
+		fi
 	fi
 }
 

@@ -1,0 +1,62 @@
+# Description: Free peer-reviewed portable C++ source libraries.
+# URL: http://www.boost.org/
+# Maintainer: Danny Rawlins, monster dot romster at gmail dot com
+# Packager: sten, nick dot steeves at shaw dot ca
+# Depends on: expat icu python
+
+name=boost
+version=1.55.0
+release=1
+source=(http://downloads.sourceforge.net/project/$name/$name/$version/${name}_${version//./_}.tar.bz2)
+
+build() {
+	cd ${name}_${version//./_}
+
+	if [ -n "$(pkginfo -i | grep '^ccache ')" ]; then
+		echo "using gcc : : ccache g++ ;" >> \
+			tools/build/v2/user-config.jam
+	fi
+
+	./bootstrap.sh
+
+	sed -i -e "s|-O3|$CXXFLAGS -O3 -Wno-deprecated -fno-strict-aliasing|" \
+		tools/build/v2/tools/gcc.jam
+
+	local JOBS="$(sed -e 's/.*\(-j *[0-9]\+\).*/\1/' <<< $MAKEFLAGS)"
+
+	pushd tools/bcp
+	../../bjam \
+		$JOBS -q -d 2 \
+		debug-symbols=off \
+		--toolset=gcc \
+		-sEXPAT_INCLUDE=/usr/include \
+		-sEXPAT_LIBPATH=/usr/lib \
+		-sHAVE_ICU=1
+
+	install -m 0755 -D ../../bin.v2/tools/bcp/gcc-$(gcc -dumpversion)/release/link-static/bcp \
+		$PKG/usr/bin/bcp
+
+	popd
+
+	./bjam \
+		$JOBS -q -d 2 \
+		release \
+		threading=multi \
+		runtime-link=shared \
+		link=shared \
+		debug-symbols=off \
+		--toolset=gcc \
+		--layout=tagged \
+		--prefix=$PKG/usr \
+		-sHAVE_ICU=1 \
+		-sEXPAT_INCLUDE=/usr/include \
+		-sEXPAT_LIBPATH=/usr/lib \
+		install
+
+	install -m 0755 bjam $PKG/usr/bin/bjam
+
+	cd libs/python/pyste/install
+	python setup.py install --root=$PKG
+	mv $PKG/usr/bin/pyste.py $PKG/usr/bin/pyste
+	find $PKG -name '*.egg-info' | xargs rm -rf
+}

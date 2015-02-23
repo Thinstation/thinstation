@@ -1,0 +1,33 @@
+# Description: Tiny versions of many UNIX utilities into a single executable.
+# URL: http://busybox.net/
+# Maintainer: Donald A. Cupp Jr:doncuppjr at yahoo dot com
+# Depends on:
+
+name=busybox
+version=1.23.1
+release=2
+source=(http://busybox.net/downloads/$name-$version.tar.bz2 ts.config)
+
+build() {
+   cd $name-$version
+   cp ../ts.config .config
+
+	make \
+	PREFIX=/ busybox
+
+	make CONFIG_PREFIX=$PKG install
+
+	cd networking
+	gcc	-static -static-libgcc -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE \
+		-D_FILE_OFFSET_BITS=64 -Wall -Wshadow -Wwrite-strings -Wundef \
+		-Wstrict-prototypes -Werror -Wold-style-definition -Wdeclaration-after-statement \
+		-Wno-pointer-sign -Wmissing-prototypes -Wmissing-declarations \
+		-Os -fno-builtin-strlen -finline-limit=0 -fomit-frame-pointer \
+		-ffunction-sections -fdata-sections -fno-guess-branch-probability \
+		-funsigned-char -falign-functions=1 -falign-jumps=1 -falign-labels=1 \
+		-falign-loops=1 -march=i386 -mpreferred-stack-boundary=2 -Wl,-Map \
+		-Wl,link.map -Wl,--warn-common -Wl,--sort-common -Wl,--gc-sections \
+		httpd_indexcgi.c -o index.cgi
+
+	install -D -m 755 index.cgi $PKG/var/www/cgi-bin/index.cgi
+}

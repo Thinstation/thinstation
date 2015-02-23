@@ -1,0 +1,17 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=tftp-hpa
+version=5.2
+release=1
+source=(http://www.kernel.org/pub/software/network/tftp/tftp-hpa/$name-$version.tar.xz)
+
+build() {
+	cd $name-$version
+
+	./configure --prefix=/usr --mandir=/usr/man
+
+	make
+	make prefix=$PKG/usr MANDIR=$PKG/usr/man install
+}

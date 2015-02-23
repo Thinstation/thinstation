@@ -1,0 +1,24 @@
+# Description: Advanced Configuration and Power Interface event management daemon
+# URL: http://acpid.sf.net
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=acpid
+version=2.0.20
+release=1
+source=(http://downloads.sourceforge.net/project/acpid2/acpid-$version.tar.xz
+		acpid.rc default default.sh acpid-key_micmute.patch)
+
+build() {
+    cd $name-$version
+    patch -p1 -i ../acpid-key_micmute.patch
+
+    ./configure --prefix=/usr
+
+    make DESTDIR=$PKG MAN8DIR=$PKG/usr/man/man8 install
+
+    mkdir -p $PKG/etc/rc.d
+    mkdir -p $PKG/etc/acpi/events
+    install -D -m 755 ../acpid.rc   $PKG/etc/rc.d/acpid
+    install -D -m 644 ../default    $PKG/etc/acpi/events/default
+    install -D -m 755 ../default.sh $PKG/etc/acpi/default.sh
+}

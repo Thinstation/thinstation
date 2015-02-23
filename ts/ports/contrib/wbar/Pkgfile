@@ -1,0 +1,17 @@
+# Description: Quick launch bar
+# URL:         http://code.google.com/p/wbar/
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+# Depends on:  imlib2 imlib-TS
+
+name=wbar
+version=2.3.4
+release=1
+source=(http://$name.googlecode.com/files/$name-$version.tgz)
+
+build() {
+  cd $name-$version
+  ./configure --prefix=/usr --sysconfdir=/etc --mandir=/usr/man
+  make
+  make install DESTDIR=$PKG
+}
+

@@ -1,0 +1,31 @@
+# Description: An sh-compatible command language interpreter
+# URL:         http://cnswww.cns.cwru.edu/~chet/bash/bashtop.html
+# Maintainer:  CRUX System Team, core-ports at crux dot nu
+# Depends on:  ncurses readline
+
+name=bash
+version=4.3.33
+release=1
+source=(http://ftp.gnu.org/gnu/$name/$name-${version:0:3}.tar.gz \
+        $name-$version.patch.gz profile)
+
+build() {
+    cd $name-${version:0:3}
+
+    gunzip -c $SRC/$name-$version.patch.gz | patch -p0
+
+    ./configure --prefix=/usr \
+                --exec-prefix= \
+                --mandir=/usr/man \
+                --disable-nls \
+                --with-curses \
+                --with-installed-readline
+    make -j1
+
+    install -D -m 755 bash $PKG/bin/bash
+    install -D -m 644 doc/bash.1 $PKG/usr/man/man1/bash.1
+    install -D -m 644 $SRC/profile $PKG/etc/profile
+
+    ln -s bash $PKG/bin/sh
+    ln -s bash.1 $PKG/usr/man/man1/sh.1
+}

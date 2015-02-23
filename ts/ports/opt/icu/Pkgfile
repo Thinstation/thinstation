@@ -1,0 +1,28 @@
+# Description: Widely used set of C/C++ libraries providing Unicode and Globalization support.
+# URL: http://www.icu-project.org/
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+# Depends on: 
+
+name=icu
+version=4.2.1
+release=1
+source=(http://download.icu-project.org/files/icu4c/$version/icu4c-${version//./_}-src.tgz)
+
+build() {
+	cd icu/source
+
+	chmod +x runConfigureICU configure install-sh
+	export CXXFLAGS="$CXXFLAGS -D__STRICT_ANSI__"
+
+	./runConfigureICU Linux/gcc \
+		--prefix=/usr \
+		--mandir=$PKG/usr/man \
+		--enable-shared \
+		--disable-samples  \
+		--disable-tests
+
+	make
+	make prefix=$PKG/usr install
+
+	rm $PKG/usr/share/icu/$version/license.html
+}

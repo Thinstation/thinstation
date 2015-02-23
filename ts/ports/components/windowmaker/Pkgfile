@@ -1,0 +1,42 @@
+# Description: An X11 window manager with a NEXTSTEP look and feel
+# URL:         http://www.windowmaker.info/
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+# Depends on:  xorg-libxft libtiff libungif
+
+name=windowmaker
+version=0.95.5
+release=git
+source=()
+
+build() {
+    git clone --depth 1 git://repo.or.cz/wmaker-crm
+    cd wmaker-crm
+    ./autogen.sh
+    ./configure --prefix=/usr \
+		--mandir=/usr/man \
+		--sysconfdir=/etc \
+		--disable-static \
+		--disable-lite \
+		--disable-locale \
+		--disable-modelock \
+		--disable-shape \
+		--disable-xinerama \
+		--disable-shm \
+		--disable-xpm \
+		--disable-png \
+		--disable-gif \
+		--disable-tiff \
+		--disable-usermenu
+
+
+    make
+    make DESTDIR=$PKG install
+    rm -rf $PKG/usr/share/WindowMaker/{README*,menu.*,plmenu.*} \
+	   $PKG/usr/lib/locale $PKG/usr/man/sk $PKG/usr/bin/wm-oldmenu2new
+
+    # Bugfix for WPrefs
+    mkdir -p $PKG/usr/GNUstep/Applications
+    ln -sf ../../share/WPrefs $PKG/usr/GNUstep/Applications/WPrefs.app
+
+rm -rf $PKG/usr/{man,include}
+}

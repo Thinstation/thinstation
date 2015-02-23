@@ -1,0 +1,17 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+# depends: xorg-gccmakedep xorg-imake
+
+name=nas
+version=1.9.4
+release=1
+source=(http://downloads.sourceforge.net/project/nas/nas/nas%20$version%20%28stable%29/nas-$version.src.tar.gz)
+
+build() {
+	cd $name-$version/config
+	./configure
+	cd ..
+	make World DEPEND="makedepend"
+	make DESTDIR=$PKG install
+}

@@ -7,11 +7,13 @@ stage1()
 {
 	echo "Chroot not previuosly setup. Doing it NOW!"
 
-	for dir in proc sys home dev mnt downloads; do
+	for dir in proc sys home dev mnt downloads var/lib/pkg; do
 		if [ ! -e $dir ] ; then
-				mkdir -m 755 $dir
+				mkdir -p -m 755 $dir
 		fi
 	done
+
+	touch var/lib/pkg/db
 
 	if [ ! -e tmp ]; then
 		mkdir -m 1777 tmp
@@ -20,9 +22,9 @@ stage1()
 		mkdir -m 750 root
 	fi
 
-	for core_port in acl attr libcap coreutils pkgutils glibc bash readline ncurses findutils libpcre grep;
+	for core_port in filesystem acl attr libcap coreutils pkgutils glibc bash readline ncurses findutils libpcre grep;
 		do
-			pkg=`find -L $ROOT/usr/ports/core/$core_port |grep -E pkg\.tar\."xz|gz" |grep -e "pkg.tar"`
+			pkg=`find -L $ROOT/ts/ports/core/$core_port |grep -E pkg\.tar\."xz|gz" |grep -e "pkg.tar"`
 			tar -p -o -C $ROOT -xf $pkg 2> /dev/null
 		done
 
@@ -40,7 +42,7 @@ stage1()
 
 stage2()
 {
-	for Pkgfile in `find -L $ROOT/{usr,ts}/ports -name Pkgfile |grep -Ev "proprietary|binary-core|binary-opt"`;do
+	for Pkgfile in `find -L $ROOT/ts/ports -name Pkgfile |grep -Ev "proprietary|binary-core|binary-opt"`;do
 		install_port
 	done
 	printf "\rPort Installation %-40s\n" "Complete"
@@ -81,7 +83,7 @@ stage4()
 {
 	rm /dostage4
 	printf "\rLooking at core binary ports\n"
-        for Pkgfile in `find -L $ROOT/{usr,ts}/ports -name Pkgfile |grep -E "binary-core"`;do
+        for Pkgfile in `find -L $ROOT/ts/ports -name Pkgfile |grep -E "binary-core"`;do
                 if ! install_port; then
                         port_name=`echo $Pkgfile |cut -d "/" -f6`
 			if ! $autodl; then

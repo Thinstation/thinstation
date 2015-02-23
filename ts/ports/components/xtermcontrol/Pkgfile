@@ -1,0 +1,22 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=xtermcontrol
+version=2.10
+release=1
+source=(https://github.com/JessThrysoee/xtermcontrol/archive/master.zip)
+build() {
+	cd $name-master
+
+	chmod +x configure
+
+	./configure --prefix=/usr \
+			--sysconfdir=/etc \
+			--libexecdir=/lib \
+			--mandir=/usr/man \
+			--disable-extras
+
+	make
+	make DESTDIR=$PKG install
+}
