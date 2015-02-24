@@ -62,6 +62,7 @@ if `transport $BASEPATH/$HOSTFILE /tmp/$HOSTFILE $SERVER_IP` ; then
   rm /tmp/$HOSTFILE
   rm /tmp/$HOSTFILE.tmp
   for adapter in `ls /var/log/net`; do
+	unset NETWORKUP DEVTYPE CLIENT_NAME CLIENT_MAC CLIENT_IP SUBNET boot_file SERVER_IP NETMASK_SIZE SERVER_NAME
 	. /var/log/net/$adapter
 	if is_enabled $NETWORKUP ; then
 		clientname=`cat $TS_HOSTS | grep -i $CLIENT_MAC | cut -d" " -f 1`
