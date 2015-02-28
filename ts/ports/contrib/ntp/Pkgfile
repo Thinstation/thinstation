@@ -4,8 +4,8 @@
 # Depends on:  openssl xorg-imake
 
 name=ntp
-version=4.2.6p4-beta2
-release=2
+version=4.2.8p1
+release=1
 source=(http://www.eecis.udel.edu/~ntp/ntp_spool/ntp4/ntp-4.2/$name-$version.tar.gz
         ntpd
         ntpdate
@@ -16,8 +16,7 @@ build () {
    mkdir -p $PKG/etc/{rc.d,ntp} \
       $PKG/var/log \
       $PKG/var/run/ntp \
-      $PKG/var/lib/ntp/stats \
-      $PKG/usr/man/{man8,man5}
+      $PKG/var/lib/ntp/stats
 
    cd $name-$version
    patch -p1 -i ../ntp-64bit.diff
@@ -37,7 +36,7 @@ build () {
 
    # substitute the default configuration path
    sed -i -e 's;\(CONFIG_FILE[^"]*"\)/etc/ntp.conf;\1/etc/ntp/ntp.conf;' \
-        include/ntp_config.h ntpdate/ntptime_config.c
+        include/ntp_config.h
 
    make
    make DESTDIR=$PKG install
@@ -48,7 +47,8 @@ build () {
    install -m 755 $SRC/ntpdate $PKG/etc/rc.d
 
    # fix remove unnecessary directory
-   rm -r $PKG/usr/sbin
+   rmdir $PKG/usr/{sbin,libexec}
+   rm -rf $PKG/usr/share/doc
 
    # initialize ntp.drift file
    echo "0.0" > $PKG/var/lib/ntp/ntp.drift

@@ -20,12 +20,17 @@ cd wget_tmp
 sh $gzname -x
 cd NVIDIA-Linux-x86-$version
 
-./nvidia-installer -s -z -k ${release} --no-x-check --no-runlevel-check --no-kernel-module --log-file-name=./nvidia-installer.log --utility-prefix=$INSTALLDIR --documentation-prefix=$INSTALLDIR --opengl-prefix=$INSTALLDIR --x-library-path=$INSTALLDIR/lib --x-module-path=$INSTALLDIR/lib/xorg/modules
+./nvidia-installer -s -z -k ${release} --no-x-check --no-runlevel-check --no-kernel-module --log-file-name=./nvidia-installer.log --utility-prefix=$INSTALLDIR --documentation-prefix=$INSTALLDIR --opengl-prefix=$INSTALLDIR --x-library-path=$INSTALLDIR/lib --x-module-path=$INSTALLDIR/lib/xorg/modules --application-profile-path=$INSTALLDIR/lib/nvidia --no-nvidia-modprobe
 
 mkdir -p $INSTALLDIR/lib/licenses/nvidia
 mv $INSTALLDIR/share/doc/NVIDIA_GLX-1.0/LICENSE $INSTALLDIR/lib/licenses/nvidia/.
 mkdir -p $INSTALLDIR/lib/icons/hicolor/48x48/apps
 mv $INSTALLDIR/share/doc/NVIDIA_GLX-1.0/nvidia-settings.png $INSTALLDIR/lib/icons/hicolor/48x48/apps/.
+
+mkdir -p $INSTALLDIR/lib/applications
+mv /usr/local/share/applications/nvidia-settings.desktop $INSTALLDIR/lib/applications
+
+mv /usr/share/nvidia/* $INSTALLDIR/lib/nvidia
 
 rm -rf $INSTALLDIR/share
 for file in $DROP_FILES; do

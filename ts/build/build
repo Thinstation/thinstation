@@ -1178,6 +1178,8 @@ if [ -e $PACDIR/tsuser.param ]; then
 	if [  -e $PACDIR/tsuserpasswd.param ]; then
 		if [ "$ts_tsuserpasswd" == "!!" ]; then
 			GETPASSWD="!!"
+		elif is_enabled $ts_sha512passwd; then
+			GETPASSWD=`python -c "import crypt; import string; import random; print crypt.crypt('$ts_userpasswd', '\\\$6\\\$'+''.join(random.SystemRandom().choice(string.ascii_letters + string.digits + '/.') for _ in range(16)))"`
 		else
 			GETPASSWD=`mkpasswd -m md5 $ts_tsuserpasswd`
 		fi
@@ -1199,6 +1201,8 @@ echo -e "Setting Passwords"
 if [  -e $PACDIR/rootpasswd.param ]; then
     if [ "$ts_rootpasswd" == "!!" ]; then
         GETPASSWD="!!"
+    elif is_enabled $ts_sha512passwd; then
+        GETPASSWD=`python -c "import crypt; import string; import random; print crypt.crypt('$ts_rootpasswd', '\\\$6\\\$'+''.join(random.SystemRandom().choice(string.ascii_letters + string.digits + '/.') for _ in range(16)))"`
     else
         GETPASSWD=`mkpasswd -m md5 $ts_rootpasswd`
     fi
