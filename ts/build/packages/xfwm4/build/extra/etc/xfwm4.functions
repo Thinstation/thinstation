@@ -208,11 +208,28 @@ wm_menu()
 				fi
 				make_desktop
 				if ! is_enabled $nodesktop ; then
+					if [ -z "$metric" ]; then
+						metric=99
+					fi
 					ICONDIR=$HOME/Desktop
 					make_desktop
+					desktop_icon_file=$ICONDIR/`replace_char "$title.desktop" "[ /]" "_"`
+					echo "$metric $desktop_icon_file" >> /tmp/icon.sort
 				fi
-				unset title package command nodesktop menu needs icon
+				unset title package command nodesktop menu needs icon metric desktop_icon_file
 			done
+			screenrc=$HOME/.config/xfce4/desktop/icons.screen0.rc
+			mkdir -p $HOME/.config/xfce4/desktop
+			echo -e "[xfdesktop-version-4.10.3+-rcfile_format]\n4.10.3+=true\n" > $screenrc
+			sindex=0
+			for iconfile in `cat /tmp/icon.sort |sort |cut -d " " -f2`; do
+				echo -e "[$iconfile]" >> $screenrc
+				echo -e "row=$sindex" >> $screenrc
+				echo -e "col=0\n" >> $screenrc
+				let sindex+=1
+			done
+			rm /tmp/icon.sort
+			unset sindex
 	fi
 	(cat $WKDIR/session |grep -Ev '^xfwm4 ') |
 		while read type title screen position workspace autostart custom icon_mode server options; do
