@@ -6,10 +6,11 @@ for ptype in lib app driver proto lib util font xserver; do
 	wget --no-remove-listing ftp://ftp.freedesktop.org/pub/xorg/individual/$ptype/ > /dev/null 2>&1
 	pkgs="`cat .listing |grep -Ev '\.asc|\.gz|\.sig|\.\.|intel-gpu-tools' |cut -c 57-|cut -d "-" -f1 |uniq` intel-gpu-tools"
 	if [ "$ptype" == "app" ]; then pkgs="$pkgs intel-gpu-tools"; fi
-	for pkg in `grep /usr/ports/xorg/*/Pkgfile -e individual/$ptype |cut -d "/" -f5`; do 
+	for pkg in `grep /ts/ports/*/*/Pkgfile -e individual/$ptype |cut -d "/" -f5`; do 
 		whole_version=`prt-get current $pkg`
 		version=${whole_version%-*}
-		rpkg=`cat /usr/ports/xorg/$pkg/Pkgfile \
+		pkgfile=`find /ts/ports -mindepth 2 -maxdepth 2 -type d -name $pkg`/Pkgfile
+		rpkg=`cat $pkgfile \
 			|grep -oE "/individual/$ptype/[[:graph:]]+" \
 			|sed 's|-$version.tar.bz2||g' \
 			|sed "s|/individual/$ptype/||g" \
