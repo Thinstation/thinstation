@@ -1,0 +1,75 @@
+From fd52dc1631d46cdf4eac9053be7e2e7a19977df2 Mon Sep 17 00:00:00 2001
+From: Peter Jones <pjones@redhat.com>
+Date: Fri, 24 Oct 2014 16:26:26 -0400
+Subject: [PATCH 1/2] Make "make install_systemd" and "make install_sysvinit"
+ not error.
+
+Signed-off-by: Peter Jones <pjones@redhat.com>
+---
+ include/Makefile        | 4 ++++
+ include/libdpe/Makefile | 4 ++++
+ libdpe/Makefile         | 4 ++++
+ util/Makefile           | 4 ++++
+ 4 files changed, 16 insertions(+)
+
+diff --git a/include/Makefile b/include/Makefile
+index 4314287..2b1f0ff 100644
+--- a/include/Makefile
++++ b/include/Makefile
+@@ -16,6 +16,10 @@ clean :
+ install :
+ 	@for x in $(SUBDIRS) ; do $(MAKE) -C $${x} TOPDIR=$(TOPDIR) SRCDIR=$(TOPDIR)/$@/ ARCH=$(ARCH) $@ ; done
+ 
++install_systemd:
++
++install_sysvinit:
++
+ .PHONY: all $(SUBDIRS) clean install
+ 
+ include $(TOPDIR)/Make.rules
+diff --git a/include/libdpe/Makefile b/include/libdpe/Makefile
+index f8a1e2c..f94001e 100644
+--- a/include/libdpe/Makefile
++++ b/include/libdpe/Makefile
+@@ -13,4 +13,8 @@ install:
+ 	$(INSTALL) -d -m 755 $(INSTALLROOT)$(PREFIX)/include/libdpe/
+ 	$(INSTALL) -m 644 *.h $(INSTALLROOT)$(PREFIX)/include/libdpe/
+ 
++install_systemd:
++
++install_sysvinit:
++
+ include $(TOPDIR)/Make.rules
+diff --git a/libdpe/Makefile b/libdpe/Makefile
+index a8b0c26..b94379c 100644
+--- a/libdpe/Makefile
++++ b/libdpe/Makefile
+@@ -37,6 +37,10 @@ install :
+ 		$(INSTALL) -m 755  $$x $(INSTALLROOT)$(LIBDIR) ; \
+ 	done
+ 
++install_systemd:
++
++install_sysvinit:
++
+ .PHONY: all clean install
+ 
+ include $(TOPDIR)/Make.rules
+diff --git a/util/Makefile b/util/Makefile
+index ff11cb8..2f71b73 100644
+--- a/util/Makefile
++++ b/util/Makefile
+@@ -20,6 +20,10 @@ install :
+ 	$(INSTALL) -d -m 755 $(INSTALLROOT)/boot/efi/EFI/redhat/
+ 	$(INSTALL) -m 755 *.efi $(INSTALLROOT)/boot/efi/EFI/redhat/
+ 
++install_systemd:
++
++install_sysvinit:
++
+ .PHONY: all clean install
+ 
+ include $(TOPDIR)/Make.efirules
+-- 
+1.9.3
+

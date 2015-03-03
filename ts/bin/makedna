@@ -80,11 +80,13 @@ getlinks()
 	index=0
 	if [ "$loc" == "" ];
 		then
-			term="$dir/$file"
+			rterm="$dir/$file"
+			cterm="$file"
 		else
-			term="$dir/$loc/$file"
+			rterm="$dir/$loc/$file"
+			cterm="$loc/$file"
 	fi
-	for i in `find -L $dir -samefile $term 2>/dev/null |grep -w -v "$term"`;
+	for i in `find -L $dir -samefile $rterm 2>/dev/null |grep -w -v "$cterm"`;
 		do
 			link[$index]=`echo $i |cut -d / -f3-`
 			if [ "${link[$index]}" == "$loc/$file" ];

@@ -1,0 +1,33 @@
+#! /bin/sh
+
+. $TS_GLOBAL
+
+KEY=/etc/ssl/keys/cups.key
+CRT=/etc/ssl/certs/cups.crt
+
+case "$1" in  
+init)
+    if ! pkg_initialized $PACKAGE; then
+      pkg_set_init_flag $PACKAGE
+
+      /sbin/cupsd
+
+      /sbin/udevadm trigger --subsystem-match=usb     \
+              --attr-match=bInterfaceClass=07         \
+              --attr-match=bInterfaceSubClass=01      \
+              --action=add &>/dev/null || :
+      /sbin/udevadm trigger --subsystem-match=usb     \
+              --property-match=DEVNAME="/dev/usb/lp*" \
+              --action=add &>/dev/null || :
+
+    fi
+    ;;
+help)
+    echo "Usage: $0 init"
+    ;;
+  *)
+    exit 1
+    ;;
+esac
+
+exit 0

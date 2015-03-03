@@ -1,0 +1,19 @@
+# Description: IASL Compiler
+# URL: http://www.intel.com/technology/iapc/acpi
+# Maintainer: Jose V Beneyto, sepen at crux dot nu
+# Packager: Jose V Beneyto, sepen at crux dot nu
+# Depends on: 
+
+name=iasl
+version=20140926
+release=1
+source=(https://acpica.org/sites/acpica/files/acpica-unix2-$version.tar.gz)
+
+build() {
+  cd acpica-unix2-$version
+
+  make clean
+  make BITS=64 HOST=_LINUX $name
+
+  install -D -m 0755 generate/unix/bin/$name $PKG/usr/bin/$name
+}

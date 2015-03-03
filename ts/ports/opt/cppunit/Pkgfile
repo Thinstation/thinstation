@@ -1,0 +1,21 @@
+# Description:	C++ unit testing library
+# URL:		http://sourceforge.net/projects/cppunit
+# Maintainer:	Alan Mizrahi, alan at mizrahi dot com dot ve
+# Depends on:
+
+name=cppunit
+version=1.12.1
+release=1
+source=(http://downloads.sourceforge.net/$name/$name-$version.tar.gz)
+
+build() {
+	cd $name-$version
+	./configure \
+		--prefix=/usr \
+		--mandir=/usr/man \
+		--disable-doxygen
+
+	make
+	make DESTDIR=$PKG install
+	rm -rf $PKG/usr/share/doc
+}

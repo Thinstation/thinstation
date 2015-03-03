@@ -5,13 +5,13 @@
 # Dependencies:	libplist
 
 name=usbmuxd
-version=1.0.9
+version=1.1.0
 release=1
-source=(http://www.libimobiledevice.org/downloads/lib$name-$version.tar.bz2)
+source=(http://www.libimobiledevice.org/downloads/$name-$version.tar.bz2)
 
 build() {
-    cd lib$name-$version
-    ./configure --prefix=/usr --disable-static
+    cd $name-$version
+    ./configure --prefix=/usr --disable-static --without-systemd
     make
     make DESTDIR=$PKG install
 }

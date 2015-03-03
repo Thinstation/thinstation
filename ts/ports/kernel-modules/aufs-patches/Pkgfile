@@ -4,17 +4,19 @@
 # Maintainer:   
 
 name=aufs-patches
-version=3.14
+version=3.14.21+
 release=1
 source=()
 
 build() {
-git clone git://git.code.sf.net/p/aufs/aufs3-standalone \
-	$name
-    cd $name
-    git checkout aufs$version
+	git clone git://git.code.sf.net/p/aufs/aufs3-standalone \
+		$name
+	cd $name
+	git checkout aufs$version
 
-    mkdir -p $PKG/usr/src/kernels/aufs/patches
-    cat aufs3-base.patch aufs3-mmap.patch aufs3-standalone.patch > $PKG/usr/src/kernels/aufs/patches/aufs3.patch
+	mkdir -p $PKG/$TSCOMPROOT/aufs/patches
+
+	cat aufs3-base.patch aufs3-mmap.patch aufs3-standalone.patch > $PKG/$TSCOMPROOT/aufs/patches/aufs3.patch
+	cd $PKG/$TSCOMPROOT/aufs/patches
 }
 

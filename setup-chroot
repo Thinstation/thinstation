@@ -20,10 +20,11 @@ help()
 	completed, it will only take you into the chroot env for building. You will need to 'exit'
 	this env when you are done working in it. It takes the following options.
 
+	-a : Automaticly download and build during unwind.
 	-h : Show this help message.
 	-i : Install the env only. Don't enter it after-wards.
 	-b : Run build after entering chroot and exit after-wards.
-	-d : Use an alternate build directory. Default = /ts/6.0
+	-d : Use an alternate build directory. Default = /ts/build
 	-o : Options to pass to build. Must be the last option,
 	     as anything after it will be passed to build.
 	-c : Clean the chroot env.
@@ -38,6 +39,7 @@ get_opts()
 {
 	until [ -z "$1" ] ; do
 		case $1 in
+		-a|--autodl)	touch autodl;;
 		-i|--install)	install_only=true ;;
 		-d|--directory)	shift ; build_dir=$1 ;;
 		-b|--build)	build=true ;;
@@ -182,7 +184,7 @@ set_build()
 {
 	if [ "$build" == "true" ] ; then
 		if [ -z "$build_dir" ] ; then
-			build_dir=/ts/6.0
+			build_dir=/ts/build
 		fi
 		echo "cd $build_dir" > BUILD.$INSTANCE
 		echo "./build $build_opts" >> BUILD.$INSTANCE
@@ -196,12 +198,16 @@ main()
 	set_build
 	set_cmd
 	launch_chroot
-	if [ -e installed ] ; then
+	if [ -e dostage4 ] ; then
 		copy_host_essential
+		launch_chroot
+	fi
+	if [ -e installed ] ; then
 		rm installed
 		if [ "$install_only" == "true" ] ; then
 			exit 0
 		else
+			copy_host_essential
 			launch_chroot
 		fi
 	fi

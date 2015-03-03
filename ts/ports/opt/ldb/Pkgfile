@@ -1,0 +1,18 @@
+# Description:	LDAP-like embedded database library
+# URL:		http://ldb.samba.org/
+# Maintainer:	Alan Mizrahi, alan at mizrahi dot com dot ve
+# Depends on:	python tevent tdb popt
+
+name=ldb
+version=1.1.20
+release=2
+source=(http://www.samba.org/ftp/$name/$name-$version.tar.gz)
+
+build() {
+	cd $name-$version
+	./configure \
+		--prefix=/usr \
+		--mandir=/usr/man
+	make
+	make DESTDIR=$PKG install
+}

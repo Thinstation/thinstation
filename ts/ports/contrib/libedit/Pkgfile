@@ -1,0 +1,19 @@
+# Description: Linux port of the BSD readline alternative (editline)
+# URL: http://thrysoee.dk/editline
+# Maintainer: 
+
+name=libedit
+version=20140620-3.1
+release=1
+source=(http://thrysoee.dk/editline/$name-$version.tar.gz)
+
+build() {
+	cd $name-$version
+
+	./configure --prefix=/usr \
+			--sysconfdir=/etc \
+			--mandir=/usr/man
+
+	make
+	make DESTDIR=$PKG install
+}

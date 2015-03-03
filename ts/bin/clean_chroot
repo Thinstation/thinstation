@@ -5,22 +5,36 @@
 
 create_wind()
 {
-	echo -e "\tCreating fast clean cache for $i"
+	printf "\n\tCreating fast clean cache for $i"
 	echo "#`md5sum .dna`" > /ts/wind_cache/$i.turbo
         update -c -d $i >> /ts/wind_cache/$i.turbo
-	echo -e "\tCleaning package $i"
         . /ts/wind_cache/$i.turbo
+	errata=true
 }
 
 create_unwind()
 {
-	echo -e "\tCreating fast install cache for $i"
+	printf "\n\tCreating fast install cache for $i"
         echo "#`md5sum .dna`" > /ts/unwind_cache/$i.turbo
         update -d $i |
         sed -e 's/^cp \//3:/g' -e 's/mkdir \-/2:/g' -e 's/ln \-/4:/g' -e 's/touch \//5:/g' |
         sort |
         uniq |
         sed -e 's/^2:/mkdir \-/g' -e 's/^3:/cp \//g' -e 's/^4:/ln \-/g' -e 's/^5:/touch \//g' >> /ts/unwind_cache/$i.turbo
+	errata=true
+}
+
+list_folders()
+{
+	find -L . -mindepth 1 -maxdepth 1 -name \* -type d -printf '%f\n'
+}
+
+save_archive()
+{
+	mv $port_archive tempfile
+	pkgmk -c
+	find -L . -type f -name \*.pkg.tar.\* -delete
+	mv tempfile $port_archive
 }
 
 stage1()
@@ -28,98 +42,115 @@ stage1()
 	echo "Cleaning ThinStation Build Environment"
 	cd $TSWRKNG
 	./build --removeall
-	cp conf/default/* .
+	cp conf/Default/* .
 	cd /
+
+	# Cleanup theme derivatives in the utils folder
 	for theme in `ls $TSWRKNG/utils/tools/splash |grep -v bin`; do
-		for res in `ls $TSWRKNG/utils/tools/splash/$theme |grep -E -v '1024x768|scalable'` ; do
+		for res in `ls $TSWRKNG/utils/tools/splash/$theme |grep -E -v '1024x768|scalable'`; do
 			rm -rf $TSWRKNG/utils/tools/splash/$theme/$res
 		done
 	done
-	for i in \
+
+	# Cleanup typical leave behinds from build
+	for crumb in \
 		/build \
 		$TSWRKNG/tmp-tree \
-                $TSWRKNG/boot-images/{pxe,syslinux,extlinux,iso,pkg-packages}/* \
-		$TSWRKNG/boot-images/initrd/{kernel_parameters,initrd,lib.squash,vmlinuz*} \
 		$TSWRKNG/{thinstation.conf.sample,background-1024x768.jpg}; do
-			if [ -e $i ];
-				then rm -rf $i
-			fi
+		if [ -e $crumb ]; then
+			rm -rf $crumb
+		fi
 	done
-	for i in `ls --color=never $TSWRKNG/packages` ;
-		do
-			if [ -e $TSWRKNG/packages/$i/.dna ] ;
-				then
-					cd $TSWRKNG/packages/$i
-					echo -e "\tCleaning package $i"
-					if [ -e /ts/wind_cache/$i.turbo ]; then
-						if cat /ts/wind_cache/$i.turbo |grep -e "#" |cut -d "#" -f2 |md5sum -c --quiet ; then
-							. /ts/wind_cache/$i.turbo
-						else
-							create_wind
-						fi
-					else
-						create_wind
-					fi
-					if [ -e /ts/unwind_cache/$i.turbo ]; then
-						if cat /ts/unwind_cache/$i.turbo|grep -e "#" |cut -d "#" -f2 |md5sum -c --quiet ; then
-							echo "Allready made" >> /dev/null
-						else
-							create_unwind
-						fi
-					else
-						create_unwind
-					fi
+
+	# Remove any empty folders
+	find -L $TSWRKNG -type d -empty -delete
+
+	for i in `ls --color=never $TSWRKNG/packages`; do
+		errata=false
+		if [ -e $TSWRKNG/packages/$i/.dna ]; then
+			cd $TSWRKNG/packages/$i
+			printf "\rCleaning package %-40s" "$i"
+			if [ -e /ts/wind_cache/$i.turbo ]; then
+				if cat /ts/wind_cache/$i.turbo |grep -e "#" |cut -d "#" -f2 |md5sum -c --quiet; then
+					. /ts/wind_cache/$i.turbo
+				else
+					create_wind
+				fi
+			else
+				create_wind
 			fi
-		done
-	echo -e "\tCleaning tools"
+			if [ -e /ts/unwind_cache/$i.turbo ]; then
+				if cat /ts/unwind_cache/$i.turbo|grep -e "#" |cut -d "#" -f2 |md5sum -c --quiet; then
+					echo "Allready made" >> /dev/null
+				else
+					create_unwind
+				fi
+			else
+				create_unwind
+			fi
+		fi
+		if $errata; then
+			printf "\n"
+		fi
+	done
+	printf "\rPackages are %-40s\n" "Clean"
+	echo -e "Cleaning tools"
 	update -c -t
 	echo "Checking Ports Directories for Downloaded Files"
-	for d in /usr/ports/{contrib,core,xorg,opt} /ts/ports/{kernel-modules,xorg,gnome,broken,chroot,static-source,components,lxde,extensions,xfce,ruby,perl};
-		do
-			if [ -d $d ] ; then
-			cd $d
-			for i in `ls --color=no`;
-				do
-					cd $d/$i
-					f=`find . |grep -e pkg.tar.gz`
-					if [ "$f" != "" ];
-						then
-							mv $f tempfile
-							pkgmk -c
-							mv tempfile $f
-						elif [ "`echo $d |grep -e ts/ports`" != "" ] ; then
-							pkgmk -c
-						else
-							cd $d
-							rm -rf $d/$i
+	for distro in ts; do cd /$distro/ports
+	for port_type in `list_folders`; do cd $port_type
+	for port in `list_folders`; do cd $port
+		printf "\rCleaning %-59s" "$port"
+		. Pkgfile
+		whole_version=$version-$release
+		port_archive=`find -L . -maxdepth 1 -type f -name ${port}#$whole_version.pkg.tar.\*`
+		if [ -n "$port_archive" ]; then
+			case $port_type in
+				proprietary|binary-core|binary-opt)
+					if $super; then
+						pkgmk -c
+					else
+						save_archive
 					fi
-				done
-			fi
-		done
+					echo $port_archive |cut -d "." -f2- > .gitignore
+					;;
+				*) save_archive;;
+			esac
+		else
+			printf "\rCould not find pkg file for %-40s\n" "$port"
+			pkgmk -c
+		fi
+		rm -rf work *.partial
+		cd ..
+	done
+	cd ..
+	done
+	done
 	touch /cleanstage2
-	if [ ! -e /CLEAN ] ; then
-		echo "Please Type \"exit\" to Finish the Cleaning Process"
+	if [ ! -e /CLEAN ]; then
+		printf "\rPlease Type \"exit\" to Finish the Cleaning Process\t\t\t"
 	fi
 }
 
 stage2()
 {
-	for i in usr/{lib64,var,swat,private,bin,etc,include,lib,man,sbin,share,src,local,GNUstep,www,ROX,php,libexec} \
-		lib64 run www share home man bin boot dev etc lib mnt opt proc root sbin sys tmp var ts/components ;
-		do
-			if [ -e $i ] || [ -h $i ];
-				then
-					rm -rf $ROOT/$i
-			fi
-		done
+	for trash in usr lib64 run www share home man bin boot dev etc lib mnt opt proc root sbin sys tmp var ts/components; do
+		if [ -e $trash ] || [ -h $trash ]; then
+			rm -rf $ROOT/$trash
+		fi
+	done
 	rm cleanstage2
 }
 
-ROOT=$PWD
-if [ -e $ROOT/cleanstage2 ] ;
-	then
-		stage2
-	else
-		stage1
+if [ "$1" == "-s" ]; then
+	super=true
+else
+	super=false
 fi
 
+ROOT=$PWD
+if [ -e $ROOT/cleanstage2 ]; then
+	stage2
+else
+	stage1
+fi

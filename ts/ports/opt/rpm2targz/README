@@ -1,0 +1,6 @@
+POST-INSTALL
+
+   To enable less(1) to view RPM files, add the following line to
+   the case statement in /usr/lib/less/filter:
+
+     *.rpm) dd ibs=`/usr/lib/rpm2targz/rpmoffset < "$1"` skip=1 if="$1" | gzip -dc | cpio -tv ;;

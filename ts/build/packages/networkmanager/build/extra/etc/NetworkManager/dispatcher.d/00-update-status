@@ -1,0 +1,40 @@
+#!/bin/sh
+
+. /etc/thinstation.env
+
+INTERFACE=$1
+ACTION=$2
+
+case $ACTION in
+
+up|dhcp4-change)
+  . /var/log/net/$INTERFACE
+  NETWORKUP=TRUE
+  gw=`echo $IP4_ADDRESS_0 | cut -d/ -f2 | cut -d' ' -f2`
+
+  sed -i -e "s/NET_DEVICE=.*/NET_DEVICE=$INTERFACE/" $TS_RUNTIME
+;;
+
+down)
+  . /var/log/net/$INTERFACE
+  NETWORKUP=FALSE
+;;
+
+*)
+  exit
+;;
+
+esac
+
+echo "DEVTYPE=$DEVTYPE"				> /var/log/net/$INTERFACE
+echo "CLIENT_NAME=$CLIENT_NAME"			>> /var/log/net/$INTERFACE
+echo "CLIENT_MAC=$CLIENT_MAC"			>> /var/log/net/$INTERFACE
+echo "CLIENT_IP=$DHCP4_IP_ADDRESS"		>> /var/log/net/$INTERFACE
+echo "CLIENT_GATEWAY=$gw"			>> /var/log/net/$INTERFACE
+echo "SUBNET=$DHCP4_NETWORK_NUMBER"		>> /var/log/net/$INTERFACE
+echo "SERVER_IP=$DHCP4_NEXT_SERVER"		>> /var/log/net/$INTERFACE
+echo "NETWORKUP=$NETWORKUP"			>> /var/log/net/$INTERFACE
+echo "NETMASK_SIZE=$DHCP4_SUBNET_MASK"		>> /var/log/net/$INTERFACE
+echo "DHCP_SERVER_ID=$DHCP4_DHCP_SERVER_IDENTIFIER">> /var/log/net/$INTERFACE
+echo "NET_USE=$NET_USE"				>> /var/log/net/$INTERFACE
+echo "NET_DHCP_TIMEOUT=$NET_DHCP_TIMEOUT"	>> /var/log/net/$INTERFACE

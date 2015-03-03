@@ -1,0 +1,36 @@
+#!/bin/sh
+#set -x
+
+clean=$1
+
+if [ -z "$clean" ]; then
+	clean=false
+fi
+
+rm -f /tmp/mask
+
+. ./Pkgfile
+
+source_files=$(sed -n '/source=(/,/)/p' Pkgfile |
+		grep -v 'build()' |
+		sed -e 's/source=(//g' |
+		sed -e 's/ \\//g' |
+		sed -e 's/)//g' |
+		sed -e "s/\$version/$version/g" |
+		sed -e "s/\$name/$name/g" |
+		sed -e "s/\$sname/$sname/g" |
+		sed -e "s/\$pname/$pname/g")
+for file in $source_files .nostrip .md5sum .footprint Pkgfile ${name}\#${version}-${release}.pkg.tar.gz ${name}\#${version}-${release}.pkg.tar.xz post-install pre-install README; do
+	echo `basename $file` >> /tmp/mask
+done
+
+files=`find . -type f -printf '%f\n'`
+for file in $files; do
+	if [ -n "`echo $file |grep -vf /tmp/mask`" ]; then
+		echo $file
+		if $clean; then
+			rm $file
+		fi
+	fi
+done
+

@@ -1,0 +1,19 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=cryptodev-linux
+version=1.7
+release=1
+kernel=`cat /ts/ports/kernel-modules/VERSION`
+source=(http://download.gna.org/cryptodev-linux/cryptodev-linux-$version.tar.gz)
+
+build() {
+	cd $name-$version
+	export REPORT_KERNEL=${kernel}TS_SMP
+
+	make
+	make install PREFIX=$PKG
+
+	chmod 644 $PKG/usr/include/crypto/cryptodev.h
+}

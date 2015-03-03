@@ -1,0 +1,28 @@
+#!/bin/bash
+#
+# /etc/rc.d/samba: start/stop all server samba daemons
+#
+
+declare -a scripts=('smbd' 'nmbd' 'winbindd')
+
+case $1 in
+start|reload|status)
+	for script in ${scripts[@]}; do
+		/etc/rc.d/$script $1
+	done
+	;;
+stop)
+	# stop in reverse order
+	for (( i=${#scripts[@]}-1; i>=0; i-- )); do
+		script=${scripts[i]}
+		/etc/rc.d/$script $1
+	done
+	;;
+restart)
+	$0 stop
+	$0 start
+	;;
+*)
+	echo "usage: $0 [start|stop|restart|reload|status]"
+	;;
+esac

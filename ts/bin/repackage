@@ -45,13 +45,36 @@ package_path()
 
 extract_archive()
 {
-	if [ ! -d $pkgpath ] ; then
+	if [ ! -d $pkgpath ]; then
 		mkdir -p $pkgpath
 	fi
 	ppath=`prt-get path $package`
-	version=`prt-get current $package`
-	archive=$ppath/${package}#$version.pkg.tar.gz
-	bsdtar -pzxf $archive -C $pkgpath 2>/dev/null
+	. $ppath/Pkgfile
+        archive="`find -L $ppath -type f -name ${name}#${version}-${release}.pkg.tar.\* -printf '%f'`"
+        if [ ! -f $ppath/$archive ]; then
+		printf "Port $package has not yet been built.\n"
+		if [ -n "$AUTODL" ] && $AUTODL; then
+			install_port=true
+		else
+			answered=false
+			while ! $answered; do
+				printf "Would you like to try and build it now? Y/N:"
+				read -n 1 answer
+				case $answer in
+					Y|y)	install_port=true
+						answered=true
+					;;
+					n|n) answered=true; exit 1;;
+					*) answered=false;;
+				esac
+			done
+		fi
+		if $install_port; then
+			prt-get install --install-scripts -fr -if -im $package
+			archive="`find -L $ppath -type f -name ${name}#${version}-${release}.pkg.tar.\* -printf '%f'`"
+		fi
+        fi
+	bsdtar -pxf $ppath/$archive -C $pkgpath 2>/dev/null
 }
 
 preserve_empty_working()

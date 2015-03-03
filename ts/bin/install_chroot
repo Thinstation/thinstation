@@ -7,23 +7,24 @@ stage1()
 {
 	echo "Chroot not previuosly setup. Doing it NOW!"
 
-	for i in proc sys home dev mnt downloads;
-		do
-			if [ ! -e $i ] ; then
-				mkdir -m 755 $i
-			fi
-		done
+	for dir in proc sys home dev mnt downloads var/lib/pkg; do
+		if [ ! -e $dir ] ; then
+				mkdir -p -m 755 $dir
+		fi
+	done
 
-	if [ ! -e tmp ] ; then
+	touch var/lib/pkg/db
+
+	if [ ! -e tmp ]; then
 		mkdir -m 1777 tmp
 	fi
-	if [ ! -e root ] ; then
+	if [ ! -e root ]; then
 		mkdir -m 750 root
 	fi
 
-	for i in acl libcap coreutils pkgutils glibc bash readline ncurses findutils libpcre grep;
+	for core_port in filesystem acl attr libcap coreutils pkgutils glibc bash readline ncurses findutils libpcre grep;
 		do
-			pkg=`find $ROOT/{usr,ts} |grep -e pkg.tar.gz |grep -e $i`
+			pkg=`find -L $ROOT/ts/ports/core/$core_port |grep -E pkg\.tar\."xz|gz" |grep -e "pkg.tar"`
 			tar -p -o -C $ROOT -xf $pkg 2> /dev/null
 		done
 
@@ -41,24 +42,11 @@ stage1()
 
 stage2()
 {
-	PKGARGS="-f"
-
-	for PKG_FILE in `find $ROOT/{usr/ports,ts/ports/} |grep -e pkg.tar.gz |grep -v broken` ;do
-		PKG_NAME=${PKG_FILE##*/}
-		PKG_NAME="`echo $PKG_NAME |cut -d "#" -f1`"
-		echo "Installing Package $PKG_NAME"
-		/usr/bin/pkgadd $PKGARGS $PKG_FILE
-		if [ -e "`dirname $PKG_FILE`"/pre-install ]; then
-                        echo ". `dirname $PKG_FILE`/pre-install" >> $ROOT/post-install.sh
-                fi
-		if [ -e "`dirname $PKG_FILE`"/post-install ]; then
-			echo ". `dirname $PKG_FILE`/post-install" >> $ROOT/post-install.sh
-		fi
+	for Pkgfile in `find -L $ROOT/ts/ports -name Pkgfile |grep -Ev "proprietary|binary-core|binary-opt"`;do
+		install_port
 	done
-	ln -sf /opt/cross/x-tools/x86_64-thinstation-linux-gnu/x86_64-thinstation-linux-gnu/sysroot/usr/lib /usr/lib64
-	ln -sf /opt/cross/x-tools/x86_64-thinstation-linux-gnu/x86_64-thinstation-linux-gnu/sysroot/lib /lib64
-	source $ROOT/post-install.sh
-	rm $ROOT/post-install.sh
+	printf "\rPort Installation %-40s\n" "Complete"
+	post_install
 	rm /dostage2
 	touch /dostage3
 }
@@ -67,7 +55,7 @@ stage3()
 {
 	for i in `ls --color=never $TSWRKNG/packages` ;
 		do
-			echo "Populating Package $i"
+			printf "\rPopulating Package %-40s" "$i"
 			cd $TSWRKNG/packages/$i
 			if [ -e /ts/unwind_cache/$i.turbo ]; then
 				if cat /ts/unwind_cache/$i.turbo |grep -e "#" |cut -d "#" -f2 |md5sum -c --quiet ; then
@@ -79,21 +67,89 @@ stage3()
 				update $i
 			fi
 		done
+	printf "\rPackage Population %-40s\n" "Complete"
 	echo "Populating tools"
 	update -t
 	cd $TSWRKNG
 	./build --regenconf
 	if [ ! -e /build ] ; then
-		ln -sf ts/$TSVER /build
+		ln -sf ts/build /build
 	fi
 	rm /dostage3
+	touch /dostage4
+}
+
+stage4()
+{
+	rm /dostage4
+	printf "\rLooking at core binary ports\n"
+        for Pkgfile in `find -L $ROOT/ts/ports -name Pkgfile |grep -E "binary-core"`;do
+                if ! install_port; then
+                        port_name=`echo $Pkgfile |cut -d "/" -f6`
+			if ! $autodl; then
+	                        answered=false
+        	                while ! $answered; do
+                	                printf "Would you like to try and build it now? Y/N:"
+                        	        read -n 1 answer
+                                	case $answer in
+                                        	Y|y) prt-get install -fr -if -im $port_name;answered=true;;
+	                                        n|n) answered=true;;
+        	                                *) answered=false;;
+                	                esac
+                        	done
+			else
+				prt-get install -fr -if -im $port_name
+			fi
+			printf "\n"
+                fi
+        done
+	rm -f autodl
+        printf "\rBinary Core Port Installation %-40s\n" "Complete"
+	post_install
+}
+
+install_port()
+{
+	. $Pkgfile
+	port_name=`echo $Pkgfile |cut -d "/" -f6`
+	port_dir=`echo $Pkgfile |cut -d "/" -f1-6`
+	pkg_name="`find -L $port_dir -type f -name ${name}#${version}-${release}.pkg.tar.\* -printf '%f'`"
+	printf "\rInstalling Port %-40s" "$port_name"
+	if [ -f $port_dir/$pkg_name ]; then
+		/usr/bin/pkgadd -f $port_dir/$pkg_name
+		if [ -e $port_dir/pre-install ]; then
+			echo ". $port_dir/pre-install" >> $ROOT/post-install.sh
+		fi
+		if [ -e $port_dir/post-install ]; then
+			echo ". $port_dir/post-install" >> $ROOT/post-install.sh
+		fi
+		return 0
+	else
+		printf "Could not find an archive.\n"
+		return 1
+	fi
+}
+
+post_install()
+{
+	if [ -e /post-install.sh ]; then
+		source /post-install.sh
+		rm /post-install.sh
+	fi
 }
 
 ROOT=$PWD
-if [ -e $ROOT/dostage3 ] ;
-	then
+if [ -e $ROOT/autodl ]; then
+	autodl=true
+else
+	autodl=false
+fi
+
+if [ -e $ROOT/dostage4 ]; then
+		stage4
+	elif [ -e $ROOT/dostage3 ]; then
 		stage3
-	elif [ -e $ROOT/dostage2 ] ; then
+	elif [ -e $ROOT/dostage2 ]; then
 		stage2
 	else
 		stage1

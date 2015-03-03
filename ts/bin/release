@@ -1,7 +1,9 @@
 #!/bin/bash
 
+rm -rf /tmp/{thindev,thindev-default.tar.xz,image.md5}
 mkdir /tmp/thindev
 cp /build/boot-images/initrd/{initrd,vmlinuz,lib.squash} /tmp/thindev/.
+cp /build/boot-images/initrd/image.md5 /tmp/image-$TSVER.md5
 cd /tmp/thindev
 mv lib.squash lib.update
-tar -c * |xz -9 > ../thindev-default.tar.xz
+tar -c * |xz -9 > ../thindev-default-$TSVER.tar.xz

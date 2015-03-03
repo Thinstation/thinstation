@@ -1,0 +1,280 @@
+#!/bin/bash
+
+get_opts()
+{
+	until [ -z $1 ] ; do
+		case $1 in
+			-l|--log) logging=true;;
+			-r|--reset) reset=true;;
+			*) echo "Unknown argument: $1"; exit 1;;
+		esac
+		shift
+	done
+	if [ -z $logging ]; then logging=false; fi
+	if [ -z $reset ]; then reset=false; fi
+}
+
+pretty_box()
+{
+	COUNT=10
+	(while test $COUNT != 100 ; do
+		echo $COUNT
+		let COUNT+=1
+		if [ -e /tmp/http_tested ]; then
+			COUNT=34
+			rm /tmp/http_tested
+		fi
+		if [ -e /tmp/https_tested ]; then
+			COUNT=67
+			rm /tmp/https_tested
+		fi
+		sleep 1
+	done
+	) | Xdialog --title "Testing Connection" --progress "Checking Internet Connectivity" 10 60 0 &
+	prettybox=$!
+}
+
+test_http()
+{
+	if ! wget -t 3 -T 30 http://sourceforge.net/projects/thinstation/files/DevStation-Source/image.md5 ; then
+		http=false
+		http_display=Fail
+		return 1
+	else
+		http=true
+		http_display=Success
+		rm image.md5
+		touch /tmp/http_tested
+		return 0
+	fi
+}
+
+test_https()
+{
+	if !  wget -t 2 -T 10 https://www.ssllabs.com/ssltest/viewMyClient.html ; then
+		https=false
+		https_display=Fail
+		return 1
+	else
+		https=true
+		https_display=Success
+		rm -r viewMyClient.html
+		touch /tmp/https_tested
+		return 0
+	fi
+}
+
+test_internet()
+{
+	pretty_box
+
+	https_display=Untested
+
+	if test_http && test_https; then
+		internet=true
+	else
+		internet=false
+	fi
+
+	kill -KILL $prettybox
+}
+
+get_existing()
+{
+	if [ -e /tmp/.proxy ] ; then
+		. /tmp/.proxy
+	fi
+	if [ -z "$internet" ]; then internet=false ; fi
+}
+
+get_gnome_proxy()
+{
+        mode=`gconftool-2 -g /system/proxy/mode 2>/dev/null`
+        use_http_proxy=`gconftool-2 -g /system/http_proxy/use_http_proxy 2>/dev/null`
+        use_same_proxy=`gconftool-2 -g /system/http_proxy/use_same_proxy 2>/dev/null`
+        use_authentication=`gconftool-2 -g /system/http_proxy/use_authentication 2>/dev/null`
+        authentication_user=`gconftool-2 -g /system/http_proxy/authentication_user 2>/dev/null`
+        authentication_password=`gconftool-2 -g /system/http_proxy/authentication_password 2>/dev/null`
+        host=`gconftool-2 -g /system/http_proxy/host 2>/dev/null`
+        port=`gconftool-2 -g /system/http_proxy/port 2>/dev/null`
+        ignore_hosts=`gconftool-2 -g /system/http_proxy/ignore_hosts 2>/dev/null`
+        socks_host=`gconftool-2 -g /system/proxy/socks_host 2>/dev/null`
+        socks_port=`gconftool-2 -g /system/proxy/socks_port 2>/dev/null`
+        secure_host=`gconftool-2 -g /system/proxy/secure_host 2>/dev/null`
+        secure_port=`gconftool-2 -g /system/proxy/secure_port 2>/dev/null`
+        ftp_host=`gconftool-2 -g /system/proxy/ftp_host 2>/dev/null`
+        ftp_port=`gconftool-2 -g /system/proxy/ftp_port 2>/dev/null`
+
+        if [ -z "$use_authentication" ]; then use_authentication=false ; fi
+}
+
+log_proxy()
+{
+	if $logging; then
+		echo "internet=$internet" > /tmp/.proxy
+		echo "http=$http" >> /tmp/.proxy
+		echo "https=$https" >> /tmp/.proxy
+		echo "mode=$mode" >> /tmp/.proxy
+		echo "use_http_proxy=$use_http_proxy" >> /tmp/.proxy
+		echo "use_same_proxy=$use_same_proxy" >> /tmp/.proxy
+		echo "use_authentication=$use_authentication" >> /tmp/.proxy
+		echo "authentication_user=$authentication_user" >> /tmp/.proxy
+		echo "authentication_password=$authentication_password" >> /tmp/.proxy
+		echo "host=$host" >> /tmp/.proxy
+		echo "port=$port" >> /tmp/.proxy
+		echo "ignore_hosts=\"$ignore_hosts\"" >> /tmp/.proxy
+		echo "secure_host=$secure_host" >> /tmp/.proxy
+		echo "secure_port=$secure_port" >> /tmp/.proxy
+		echo "socks_host=$socks_host" >> /tmp/.proxy
+		echo "socks_port=$socks_port" >> /tmp/.proxy
+		echo "ftp_host=$ftp_host" >> /tmp/.proxy
+		echo "ftp_port=$ftp_port" >> /tmp/.proxy
+	fi
+}
+
+set_proxy()
+{
+#	reset_gnome
+#	reset_http
+	reset_git
+
+	gconftool-2 --type string -s /system/proxy/mode $mode
+	if [ "$mode" == "manual" ]; then
+		if $use_http_proxy; then
+			gconftool-2 --type bool -s /system/http_proxy/use_http_proxy $use_http_proxy
+
+			if [ -n "$host" ] && [ -n "$port" ] ; then
+				gconftool-2 --type stringcg -s /system/http_proxy/host $host
+				gconftool-2 --type int -s /system/http_proxy/port $port
+				gconftool-2 --type string -s /system/http_proxy/ignore_hosts "$ignore_hosts"
+			fi
+
+			if [ -n "$use_same_proxy" ]; then
+				gconftool-2 --type bool -s /system/http_proxy/use_same_proxy $use_same_proxy
+				secure_host=$host
+				secure_port=$port
+				socks_host=$host
+				socks_port=$port
+				ftp_host=$host
+				ftp_port=$port
+			fi
+
+			if $use_authentication; then
+				gconftool-2 --type bool -s /system/http_proxy/use_authentication $use_authentication
+
+				if [ -n "$authentication_user" ] && [ -n "$authentication_password" ]; then
+					gconftool-2 --type string -s /system/http_proxy/authentication_user $authentication_user
+					gconftool-2 --type string -s /system/http_proxy/authentication_password $authentication_password
+				elif [ -n "$authentication_user" ]; then
+					gconftool-2 --type string -s /system/http_proxy/authentication_user $authentication_user
+				fi
+			fi
+		fi
+
+		if [ -n "$secure_host" ] && [ -n "$secure_port" ]; then
+			gconftool-2 --type string -s /system/proxy/secure_host $secure_host
+			gconftool-2 --type int -s /system/proxy/secure_port $secure_port
+			git config --global core.gitproxy gitproxy
+		fi
+		if [ -n "$socks_host" ] && [ -n "$socks_port" ]; then
+			gconftool-2 --type string -s /system/proxy/socks_host $socks_host
+			gconftool-2 --type int -s /system/proxy/socks_port $socks_port
+		fi
+		if [ -n "$ftp_host" ] && [ -n "$ftp_port" ]; then
+			gconftool-2 --type string -s /system/proxy/ftp_host $ftp_host
+			gconftool-2 --type int -s /system/proxy/ftp_port $ftp_port
+		fi
+	fi
+	. /etc/ashrc
+}
+
+get_proxy()
+{
+	Xdialog --title "Setup Proxy" --yesno "\
+Internet Connectivity Test Failed! \n\
+\n\
+HTTP: $http_display  HTTPS: $https_display \n\
+\n\
+ Would you like to setup a Proxy?" 15 50
+}
+
+reset_git()
+{
+	git config --global --unset core.gitproxy
+}
+
+#reset_http()
+#{
+#	if [ -e /etc/thinstation.user ] ; then
+#		sed -e /http_proxy/d -i `readlink /etc/thinstation.user`
+#		sed -e /https_proxy/d -i `readlink /etc/thinstation.user`
+#		unset http_proxy https_proxy
+#	fi
+#}
+
+reset_gnome()
+{
+	gconftool-2 -u /system/proxy/mode
+	gconftool-2 -u /system/http_proxy/use_http_proxy
+	gconftool-2 -u /system/http_proxy/use_same_proxy
+	gconftool-2 -u /system/http_proxy/use_authentication
+	gconftool-2 -u /system/http_proxy/authentication_user
+	gconftool-2 -u /system/http_proxy/authentication_password
+	gconftool-2 -u /system/http_proxy/host
+	gconftool-2 -u /system/http_proxy/port
+	gconftool-2 -u /system/proxy/secure_host
+	gconftool-2 -u /system/proxy/secure_port
+	gconftool-2 -u /system/proxy/socks_host
+	gconftool-2 -u /system/proxy/socks_port
+	gconftool-2 -u /system/proxy/ftp_host
+	gconftool-2 -u /system/proxy/ftp_port
+}
+
+main()
+{
+	if $reset ; then
+		rm -f /tmp/.proxy
+#		reset_http
+		reset_git
+		reset_gnome
+		exit 0
+	fi
+
+	get_existing
+
+	if ! $internet; then
+		get_gnome_proxy
+	fi
+
+	set_proxy
+	log_proxy
+
+	if ! $internet ; then
+		test_internet
+		log_proxy
+	fi
+
+	if ! $internet ; then
+		if get_proxy ; then
+			gnome-network-properties
+			get_gnome_proxy
+			set_proxy
+			log_proxy
+			test_internet
+			log_proxy
+		else
+			exit 2
+		fi
+	fi
+
+	if ! $internet; then
+		log_proxy
+		exit 1
+	fi
+	set_proxy
+	log_proxy
+}
+
+get_opts $@
+main
+exit 0

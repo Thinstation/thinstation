@@ -1,0 +1,114 @@
+#!/bin/bash
+
+. $TS_GLOBAL
+
+show_help()
+{
+echo "
+  Usage:	-h --help	Show this help message
+		-l --local	Copy from the local build env
+		-s --server	Download from the dhcp assigned tftp server
+		-w --web	Download the default image from the web
+		-p --path	Copy from a user specified path
+"
+                exit 255
+}
+
+init()
+{
+LPATH=""
+	if [ -z "$1" ] ; then show_help ; fi
+        until [ -z "$1" ] ; do
+		case $1 in
+			-p|--path)	METHOD=PATH LPATH="$2" ;;
+			-l|--local)     METHOD=LOCAL ;;
+			-h|--help)	show_help ;;
+			-w|--web)	METHOD=WEB ;;
+			-s|--server)	METHOD=SERVER ;;
+			*)		echo "Invalid Option: $1" ; exit 255 ;;
+                esac
+		shift $#
+	done
+}
+init $@
+
+case $METHOD in
+	LOCAL)
+		cd /boot
+		cp /thinstation/build/boot-images/initrd/image.md5 check.md5
+		if ! md5sum -c check.md5 ; then
+			cp /thinstation/build/boot-images/initrd/initrd /boot/initrd
+			cp /thinstation/build/boot-images/initrd/vmlinuz /boot/vmlinuz
+			if [ -e /thinstation/build/boot-images/initrd/lib.squash ]; then
+				cp /thinstation/build/boot-images/initrd/lib.squash /boot/lib.update
+			fi
+			echo "Update Complete"
+			exit 0
+		else
+			echo "Everything is Up to Date"
+			exit 1
+		fi
+	;;
+	SERVER)
+		cd /boot
+		tftp -g -l check.md5 -r boot/image.md5 -b $TFTP_BLOCKSIZE $SERVER_IP
+		if ! md5sum -c check.md5 ; then
+			if [ -e initrd ]; then
+				rm -f initrd
+				rm -f vmlinuz
+			fi
+			tftp -g -l initrd -r boot/initrd -b $TFTP_BLOCKSIZE $SERVER_IP
+			tftp -g -l vmlinuz -r boot/vmlinuz -b $TFTP_BLOCKSIZE $SERVER_IP
+			tftp -g -l lib.update -r boot/lib.squash -b $TFTP_BLOCKSIZE $SERVER_IP
+			echo "Update Complete"
+			exit 0
+		else
+			echo "Everything is Up to Date"
+			exit 1
+		fi
+	;;
+	WEB)
+		cd /tmp
+		wget ${WEBUPDATEROOT}/image-$TS_VERSION.md5 -O check.md5
+		cd /boot
+		if ! md5sum -c /tmp/check.md5 ; then
+			cd /tmp
+			echo "Downloading a Default Image"
+			wget ${WEBUPDATEROOT}/thindev-default-$TS_VERSION.tar.xz
+			cd /boot
+			tar -xvf /tmp/thindev-default-$TS_VERSION.tar.xz
+			rm /tmp/thindev-default-$TS_VERSION.tar.xz
+			echo "Update Complete"
+			exit 0
+		else
+			echo "Everything is up to date"
+			exit 1
+		fi
+	;;
+	PATH)
+		if [ -e $LPATH/image.md5 ] ;then
+			cp $LPATH/image.md5 /boot/check.md5
+			cd /boot
+			if ! md5sum -c check.md5 ; then
+				if [ -e $LPATH/initrd ] && [ -e $LPATH/vmlinuz ]; then
+	       	 			cp $LPATH/initrd /boot/initrd
+	        			cp $LPATH/vmlinuz /boot/vmlinuz
+	  		      		if [ -e $LPATH/lib.squash ]; then
+	                			cp $LPATH/lib.squash /boot/lib.update
+					fi
+					echo "Update Complete"
+					exit 0
+				else
+					echo "Invalid Path or missing vmlinuz and initrd"
+					exit 3
+				fi
+			else
+				echo "Everything is up to date"
+				exit 1
+			fi
+		else
+			echo "Could not check md5"
+			exit 2
+		fi
+	;;
+esac

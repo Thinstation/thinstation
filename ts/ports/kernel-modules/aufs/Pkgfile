@@ -4,8 +4,9 @@
 # Maintainer:   
 
 name=aufs
-version=3.14
-release=3.14.18
+version=3.14.21+
+release=1
+kver=`cat /ts/ports/kernel-modules/VERSION`
 source=()
 
 build() {
@@ -14,30 +15,30 @@ build() {
     cd $name
     git checkout origin/aufs$version
 
-    sed -i -e 's/CONFIG_AUFS_PROC_MAP =.*/CONFIG_AUFS_PROC_MAP = y/' \
+    sed -i -e 's/CONFIG_AUFS_XATTR =.*/CONFIG_AUFS_XATTR = y/' \
 	-e 's/CONFIG_AUFS_DEBUG =.*/CONFIG_AUFS_DEBUG = /' \
 	config.mk
 
     mkdir -p $PKG/usr/include/linux
-    make KDIR=/usr/src/kernels/${release}TS \
+    make KDIR=/usr/src/kernels/${kver}TS \
 	install_headers DESTDIR=$PKG
 
-    make KDIR=/usr/src/kernels/${release}TS \
-	install MODLIB=$PKG/lib/modules/${release}TS \
+    make KDIR=/usr/src/kernels/${kver}TS \
+	install MODLIB=$PKG/lib/modules/${kver}TS \
 	INSTALL_MOD_DIR=kernel/fs/aufs \
 	MODSECKEY=/etc/ssl/keys/kernel.key \
 	MODPUBKEY=/etc/ssl/certs/kernel.crt
-    make KDIR=/usr/src/kernels/${release}TS clean
+    make KDIR=/usr/src/kernels/${kver}TS clean
 
-    make KDIR=/usr/src/kernels/${release}TS_SMP \
-	install MODLIB=$PKG/lib/modules/${release}TS_SMP \
+    make KDIR=/usr/src/kernels/${kver}TS_SMP \
+	install MODLIB=$PKG/lib/modules/${kver}TS_SMP \
 	INSTALL_MOD_DIR=kernel/fs/aufs \
 	MODSECKEY=/etc/ssl/keys/kernel.key \
 	MODPUBKEY=/etc/ssl/certs/kernel.crt
-    make KDIR=/usr/src/kernels/${release}TS_SMP clean
+    make KDIR=/usr/src/kernels/${kver}TS_SMP clean
 
-    make KDIR=/usr/src/kernels/${release}TS_64 \
-	install MODLIB=$PKG/lib/modules/${release}TS_64 \
+    make KDIR=/usr/src/kernels/${kver}TS_64 \
+	install MODLIB=$PKG/lib/modules/${kver}TS_64 \
 	INSTALL_MOD_DIR=kernel/fs/aufs \
 	MODSECKEY=/etc/ssl/keys/kernel.key \
 	MODPUBKEY=/etc/ssl/certs/kernel.crt \

@@ -1,0 +1,18 @@
+# Description:	Library for Neighbor Discovery Protocol
+# URL:		http://libndp.org/
+# Maintainer:	Alan Mizrahi, alan at mizrahi dot com dot ve
+# Depends on:
+
+name=libndp
+version=1.4
+release=1
+source=(http://libndp.org/files/$name-$version.tar.gz)
+
+build() { 
+	cd $name-$version
+	./configure \
+		--prefix=/usr \
+		--mandir=/usr/man
+	make
+	make DESTDIR=$PKG install
+}

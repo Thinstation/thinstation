@@ -1,8 +1,8 @@
 #!/bin/bash
 
 export TSVER=6.0
-export TSWRKNG=/ts/$TSVER
-export TSPKGROOT=ts/$TSVER/packages
+export TSWRKNG=/ts/build
+export TSPKGROOT=ts/build/packages
 export TSCOMPROOT=ts/components
 export LESSCHARSET="latin1"
 export LESS="-R"
@@ -42,7 +42,11 @@ cp -af /ts/etc/* /etc/.
 
 if [ -e /dostage3 ] ; then
 	/ts/bin/install_chroot
-#	echo "All most done. Please run setup_chroot again"
+	exit
+fi
+
+if [ -e /dostage4 ]; then
+        /ts/bin/install_chroot
 	touch installed
 	exit
 fi

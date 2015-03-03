@@ -1,0 +1,7 @@
+modprobe overlayfs
+mount -t proc proc /proc
+mount -t tmpfs tmpfs /mnt/dynamic
+mount -t overlayfs overlayfs -olowerdir=/,upperdir=/mnt/dynamic /mnt/union
+cd /mnt/union
+mkdir oldroot
+pivot_root . /mnt/union/oldroot

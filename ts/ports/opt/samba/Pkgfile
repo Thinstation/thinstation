@@ -1,0 +1,55 @@
+# Description:	SMB server and client for unix
+# URL:		http://www.samba.org
+# Maintainer:	Alan Mizrahi, alan at mizrahi dot com dot ve
+# Packager:	Juergen Daubert, jue at crux dot nu
+# Depends on:	iniparser krb5 ldb libaio libcap ntdb p5-parse-yapp py-subunit subunit
+# Optional:	cups
+
+name=samba
+version=4.1.17
+release=3
+source=(
+http://www.samba.org/samba/ftp/stable/$name-$version.tar.gz
+samba.rc
+nmbd.rc
+smbd.rc
+winbindd.rc
+)
+
+build () {
+	cd $name-$version
+
+	# we should define vendorlib in our perl port
+	sed -ri 's/(vendor)(arch|lib|prefix)/site\2/' buildtools/wafsamba/samba_perl.py 
+
+	./configure \
+		--enable-fhs \
+		--prefix=/usr \
+		--localstatedir=/var \
+		--mandir=/usr/man \
+		--sysconfdir=/etc \
+		--with-privatedir=/etc/samba/private \
+		--bundled-libraries=NONE \
+		--with-system-mitkrb5 \
+		--without-systemd
+
+	make
+	make DESTDIR=$PKG install
+
+	# man pages
+	for i in docs/manpages/*; do 
+		install -D -m 644 $i $PKG/usr/man/man${i##*.}/${i##*/}
+	done
+    
+	# cleanup
+	chmod 1777 $PKG/var/lock
+    
+	# config-file and start-script
+	install -d $PKG/etc/{samba,rc.d}
+	install -m 0600 packaging/LSB/smb.conf $PKG/etc/samba/smb.conf.default
+
+	# startup scripts
+	for i in samba nmbd smbd winbindd; do
+		install -m 0755 $SRC/$i.rc $PKG/etc/rc.d/$i
+	done
+}
