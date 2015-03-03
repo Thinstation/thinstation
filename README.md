@@ -14,7 +14,7 @@ Work To Do / Work in Progress: mail to developer List if you can help
 
 New:
 
-- Moved to kernel 3.14.18
+- Moved to kernel 3.14.26
 - Updated Xorg to 7.7
 - Updated Xfce4 to 4.11
 - Updated Mesa to 10.2.6
