@@ -1,0 +1,29 @@
+# Description: Backends and filters for CUPS
+# URL:         http://www.linuxfoundation.org/collaborate/workgroups/openprinting/pdfasstandardprintjobformat
+# Maintainer:  Juergen Daubert, jue at crux dot nu
+# Depends on:  cups ghostscript poppler qpdf
+
+name=cups-filters
+version=1.0.58
+release=1
+source=(http://www.openprinting.org/download/$name/$name-$version.tar.xz
+        cups-browsed)
+
+build () {
+    cd $name-$version
+
+    ./configure --prefix=/usr \
+                --sysconfdir=/etc \
+                --mandir=/usr/man \
+                --without-rcdir \
+                --with-browseremoteprotocols=cups
+
+    make
+    make DESTDIR=$PKG install
+
+    install -D -m 0755 $SRC/cups-browsed $PKG/etc/rc.d/cups-browsed
+
+    rm -r $PKG/usr/share/doc
+    rm -r $PKG/usr/man/man1/foomatic-rip.1
+    rm -r $PKG/usr/lib/cups/filter/foomatic-rip
+}

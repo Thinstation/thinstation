@@ -1,0 +1,23 @@
+#!/bin/sh
+#
+# /etc/rc.d/cups-browsed: start/stop CUPS browsing daemon
+#
+
+case $1 in
+start)
+	setsid /usr/sbin/cups-browsed &
+	;;
+stop)
+	killall -q /usr/sbin/cups-browsed
+	;;
+restart)
+	$0 stop
+	sleep 2
+	$0 start
+	;;
+*)
+	echo "usage: $0 [start|stop]"
+	;;
+esac
+
+# End of file
