@@ -222,6 +222,14 @@ wm_menu()
 			mkdir -p $HOME/.config/xfce4/desktop
 			echo -e "[xfdesktop-version-4.10.3+-rcfile_format]\n4.10.3+=true\n" > $screenrc
 			sindex=0
+			if is_enabled $DEKSTOP_SHOWHOME; then
+				echo -e "[$HOME]\nrow=$sindex\ncol=0\n" >> $screenrc
+				let sindex+=1
+			fi
+			if is_enabled $DESKTOP_SHOWFILESYSTEM; then
+				echo -e "[/]\nrow=$sindex\ncol=0\n" >> $screenrc
+				let sindex+=1
+			fi
 			for iconfile in `cat /tmp/icon.sort |sort |cut -d " " -f2`; do
 				echo -e "[$iconfile]" >> $screenrc
 				echo -e "row=$sindex" >> $screenrc
