@@ -693,7 +693,7 @@ if [ -n "$ts_bootresolution" ] ;then
 	        uvesafb="$uvesafb scroll=$ts_fbsm"
         fi
 	if [ "$ts_uvesafb" == "disable" ]; then
-		KERNEL_PARAMETERS="$KERNEL_PARAMETRS uvesafb=off"
+		KERNEL_PARAMETERS="$KERNEL_PARAMETERS uvesafb=off"
 	fi
 	mkdir -p ./tmp-tree/etc/modprobe.d
 	echo "options uvesafb $uvesafb" > ./tmp-tree/etc/modprobe.d/uvesafb.conf
@@ -2077,8 +2077,9 @@ refind_copy_files()
 	for file in `find $configdir -type f |sed -e "s|$configdir||g"`; do
 		subdirname=`dirname $file |sed -e "s|^/$||g"`
 		sys_copy ${configdir}${file} "$EFIDIR/$file"
-		sed -i -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS LM=$LM/g" "$EFIDIR/$file"
+#		sed -i -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS LM=$LM/g" "$EFIDIR/$file"
 	done
+	echo "\"Boot with standard options\"        \"initrd=/boot/initrd $KERNEL_PARAMETERS\"" > $KDIR/refind_linux.conf
 }
 
 sys_link()
@@ -2175,6 +2176,7 @@ if [ -z "$NOIMAGES" ]; then
 					for file in `find $refdir -type f |sed -e "s|$refdir/||g"`; do
 						sys_copy $refdir/$file $ESP/EFI/$file
 					done
+					sys_copy /build/boot-images/refind/boot/refind_linux.conf $ESP/boot/refind_linux.conf
 				fi
 				add_image
 				add_overlay
