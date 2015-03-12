@@ -7,10 +7,14 @@
 name=gst-plugins-good
 version=0.10.31
 release=1
-source=(http://gstreamer.freedesktop.org/src/$name/$name-$version.tar.xz)
+source=(http://gstreamer.freedesktop.org/src/$name/$name-$version.tar.xz \
+	linux36.patch \
+	pantilt.patch)
 
 build() {
 	cd $name-$version
+	patch -p1 -i $SRC/linux36.patch
+	patch -p1 -i $SRC/pantilt.patch
 
 	./configure \
 		--prefix=/usr \

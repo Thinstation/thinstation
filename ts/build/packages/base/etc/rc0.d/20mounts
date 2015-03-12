@@ -24,9 +24,12 @@ let x=0
 while [ -n "`eval echo '$MOUNT_'$x`" ]; do
 	mount=`eval echo '$MOUNT_'$x`
 	echo -e "`echo \"$mount\" |sed -e 's/[ ]\+/\t/g'`" >> /etc/fstab
-	mount_point=`echo $mount |sed -e 's/[ ]\+/:/g' |cut -d ":" -f2`
+#	mount_point=`echo $mount |sed -e 's/[ ]\+/:/g' |cut -d ":" -f2`
 	let x=x+1
 done
+if ! is_disabled $FASTBOOT && [ "$LM" == "4" ]; then
+	echo -e "`echo \"LABEL=$CDVOLNAME /mnt/cdrom0 auto x-mount.mkdir,defaults 0 0\" |sed -e 's/[ ]\+/\t/g'`" >> /etc/fstab
+fi
 
 mkdir -m 1755 /tmp/ts
 ICEDIR='/tmp/.ICE-unix'

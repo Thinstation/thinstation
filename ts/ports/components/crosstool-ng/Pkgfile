@@ -4,17 +4,19 @@
 
 name=crosstool-ng
 version=1.19.0
-kver=3.14.8
 release=1
-source=(ftp://ftp.kernel.org/pub/linux/kernel/v3.x/linux-$kver.tar.xz \
-	ts.config )
+source=(ts.config )
+
+strip()
+{
+	return 0
+}
 
 build() {
 	git clone --depth 1 git://crosstool-ng.org/crosstool-ng
 	cp $SRC/ts.config $name/.config
 
 	cd $name
-	sed -i -e "s|\$SRC/\$kver|$SRC/linux-$kver|g" .config
 
 	./bootstrap
 	./configure --prefix=/opt/crosstool-ng --enable-local

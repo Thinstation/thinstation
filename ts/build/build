@@ -1508,6 +1508,10 @@ filesystem_fixups()
 {
 	# Various filesystem fixups
 	echo -e "Running File System Fixups"
+	if [ -z "$ts_cdvolname" ]; then
+		ts_cdvolname=Thinstation
+	fi
+	echo "CDVOLNAME=$ts_cdvolname" >> ./tmp-tree/etc/thinstation.env
 	echo "TS_VERSION=$TSVER" >> ./tmp-tree/etc/thinstation.env
 	if [ -e ./tmp-tree/etc/icewm/toolbar ]; then
 		echo -e "\tFixing IceWM toolbar"
@@ -1867,10 +1871,11 @@ cd boot-images/initrd
 rm -f vmlinuz*
 md5sum initrd > image.md5
 for KERNVER in $KERNVERS; do
-	if [ ! -e /boot/vmlinuz$k ]; then
-		ln /boot/vmlinuz-$KERNVER ./vmlinuz$k
-	fi
+	ln /boot/vmlinuz-$KERNVER ./vmlinuz$k
 	md5sum vmlinuz$k >> image.md5
+	if [ -n "`echo $KERNVER |grep -e 'TS_64'`" ]; then
+		KERN64=vmlinuz$k
+	fi
 	let k=k+1
 done
 
@@ -1888,13 +1893,16 @@ image_fastboot()
 	fi
 }
 
-ts_bootimages="syslinux refind pxe iso"
+ts_bootimages="syslinux refind pxe gummiboot iso"
 
 if [ -z "$ts_syslinuxtheme" ]; then
 	ts_syslinuxtheme="default"
 fi
 if [ -z "$ts_refindtheme" ]; then
 	ts_refindtheme="default"
+fi
+if [ -z "$ts_gummitheme" ]; then
+	ts_gummitheme="default"
 fi
 
 if [ -e build.image ]; then
@@ -1905,13 +1913,21 @@ fi
 
 add_image()
 {
-	for kernel in `find $INITDIR -maxdepth 1 -type f -name vmlinuz\* -printf '%f '`; do
-		sys_link hard $INITDIR/$kernel $ESP/boot/$kernel
-	done
+	if [ "$1" == "efi" ]; then
+		# What we will actually boot with
+		sys_copy $INITDIR/$KERN64 $ESP/boot/$KERN64
+		# Because HashTool.efi is dumb and cant deal a foler named boot on CD.
+		# Also makes it easier for the user to enroll the kernel hash.
+		sys_copy $INITDIR/$KERN64 $ESP/EFI/BOOT/enroll-$KERN64
+	else
+		for kernel in `find $INITDIR -maxdepth 1 -type f -name vmlinuz\* -printf '%f '`; do
+			sys_copy $INITDIR/$kernel $ESP/boot/$kernel
+		done
+	fi
 
 	sys_link hard $INITDIR/initrd $ESP/boot/initrd
 	sys_link hard $INITDIR/image.md5 $ESP/boot/image.md5
-	if [ -e $INITDIR/lib.squash ]; then
+	if [ -e $INITDIR/lib.squash ] && [ "$1" != "efi" ]; then
 		sys_link hard $INITDIR/lib.squash $ESP/boot/lib.squash
 	fi
 }
@@ -1972,7 +1988,6 @@ syslinux_copy_files_bios()
 	CONFIGDIR=`dirname $CONFIGFILE`
 
 	for file in `find $configdir -type f |sed -e "s|$configdir||g"`; do
-		subdirname=`dirname $file |sed -e "s|^/$||g"`
 		sys_copy ${configdir}${file} "$BIOSDIR/$file"
 	done
 
@@ -2028,7 +2043,6 @@ syslinux_copy_files_efi()
 	efi64dir=/usr/share/syslinux/efi64
 
 	for file in `find $configdir -type f |sed -e "s|$configdir||g"`; do
-		subdirname=`dirname $file |sed -e "s|^/$||g"`
 		sys_copy ${configdir}${file} "$EFI32DIR/$file"
 		sys_copy ${configdir}${file} "$EFI64DIR/$file"
 	done
@@ -2075,28 +2089,30 @@ refind_copy_files()
 	sys_copy $refdir/refind_x64.efi $EFIDIR/bootx64.efi
 
 	for file in `find $configdir -type f |sed -e "s|$configdir||g"`; do
-		subdirname=`dirname $file |sed -e "s|^/$||g"`
 		sys_copy ${configdir}${file} "$EFIDIR/$file"
-#		sed -i -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS LM=$LM/g" "$EFIDIR/$file"
+		sed -i -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS LM=$LM/g" "$EFIDIR/$file"
 	done
-	echo "\"Boot with standard options\"        \"initrd=/boot/initrd $KERNEL_PARAMETERS\"" > $KDIR/refind_linux.conf
 }
 
 sys_link()
 {
-	mkdir -p `dirname $3`
-	case "$1" in
-		soft) ln -sf "$2" "$3" ;;
-		hard) ln "$2" "$3" ;;
-	esac
-	echo "$3" >> boot-images/initrd/added.files
+	if [ ! -e $3 ]; then
+		mkdir -p `dirname $3`
+		case "$1" in
+			soft) ln -sf "$2" "$3" ;;
+			hard) ln "$2" "$3" ;;
+		esac
+		echo "$3" >> boot-images/initrd/added.files
+	fi
 }
 
 sys_copy()
 {
-	mkdir -p `dirname $2`
-	cp -a "$1" "$2"
-	echo "$2" |sed -E "s|/+|/|g" |sed '/\.tpl/d' >> boot-images/initrd/added.files
+	if [ ! -e $2 ]; then
+		mkdir -p `dirname $2`
+		cp -a "$1" "$2"
+		echo "$2" |sed -E "s|/+|/|g" |sed '/\.tpl/d' >> boot-images/initrd/added.files
+	fi
 }
 
 # Skips Images if NOIMAGES is set, useful for TS-O-Matic
@@ -2163,56 +2179,39 @@ if [ -z "$NOIMAGES" ]; then
 
 				addpkgs $ESP
 				syslinux_copy_files_bios
-				if [ -e boot-images/syslinux/boot/syslinux ]; then
-					for file in `ls --color=never boot-images/syslinux/boot/syslinux`; do
-						if [ ! -e $ESP/boot/syslinux/$file ]; then
-							sys_copy boot-images/syslinux/boot/syslinux/$file $ESP/boot/syslinux/$file
-						fi
-					done
-				fi
-
-				refdir=/build/boot-images/refind/EFI
-				if [ -e $refdir ]; then
-					for file in `find $refdir -type f |sed -e "s|$refdir/||g"`; do
-						sys_copy $refdir/$file $ESP/EFI/$file
-					done
-					sys_copy /build/boot-images/refind/boot/refind_linux.conf $ESP/boot/refind_linux.conf
-				fi
+				for file in `ls --color=never boot-images/syslinux/boot/syslinux`; do
+					sys_copy boot-images/syslinux/boot/syslinux/$file $ESP/boot/syslinux/$file
+				done
 				add_image
 				add_overlay
 
 				IMAGEDIR_FINAL=`dirname $ESP`
-				if [ -e $INITDIR/boot.efi ]; then
-					sys_copy $INITDIR/boot.efi $ESP/EFI/BOOT/boot.efi
-					mkisofs		-o $IMAGEDIR_FINAL/thinstation.iso \
-							-b boot/syslinux/isolinux.bin \
-							-c boot.cat \
-							-no-emul-boot \
-							-boot-load-size 4 \
-							-boot-info-table \
-							-eltorito-alt-boot \
-							-eltorito-platform efi \
-							-b EFI/BOOT/boot.efi \
-							-no-emul-boot \
-							-joliet \
-							-rock \
-							-f \
-							-quiet \
-							$IMAGEDIR_FINAL/source
-				else
-					mkisofs		-o $IMAGEDIR_FINAL/thinstation.iso \
-							-b boot/syslinux/isolinux.bin \
-							-c boot.cat \
-							-no-emul-boot \
-							-boot-load-size 4 \
-							-boot-info-table \
-							-joliet \
-							-rock \
-							-f \
-							-quiet \
-							$IMAGEDIR_FINAL/source
-				fi
 
+				if [ -e $INITDIR/boot.efi ]; then
+				sys_copy $INITDIR/boot.efi $ESP/EFI/BOOT/boot.efi
+				GUMOVERLAY=/build/boot-images/gummiboot
+				for file in `find $GUMOVERLAY -type f |sed "s|$GUMOVERLAY||g"`; do
+					sys_link hard $GUMOVERLAY/$file $ESP/$file
+				done
+				iso_efi_boot="\
+					-eltorito-alt-boot \
+					-eltorito-platform efi \
+					-b EFI/BOOT/boot.efi \
+					-no-emul-boot"
+				fi
+				mkisofs	-V "$ts_cdvolname" \
+					-o $IMAGEDIR_FINAL/thinstation.iso \
+					-b boot/syslinux/isolinux.bin \
+					-c boot/syslinux/boot.cat \
+					-no-emul-boot \
+					-boot-load-size 4 \
+					-boot-info-table \
+					-joliet \
+					-ucs-level 3 \
+					-rock $iso_efi_boot \
+					-f \
+					-quiet \
+					$IMAGEDIR_FINAL/source
 				echo $IMAGEDIR_FINAL/thinstation.iso >> boot-images/initrd/added.files
 
 				if [ -e boot-images/common ]; then
@@ -2230,25 +2229,55 @@ if [ -z "$NOIMAGES" ]; then
                                 addpkgs $ESP
                                 refind_copy_files
 
-				lsize=`du -s $ESP |cut -f1`
-				let lsize=$lsize+32
-
-				dd if=/dev/zero of=$INITDIR/boot.efi bs=1K count=$lsize
-				lodev=`losetup -f`
-				losetup $lodev $INITDIR/boot.efi
-				mkfs.vfat -I $lodev
-				mkdir -p temp-efi
-				mount $lodev temp-efi
-				cp -a $ESP/* temp-efi
-				umount temp-efi
-				losetup -d $lodev
-				rmdir temp-efi
-				echo $INITDIR/boot.efi >> boot-images/initrd/added.files
-
-				syslinuxdir="boot-images/syslinux"
+                                syslinuxdir="boot-images/syslinux"
 				for file in `find $syslinuxdir -type f |sed -e "s|$syslinuxdir/||g"`; do
 					sys_copy $syslinuxdir/$file $ESP/$file
 				done
+				echo "\"Boot with standard options\"        \"initrd=/boot/initrd $KERNEL_PARAMETERS LM=$LM\"" > $KDIR/refind_linux.conf
+				echo $KDIR/refind_linux.conf >> boot-images/initrd/added.files
+			;;
+			gummiboot)
+				if [ -z "$KERN64" ]; then
+					echo "No 64 Bit Kernel in Image - Skipping."
+				elif ! prt-get isinst preloader > /dev/null; then
+					echo "Port binary-opt/preloader not installed - Skipping"
+				elif ! prt-get isinst gummiboot > /dev/null; then
+					echo "Port binary-opt/gummiboot not installed - Skipping"
+				else
+				ESP=boot-images/gummiboot
+                                LM=2
+				configdir=boot-images/templates/gummiboot/$ts_gummitheme
+				sys_copy /usr/lib/prebootloader/PreLoader.efi $ESP/EFI/BOOT/bootx64.efi
+				sys_copy /usr/lib/prebootloader/HashTool.efi $ESP/EFI/BOOT/HashTool.efi
+				sys_copy /usr/lib/gummiboot/gummibootx64.efi $ESP/EFI/BOOT/loader.efi
+
+				for file in `find $configdir -type f |sed -e "s|$configdir||g"`; do
+					sys_copy ${configdir}${file} $ESP/$file
+					sed -i -e "s|/boot/vmlinuz|/boot/$KERN64|g" $ESP/$file
+					sed -i -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS LM=$LM/g" $ESP/$file
+				done
+				add_image efi
+# Make boot.efi
+                                lsize=`du -s $ESP |cut -f1`
+                                let lsize=$lsize+1024
+
+                                dd if=/dev/zero of=$INITDIR/boot.efi bs=1K count=$lsize
+                                lodev=`losetup -f`
+                                losetup $lodev $INITDIR/boot.efi
+                                mkfs.vfat -I $lodev
+                                mkdir -p temp-efi
+                                mount $lodev temp-efi
+				cp -a $ESP/* temp-efi
+				sed -i -e 's/LM=2/LM=4/g' temp-efi/loader/entries/*
+                                umount temp-efi
+                                losetup -d $lodev
+                                rmdir temp-efi
+                                echo $INITDIR/boot.efi >> boot-images/initrd/added.files
+# Now flesh it out
+				add_image
+				addpkgs $ESP
+				fi
+			;;
 		esac
 	done
 fi

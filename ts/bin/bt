@@ -1,1 +1,7 @@
-qemu-system-i386 -L /usr/share/edk2.git/ovmf-ia32/ -hda fat:/build/boot-images/refind/ -m 1024 -enable-kvm
+#!/bin/sh
+
+case $1 in
+	cd)	qemu-system-i386 -L /usr/share/edk2.git/ovmf-ia32/ -cdrom /build/boot-images/iso/thinstation.iso -m 1536;; #-enable-kvm
+	*)	qemu-system-i386 -L /usr/share/edk2.git/ovmf-ia32/ -hda fat:/build/boot-images/refind/ -m 1536 -cdrom /build/boot-images/iso/thinstation.iso;; 
+esac
+

@@ -5,7 +5,7 @@
 # Optional:	lirc-32 bluez-32 openssl-32 sbc-32
 
 name=pulseaudio
-version=4.0
+version=6.0
 release=2
 source=(http://freedesktop.org/software/pulseaudio/releases/pulseaudio-$version.tar.xz \
 	norootwarn.patch)
@@ -21,20 +21,18 @@ build() {
 		--sysconfdir=/etc \
 		--mandir=/usr/man \
 		--localstatedir=/var \
+		--disable-x11 \
 		--disable-nls \
 		--disable-rpath \
-		--disable-tcpwrap \
 		--disable-esound \
-		--disable-x11 \
 		--disable-gtk3 \
 		--disable-oss-output \
 		--disable-oss-wrapper \
-		--disable-ipv6 \
 		--disable-legacy-database-entry-format \
 		--disable-hal-compat \
-		--disable-systemd \
 		--with-database=tdb \
-		--disable-tests
+		--disable-tests \
+		--disable-default-build-tests
 
 	# fight unused direct deps
 	sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
