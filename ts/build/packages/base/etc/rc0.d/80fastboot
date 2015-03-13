@@ -24,7 +24,11 @@ search()
 	else
 		FILE=/boot/"$squash_location"$lib_file
 		UPDATE=/boot/"$squash_location"lib.update
-		return 0
+		if [ -e $FILE ] || [ -e $UPDATE ]; then
+			return 0
+		else
+			return 1
+		fi
 	fi
 }
 
@@ -39,19 +43,28 @@ syslinux()
 	FILE=/boot/"$squash_location"$lib_file
 	UPDATE=/boot/"$squash_location"lib.update
 	local timeout=0
-	while [ "$BOOTABLE" != "TRUE" ] && [ $timeout -lt 100 ]; do 
+	while [ "$BOOTABLE" != "TRUE" ] && [ $timeout -lt 10 ]; do 
 		if search $FILE || search $UPDATE ; then
 			BOOTABLE=TRUE
 		else
 			BOOTALBE=FALSE
 			printf "\rWaiting for Storage"
-			sleep .1
+			sleep .5
+			mount -a 2>/dev/null
 			let timeout+=1
 		fi
 	done
-	if [ $timeout -eq 100 ]; then
+	if [ $timeout -eq 10 ]; then
 		echo "Could not find the storage volume!"
-		/bin/sh
+		if pkg_initialized debug || is_disabled $HALTONERROR ; then
+			echo_log "Debug enabled...dropping to shell."
+			force_splash_exit
+			/bin/sh
+		else
+			echo_log "Debug not enabled, boot halted."
+	                force_splash_exit
+        	        halt
+        	fi
 	fi
 	if [ -e $UPDATE ]; then
 		rm $FILE
