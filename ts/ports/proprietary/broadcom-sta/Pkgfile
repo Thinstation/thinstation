@@ -11,10 +11,14 @@ release=1
 pversion=`echo "$version" |sed 's|\.|_|g'`
 kver=`cat /ts/ports/kernel-modules/VERSION`
 source=(http://www.broadcom.com/docs/linux_sta/hybrid-v35-nodebug-pcoem-$pversion.tar.gz \
+	gcc.patch
+	linux-recent.patch
 	license.patch)
 
 build() {
 	patch -p1 -i license.patch
+	patch -p1 -i linux-recent.patch
+	patch -p1 -i gcc.patch
 
 	for kernel in TS TS_SMP; do
 		KBUILD_NOPEDANTIC=1 make -C /usr/src/kernels/${kver}${kernel} M=`pwd`

@@ -2,6 +2,7 @@
 
 case $1 in
 	cd)	qemu-system-i386 -L /usr/share/edk2.git/ovmf-ia32/ -cdrom /build/boot-images/iso/thinstation.iso -m 1536;; #-enable-kvm
-	*)	qemu-system-i386 -L /usr/share/edk2.git/ovmf-ia32/ -hda fat:/build/boot-images/refind/ -m 1536 -cdrom /build/boot-images/iso/thinstation.iso;; 
+	bios)	qemu-system-i386 -hda /build/bios.boot -m 1536;;
+	*)	qemu-system-i386 -L /usr/share/edk2.git/ovmf-ia32/ -hda fat:/build/boot-images/refind/ -m 1536;;
 esac
 

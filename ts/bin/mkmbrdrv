@@ -122,7 +122,7 @@ getopts()
 			-o|--overlay)	overlay="$2";	shift;;
 			-d|--device)	device="$2";	shift;;
 			-s|--sync)	mount_opts="-o sync";;
-			-l|--loop) loopfile=$2;	shift; device=`losetup -f`;;
+			-l|--loop)	loopfile=$2;	shift;;
 			--cpt)		let cpt=`convert_to_sectors $2`*512;shift;;
 			-h|--help)	usage 255;;
 			*) device="$1";;
@@ -499,7 +499,7 @@ losetup_()
 		if [ -n "$osize" ] && [ -n "$csize" ]; then
 			let lsize=$osize+$csize
 		fi
-		let lsize+=3072
+		let lsize+=8192
 		lsize=${lsize}K
 	fi
 	lsize=`convert_to_sectors ${lsize}`

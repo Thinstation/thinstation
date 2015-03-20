@@ -10,7 +10,7 @@ release=1
 kernel=${sversion}TS
 source=(ftp://ftp.kernel.org/pub/linux/kernel/v3.x/linux-$sversion.tar.xz \
 	/$TSCOMPROOT/aufs/patches/aufs3.patch
-	../kernel-TS/overlayfs.v21.patch
+	cs5536.patch
 	../kernel-TS/tmpfs_user_xattr.patch
 	ts.config)
 
@@ -19,7 +19,6 @@ export MAKEFLAGS="-j5"
 	cd linux-$sversion
 	cp $SRC/ts.config ./.config
 
-	patch --no-backup-if-mismatch -p1 < ../overlayfs.v21.patch
 	patch --no-backup-if-mismatch -p1 < ../aufs3.patch
 	patch --no-backup-if-mismatch -p1 < ../tmpfs_user_xattr.patch
 	patch --no-backup-if-mismatch -p0 -i $SRC/cs5536.patch

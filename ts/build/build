@@ -113,8 +113,9 @@ remove_files()
 remove_old_boot_files()
 {
         if [ -e boot-images/initrd/added.files ]; then
-                for file in `cat boot-images/initrd/added.files`; do
-                        rm $file
+                cat boot-images/initrd/added.files | while read file; do
+                        rm "$file"
+                        rmdir --ignore-fail-on-non-empty -p `dirname "$file"`
                 done
                 rm boot-images/initrd/added.files
         fi
@@ -1893,8 +1894,9 @@ image_fastboot()
 	fi
 }
 
-ts_bootimages="syslinux refind pxe gummiboot iso"
-
+if [ -z "$ts_bootimages" ]; then
+	ts_bootimages="syslinux refind pxe gummiboot iso"
+fi
 if [ -z "$ts_syslinuxtheme" ]; then
 	ts_syslinuxtheme="default"
 fi
@@ -1934,12 +1936,14 @@ add_image()
 
 add_overlay()
 {
+#	set -x
 	if [ -n "$ts_bootoverlay" ]; then
 		OVERLAYDIR="boot-images/$ts_bootoverlay/"
-		for file in `find $OVERLAYDIR -type f |sed "s|$OVERLAYDIR||g"`; do
-			sys_link hard $OVERLAYDIR/$file $ESP/boot/$file
+		find $OVERLAYDIR -type f |sed "s|$OVERLAYDIR||g"|while read file; do
+			sys_link hard "$OVERLAYDIR/$file" "$ESP/$file"
 		done
 	fi
+#	set +x
 }
 
 syslinux_scan_config()
@@ -2096,8 +2100,8 @@ refind_copy_files()
 
 sys_link()
 {
-	if [ ! -e $3 ]; then
-		mkdir -p `dirname $3`
+	if [ ! -e "$3" ]; then
+		mkdir -p `dirname "$3"`
 		case "$1" in
 			soft) ln -sf "$2" "$3" ;;
 			hard) ln "$2" "$3" ;;
@@ -2108,8 +2112,8 @@ sys_link()
 
 sys_copy()
 {
-	if [ ! -e $2 ]; then
-		mkdir -p `dirname $2`
+	if [ ! -e "$2" ]; then
+		mkdir -p `dirname "$2"`
 		cp -a "$1" "$2"
 		echo "$2" |sed -E "s|/+|/|g" |sed '/\.tpl/d' >> boot-images/initrd/added.files
 	fi
@@ -2189,9 +2193,10 @@ if [ -z "$NOIMAGES" ]; then
 
 				if [ -e $INITDIR/boot.efi ]; then
 				sys_copy $INITDIR/boot.efi $ESP/EFI/BOOT/boot.efi
-				GUMOVERLAY=/build/boot-images/gummiboot
-				for file in `find $GUMOVERLAY -type f |sed "s|$GUMOVERLAY||g"`; do
-					sys_link hard $GUMOVERLAY/$file $ESP/$file
+				for dir in $EFIOVERLAY; do
+				for file in `find $dir -type f |sed "s|$dir||g"`; do
+					sys_link hard $dir/$file $ESP/`basename $dir`/$file
+				done
 				done
 				iso_efi_boot="\
 					-eltorito-alt-boot \
@@ -2213,25 +2218,36 @@ if [ -z "$NOIMAGES" ]; then
 					-quiet \
 					$IMAGEDIR_FINAL/source
 				echo $IMAGEDIR_FINAL/thinstation.iso >> boot-images/initrd/added.files
-
-				if [ -e boot-images/common ]; then
-					ls boot-images/common | \
-					while read i; do
-						rm -rf "$ESP/`basename "$i"`"
-					done
-				fi
 			;;
 			refind)
 				ESP=boot-images/refind
                                 CONFIGFILE=refind.conf
+				EFIOVERLAY=$ESP/EFI
                                 LM=2
 
-                                addpkgs $ESP
                                 refind_copy_files
 
+# Make boot.efi
+                                lsize=`du -s $ESP |cut -f1`
+                                let lsize=$lsize+1024
+
+                                dd if=/dev/zero of=$INITDIR/boot.efi bs=1K count=$lsize
+                                lodev=`losetup -f`
+                                losetup $lodev $INITDIR/boot.efi
+                                mkfs.vfat -I $lodev
+                                mkdir -p temp-efi
+                                mount $lodev temp-efi
+                                cp -a $ESP/* temp-efi
+                                sed -i -e 's/LM=2/LM=4/g' temp-efi/EFI/boot/*.conf
+                                umount temp-efi
+                                losetup -d $lodev
+                                rmdir temp-efi
+                                echo $INITDIR/boot.efi >> boot-images/initrd/added.files
+
+                                addpkgs $ESP
                                 syslinuxdir="boot-images/syslinux"
-				for file in `find $syslinuxdir -type f |sed -e "s|$syslinuxdir/||g"`; do
-					sys_copy $syslinuxdir/$file $ESP/$file
+				find $syslinuxdir -type f |sed -e "s|$syslinuxdir/||g" | while read file; do
+					sys_copy "$syslinuxdir/$file" "$ESP/$file"
 				done
 				echo "\"Boot with standard options\"        \"initrd=/boot/initrd $KERNEL_PARAMETERS LM=$LM\"" > $KDIR/refind_linux.conf
 				echo $KDIR/refind_linux.conf >> boot-images/initrd/added.files
@@ -2245,6 +2261,7 @@ if [ -z "$NOIMAGES" ]; then
 					echo "Port binary-opt/gummiboot not installed - Skipping"
 				else
 				ESP=boot-images/gummiboot
+				EFIOVERLAY="$ESP/EFI $ESP/loader"
                                 LM=2
 				configdir=boot-images/templates/gummiboot/$ts_gummitheme
 				sys_copy /usr/lib/prebootloader/PreLoader.efi $ESP/EFI/BOOT/bootx64.efi
