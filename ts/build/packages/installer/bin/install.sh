@@ -1,5 +1,6 @@
 #!/bin/bash
 . /etc/ashrc
+bootdir=/boot/boot
 
 tempdir=`mktemp -d 2>/dev/null`
 disk=$1
@@ -94,10 +95,11 @@ do_mounts
 sleep 1
 
 # Syslinux the boot partition
-cd /boot
+mkdir -p $bootdir/syslinux
+cd $bootdir/syslinux
 cp /install/* .
-./syslinux -s ${disk}1
-./syslinux ${disk}1
+./extlinux -i /boot/boot/syslinux
+cd $bootdir
 
 # Setup proxy for wget and git
 proxy-setup
@@ -115,14 +117,14 @@ else
 	rm thindev-default-$TS_VERSION.tar.xz
 fi
 
-cp /boot/initrd /boot/initrd-backup
-cp /boot/vmlinuz /boot/vmlinuz-backup
-cp /boot/lib.update /boot/lib.squash-backup
+cp initrd initrd-backup
+cp vmlinuz vmlinuz-backup
+cp lib.update lib.squash-backup
 cd /thinstation
 rm -rf *
 
 echo "Gitting thinstation repo"
 
-git clone --depth 1 https://github.com/Thinstation/thinstation.git -b 5.3-Stable /thinstation
+git clone --depth 1 https://github.com/Thinstation/thinstation.git -b $TS_VERSION-Stable /thinstation
 
 ./setup-chroot -i -a

@@ -6,12 +6,12 @@ PROMPT 0
 
 LABEL Default
 MENU LABEL Standard 
-	KERNEL vmlinuz
-	APPEND initrd=initrd $RES splash=silent,theme:default console=tty1 loglevel=3 LM=2 vt.global_cursor_default=0
+	KERNEL /boot/vmlinuz
+	APPEND initrd=/boot/initrd $RES splash=silent,theme:default console=tty1 loglevel=3 LM=2 vt.global_cursor_default=0
 LABEL Backup
 MENU LABEL Backup 
-	KERNEL vmlinuz-backup
-	APPEND initrd=initrd-backup $RES splash=silent,theme:default console=tty1 loglevel=3 LM=2 vt.global_cursor_default=0
+	KERNEL /boot/vmlinuz-backup
+	APPEND initrd=/boot/initrd-backup $RES splash=silent,theme:default console=tty1 loglevel=3 LM=2 vt.global_cursor_default=0
 
 
 

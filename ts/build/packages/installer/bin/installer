@@ -1,6 +1,7 @@
 #!/bin/bash
 
 tempdir=`mktemp -d 2>/dev/null`
+bootdir=/boot/boot
 
 . /etc/thinstation.global
 
@@ -201,10 +202,10 @@ NET_HOSTNAME=DevStation_*
 for object in `ls -A /root`; do
 	cp -Prfd /root/$object /tmp-root/.
 done
-cat /boot/syslinux.tpl |sed -e "s/\$RES/$res/g" > /boot/syslinux.cfg
+cat $bootdir/syslinux/syslinux.tpl |sed -e "s/\$RES/$res/g" > $bootdir/syslinux/syslinux.cfg
 
 flag=0
-for check in /boot/vmlinuz /thinstation/setup-chroot ; do
+for check in $bootdir/vmlinuz /thinstation/setup-chroot ; do
 	if [ -e $check ] ; then
 		let flag=flag+1
 	fi
@@ -224,9 +225,9 @@ x_echo "PXE Booting" "\
 This dev workstation is a PXE boot server.\n\
 You can set it's IP as the next boot server\n\
 in your DHCP server, and set the boot file to\n\
-pxelinux.0 . This will let clients boot directly\n\
-from images created in the build env of this\n\
-workstation."
+boot/pxelinux.0 . This will let clients boot\n\
+directly from images created in the build env\n\
+of this workstation."
 
 x_echo "Alldone" "\
 Your system is now bootable with the\n\

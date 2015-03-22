@@ -2183,9 +2183,11 @@ if [ -z "$NOIMAGES" ]; then
 
 				addpkgs $ESP
 				syslinux_copy_files_bios
-				for file in `ls --color=never boot-images/syslinux/boot/syslinux`; do
-					sys_copy boot-images/syslinux/boot/syslinux/$file $ESP/boot/syslinux/$file
-				done
+				if [ -e boot-images/syslinux/boot/syslinux ]; then
+					for file in `ls --color=never boot-images/syslinux/boot/syslinux`; do
+						sys_copy boot-images/syslinux/boot/syslinux/$file $ESP/boot/syslinux/$file
+					done
+				fi
 				add_image
 				add_overlay
 

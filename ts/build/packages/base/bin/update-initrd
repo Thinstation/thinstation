@@ -1,6 +1,7 @@
 #!/bin/bash
 
 . $TS_GLOBAL
+bootdir=/boot/boot
 
 show_help()
 {
@@ -34,13 +35,13 @@ init $@
 
 case $METHOD in
 	LOCAL)
-		cd /boot
+		cd $bootdir
 		cp /thinstation/build/boot-images/initrd/image.md5 check.md5
 		if ! md5sum -c check.md5 ; then
-			cp /thinstation/build/boot-images/initrd/initrd /boot/initrd
-			cp /thinstation/build/boot-images/initrd/vmlinuz /boot/vmlinuz
+			cp /thinstation/build/boot-images/initrd/initrd $bootdir/initrd
+			cp /thinstation/build/boot-images/initrd/vmlinuz $bootdir/vmlinuz
 			if [ -e /thinstation/build/boot-images/initrd/lib.squash ]; then
-				cp /thinstation/build/boot-images/initrd/lib.squash /boot/lib.update
+				cp /thinstation/build/boot-images/initrd/lib.squash $bootdir/lib.update
 			fi
 			echo "Update Complete"
 			exit 0
@@ -50,7 +51,7 @@ case $METHOD in
 		fi
 	;;
 	SERVER)
-		cd /boot
+		cd $bootdir
 		tftp -g -l check.md5 -r boot/image.md5 -b $TFTP_BLOCKSIZE $SERVER_IP
 		if ! md5sum -c check.md5 ; then
 			if [ -e initrd ]; then
@@ -70,12 +71,12 @@ case $METHOD in
 	WEB)
 		cd /tmp
 		wget ${WEBUPDATEROOT}/image-$TS_VERSION.md5 -O check.md5
-		cd /boot
+		cd $bootdir
 		if ! md5sum -c /tmp/check.md5 ; then
 			cd /tmp
 			echo "Downloading a Default Image"
 			wget ${WEBUPDATEROOT}/thindev-default-$TS_VERSION.tar.xz
-			cd /boot
+			cd $bootdir
 			tar -xvf /tmp/thindev-default-$TS_VERSION.tar.xz
 			rm /tmp/thindev-default-$TS_VERSION.tar.xz
 			echo "Update Complete"
@@ -87,14 +88,14 @@ case $METHOD in
 	;;
 	PATH)
 		if [ -e $LPATH/image.md5 ] ;then
-			cp $LPATH/image.md5 /boot/check.md5
-			cd /boot
+			cp $LPATH/image.md5 $bootdir/check.md5
+			cd $bootdir
 			if ! md5sum -c check.md5 ; then
 				if [ -e $LPATH/initrd ] && [ -e $LPATH/vmlinuz ]; then
-	       	 			cp $LPATH/initrd /boot/initrd
-	        			cp $LPATH/vmlinuz /boot/vmlinuz
+	       	 			cp $LPATH/initrd $bootdir/initrd
+	        			cp $LPATH/vmlinuz $bootdir/vmlinuz
 	  		      		if [ -e $LPATH/lib.squash ]; then
-	                			cp $LPATH/lib.squash /boot/lib.update
+	                			cp $LPATH/lib.squash $bootdir/lib.update
 					fi
 					echo "Update Complete"
 					exit 0
