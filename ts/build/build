@@ -1949,13 +1949,7 @@ add_overlay()
 syslinux_scan_config()
 {
 	# Scan config file for potentially needed com32 files
-	for com in \
-		pmload vesamenu sdi cpuidtest dmitest whichsys vpdtest \
-		elf cpuid debug linux vesainfo pxechn meminfo ifmem \
-		pcitest ifplop ethersel liblua ifmemdsk kbdmap libcom32 \
-		libmenu prdhcp gfxboot hexdump config libutil gpxecmd \
-		kontron_wdt disk zzjson libgpl chain host rosh ifcpu \
-		ifcpu64 hdt menu lua mboot cmd; do
+	for com in `ls /usr/share/syslinux/bios/ -1 |grep -e c32 |cut -d. -f1`; do
 		grep $1 -oe $com.c32 >> /tmp/syslinux-com32
 	done
 }
