@@ -11,19 +11,20 @@ bb_switch()
 	# blacklisted or removed. 
 
 	# Unload nvidia module, if present, so bbswitch can be loaded 
-	modprobe -r nvidia  >/dev/null 2>&1
+	busybox rmmod -r nvidia  >/dev/null 2>&1
 
 	# Load bbswitch with side-effect of turning off discrete graphics card, 
 	# and enabling integrated card
-	modprobe bbswitch load_state=0 unload_state=1 >/dev/null 2>&1
+	busybox modprobe bbswitch load_state=0 unload_state=1 >/dev/null 2>&1
 	MODPROBE_RC=$?
 
 	if [ $MODPROBE_RC == 0 ] ; then
 		# Optimus hardware. Delete nvidia modules to absolutely prevent 
 		# them from being reloaded (which causes discrete card to be switched 
 		# back on)
-		find /lib/modules -name 'nvidia*.ko' -delete
-		depmod 2>/dev/null
+		for module in `find /lib/modules -name 'nvidia*.ko'`; do
+			echo "blacklist `echo $module |cut -d "." -f1`" >> /etc/modprobe.d/blacklist.conf
+		done
 	fi
 	# let udev reload nvidia, if necessary
 }
@@ -31,17 +32,15 @@ bb_switch()
 vesa_mode()
 {
 	if is_enabled $VESAMODE; then
-		for module in `find /lib/modules -name radeon.ko -o -name vmwgfx.ko -o -name nouveau.ko -o -name i915.ko -o -name gma500_gfx.ko -o -name drm_kms_helper.ko`; do
-			rm $module
-			rundepmod=true
+		for module in radeon vmwgfx nouveau i915 gma500_gfx drm_kms_helper; do
+			echo "blacklist $module" >> /etc/modprobe.d/blacklist.conf
 		done
-		if is_enabled $rundepmod; then
-			depmod 2>/dev/null
+		if [ -e /sys/devices/virtual/vtconsole/vtcon1 ]; then
+			# EFI fb will not work with vesa, so use fbdev
+			echo "X_DRIVER_NAME=fbdev" >> $TS_RUNTIME
+		else
+			echo "X_DRIVER_NAME=vesa" >> $TS_RUNTIME
 		fi
-		if [ -e /usr/lib/xorg/modules/drivers/vesa_drv.so ]; then
-			echo X_DRIVER_NAME=vesa >> $TS_RUNTIME
-		fi
-		modprobe uvesafb &> /dev/null
 		return 0
 	fi
 	return 1
@@ -127,12 +126,17 @@ video_quirks()
 			detect_vga_adapters
 		done
 	fi
-	if ! is_enabled $kms \
-	&& [ ! -e /sys/devices/virtual/vtconsole/vtcon1 ]; then
-		if [ -z "$uvesafb" ] || ! is_disabled $uvesafb; then
-			if module_available uvesafb; then
-				modprobe uvesafb &> /dev/null
+	if ! is_enabled $kms; then
+		if [ ! -e /sys/devices/virtual/vtconsole/vtcon1 ]; then
+			if [ -z "$uvesafb" ] || ! is_disabled $uvesafb; then
+				if module_available uvesafb; then
+					busybox modprobe uvesafb > /dev/null 2>&1
+					continue
+				fi
 			fi
+		else
+                        # EFI fb will not work with vesa, so use fbdev
+                        echo "X_DRIVER_NAME=fbdev" >> $TS_RUNTIME
 		fi
 	fi
 }

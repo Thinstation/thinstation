@@ -42,20 +42,21 @@ syslinux()
 	fi
 	FILE=/boot/"$squash_location"$lib_file
 	UPDATE=/boot/"$squash_location"lib.update
-	local timeout=0
-	while [ "$BOOTABLE" != "TRUE" ] && [ $timeout -lt 10 ]; do 
+	local timeout=10
+	while [ "$BOOTABLE" != "TRUE" ] && [ "$timeout" -ne "0" ]; do 
 		if search $FILE || search $UPDATE ; then
 			BOOTABLE=TRUE
 		else
 			BOOTABLE=FALSE
-			printf "\rWaiting for Storage"
+			let timeout-=1
+			printf "\rWaiting for Storage -- $timeout"
 			sleep .5
 			mount -a 2>/dev/null
-			let timeout+=1
 		fi
+		printf "\n"
 	done
-	if [ $timeout -eq 10 ]; then
-		echo "Could not find the storage volume!"
+	if [ "$BOOTABLE" == "FALSE" ]; then
+		printf "\rCould not find the storage volume!"
 		if pkg_initialized debug || is_disabled $HALTONERROR ; then
 			echo_log "Debug enabled...dropping to shell."
 			force_splash_exit

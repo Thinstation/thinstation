@@ -5,14 +5,12 @@ _shutdown ()
 {
 	UPID=`pidof udhcpc`
 	if [ -n "$UPID" ] ; then
-		kill -SIGUSR2 $UPID
-		kill -SIGHUP $UPID
+		kill -SIGUSR2 $UPID > /dev/null 2>&1
+		kill -SIGHUP $UPID > /dev/null 2>&1
 	fi
 
-	/bin/umount /dev/loop0 2> /dev/null
-	/bin/umount /boot 2> /dev/null
-	/bin/umount /mnt/disc/sda/part1 2> /dev/null
-	/bin/umount -a -r 2> /dev/null
+	/bin/umount -a -R >/dev/null 2>&1
+	/bin/umount -a -r >/dev/null 2>&1
 }
 
 _systemfail ()
@@ -20,11 +18,11 @@ _systemfail ()
 	echo "The system was not able to go graphical. This could indicate a problem with missing kernel modules or Xorg drivers."
 	echo
 	echo "The system is going to shutdown now"
-	sleep 10
+	sleep 5
 }
 
 case $1 in
-	-r)		_shutdown ;/sbin/reboot ;;
-	--systemfail)	_systemfail ;_shutdown ;/sbin/poweroff ;;
-	-h|*)		_shutdown ;/sbin/poweroff ;;
+	-r)		_shutdown	;/sbin/reboot			>/dev/null 2>&1;;
+	-h|*)		_shutdown	;/sbin/poweroff			>/dev/null 2>&1;;
+	--systemfail)   _systemfail	;_shutdown ;/sbin/poweroff 	>/dev/null 2>&1;;
 esac

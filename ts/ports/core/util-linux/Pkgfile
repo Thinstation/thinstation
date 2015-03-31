@@ -4,17 +4,19 @@
 # Depends on:  ncurses zlib
 
 name=util-linux
-version=2.24.2
+version=2.26.1
 release=1
-source=(https://www.kernel.org/pub/linux/utils/$name/v2.24/$name-$version.tar.xz)
+source=(https://www.kernel.org/pub/linux/utils/$name/v2.26/$name-$version.tar.xz)
 
 build() {
     cd $name-$version
 
     ./configure --prefix=/usr \
                 --mandir=/usr/man \
-		--disable-{nls,login,su,nologin} \
-                --enable-{write,raw,kill}
+		--disable-{nls,login,su,nologin,chfn,chsh} \
+                --enable-{write,raw,kill} \
+		--without-{user,python,selinux} \
+
     make
     make DESTDIR=$PKG install
 
@@ -25,4 +27,6 @@ build() {
     rm $PKG/usr/share/bash-completion/completions/{fsck.minix,mkfs.bfs,mkfs.minix}
     rm $PKG/sbin/{mkfs.bfs,mkfs.minix,fsck.minix}
     rm $PKG/usr/man/man8/{fsck.minix,mkfs.bfs,mkfs.minix}.8
+    rm $PKG/usr/bin/{chfn,chsh}
+    rm $PKG/usr/man/man1/{chfn,chsh}.1
 }

@@ -5,12 +5,15 @@ fi
 touch /tmp/init
 
 if [ -d /lib/udev/filter ]; then
-  lspci -mmn | sed -e "s,Class ,," -e "s,\",,g" | cut -d' ' -f 3-4 > /tmp/devices
-  for i in /lib/udev/filter/*; do
-    . $i /tmp/devices > /dev/null 2>&1
-  done
-  rm /tmp/devices
-  depmod 2>/dev/null
+	busybox lspci -mmn | sed -e "s,Class ,," -e "s,\",,g" | cut -d' ' -f 3-4 > /tmp/devices
+	for filter in /lib/udev/filter/*; do
+		. $filter /tmp/devices > /dev/null 2>&1
+	done
+	rm /tmp/devices
+fi
+
+if is_enabled $rundepmod; then
+	busybox depmod 2>/dev/null
 fi
 
 # make sure hotplugger is not set

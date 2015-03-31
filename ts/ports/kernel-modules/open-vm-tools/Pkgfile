@@ -21,7 +21,7 @@ build() {
 	patch -p1 -i $SRC/$name-linux-3.15.patch
 	patch -p1 -i $SRC/$name-linux-3.16.patch
 
-	MODULES="vmxnet vmblock"
+	MODULES="vmxnet"
 	autoreconf -fi
 
 	./configure --prefix=/ \
@@ -59,7 +59,7 @@ build() {
 
 	rm -rf $PKG/{ts,share,include,usr} $PKG/lib/{*.a,*.la} $PKG/lib/open-vm-tools/plugins/common/*.la
 
-	for module in drivers/net/vmxnet.ko fs/vmblock/vmblock.ko; do
+	for module in drivers/net/vmxnet.ko; do
 	perl /usr/src/kernels/${kver}TS/scripts/sign-file sha256 /etc/ssl/keys/kernel.key /etc/ssl/certs/kernel.crt $PKG/lib/modules/${kver}TS/kernel/$module
 	perl /usr/src/kernels/${kver}TS_SMP/scripts/sign-file sha256 /etc/ssl/keys/kernel.key /etc/ssl/certs/kernel.crt $PKG/lib/modules/${kver}TS_SMP/kernel/$module
 	perl /usr/src/kernels/${kver}TS_64/scripts/sign-file sha256 /etc/ssl/keys/kernel.key /etc/ssl/certs/kernel.crt $PKG/lib/modules/${kver}TS_64/kernel/$module

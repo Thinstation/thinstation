@@ -4,15 +4,16 @@
 # Depends on:  zlib libmpc
 
 name=gcc
-version=4.5.3
+version=4.8.4
 release=1
-source=(http://ftp.gnu.org/gnu/gcc/$name-$version/$name-{core,g++,objc}-$version.tar.bz2
-        $name-nocheck-fixincludes.patch)
+source=(ftp://gcc.gnu.org/pub/gcc/releases/$name-$version/$name-$version.tar.bz2 \
+	$name-nocheck-fixincludes.patch)
 
 
 build() {
+    export MAKEFLAGS="-j5"
     patch -d $name-$version -p1 -i $SRC/$name-nocheck-fixincludes.patch
-export CFLAGS="$SAFECFLAGS"
+
     mkdir build
     cd build
     ../$name-$version/configure --prefix=/usr \
@@ -26,7 +27,8 @@ export CFLAGS="$SAFECFLAGS"
                                 --disable-nls \
                                 --with-x=no \
                                 --with-system-zlib \
-                                --with-pkgversion="Thinstation 2.5"
+                                --enable-multilib \
+                                --with-pkgversion="Thinstation"
     make bootstrap
     make -j1 DESTDIR=$PKG install
 
@@ -37,7 +39,7 @@ export CFLAGS="$SAFECFLAGS"
 
     mv $PKG/usr/lib/gcc/*/$version/include-fixed/{limits.h,syslimits.h} $PKG/usr/lib/gcc/*/$version/include/
 
-    rm $PKG/usr/lib/{libiberty.a,libstdc++.so.6.0.14-gdb.py}
+    rm -f $PKG/usr/lib/{libiberty.a,libstdc++.so.6.0.19-gdb.py}
     rm -r $PKG/usr/share 
     rm -r $PKG/usr/bin/*-linux-gnu-*
     rm -r $PKG/usr/lib/gcc/*/$version/{install-tools,include-fixed} 
