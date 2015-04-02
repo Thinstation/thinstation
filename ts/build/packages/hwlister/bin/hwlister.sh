@@ -25,8 +25,8 @@ done
 
 for module in `lsmod |cut -d " " -f 1`; do
 	if [ "$module" != "Module" ]; then
-		mdfile=`modinfo $module |grep -e filename: |cut -c 17- |cut -d "." -f 1`;
-		mdfile=`basename $mdfile`
+		mdfile=`modinfo $module |grep -e filename: |cut -c 17-`
+		mdfile=`basename $mdfile |cut -d "." -f 1`
 		echo "module $mdfile" | grep -Ev 'cache|fuse|squashfs|fat|ntfs|nfs|lockd|sunrpc|autofs4|isofs|udf|cifs|reiserfs|exportfs|ext|jbd|jfs|nls|xfs|usb-storage' | sort >>/module.list
 	fi
 done
