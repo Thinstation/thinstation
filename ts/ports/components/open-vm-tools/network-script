@@ -1,0 +1,195 @@
+#!/bin/sh
+##########################################################
+# Copyright (C) 2001-2010 VMware, Inc. All rights reserved.
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU Lesser General Public License as published
+# by the Free Software Foundation version 2.1 and no later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE.  See the Lesser GNU General Public
+# License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA.
+#
+##########################################################
+
+
+#
+# network (Linux)
+#
+# Using a combination of a system networking script, ifconfig, and ifup,
+# attempt to release and renew DHCP leases upon receipt of suspend and resume
+# events, respectively.
+#
+
+echo `date` ": Executing '$0'"
+echo
+
+. `dirname "$0"`/../../statechange.subr
+
+#
+# TranquilizeNetworkManager --
+#
+#    Put the NetworkManager daemon to sleep (maybe).
+#
+#    See http://projects.gnome.org/NetworkManager/developers/spec.html .
+#
+# Results:
+#    Sleep(true) request is sent to the NetworkManager D-Bus interface.
+#
+# Side effects:
+#    None.
+#
+
+TranquilizeNetworkManager()
+{
+   # `which' may be a bit noisy, so we'll shush it.
+   dbusSend=`which dbus-send 2>/dev/null`
+   rc=$?
+   if [ $rc -ne 0 ] || [ -z "\"`pidof dbus-daemon`\"" ]; then
+      return $rc
+   fi
+
+   # Check NetworkManager state before disabling it.
+   nm_state=`$dbusSend --system --print-reply		\
+             --dest=org.freedesktop.NetworkManager	\
+             /org/freedesktop/NetworkManager		\
+             org.freedesktop.DBus.Properties.Get	\
+             string:'org.freedesktop.NetworkManager'	\
+             string:'State'				\
+             | awk '/variant/ {print $3;}'`
+   if [ -z "$nm_state" ]; then
+      return 1
+   fi
+   # NetworkManager API     0.7/0.8   0.9
+   # NM_STATE_ASLEEP           1      10
+   # NM_STATE_DISCONNECTED     4      20
+   case $nm_state in
+      1|4|10|20)
+         # Nothing needs to be done.
+         return 0
+         ;;
+   esac
+
+   # NetworkManager 0.8.0 and above
+   $dbusSend --system --print-reply          \
+      --dest=org.freedesktop.NetworkManager  \
+      /org/freedesktop/NetworkManager        \
+      org.freedesktop.NetworkManager.Enable boolean:false
+   rc=$?
+   if [ $rc -eq 0 ]; then
+      return $rc
+   fi
+   # NetworkManager 0.7.0
+   $dbusSend --system --print-reply          \
+      --dest=org.freedesktop.NetworkManager  \
+      /org/freedesktop/NetworkManager        \
+      org.freedesktop.NetworkManager.Sleep boolean:true
+   rc=$?
+   if [ $rc -eq 0 ]; then
+      return $rc
+   fi
+   # NetworkManager 0.6
+   $dbusSend --system --print-reply          \
+      --dest=org.freedesktop.NetworkManager  \
+      /org/freedesktop/NetworkManager        \
+      org.freedesktop.NetworkManager.sleep
+   rc=$?
+
+   return $rc
+}
+
+
+#
+# WakeNetworkManager --
+#
+#    Wake the NetworkManager daemon (maybe).
+#
+#    See http://projects.gnome.org/NetworkManager/developers/spec.html .
+#
+# Results:
+#    Sleep(false)request is sent to the NetworkManager D-Bus interface.
+#
+# Side effects:
+#    None.
+#
+
+WakeNetworkManager()
+{
+   # `which' may be a bit noisy, so we'll shush it.
+   dbusSend=`which dbus-send 2>/dev/null`
+   rc=$?
+   if [ $rc = 0 ] && [ "\"`pidof dbus-daemon`\"" ]; then
+      # NetworkManager 0.8.0
+      $dbusSend --system --print-reply          \
+         --dest=org.freedesktop.NetworkManager  \
+         /org/freedesktop/NetworkManager        \
+         org.freedesktop.NetworkManager.Enable boolean:true
+      rc=$?
+      if [ $rc = 0 ]; then
+         return $rc
+      fi
+      # NetworkManager 0.7.0
+      $dbusSend --system --print-reply          \
+         --dest=org.freedesktop.NetworkManager  \
+         /org/freedesktop/NetworkManager        \
+         org.freedesktop.NetworkManager.Sleep boolean:false
+      rc=$?
+      if [ $rc = 0 ]; then
+         return $rc
+      fi
+      # NetworkManager 0.6
+      $dbusSend --system --print-reply          \
+         --dest=org.freedesktop.NetworkManager  \
+         /org/freedesktop/NetworkManager        \
+         org.freedesktop.NetworkManager.wake
+      rc=$?
+   fi
+   return $rc
+}
+
+
+#
+# main --
+#
+#    Main entry point.  Perform some sanity checking, then map state change
+#    events to relevant networking operations.
+#
+# Results:
+#    See comment at top of file.
+#
+
+main() {
+   exitCode=0
+
+   case "$1" in
+      poweron-vm)
+         ;;
+      suspend-vm)
+         TranquilizeNetworkManager
+         exitCode=$?
+         if [ $exitCode != 0 ]; then
+            netctl store
+            netctl stop-all
+            exitCode=$?
+         fi
+         ;;
+      resume-vm)
+         WakeNetworkManager
+         exitCode=$?
+         if [ $exitCode != 0 ]; then
+            netctl restore
+            exitCode=$?
+         fi
+         ;;
+      *) ;;
+   esac
+
+   return $exitCode
+}
+
+main "$@"

@@ -1,11 +1,32 @@
 #!/bin/bash
 
-for port in kernel-{TS,TS_SMP,TS_64} aufs bbswitch open-vm-tools usb-redirector; do
-	if prt-get current $port > /dev/null; then
-		prt-get update -fr -if -im $port
-	else
-		prt-get install -fr -if -im $port
-	fi
-	prt-get update -uf $port
-	prt-get update -um $port
-done
+kernels()
+{
+	for port in kernel-{TS,TS_SMP,TS_64}; do
+		if prt-get current $port > /dev/null; then
+			prt-get update -fr -if -im $port
+		else
+			prt-get install -fr -if -im $port
+		fi
+		prt-get update -uf $port
+		prt-get update -um $port
+	done
+}
+
+modules()
+{
+	for port in aufs bbswitch usb-redirector; do
+        	if prt-get current $port > /dev/null; then
+                	prt-get update -fr -if -im $port
+	        else
+        	        prt-get install -fr -if -im $port
+	        fi
+	        prt-get update -uf $port
+	        prt-get update -um $port
+	done
+}
+
+case $1 in
+	modules) modules;;
+	kernels|*) kernels; modules;;
+esac

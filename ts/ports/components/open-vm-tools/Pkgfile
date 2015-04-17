@@ -1,0 +1,38 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=open-vm-tools
+version=9.4.6-1770165
+kver=`cat /ts/ports/kernel-modules/VERSION`
+release=1
+source=(http://downloads.sourceforge.net/project/open-vm-tools/open-vm-tools/stable-9.4.x/open-vm-tools-$version.tar.gz
+	network-script
+	tools.conf
+	vmware-guestd
+	xautostart.conf)
+
+build() {
+	cd $name-$version
+
+	export CFLAGS="-DGLIB_DISABLE_DEPRECATION_WARNINGS ${CFLAGS}"
+	export CUSTOM_PROCPS_NAME="procps"
+	sed -i 's|-Werror||g' configure.ac
+
+	aclocal
+	libtoolize
+	automake --add-missing
+	autoconf
+
+	./configure --prefix=/ \
+			--without-kernel-modules \
+			--with-gtkmm \
+			--without-icu
+	make
+	make DESTDIR=$PKG install
+
+	install -Dm0755 "$SRC"/network-script	"$PKG"/etc/vmware-tools/scripts/vmware/network
+	install -Dm0644 "$SRC"/tools.conf	"$PKG"/etc/vmware-tools/tools.conf
+	install -Dm0644 "$SRC"/xautostart.conf	"$PKG"/etc/vmware-tools/xautostart.conf
+	install -Dm0644 "$SRC"/vmware-guestd	"$PKG"/etc/pam.d/vmware-guestd
+}

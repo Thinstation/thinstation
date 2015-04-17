@@ -1,57 +1,10 @@
 #!/bin/sh
 
-# Borrowed from Debian & hacked for Thinstation
-
-### BEGIN INIT INFO
-# Provides:		open-vm-tools
-# Required-Start:	$local_fs
-# Required-Stop:	$local_fs
-# X-Start-Before:	$network
-# X-Stop-After:		$network
-# Default-Start:	S
-# Default-Stop:		0 6
-# Description:		Runs the open-vm-tools services
-# Short-Description:	Runs the open-vm-tools services
-### END INIT INFO
-
 . /etc/thinstation.env
 . $TS_GLOBAL
 
-vmxnet_needed ()
-{
-	HWVERSION="$(vmware-checkvm -h | head -1 | cut -f5 -d ' ' )"
-
-	for DEVICE in /sys/bus/pci/devices/*
-	do
-		if grep -q 15ad ${DEVICE}/vendor && grep -q 0720 ${DEVICE}/device
-		then
-			INTERFACE=`ls --color=never ${DEVICE}/net`
-			return 0
-		fi
-
-		if [ "${HWVERSION}" -ge "4" ] && grep -q 1022 ${DEVICE}/vendor && grep -q 2000 ${DEVICE}/device
-		then
-			INTERFACE=`ls --color=never ${DEVICE}/net`
-			return 0
-		fi
-	done
-
-	return 1
-}
-
-vmxnet_found ()
-{
-	if modprobe -l -q vmxnet
-	then
-		return 0
-	fi
-
-	return 1
-}
-
 exit_if_not_in_vm () {
-	if [ ! -x /bin/vmware-checkvm ] || ! /bin/vmware-checkvm > /dev/null 2>&1
-	then
+	if [ ! -x /bin/vmware-checkvm ] || ! /bin/vmware-checkvm > /dev/null 2>&1; then
 		echo "Not starting as we're not running in a vm."
 		exit 0
 	fi
@@ -62,32 +15,19 @@ case "${1}" in
 		# Check if we're running inside VMWare
 		exit_if_not_in_vm
 
-#		echo_log "Mounting vmblock device filesystem"
-#		echo_log "vmblock"; modprobe vmblock
-		modprobe fuse
-		mkdir -m 1777 /tmp/VMwareDnD
-		mkdir -p /var/run/vmblock-fuse
-		vmware-vmblock-fuse -o subtype=vmware-vmblock,default_permissions,allow_other /var/run/vmblock-fuse
-#		mount -t vmblock none /proc/fs/vmblock/mountPoint
-
 		echo_log "Loading open-vm-tools modules"
-		echo_log "vmhgfs"; modprobe vmhgfs
-#		echo_log "vmmemctl"; modprobe vmmemctl
-#		echo_log "vmsync"; modprobe vmsync
 		echo_log "vmw_vmci"; modprobe vmw_vmci
 		echo_log "vsock"; modprobe vsock
 
-#		if vmxnet_found && vmxnet_needed
-#		then
-#			if [ -e /etc/udev/scripts/net.sh ]; then
-#				. /etc/udev/scripts/net.sh ACTION=remove
-#			fi
-#			modprobe -r pcnet32
-#			modprobe vmxnet
-#		fi
+		echo_log "Mounting vmblock device filesystem"
+                modprobe fuse
+                mkdir -m 1777 /tmp/VMwareDnD
+                mkdir -p /var/run/vmblock-fuse
+                vmware-vmblock-fuse -o subtype=vmware-vmblock,default_permissions,allow_other /var/run/vmblock-fuse
 
 		echo_log "Starting open-vm guest daemon - vmware-guestd"
 		vmtoolsd --background /var/run/vmtoolsd.pid
+
 		echo_log "Mounting VM Shares"
 		OLDIFS=$IFS
 		IFS=$'\t\n'
@@ -109,22 +49,9 @@ case "${1}" in
 			kill $(pidof vmware-guestd)
 		fi
 
-		if vmxnet_found && vmxnet_needed
-		then
-			if [ -e /etc/udev/scripts/net.sh ]; then
-				. /etc/udev/scripts/net.sh ACTION=remove
-			fi
-			modprobe -r vmxnet
-			modprobe pcnet32
-		fi
-
 		echo_log "Removing open-vm-tools modules"
 		echo_log "vsock"; modprobe -r vsock
 		echo_log "vmci"; modprobe -r vmci
-#		echo_log "vmsync"; modprobe -r vmsync
-#		echo_log "vmmemctl"; modprobe -r vmmemctl
-		echo_log "vmhgfs"; modprobe -r vmhgfs
-#		echo_log "vmblock"; modprobe -r vmblock
 		;;
 
 	force-reload|restart)

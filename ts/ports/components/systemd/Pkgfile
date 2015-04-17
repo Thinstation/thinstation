@@ -3,7 +3,7 @@
 # Maintainer: CRUX System Team, core-ports at crux dot nu
 
 name=systemd
-version=188
+version=211
 release=1
 source=(http://www.freedesktop.org/software/systemd/systemd-$version.tar.xz
 	81-crux.rules)
@@ -24,23 +24,23 @@ build() {
                 --with-rootlibdir=/lib \
                 --mandir=/usr/man \
 		--with-firmware-path=/lib/firmware \
-                --enable-keymap \
-                --enable-shared \
-                --disable-audit \
-                --disable-binfmt \
-                --disable-ima \
-                --disable-vconsole \
-                --disable-myhostname \
-                --disable-localed \
-                --disable-quotacheck \
-                --without-python \
-                --disable-qrencode \
-                --disable-microhttpd \
-                --disable-introspection \
-                --disable-split-usr \
-                --disable-nls \
-                --disable-bootchart \
-                --disable-coredump
+		--enable-shared \
+		--disable-audit \
+		--disable-binfmt \
+		--disable-ima \
+		--disable-vconsole \
+		--disable-myhostname \
+		--disable-localed \
+		--disable-quotacheck \
+		--disable-kdbus \
+		--without-python \
+		--disable-qrencode \
+		--disable-microhttpd \
+		--disable-split-usr \
+		--disable-nls \
+		--disable-bootchart \
+		--disable-coredump \
+		--disable-introspection
 
     make
     make install DESTDIR=$PKG
@@ -70,6 +70,4 @@ build() {
     rm -rf $PKG/usr/include/systemd
     rm -rf $PKG/usr/lib/pkgconfig/libsystemd*
     rm -rf $PKG/usr/share/pkgconfig/systemd*
-
-    rm $PKG/usr/man/man8/{halt,poweroff,reboot,runlevel,shutdown,telinit}.8
 }
