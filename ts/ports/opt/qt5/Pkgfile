@@ -1,0 +1,94 @@
+# Description: Qt Free Edition, version 5.x
+# URL: http://www.trolltech.com
+# Maintainer: Danny Rawlins, crux at romster dot me
+# Packager: predrag ivanovic, predivan at open dot telekom dot rs
+# Depends on: dbus gst-plugins-base gst-plugins-base-compat libmng mesa3d xorg-libxcursor xorg-libxi xorg-libxinerama xorg-libxrandr xorg-xcb-util-image xorg-xcb-util-wm xorg-xcb-util-keysyms
+
+name=qt5
+version=5.4.1
+release=1
+source=(http://download.qt-project.org/official_releases/qt/${version%.*}/$version/single/qt-everywhere-opensource-src-$version.tar.xz)
+
+build() {
+	cd qt-everywhere-opensource-src-$version
+
+	# Respect system CXX
+	[ "$CXX" ] || CXX=g++
+	sed -i "/^QMAKE_CXX\s/s|=.*|= $CXX|"  qtbase/mkspecs/common/g++-base.conf
+
+	# Remove obsolete xorg path
+	sed -i 's|X11R6/||g' qtbase/mkspecs/*/*.conf
+
+	# Respect system CXXFLAGS
+	sed -i "s|-O2|$CXXFLAGS|" qtbase/mkspecs/common/g++-unix.conf
+	sed -i "s|-O2|${CXXFLAGS}|" qtbase/mkspecs/common/{g++,gcc}-base.conf
+
+	# Respect system LDFLAGS
+	sed -i "/^QMAKE_LFLAGS\s/s|+=|+= ${LDFLAGS}|g" qtbase/mkspecs/common/gcc-base.conf
+
+	# Fix quoting bug
+	sed -i 's|"$COMPILER" -c|$COMPILER -c|' qtbase/config.tests/unix/fvisibility.test
+
+	export QTDIR="$PWD"
+	export LD_LIBRARY_PATH="$QTDIR/qtbase/lib:$QTDIR/qttools/lib:$LD_LIBRARY_PATH"
+	export QT_PLUGIN_PATH="$QTDIR/qtbase/plugins"
+
+	./configure  -prefix /usr/share/qt5 \
+                -bindir /usr/share/qt5/bin \
+                -headerdir /usr/share/qt5/include \
+                -libdir /usr/share/qt5/lib \
+                -libexecdir /usr/share/qt5/lib \
+                -plugindir /usr/share/qt5/plugins \
+                -sysconfdir /usr/etc/xdg \
+                -openssl-linked -dbus-linked \
+                -system-lib{png,jpeg} -system-{zlib,sqlite} \
+                -I/usr/include/nspr \
+                -skip qtwebkit-examples -skip qtwebengine \
+                -no-cups -optimized-qmake \
+                -x{cursor,inerama,kb,randr,render} \
+                -nomake examples -nomake tests \
+                -no-separate-debug-info -shared -no-rpath \
+                -opensource -confirm-license -release -reduce-relocations
+
+	make -j20
+	make INSTALL_ROOT=$PKG install
+    
+	# Fix paths
+	find $PKG/usr/share/qt5/lib  -type f -name '*.prl' \
+		-exec sed -i -e '/^QMAKE_PRL_BUILD_DIR/d;s/\(QMAKE_PRL_LIBS =\).*/\1/' {} \;
+        
+	sed -e "s|$PWD/qtbase|/usr/share/qt5/lib|g" \
+		-i $PKG/usr/share/qt5/mkspecs/modules/qt_lib_bootstrap_private.pri
+
+	# Remove unnecessary files
+	rm -rf $(find $PKG/usr/share/qt5/mkspecs/* | \
+		egrep -v '(linux-g++|common|modules|pri|features)')
+
+	rm -f $PKG/usr/share/qt5/mkspecs/linux-g++/linux-g++
+	rm -rf $PKG/usr/share/qt5/mkspecs/features/{mac,win32}
+	rm -rf $PKG/usr/share/qt5/mkspecs/common/mac*
+	rm -rf $PKG/usr/share/qt5/{phrasebooks,translations}
+
+	# Install linker config
+	install -d $PKG/{etc/ld.so.conf.d,usr/{bin,lib,include}}
+	echo "/usr/share/qt5/lib" > $PKG/etc/ld.so.conf.d/qt5.conf
+
+	ln -s ../share/qt5/include     $PKG/usr/include/qt5
+	ln -s ../share/qt5/lib         $PKG/usr/lib/qt5
+	ln -s linux-g++                $PKG/usr/share/qt5/mkspecs/default
+
+	# Install pkg config
+	mv $PKG/usr/share/qt5/lib/pkgconfig $PKG/usr/lib
+
+	# Fix paths
+	sed \
+		-e "s|-L$SRC/qt-everywhere-opensource-src-$version/lib ||g" \
+		-e "s|$SRC/qt-everywhere-opensource-src-$version/bin|/usr/share/qt5/bin|g" \
+		-i $PKG/usr/lib/pkgconfig/*.pc
+
+	# Install useful symlinks
+	install -d $PKG/usr/bin
+	for b in $PKG/usr/share/qt5/bin/*; do
+		ln -s /usr/share/qt5/bin/$(basename $b) $PKG/usr/bin/$(basename $b)-qt5
+	done
+}
