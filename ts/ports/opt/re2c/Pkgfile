@@ -1,0 +1,23 @@
+# Description: re2c scanner generator
+# URL: http://www.thinstation.org
+# Maintainer: Jens Maus (mail@jens-maus.de)
+
+name=re2c
+version=0.14.2
+release=1
+source=()
+
+build() {
+  git clone git://git.code.sf.net/p/re2c/code-git ${name}-${version}
+  cd ${name}-${version}/re2c
+  git checkout -b ${version} tags/${version}
+
+  ./autogen.sh
+  ./configure --prefix=/usr \
+              --exec-prefix=/ \
+              --sysconfdir=/etc \
+              --mandir=/usr/man
+
+	make
+	make DESTDIR=$PKG install
+}
