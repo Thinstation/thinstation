@@ -23,6 +23,7 @@ get_opts()
 {
 	if [ -z "$1" ] ; then show_help ; exit 255 ; fi
 	until [ -z "$1" ] ; do
+
 		case "$1" in
 			-h|--help)		show_help ; exit 255 ;;
 			-t|--temp)		temp_folder="$2" ; shift ;;
@@ -45,10 +46,13 @@ package_path()
 
 extract_archive()
 {
+	ppath=`prt-get path $package`
+	if [ -z "$ppath" ]; then
+		exit 1
+	fi
 	if [ ! -d $pkgpath ]; then
 		mkdir -p $pkgpath
 	fi
-	ppath=`prt-get path $package`
 	. $ppath/Pkgfile
         archive="`find -L $ppath -type f -name ${name}#${version}-${release}.pkg.tar.\* -printf '%f'`"
         if [ ! -f $ppath/$archive ]; then
