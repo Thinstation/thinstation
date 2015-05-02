@@ -1,0 +1,40 @@
+#! /bin/sh
+
+. $TS_GLOBAL
+
+case "$1" in
+init)
+	if ! pkg_initialized $PACKAGE; then
+		touch /var/log/spooler.log
+		x=0
+		while [ -n "`eval echo '$PRINTER_'$x'_NAME'`" ] ; do
+			PRINTER_TYPE=`eval echo '$PRINTER_'$x'_TYPE'`
+			PRINTER_URI=`eval echo '$PRINTER_'$x'_URI'`
+			PRINTER_NAME=`eval echo '$PRINTER_'$x'_NAME'`
+			PRINTER_DRIVER=`eval echo '$PRINTER_'$x'_DRIVER'`
+			PRINTER_DEFAULT=`eval echo '$PRINTER_'$x'_DRIVER'`
+			if [ "$PRINTER_TYPE" == "S" ] ; then
+				lpadmin -p "$PRINTER_NAME" -v "$PRINTER_URI" -E -P "$PRINTER_DRIVER"
+				echo  "$PRINTER_NAME" "," "$PRINTER_URI" "," "$PRINTER_DRIVER" >> /var/log/spooler.log
+				if is_enabled $PRINTER_DEFAULT; then
+					lpoptions -d "$PRINTER_NAME"
+				fi
+			fi
+			let x+=1
+		done
+#		sleep 1
+#	chmod 666 /dev/printers
+
+	pkg_set_init_flag $PACKAGE
+    fi
+    ;;
+help)
+    echo "Usage: $0 init"
+    ;;
+  *)
+    exit 1
+    ;;
+esac
+
+exit 0
+
