@@ -24,12 +24,14 @@ build() {
 	automake --add-missing
 	autoconf
 
-	./configure --prefix=/ \
+	./configure --prefix=/usr \
 			--without-kernel-modules \
 			--with-gtkmm \
 			--without-icu
 	make
 	make DESTDIR=$PKG install
+
+	rm -rf $PKG/sbin
 
 	install -Dm0755 "$SRC"/network-script	"$PKG"/etc/vmware-tools/scripts/vmware/network
 	install -Dm0644 "$SRC"/tools.conf	"$PKG"/etc/vmware-tools/tools.conf
