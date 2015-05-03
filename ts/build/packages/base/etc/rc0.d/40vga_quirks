@@ -1,5 +1,5 @@
 if [ -n "$DEBUG_INIT" ] ; then
-        echo_log "Setting Up Framebuffer"
+	echo_log "Setting Up Framebuffer"
 fi
 
 . $TS_GLOBAL
@@ -32,7 +32,7 @@ bb_switch()
 vesa_mode()
 {
 	if is_enabled $VESAMODE; then
-		for module in radeon vmwgfx nouveau i915 gma500_gfx drm_kms_helper; do
+		for module in radeon vmwgfx nouveau i915 gma500_gfx drm_kms_helper hyperv_fb; do
 			echo "blacklist $module" >> /etc/modprobe.d/blacklist.conf
 		done
 		if [ -e /sys/devices/virtual/vtconsole/vtcon1 ]; then
@@ -61,6 +61,9 @@ find_vga_drivers()
 	VMWGFX_VENDORS=`	grep /lib/modules/$KERNEL/modules.alias -e vmwgfx	|cut -c 16-19`
 	VMWGFX_DEVICES=`	grep /lib/modules/$KERNEL/modules.alias -e vmwgfx	|cut -c 25-28`
 
+	HYPERV_VENDORS=`	grep /lib/modules/$KERNEL/modules.alias -e hyperv_fb	|cut -c 16-19`
+	HYPERV_DEVICES=`	grep /lib/modules/$KERNEL/modules.alias -e hyperv_fb	|cut -c 25-28`
+
 	GMA_VENDORS=`		grep /lib/modules/$KERNEL/modules.alias -e gma500_gfx	|cut -c 16-19`
 	GMA_DEVICES=`		grep /lib/modules/$KERNEL/modules.alias -e gma500_gfx	|cut -c 25-28`
 }
@@ -72,6 +75,16 @@ detect_vga_adapters()
 			for pid in $VMWGFX_DEVICES ; do
 				if [ "$DEVICE" == "$pid" ]; then
 					VMWGFX=true
+					kms=true
+				fi
+			done
+		fi
+	done
+	for vid in $HYPERV_VENDORS ; do
+		if [ "$VENDOR" == "$vid" ] ; then
+			for pid in $HYPERV_DEVICES ; do
+				if [ "$DEVICE" == "$pid" ]; then
+					HYPERV=true
 					kms=true
 				fi
 			done
@@ -135,8 +148,8 @@ video_quirks()
 				fi
 			fi
 		else
-                        # EFI fb will not work with vesa, so use fbdev
-                        echo "X_DRIVER_NAME=fbdev" >> $TS_RUNTIME
+			# EFI fb will not work with vesa, so use fbdev
+			echo "X_DRIVER_NAME=fbdev" >> $TS_RUNTIME
 		fi
 	fi
 }
