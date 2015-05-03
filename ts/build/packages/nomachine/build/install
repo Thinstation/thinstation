@@ -1,0 +1,22 @@
+#!/bin/bash
+
+tarname=`basename $1`
+filename=`basename $1 .tar.gz`
+LIBDIR=./packages/nomachine/usr/NX/lib
+INSTALLDIR=./packages/nomachine/usr
+export KERNELRELEASE=$(cat /boot/KERNEL_VERSION)_SMP
+
+tar -C wget_tmp -zxf ./wget_tmp/$tarname
+let returnval=returnval+$?
+mkdir -p $INSTALLDIR
+cp -rf ./wget_tmp/NX $INSTALLDIR/.
+$INSTALLDIR/NX/nxclient --install debian
+
+#mv $INSTALLDIR/NX/lib/* $LIBDIR/.
+#rmdir $INSTALLDIR/NX/lib
+#rm $LIBDIR/libjpeg*
+#rm $LIBDIR/libcrypto.so
+#rm $LIBDIR/libz.*
+#rm $LIBDIR/libpng*
+#ln -sf /lib $INSTALLDIR/NX/lib
+exit $returnval
