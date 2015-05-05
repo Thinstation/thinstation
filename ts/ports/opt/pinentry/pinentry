@@ -1,0 +1,17 @@
+#!/bin/sh
+# pinentry wrapper
+
+if [ -x /usr/bin/pinentry-qt4 ];then
+  exec /usr/bin/pinentry-qt4 "$@"
+fi
+
+if [ -x /usr/bin/pinentry-gtk-2 ];then
+  exec /usr/bin/pinentry-gtk-2 "$@"
+fi
+
+if [ -x /usr/bin/pinentry-curses ];then
+  exec /usr/bin/pinentry-curses "$@"
+else
+  echo "no pinentry binary available" > /dev/stderr
+  exit 1
+fi
