@@ -483,8 +483,8 @@ main()
 		efi_ready
 		# Any text file is a potential config, and there are plenty of ways to get one in there,
 		# so lets look at all of them in the config folder.
-		for file in `find -e tokens $configdir -type f`;do
-			if file $file |grep -qe 'ASCII text'; then
+		for file in `find $configdir -type f`;do
+			if file -e tokens $file |grep -qe 'ASCII text'; then
 				scan_config $file
 			fi
 		done
