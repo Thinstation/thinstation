@@ -43,7 +43,7 @@ ln -s /usr/lib/libssl.so.1.0.1 $INSTALLDIR/lib/vmware/view/usb
 ln -s /usr/lib/libcrypto.so.1.0.1 $INSTALLDIR/lib/vmware/view/usb
 ;;
 virtual-printing)
-mkdir -p $INSTALLDIR/{etc/thnuclnt,sbin,lib/cups/filter}
+mkdir -p $INSTALLDIR/{etc/thnuclnt,sbin,lib/cups/filter,lib/freerdp}
 cp -a $dir/bin/conf $INSTALLDIR/etc/cups
 cp -a $dir/bin/init.d/linux $INSTALLDIR/etc/init.d
 chmod a+x $INSTALLDIR/etc/init.d/*
@@ -54,6 +54,7 @@ ln -s thnuclnt.so $INSTALLDIR/lib/thnuclnt/thnuconf.so
 cp -a $dir/lib/* $INSTALLDIR/lib/vmware/rdpvcbridge
 chmod a+x $INSTALLDIR/lib/vmware/rdpvcbridge/*
 chmod 4755 $INSTALLDIR/lib/thnuclnt/vmappld
+ln -s /lib/vmware/rdpvcbridge/tprdp.so $INSTALLDIR/lib/freerdp/tprdp-client.so
 
 for i in thnuclnt thnuclntd thnuconf thnuchk thnucups thnurdp .thnumod; do
   j=bin
