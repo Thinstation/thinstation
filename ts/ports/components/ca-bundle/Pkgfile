@@ -9,12 +9,22 @@ release=1
 source=()
 
 build() {
-	certhost='http://mxr.mozilla.org'
-	certdir='/mozilla/source/security/nss/lib/ckfw/builtins'
-	url="$certhost$certdir/certdata.txt?raw=1"
+	certhost='http://hg.mozilla.org'
+	certrepo='/releases/mozilla-release'
+	certdir='/raw-file/tip/security/nss/lib/ckfw/builtins'
+	logdir='/atom-log/tip/security/nss/lib/ckfw/builtins'
+	url="$certhost$certrepo$certdir/certdata.txt"
+	log="$certhost$certrepo$logdir/certdata.txt"
 
-	wget --output-document certdata.txt $url
-	unset certhost certdir url
+	wget --output-document certdata.txt.1 $url
+	wget --output-document certdata.log $log
+
+	version=`xmllint --xpath "/*[local-name()='feed']/*[local-name()='entry'][1]/*[local-name()='updated']/text()" certdata.log | cut -dT -f1 | sed -e 's/-//g'`
+	echo "#CVS_ID @# \$ RCSfile: certdata.txt \$ \$Revision: $version \$ \$Date: \$" > certdata.txt
+	cat certdata.txt.1 >> certdata.txt
+	rm certdata.txt.1 certdata.log
+
+	unset certhost certdir logdir url log version
 	make-ca.sh
 	remove-expired-certs.sh certs
 
