@@ -4,7 +4,7 @@
 # Depends on:  cups
 
 name=hpijs
-version=3.14.10
+version=3.15.4
 release=1
 source=(http://downloads.sourceforge.net/project/hplip/hplip/$version/hplip-$version.tar.gz)
 
@@ -12,14 +12,19 @@ build () {
     cd hplip-$version
 
     ./configure --prefix=/usr \
-                --enable-hpcups-only-build \
                 --enable-hpcups-install \
+		--disable-udev_sysfs_rules \
                 --with-hpppddir=/usr/share/cups/model/HP \
-                --disable-{doc,network}-build
+                --disable-{scan,fax,dbus,gui,doc,network}-build
 
     make
     make DESTDIR=$PKG install
 
-    rm -r $PKG/usr/share/{hplip,doc} $PKG/usr/bin
+    rm -r $PKG/usr/share/{hal,doc} $PKG/usr/lib/systemd
+    rm $PKG/usr/bin/hp-{faxsetup,makecopies,scan,sendfax,uninstall,align,clean,colorcal,linefeedcal,pqdiag,wificonfig,systray,fab,upgrade}
+    rm $PKG/usr/share/hplip/{faxsetup,makecopies,scan,sendfax,uninstall,align,clean,colorcal,linefeedcal,pqdiag,wificonfig,systray,fab,upgrade}.py
+    rm -r $PKG/usr/share/hplip/{copier,data/{pcl,ldl,localization}}
+    sed -i -e "s/env python/python/g" $PKG/usr/share/hplip/pkservice.py
+    find $PKG -name "*.la" -delete
 }
 
