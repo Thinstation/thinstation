@@ -890,9 +890,9 @@ fi
 (cat $CONF_FILE; echo) | # make sure there is a LF at the end
 while read type name args
 do
-    type=`echo $type | sed -e s/\^M//g | sed -e 's/\&/\\\&/g'`
-    name=`echo $name | sed -e s/\^M//g | sed -e 's/\&/\\\&/g'`
-    args=`echo $args | sed -e s/\^M//g | sed -e 's/\&/\\\&/g'`
+    type=`echo $type | sed -e s///g | sed -e 's/\&/\\\&/g'`
+    name=`echo $name | sed -e s///g | sed -e 's/\&/\\\&/g'`
+    args=`echo $args | sed -e s///g | sed -e 's/\&/\\\&/g'`
     case $type in
     \#*|"") continue
 	    ;;
@@ -2183,11 +2183,9 @@ if [ -z "$NOIMAGES" ]; then
 
 				addpkgs $ESP
 				syslinux_copy_files_bios
-				if [ -e boot-images/syslinux/boot/syslinux ]; then
-					for file in `ls --color=never boot-images/syslinux/boot/syslinux`; do
-						sys_copy boot-images/syslinux/boot/syslinux/$file $ESP/boot/syslinux/$file
-					done
-				fi
+				for file in `ls --color=never boot-images/syslinux/boot/syslinux`; do
+					sys_copy boot-images/syslinux/boot/syslinux/$file $ESP/boot/syslinux/$file
+				done
 				add_image
 				add_overlay
 
