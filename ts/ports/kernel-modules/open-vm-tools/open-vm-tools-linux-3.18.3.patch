@@ -1,0 +1,26 @@
+--- open-vm-tools-9.4.6-1770165/modules/linux/vmhgfs/inode.c~	2015-01-26 00:51:45.000000000 +0100
++++ open-vm-tools-9.4.6-1770165/modules/linux/vmhgfs/inode.c	2015-01-26 00:54:24.305830333 +0100
+@@ -1859,7 +1859,11 @@
+                            p,
+ #endif
+                            &inode->i_dentry,
++#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 18, 3)) || ((LINUX_VERSION_CODE >= KERNEL_VERSION(3, 4, 107)) && (LINUX_VERSION_CODE < KERNEL_VERSION(3, 5, 0))) || ((LINUX_VERSION_CODE >= KERNEL_VERSION(3, 14, 40)) && (LINUX_VERSION_CODE < KERNEL_VERSION(3, 15, 0))) || ((LINUX_VERSION_CODE >= KERNEL_VERSION(3, 10, 76)) && (LINUX_VERSION_CODE < KERNEL_VERSION(3, 11, 0)))
++                           d_u.d_alias) {
++#else
+                            d_alias) {
++#endif
+          int dcount = compat_d_count(dentry);
+          if (dcount) {
+             LOG(4, ("Found %s %d \n", dentry->d_name.name, dcount));
+@@ -1912,7 +1916,11 @@
+       /* Find a dentry with valid d_count. Refer bug 587879. */
+       list_for_each(pos, &inode->i_dentry) {
+          int dcount;
++#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 18, 3)) || ((LINUX_VERSION_CODE >= KERNEL_VERSION(3, 4, 107)) && (LINUX_VERSION_CODE < KERNEL_VERSION(3, 5, 0))) || ((LINUX_VERSION_CODE >= KERNEL_VERSION(3, 14, 40)) && (LINUX_VERSION_CODE < KERNEL_VERSION(3, 15, 0))) || ((LINUX_VERSION_CODE >= KERNEL_VERSION(3, 10, 76)) && (LINUX_VERSION_CODE < KERNEL_VERSION(3, 11, 0)))
++         struct dentry *dentry = list_entry(pos, struct dentry, d_u.d_alias);
++#else
+          struct dentry *dentry = list_entry(pos, struct dentry, d_alias);
++#endif
+          dcount = compat_d_count(dentry);
+          if (dcount) {
+             LOG(4, ("Found %s %d \n", (dentry)->d_name.name, dcount));
