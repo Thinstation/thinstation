@@ -2,7 +2,7 @@ if [ -n "$DEBUG_INIT" ] ; then
         echo_log "Doing Mounts"
 fi
 
-mount -n -t proc 	proc 	/proc	-o rw,nosuid,nodev,noexec,relatime
+mount -n -t proc 	proc 	/proc	-o rw,nosuid,nodev,noexec,relatime,hidepid=2
 mount -n -t sysfs 	sys 	/sys	-o rw,nosuid,nodev,noexec,relatime
 mount -n -t devtmpfs 	dev 	/dev	-o rw,nosuid,mode=0755
 mount -n -t tmpfs 	tmpfs 	/tmp	-o rw
@@ -11,7 +11,7 @@ mkdir /dev/shm
 mount -n -t tmpfs	tmpfs	/dev/shm -o rw,nosuid,nodev
 
 mkdir /dev/pts
-mount -n -t devpts	devpts	/dev/pts -o rw,nosuid,noexec,relatime,mode=600
+mount -n -t devpts	devpts	/dev/pts -o rw,nosuid,noexec,relatime,gid=4,mode=620,ptmxmode=000,newinstance
 
 
 if is_enabled $MEMORY_CONSTRAINED ; then
