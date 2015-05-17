@@ -63,22 +63,23 @@ first_or_last()
 
 get_gnome_proxy()
 {
-        mode=`gconftool-2 -g /system/proxy/mode 2>/dev/null`
-        use_http_proxy=`gconftool-2 -g /system/http_proxy/use_http_proxy 2>/dev/null`
-        use_same_proxy=`gconftool-2 -g /system/http_proxy/use_same_proxy 2>/dev/null`
-        use_authentication=`gconftool-2 -g /system/http_proxy/use_authentication 2>/dev/null`
-        authentication_user=`gconftool-2 -g /system/http_proxy/authentication_user 2>/dev/null`
-        authentication_password=`gconftool-2 -g /system/http_proxy/authentication_password 2>/dev/null`
-        host=`gconftool-2 -g /system/http_proxy/host 2>/dev/null`
-        port=`gconftool-2 -g /system/http_proxy/port 2>/dev/null`
-        ignore_hosts=`gconftool-2 -g /system/http_proxy/ignore_hosts 2>/dev/null`
-        socks_host=`gconftool-2 -g /system/proxy/socks_host 2>/dev/null`
-        socks_port=`gconftool-2 -g /system/proxy/socks_port 2>/dev/null`
-        secure_host=`gconftool-2 -g /system/proxy/secure_host 2>/dev/null`
-        secure_port=`gconftool-2 -g /system/proxy/secure_port 2>/dev/null`
-        ftp_host=`gconftool-2 -g /system/proxy/ftp_host 2>/dev/null`
-        ftp_port=`gconftool-2 -g /system/proxy/ftp_port 2>/dev/null`
-
+	if which gconftool-2 > /dev/null; then
+	        mode=`gconftool-2 -g /system/proxy/mode 2>/dev/null`
+        	use_http_proxy=`gconftool-2 -g /system/http_proxy/use_http_proxy 2>/dev/null`
+	        use_same_proxy=`gconftool-2 -g /system/http_proxy/use_same_proxy 2>/dev/null`
+	        use_authentication=`gconftool-2 -g /system/http_proxy/use_authentication 2>/dev/null`
+	        authentication_user=`gconftool-2 -g /system/http_proxy/authentication_user 2>/dev/null`
+	        authentication_password=`gconftool-2 -g /system/http_proxy/authentication_password 2>/dev/null`
+	        host=`gconftool-2 -g /system/http_proxy/host 2>/dev/null`
+	        port=`gconftool-2 -g /system/http_proxy/port 2>/dev/null`
+	        ignore_hosts=`gconftool-2 -g /system/http_proxy/ignore_hosts 2>/dev/null`
+	        socks_host=`gconftool-2 -g /system/proxy/socks_host 2>/dev/null`
+	        socks_port=`gconftool-2 -g /system/proxy/socks_port 2>/dev/null`
+	        secure_host=`gconftool-2 -g /system/proxy/secure_host 2>/dev/null`
+	        secure_port=`gconftool-2 -g /system/proxy/secure_port 2>/dev/null`
+	        ftp_host=`gconftool-2 -g /system/proxy/ftp_host 2>/dev/null`
+	        ftp_port=`gconftool-2 -g /system/proxy/ftp_port 2>/dev/null`
+	fi
         if [ -z "$use_authentication" ]; then use_authentication=false ; fi
 }
 
@@ -143,11 +144,14 @@ launch_chroot()
 	do_mounts
 	if first_or_last; then
 		copy_host_essential
-		mkdir -p var/lib/dbus
-		dbus-uuidgen --get > var/lib/dbus/machine-id
+		if which dbus-uuidgen > /dev/null; then
+			mkdir -p var/lib/dbus
+			dbus-uuidgen --get > var/lib/dbus/machine-id
+		fi
 	fi
 	chroot /$PWD /bin/bash --rcfile ./ts/TS_ENV
 	howdiditgo=$?
+	if [ -e autodl ]; then rm autodl; fi
 	if first_or_last ; then
 		do_unmounts
 		secure_keys
