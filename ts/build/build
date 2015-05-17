@@ -212,16 +212,6 @@ resolve_links()
 	done
 }
 
-extra_links()
-{
-	extra=`find $pkgname/lib -type l |grep -e .so$`
-	if [ -n "$extra" ]; then
-		for file in $extra; do
-			rm $extra
-		done
-	fi
-}
-
 lib_dependencies()
 {
 	echo -e "\nAdding Library Dependencies\n"
@@ -234,7 +224,7 @@ lib_dependencies()
 	fi
 	for pkgname in `echo "./tmp-tree" && find $PKGDIR -mindepth 1 -maxdepth 1`; do
                 export pkgname
-		extra_links
+		find $pkgname/lib -mindepth 1 -maxdepth 1 -type l |grep -e .so$ |xargs rm
 		resolve_links
 		find $pkgname/lib -mindepth 1 -maxdepth 1 -name lib\* |grep -E '.so.[0-9]+.[0-9]' |xargs rm
 		find $pkgname/lib -mindepth 1 -maxdepth 1 -type f |grep -E 'libnss_[a-z]+\-[0-9].[0-9]+.so$' |xargs rm
@@ -245,7 +235,7 @@ lib_dependencies()
 		rm filelist
 		while [ -s liblist.final ]; do
 			parallel --record-env
-			cat liblist.final |sort -u| parallel --env _ --will-cite calculate_lib_dependencies
+			cat liblist.final |sort -u|sort -R |parallel --env _ --will-cite calculate_lib_dependencies
 			rm liblist.final
 			if [ -e liblist.added ]; then
 				mv liblist.added liblist.final
