@@ -116,15 +116,15 @@ if [ "$2" == "lotsofmem" ]; then
 	done
 	cp --remove-destination /bin/cp bin/.
 	cp --remove-destination /bin/mv bin/.
-	cp --remove-destination /lib/libacl.so.1 lib/.
-	cp --remove-destination /lib/libattr.so.1 lib/.
+#	cp --remove-destination /lib/libacl.so.1 lib
+#	cp --remove-destination /lib/libattr.so.1 lib
 	if [ "$HARDLINK" == "true" ]; then
 		hardlink -t -m ../fastboot-tmp
 	fi
 	echo -e "\tMaking lib.squash"
 	mksquashfs ../fastboot-tmp/. ../$INITDIR/lib.squash -always-use-fragments -no-recovery -no-xattrs -noappend $FB_COMP_EXTRA
 	cp `which unsquashfs` bin/.
-	cp /usr/lib/liblzma.so.5 lib/.
+#	cp /usr/lib/liblzma.so.5 lib
 fi
 cd ..
 chmod 755 $INITDIR/lib.squash

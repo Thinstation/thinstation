@@ -144,6 +144,7 @@ mounted()
 
 lib_in_path()
 {
+#set -x
 	for lpath in `cat lpaths.tmp` $filepath; do
 		if [ -e ./tmp-tree$lpath/$1 ] || [ -e $pkgname$lpath/$1 ]; then
 			return 0
@@ -155,58 +156,104 @@ lib_in_path()
 			return 0
 		fi
 	fi
+#set +x
 	return 1
+}
+export -f lib_in_path
+
+calculate_lib_dependencies()
+{
+	unset DISPLAYED
+	filename=$1
+	(objdump -x $filename 2>/dev/null |grep -e NEEDED |cut -c 24-) \
+	|while read libfile; do
+		filepath=`dirname $filename | sed -e "s,$pkgname,,"`
+		export filepath
+		if ! lib_in_path $libfile && [ ! -e $pkgname/lib/$libfile ]; then
+			if [ "$DISPLAYED" != "TRUE" ]; then
+				echo "Adding library dependencies for `basename $filename`"
+				DISPLAYED=TRUE
+			fi
+			libsource="`prt-get fsearch $libfile |grep -Ev 'Found|x-tool|^$' | cut -d " " -f3 |head -n1`"
+			if [ -n "$libsource" ] && [ -e $libsource ]; then
+				echo -e "\t\t\t$libfile"
+				if [ ! -e $pkgname/lib ]; then
+					mkdir -p $pkgname/lib
+				fi
+				linkdest=`readlink $libsource`
+				if [ -n "$linkdest" ]; then
+					[ ! -e $pkgname/lib/$libfile ] \
+					&& ln `dirname $libsource`/$linkdest $pkgname/lib/$libfile 2>/dev/null \
+					&& echo "$pkgname/lib/$libfile" >> liblist.added
+				else
+					[ ! -e $pkgname/lib/$libfile ] \
+					&& ln $libsource $pkgname/lib/$libfile 2>/dev/null \
+					&& echo "$pkgname/lib/$libfile" >> liblist.added
+				fi
+			else
+				echo "Could not find $libfile !"
+			fi
+		fi
+	done
+}
+export -f calculate_lib_dependencies
+
+resolve_links()
+{
+	for link in `find $pkgname/lib -mindepth 1 -maxdepth 1 -type l \
+        |grep -E so.[0-9]+$ \
+        |sort -u`; do
+        	if [ -e $link ]; then
+        		linkdest=`readlink $link`
+			linkdir=`dirname $link`
+	                rm $link
+			cp -a $linkdir/$linkdest $link
+        	fi
+	done
+}
+
+extra_links()
+{
+	extra=`find $pkgname/lib -type l |grep -e .so$`
+	if [ -n "$extra" ]; then
+		for file in $extra; do
+			rm $extra
+		done
+	fi
 }
 
 lib_dependencies()
 {
-  echo -e "\nAdding Library Dependencies\n"
+	echo -e "\nAdding Library Dependencies\n"
 
-  if [ -e ./tmp-tree/etc/ld.so.conf ]; then
-    cat ./tmp-tree/etc/ld.so.conf |grep -v include > lpaths.tmp
-  fi
-  if [ -e ./tmp-tree/etc/ld.so.conf.d ] && [ -n "`ls -A ./tmp-tree/etc/ld.so.conf.d`" ]; then
-    cat ./tmp-tree/etc/ld.so.conf.d/* >> lpaths.tmp
-  fi
-  for pkgname in `echo "./tmp-tree" && find $PKGDIR -mindepth 1 -maxdepth 1`; do
-    find $pkgname -type f > filelist
-    file -e encoding -e tokens -e compress -e ascii -e apptype -e tar -e cdf -f filelist -n -r |grep -e ELF |cut -d: -f1 > liblist.final 2>/dev/null
-    rm filelist
-    while [ -s liblist.final ]; do
-      (cat liblist.final ) |
-      while read filename; do
-	unset DISPLAYED
-	#Not using ldd anymore
-        (objdump -x $filename 2>/dev/null |grep -e NEEDED |cut -c 24-) |
-        while read libfile; do
-          filepath=`dirname $filename | sed -e "s,$pkgname,,"`
-          if ! lib_in_path $libfile && [ -z "`echo $libloc | grep $pkgname`" ] && [ ! -e $pkgname/lib/$libfile ]; then
-            if [ "$DISPLAYED" != "TRUE" ]; then
-              echo "Adding library dependencies for `basename $filename`"
-              DISPLAYED=TRUE
-            fi
-            libsource="`prt-get fsearch $libfile |grep -Ev 'Found|x-tool|^$' | cut -d " " -f3 |head -n1`"
-            if [ -n "$libsource" ] && [ -e $libsource ]; then
-              echo -e "\t\t\t$libfile"
-              if [ ! -e $pkgname/lib ]; then
-                mkdir -p $pkgname/lib
-              fi
-              cp $libsource $pkgname/lib
-              echo "$pkgname/lib/$libfile" >> liblist.added
-            else
-              echo "Could not find $libfile !"
-            fi
-          fi
-        done
-      done
-      rm liblist.final
-      if [ -e liblist.added ]; then
-        mv liblist.added liblist.final
-      fi
-    done
-  done
-  ldconfig -X -r tmp-tree 2>/dev/null
-  rm lpaths.tmp
+	if [ -e ./tmp-tree/etc/ld.so.conf ]; then
+		cat ./tmp-tree/etc/ld.so.conf |grep -v include > lpaths.tmp
+	fi
+	if [ -e ./tmp-tree/etc/ld.so.conf.d ] && [ -n "`ls -A ./tmp-tree/etc/ld.so.conf.d`" ]; then
+		cat ./tmp-tree/etc/ld.so.conf.d/* >> lpaths.tmp
+	fi
+	for pkgname in `echo "./tmp-tree" && find $PKGDIR -mindepth 1 -maxdepth 1`; do
+                export pkgname
+		extra_links
+		resolve_links
+		find $pkgname/lib -mindepth 1 -maxdepth 1 -name lib\* |grep -E '.so.[0-9]+.[0-9]' |xargs rm
+		find $pkgname/lib -mindepth 1 -maxdepth 1 -type f |grep -E 'libnss_[a-z]+\-[0-9].[0-9]+.so$' |xargs rm
+		find $pkgname -type f > filelist
+		file -e encoding -e tokens -e compress -e ascii -e apptype -e tar -e cdf -f filelist -n -r \
+		|grep -e ELF \
+		|cut -d: -f1 > liblist.final 2>/dev/null
+		rm filelist
+		while [ -s liblist.final ]; do
+			parallel --record-env
+			cat liblist.final |sort -u| parallel --env _ --will-cite calculate_lib_dependencies
+			rm liblist.final
+			if [ -e liblist.added ]; then
+				mv liblist.added liblist.final
+			fi
+		done
+	done
+	ldconfig -X -r tmp-tree 2>/dev/null
+	rm lpaths.tmp
 }
 
 copy_module()

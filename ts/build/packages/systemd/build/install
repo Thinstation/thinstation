@@ -19,7 +19,7 @@ for link in `find packages/systemd/{etc,bin,sbin,lib,var} -type l |grep -v udev`
 done
 find packages/systemd -type d -empty -delete
 
-ln -sf libudev.so.1 packages/systemd/lib/libudev.so.0
+ln -sf `readlink packages/systemd/lib/libudev.so.1` packages/systemd/lib/libudev.so.0
 #ln -sf /lib/systemd/systemd packages/systemd/init
 
 returnval=$?
