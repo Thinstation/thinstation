@@ -55,7 +55,9 @@ build() {
 
         rm $PKG/bin/tusbd.ko
 
-	for module in `find $PKG/lib/modules -name \*.ko`; do
-		perl /usr/src/kernels/${kver}TS/scripts/sign-file sha256 /etc/ssl/keys/kernel.key /etc/ssl/certs/kernel.crt $module
-	done
+	if -e prt-get isinst kernel-keys; then
+		for module in `find $PKG/lib/modules -name \*.ko`; do
+			perl /usr/src/kernels/${kver}TS/scripts/sign-file sha256 /etc/ssl/keys/kernel.key /etc/ssl/certs/kernel.crt $module
+		done
+	fi
 }

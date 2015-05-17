@@ -1,0 +1,20 @@
+# $Id$
+# Maintainer: Timothy Redaelli <timothy.redaelli@gmail.com>
+# Contributor: Vianney le Clément <vleclement AT gmail·com>
+# Contributor: Peter Simons <simons@cryp.to>
+
+name=parallel
+version=20150322
+release=1
+source=(http://ftp.gnu.org/gnu/$name/$name-$version.tar.bz2{,.sig})
+
+build() {
+  cd "$name-$version"
+  ./configure --prefix=/usr
+  make
+  make DESTDIR="$PKG/" install
+
+  # FIXME
+  ln -sf parallel "$PKG/usr/bin/sem"
+}
+

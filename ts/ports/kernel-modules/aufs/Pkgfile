@@ -10,10 +10,10 @@ kver=`cat /ts/ports/kernel-modules/VERSION`
 source=()
 
 build() {
-    git clone git://git.code.sf.net/p/aufs/aufs3-standalone \
-	$name
+    export CFLAGS="$CFLAGS -Wno-error -Wno-implicit-function-declaration"
+    git clone git://git.code.sf.net/p/aufs/aufs3-standalone -b aufs$version $name
     cd $name
-    git checkout origin/aufs$version
+#    git checkout origin/aufs$version
 
     sed -i -e 's/CONFIG_AUFS_XATTR =.*/CONFIG_AUFS_XATTR = y/' \
 	-e 's/CONFIG_AUFS_DEBUG =.*/CONFIG_AUFS_DEBUG = /' \
