@@ -39,8 +39,8 @@ get_opts()
 {
 	until [ -z "$1" ] ; do
 		case $1 in
-		-a|--autodl)	touch autodl;;
-		-i|--install)	install_only=true ;;
+		-a|--autodl)	touch autodl; export autodl=true;;
+		-i|--install)	install_only=true; export autodl=true;;
 		-d|--directory)	shift ; build_dir=$1 ;;
 		-b|--build)	build=true ;;
 		-h|--help)	help ; exit 255 ;;
@@ -151,7 +151,6 @@ launch_chroot()
 	fi
 	chroot /$PWD /bin/bash --rcfile ./ts/TS_ENV
 	howdiditgo=$?
-	if [ -e autodl ]; then rm autodl; fi
 	if first_or_last ; then
 		do_unmounts
 		secure_keys
