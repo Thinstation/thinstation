@@ -201,7 +201,7 @@ export -f calculate_lib_dependencies
 resolve_links()
 {
 	for link in `find $pkgname/lib -mindepth 1 -maxdepth 1 -type l \
-        |grep -E so.[0-9]+$ \
+        |grep -E 'so.[0-9]+$|.so$' \
         |sort -u`; do
         	if [ -e $link ]; then
         		linkdest=`readlink $link`
@@ -224,7 +224,7 @@ lib_dependencies()
 	fi
 	for pkgname in `echo "./tmp-tree" && find $PKGDIR -mindepth 1 -maxdepth 1`; do
                 export pkgname
-		find $pkgname/lib -mindepth 1 -maxdepth 1 -type l |grep -e .so$ |xargs rm
+		find $pkgname/lib -mindepth 1 -maxdepth 1 -type l |grep -e .so$ |grep -v python |xargs rm
 		resolve_links
 		find $pkgname/lib -mindepth 1 -maxdepth 1 -name lib\* |grep -E '.so.[0-9]+.[0-9]' |xargs rm
 		find $pkgname/lib -mindepth 1 -maxdepth 1 -type f |grep -E 'libnss_[a-z]+\-[0-9].[0-9]+.so$' |xargs rm
