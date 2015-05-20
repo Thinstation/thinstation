@@ -1,6 +1,6 @@
 #!/bin/bash
 #set -x
-LANG=C
+export LANG=C
 INITDIR=boot-images/initrd
 PKGDIR=boot-images/pkg-packages
 DEVDIR=./packages/base/dev
@@ -32,6 +32,8 @@ liblua="lua"
 . packages/base/etc/thinstation.env
 . packages/base/etc/thinstation.defaults
 . thinstation.conf.buildtime
+export -f is_enabled
+
 PATH=/usr/local/bin:/usr/bin:/bin:/sbin:/usr/sbin:/usr/local/sbin:/ts/bin
 
 # set some defaults for builds that would produce unexpected results for legacy build scripts otherwise.
@@ -183,11 +185,11 @@ calculate_lib_dependencies()
 				linkdest=`readlink $libsource`
 				if [ -n "$linkdest" ]; then
 					[ ! -e $pkgname/lib/$libfile ] \
-					&& ln `dirname $libsource`/$linkdest $pkgname/lib/$libfile 2>/dev/null \
+					&& $cputil `dirname $libsource`/$linkdest $pkgname/lib/$libfile 2>/dev/null \
 					&& echo "$pkgname/lib/$libfile" >> liblist.added
 				else
 					[ ! -e $pkgname/lib/$libfile ] \
-					&& ln $libsource $pkgname/lib/$libfile 2>/dev/null \
+					&& $cputil $libsource $pkgname/lib/$libfile 2>/dev/null \
 					&& echo "$pkgname/lib/$libfile" >> liblist.added
 				fi
 			else
@@ -224,10 +226,15 @@ lib_dependencies()
 	fi
 	for pkgname in `echo "./tmp-tree" && find $PKGDIR -mindepth 1 -maxdepth 1`; do
                 export pkgname
-		find $pkgname/lib -mindepth 1 -maxdepth 1 -type l |grep -e .so$ |grep -v python |xargs rm
+		if is_enabled $ts_stripelf; then
+			export cputil="cp -a"
+		else
+			export cputil=ln
+		fi
+		find $pkgname/lib -mindepth 1 -maxdepth 1 -type l |grep -e .so$ |grep -v python |xargs rm >/dev/null 2>&1
 		resolve_links
-		find $pkgname/lib -mindepth 1 -maxdepth 1 -name lib\* |grep -E '.so.[0-9]+.[0-9]' |xargs rm
-		find $pkgname/lib -mindepth 1 -maxdepth 1 -type f |grep -E 'libnss_[a-z]+\-[0-9].[0-9]+.so$' |xargs rm
+		find $pkgname/lib -mindepth 1 -maxdepth 1 -name lib\* |grep -E '.so.[0-9]+.[0-9]' |xargs rm >/dev/null 2>&1
+		find $pkgname/lib -mindepth 1 -maxdepth 1 -type f |grep -E 'libnss_[a-z]+\-[0-9].[0-9]+.so$' |xargs rm >/dev/null 2>&1
 		find $pkgname -type f > filelist
 		file -e encoding -e tokens -e compress -e ascii -e apptype -e tar -e cdf -f filelist -n -r \
 		|grep -e ELF \
@@ -396,8 +403,7 @@ module_package_dependencies()
 
 strip_files()
 {
-if [ "$ts_stripelf" == "yes" ] ;
-	then
+	if is_enabled $ts_stripelf;then
 		echo -e "\nStripping Enabled"
 		rampre="`du -s ./tmp-tree|cut -f1`"
 		echo -e "\tRAM Usage before stripping\t$rampre KiloBytes"
@@ -408,7 +414,7 @@ if [ "$ts_stripelf" == "yes" ] ;
 		rampost="`du -s ./tmp-tree|cut -f1`"
 		echo -e "\tRAM Usage after stripping\t$rampost KiloBytes"
 		echo -e "\tTotal RAM Savings\t\t$(( $rampre - $rampost )) KiloBytes\n"
-fi
+	fi
 }
 
 make_initrd()
