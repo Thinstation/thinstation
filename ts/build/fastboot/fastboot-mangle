@@ -60,17 +60,17 @@ if [ "$2" == "true" ] ; then
 		hardlink -t -m lib
 	fi
 	mksquashfs lib ../$INITDIR/lib.squash -always-use-fragments -no-recovery -no-xattrs -noappend $FB_COMP_EXTRA
-	for i in `ls --color=never lib/ |grep -Ewvf ../fastboot/lib-boot |grep -Ewv 'bin|sbin'` ; do
+	for i in `ls --color=never lib/ |grep -xvf ../fastboot/lib-boot |grep -Ewv 'bin|sbin|dbus-1'` ; do
 		if [ ! -z "$i" ] ; then
 			rm -rf lib/$i
 		fi
 	done
-	for i in `ls --color=never lib/bin/ |grep -Ewvf ../fastboot/bin-boot` ; do
+	for i in `ls --color=never lib/bin/ |grep -xvf ../fastboot/bin-boot` ; do
 		if [ ! -z "$i" ]; then
 			rm  -rf lib/bin/$i
 		fi
 	done
-	for i in `ls --color=never lib/sbin/ |grep -Ewvf ../fastboot/bin-boot` ; do
+	for i in `ls --color=never lib/sbin/ |grep -xvf ../fastboot/bin-boot` ; do
 		if [ ! -z "$i" ]; then
 			rm  -rf lib/sbin/$i
 		fi
@@ -91,7 +91,7 @@ if [ "$2" == "lotsofmem" ]; then
 			mv $i ../fastboot-tmp/.
 		fi
 	done
-	for i in `ls --color=never usr |grep -Ewvf ../fastboot/usr-rw` ; do
+	for i in `ls --color=never usr |grep -xvf ../fastboot/usr-rw` ; do
 		mv usr/$i ../fastboot-tmp/usr/.
 	done
 	for i in `cat ../fastboot/etc-ro` ; do
@@ -99,17 +99,17 @@ if [ "$2" == "lotsofmem" ]; then
 			mv etc/$i ../fastboot-tmp/etc/.
 		fi
 	done
-	for i in `ls --color=never lib/ |grep -Ewvf ../fastboot/lib-boot |grep -Ev 'libgmp|libattr|libacl|libz|libpcre|libidn'` ; do
+	for i in `ls --color=never lib/ |grep -xvf ../fastboot/lib-boot |grep -Ev 'libgmp|libattr|libacl|libz|libpcre|libidn|dbus-1'` ; do
 		if [ ! -z "$i" ] ; then
 			mv lib/$i ../fastboot-tmp/lib/.
 		fi
 	done
-	for i in `ls --color=never bin/ |grep -Ewvf ../fastboot/bin-boot |grep -Ev '^wget$|^tftp$|^expr$|^wc$|^cut$|^cat$|^sed$|^cp$|^mv$|^readlink$|^grep$|^ifconfig$'` ; do
+	for i in `ls --color=never bin/ |grep -xvf ../fastboot/bin-boot |grep -Ev '^wget$|^tftp$|^expr$|^wc$|^cut$|^cat$|^sed$|^cp$|^mv$|^readlink$|^grep$|^ifconfig$'` ; do
 		if [ ! -z "$i" ] && [ "`readlink bin/$i`" != "/bin/busybox" ]; then
 			mv bin/$i ../fastboot-tmp/bin/.
 		fi
 	done
-	for i in `ls --color=never sbin/ |grep -Ewvf ../fastboot/bin-boot |grep -Ev '^wget$|^tftp$|^expr$|^wc$|^cut$|^cat$|^sed$|^cp$|^mv$|^readlink$|^grep$|^ifconfig$'` ; do
+	for i in `ls --color=never sbin/ |grep -xvf ../fastboot/bin-boot |grep -Ev '^wget$|^tftp$|^expr$|^wc$|^cut$|^cat$|^sed$|^cp$|^mv$|^readlink$|^grep$|^ifconfig$'` ; do
 		if [ ! -z "$i" ] && [ "`readlink sbin/$i`" != "/bin/busybox" ]; then
 			mv sbin/$i ../fastboot-tmp/sbin/.
 		fi
