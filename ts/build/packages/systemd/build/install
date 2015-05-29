@@ -6,15 +6,15 @@ export DROP_DIRS="lib/systemd/system"
 export DROP_FILES="	99-systemd.rules \
 			libgudev-1.0.so \
 			libgudev-1.0.so.0 \
-			libgudev-1.0.so.0.1.2 \
+			libgudev-1.0.so.0.2.0 \
 			libudev.so \
 			accelerometer"
 repackage -e
 
-for file in `find packages/systemd/{etc,bin,sbin,lib,var} -type f |grep -v udev`; do
+for file in `find packages/systemd/{etc,bin,lib,var} -type f |grep -v udev`; do
 	rm $file
 done
-for link in `find packages/systemd/{etc,bin,sbin,lib,var} -type l |grep -v udev`; do
+for link in `find packages/systemd/{etc,bin,lib,var} -type l |grep -v udev`; do
 	rm $link
 done
 find packages/systemd -type d -empty -delete

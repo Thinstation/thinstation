@@ -1,0 +1,24 @@
+#!/bin/bash
+
+pkg=$1
+url=$2
+version=$3
+
+name=`echo $pkg |tr [A-Z] [a-z]`
+mkdir -p /ts/ports/python/$name
+
+echo "
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=$name
+version=$version
+release=1
+source=(${url%/*}/${pkg}-\$version.tar.gz)
+
+build() {
+        cd ${pkg}-\$version
+        python setup.py install --prefix=/usr --root \$PKG
+}
+" > /ts/ports/python/$name/Pkgfile

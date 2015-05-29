@@ -1,0 +1,14 @@
+#!/bin/sh
+
+export PACKAGE=vim
+export PORTS=$PACKAGE
+export DROP_DIRS="lib/vim/doc"
+repackage -e
+
+INSTALLDIR=./packages/vim
+rm $INSTALLDIR/bin/vi
+ln -sf /bin/vim $INSTALLDIR/bin/vi
+
+returnval=$?
+
+exit $returnval

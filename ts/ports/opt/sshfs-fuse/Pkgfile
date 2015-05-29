@@ -1,0 +1,17 @@
+# Description: Remote filesystem in userspace using SSH
+# URL:         http://fuse.sourceforge.net/sshfs.html
+# Maintainer:  Juergen Daubert, jue at crux dot nu
+# Packager:    Jukka Heino, jukka dot heino at gmail dot com
+# Depends on:  fuse, glib
+
+name=sshfs-fuse
+version=2.5
+release=1
+source=(http://downloads.sourceforge.net/project/fuse/$name/$version/$name-$version.tar.gz)
+
+build() {
+    cd $name-$version
+    ./configure --prefix=/usr --mandir=/usr/man
+    make
+    make DESTDIR=$PKG install
+}

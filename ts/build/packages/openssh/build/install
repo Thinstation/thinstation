@@ -1,0 +1,12 @@
+#!/bin/sh
+
+export PACKAGE=openssh
+export PORTS=$PACKAGE
+repackage -e
+
+INSTALLDIR=./packages/openssh
+sed -i -r 's/^start\)/start|init)/g' $INSTALLDIR/etc/rc.d/sshd
+mv $INSTALLDIR/etc/rc.d $INSTALLDIR/etc/init.d
+returnval=$?
+
+exit $returnval

@@ -1,5 +1,6 @@
 #!/bin/bash
 #set -x
+trap "exit 1" SIGINT SIGHUP SIGTERM
 export LANG=C
 INITDIR=boot-images/initrd
 PKGDIR=boot-images/pkg-packages
@@ -185,11 +186,11 @@ calculate_lib_dependencies()
 				linkdest=`readlink $libsource`
 				if [ -n "$linkdest" ]; then
 					[ ! -e $pkgname/lib/$libfile ] \
-					&& $cputil `dirname $libsource`/$linkdest $pkgname/lib/$libfile 2>/dev/null \
+					&& $cputil `dirname $libsource`/$linkdest ./tmp-tree/lib/$libfile 2>/dev/null \
 					&& echo "$pkgname/lib/$libfile" >> liblist.added
 				else
 					[ ! -e $pkgname/lib/$libfile ] \
-					&& $cputil $libsource $pkgname/lib/$libfile 2>/dev/null \
+					&& $cputil $libsource ./tmp-tree/lib/$libfile 2>/dev/null \
 					&& echo "$pkgname/lib/$libfile" >> liblist.added
 				fi
 			else
@@ -1187,7 +1188,7 @@ if [ -e $PACDIR/bootlogo.param ]; then
 fi
 if ! is_enabled $ts_bootlogo; then
 	echo -e "Boot Logo Disabled. Removing splash package."
-	rm $PACDIR/splash.package
+	rm -f $PACDIR/splash.package
 fi
 
 # Now that all the package deps are satisfied, do we really need wmsetbg
@@ -1220,7 +1221,7 @@ rm ./filelist
 
 if [ -e $PACDIR/tsuser.param ]; then
     echo "TSUSER=$ts_tsuser" >> ./tmp-tree/etc/thinstation.defaults
-    echo "HOME=/home/$ts_tsuser" >> ./tmp-tree/etc/thinstation.env
+#    echo "HOME=/home/$ts_tsuser" >> ./tmp-tree/etc/thinstation.env
 	if [  -e $PACDIR/tsuserpasswd.param ]; then
 		if [ "$ts_tsuserpasswd" == "!!" ]; then
 			GETPASSWD="!!"
@@ -1238,7 +1239,7 @@ if [ -e $PACDIR/tsuser.param ]; then
       sed -i -e "s/user = root/user = $ts_tsuser/g" ./tmp-tree/etc/pam.d/login
     fi
 else
-    echo "HOME=/root" >> ./tmp-tree/etc/thinstation.env
+#    echo "HOME=/root" >> ./tmp-tree/etc/thinstation.env
     echo "TSUSER=root" >> ./tmp-tree/etc/thinstation.env
 fi
 
@@ -1381,7 +1382,7 @@ else
 fi
 
 if [ -z "$DEBUG_KERNEL" ] ; then
-  	DEBUGCONSOLE="console=tty1 vt.global_cursor_default=0 loglevel=3"
+  	DEBUGCONSOLE="console=tty1 vt.global_cursor_default=0 quiet loglevel=3"
 fi
 
 # Should we delete the dri folder?

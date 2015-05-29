@@ -17,10 +17,10 @@ create_unwind()
 	printf "\n\tCreating fast install cache for $i"
         echo "#`md5sum .dna`" > /ts/unwind_cache/$i.turbo
         update -d $i |
-        sed -e 's/^cp \//3:/g' -e 's/mkdir \-/2:/g' -e 's/ln \-/4:/g' -e 's/touch \//5:/g' |
+        sed -e 's/^mkdir \-/2:/g' -e 's/^ln \-/4:/g' -e 's/^touch /5:/g' -e 's/^ln \//3:/g' |
         sort |
         uniq |
-        sed -e 's/^2:/mkdir \-/g' -e 's/^3:/cp \//g' -e 's/^4:/ln \-/g' -e 's/^5:/touch \//g' >> /ts/unwind_cache/$i.turbo
+        sed -e 's/^2:/mkdir \-/g' -e 's/^3:/ln \//g' -e 's/^4:/ln \-/g' -e 's/^5:/touch /g' >> /ts/unwind_cache/$i.turbo
 	errata=true
 }
 
@@ -127,14 +127,14 @@ stage1()
 	done
 	done
 	touch /cleanstage2
-	if [ ! -e /CLEAN ]; then
+	if [ -z "$clean" ]; then
 		printf "\rPlease Type \"exit\" to Finish the Cleaning Process\t\t\t"
 	fi
 }
 
 stage2()
 {
-	for trash in usr lib64 run www share home man bin boot dev etc lib mnt opt proc root sbin sys tmp var ts/components; do
+	for trash in BUILD.* autodl usr lib64 run www share home man bin boot dev etc lib mnt opt proc root sbin sys tmp var ts/components; do
 		if [ -e $trash ] || [ -h $trash ]; then
 			rm -rf $ROOT/$trash
 		fi

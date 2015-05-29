@@ -46,10 +46,6 @@ build() {
     make install DESTDIR=$PKG
 
     mkdir -p $PKG/lib/{firmware,udev/devices/{pts,shm}}
-    mkdir -p $PKG/{lib,sbin}
-
-    # Symlink to udevd
-    ln -s ../lib/udev/udevd $PKG/sbin/udevd
 
     # Populate nodes
     mknod -m 600 $PKG/lib/udev/devices/console c 5 1

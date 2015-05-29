@@ -106,7 +106,6 @@ manual_config()
 	echo "search $NET_DNS_SEARCH" >> /etc/resolv.conf
 	if ifconfig $INTERFACE $NET_IP_ADDRESS netmask $NET_MASK ; then
 		NETWORKUP=TRUE
-		NET${IFINDEX}=$INTERFACE
 		echo "NETWORKUP=TRUE" >> /var/log/net/$INTERFACE
 		echo "NET${IFINDEX}=$INTERFACE" >> $TS_RUNTIME
 		route add default gw $NET_GATEWAY
@@ -271,7 +270,7 @@ configure_ip()
 		echo_log "Booting with manually configured network..." $debug
 		manual_config
 	else
-		udhcpc -R -b -A $NET_DHCP_TIMEOUT -x hostname:$CLIENT_NAME -t 20 -T 3 -i $INTERFACE -C -s /etc/udev/scripts/lease_dhcp -p /var/run/udhcpc-$INTERFACE.pid
+		udhcpc -R -b -t $NET_DHCP_TIMEOUT -x hostname:$CLIENT_NAME -T 1 -i $INTERFACE -C -s /etc/udev/scripts/lease_dhcp -p /var/run/udhcpc-$INTERFACE.pid
 	fi
 }
 

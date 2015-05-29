@@ -11,7 +11,7 @@ if [ "`tty`" == "$CONSOLE" ]; then
         for file in `ls -A /etc/skel`; do
        	        cp -a /etc/skel/$file $HOME/. 2>/dev/null
         done
-        chown -R $TSUSER.$TSUSER $HOME
+        chown -R "`id -un`.`id -gn`" $HOME
 	if [ -e $WKDIR/consoleapps ]; then
 		splash_exit
 		show_cursor

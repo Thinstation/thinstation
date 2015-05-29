@@ -7,7 +7,9 @@ for i in /*; do
 done
 mkdir -p /var/run/applications
 chmod -R g+w,o+w /var/run/applications
-if [ "`readlink /bin/su`" != "/bin/busybox" ]; then
+if [ "`readlink /bin/su`" == "/bin/busybox" ]; then
+	chmod u+s /bin/busybox
+else
 	chmod u+s /bin/su
 fi
 chmod 640 /etc/securetty

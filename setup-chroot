@@ -1,7 +1,5 @@
 #!/bin/bash
-
-INSTANCE=$$
-export INSTANCE
+export INSTANCE=$$
 
 state_checks()
 {
@@ -24,7 +22,6 @@ help()
 	-h : Show this help message.
 	-i : Install the env only. Don't enter it after-wards.
 	-b : Run build after entering chroot and exit after-wards.
-	-d : Use an alternate build directory. Default = /ts/build
 	-o : Options to pass to build. Must be the last option,
 	     as anything after it will be passed to build.
 	-c : Clean the chroot env.
@@ -41,12 +38,11 @@ get_opts()
 		case $1 in
 		-a|--autodl)	export autodl=true;;
 		-i|--install)	install_only=true; export autodl=true;;
-		-d|--directory)	shift ; build_dir=$1 ;;
-		-b|--build)	build=true ;;
+		-b|--build)	export build=true ;;
 		-h|--help)	help ; exit 255 ;;
-		-o|--options)	shift ; build_opts=$@ ; shift $# ;;
-		-c|--clean)	unset build ; shift $# ; touch ./CLEAN ;;
-		-e|--exec)	shift ; exec_cmd=$@ ; shift $# ;;
+		-o|--options)	shift ; export build_opts=$@ ; shift $# ;;
+		-c|--clean)	unset build exec_cmd; shift $# ; export clean=true ;;
+		-e|--exec)	shift ; export exec_cmd=$@ ; shift $# ;;
 		*)		echo "Invalid Argument: $1" ; help ; exit 255 ;;
 		esac
 		shift
@@ -123,11 +119,11 @@ mounted()
 
 do_mounts()
 {
-	if ! mounted dev ; then mount --bind /dev dev ; fi
-	if ! mounted tmp ; then mount --bind /tmp tmp ; fi
+	if ! mounted dev ; then mount -t devtmpfs /dev dev ; fi
+	if ! mounted tmp ; then mount -t tmpfs /tmp tmp ; fi
 	if ! mounted proc ; then mount -t proc proc proc ; fi
 	if ! mounted sys ; then mount -t sysfs none sys ; fi
-	if ! mounted dev/pts ; then mount --bind /dev/pts dev/pts ; fi
+	if ! mounted dev/pts ; then mount -t devpts /dev/pts dev/pts ; fi
 }
 
 copy_host_essential()
@@ -149,7 +145,7 @@ launch_chroot()
 			dbus-uuidgen --get > var/lib/dbus/machine-id
 		fi
 	fi
-	chroot /$PWD /bin/bash --rcfile ./ts/TS_ENV
+	chroot $PWD /ts/TS_ENV
 	howdiditgo=$?
 	if first_or_last ; then
 		do_unmounts
@@ -176,30 +172,10 @@ do_unmounts()
 	done
 }
 
-set_cmd()
-{
-	if [ ! -z "$exec_cmd" ]; then
-		echo "$exec_cmd" > BUILD.$INSTANCE
-	fi
-}
-
-set_build()
-{
-	if [ "$build" == "true" ] ; then
-		if [ -z "$build_dir" ] ; then
-			build_dir=/ts/build
-		fi
-		echo "cd $build_dir" > BUILD.$INSTANCE
-		echo "./build $build_opts" >> BUILD.$INSTANCE
-	fi
-}
-
 main()
 {
 	get_opts $@
 	state_checks
-	set_build
-	set_cmd
 	launch_chroot
 	if [ -e dostage4 ] ; then
 		copy_host_essential
@@ -216,6 +192,7 @@ main()
 	fi
 }
 
+trap "do_unmounts; exit 1" SIGINT SIGHUP SIGTERM
 main $@
 if [ "$howdiditgo" == "0" ] ; then echo -e "\nGoodbye. \n" ; fi
-exit 0
+exit $howdiditgo

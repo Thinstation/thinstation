@@ -123,7 +123,6 @@ if [ "$TYPE" == "sr" ] && [ "$ACTION" == "change" ]; then
 	for var in `cdrom_id /dev/$devpath`; do
 		export $var
 	done
-#	export >> /var/log/cdrom
 	if [ "$ID_CDROM_MEDIA" == "1" ]; then
 		if [ -e /proc/sys/dev/cdrom ] ; then
 			echo 0 > /proc/sys/dev/cdrom/autoclose
