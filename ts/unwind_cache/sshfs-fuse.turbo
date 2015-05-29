@@ -1,0 +1,80 @@
+#a61e7d0034bcefccc7351845b5a4ab0d  .dna
+
+     0K .......... .......... .......... .......... .......... 37%  208K 0s
+    50K .......... .......... .......... .......... .......... 75%  601K 0s
+   100K .......... .......... .......... ...                  100%  457K=0.4s
+  /usr/bin/install -c sshfs '/ts/ports/opt/sshfs-fuse/work/pkg/usr/bin'
+ /bin/mkdir -p '/ts/ports/opt/sshfs-fuse/work/pkg/usr/bin'
+ /bin/mkdir -p '/ts/ports/opt/sshfs-fuse/work/pkg/usr/man/man1'
+ /usr/bin/install -c -m 644 sshfs.1 '/ts/ports/opt/sshfs-fuse/work/pkg/usr/man/man1'
++ ./configure --prefix=/usr --mandir=/usr/man
++ build
++ cd sshfs-fuse-2.5
++ make
++ make DESTDIR=/ts/ports/opt/sshfs-fuse/work/pkg install
+-- Packages installed
+--2015-05-29 21:47:25--  http://downloads.sourceforge.net/project/fuse/sshfs-fuse/2.5/sshfs-fuse-2.5.tar.gz
+--2015-05-29 21:47:25--  http://iweb.dl.sourceforge.net/project/fuse/sshfs-fuse/2.5/sshfs-fuse-2.5.tar.gz
+-rw-r--r--  0 root   root     2515 May 29 21:47 usr/man/man1/sshfs.1.gz
+-rwxr-xr-x  0 root   root    68936 May 29 21:47 usr/bin/sshfs
+2015-05-29 21:47:26 (336 KB/s) - `/ts/ports/opt/sshfs-fuse/sshfs-fuse-2.5.tar.gz.partial' saved [136378/136378]
+mkdir -p /ts/build/packages/sshfs-fuse/bin
+ln /usr/bin/sshfs /ts/build/packages/sshfs-fuse/bin/.
+=======> Build result:
+=======> Building '/ts/ports/opt/sshfs-fuse/sshfs-fuse#2.5-1.pkg.tar.gz' succeeded.
+=======> Building '/ts/ports/opt/sshfs-fuse/sshfs-fuse#2.5-1.pkg.tar.gz'.
+=======> Downloading 'http://downloads.sourceforge.net/project/fuse/sshfs-fuse/2.5/sshfs-fuse-2.5.tar.gz'.
+Connecting to downloads.sourceforge.net (downloads.sourceforge.net)|216.34.181.59|:80... connected.
+Connecting to iweb.dl.sourceforge.net (iweb.dl.sourceforge.net)|70.38.0.134|:80... connected.
+HTTP request sent, awaiting response... 200 OK
+HTTP request sent, awaiting response... 302 Found
+Length: 136378 (133K) [application/x-gzip]
+Location: http://iweb.dl.sourceforge.net/project/fuse/sshfs-fuse/2.5/sshfs-fuse-2.5.tar.gz [following]
+Resolving downloads.sourceforge.net (downloads.sourceforge.net)... 216.34.181.59
+Resolving iweb.dl.sourceforge.net (iweb.dl.sourceforge.net)... 70.38.0.134, 2607:f748:10:12::5f:2
+Saving to: `/ts/ports/opt/sshfs-fuse/sshfs-fuse-2.5.tar.gz.partial'
+bsdtar -p -o -C /ts/ports/opt/sshfs-fuse/work/src -xf /ts/ports/opt/sshfs-fuse/sshfs-fuse-2.5.tar.gz
+checking OpenSSH version... 6.7 >= 4.4, disabling NODELAY workaround
+checking dependency style of gcc... gcc3
+checking for C compiler default output file name... a.out
+checking for SSHFS... yes
+checking for a BSD-compatible install... /usr/bin/install -c
+checking for a thread-safe mkdir -p... /bin/mkdir -p
+checking for fuse_opt_parse... yes
+checking for gawk... gawk
+checking for gcc option to accept ISO C89... none needed
+checking for gcc... gcc
+checking for library containing dlsym... -ldl
+checking for pkg-config... /usr/bin/pkg-config
+checking for style of include used by make... GNU
+checking for suffix of executables... 
+checking for suffix of object files... o
+checking pkg-config is at least version 0.9.0... yes
+checking that generated files are newer than configure... done
+checking whether build environment is sane... yes
+checking whether gcc accepts -g... yes
+checking whether gcc and cc understand -c and -o together... yes
+checking whether make sets $(MAKE)... yes
+checking whether the C compiler works... yes
+checking whether we are cross compiling... no
+checking whether we are using the GNU C compiler... yes
+config.status: creating Makefile
+config.status: creating config.h
+config.status: executing depfiles commands
+configure: creating ./config.status
+drwxr-xr-x  0 root   root        0 May 29 21:47 usr/
+drwxr-xr-x  0 root   root        0 May 29 21:47 usr/bin/
+drwxr-xr-x  0 root   root        0 May 29 21:47 usr/man/
+drwxr-xr-x  0 root   root        0 May 29 21:47 usr/man/man1/
+gcc -DHAVE_CONFIG_H -I.  -D_REENTRANT -DFUSE_USE_VERSION=26 -DLIBDIR=\"/usr/lib\"  -D_FILE_OFFSET_BITS=64 -pthread -I/usr/include/fuse -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include  -O2 -march=i686 -pipe -Wall -W -MT sshfs-cache.o -MD -MP -MF .deps/sshfs-cache.Tpo -c -o sshfs-cache.o `test -f 'cache.c' || echo './'`cache.c
+gcc -DHAVE_CONFIG_H -I.  -D_REENTRANT -DFUSE_USE_VERSION=26 -DLIBDIR=\"/usr/lib\"  -D_FILE_OFFSET_BITS=64 -pthread -I/usr/include/fuse -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include  -O2 -march=i686 -pipe -Wall -W -MT sshfs-sshfs.o -MD -MP -MF .deps/sshfs-sshfs.Tpo -c -o sshfs-sshfs.o `test -f 'sshfs.c' || echo './'`sshfs.c
+gcc -D_FILE_OFFSET_BITS=64 -pthread -I/usr/include/fuse -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include  -O2 -march=i686 -pipe -Wall -W   -o sshfs sshfs-sshfs.o sshfs-cache.o  -lfuse -pthread -lgthread-2.0 -pthread -lrt -lglib-2.0  
+make  all-am
+make[1]: Entering directory '/ts/ports/opt/sshfs-fuse/work/src/sshfs-fuse-2.5'
+make[1]: Leaving directory '/ts/ports/opt/sshfs-fuse/work/src/sshfs-fuse-2.5'
+mv -f .deps/sshfs-cache.Tpo .deps/sshfs-cache.Po
+mv -f .deps/sshfs-sshfs.Tpo .deps/sshfs-sshfs.Po
+prt-get: installed successfully
+prt-get: installing /ts/ports/opt/sshfs-fuse
+prt-get: installing sshfs-fuse 2.5-1
+sshfs-fuse
