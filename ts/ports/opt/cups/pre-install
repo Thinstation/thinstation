@@ -1,0 +1,10 @@
+#!/bin/sh
+
+# check for ls group or add one
+#getent group lp || /usr/sbin/groupadd -g 7 lp
+
+# check for lp user or add one
+getent passwd lp || /usr/sbin/useradd -g lp -u 7 -d /var/spool/lp -s /bin/nologin lp
+
+# lock the account
+/usr/bin/passwd -l lp

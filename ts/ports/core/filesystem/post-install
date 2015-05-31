@@ -1,0 +1,7 @@
+#!/bin/sh
+
+# check for utmp group or add one
+getent group utmp || /usr/sbin/groupadd -g 22 utmp
+
+chgrp utmp /var/run/utmp
+chmod 664 /var/run/utmp

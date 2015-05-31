@@ -1,0 +1,10 @@
+#!/bin/sh
+
+# check for avahi group or add one
+getent group avahi || /usr/sbin/groupadd -g 70 avahi
+
+# check for avahi user or add one
+getent passwd avahi || /usr/sbin/useradd -g avahi -u 70 -d /usr/var/run/avahi -s /bin/false -c "Avahi User" avahi
+
+# lock the account
+/usr/bin/passwd -l avahi
