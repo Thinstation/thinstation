@@ -4,6 +4,11 @@
 
 case "$1" in
 init)
+    if [ "$TSUSER" != "root" ]; then
+	HOME=/home/$TSUSUER
+    else
+	HOME=/root
+    fi
     if [ -n "$STORAGE_PREFIX" ] ; then
     	STORAGE_PREFIX=`make_caps $STORAGE_PREFIX`
         if [ "$STORAGE_PREFIX" == "M" ] ; then
