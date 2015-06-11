@@ -211,7 +211,7 @@ export -f calculate_lib_dependencies
 resolve_links()
 {
 	for link in `find $pkgname/lib -mindepth 1 -maxdepth 1 -type l \
-        |grep -E 'so.[0-9]+$|.so$' \
+        |grep -E 'so.[0-9]+$|so.[0-9]+.[0-9]+$|.so$' \
         |sort -u`; do
         	if [ -e $link ]; then
         		linkdest=`readlink $link`
@@ -242,8 +242,9 @@ lib_dependencies()
 		if [ -d $pkgname/lib ]; then
 			find $pkgname/lib -mindepth 1 -maxdepth 1 -type l |grep -e .so$ |grep -v python |xargs rm >/dev/null 2>&1
 			resolve_links
-			find $pkgname/lib -mindepth 1 -maxdepth 1 -name lib\* |grep -E '.so.[0-9]+.[0-9]' |xargs rm >/dev/null 2>&1
-			find $pkgname/lib -mindepth 1 -maxdepth 1 -type f |grep -E 'libnss_[a-z]+\-[0-9].[0-9]+.so$' |xargs rm >/dev/null 2>&1
+			find $pkgname/lib -mindepth 1 -maxdepth 1 -name lib\* |grep -E '.so.[0-9]+.[0-9]+' |grep -Ev 'libwinpr|libfreerdp' |xargs rm >/dev/null 2>&1
+			find $pkgname/lib -mindepth 1 -maxdepth 1 -name lib\* |grep -E '.so.[0-9]+.[0-9]+.[0-9]+' |xargs rm >/dev/null 2>&1
+			find $pkgname/lib -mindepth 1 -maxdepth 1 -type f |grep -E 'libnss_[a-z]+\-[0-9]+.[0-9]+.so$' |xargs rm >/dev/null 2>&1
 		fi
 		find $pkgname -type f > filelist
 		file -e encoding -e tokens -e compress -e ascii -e apptype -e tar -e cdf -f filelist -n -r \
