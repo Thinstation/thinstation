@@ -6,11 +6,7 @@ trap "" INT QUIT TSTP
 
 umask 022
 if [ "`tty`" == "$CONSOLE" ]; then
-	if [ "$TSUSER" != "root" ]; then
-		HOME=/home/$TSUSER
-	else
-		HOME=/root
-	fi
+	HOME=~
        	mkdir -p $HOME
         rm -rf $HOME/.{config,local,gconf,gconfd,gnome2,xinitrc}
         for file in `ls -A /etc/skel`; do

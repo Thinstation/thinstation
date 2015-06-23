@@ -299,16 +299,12 @@ splash_cache_cleanup () {
 # Sends data to the splash FIFO after making sure there's someone
 # alive on the other end to receive it.
 splash_comm_send() {
-        if [ -z "`pidof $(basename ${spl_daemon})`" ]; then
-                return 1
-        else
-		splash_profile "comm $*"
-		if [ "$*" == "exit" ]; then
-        	        echo "$*" > "${spl_fifo}"
-		else
-			echo "$*" > "${spl_fifo}" &
-		fi
-        fi
+	splash_profile "comm $*"
+	if [ "$*" == "exit" ]; then
+       	        echo "$*" > "${spl_fifo}"
+	else
+		echo "$*" > "${spl_fifo}" &
+	fi
 }
 
 # Returns the current splash mode.
