@@ -232,8 +232,9 @@ splash_start () {
         splash_comm_send "set autoverbose ${SPLASH_AUTOVERBOSE}"
 
         splash_set_event_dev
-	chown root.users "${spl_pidfile}"
-	chmod u+w "${spl_pidfile}"
+	chown -R root.users "${spl_cachedir}"
+	chmod g+w "${spl_cachedir}"
+	chmod 660 "${spl_pidfile}"
 
         return 0
 }
@@ -305,7 +306,7 @@ splash_comm_send() {
 		splash_profile "comm $*"
 		if [ "$*" == "exit" ]; then
        	        	echo "$*" > "${spl_fifo}"
-			rm "${spl_pidfile}"
+			rm -f "${spl_pidfile}"
 		else
 			echo "$*" > "${spl_fifo}" &
 		fi
