@@ -299,11 +299,14 @@ splash_cache_cleanup () {
 # Sends data to the splash FIFO after making sure there's someone
 # alive on the other end to receive it.
 splash_comm_send() {
-	splash_profile "comm $*"
-	if [ "$*" == "exit" ]; then
-       	        echo "$*" > "${spl_fifo}"
-	else
-		echo "$*" > "${spl_fifo}" &
+	if [ -e /lib/splash/cache/daemon.pid ]; then
+		splash_profile "comm $*"
+		if [ "$*" == "exit" ]; then
+       	        	echo "$*" > "${spl_fifo}"
+			rm /lib/splash/cache/daemon.pid
+		else
+			echo "$*" > "${spl_fifo}" &
+		fi
 	fi
 }
 
