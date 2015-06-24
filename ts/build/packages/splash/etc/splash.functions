@@ -232,6 +232,7 @@ splash_start () {
         splash_comm_send "set autoverbose ${SPLASH_AUTOVERBOSE}"
 
         splash_set_event_dev
+	chown root.users "${spl_pidfile}"
 
         return 0
 }
@@ -299,11 +300,11 @@ splash_cache_cleanup () {
 # Sends data to the splash FIFO after making sure there's someone
 # alive on the other end to receive it.
 splash_comm_send() {
-	if [ -e /lib/splash/cache/daemon.pid ]; then
+	if [ -e "${spl_pidfile}" ]; then
 		splash_profile "comm $*"
 		if [ "$*" == "exit" ]; then
        	        	echo "$*" > "${spl_fifo}"
-			rm /lib/splash/cache/daemon.pid
+			rm "${spl_pidfile}"
 		else
 			echo "$*" > "${spl_fifo}" &
 		fi
