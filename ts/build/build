@@ -1970,11 +1970,16 @@ fi
 add_image()
 {
 	if [ "$1" == "efi" ]; then
-		# What we will actually boot with
-		sys_copy $INITDIR/$KERN64 $ESP/boot/$KERN64
-		# Because HashTool.efi is dumb and cant deal a foler named boot on CD.
-		# Also makes it easier for the user to enroll the kernel hash.
-		sys_copy $INITDIR/$KERN64 $ESP/EFI/BOOT/enroll-$KERN64
+		if [ -n "$KERN64" ]; then
+			# What we will actually boot with
+			sys_copy $INITDIR/$KERN64 $ESP/boot/$KERN64
+			# Because HashTool.efi is dumb and cant deal with a folder named boot on CD.
+			# Also makes it easier for the user to enroll the kernel hash.
+			sys_copy $INITDIR/$KERN64 $ESP/EFI/BOOT/enroll-$KERN64
+		else
+			sys_copy $INITDIR/vmlinuz $ESP/boot/vmlinuz
+			sys_copy $INITDIR/vmlinuz $ESP/EFI/BOOT/enroll-vmlinuz
+		fi
 	else
 		for kernel in `find $INITDIR -maxdepth 1 -type f -name vmlinuz\* -printf '%f '`; do
 			sys_copy $INITDIR/$kernel $ESP/boot/$kernel
@@ -2303,9 +2308,7 @@ if [ -z "$NOIMAGES" ]; then
 				echo $KDIR/refind_linux.conf >> boot-images/initrd/added.files
 			;;
 			gummiboot)
-				if [ -z "$KERN64" ]; then
-					echo "No 64 Bit Kernel in Image - Skipping."
-				elif ! prt-get isinst preloader > /dev/null; then
+				if ! prt-get isinst preloader > /dev/null; then
 					echo "Port binary-opt/preloader not installed - Skipping"
 				elif ! prt-get isinst gummiboot > /dev/null; then
 					echo "Port binary-opt/gummiboot not installed - Skipping"
@@ -2315,12 +2318,19 @@ if [ -z "$NOIMAGES" ]; then
                                 LM=2
 				configdir=boot-images/templates/gummiboot/$ts_gummitheme
 				sys_copy /usr/lib/prebootloader/PreLoader.efi $ESP/EFI/BOOT/bootx64.efi
+				sys_copy /usr/lib/gummiboot/gummibootia32.efi $ESP/EFI/BOOT/bootia32.efi
 				sys_copy /usr/lib/prebootloader/HashTool.efi $ESP/EFI/BOOT/HashTool.efi
 				sys_copy /usr/lib/gummiboot/gummibootx64.efi $ESP/EFI/BOOT/loader.efi
-
+				if [ -n "$KERN64" ]; then
+					sys_copy /usr/lib/prebootloader/PreLoader.efi $ESP/EFI/Microsoft/Boot/bootmgr.efi
+				else
+					sys_copy /usr/lib/gummiboot/gummibootia32.efi $ESP/EFI/Microsoft/Boot/bootmgr.efi
+				fi
 				for file in `find $configdir -type f |sed -e "s|$configdir||g"`; do
 					sys_copy ${configdir}${file} $ESP/$file
-					sed -i -e "s|/boot/vmlinuz|/boot/$KERN64|g" $ESP/$file
+					if [ -n "$KERN64" ]; then
+						sed -i -e "s|/boot/vmlinuz|/boot/$KERN64|g" $ESP/$file
+					fi
 					sed -i -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS LM=$LM/g" $ESP/$file
 				done
 				add_image efi
