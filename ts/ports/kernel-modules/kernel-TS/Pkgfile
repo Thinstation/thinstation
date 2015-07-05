@@ -8,8 +8,8 @@ version=1
 sversion=`cat /ts/ports/kernel-modules/VERSION`
 release=1
 kernel=${sversion}TS
-source=(ftp://ftp.kernel.org/pub/linux/kernel/v3.x/linux-$sversion.tar.xz \
-	/$TSCOMPROOT/aufs/patches/aufs3.patch
+source=(ftp://ftp.kernel.org/pub/linux/kernel/v4.x/linux-$sversion.tar.xz \
+	/$TSCOMPROOT/aufs/patches/aufs4.patch
 	cs5536.patch
 	../kernel-TS/tmpfs_user_xattr.patch
 	ts.config)
@@ -19,7 +19,7 @@ export MAKEFLAGS="-j5"
 	cd linux-$sversion
 	cp $SRC/ts.config ./.config
 
-	patch --no-backup-if-mismatch -p1 < ../aufs3.patch
+	patch --no-backup-if-mismatch -p1 < ../aufs4.patch
 	patch --no-backup-if-mismatch -p1 < ../tmpfs_user_xattr.patch
 	patch --no-backup-if-mismatch -p0 -i $SRC/cs5536.patch
 

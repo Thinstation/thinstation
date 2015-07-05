@@ -3,7 +3,7 @@
 # Maintainer:  CRUX System Team, core-ports at crux dot nu
 
 name=glibc
-version=2.13
+version=2.20
 release=2
 source=(http://ftp.gnu.org/gnu/glibc/glibc-$version.tar.xz
 	glibc-fedora_i686.patch
@@ -17,21 +17,25 @@ source=(http://ftp.gnu.org/gnu/glibc/glibc-$version.tar.xz
 build() {
 
 cd $SRC
-    patch -p1 -d $name-$version -i $SRC/$name-fedora_i686.patch
-    patch -R -p1 -d $name-$version -i $SRC/Optimize-__getpagesize-a-bit.patch
+#    patch -p1 -d $name-$version -i $SRC/$name-fedora_i686.patch
+#    patch -R -p1 -d $name-$version -i $SRC/Optimize-__getpagesize-a-bit.patch
     patch -p1 -d $name-$version -i $SRC/$name-ignore_origin.patch
-    patch -p1 -d $name-$version -i $SRC/disable-assembler-optimizations.patch
+#    patch -p1 -d $name-$version -i $SRC/disable-assembler-optimizations.patch
     patch -p1 -d $name-$version -i $SRC/make-4.x.patch
-    patch -p1 -d $name-$version -i $SRC/$name-ghost.patch
+#    patch -p1 -d $name-$version -i $SRC/$name-ghost.patch
     mkdir build
     cd build
     ../$name-$version/configure --prefix=/usr \
                                 --libexecdir=/usr/lib \
                                 --with-headers=/usr/src/kernels/`cat /boot/KERNEL_VERSION`_SMP/usr/include \
-                                --with-tls \
-                                --enable-kernel=2.6.27 \
-                                --enable-add-ons \
-                                --disable-profile \
+				--enable-add-ons \
+				--enable-obsolete-rpc \
+				--enable-kernel=2.6.32 \
+				--enable-bind-now --disable-profile \
+				--enable-stackguard-randomization \
+				--enable-lock-elision \
+				--enable-multi-arch \
+				--disable-werror \
                                 --without-gd
     make
     make install_root=$PKG install
@@ -42,5 +46,7 @@ cd $SRC
     touch $PKG/etc/ld.so.cache
 
     rm -rf $PKG/usr/share/{info,locale}
+    rm $PKG/usr/sbin/{zic,zdump}
+    rm $PKG/usr/bin/tzselect
 }
 
