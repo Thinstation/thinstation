@@ -13,7 +13,7 @@ Work To Do / Work in Progress: mail to developer List if you can help
 
 New:
 
-- Moved to kernel 3.18.9
+- Moved to kernel 4.1.1
 - Updated nvidia xorg driver and kernel module
 
 **Note that Several modules have been moved inside the kernel**
