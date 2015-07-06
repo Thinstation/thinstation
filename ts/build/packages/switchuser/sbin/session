@@ -7,7 +7,7 @@ if [ "`tty`" != "$CONSOLE" ]; then
 	exit 0
 fi
 if [ "$TSUSER" != "root" ]; then
-	HOME=/home/$TSUSUER
+	HOME=/home/$TSUSER
 else
 	HOME=/root
 fi
@@ -23,21 +23,21 @@ stale_tasks()
 	fi
 }
 
-if [ "$1" = "close" ] && [ -z "`pidof shutdown`" ]; then
+if [ "$1" == "close" ] && [ -z "`pidof shutdown`" ]; then
 	timeout=0
 	while stale_tasks && [ "$timeout" -lt "30" ]; do
 		for task in $tasklist; do
-			kill -HUP $task &> /dev/null
+			kill -HUP $task > /dev/null 2>&1 &
 		done
-		sleep .1
+		wait
 		let timeout=timeout+1
 	done
 	timeout=0
 	while stale_tasks && [ "$timeout" -lt "30" ]; do
 		for task in $tasklist; do
-			kill -KILL $task &> /dev/null
+			kill -KILL $task > /dev/null 2>&1 &
 		done
-		sleep .1
+		wait
 		let timeout=timeout+1
 	done
 	if is_enabled $DESTRUCTIVE_RELOAD; then
