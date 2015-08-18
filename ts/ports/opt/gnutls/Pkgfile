@@ -5,9 +5,9 @@
 # Depends on: nettle libidn
 
 name=gnutls
-version=2.12.21
+version=3.3.15
 release=1
-source=(http://ftp.gnu.org/pub/gnu/$name/$name-$version.tar.bz2)
+source=(ftp://ftp.gnutls.org/gcrypt/$name/v${version%.*}/$name-$version.tar.xz)
 
 build() {
   cd $name-$version
@@ -18,11 +18,8 @@ build() {
 	      --disable-rpath \
               --disable-guile \
 	      --disable-nls \
-	      --enable-pkcs11 \
 	      --disable-cryptodev \
-	      --with-libgcrypt \
-	      --disable-srp-authentication \
-	      --enable-openssl-compatibility
+	      --disable-srp-authentication
 
   make
   make DESTDIR=$PKG install
