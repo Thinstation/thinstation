@@ -4,12 +4,13 @@
 # Maintainer:   
 
 name=libplist
-version=1.8
+version=1.12
 release=1
 source=(http://www.libimobiledevice.org/downloads/$name-$version.tar.bz2)
 
 build() {
-    cmake -DCMAKE_INSTALL_PREFIX=/usr $name-$version
+    cd $name-$version
+    ./configure -prefix=/usr
     make
     make DESTDIR=$PKG install
 }
