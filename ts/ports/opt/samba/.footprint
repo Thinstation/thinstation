@@ -15,7 +15,6 @@ drwxr-xr-x	root/root	usr/bin/
 -rwxr-xr-x	root/root	usr/bin/ndrdump
 -rwxr-xr-x	root/root	usr/bin/net
 -rwxr-xr-x	root/root	usr/bin/nmblookup
--rwxr-xr-x	root/root	usr/bin/nmblookup4
 -rwxr-xr-x	root/root	usr/bin/ntdbbackup
 -rwxr-xr-x	root/root	usr/bin/ntdbdump
 -rwxr-xr-x	root/root	usr/bin/ntdbrestore
@@ -35,7 +34,6 @@ drwxr-xr-x	root/root	usr/bin/
 -rwxr-xr-x	root/root	usr/bin/sharesec
 -rwxr-xr-x	root/root	usr/bin/smbcacls
 -rwxr-xr-x	root/root	usr/bin/smbclient
--rwxr-xr-x	root/root	usr/bin/smbclient4
 -rwxr-xr-x	root/root	usr/bin/smbcontrol
 -rwxr-xr-x	root/root	usr/bin/smbcquotas
 -rwxr-xr-x	root/root	usr/bin/smbget
@@ -54,6 +52,7 @@ drwxr-xr-x	root/root	usr/include/samba-4.0/
 drwxr-xr-x	root/root	usr/include/samba-4.0/core/
 -rw-r--r--	root/root	usr/include/samba-4.0/core/doserr.h
 -rw-r--r--	root/root	usr/include/samba-4.0/core/error.h
+-rw-r--r--	root/root	usr/include/samba-4.0/core/hresult.h
 -rw-r--r--	root/root	usr/include/samba-4.0/core/ntstatus.h
 -rw-r--r--	root/root	usr/include/samba-4.0/core/werror.h
 -rw-r--r--	root/root	usr/include/samba-4.0/credentials.h
@@ -105,6 +104,7 @@ drwxr-xr-x	root/root	usr/include/samba-4.0/gen_ndr/
 -rw-r--r--	root/root	usr/include/samba-4.0/machine_sid.h
 -rw-r--r--	root/root	usr/include/samba-4.0/ndr.h
 drwxr-xr-x	root/root	usr/include/samba-4.0/ndr/
+-rw-r--r--	root/root	usr/include/samba-4.0/ndr/ndr_dcerpc.h
 -rw-r--r--	root/root	usr/include/samba-4.0/ndr/ndr_drsblobs.h
 -rw-r--r--	root/root	usr/include/samba-4.0/ndr/ndr_drsuapi.h
 -rw-r--r--	root/root	usr/include/samba-4.0/ndr/ndr_nbt.h
@@ -126,6 +126,7 @@ drwxr-xr-x	root/root	usr/include/samba-4.0/samba/
 -rw-r--r--	root/root	usr/include/samba-4.0/smb2_constants.h
 -rw-r--r--	root/root	usr/include/samba-4.0/smb2_create_blob.h
 -rw-r--r--	root/root	usr/include/samba-4.0/smb2_lease.h
+-rw-r--r--	root/root	usr/include/samba-4.0/smb2_lease_struct.h
 -rw-r--r--	root/root	usr/include/samba-4.0/smb2_signing.h
 -rw-r--r--	root/root	usr/include/samba-4.0/smb_cli.h
 -rw-r--r--	root/root	usr/include/samba-4.0/smb_cliraw.h
@@ -139,7 +140,6 @@ drwxr-xr-x	root/root	usr/include/samba-4.0/samba/
 -rw-r--r--	root/root	usr/include/samba-4.0/smb_raw_trans2.h
 -rw-r--r--	root/root	usr/include/samba-4.0/smb_request.h
 -rw-r--r--	root/root	usr/include/samba-4.0/smb_seal.h
--rw-r--r--	root/root	usr/include/samba-4.0/smb_share_modes.h
 -rw-r--r--	root/root	usr/include/samba-4.0/smb_signing.h
 -rw-r--r--	root/root	usr/include/samba-4.0/smb_unix_ext.h
 -rw-r--r--	root/root	usr/include/samba-4.0/smb_util.h
@@ -149,14 +149,21 @@ drwxr-xr-x	root/root	usr/include/samba-4.0/samba/
 -rw-r--r--	root/root	usr/include/samba-4.0/torture.h
 -rw-r--r--	root/root	usr/include/samba-4.0/tsocket.h
 -rw-r--r--	root/root	usr/include/samba-4.0/tsocket_internal.h
+-rw-r--r--	root/root	usr/include/samba-4.0/tstream_smbXcli_np.h
 drwxr-xr-x	root/root	usr/include/samba-4.0/util/
 -rw-r--r--	root/root	usr/include/samba-4.0/util/attr.h
+-rw-r--r--	root/root	usr/include/samba-4.0/util/blocking.h
 -rw-r--r--	root/root	usr/include/samba-4.0/util/byteorder.h
 -rw-r--r--	root/root	usr/include/samba-4.0/util/data_blob.h
 -rw-r--r--	root/root	usr/include/samba-4.0/util/debug.h
+-rw-r--r--	root/root	usr/include/samba-4.0/util/fault.h
+-rw-r--r--	root/root	usr/include/samba-4.0/util/idtree.h
+-rw-r--r--	root/root	usr/include/samba-4.0/util/idtree_random.h
 -rw-r--r--	root/root	usr/include/samba-4.0/util/memory.h
 -rw-r--r--	root/root	usr/include/samba-4.0/util/safe_string.h
+-rw-r--r--	root/root	usr/include/samba-4.0/util/signal.h
 -rw-r--r--	root/root	usr/include/samba-4.0/util/string_wrappers.h
+-rw-r--r--	root/root	usr/include/samba-4.0/util/substitute.h
 -rw-r--r--	root/root	usr/include/samba-4.0/util/talloc_stack.h
 -rw-r--r--	root/root	usr/include/samba-4.0/util/tevent_ntstatus.h
 -rw-r--r--	root/root	usr/include/samba-4.0/util/tevent_unix.h
@@ -193,17 +200,15 @@ lrwxrwxrwx	root/root	usr/lib/libndr-nbt.so.0 -> libndr-nbt.so.0.0.1
 lrwxrwxrwx	root/root	usr/lib/libndr-standard.so -> libndr-standard.so.0.0.1
 lrwxrwxrwx	root/root	usr/lib/libndr-standard.so.0 -> libndr-standard.so.0.0.1
 -rwxr-xr-x	root/root	usr/lib/libndr-standard.so.0.0.1
-lrwxrwxrwx	root/root	usr/lib/libndr.so -> libndr.so.0.0.2
-lrwxrwxrwx	root/root	usr/lib/libndr.so.0 -> libndr.so.0.0.2
--rwxr-xr-x	root/root	usr/lib/libndr.so.0.0.2
+lrwxrwxrwx	root/root	usr/lib/libndr.so -> libndr.so.0.0.3
+lrwxrwxrwx	root/root	usr/lib/libndr.so.0 -> libndr.so.0.0.3
+-rwxr-xr-x	root/root	usr/lib/libndr.so.0.0.3
 lrwxrwxrwx	root/root	usr/lib/libnetapi.so -> libnetapi.so.0
 -rwxr-xr-x	root/root	usr/lib/libnetapi.so.0
 lrwxrwxrwx	root/root	usr/lib/libnss_winbind.so -> libnss_winbind.so.2
 -rwxr-xr-x	root/root	usr/lib/libnss_winbind.so.2
 lrwxrwxrwx	root/root	usr/lib/libnss_wins.so -> libnss_wins.so.2
 -rwxr-xr-x	root/root	usr/lib/libnss_wins.so.2
-lrwxrwxrwx	root/root	usr/lib/libpdb.so -> libpdb.so.0
--rwxr-xr-x	root/root	usr/lib/libpdb.so.0
 lrwxrwxrwx	root/root	usr/lib/libregistry.so -> libregistry.so.0.0.1
 lrwxrwxrwx	root/root	usr/lib/libregistry.so.0 -> libregistry.so.0.0.1
 -rwxr-xr-x	root/root	usr/lib/libregistry.so.0.0.1
@@ -213,6 +218,9 @@ lrwxrwxrwx	root/root	usr/lib/libsamba-credentials.so.0 -> libsamba-credentials.s
 lrwxrwxrwx	root/root	usr/lib/libsamba-hostconfig.so -> libsamba-hostconfig.so.0.0.1
 lrwxrwxrwx	root/root	usr/lib/libsamba-hostconfig.so.0 -> libsamba-hostconfig.so.0.0.1
 -rwxr-xr-x	root/root	usr/lib/libsamba-hostconfig.so.0.0.1
+lrwxrwxrwx	root/root	usr/lib/libsamba-passdb.so -> libsamba-passdb.so.0.24.1
+lrwxrwxrwx	root/root	usr/lib/libsamba-passdb.so.0 -> libsamba-passdb.so.0.24.1
+-rwxr-xr-x	root/root	usr/lib/libsamba-passdb.so.0.24.1
 lrwxrwxrwx	root/root	usr/lib/libsamba-policy.so -> libsamba-policy.so.0.0.1
 lrwxrwxrwx	root/root	usr/lib/libsamba-policy.so.0 -> libsamba-policy.so.0.0.1
 -rwxr-xr-x	root/root	usr/lib/libsamba-policy.so.0.0.1
@@ -232,18 +240,53 @@ lrwxrwxrwx	root/root	usr/lib/libsmbconf.so -> libsmbconf.so.0
 -rwxr-xr-x	root/root	usr/lib/libsmbconf.so.0
 lrwxrwxrwx	root/root	usr/lib/libsmbldap.so -> libsmbldap.so.0
 -rwxr-xr-x	root/root	usr/lib/libsmbldap.so.0
-lrwxrwxrwx	root/root	usr/lib/libsmbsharemodes.so -> libsmbsharemodes.so.0
--rwxr-xr-x	root/root	usr/lib/libsmbsharemodes.so.0
 lrwxrwxrwx	root/root	usr/lib/libtevent-util.so -> libtevent-util.so.0.0.1
 lrwxrwxrwx	root/root	usr/lib/libtevent-util.so.0 -> libtevent-util.so.0.0.1
 -rwxr-xr-x	root/root	usr/lib/libtevent-util.so.0.0.1
 lrwxrwxrwx	root/root	usr/lib/libtorture.so -> libtorture.so.0.0.1
 lrwxrwxrwx	root/root	usr/lib/libtorture.so.0 -> libtorture.so.0.0.1
 -rwxr-xr-x	root/root	usr/lib/libtorture.so.0.0.1
-lrwxrwxrwx	root/root	usr/lib/libwbclient.so -> libwbclient.so.0.11
-lrwxrwxrwx	root/root	usr/lib/libwbclient.so.0 -> libwbclient.so.0.11
--rwxr-xr-x	root/root	usr/lib/libwbclient.so.0.11
+lrwxrwxrwx	root/root	usr/lib/libwbclient.so -> libwbclient.so.0.12
+lrwxrwxrwx	root/root	usr/lib/libwbclient.so.0 -> libwbclient.so.0.12
+-rwxr-xr-x	root/root	usr/lib/libwbclient.so.0.12
 -rwxr-xr-x	root/root	usr/lib/mit_samba.so
+drwxr-xr-x	root/root	usr/lib/perl5/
+drwxr-xr-x	root/root	usr/lib/perl5/vendor_perl/
+drwxr-xr-x	root/root	usr/lib/perl5/vendor_perl/5.20/
+drwxr-xr-x	root/root	usr/lib/perl5/vendor_perl/5.20/Parse/
+-rw-r--r--	root/root	usr/lib/perl5/vendor_perl/5.20/Parse/Pidl.pm
+drwxr-xr-x	root/root	usr/lib/perl5/vendor_perl/5.20/Parse/Pidl/
+-rw-r--r--	root/root	usr/lib/perl5/vendor_perl/5.20/Parse/Pidl/CUtil.pm
+-rw-r--r--	root/root	usr/lib/perl5/vendor_perl/5.20/Parse/Pidl/Compat.pm
+-rw-r--r--	root/root	usr/lib/perl5/vendor_perl/5.20/Parse/Pidl/Dump.pm
+-rw-r--r--	root/root	usr/lib/perl5/vendor_perl/5.20/Parse/Pidl/Expr.pm
+-rw-r--r--	root/root	usr/lib/perl5/vendor_perl/5.20/Parse/Pidl/IDL.pm
+-rw-r--r--	root/root	usr/lib/perl5/vendor_perl/5.20/Parse/Pidl/NDR.pm
+-rw-r--r--	root/root	usr/lib/perl5/vendor_perl/5.20/Parse/Pidl/ODL.pm
+drwxr-xr-x	root/root	usr/lib/perl5/vendor_perl/5.20/Parse/Pidl/Samba3/
+-rw-r--r--	root/root	usr/lib/perl5/vendor_perl/5.20/Parse/Pidl/Samba3/ClientNDR.pm
+-rw-r--r--	root/root	usr/lib/perl5/vendor_perl/5.20/Parse/Pidl/Samba3/ServerNDR.pm
+-rw-r--r--	root/root	usr/lib/perl5/vendor_perl/5.20/Parse/Pidl/Samba4.pm
+drwxr-xr-x	root/root	usr/lib/perl5/vendor_perl/5.20/Parse/Pidl/Samba4/
+drwxr-xr-x	root/root	usr/lib/perl5/vendor_perl/5.20/Parse/Pidl/Samba4/COM/
+-rw-r--r--	root/root	usr/lib/perl5/vendor_perl/5.20/Parse/Pidl/Samba4/COM/Header.pm
+-rw-r--r--	root/root	usr/lib/perl5/vendor_perl/5.20/Parse/Pidl/Samba4/COM/Proxy.pm
+-rw-r--r--	root/root	usr/lib/perl5/vendor_perl/5.20/Parse/Pidl/Samba4/COM/Stub.pm
+-rw-r--r--	root/root	usr/lib/perl5/vendor_perl/5.20/Parse/Pidl/Samba4/Header.pm
+drwxr-xr-x	root/root	usr/lib/perl5/vendor_perl/5.20/Parse/Pidl/Samba4/NDR/
+-rw-r--r--	root/root	usr/lib/perl5/vendor_perl/5.20/Parse/Pidl/Samba4/NDR/Client.pm
+-rw-r--r--	root/root	usr/lib/perl5/vendor_perl/5.20/Parse/Pidl/Samba4/NDR/Parser.pm
+-rw-r--r--	root/root	usr/lib/perl5/vendor_perl/5.20/Parse/Pidl/Samba4/NDR/Server.pm
+-rw-r--r--	root/root	usr/lib/perl5/vendor_perl/5.20/Parse/Pidl/Samba4/Python.pm
+-rw-r--r--	root/root	usr/lib/perl5/vendor_perl/5.20/Parse/Pidl/Samba4/TDR.pm
+-rw-r--r--	root/root	usr/lib/perl5/vendor_perl/5.20/Parse/Pidl/Samba4/Template.pm
+-rw-r--r--	root/root	usr/lib/perl5/vendor_perl/5.20/Parse/Pidl/Typelist.pm
+-rw-r--r--	root/root	usr/lib/perl5/vendor_perl/5.20/Parse/Pidl/Util.pm
+drwxr-xr-x	root/root	usr/lib/perl5/vendor_perl/5.20/Parse/Pidl/Wireshark/
+-rw-r--r--	root/root	usr/lib/perl5/vendor_perl/5.20/Parse/Pidl/Wireshark/Conformance.pm
+-rw-r--r--	root/root	usr/lib/perl5/vendor_perl/5.20/Parse/Pidl/Wireshark/NDR.pm
+drwxr-xr-x	root/root	usr/lib/perl5/vendor_perl/5.20/Parse/Yapp/
+-rw-r--r--	root/root	usr/lib/perl5/vendor_perl/5.20/Parse/Yapp/Driver.pm
 drwxr-xr-x	root/root	usr/lib/pkgconfig/
 -rw-r--r--	root/root	usr/lib/pkgconfig/dcerpc.pc
 -rw-r--r--	root/root	usr/lib/pkgconfig/dcerpc_atsvc.pc
@@ -263,7 +306,6 @@ drwxr-xr-x	root/root	usr/lib/pkgconfig/
 -rw-r--r--	root/root	usr/lib/pkgconfig/samdb.pc
 -rw-r--r--	root/root	usr/lib/pkgconfig/smbclient-raw.pc
 -rw-r--r--	root/root	usr/lib/pkgconfig/smbclient.pc
--rw-r--r--	root/root	usr/lib/pkgconfig/smbsharemodes.pc
 -rw-r--r--	root/root	usr/lib/pkgconfig/torture.pc
 -rw-r--r--	root/root	usr/lib/pkgconfig/wbclient.pc
 drwxr-xr-x	root/root	usr/lib/python2.7/
@@ -283,6 +325,7 @@ drwxr-xr-x	root/root	usr/lib/python2.7/site-packages/samba/dcerpc/
 -rwxr-xr-x	root/root	usr/lib/python2.7/site-packages/samba/dcerpc/atsvc.so
 -rwxr-xr-x	root/root	usr/lib/python2.7/site-packages/samba/dcerpc/auth.so
 -rwxr-xr-x	root/root	usr/lib/python2.7/site-packages/samba/dcerpc/base.so
+-rwxr-xr-x	root/root	usr/lib/python2.7/site-packages/samba/dcerpc/dcerpc.so
 -rwxr-xr-x	root/root	usr/lib/python2.7/site-packages/samba/dcerpc/dfs.so
 -rwxr-xr-x	root/root	usr/lib/python2.7/site-packages/samba/dcerpc/dns.so
 -rwxr-xr-x	root/root	usr/lib/python2.7/site-packages/samba/dcerpc/dnsp.so
@@ -401,6 +444,11 @@ drwxr-xr-x	root/root	usr/lib/python2.7/site-packages/samba/external/dns/rdtypes/
 -rw-r--r--	root/root	usr/lib/python2.7/site-packages/samba/external/dns/version.py
 -rw-r--r--	root/root	usr/lib/python2.7/site-packages/samba/external/dns/wiredata.py
 -rw-r--r--	root/root	usr/lib/python2.7/site-packages/samba/external/dns/zone.py
+drwxr-xr-x	root/root	usr/lib/python2.7/site-packages/samba/external/extras/
+-rw-r--r--	root/root	usr/lib/python2.7/site-packages/samba/external/extras/__init__.py
+drwxr-xr-x	root/root	usr/lib/python2.7/site-packages/samba/external/extras/tests/
+-rw-r--r--	root/root	usr/lib/python2.7/site-packages/samba/external/extras/tests/__init__.py
+-rw-r--r--	root/root	usr/lib/python2.7/site-packages/samba/external/extras/tests/test_extras.py
 drwxr-xr-x	root/root	usr/lib/python2.7/site-packages/samba/external/subunit/
 -rw-r--r--	root/root	usr/lib/python2.7/site-packages/samba/external/subunit/__init__.py
 -rw-r--r--	root/root	usr/lib/python2.7/site-packages/samba/external/subunit/chunked.py
@@ -597,6 +645,7 @@ drwxr-xr-x	root/root	usr/lib/python2.7/site-packages/samba/tests/samba_tool/
 -rw-r--r--	root/root	usr/lib/python2.7/site-packages/samba/tests/security.py
 -rw-r--r--	root/root	usr/lib/python2.7/site-packages/samba/tests/source.py
 -rw-r--r--	root/root	usr/lib/python2.7/site-packages/samba/tests/strings.py
+-rw-r--r--	root/root	usr/lib/python2.7/site-packages/samba/tests/subunitrun.py
 -rw-r--r--	root/root	usr/lib/python2.7/site-packages/samba/tests/unicodenames.py
 -rw-r--r--	root/root	usr/lib/python2.7/site-packages/samba/tests/upgrade.py
 -rw-r--r--	root/root	usr/lib/python2.7/site-packages/samba/tests/upgradeprovision.py
@@ -614,10 +663,12 @@ drwxr-xr-x	root/root	usr/lib/samba/auth/
 -rwxr-xr-x	root/root	usr/lib/samba/auth/script.so
 drwxr-xr-x	root/root	usr/lib/samba/bind9/
 -rwxr-xr-x	root/root	usr/lib/samba/bind9/dlz_bind9.so
+-rwxr-xr-x	root/root	usr/lib/samba/bind9/dlz_bind9_10.so
 -rwxr-xr-x	root/root	usr/lib/samba/bind9/dlz_bind9_9.so
 drwxr-xr-x	root/root	usr/lib/samba/gensec/
 -rwxr-xr-x	root/root	usr/lib/samba/gensec/krb5.so
 drwxr-xr-x	root/root	usr/lib/samba/idmap/
+-rwxr-xr-x	root/root	usr/lib/samba/idmap/ad.so
 -rwxr-xr-x	root/root	usr/lib/samba/idmap/autorid.so
 -rwxr-xr-x	root/root	usr/lib/samba/idmap/hash.so
 -rwxr-xr-x	root/root	usr/lib/samba/idmap/rfc2307.so
@@ -664,42 +715,43 @@ drwxr-xr-x	root/root	usr/lib/samba/ldb/
 -rwxr-xr-x	root/root	usr/lib/samba/ldb/subtree_rename.so
 -rwxr-xr-x	root/root	usr/lib/samba/ldb/update_keytab.so
 -rwxr-xr-x	root/root	usr/lib/samba/ldb/wins_ldb.so
--rwxr-xr-x	root/root	usr/lib/samba/libCHARSET3.so
--rwxr-xr-x	root/root	usr/lib/samba/libHDB_SAMBA4.so
--rwxr-xr-x	root/root	usr/lib/samba/libLIBWBCLIENT_OLD.so
--rwxr-xr-x	root/root	usr/lib/samba/libMESSAGING.so
--rwxr-xr-x	root/root	usr/lib/samba/libaddns.so
--rwxr-xr-x	root/root	usr/lib/samba/libads.so
+-rwxr-xr-x	root/root	usr/lib/samba/libCHARSET3-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libHDB-SAMBA4-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libLIBWBCLIENT-OLD-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libMESSAGING-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libaddns-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libads-samba4.so
 lrwxrwxrwx	root/root	usr/lib/samba/libasn1-samba4.so.8 -> libasn1-samba4.so.8.0.0
 -rwxr-xr-x	root/root	usr/lib/samba/libasn1-samba4.so.8.0.0
--rwxr-xr-x	root/root	usr/lib/samba/libasn1util.so
--rwxr-xr-x	root/root	usr/lib/samba/libauth.so
--rwxr-xr-x	root/root	usr/lib/samba/libauth4.so
--rwxr-xr-x	root/root	usr/lib/samba/libauth_sam_reply.so
--rwxr-xr-x	root/root	usr/lib/samba/libauth_unix_token.so
--rwxr-xr-x	root/root	usr/lib/samba/libauthkrb5.so
--rwxr-xr-x	root/root	usr/lib/samba/libccan.so
--rwxr-xr-x	root/root	usr/lib/samba/libcli-ldap-common.so
--rwxr-xr-x	root/root	usr/lib/samba/libcli-ldap.so
--rwxr-xr-x	root/root	usr/lib/samba/libcli-nbt.so
--rwxr-xr-x	root/root	usr/lib/samba/libcli_cldap.so
--rwxr-xr-x	root/root	usr/lib/samba/libcli_smb_common.so
--rwxr-xr-x	root/root	usr/lib/samba/libcli_spoolss.so
--rwxr-xr-x	root/root	usr/lib/samba/libcliauth.so
--rwxr-xr-x	root/root	usr/lib/samba/libcluster.so
--rwxr-xr-x	root/root	usr/lib/samba/libcmdline-credentials.so
--rwxr-xr-x	root/root	usr/lib/samba/libdb-glue.so
--rwxr-xr-x	root/root	usr/lib/samba/libdbwrap.so
--rwxr-xr-x	root/root	usr/lib/samba/libdcerpc-samba.so
+-rwxr-xr-x	root/root	usr/lib/samba/libasn1util-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libauth-sam-reply-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libauth-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libauth-unix-token-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libauth4-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libauthkrb5-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libccan-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libcli-cldap-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libcli-ldap-common-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libcli-ldap-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libcli-nbt-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libcli-smb-common-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libcli-spoolss-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libcliauth-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libcluster-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libcmdline-credentials-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libdb-glue-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libdbwrap-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libdcerpc-samba-samba4.so
 -rwxr-xr-x	root/root	usr/lib/samba/libdcerpc-samba4.so
--rwxr-xr-x	root/root	usr/lib/samba/libdfs_server_ad.so
--rwxr-xr-x	root/root	usr/lib/samba/libdlz_bind9_for_torture.so
--rwxr-xr-x	root/root	usr/lib/samba/libdsdb-module.so
--rwxr-xr-x	root/root	usr/lib/samba/liberrors.so
--rwxr-xr-x	root/root	usr/lib/samba/libevents.so
--rwxr-xr-x	root/root	usr/lib/samba/libflag_mapping.so
--rwxr-xr-x	root/root	usr/lib/samba/libgpo.so
--rwxr-xr-x	root/root	usr/lib/samba/libgse.so
+-rwxr-xr-x	root/root	usr/lib/samba/libdfs-server-ad-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libdlz-bind9-for-torture-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libdnsserver-common-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libdsdb-module-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/liberrors-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libevents-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libflag-mapping-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libgpo-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libgse-samba4.so
 lrwxrwxrwx	root/root	usr/lib/samba/libgssapi-samba4.so.2 -> libgssapi-samba4.so.2.0.0
 -rwxr-xr-x	root/root	usr/lib/samba/libgssapi-samba4.so.2.0.0
 lrwxrwxrwx	root/root	usr/lib/samba/libhcrypto-samba4.so.5 -> libhcrypto-samba4.so.5.0.1
@@ -710,73 +762,78 @@ lrwxrwxrwx	root/root	usr/lib/samba/libheimbase-samba4.so.1 -> libheimbase-samba4
 -rwxr-xr-x	root/root	usr/lib/samba/libheimbase-samba4.so.1.0.0
 lrwxrwxrwx	root/root	usr/lib/samba/libheimntlm-samba4.so.1 -> libheimntlm-samba4.so.1.0.1
 -rwxr-xr-x	root/root	usr/lib/samba/libheimntlm-samba4.so.1.0.1
+-rwxr-xr-x	root/root	usr/lib/samba/libhttp-samba4.so
 lrwxrwxrwx	root/root	usr/lib/samba/libhx509-samba4.so.5 -> libhx509-samba4.so.5.0.0
 -rwxr-xr-x	root/root	usr/lib/samba/libhx509-samba4.so.5.0.0
--rwxr-xr-x	root/root	usr/lib/samba/libidmap.so
--rwxr-xr-x	root/root	usr/lib/samba/libiniparser.so
--rwxr-xr-x	root/root	usr/lib/samba/libinterfaces.so
+-rwxr-xr-x	root/root	usr/lib/samba/libidmap-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libinterfaces-samba4.so
 lrwxrwxrwx	root/root	usr/lib/samba/libkdc-samba4.so.2 -> libkdc-samba4.so.2.0.0
 -rwxr-xr-x	root/root	usr/lib/samba/libkdc-samba4.so.2.0.0
 lrwxrwxrwx	root/root	usr/lib/samba/libkrb5-samba4.so.26 -> libkrb5-samba4.so.26.0.0
 -rwxr-xr-x	root/root	usr/lib/samba/libkrb5-samba4.so.26.0.0
--rwxr-xr-x	root/root	usr/lib/samba/libkrb5samba.so
--rwxr-xr-x	root/root	usr/lib/samba/libldb-cmdline.so
--rwxr-xr-x	root/root	usr/lib/samba/libldbsamba.so
--rwxr-xr-x	root/root	usr/lib/samba/liblibcli_lsa3.so
--rwxr-xr-x	root/root	usr/lib/samba/liblibcli_netlogon3.so
--rwxr-xr-x	root/root	usr/lib/samba/liblibsmb.so
--rwxr-xr-x	root/root	usr/lib/samba/libmsrpc3.so
--rwxr-xr-x	root/root	usr/lib/samba/libndr-samba.so
+-rwxr-xr-x	root/root	usr/lib/samba/libkrb5samba-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libldbsamba-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/liblibcli-lsa3-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/liblibcli-netlogon3-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/liblibsmb-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libmsrpc3-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libndr-samba-samba4.so
 -rwxr-xr-x	root/root	usr/lib/samba/libndr-samba4.so
--rwxr-xr-x	root/root	usr/lib/samba/libnet_keytab.so
--rwxr-xr-x	root/root	usr/lib/samba/libnetif.so
--rwxr-xr-x	root/root	usr/lib/samba/libnon_posix_acls.so
--rwxr-xr-x	root/root	usr/lib/samba/libnpa_tstream.so
--rwxr-xr-x	root/root	usr/lib/samba/libnss_info.so
-lrwxrwxrwx	root/root	usr/lib/samba/libntdb.so.0 -> libntdb.so.0.9
--rwxr-xr-x	root/root	usr/lib/samba/libntdb.so.0.9
--rwxr-xr-x	root/root	usr/lib/samba/libntvfs.so
--rwxr-xr-x	root/root	usr/lib/samba/libpac.so
--rwxr-xr-x	root/root	usr/lib/samba/libpopt_samba3.so
--rwxr-xr-x	root/root	usr/lib/samba/libposix_eadb.so
--rwxr-xr-x	root/root	usr/lib/samba/libprinting_migrate.so
--rwxr-xr-x	root/root	usr/lib/samba/libprocess_model.so
--rwxr-xr-x	root/root	usr/lib/samba/libreplace.so
+-rwxr-xr-x	root/root	usr/lib/samba/libnet-keytab-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libnetif-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libnon-posix-acls-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libnpa-tstream-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libnss-info-samba4.so
+lrwxrwxrwx	root/root	usr/lib/samba/libntdb.so.1 -> libntdb.so.1.0
+-rwxr-xr-x	root/root	usr/lib/samba/libntdb.so.1.0
+-rwxr-xr-x	root/root	usr/lib/samba/libntvfs-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libpac-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libpopt-samba3-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libposix-eadb-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libprinting-migrate-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libprocess-model-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libreplace-samba4.so
 lrwxrwxrwx	root/root	usr/lib/samba/libroken-samba4.so.19 -> libroken-samba4.so.19.0.1
 -rwxr-xr-x	root/root	usr/lib/samba/libroken-samba4.so.19.0.1
--rwxr-xr-x	root/root	usr/lib/samba/libsamba-modules.so
--rwxr-xr-x	root/root	usr/lib/samba/libsamba-net.so
--rwxr-xr-x	root/root	usr/lib/samba/libsamba-security.so
--rwxr-xr-x	root/root	usr/lib/samba/libsamba-sockets.so
--rwxr-xr-x	root/root	usr/lib/samba/libsamba3-util.so
--rwxr-xr-x	root/root	usr/lib/samba/libsamba_python.so
--rwxr-xr-x	root/root	usr/lib/samba/libsamdb-common.so
--rwxr-xr-x	root/root	usr/lib/samba/libsecrets3.so
--rwxr-xr-x	root/root	usr/lib/samba/libserver-role.so
--rwxr-xr-x	root/root	usr/lib/samba/libservice.so
--rwxr-xr-x	root/root	usr/lib/samba/libshares.so
--rwxr-xr-x	root/root	usr/lib/samba/libsmb_transport.so
--rwxr-xr-x	root/root	usr/lib/samba/libsmbd_base.so
--rwxr-xr-x	root/root	usr/lib/samba/libsmbd_conn.so
--rwxr-xr-x	root/root	usr/lib/samba/libsmbd_shim.so
--rwxr-xr-x	root/root	usr/lib/samba/libsmbldaphelper.so
--rwxr-xr-x	root/root	usr/lib/samba/libsmbpasswdparser.so
--rwxr-xr-x	root/root	usr/lib/samba/libsmbregistry.so
--rwxr-xr-x	root/root	usr/lib/samba/libsubunit.so
--rwxr-xr-x	root/root	usr/lib/samba/libtdb-wrap.so
--rwxr-xr-x	root/root	usr/lib/samba/libtdb_compat.so
--rwxr-xr-x	root/root	usr/lib/samba/libtrusts_util.so
--rwxr-xr-x	root/root	usr/lib/samba/libutil_cmdline.so
--rwxr-xr-x	root/root	usr/lib/samba/libutil_ntdb.so
--rwxr-xr-x	root/root	usr/lib/samba/libutil_reg.so
--rwxr-xr-x	root/root	usr/lib/samba/libutil_setid.so
--rwxr-xr-x	root/root	usr/lib/samba/libutil_tdb.so
--rwxr-xr-x	root/root	usr/lib/samba/libwinbind-client.so
+-rwxr-xr-x	root/root	usr/lib/samba/libsamba-cluster-support-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libsamba-debug-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libsamba-modules-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libsamba-net-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libsamba-python-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libsamba-security-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libsamba-sockets-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libsamba3-util-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libsamdb-common-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libsecrets3-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libserver-role-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libservice-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libshares-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libsmb-transport-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libsmbd-base-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libsmbd-conn-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libsmbd-shim-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libsmbldaphelper-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libsmbpasswdparser-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libsmbregistry-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libsocket-blocking-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libsubunit-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libtdb-compat-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libtdb-wrap-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libtrusts-util-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libutil-cmdline-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libutil-ntdb-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libutil-reg-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libutil-setid-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libutil-tdb-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libwinbind-client-samba4.so
 lrwxrwxrwx	root/root	usr/lib/samba/libwind-samba4.so.0 -> libwind-samba4.so.0.0.0
 -rwxr-xr-x	root/root	usr/lib/samba/libwind-samba4.so.0.0.0
--rwxr-xr-x	root/root	usr/lib/samba/libxattr_tdb.so
+-rwxr-xr-x	root/root	usr/lib/samba/libxattr-tdb-samba4.so
 drwxr-xr-x	root/root	usr/lib/samba/nss_info/
 -rwxr-xr-x	root/root	usr/lib/samba/nss_info/hash.so
+-rwxr-xr-x	root/root	usr/lib/samba/nss_info/rfc2307.so
+-rwxr-xr-x	root/root	usr/lib/samba/nss_info/sfu.so
+-rwxr-xr-x	root/root	usr/lib/samba/nss_info/sfu20.so
 drwxr-xr-x	root/root	usr/lib/samba/process_model/
 -rwxr-xr-x	root/root	usr/lib/samba/process_model/onefork.so
 -rwxr-xr-x	root/root	usr/lib/samba/process_model/prefork.so
@@ -796,6 +853,7 @@ drwxr-xr-x	root/root	usr/lib/samba/service/
 -rwxr-xr-x	root/root	usr/lib/samba/service/smb.so
 -rwxr-xr-x	root/root	usr/lib/samba/service/web.so
 -rwxr-xr-x	root/root	usr/lib/samba/service/winbind.so
+-rwxr-xr-x	root/root	usr/lib/samba/service/winbindd.so
 -rwxr-xr-x	root/root	usr/lib/samba/service/wrepl.so
 drwxr-xr-x	root/root	usr/lib/samba/vfs/
 -rwxr-xr-x	root/root	usr/lib/samba/vfs/acl_tdb.so
@@ -816,6 +874,7 @@ drwxr-xr-x	root/root	usr/lib/samba/vfs/
 -rwxr-xr-x	root/root	usr/lib/samba/vfs/extd_audit.so
 -rwxr-xr-x	root/root	usr/lib/samba/vfs/fake_perms.so
 -rwxr-xr-x	root/root	usr/lib/samba/vfs/fileid.so
+-rwxr-xr-x	root/root	usr/lib/samba/vfs/fruit.so
 -rwxr-xr-x	root/root	usr/lib/samba/vfs/full_audit.so
 -rwxr-xr-x	root/root	usr/lib/samba/vfs/linux_xfs_sgid.so
 -rwxr-xr-x	root/root	usr/lib/samba/vfs/media_harmony.so
@@ -830,10 +889,12 @@ drwxr-xr-x	root/root	usr/lib/samba/vfs/
 -rwxr-xr-x	root/root	usr/lib/samba/vfs/shadow_copy.so
 -rwxr-xr-x	root/root	usr/lib/samba/vfs/shadow_copy2.so
 -rwxr-xr-x	root/root	usr/lib/samba/vfs/smb_traffic_analyzer.so
+-rwxr-xr-x	root/root	usr/lib/samba/vfs/snapper.so
 -rwxr-xr-x	root/root	usr/lib/samba/vfs/streams_depot.so
 -rwxr-xr-x	root/root	usr/lib/samba/vfs/streams_xattr.so
 -rwxr-xr-x	root/root	usr/lib/samba/vfs/syncops.so
 -rwxr-xr-x	root/root	usr/lib/samba/vfs/time_audit.so
+-rwxr-xr-x	root/root	usr/lib/samba/vfs/worm.so
 -rwxr-xr-x	root/root	usr/lib/samba/vfs/xattr_tdb.so
 drwxr-xr-x	root/root	usr/lib/security/
 -rwxr-xr-x	root/root	usr/lib/security/pam_smbpass.so
@@ -849,7 +910,6 @@ drwxr-xr-x	root/root	usr/man/man1/
 -rw-r--r--	root/root	usr/man/man1/masktest.1.gz
 -rw-r--r--	root/root	usr/man/man1/ndrdump.1.gz
 -rw-r--r--	root/root	usr/man/man1/nmblookup.1.gz
--rw-r--r--	root/root	usr/man/man1/nmblookup4.1.gz
 -rw-r--r--	root/root	usr/man/man1/ntlm_auth.1.gz
 -rw-r--r--	root/root	usr/man/man1/oLschema2ldif.1.gz
 -rw-r--r--	root/root	usr/man/man1/pidl.1pm.gz
@@ -925,6 +985,7 @@ drwxr-xr-x	root/root	usr/man/man8/
 -rw-r--r--	root/root	usr/man/man8/vfs_cacheprime.8.gz
 -rw-r--r--	root/root	usr/man/man8/vfs_cap.8.gz
 -rw-r--r--	root/root	usr/man/man8/vfs_catia.8.gz
+-rw-r--r--	root/root	usr/man/man8/vfs_ceph.8.gz
 -rw-r--r--	root/root	usr/man/man8/vfs_commit.8.gz
 -rw-r--r--	root/root	usr/man/man8/vfs_crossrename.8.gz
 -rw-r--r--	root/root	usr/man/man8/vfs_default_quota.8.gz
@@ -932,7 +993,9 @@ drwxr-xr-x	root/root	usr/man/man8/
 -rw-r--r--	root/root	usr/man/man8/vfs_extd_audit.8.gz
 -rw-r--r--	root/root	usr/man/man8/vfs_fake_perms.8.gz
 -rw-r--r--	root/root	usr/man/man8/vfs_fileid.8.gz
+-rw-r--r--	root/root	usr/man/man8/vfs_fruit.8.gz
 -rw-r--r--	root/root	usr/man/man8/vfs_full_audit.8.gz
+-rw-r--r--	root/root	usr/man/man8/vfs_glusterfs.8.gz
 -rw-r--r--	root/root	usr/man/man8/vfs_gpfs.8.gz
 -rw-r--r--	root/root	usr/man/man8/vfs_linux_xfs_sgid.8.gz
 -rw-r--r--	root/root	usr/man/man8/vfs_media_harmony.8.gz
@@ -947,11 +1010,13 @@ drwxr-xr-x	root/root	usr/man/man8/
 -rw-r--r--	root/root	usr/man/man8/vfs_shadow_copy.8.gz
 -rw-r--r--	root/root	usr/man/man8/vfs_shadow_copy2.8.gz
 -rw-r--r--	root/root	usr/man/man8/vfs_smb_traffic_analyzer.8.gz
+-rw-r--r--	root/root	usr/man/man8/vfs_snapper.8.gz
 -rw-r--r--	root/root	usr/man/man8/vfs_streams_depot.8.gz
 -rw-r--r--	root/root	usr/man/man8/vfs_streams_xattr.8.gz
 -rw-r--r--	root/root	usr/man/man8/vfs_syncops.8.gz
 -rw-r--r--	root/root	usr/man/man8/vfs_time_audit.8.gz
 -rw-r--r--	root/root	usr/man/man8/vfs_tsmsm.8.gz
+-rw-r--r--	root/root	usr/man/man8/vfs_worm.8.gz
 -rw-r--r--	root/root	usr/man/man8/vfs_xattr_tdb.8.gz
 -rw-r--r--	root/root	usr/man/man8/vfs_zfsacl.8.gz
 -rw-r--r--	root/root	usr/man/man8/winbindd.8.gz
@@ -965,41 +1030,6 @@ drwxr-xr-x	root/root	usr/sbin/
 -rwxr-xr-x	root/root	usr/sbin/smbd
 -rwxr-xr-x	root/root	usr/sbin/winbindd
 drwxr-xr-x	root/root	usr/share/
-drwxr-xr-x	root/root	usr/share/perl5/
-drwxr-xr-x	root/root	usr/share/perl5/Parse/
--rw-r--r--	root/root	usr/share/perl5/Parse/Pidl.pm
-drwxr-xr-x	root/root	usr/share/perl5/Parse/Pidl/
--rw-r--r--	root/root	usr/share/perl5/Parse/Pidl/CUtil.pm
--rw-r--r--	root/root	usr/share/perl5/Parse/Pidl/Compat.pm
--rw-r--r--	root/root	usr/share/perl5/Parse/Pidl/Dump.pm
--rw-r--r--	root/root	usr/share/perl5/Parse/Pidl/Expr.pm
--rw-r--r--	root/root	usr/share/perl5/Parse/Pidl/IDL.pm
--rw-r--r--	root/root	usr/share/perl5/Parse/Pidl/NDR.pm
--rw-r--r--	root/root	usr/share/perl5/Parse/Pidl/ODL.pm
-drwxr-xr-x	root/root	usr/share/perl5/Parse/Pidl/Samba3/
--rw-r--r--	root/root	usr/share/perl5/Parse/Pidl/Samba3/ClientNDR.pm
--rw-r--r--	root/root	usr/share/perl5/Parse/Pidl/Samba3/ServerNDR.pm
--rw-r--r--	root/root	usr/share/perl5/Parse/Pidl/Samba4.pm
-drwxr-xr-x	root/root	usr/share/perl5/Parse/Pidl/Samba4/
-drwxr-xr-x	root/root	usr/share/perl5/Parse/Pidl/Samba4/COM/
--rw-r--r--	root/root	usr/share/perl5/Parse/Pidl/Samba4/COM/Header.pm
--rw-r--r--	root/root	usr/share/perl5/Parse/Pidl/Samba4/COM/Proxy.pm
--rw-r--r--	root/root	usr/share/perl5/Parse/Pidl/Samba4/COM/Stub.pm
--rw-r--r--	root/root	usr/share/perl5/Parse/Pidl/Samba4/Header.pm
-drwxr-xr-x	root/root	usr/share/perl5/Parse/Pidl/Samba4/NDR/
--rw-r--r--	root/root	usr/share/perl5/Parse/Pidl/Samba4/NDR/Client.pm
--rw-r--r--	root/root	usr/share/perl5/Parse/Pidl/Samba4/NDR/Parser.pm
--rw-r--r--	root/root	usr/share/perl5/Parse/Pidl/Samba4/NDR/Server.pm
--rw-r--r--	root/root	usr/share/perl5/Parse/Pidl/Samba4/Python.pm
--rw-r--r--	root/root	usr/share/perl5/Parse/Pidl/Samba4/TDR.pm
--rw-r--r--	root/root	usr/share/perl5/Parse/Pidl/Samba4/Template.pm
--rw-r--r--	root/root	usr/share/perl5/Parse/Pidl/Typelist.pm
--rw-r--r--	root/root	usr/share/perl5/Parse/Pidl/Util.pm
-drwxr-xr-x	root/root	usr/share/perl5/Parse/Pidl/Wireshark/
--rw-r--r--	root/root	usr/share/perl5/Parse/Pidl/Wireshark/Conformance.pm
--rw-r--r--	root/root	usr/share/perl5/Parse/Pidl/Wireshark/NDR.pm
-drwxr-xr-x	root/root	usr/share/perl5/Parse/Yapp/
--rw-r--r--	root/root	usr/share/perl5/Parse/Yapp/Driver.pm
 drwxr-xr-x	root/root	usr/share/samba/
 drwxr-xr-x	root/root	usr/share/samba/codepages/
 -rw-r--r--	root/root	usr/share/samba/codepages/lowcase.dat
@@ -1014,8 +1044,6 @@ drwxr-xr-x	root/root	usr/share/samba/setup/ad-schema/
 -rw-r--r--	root/root	usr/share/samba/setup/ad-schema/MS-AD_Schema_2K8_R2_Classes.txt
 -rw-r--r--	root/root	usr/share/samba/setup/ad-schema/licence.txt
 -rw-r--r--	root/root	usr/share/samba/setup/aggregate_schema.ldif
--rw-r--r--	root/root	usr/share/samba/setup/cn=replicator.ldif
--rw-r--r--	root/root	usr/share/samba/setup/cn=samba-admin.ldif
 -rw-r--r--	root/root	usr/share/samba/setup/cn=samba.ldif
 drwxr-xr-x	root/root	usr/share/samba/setup/display-specifiers/
 -rw-r--r--	root/root	usr/share/samba/setup/display-specifiers/DisplaySpecifiers-Win2k0.txt
