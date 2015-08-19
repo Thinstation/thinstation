@@ -1,0 +1,23 @@
+# Description: Interface to WWAN modems using Qualcomm MSM Interface (QMI)
+# URL:         http://www.freedesktop.org/wiki/Software/libqmi
+# Maintainer:  None
+# Depends on:  dbus-glib
+
+
+name=libqmi
+version=1.12.6
+release=1
+source=(http://www.freedesktop.org/software/$name/$name-$version.tar.xz)
+
+build() {
+	cd $name-$version
+
+	./configure --prefix=/usr \
+		--sysconfdir=/etc \
+		--localstatedir=/var \
+		--disable-static
+	make
+	make DESTDIR=$PKG install
+
+	rm -rf $PKG/usr/share
+}

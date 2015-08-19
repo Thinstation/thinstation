@@ -5,16 +5,18 @@
 # Optional:	ppp
 
 name=networkmanager
-version=0.9.6.4
+version=0.9.8.10
 release=1
 source=(
 http://ftp.gnome.org/pub/GNOME/sources/NetworkManager/0.9/NetworkManager-$version.tar.xz
 networkmanager.rc
 NetworkManager.conf
+nm-glib32.patch
 )
 
 build() {
 	cd NetworkManager-$version
+	patch -Np1 < ../nm-glib32.patch
 
         # Network Manager is assuming that NSPR is a requirement of NSS
         #  this is not the case in CRUX and probably not in general
@@ -40,7 +42,10 @@ build() {
 		--enable-more-warnings=no \
 		--with-session-tracking=ck \
 		--with-resolvconf=/usr/sbin/resolvconf \
-		--with-distro=slackware
+		--with-distro=slackware \
+		--with-systemdsystemunitdir=no \
+		--with-pppd-plugin-dir=/usr/lib/pppd/2.4.7 \
+		--with-modem-manager-1
 
 	make
 	make DESTDIR=$PKG install
