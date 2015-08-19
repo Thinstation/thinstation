@@ -17,6 +17,11 @@ if ! pkg_initialized $PACKAGE; then
  APPSRV_CUSTOM=/tmp/appsrv.ini.new
  WFCLIENT_CUSTOM=/tmp/wfclient.ini.new
 
+ if [ -n "$PKCS11_MODULE" ]; then
+   awk -v pkcs="$PKCS11_MODULE" '{ print $0; if($1 == "<key>PKCS11module</key>") { getline; print "<value>" pkcs "</value>"} }' < $ICA_DIR/AuthManConfig.xml > $ICA_DIR/AuthManConfig.old
+   mv $ICA_DIR/AuthManConfig.old $ICA_DIR/AuthManConfig.xml
+ fi
+
  # Create the user config directory if it doesn't exist
  if [ ! -e $ICA_CONF ] ; then mkdir -p $ICA_CONF ; fi
 
