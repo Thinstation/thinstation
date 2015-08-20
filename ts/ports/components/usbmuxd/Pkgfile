@@ -2,18 +2,17 @@
 # URL:          http://www.libimobiledevice.org/
 # Packager:     
 # Maintainer:   
-# Dependencies:	libplist
+# Dependencies:	libimobiledevice libplist
 
 name=usbmuxd
-version=1.0.7
+version=1.0.9
 release=1
 source=(http://www.libimobiledevice.org/downloads/$name-$version.tar.bz2)
 
 build() {
-    # usbmuxd checks for GIT for its version - our GIT confuses it
-    # so override describe.sh to do what it does without GIT
-    echo "cat version.tag" > $name-$version/Modules/describe.sh
-    cmake -DCMAKE_INSTALL_PREFIX=/usr $name-$version
+    cd $name-$version
+    sed -i -e "s/usbmux --user/usbmuxd --user/" configure
+    ./configure --prefix=/usr --without-systemd
     make
     make DESTDIR=$PKG install
 }

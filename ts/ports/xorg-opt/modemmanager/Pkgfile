@@ -6,17 +6,19 @@
 
 name=modemmanager
 pname=ModemManager
-version=0.6.2.0
+version=1.4.8
 release=1
-source=(http://cgit.freedesktop.org/$pname/$pname/snapshot/$pname-$version.tar.bz2)
+source=(http://www.freedesktop.org/software/$pname/$pname-$version.tar.xz)
 
 build() {
 	cd $pname-$version
 
-	./autogen.sh --prefix=/usr \
+	./configure --prefix=/usr \
 		--sysconfdir=/etc \
 		--localstatedir=/var \
-		--with-polkit
+		--with-polkit \
+		--disable-nls \
+		--disable-introspection
 	make
 	make DESTDIR=$PKG install
 }

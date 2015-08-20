@@ -11,7 +11,6 @@ drwxr-xr-x	root/root	etc/dbus-1/system.d/
 -rw-r--r--	root/root	etc/dbus-1/system.d/org.freedesktop.NetworkManager.conf
 drwxr-xr-x	root/root	etc/rc.d/
 -rwxr-xr-x	root/root	etc/rc.d/networkmanager
--rwxr-xr-x	root/root	etc/rc.d/rc.networkmanager
 drwxr-xr-x	root/root	lib/
 drwxr-xr-x	root/root	lib/udev/
 drwxr-xr-x	root/root	lib/udev/rules.d/
@@ -30,6 +29,8 @@ drwxr-xr-x	root/root	usr/include/NetworkManager/
 -rw-r--r--	root/root	usr/include/NetworkManager/nm-setting-adsl.h
 -rw-r--r--	root/root	usr/include/NetworkManager/nm-setting-bluetooth.h
 -rw-r--r--	root/root	usr/include/NetworkManager/nm-setting-bond.h
+-rw-r--r--	root/root	usr/include/NetworkManager/nm-setting-bridge-port.h
+-rw-r--r--	root/root	usr/include/NetworkManager/nm-setting-bridge.h
 -rw-r--r--	root/root	usr/include/NetworkManager/nm-setting-cdma.h
 -rw-r--r--	root/root	usr/include/NetworkManager/nm-setting-connection.h
 -rw-r--r--	root/root	usr/include/NetworkManager/nm-setting-gsm.h
@@ -57,6 +58,7 @@ drwxr-xr-x	root/root	usr/include/libnm-glib/
 -rw-r--r--	root/root	usr/include/libnm-glib/nm-client.h
 -rw-r--r--	root/root	usr/include/libnm-glib/nm-device-adsl.h
 -rw-r--r--	root/root	usr/include/libnm-glib/nm-device-bond.h
+-rw-r--r--	root/root	usr/include/libnm-glib/nm-device-bridge.h
 -rw-r--r--	root/root	usr/include/libnm-glib/nm-device-bt.h
 -rw-r--r--	root/root	usr/include/libnm-glib/nm-device-ethernet.h
 -rw-r--r--	root/root	usr/include/libnm-glib/nm-device-infiniband.h
@@ -83,30 +85,30 @@ drwxr-xr-x	root/root	usr/include/libnm-glib/
 -rw-r--r--	root/root	usr/include/libnm-glib/nm-vpn-plugin.h
 -rw-r--r--	root/root	usr/include/libnm-glib/nm-wimax-nsp.h
 drwxr-xr-x	root/root	usr/lib/
+drwxr-xr-x	root/root	usr/lib/NetworkManager/
 -rwxr-xr-x	root/root	usr/lib/libnm-glib-vpn.la
 lrwxrwxrwx	root/root	usr/lib/libnm-glib-vpn.so -> libnm-glib-vpn.so.1.1.0
 lrwxrwxrwx	root/root	usr/lib/libnm-glib-vpn.so.1 -> libnm-glib-vpn.so.1.1.0
 -rwxr-xr-x	root/root	usr/lib/libnm-glib-vpn.so.1.1.0
 -rwxr-xr-x	root/root	usr/lib/libnm-glib.la
-lrwxrwxrwx	root/root	usr/lib/libnm-glib.so -> libnm-glib.so.4.4.0
-lrwxrwxrwx	root/root	usr/lib/libnm-glib.so.4 -> libnm-glib.so.4.4.0
--rwxr-xr-x	root/root	usr/lib/libnm-glib.so.4.4.0
+lrwxrwxrwx	root/root	usr/lib/libnm-glib.so -> libnm-glib.so.4.6.0
+lrwxrwxrwx	root/root	usr/lib/libnm-glib.so.4 -> libnm-glib.so.4.6.0
+-rwxr-xr-x	root/root	usr/lib/libnm-glib.so.4.6.0
 -rwxr-xr-x	root/root	usr/lib/libnm-util.la
-lrwxrwxrwx	root/root	usr/lib/libnm-util.so -> libnm-util.so.2.3.0
-lrwxrwxrwx	root/root	usr/lib/libnm-util.so.2 -> libnm-util.so.2.3.0
--rwxr-xr-x	root/root	usr/lib/libnm-util.so.2.3.0
+lrwxrwxrwx	root/root	usr/lib/libnm-util.so -> libnm-util.so.2.4.0
+lrwxrwxrwx	root/root	usr/lib/libnm-util.so.2 -> libnm-util.so.2.4.0
+-rwxr-xr-x	root/root	usr/lib/libnm-util.so.2.4.0
 drwxr-xr-x	root/root	usr/lib/pkgconfig/
 -rw-r--r--	root/root	usr/lib/pkgconfig/NetworkManager.pc
 -rw-r--r--	root/root	usr/lib/pkgconfig/libnm-glib-vpn.pc
 -rw-r--r--	root/root	usr/lib/pkgconfig/libnm-glib.pc
 -rw-r--r--	root/root	usr/lib/pkgconfig/libnm-util.pc
 drwxr-xr-x	root/root	usr/lib/pppd/
-drwxr-xr-x	root/root	usr/lib/pppd/2.4.5/
--rwxr-xr-x	root/root	usr/lib/pppd/2.4.5/nm-pppd-plugin.la
--rwxr-xr-x	root/root	usr/lib/pppd/2.4.5/nm-pppd-plugin.so
+drwxr-xr-x	root/root	usr/lib/pppd/2.4.7/
+-rwxr-xr-x	root/root	usr/lib/pppd/2.4.7/nm-pppd-plugin.la
+-rwxr-xr-x	root/root	usr/lib/pppd/2.4.7/nm-pppd-plugin.so
 drwxr-xr-x	root/root	usr/libexec/
 -rwxr-xr-x	root/root	usr/libexec/nm-avahi-autoipd.action
--rwxr-xr-x	root/root	usr/libexec/nm-crash-logger
 -rwxr-xr-x	root/root	usr/libexec/nm-dhcp-client.action
 -rwxr-xr-x	root/root	usr/libexec/nm-dispatcher.action
 drwxr-xr-x	root/root	usr/man/
@@ -122,8 +124,6 @@ drwxr-xr-x	root/root	usr/man/man8/
 drwxr-xr-x	root/root	usr/sbin/
 -rwxr-xr-x	root/root	usr/sbin/NetworkManager
 drwxr-xr-x	root/root	usr/share/
-drwxr-xr-x	root/root	usr/share/NetworkManager/
--rw-r--r--	root/root	usr/share/NetworkManager/gdb-cmd
 drwxr-xr-x	root/root	usr/share/dbus-1/
 drwxr-xr-x	root/root	usr/share/dbus-1/system-services/
 -rw-r--r--	root/root	usr/share/dbus-1/system-services/org.freedesktop.nm_dispatcher.service

@@ -4,17 +4,16 @@
 # Depends on:  zlib, openssl
 
 name=ppp
-version=2.4.5
+version=2.4.7
 release=3
 source=(http://ppp.samba.org/ftp/ppp/$name-$version.tar.gz \
-        $name-nofilter.patch $name-$version-pppol2tp.patch
-	ppp-2.4.5-eaptls-mppe-0.994.patch)
+        $name-nofilter.patch
+	http://www.nikhef.nl/~janjust/$name/$name-$version-eaptls-mppe-0.998.patch)
 
 build () {
     cd $name-$version
     patch -p1 -i $SRC/$name-nofilter.patch
-    patch -p1 -i $SRC/$name-$version-pppol2tp.patch
-    patch -p1 -i $SRC/ppp-2.4.5-eaptls-mppe-0.994.patch
+    patch -p1 -i $SRC/$name-$version-eaptls-mppe-0.998.patch
 
     sed -i -e "s/\(DESTDIR =\) \(.*\)/\1 \$(INSTROOT)\2/" \
 	pppd/plugins/pppol2tp/Makefile.linux
