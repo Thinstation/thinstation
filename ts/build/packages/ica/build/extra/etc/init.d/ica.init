@@ -29,6 +29,9 @@ if ! pkg_initialized $PACKAGE; then
    cp $ICA_CACHETMPL $ICA_CACHE
  fi
 
+ # Create file used by the ICA client to see if EULA has been accepted
+ touch $ICA_CONF/.eula_accepted
+
  # Set file Permissions and links to those of a normal ICA install
  if [ ! -e $HOME/.mailcap ] || [ "`grep -c -E ICA $HOME/.mailcap`" == "0" ] ; then
         echo "application/x-ica; $ICA_ROOT/wfica.sh %s; x-mozilla-flags=plugin:Citrix ICA Client" >> $HOME/.mailcap
