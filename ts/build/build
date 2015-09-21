@@ -1949,7 +1949,7 @@ image_fastboot()
 }
 
 if [ -z "$ts_bootimages" ]; then
-	ts_bootimages="syslinux refind pxe gummiboot iso"
+	ts_bootimages="syslinux refind pxe systemd-boot iso"
 fi
 if [ -z "$ts_syslinuxtheme" ]; then
 	ts_syslinuxtheme="default"
@@ -2307,24 +2307,24 @@ if [ -z "$NOIMAGES" ]; then
 				echo "\"Boot with standard options\"        \"initrd=/boot/initrd $KERNEL_PARAMETERS LM=$LM\"" > $KDIR/refind_linux.conf
 				echo $KDIR/refind_linux.conf >> boot-images/initrd/added.files
 			;;
-			gummiboot)
+			systemd-boot)
 				if ! prt-get isinst preloader > /dev/null; then
 					echo "Port binary-opt/preloader not installed - Skipping"
-				elif ! prt-get isinst gummiboot > /dev/null; then
-					echo "Port binary-opt/gummiboot not installed - Skipping"
+				elif ! prt-get isinst systemd-boot > /dev/null; then
+					echo "Port binary-opt/systemd-boot not installed - Skipping"
 				else
-				ESP=boot-images/gummiboot
+				ESP=boot-images/systemd-boot
 				EFIOVERLAY="$ESP/EFI $ESP/loader"
                                 LM=4
-				configdir=boot-images/templates/gummiboot/$ts_gummitheme
+				configdir=boot-images/templates/systemd-boot/$ts_gummitheme
 				sys_copy /usr/lib/prebootloader/PreLoader.efi $ESP/EFI/BOOT/bootx64.efi
-				sys_copy /usr/lib/gummiboot/gummibootia32.efi $ESP/EFI/BOOT/bootia32.efi
+				sys_copy /usr/lib/systemd/boot/efi/systemd-bootia32.efi $ESP/EFI/BOOT/bootia32.efi
 				sys_copy /usr/lib/prebootloader/HashTool.efi $ESP/EFI/BOOT/HashTool.efi
-				sys_copy /usr/lib/gummiboot/gummibootx64.efi $ESP/EFI/BOOT/loader.efi
+				sys_copy /usr/lib/systemd/boot/efi/systemd-bootx64.efi $ESP/EFI/BOOT/loader.efi
 				if [ -n "$KERN64" ]; then
 					sys_copy /usr/lib/prebootloader/PreLoader.efi $ESP/EFI/Microsoft/Boot/bootmgr.efi
 				else
-					sys_copy /usr/lib/gummiboot/gummibootia32.efi $ESP/EFI/Microsoft/Boot/bootmgr.efi
+					sys_copy /usr/lib/systemd/boot/efi/systemd-bootia32.efi $ESP/EFI/Microsoft/Boot/bootmgr.efi
 				fi
 				for file in `find $configdir -type f |sed -e "s|$configdir||g"`; do
 					sys_copy ${configdir}${file} $ESP/$file
