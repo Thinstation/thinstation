@@ -1,0 +1,23 @@
+# Description: System's hardware information of your BIOS according to SMBIOS/DMI standard.
+# URL: http://www.nongnu.org/dmidecode/
+# Maintainer: Danny Rawlins, crux at romster dot me
+# Packager: Victor Martinez, pitillo at ono dot com
+
+name=dmidecode
+version=3.0
+release=1
+source=(http://download.savannah.gnu.org/releases/$name/$name-$version.tar.gz)
+
+build() {
+	cd $name-$version
+
+	sed -i \
+		-e 's|/usr/local|/usr|' \
+		-e 's|/share/man|/man|' \
+		Makefile
+
+	make
+	make DESTDIR=$PKG install
+	rm -rf $PKG/usr/share/doc
+	rmdir $PKG/usr/share
+}
