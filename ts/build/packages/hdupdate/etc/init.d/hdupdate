@@ -53,7 +53,7 @@ init)
       HDTARGET="NONE"
       for CURRENT_PART in ${PARTITION_LIST}
       do
-        HDCHECK="${DISKMNT}/part${CURRENT_PART}"
+        HDCHECK="${DISKMNT}/part${CURRENT_PART}/boot"
         echo_log "Checking for vmlinuz on ${HDCHECK}"
         if [ -e ${HDCHECK}/vmlinuz ] ; then
           echo_log "vmlinuz found at ${HDCHECK}"
@@ -94,7 +94,7 @@ init)
         case `make_caps ${HDUPDATE_SERVER_TYPE}` in
 		TFTP)
         		TYPE_RETURN=0
-        		( tftp -g -l ${TEMPFILE} -r ${SOURCEFILE} ${HDUPDATE_SERVER} ; echo $? > /tmp/return ) &
+        		( tftp -g -l ${TEMPFILE} -r ${SOURCEFILE} -b ${TFTP_BLOCKSIZE} ${HDUPDATE_SERVER} ; echo $? > /tmp/return ) &
 			while pidof tftp > /dev/null; do
 				echo_log "." -n $debug
 				let progress=progress+1
