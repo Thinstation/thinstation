@@ -3,7 +3,8 @@
 . $TS_GLOBAL
 . /etc/splash.functions
 
-  DISKMNT="/mnt/disc/sda"
+  ##DISKMNT="/mnt/disc/sda"
+  DISK_LIST="/mnt/disc/sda /mnt/mnt/usbdevice/sda"
   PARTITION_LIST="1 2 3 4"
   let progress=0
   let splash_total=20
@@ -50,20 +51,40 @@ init)
       echo_log "  New version:     ${HDUPDATE_SERVER_VERSION}" $debug
 
 # Search local hard ide disk for existing vmlinuz
-      HDTARGET="NONE"
-      for CURRENT_PART in ${PARTITION_LIST}
-      do
-        HDCHECK="${DISKMNT}/part${CURRENT_PART}/boot"
-        echo_log "Checking for vmlinuz on ${HDCHECK}"
-        if [ -e ${HDCHECK}/vmlinuz ] ; then
-          echo_log "vmlinuz found at ${HDCHECK}"
-          HDTARGET="${HDCHECK}"
-        fi
-      done
-      if [ "${HDTARGET}" = "NONE" ] ; then
-        echo_log "Update failed, target drive not found\n" $debug
-        exit 0
-      fi 
+##      HDTARGET="NONE"
+##      for CURRENT_PART in ${PARTITION_LIST}
+##      do
+##        HDCHECK="${DISKMNT}/part${CURRENT_PART}/boot"
+##        echo_log "Checking for vmlinuz on ${HDCHECK}"
+##        if [ -e ${HDCHECK}/vmlinuz ] ; then
+##          echo_log "vmlinuz found at ${HDCHECK}"
+##          HDTARGET="${HDCHECK}"
+##        fi
+##      done
+##      if [ "${HDTARGET}" = "NONE" ] ; then
+##        echo_log "Update failed, target drive not found\n" $debug
+##        exit 0
+##      fi 
+
+# Search local hard disk (sata/usbdevice) for existing vmlinuz
+       HDTARGET="NONE"
+       for CURRENT_DISK in ${DISK_LIST}
+       do
+         for CURRENT_PART in ${PARTITION_LIST}
+         do
+           HDCHECK="${CURRENT_DISK}${CURRENT_PART}/boot"
+           echo_log "Checking for vmlinuz on ${HDCHECK}"
+           if [ -e ${HDCHECK}/vmlinuz ] ; then
+             echo_log "vmlinuz found at ${HDCHECK}"
+             HDTARGET="${HDCHECK}"
+           fi
+         done
+       done
+       if [ "${HDTARGET}" = "NONE" ] ; then
+         echo_log "Update failed, target drive not found\n" $debug
+         exit 0
+       fi
+
 
 # found the local file location
 # now download to a temp location
