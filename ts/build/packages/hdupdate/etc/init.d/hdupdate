@@ -72,7 +72,15 @@ init)
        do
          for CURRENT_PART in ${PARTITION_LIST}
          do
-           HDCHECK="${CURRENT_DISK}${CURRENT_PART}/boot"
+##           HDCHECK="${CURRENT_DISK}${CURRENT_PART}/boot"
+
+         if [ "${CURRENT_DISK}" = "/mnt/disc/sda" ] ; then
+          HDCHECK="${CURRENT_DISK}/part${CURRENT_PART}/boot"
+         else
+          HDCHECK="${CURRENT_DISK}${CURRENT_PART}/boot"
+         fi
+
+
            echo_log "Checking for vmlinuz on ${HDCHECK}"
            if [ -e ${HDCHECK}/vmlinuz ] ; then
              echo_log "vmlinuz found at ${HDCHECK}"
