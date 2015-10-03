@@ -7,7 +7,7 @@ header
 
 echo '<pre>'
 
-for filelist in `ls /usr/X11R7/etc/X11/x.config-*`
+for filelist in `ls /usr/X11R7/etc/X11/xorg.conf.d/*`
 do
         echo $filelist
 	cat $filelist
