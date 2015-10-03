@@ -207,6 +207,11 @@ modes_ ()
 case $1 in
 init|start)
 	X_SERVER=Xorg
+	
+	if ! pkg_initialized $PACKAGE; then
+        pkg_set_init_flag $PACKAGE
+        fi
+	
 	echo "X_SERVER=$X_SERVER" >> $TS_RUNTIME
 	for section in ServerLayout Files Keyboard Mouse Monitor Device Modes ServerFlags Screen; do
 		get_options $section
