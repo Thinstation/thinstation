@@ -72,14 +72,14 @@ do_module() {
 }
 
 # Install the modules
-for kernel in ${release}TS ${release}TS_SMP ${release}TS_64; do
+for kernel in ${release}TS ${release}TS_SMP; do
   mkdir -p $INSTALLDIR/lib/modules/$kernel/misc
   vbox=vbox
   if [ "$kernel" != "${release}TS_64" ]; then
   do_module $kernel vboxguest $vbox
+  do_module $kernel vboxvideo $vbox
   fi
   do_module $kernel vboxsf $vbox
-  do_module $kernel vboxvideo $vbox
 done
 
 cp -a $INSTALLDIR/build/extra/* $INSTALLDIR
