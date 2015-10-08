@@ -1,0 +1,41 @@
+# Description: Driver for VIA chipset (VX900 mainly)
+# URL: http://linux.via.tw.com/
+# Maintainer: Blindauer Emmanuel (e.blindauer at gmail dot com)
+# Notes: VIA opensource driver for VX900 linux.via.tw.com
+# Depends on:
+
+name=via-video-driver
+version=5.76.52.92
+kver=`cat /ts/ports/kernel-modules/VERSION`
+release=1
+source=(http://manu.agat.net/5.76.52.92-opensource-009-005f78-20150730-via-3.4.tgz
+	)
+
+build() {
+	export REPORT_KERNEL=${kver}TS
+	echo $PKG
+	cd TTM/3.4.0-3.x.x/via_chrome9_ttm
+	REPORT_KERNEL=${kver}TS
+	make clean
+	make
+	mkdir -p $PKG/lib/modules/${kver}TS/kernel
+	install -m 644 via_chrome9.ko $PKG/lib/modules/${kver}TS/kernel
+	make clean
+
+	REPORT_KERNEL=${kver}TS_SMP
+	make
+	mkdir -p $PKG/lib/modules/${kver}TS_SMP/kernel
+        install -m 644 via_chrome9.ko $PKG/lib/modules/${kver}TS_SMP/kernel
+	make clean
+
+        REPORT_KERNEL=${kver}TS_64
+        make CROSS_COMPILE="/opt/cross/x-tools/x86_64-thinstation-linux-gnu/bin/x86_64-thinstation-linux-gnu-"
+        mkdir -p $PKG/lib/modules/${kver}TS_64/kernel
+        install -m 644 via_chrome9.ko $PKG/lib/modules/${kver}TS_64/kernel
+
+	if -e prt-get isinst kernel-keys; then
+		for module in `find $PKG/lib/modules -name \*.ko`; do
+			perl /usr/src/kernels/${kver}TS/scripts/sign-file sha256 /etc/ssl/keys/kernel.key /etc/ssl/certs/kernel.crt $module
+		done
+	fi
+}
