@@ -26,6 +26,7 @@
 <a href="/cgi-bin/BootMessages.cgi">Boot messages</a><br>
 <a href="/cgi-bin/SysLog.cgi">Syslog messages</a><br>
 ${XORG}
+${LSHW}
 ${ICA}
 <a href="/cgi-bin/Administration.cgi">Administration</a><br>
 <a href="/cgi-bin/CdControl.cgi">Control CD Player</a><br>

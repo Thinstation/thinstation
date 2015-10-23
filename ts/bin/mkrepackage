@@ -1,0 +1,30 @@
+#!/bin/bash
+
+package=$1
+pdir=/ts/build/packages/$package
+
+mkdir -p $pdir/build
+touch $pdir/dependencies
+touch $pdir/.dna
+
+cat << EOF > $pdir/build/install
+#!/bin/sh
+
+export PACKAGE=$package
+export PORTS=\$PACKAGE
+repackage -e
+
+returnval=\$?
+
+exit \$returnval
+EOF
+chmod +x $pdir/build/install
+
+cat << EOF > $pdir/build/remove
+#!/bin/sh
+
+export PACKAGE=$package
+repackage -c
+EOF
+chmod +x $pdir/build/remove
+

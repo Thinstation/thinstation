@@ -3,7 +3,8 @@
 . $TS_GLOBAL
 . /etc/splash.functions
 
-  DISKMNT="/mnt/disc/sda"
+  ##DISKMNT="/mnt/disc/sda"
+  DISK_LIST="/mnt/disc/sda /mnt/mnt/usbdevice/sda /mnt/mnt/usbdevice/mmcblk0p"
   PARTITION_LIST="1 2 3 4"
   let progress=0
   let splash_total=20
@@ -11,6 +12,9 @@
   if [ -n "$DEBUG_NETWORK" ] ; then
           debug="-d"
   fi
+
+  echo_log " " $debug
+  echo_log "  HDUPDATE WS Version: ${HDUPDATE_WS_VERSION}" $debug
 
 case "$1" in
 init)
@@ -50,20 +54,50 @@ init)
       echo_log "  New version:     ${HDUPDATE_SERVER_VERSION}" $debug
 
 # Search local hard ide disk for existing vmlinuz
-      HDTARGET="NONE"
-      for CURRENT_PART in ${PARTITION_LIST}
-      do
-        HDCHECK="${DISKMNT}/part${CURRENT_PART}"
-        echo_log "Checking for vmlinuz on ${HDCHECK}"
-        if [ -e ${HDCHECK}/vmlinuz ] ; then
-          echo_log "vmlinuz found at ${HDCHECK}"
-          HDTARGET="${HDCHECK}"
-        fi
-      done
-      if [ "${HDTARGET}" = "NONE" ] ; then
-        echo_log "Update failed, target drive not found\n" $debug
-        exit 0
-      fi 
+##      HDTARGET="NONE"
+##      for CURRENT_PART in ${PARTITION_LIST}
+##      do
+##        HDCHECK="${DISKMNT}/part${CURRENT_PART}/boot"
+##        echo_log "Checking for vmlinuz on ${HDCHECK}"
+##        if [ -e ${HDCHECK}/vmlinuz ] ; then
+##          echo_log "vmlinuz found at ${HDCHECK}"
+##          HDTARGET="${HDCHECK}"
+##        fi
+##      done
+##      if [ "${HDTARGET}" = "NONE" ] ; then
+##        echo_log "Update failed, target drive not found\n" $debug
+##        exit 0
+##      fi 
+
+# Search local hard disk (sata/usbdevice) for existing vmlinuz
+       HDTARGET="NONE"
+       for CURRENT_DISK in ${DISK_LIST}
+       do
+         for CURRENT_PART in ${PARTITION_LIST}
+         do
+
+#           HDCHECK="${CURRENT_DISK}${CURRENT_PART}/boot"
+         if [ "${CURRENT_DISK}" = "/mnt/disc/sda" ] ; then
+          HDCHECK="${CURRENT_DISK}/part${CURRENT_PART}/boot"
+         else if [ "${CURRENT_DISK}" = "/mnt/mnt/usbdevice/mmcblk0p" ] ; then
+          HDCHECK="${CURRENT_DISK}${CURRENT_PART}/boot"
+          else
+          HDCHECK="${CURRENT_DISK}${CURRENT_PART}/boot"
+          fi
+         fi
+
+           echo_log "Checking for vmlinuz on ${HDCHECK}"
+           if [ -e ${HDCHECK}/vmlinuz ] ; then
+             echo_log "vmlinuz found at ${HDCHECK}"
+             HDTARGET="${HDCHECK}"
+           fi
+         done
+       done
+       if [ "${HDTARGET}" = "NONE" ] ; then
+         echo_log "Update failed, target drive not found\n" $debug
+         exit 0
+       fi
+
 
 # found the local file location
 # now download to a temp location
@@ -94,7 +128,7 @@ init)
         case `make_caps ${HDUPDATE_SERVER_TYPE}` in
 		TFTP)
         		TYPE_RETURN=0
-        		( tftp -g -l ${TEMPFILE} -r ${SOURCEFILE} ${HDUPDATE_SERVER} ; echo $? > /tmp/return ) &
+        		( tftp -g -l ${TEMPFILE} -r ${SOURCEFILE} -b ${TFTP_BLOCKSIZE} ${HDUPDATE_SERVER} ; echo $? > /tmp/return ) &
 			while pidof tftp > /dev/null; do
 				echo_log "." -n $debug
 				let progress=progress+1
