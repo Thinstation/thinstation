@@ -3,8 +3,8 @@
 # Maintainer:  CRUX System Team, core-ports at crux dot nu
 
 name=openssl
-version=1.0.1l
-release=209
+version=1.0.2d
+release=1
 source=(http://www.openssl.org/source/$name-$version.tar.gz \
         mksslcert.sh)
 
@@ -13,14 +13,16 @@ build() {
     export MAKEFLAGS="$MAKEFLAGS -j1"
     ./config --prefix=/usr --openssldir=/etc/ssl shared
     sed -i "s|-O3|$CFLAGS|" Makefile
-    sed -i "s|SHLIB_VERSION_NUMBER\=.*|SHLIB_VERSION_NUMBER=1.0.1|" Makefile
-    sed -i "s|SHLIB_MINOR\=.*|SHLIB_MINOR=0.1|" Makefile
+    sed -i "s|SHLIB_VERSION_NUMBER\=.*|SHLIB_VERSION_NUMBER=1.0.2|" Makefile
+    sed -i "s|SHLIB_MINOR\=.*|SHLIB_MINOR=0.2|" Makefile
     make depend
     make
     make INSTALL_PREFIX=$PKG LIBDIR=lib MANDIR=/usr/man MANSUFFIX=ssl install
     find $PKG -name "*fips*" -delete
     chmod -R +w $PKG
     install -D -m 755 $SRC/mksslcert.sh $PKG/usr/bin/mksslcert
-    ln -s libssl.so.1.0.1 $PKG/usr/lib/libssl.so.1.0.0
-    ln -s libcrypto.so.1.0.1 $PKG/usr/lib/libcrypto.so.1.0.0
+    ln -s libssl.so.1.0.2 $PKG/usr/lib/libssl.so.1.0.0
+    ln -s libssl.so.1.0.2 $PKG/usr/lib/libssl.so.1.0.1
+    ln -s libcrypto.so.1.0.2 $PKG/usr/lib/libcrypto.so.1.0.0
+    ln -s libcrypto.so.1.0.2 $PKG/usr/lib/libcrypto.so.1.0.1
 }
