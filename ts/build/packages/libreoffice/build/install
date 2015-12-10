@@ -28,7 +28,9 @@ if [ -n "$1" ]; then
   cd ..
 
   mkdir -p $installdir/lib
-  mv $installdir/usr/bin $installdir/bin
+  if [ -d $installdir/usr/bin ]; then
+    mv $installdir/usr/bin $installdir/bin
+  fi
   mv $installdir/usr/share/* $installdir/lib
   rm -rf $installdir/usr
 
@@ -41,12 +43,12 @@ fi
 
 optname=`basename $installdir/opt/libreoffice*`
 
-rm -rf $installdir/lib/{applnk,mimelnk}
+rm -rf $installdir/lib/{applnk,mimelnk,mime-info,application-registry}
 rm -rf $installdir/lib/icons/gnome
 rm -rf $installdir/lib/man
-mv $installdir/opt/libreoffice*/share/config/images_tango.zip /tmp
-rm -rf $installdir/opt/libreoffice*/share/config/images*.zip
-mv /tmp/images_tango.zip $installdir/opt/libreoffice*/share/config
+mv $installdir/opt/$optname/share/config/images_tango.zip /tmp
+rm -rf $installdir/opt/$optname/share/config/images*.zip
+mv /tmp/images_tango.zip $installdir/opt/$optname/share/config
 
 ln -s ../opt/$optname/LICENSE $installdir/build/license
 mkdir -p $installdir/lib/licenses/libreoffice
@@ -55,10 +57,19 @@ ln -s /opt/$optname/LICENSE $installdir/lib/licenses/libreoffice
 mkdir -p $installdir/lib/mozilla/plugins
 ln -s /opt/$optname/program/libnpsoplugin.so $installdir/lib/mozilla/plugins
 
+if [ ! -d $installdir/lib/applications ]; then
+  mkdir -p $installdir/lib/applications
+  pushd $installdir/opt/$optname/share/xdg
+  for i in *; do
+    mv $i ../../../../lib/applications/libreoffice-$i
+  done
+  popd
+fi
+
 mkdir -p $installdir/lib/menu
 icon=`basename $installdir/lib/icons/hicolor/32x32/apps/libreoffice*-main.png | sed -e 's/\.png//'`
 cat > $installdir/lib/menu/libreoffice <<EOF
-package="libreoffice"; icon="$icon"; needs="x11"; title="LibreOffice"; command="libreoffice4.3"
+package="libreoffice"; icon="$icon"; needs="x11"; title="LibreOffice"; command="libreoffice"
 EOF
 
 cp -a $installdir/build/extra/* $installdir
@@ -73,9 +84,10 @@ find $installdir -name libavmediagst_0_10.so -delete
 find $installdir -name libgconfbe1lo.so -delete
 find $installdir -name libucpgvfs1lo.so -delete
 
-#if [ ! -e $installdir/bin/libreoffice ]; then
-#  binname=`basename $installdir/bin/libreoffice*`
-#  ln -s $binname $installdir/bin/libreoffice
-#fi
+if [ ! -d $installdir/bin ]; then
+  mkdir -p $installdir/bin
+  ln -s /opt/$optname/program/soffice $installdir/bin/$optname
+  ln -s $optname $installdir/bin/libreoffice
+fi
 
 exit $returnval

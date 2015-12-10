@@ -12,11 +12,15 @@ returnval=$?
 
 mkdir -p $INSTALLDIR/{bin,lib/doc/$package,lib/vmware/rdpvcbridge}
 
-for component in client pcoip rtav smartcard usb virtual-printing; do
+for component in client pcoip rtav smartcard usb virtual-printing tsdr; do
 dir=wget_tmp/vmware/vmware-horizon-$component
 case $component in
 client)
 cp -a $dir/bin/* $INSTALLDIR/bin
+if [ -d $dir/lib ]; then
+  cp -a $dir/lib  $INSTALLDIR/
+  chmod a+x $INSTALLDIR/lib/vmware/view/bin/*
+fi
 cp -a $dir/share/* $INSTALLDIR/lib
 cp -a $dir/doc/* $INSTALLDIR/lib/doc/$package
 chmod a+x $INSTALLDIR/bin/vmware-view{,-log-collector}
@@ -25,6 +29,12 @@ pcoip)
 cp -a $dir/pcoip/lib/* $INSTALLDIR/lib
 cp -a $dir/pcoip/bin/* $INSTALLDIR/bin
 ln $INSTALLDIR/lib/{pcoip/vchan_plugins,vmware/view/vdpService}/libmksvchanclient.so
+if [ -e $INSTALLDIR/lib/vmware/libssl.so.1.0.2 ] &&
+   [ ! -e $INSTALLDIR/lib/vmware/libssl.so.1.0.1 ]; then
+  chmod a+x $INSTALLDIR/lib/vmware/lib{ssl,crypto}.so.1.0.2
+  ln -s libssl.so.1.0.2 $INSTALLDIR/lib/vmware/libssl.so.1.0.1
+  ln -s libcrypto.so.1.0.2 $INSTALLDIR/lib/vmware/libcrypto.so.1.0.1
+fi
 chmod a+x $INSTALLDIR/lib/libpcoip_*.so
 chmod a+x $INSTALLDIR/bin/{vmware-remotemks*,vmware-flash-projector}
 ;;
@@ -34,16 +44,28 @@ cp -a $dir/lib/* $INSTALLDIR/lib
 smartcard)
 cp -a $dir/lib/* $INSTALLDIR/lib
 ;;
+tsdr)
+if [ -d $dir ]; then
+  cp -a $dir/lib/* $INSTALLDIR/lib
+fi
+;;
 usb)
 mkdir -p $INSTALLDIR/lib/vmware/view/usb
 cp -a $dir/bin/* $INSTALLDIR/lib/vmware/view/usb
 chmod a+x $INSTALLDIR/lib/vmware/view/usb/*
-rm -f $INSTALLDIR/lib/vmware/view/usb/lib{crypto,ssl}.so.1.0.1
-ln -s /usr/lib/libssl.so.1.0.1 $INSTALLDIR/lib/vmware/view/usb
-ln -s /usr/lib/libcrypto.so.1.0.1 $INSTALLDIR/lib/vmware/view/usb
+if [ -e $INSTALLDIR/lib/vmware/view/usb/libcrypto.so.1.0.1 ]; then
+  rm -f $INSTALLDIR/lib/vmware/view/usb/lib{crypto,ssl}.so.1.0.1
+  ln -s /usr/lib/libssl.so.1.0.1 $INSTALLDIR/lib/vmware/view/usb
+  ln -s /usr/lib/libcrypto.so.1.0.1 $INSTALLDIR/lib/vmware/view/usb
+fi
 ;;
 virtual-printing)
 mkdir -p $INSTALLDIR/{etc/thnuclnt,sbin,lib/cups/filter,lib/freerdp}
+if [ -d $dir/scripts ]; then
+  mkdir -p $INSTALLDIR/lib/vmware/view/virtualPrinting
+  cp -a $dir/scripts $INSTALLDIR/lib/vmware/view/virtualPrinting
+  chmod a+x $INSTALLDIR/lib/vmware/view/virtualPrinting/scripts/*.sh
+fi
 cp -a $dir/bin/conf $INSTALLDIR/etc/cups
 cp -a $dir/bin/init.d/linux $INSTALLDIR/etc/init.d
 chmod a+x $INSTALLDIR/etc/init.d/*
@@ -63,7 +85,7 @@ for i in thnuclnt thnuclntd thnuconf thnuchk thnucups thnurdp .thnumod; do
   elif [ "$i" = "thnuclntd" ]; then j=sbin; fi
   cat > $INSTALLDIR/$j/$i <<EOF
 #! /bin/sh
-exec /usr/lib/thnuclnt/vmappld /usr/lib/thnuclnt/$i.so -0 \$0 \$@
+exec /usr/lib/thnuclnt/vmappld /usr/lib/thnuclnt/$i.so -0 \$0 "\$@"
 EOF
   chmod a+x $INSTALLDIR/$j/$i
 done

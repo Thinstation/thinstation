@@ -1,0 +1,31 @@
+diff -ur a/plugins/clock/clock-time.c b/plugins/clock/clock-time.c
+--- a/plugins/clock/clock-time.c	2014-05-02 19:54:12.000000000 +0000
++++ b/plugins/clock/clock-time.c	2015-08-18 01:27:16.022000220 +0000
+@@ -110,7 +110,7 @@
+ clock_time_init (ClockTime *time)
+ {
+   time->timezone_name = g_strdup (DEFAULT_TIMEZONE);
+-  time->timezone = g_time_zone_new_local ();
++  time->timezone = NULL;
+ }
+ 
+ 
+@@ -122,7 +122,8 @@
+ 
+   g_free (time->timezone_name);
+ 
+-  g_time_zone_unref (time->timezone);
++  if (time->timezone)
++    g_time_zone_unref (time->timezone);
+ 
+   G_OBJECT_CLASS (clock_time_parent_class)->finalize (object);
+ }
+@@ -171,7 +172,7 @@
+           if (str_value == NULL || g_strcmp0 (str_value, "") == 0)
+             {
+               time->timezone_name = g_strdup (DEFAULT_TIMEZONE);
+-              time->timezone = g_time_zone_new_local ();
++              time->timezone = NULL;
+             }
+           else
+             {

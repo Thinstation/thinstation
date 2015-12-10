@@ -5,15 +5,28 @@
 # Nice to have: tclsh
 
 name=usb_modeswitch
-version=1.2.3
-release=20120531
-source=("http://www.draisberghof.de/usb_modeswitch/usb-modeswitch-$version.tar.bz2"
-      "http://www.draisberghof.de/usb_modeswitch/usb-modeswitch-data-$release.tar.bz2")
+version=2.2.5
+release=1
+source=(http://www.draisberghof.de/usb_modeswitch/usb-modeswitch-$version.tar.bz2
+	http://www.draisberghof.de/usb_modeswitch/usb-modeswitch-data-20150627.tar.bz2)
 
-build () {
-  cd usb-modeswitch-$version
-  make DESTDIR=$PKG MANDIR=$PKG/usr/man/man1 all install-static
+build() {
+	cd usb-modeswitch-$version
 
-  cd ../usb-modeswitch-data-*
-  make DESTDIR=$PKG MANDIR=$PKG/usr/man/man1 install
+	make clean
+	make
+
+	make \
+		DESTDIR=$PKG \
+		UDEVDIR=$PKG/lib/udev \
+		MANDIR=$PKG/usr/man/man1 \
+		install-static
+
+	cd $SRC/usb-modeswitch-data-*
+
+	make \
+		DESTDIR=$PKG \
+		RULESDIR=$PKG/lib/udev/rules.d \
+		MANDIR=$PKG/usr/man/man1 \
+		install
 }
