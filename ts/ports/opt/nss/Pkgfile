@@ -4,20 +4,16 @@
 # Depends on:  nspr sqlite3
 
 name=nss
-version=3.19.2
+version=3.21
 release=1
 _version=$(echo $version |sed 's/\./_/g')
-source=(ftp://ftp.mozilla.org/pub/mozilla.org/security/nss/releases/NSS_${_version}_RTM/src/$name-$version.tar.gz \
+source=(https://ftp.mozilla.org/pub/mozilla.org/security/nss/releases/NSS_${_version}_RTM/src/$name-$version.tar.gz \
         nss-config.in nss.pc.in)
 
 build() {
     cd $name-$version/
 
     local file
-
-    sed -i nss/coreconf/Linux.mk \
-        -e 's|^CC.*=.*gcc$|#&|' \
-        -e 's|^CCC.*=.*g++$|#&|'
 
     export NSPR_INCLUDE_DIR=/usr/include/nspr
     export NSPR_LIB_DIR=/usr/lib
