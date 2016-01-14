@@ -242,7 +242,8 @@ lib_dependencies()
 		if [ -d $pkgname/lib ]; then
 			find $pkgname/lib -mindepth 1 -maxdepth 1 -type l |grep -e .so$ |grep -v python |xargs rm >/dev/null 2>&1
 			resolve_links
-			find $pkgname/lib -mindepth 1 -maxdepth 1 -name lib\* |grep -E '.so.[0-9]+.[0-9]+' |grep -Ev 'libwinpr|libfreerdp' |xargs rm >/dev/null 2>&1
+			# Delete versions of files and links that are almost never used. Fingers Crossed.
+			find $pkgname/lib -mindepth 1 -maxdepth 1 -name lib\* |grep -E '.so.[0-9]+.[0-9]+' |grep -Ev 'libwinpr|libfreerdp|libxfreerdp' |xargs rm >/dev/null 2>&1
 			find $pkgname/lib -mindepth 1 -maxdepth 1 -name lib\* |grep -E '.so.[0-9]+.[0-9]+.[0-9]+' |xargs rm >/dev/null 2>&1
 			find $pkgname/lib -mindepth 1 -maxdepth 1 -type f |grep -E 'libnss_[a-z]+\-[0-9]+.[0-9]+.so$' |xargs rm >/dev/null 2>&1
 		fi
