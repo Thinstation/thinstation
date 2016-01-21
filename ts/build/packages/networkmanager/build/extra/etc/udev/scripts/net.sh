@@ -34,8 +34,8 @@ net_use()
 client_name()
 {
 	CLIENT_MAC=`cat /sys/class/net/$INTERFACE/address | sed 's/://g'`
-	if [ -n "`echo $NET_HOSTNAME | sed -n '/\*/p'`" ]; then
-		CLIENT_NAME=`echo $NET_HOSTNAME | sed "s/\*/$CLIENT_MAC/"`
+	if [ -n "`echo \"$NET_HOSTNAME\" | sed -n '/\*/p'`" ]; then
+		CLIENT_NAME=`echo "$NET_HOSTNAME" | sed "s/\*/$CLIENT_MAC/"`
 	else
 		CLIENT_NAME=$NET_HOSTNAME
 	fi
