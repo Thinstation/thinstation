@@ -1,7 +1,13 @@
+remove_wl ()
+{
+  echo "blacklist wl" >> /etc/modprobe.d/blacklist.conf
+  rm /etc/modprobe.d/broadcom-sta.conf
+}
+
 if is_enabled $BASICNET; then
-	echo "blacklist wl" >> /etc/modprobe.d/blacklist.conf
+  remove_wl
 elif ! grep "14e4 " $1; then
-	echo "blacklist wl" >> /etc/modprobe.d/blacklist.conf
+  remove_wl
 elif grep "14e4 4331" $1; then
-	echo "blacklist wl" >> /etc/modprobe.d/blacklist.conf
+  remove_wl
 fi
