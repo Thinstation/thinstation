@@ -6,19 +6,15 @@
 # Group: xfce4
 
 name=broadcom-sta_64
-version=6.30.223.248
+version=6.30.223.271
 release=1
 pversion=`echo "$version" |sed 's|\.|_|g'`
 kver=`cat /ts/ports/kernel-modules/VERSION`
 source=(http://www.broadcom.com/docs/linux_sta/hybrid-v35_64-nodebug-pcoem-$pversion.tar.gz \
-	license.patch
-	linux-recent.patch
-	gcc.patch)
+	license.patch)
 
 build() {
 	patch -p1 -i license.patch
-	patch -p1 -i linux-recent.patch
-	patch -p1 -i gcc.patch
 
 	for kernel in TS_64; do
 		KBUILD_NOPEDANTIC=1 make -C /usr/src/kernels/${kver}${kernel} M=`pwd`

@@ -22,13 +22,17 @@ build() {
   while read line; do
     echo -n a
     if [ -n "`echo $line | grep ENDOFWFILTER`" ]; then
-      if [ write == 1 ]; then
+      if [ $write == 1 ]; then
         write=0
       else
         write=1
       fi
     elif [ $write == 1 ]; then
       echo $line >> $PKG/usr/lib/cups/filter/brlpdwrapper${printer}
+      if [ `echo $line | grep 'errorcode=0'` ]; then
+        echo 'device_model=Printers' >> $PKG/usr/lib/cups/filter/brlpdwrapper${printer}
+        echo "printer_model=${printer}" >> $PKG/usr/lib/cups/filter/brlpdwrapper${printer}
+      fi
     fi   
   done < $PKG/opt/brother/Printers/$printer/cupswrapper/cupswrapper${printer}
 

@@ -28,7 +28,11 @@ mkdir -p $INSTALLDIR/lib/icons/hicolor/48x48/apps
 mv $INSTALLDIR/share/doc/NVIDIA_GLX-1.0/nvidia-settings.png $INSTALLDIR/lib/icons/hicolor/48x48/apps/.
 
 mkdir -p $INSTALLDIR/lib/applications
-mv /usr/local/share/applications/nvidia-settings.desktop $INSTALLDIR/lib/applications
+if [ -e /usr/local/share/applications/nvidia-settings.desktop ]; then
+  mv /usr/local/share/applications/nvidia-settings.desktop $INSTALLDIR/lib/applications
+elif [ -e $INSTALLDIR/share/applications ]; then
+  mv $INSTALLDIR/share/applications/* $INSTALLDIR/lib/applications
+fi
 
 mv /usr/share/nvidia/* $INSTALLDIR/lib/nvidia
 
