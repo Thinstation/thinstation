@@ -7,14 +7,9 @@ init)
   if ! pkg_initialized $PACKAGE; then
     # Prime entropy pool for random number generation
     if ! is_disabled $RNGD ; then
-	let watermark=`cat /proc/sys/kernel/random/poolsize`/2
-	if [ ! -e /dev/hwrng ]; then
-		# If we don't have a hwrng, seed random from urandom.
-		# This might be insecure if we were going to set up a CA or
-		# the clock was compromised, but I doubt that either is going to happen.
-		RANDOM_SOURCE="-r /dev/urandom"
-	fi
-	/sbin/rngd -t 5 -W $watermark -B 1 $RANDOM_SOURCE
+	# Try /dev/hwrng first, then fallback to urandom
+	/sbin/rngd -t 5 -W 50% -B 1 2> /dev/null ||\
+	/sbin/rngd -t 5 -W 50% -B 1 -r /dev/urandom
     fi
     pkg_set_init_flag $PACKAGE
 

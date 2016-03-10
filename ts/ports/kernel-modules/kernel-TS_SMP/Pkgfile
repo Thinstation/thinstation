@@ -9,17 +9,17 @@ sversion=`cat /ts/ports/kernel-modules/VERSION`
 release=1
 kernel=${sversion}TS_SMP
 source=(ftp://ftp.kernel.org/pub/linux/kernel/v4.x/linux-$sversion.tar.xz \
-	/$TSCOMPROOT/aufs/patches/aufs4.patch
 	../kernel-TS/tmpfs_user_xattr.patch
-	ts.config)
+	ts.config
+	radeon_fix.patch)
 
 build() {
 export MAKEFLAGS="-j7"
 	cd linux-$sversion
 	cp $SRC/ts.config ./.config
 
-	patch --no-backup-if-mismatch -p1 < ../aufs4.patch
 	patch --no-backup-if-mismatch -p1 < ../tmpfs_user_xattr.patch
+	patch --no-backup-if-mismatch -p1 < ../radeon_fix.patch
 
 	if [ -e /etc/ssl/keys/kernel.key ]; then
 		touch x509.genkey

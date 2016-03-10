@@ -70,6 +70,7 @@ showhelp()
 
 unmount_tmp()
 {
+	sleep 3
 	if mounted ./tmp-tree/proc; then
 		umount -f ./tmp-tree/proc
 	fi
@@ -148,7 +149,7 @@ addpkgs()
 
 mounted()
 {
-	mountpoint $1 &>/dev/null
+	mountpoint -q $1
 	return $?
 }
 
@@ -1415,7 +1416,6 @@ rm -Rf ./tmp-tree/.dna
 
 lib_dependencies
 
-
 # Add user defined defaults
 if [ -e ./$ts_defaultconfig ] && [ ! -z "$ts_defaultconfig" ] ; then
 	cat ./$ts_defaultconfig | grep -v "^#" | sed '/^[ \t]*$/d' >> ./tmp-tree/thinstation.defaults
@@ -1673,7 +1673,7 @@ filesystem_fixups()
 		sed -e "/if.*proc\/cmdline/d" tmp-tree/etc/thinstation.global > ./tmp-tree/build.finalize
 		cat ./tmp-tree/finalize/* >> ./tmp-tree/build.finalize
 		chroot ./tmp-tree /bin/sh /build.finalize
-		while fuser ./tmp-tree ; do
+		while fuser ./tmp-tree 2>&1 > /dev/null; do
 			sleep .1
 		done
 		unmount_tmp

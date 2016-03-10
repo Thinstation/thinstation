@@ -3,7 +3,7 @@
 # Maintainer:  CRUX System Team, core-ports at crux dot nu
 
 name=openssl-crosstools
-version=1.0.1j
+version=1.0.2g
 release=1
 source=(http://www.openssl.org/source/openssl-$version.tar.gz)
 cross_prefix=/opt/cross/x-tools/x86_64-thinstation-linux-gnu
@@ -19,7 +19,7 @@ build() {
     export REPORT_ARCH=x86_64
     export CROSS_COMPILE="/opt/cross/x-tools/x86_64-thinstation-linux-gnu/bin/x86_64-thinstation-linux-gnu-"
 
-    ./config --prefix=/usr --openssldir=/etc/ssl shared
+    ./Configure --prefix=/usr --openssldir=/etc/ssl shared linux-x86_64
     sed -i "s|-O3|$CFLAGS|" Makefile
     # Disable static
     sed -i 's# libcrypto.a##;s# libssl.a##' Makefile

@@ -4,14 +4,12 @@
 # Depends on: libdrm, xorg-makedepend, xorg-glproto, xorg-xextproto, xorg-dri2proto, xorg-libx11, xorg-xf86vidmodeproto, xorg-libxext, xorg-libxxf86vm, xorg-libxt, xorg-libxdamage, xorg-libpciaccess, expat, talloc, libxml2-python
 
 name=mesa3d
-version=10.4.7
+version=11.1.2
 release=1
-source=(ftp://ftp.freedesktop.org/pub/mesa/${version}/MesaLib-$version.tar.bz2
-	MesaLib-10.1.0-svga_texture-1.patch)
+source=(ftp://ftp.freedesktop.org/pub/mesa/${version}/mesa-$version.tar.xz)
 
 build() {
-    cd Mesa-$version
-    patch -Np1 < ../MesaLib-10.1.0-svga_texture-1.patch
+    cd mesa-$version
 
     autoreconf --force --install
     ./autogen.sh --prefix=/usr \
