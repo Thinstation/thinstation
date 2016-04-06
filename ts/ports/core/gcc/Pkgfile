@@ -4,14 +4,13 @@
 # Depends on:  zlib libmpc
 
 name=gcc
-version=4.8.4
+version=5.3.0
 release=1
 source=(ftp://gcc.gnu.org/pub/gcc/releases/$name-$version/$name-$version.tar.bz2 \
 	$name-nocheck-fixincludes.patch)
 
 
 build() {
-    export MAKEFLAGS="-j5"
     patch -d $name-$version -p1 -i $SRC/$name-nocheck-fixincludes.patch
 
     mkdir build
@@ -29,8 +28,8 @@ build() {
                                 --with-system-zlib \
                                 --enable-multilib \
                                 --with-pkgversion="Thinstation"
-    make bootstrap
-    make -j1 DESTDIR=$PKG install
+    make -j5 bootstrap
+    make DESTDIR=$PKG install
 
     mkdir $PKG/lib
     ln -sf ../usr/bin/cpp $PKG/lib/cpp

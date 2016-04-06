@@ -4,7 +4,7 @@
 # Depends on: udev util-linux mesa3d xorg-bdftopcf xorg-bigreqsproto xorg-libdmx xorg-libpixman xorg-libxaw xorg-libxcomposite xorg-libxcursor xorg-libxft xorg-libxinerama xorg-libxkbfile xorg-libxrandr xorg-libxres xorg-libxtst xorg-libxvmc xorg-libxxf86dga xorg-mkfontdir xorg-mkfontscale xorg-scrnsaverproto xorg-xcmiscproto xorg-xf86driproto
 
 name=xorg-server
-version=1.17.4
+version=1.18.1
 release=1
 source=(http://xorg.freedesktop.org/releases/individual/xserver/xorg-server-$version.tar.bz2 \
 	xorg-gcc.patch)
@@ -23,6 +23,22 @@ build() {
                 --localstatedir=/var \
                 --with-fontrootdir=/usr/share/fonts/X11 \
                 --with-xkb-output=/var/lib/xkb \
+		--enable-ipv6 \
+		--enable-dri \
+		--enable-dmx \
+		--enable-xvfb \
+		--enable-xnest \
+		--enable-composite \
+		--enable-xorg \
+		--disable-xephyr \
+		--enable-glamor \
+		--enable-glx-tls \
+		--enable-config-udev \
+		--enable-record \
+		--disable-xfbdev \
+		--disable-xfake \
+		--disable-static \
+		--with-sha1=libgcrypt \
 		--with-builder-addr="doncuppjr@yahoo.com" \
 		--with-os-vendor="Thinstation" \
 		--with-vendor-name="ThinStation made by Don Cupp" \
@@ -40,4 +56,5 @@ build() {
     rmdir $PKG/var/log
 
     install -m 755 -d $PKG/etc/X11/xorg.conf.d
+    cp hw/xfree86/common/dgaproc.h $PKG/usr/include/xorg/.
 }

@@ -3,31 +3,24 @@
 # Maintainer:  CRUX System Team, core-ports at crux dot nu
 
 name=glibc
-version=2.20
+version=2.23
 release=2
 source=(http://ftp.gnu.org/gnu/glibc/glibc-$version.tar.xz
-	glibc-fedora_i686.patch
-        glibc-ignore_origin.patch
-        disable-assembler-optimizations.patch
-        Optimize-__getpagesize-a-bit.patch
-	glibc-ghost.patch
-	make-4.x.patch
         hosts resolv.conf nsswitch.conf host.conf ld.so.conf)
 
 build() {
 
-cd $SRC
-#    patch -p1 -d $name-$version -i $SRC/$name-fedora_i686.patch
-#    patch -R -p1 -d $name-$version -i $SRC/Optimize-__getpagesize-a-bit.patch
-    patch -p1 -d $name-$version -i $SRC/$name-ignore_origin.patch
-#    patch -p1 -d $name-$version -i $SRC/disable-assembler-optimizations.patch
-    patch -p1 -d $name-$version -i $SRC/make-4.x.patch
-#    patch -p1 -d $name-$version -i $SRC/$name-ghost.patch
+    cd $SRC
+
+export CFLAGS="${CFLAGS} -mno-tls-direct-seg-refs"
+export CFLAGS=${CFLAGS/-fstack-protector-strong/}
+export CPPFLAGS=${CPPFLAGS/-D_FORTIFY_SOURCE=2/}
+
     mkdir build
     cd build
     ../$name-$version/configure --prefix=/usr \
                                 --libexecdir=/usr/lib \
-                                --with-headers=/usr/src/kernels/`cat /boot/KERNEL_VERSION`_SMP/usr/include \
+                                --with-headers=/usr/src/kernels/`cat /boot/KERNEL_VERSION`/usr/include \
 				--enable-add-ons \
 				--enable-obsolete-rpc \
 				--enable-kernel=2.6.32 \
@@ -36,9 +29,21 @@ cd $SRC
 				--enable-lock-elision \
 				--enable-multi-arch \
 				--disable-werror \
-                                --without-gd
-    make
-    make install_root=$PKG install
+
+	# build libraries with hardening disabled
+	echo "build-programs=no" >> configparms
+	make
+
+	# re-enable hardening for programs
+	sed -i "/build-programs=/s#no#yes#" configparms
+	echo "CC += -fstack-protector-strong -D_FORTIFY_SOURCE=2" >> configparms
+	echo "CXX += -fstack-protector-strong -D_FORTIFY_SOURCE=2" >> configparms
+	make
+
+	# remove harding in preparation to run test-suite
+	sed -i '5,7d' configparms
+
+	make install_root=$PKG install
 
     cp $SRC/{hosts,resolv.conf,nsswitch.conf,host.conf,ld.so.conf} $PKG/etc
     ln -sf ../usr/share/zoneinfo/UTC $PKG/etc/localtime
