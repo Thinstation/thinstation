@@ -1,0 +1,18 @@
+#! /bin/sh
+
+. $TS_GLOBAL
+
+case "$1" in  
+init)
+    if ! pkg_initialized $PACKAGE; then
+	pkg_set_init_flag $PACKAGE
+	ocsinventory-agent --server $OCS_SERVER_URL
+#	ocsinventory-agent -c /etc/ocsinventory-agent.conf
+    fi
+    ;;
+  *)
+    exit 1
+    ;;
+esac
+
+exit 0
