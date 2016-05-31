@@ -1,16 +1,9 @@
-#!/bin/bash
+#!/bin/sh
 
-gzname=`basename $1`
-tarname=`basename $1 .tar.gz`
-filename=`basename $1 .tar.gz`
-version=`echo $gzname sed -e 's/[A-Za-z-]//g' |cut -c 1-5`
-INSTALLDIR=./packages/ocsinventory/bin
+export PACKAGE=ocsinventory
+export PORTS=$PACKAGE
+repackage -e
 
-tar -C wget_tmp -zxf ./wget_tmp/$gzname
-let returnval=$?
-
-chmod -R u+w ./wget_tmp
-cp -Prf ./wget_tmp/$filename/ocsinventory-agent $INSTALLDIR/.
-let returnval+=$?
+returnval=$?
 
 exit $returnval
