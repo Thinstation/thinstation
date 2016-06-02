@@ -6,15 +6,18 @@
 name=spice
 version=0.13.1
 release=1
-source=(http://spice-space.org/download/releases/spice-$version.tar.bz2)
+#source=(http://spice-space.org/download/releases/spice-$version.tar.bz2)
 
 build() {
-
-  cd $name-$version
+export CFLAGS="$CFLAGS -Wno-error=unused-local-typedefs"
+git clone git://anongit.freedesktop.org/spice/spice
+cd spice
+./autogen.sh
+#  cd $name-$version
 
   ./configure --prefix=/usr \
               --datarootdir=/usr/lib \
-              --enable-opengl=yes
+              --enable-opengl=no
 
   make
   make DESTDIR=$PKG install
