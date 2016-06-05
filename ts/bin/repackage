@@ -209,12 +209,14 @@ merge_trunk()
 		for dir in `find $INSTALLDIR/build/extra -type d |cut -d '/' -f6-`; do
 			mkdir -p $INSTALLDIR/$dir
 		done
+		IFS=$'\n\t'
 		for file in `find $INSTALLDIR/build/extra ! -type d |cut -d '/' -f6-`; do
-			if [ -e $INSTALLDIR/$file ]; then
-				rm $INSTALLDIR/$file
+			if [ -e $INSTALLDIR/"$file" ]; then
+				rm $INSTALLDIR/"$file"
 			fi
-			ln $INSTALLDIR/build/extra/$file $INSTALLDIR/$file
+			ln $INSTALLDIR/build/extra/"$file" $INSTALLDIR/"$file"
 		done
+		unset IFS
 	fi
 }
 

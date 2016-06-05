@@ -5,7 +5,7 @@
 # Depends on: faac imlib2 lame libsdl libtheora libxvid x264 opencore-amr speex libva
 
 name=ffmpeg
-version=1.0
+version=3.0.2
 release=1
 source=(http://ffmpeg.org/releases/$name-$version.tar.bz2)
 
@@ -13,38 +13,33 @@ build() {
 	cd $name-$version
 
 	./configure \
+		--cpu=x86_64 \
+		--disable-ffserver \
+		--disable-ffplay \
+		--disable-ffprobe \
+		--enable-pic \
+		--disable-encoder=flac \
+		--disable-decoder=cavs \
+		--disable-protocols \
+		--disable-devices \
+		--disable-network \
+		--disable-hwaccels \
+		--disable-filters \
+		--enable-optimizations \
+		--enable-postproc \
 		--prefix=/usr \
 		--mandir=/usr/man \
-		--enable-vaapi \
 		--enable-runtime-cpudetect \
-		--enable-vdpau \
 		--enable-gpl \
-		--enable-version3 \
-		--enable-avfilter \
-		--enable-libopencore-amrnb \
-		--enable-libopencore-amrwb \
-		--disable-libfaac \
-		--enable-libx264 \
-		--enable-libmp3lame \
-		--enable-libmodplug \
-		--enable-libspeex \
-		--enable-libtheora \
-		--enable-libvorbis \
-		--enable-libxvid \
-		--enable-libxavs \
-		--enable-shared \
-		--enable-pthreads \
-		--enable-postproc \
-		--enable-x11grab \
-		--enable-gnutls \
-		--enable-libv4l2 \
-		--disable-crystalhd \
 		--disable-nonfree \
-		--disable-avisynth \
+		--disable-indevs \
+		--disable-outdev=oss,v4l2,fbdev \
+		--disable-muxers \
 		--disable-debug \
-		--disable-static \
 		--disable-doc \
-		--disable-manpages
+		--enable-shared \
+		--disable-static \
+		--disable-demuxer='hls' --disable-protocol='concat,hls' # FS#47738
 
 	make SHARED_PP='yes'
 	make DESTDIR=$PKG install install-man

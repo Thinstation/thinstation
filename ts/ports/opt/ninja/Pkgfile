@@ -1,0 +1,16 @@
+# Description: Small build system with a focus on speed
+# URL: http://martine.github.io/ninja/
+# Maintainer: Jose V Beneyto, sepen at crux dot nu
+# Packager: Jose V Beneyto, sepen at crux dot nu
+# Depends on: python
+
+name=ninja
+version=1.6.0
+release=1
+source=(https://github.com/martine/$name/archive/v$version.tar.gz)
+
+build() {
+  cd $name-$version
+  ./configure.py --bootstrap
+  install -D -m 0755 $name $PKG/usr/bin/$name
+}
