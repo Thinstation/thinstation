@@ -1,0 +1,18 @@
+# Description: xorg driver xf86-video-via
+# URL: http://xorg.freedesktop.org
+# Maintainer: e.blindauer gmail com
+# Depends on: xorg-server
+
+name=xorg-xf86-video-via
+version=5.76.52.92
+release=1
+source=(http://manu.agat.net/5.76.52.92-opensource-009-005f78-20150730.tar.gz)
+
+build() {
+	cd 5.76.52.92-opensource-009-005f78-20150730/XServer
+
+	./configure --prefix=/usr --mandir=/usr/man
+
+	make
+	make DESTDIR=$PKG install
+}
