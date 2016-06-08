@@ -4,17 +4,12 @@
 # Depends on:
 
 name=krb5
-version=1.12.1
+version=1.12.5
 release=1
-source=(http://web.mit.edu/kerberos/dist/krb5/${version%.*}/krb5-${version}-signed.tar
-	mitkrb-1.12.1-db2_fix-1.patch)
+source=(http://web.mit.edu/kerberos/dist/krb5/${version%.*}/krb5-${version}.tar.gz)
 
 build() {
-	tar -xf $SRC/$name-$version-signed.tar
-        tar -xzf $SRC/$name-$version.tar.gz
     	cd $name-$version/src
-
-	patch -Np2 < $SRC/mitkrb-1.12.1-db2_fix-1.patch
 
 	sed -e "s@python2.5/Python.h@& python2.7/Python.h@g" -e "s@-lpython2.5]@&,\n  AC_CHECK_LIB(python2.7,main,[PYTHON_LIB=-lpython2.7])@g" -i configure.in
 	sed -e "s@interp->result@Tcl_GetStringResult(interp)@g" \
