@@ -4,36 +4,32 @@
 # Depends on:  util-linux-ng, cups, fontconfig, xorg-libxt, xorg-libxext
 
 name=ghostscript
-version=9.05
+version=9.19
 release=1
-source=(http://downloads.ghostscript.com/public/$name-$version.tar.bz2
+source=(http://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs919/$name-$version.tar.bz2
         http://downloads.sourceforge.net/sourceforge/gs-fonts/$name-fonts-std-8.11.tar.gz)
 
 build () {
     cd $name-$version
 
+    rm -rf freetype jpeg libpng
+
     ./configure --prefix=/usr \
                 --mandir=/usr/man \
                 --enable-cups \
-                --with-install-cups \
                 --disable-gtk \
 		--disable-dbus \
+		--disable-compile-inits \
                 --with-drivers=ALL \
-                --with-ijs \
+		--with-ijs \
+		--with-system-libtiff \
                 --with-fontpath=/usr/share/ghostscript/fonts:/usr/share/fonts
 
     make so all 
     make DESTDIR=$PKG install-so install
 
-    cd ijs
-    ./autogen.sh
-    ./configure --prefix=/usr --mandir=/usr/man --enable-shared
-    make
-    make DESTDIR=$PKG install
-
     cp -r $SRC/fonts $PKG/usr/share/ghostscript
 
     rm -r $PKG/usr/{share/ghostscript/$version/{examples,doc},man/de}
     rm $PKG/usr/share/ghostscript/fonts/[CRT]*
-    rm $PKG/usr/bin/ijs_{client,server}_example
 }

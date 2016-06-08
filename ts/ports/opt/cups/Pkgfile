@@ -4,15 +4,16 @@
 # Depends on:  acl tcp_wrappers libusb-compat libpng libtiff openssl poppler
 
 name=cups
-version=1.5.2
+version=2.1.3
 release=1
-source=(http://ftp.easysw.com/pub/cups/$version/$name-$version-source.tar.bz2
+source=(http://www.cups.org/software/$version/$name-$version-source.tar.bz2
         cups-config.patch cups)
 
 build () {
     cd $name-$version
 
     patch -p1 -i $SRC/cups-config.patch
+    sed -i 's:555:755:g;s:444:644:g' Makedefs.in
 
     ./configure --prefix=/usr \
                 --sysconfdir=/etc \
@@ -27,26 +28,18 @@ build () {
                 --without-{java,perl,php,python} \
                 --without-rcdir \
                 --with-optim="$CFLAGS" \
-                --with-pdftops=pdftops \
-                --enable-{ssl,openssl} --disable-gnutls \
+                --enable-{ssl,gnutls} \
                 --enable-tcp-wrappers \
                 --enable-acl \
                 --disable-pam
 
     make
-    make {MENU,ICON}DIR="" BUILDROOT=$PKG install
+    make BUILDROOT=$PKG install
 
-    chmod 0755 $PKG/var/{cache,spool}   
-    chmod -R +w $PKG
- 
     install -d $PKG/etc/ssl/{certs,keys}
     touch $PKG/etc/ssl/certs/cups.crt
     touch $PKG/etc/ssl/keys/cups.key
     chmod 0600 $PKG/etc/ssl/{keys/cups.key,certs/cups.crt}
 
     install -D -m 755 $SRC/cups $PKG/etc/rc.d/cups
-
-    # blacklist usblp kernel module
-    install -d $PKG/etc/modprobe.d
-    echo 'blacklist usblp' > $PKG/etc/modprobe.d/cups.conf
 }
