@@ -2037,8 +2037,8 @@ syslinux_com_deps()
 syslinux_copy_files_bios()
 {
 	if [ -z "$ts_bootserver" ]; then
-		inet_dev=`ip route list |grep -e default |cut -d " " -f5`
-		ts_bootserver=`ip addr show $inet_dev |grep -e "inet " |cut -d " " -f6 |cut -d "/" -f1`
+		inet_dev=`ip route list |grep -e default |cut -d " " -f5| head -n1`
+		ts_bootserver=`ip addr show $inet_dev |grep -e "inet " |cut -d " " -f6 |cut -d "/" -f1| head -n1`
 	fi
 	biosdir=/usr/share/syslinux/bios
 	configdir=boot-images/templates/syslinux/$ts_syslinuxtheme

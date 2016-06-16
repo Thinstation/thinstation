@@ -12,16 +12,14 @@ build() {
 	cd spice-gtk-$version
 	./configure --prefix=/usr \
 			--with-gtk=2.0 \
-			--with-audio=gstreamer \
-			--disable-introspection \
 			--enable-smartcard=no \
-			--without-python \
 			--exec-prefix=/ \
 			--sysconfdir=/etc \
 			--libexecdir=/lib \
 			--mandir=/usr/man \
-			--disable-extras
+			--disable-introspection
 
 	make
 	make DESTDIR=$PKG install
+	mv $PKG/lib/pkgconfig $PKG/usr/lib/.
 }
