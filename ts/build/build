@@ -1126,10 +1126,16 @@ for KERNVER in $KERNVERS; do
 		. $PACDIR/allfirmware.param
 		if is_enabled $ts_allfirmware ; then
 			echo "Doing an All Firmware Build!"
-			for microcode in `find /lib/firmware/intel-ucode -type f -printf '%f '` \
-					 `find /lib/firmware/amd-ucode -type f -printf '%f '`; do
-				copy_firmware $microcode
-			done
+			if [ -e /lib/firmware/amd-ucode ]; then
+				for microcode in `find /lib/firmware/amd-ucode -type f -printf '%f '`; do
+					copy_firmware $microcode
+				done
+			fi
+			if [ -e /lib/firmware/intel-ucode ]; then
+				for microcode in `find /lib/firmware/intel-ucode -type f -printf '%f '`; do
+					copy_firmware $microcode
+				done
+			fi
 		fi
 	fi
 	if is_enabled $ALLMODULES ; then
