@@ -23,7 +23,13 @@ else
 		ICONS_THEME=hicolor
 	fi
 fi
-sed -i -e "s/gtk-icon-theme-name = \"gnome\"/gtk-icon-theme-name = \"$ICONS_THEME\"/g" /etc/gtk-2.0/gtkrc
+if [ -e /etc/gtk-2.0/gtkrc ]; then
+	sed -i -e "s/gtk-icon-theme-name = \"gnome\"/gtk-icon-theme-name = \"$ICONS_THEME\"/g" /etc/gtk-2.0/gtkrc
+fi
+
+if [ -e /etc/gtk-3.0/settings.ini ]; then
+	echo "gtk-icon-theme-name = $ICONS_THEME" >> /etc/gtk-3.0/settings.ini
+fi
 if [ -n "$ICONS_CUT_SIZES" ]; then
 	for size in $ICONS_CUT_SIZES; do
 		for theme in `ls /lib/icons`; do

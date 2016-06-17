@@ -1,24 +1,37 @@
-#gtk-engines 44
-
+#gtk-engines 42
 if [ "$GTK_THEME" != "ALL" ]; then
+
+
 	if [ -z "$GTK_THEME" ]; then
 		GTK_THEME=Clearlooks
 	fi
 	if [ -e /lib/themes/$GTK_THEME/gtk-2.0/gtkrc ]; then
-		engine="`grep /lib/themes/$GTK_THEME/gtk-2.0/gtkrc -e engine |grep -v \"#\" |tail -n1 |cut -d '\"' -f2`"
+		engine="`grep /lib/themes/$GTK_THEME/gtk-2.0/gtkrc -e engine |grep -v \"#\" |grep -v pixmap|tail -n1 |cut -d '\"' -f2`"
+		if [ -z "$engine" ] && [ -e /lib/themes/$GTK_THEME/gtk-2.0/gtk.css ]; then
+			engine="`grep /lib/themes/$GTK_THEME/gtk-2.0/gtk.css -e engine |cut -d: -f3 |cut -d ';' -f1`"
+		fi
+		if [ -z $engine ] && [ -e /lib/themes/$GTK_THEME/gtk-2.0/main.rc ]; then
+			engine="`grep /lib/themes/$GTK_THEME/gtk-2.0/main.rc -e engine |grep -v \"#\" |grep -v pixmap|tail -n1 |cut -d '\"' -f2`"
+		fi
 		for del_engine in `find /lib/gtk-2.0/2.10.0/engines -type f |grep -v pixmap |grep -v $engine`; do
 			rm $del_engine
 		done
 		sed -i -e "s/gtk-theme-name = \"Clearlooks\"/gtk-theme-name = \"$GTK_THEME\"/g" /etc/gtk-2.0/gtkrc
-		for theme in `find /lib/themes -name gtkrc |cut -d "/" -f4`; do
-			if [ "$theme" != "$GTK_THEME" ]; then
-				rm -rf /lib/themes/$theme/gtk-2.0
-				if [ -z "`ls -A /lib/themes/$theme`" ]; then
-					rmdir /lib/themes/$theme
-				fi
-			fi
-		done
-	else
-		echo -e "\tGtk Theme $GKT_THEME not found!"
+	elif [ -e /etc/gtk-2.0 ]; then
+		echo -e "\tGtk-2 Theme $GTK_THEME not found!"
 	fi
+	if [ -e /lib/themes/$GTK_THEME/gtk-3.0/gtk.css ]; then
+		echo "gtk-theme-name = $GTK_THEME" >> /etc/gtk-3.0/settings.ini
+	elif [ -e /etc/gtk-3.0 ]; then
+		echo -e "\tGtk-3 Theme $GTK_THEME not found!"
+	fi
+	for theme in `find /lib/themes -name gtkrc -o -name gtk.css |cut -d "/" -f4`; do
+		if [ "$theme" != "$GTK_THEME" ]; then
+			rm -rf /lib/themes/$theme/gtk-2.0
+			rm -rf /lib/themes/$theme/gtk-3.0
+			if [ -d /lib/themes/$theme ] && [ -z "`ls -A /lib/themes/$theme`" ]; then
+				rmdir /lib/themes/$theme
+			fi
+		fi
+	done
 fi
