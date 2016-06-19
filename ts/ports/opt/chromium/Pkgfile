@@ -5,12 +5,19 @@
 # Depends on: dbus-glib gperf gtk libevent libexif libgcrypt mesa3d ninja nss pciutils speech-dispatcher xorg-libxscrnsaver xorg-libxt xorg-libxtst yasm
 
 name=chromium
-version=51.0.2704.63
+version=51.0.2704.84
 release=1
 source=(http://commondatastorage.googleapis.com/$name-browser-official/$name-$version.tar.xz \
 	$name.sh $name.desktop)
 
 build() {
+if [ -e ../../google_api.key ]; then
+	. ../../google_api.key
+	API_KEY="-Dgoogle_api_key=$_google_api_key"
+	CLIENT_ID="-Dgoogle_default_client_id=$_google_default_client_id"
+	CLIENT_SECRET="-Dgoogle_default_client_secret=$_google_default_client_secret"
+fi
+
   cd $name-$version
 
   touch chrome/test/data/webui/i18n_process_css_test.html
@@ -19,6 +26,9 @@ build() {
   export LDFLAGS="$LDFLAGS $(pkg-config --libs nspr)"
 
   build/gyp_chromium build/all.gyp --depth=. \
+	$API_KEY \
+	$CLIENT_ID \
+	$CLIENT_SECRET \
         -Duse_sysroot=0 \
         -Dclang=0 \
         -Dpython_ver="2.7" \
