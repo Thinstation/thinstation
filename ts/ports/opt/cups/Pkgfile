@@ -4,15 +4,15 @@
 # Depends on:  acl tcp_wrappers libusb-compat libpng libtiff openssl poppler
 
 name=cups
-version=1.5.2
+version=2.1.4
 release=1
-source=(http://ftp.easysw.com/pub/cups/$version/$name-$version-source.tar.bz2
+source=(https://github.com/apple/cups/releases/download/release-$version/$name-$version-source.tar.gz
         cups-config.patch cups)
 
 build () {
     cd $name-$version
 
-    patch -p1 -i $SRC/cups-config.patch
+#    patch -p1 -i $SRC/cups-config.patch
 
     ./configure --prefix=/usr \
                 --sysconfdir=/etc \
@@ -29,8 +29,6 @@ build () {
                 --with-optim="$CFLAGS" \
                 --with-pdftops=pdftops \
                 --enable-{ssl,openssl} --disable-gnutls \
-                --enable-tcp-wrappers \
-                --enable-acl \
                 --disable-pam
 
     make
