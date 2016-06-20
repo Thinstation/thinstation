@@ -13,7 +13,8 @@ Work To Do / Work in Progress: mail to developer List if you can help
 
 New:
 
-- Moved to kernel 4.1.19
+- Moved to kernel 4.6.2
+- Update glibc,gcc and openssl
 - Updated nvidia xorg driver and kernel module
 
 **Note that Several modules have been moved inside the kernel**
