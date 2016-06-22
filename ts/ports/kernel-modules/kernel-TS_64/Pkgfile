@@ -17,10 +17,10 @@ export MAKEFLAGS="-j7"
 	cp $SRC/ts.config ./.config
 
 	if [ -e /etc/ssl/keys/kernel.key ]; then
-		touch x509.genkey
-		cp /etc/ssl/keys/kernel.key signing_key.priv
-		cp /etc/ssl/certs/kernel.crt signing_key.x509
-		cp /etc/ssl/certs/kernel-ca.crt extra_certificates
+		touch certs/x509.genkey
+		cp /etc/ssl/keys/kernel.key certs/signing_key.pem
+		openssl x509 -inform DER -in /etc/ssl/certs/kernel.crt -outform PEM >> certs/signing_key.pem
+		cp /etc/ssl/certs/kernel-ca.crt certs/extra_certificates
 	fi
 
 	make modules_prepare headers_install
