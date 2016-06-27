@@ -1,0 +1,27 @@
+# Description: The VP8/VP9 Codec SDK
+# URL: http://www.webmproject.org/
+# Maintainer: Jose V Beneyto, sepen at crux dot nu
+# Packager: Ionut Biru, ibiru at archlinux dot org
+# Depends on: yasm
+
+name=libvpx
+version=1.5.0
+release=1
+source=(http://storage.googleapis.com/downloads.webmproject.org/releases/webm/$name-$version.tar.bz2)
+
+build() {
+  cd $name-$version
+
+  ./configure --prefix=/usr \
+              --enable-vp8 \
+              --enable-vp9 \
+              --enable-runtime-cpu-detect \
+              --enable-shared \
+              --enable-postproc \
+              --enable-pic \
+              --disable-install-docs \
+              --disable-install-srcs
+
+  make
+  make DIST_DIR="$PKG/usr" install
+}
