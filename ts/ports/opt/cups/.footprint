@@ -12,8 +12,6 @@ drwx------	root/lp	etc/cups/ssl/
 drwxr-xr-x	root/root	etc/dbus-1/
 drwxr-xr-x	root/root	etc/dbus-1/system.d/
 -rw-r--r--	root/root	etc/dbus-1/system.d/cups.conf
-drwxr-xr-x	root/root	etc/modprobe.d/
--rw-r--r--	root/root	etc/modprobe.d/cups.conf
 drwxr-xr-x	root/root	etc/rc.d/
 -rwxr-xr-x	root/root	etc/rc.d/cups
 drwxr-xr-x	root/root	etc/ssl/
@@ -66,7 +64,9 @@ drwxr-xr-x	root/root	usr/lib/cups/
 drwxr-xr-x	root/root	usr/lib/cups/backend/
 -rwx------	root/root	usr/lib/cups/backend/dnssd
 lrwxrwxrwx	root/root	usr/lib/cups/backend/http -> ipp
+lrwxrwxrwx	root/root	usr/lib/cups/backend/https -> ipp
 -rwx------	root/root	usr/lib/cups/backend/ipp
+lrwxrwxrwx	root/root	usr/lib/cups/backend/ipps -> ipp
 -rwx------	root/root	usr/lib/cups/backend/lpd
 -rwxr-xr-x	root/root	usr/lib/cups/backend/snmp
 -rwxr-xr-x	root/root	usr/lib/cups/backend/socket
@@ -173,7 +173,7 @@ lrwxrwxrwx	root/root	usr/sbin/accept -> cupsaccept
 -rwxr-xr-x	root/root	usr/sbin/cupsaccept
 -rwxr-xr-x	root/root	usr/sbin/cupsaddsmb
 -rwxr-xr-x	root/root	usr/sbin/cupsctl
--rwx------	root/root	usr/sbin/cupsd
+-r-x------	root/root	usr/sbin/cupsd
 lrwxrwxrwx	root/root	usr/sbin/cupsdisable -> cupsaccept
 lrwxrwxrwx	root/root	usr/sbin/cupsenable -> cupsaccept
 -rwxr-xr-x	root/root	usr/sbin/cupsfilter
@@ -184,6 +184,8 @@ lrwxrwxrwx	root/root	usr/sbin/cupsreject -> cupsaccept
 -rwxr-xr-x	root/root	usr/sbin/lpmove
 lrwxrwxrwx	root/root	usr/sbin/reject -> cupsaccept
 drwxr-xr-x	root/root	usr/share/
+drwxr-xr-x	root/root	usr/share/applications/
+-rw-r--r--	root/root	usr/share/applications/cups.desktop
 drwxr-xr-x	root/root	usr/share/cups/
 drwxr-xr-x	root/root	usr/share/cups/banners/
 drwxr-xr-x	root/root	usr/share/cups/data/
@@ -421,6 +423,20 @@ drwxr-xr-x	root/root	usr/share/cups/templates/
 -rw-r--r--	root/root	usr/share/cups/templates/users.tmpl
 drwxr-xr-x	root/root	usr/share/cups/usb/
 -rw-r--r--	root/root	usr/share/cups/usb/org.cups.usb-quirks
+drwxr-xr-x	root/root	usr/share/icons/
+drwxr-xr-x	root/root	usr/share/icons/hicolor/
+drwxr-xr-x	root/root	usr/share/icons/hicolor/128x128/
+drwxr-xr-x	root/root	usr/share/icons/hicolor/128x128/apps/
+-rw-r--r--	root/root	usr/share/icons/hicolor/128x128/apps/cups.png
+drwxr-xr-x	root/root	usr/share/icons/hicolor/16x16/
+drwxr-xr-x	root/root	usr/share/icons/hicolor/16x16/apps/
+-rw-r--r--	root/root	usr/share/icons/hicolor/16x16/apps/cups.png
+drwxr-xr-x	root/root	usr/share/icons/hicolor/32x32/
+drwxr-xr-x	root/root	usr/share/icons/hicolor/32x32/apps/
+-rw-r--r--	root/root	usr/share/icons/hicolor/32x32/apps/cups.png
+drwxr-xr-x	root/root	usr/share/icons/hicolor/64x64/
+drwxr-xr-x	root/root	usr/share/icons/hicolor/64x64/apps/
+-rw-r--r--	root/root	usr/share/icons/hicolor/64x64/apps/cups.png
 drwxr-xr-x	root/root	var/
 drwxr-xr-x	root/root	var/cache/
 drwxrwx---	root/lp	var/cache/cups/
@@ -429,7 +445,7 @@ drwxr-xr-x	root/root	var/log/
 drwxr-xr-x	root/root	var/log/cups/
 drwxr-xr-x	root/root	var/run/
 drwxr-xr-x	root/root	var/run/cups/
-drwx--x--x	daemon/sys	var/run/cups/certs/
+dr-x--x--x	daemon/sys	var/run/cups/certs/
 drwxr-xr-x	root/root	var/spool/
 drwx--x---	root/lp	var/spool/cups/
 drwxrwx--T	root/lp	var/spool/cups/tmp/

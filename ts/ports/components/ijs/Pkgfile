@@ -1,0 +1,22 @@
+# Description: Protocol for transmission of raster page images
+# URL:         http://www.openprinting.org
+# Maintainer:  
+# Depends on:  
+
+name=ijs
+version=0.35
+release=1
+source=(http://www.openprinting.org/download/$name/download/$name-$version.tar.bz2)
+
+build () {
+    cd $name-$version
+
+    ./configure --prefix=/usr \
+		--mandir=/usr/man \
+		--enable-shared \
+		--disable-static
+
+    make
+    make DESTDIR=$PKG install
+    rm $PKG/usr/bin/ijs_{client,server}_example
+}

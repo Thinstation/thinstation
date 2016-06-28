@@ -1,0 +1,20 @@
+#!/bin/sh
+
+pkg=`basename $1`
+INSTALLDIR=packages/samsunguld
+
+tar -C wget_tmp -xf wget_tmp/$pkg
+returnval=$?
+
+mkdir -p $INSTALLDIR/lib/{ppd,licenses}
+mkdir -p $INSTALLDIR/lib/cups/{filter,backend}
+mv wget_tmp/uld/noarch/license $INSTALLDIR/lib/licenses/samsunguld
+mv wget_tmp/uld/noarch/share/ppd $INSTALLDIR/lib/ppd/samsunguld
+mv wget_tmp/uld/i386/libscmssc.so $INSTALLDIR/lib
+mv wget_tmp/uld/i386/{rastertospl,pstosecps} $INSTALLDIR/lib/cups/filter
+mv wget_tmp/uld/i386/smfpnetdiscovery $INSTALLDIR/lib/cups/backend
+ln -s ../lib/licenses/samsunguld/eula.txt $INSTALLDIR/build/license
+
+let returnval=returnval+$?
+
+exit $returnval

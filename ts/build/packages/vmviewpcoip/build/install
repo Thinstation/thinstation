@@ -12,7 +12,7 @@ returnval=$?
 
 mkdir -p $INSTALLDIR/{bin,lib/doc/$package,lib/vmware/rdpvcbridge}
 
-for component in client pcoip rtav smartcard usb virtual-printing tsdr; do
+for component in client mmr pcoip rtav smartcard usb virtual-printing tsdr; do
 dir=wget_tmp/vmware/vmware-horizon-$component
 case $component in
 client)
@@ -24,6 +24,13 @@ fi
 cp -a $dir/share/* $INSTALLDIR/lib
 cp -a $dir/doc/* $INSTALLDIR/lib/doc/$package
 chmod a+x $INSTALLDIR/bin/vmware-view{,-log-collector}
+;;
+mmr)
+if [ -d $dir ]; then
+  mkdir -p $INSTALLDIR/etc/vmware/vdp/host_overlay_plugins
+  cp -a $dir/config/* $INSTALLDIR/etc/vmware/vdp/host_overlay_plugins/
+  cp -a $dir/lib $INSTALLDIR
+fi
 ;;
 pcoip)
 cp -a $dir/pcoip/lib/* $INSTALLDIR/lib

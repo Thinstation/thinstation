@@ -5,13 +5,12 @@
 # Dependencies:	libimobiledevice libplist
 
 name=usbmuxd
-version=1.0.9
+version=1.1.0
 release=1
 source=(http://www.libimobiledevice.org/downloads/$name-$version.tar.bz2)
 
 build() {
     cd $name-$version
-    sed -i -e "s/usbmux --user/usbmuxd --user/" configure
     ./configure --prefix=/usr --without-systemd
     make
     make DESTDIR=$PKG install
