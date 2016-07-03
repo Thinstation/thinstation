@@ -1,0 +1,60 @@
+#!/bin/bash
+device=$1
+disk_size=`blockdev --getsz $device`
+
+orbail()
+{
+	if [ $? -gt 0 ]; then
+		if [ -n "$2" ]; then
+			echo "$2"
+		else
+			echo "Something went very wrong?"
+		fi
+		exit $1
+	else
+		return 0
+	fi
+}
+
+part_id()
+{
+	blockdev --rereadpt $device
+	short_dev=`basename $device`
+	if grep -qoe "$short_dev[p][0-9]*" /proc/partitions; then
+		p=p
+	fi
+}
+
+list_mounts()
+{
+	grep -oe "$1[0-9]*" /proc/mounts
+}
+
+not_being_used()
+{
+	for mount in `list_mounts "$1"`; do
+		if [ -n "`fuser -m $mount`" ]; then
+			usage 2 "Device $1 is still in use."
+		fi
+	done
+	return 0
+}
+
+main()
+{
+	if not_being_used $device; then
+		part_id
+		for mount in `list_mounts ${device}${p}`; do
+			umount -f $mount; orbail 29
+		done
+
+		echo -e "\nClearing Head and Tail of Drive"
+			dd if=/dev/zero of=$device bs=1M count=2; orbail 16
+			dd if=/dev/zero of=$device bs=512 count=32 seek=$(($disk_size - 32)); orbail 17
+
+		sync
+
+		blockdev --rereadpt $device; orbail 18
+	fi
+}
+main
