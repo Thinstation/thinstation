@@ -1,12 +1,11 @@
-diff -Nru libxml2-2.7.0.orig/python/Makefile.in libxml2-2.7.0/python/Makefile.in
---- libxml2-2.7.0.orig/python/Makefile.in	2008-08-31 11:55:30.000000000 +0200
-+++ libxml2-2.7.0/python/Makefile.in	2008-08-31 11:55:42.000000000 +0200
-@@ -335,7 +335,7 @@
- 
- libxml2mod_la_LDFLAGS = @CYGWIN_EXTRA_LDFLAGS@ @WIN32_EXTRA_LDFLAGS@ -module -avoid-version 
- @WITH_PYTHON_TRUE@mylibs = \
--@WITH_PYTHON_TRUE@	$(top_builddir)/libxml2.la
-+@WITH_PYTHON_TRUE@	$(libdir)/libxml2.la
- 
+--- a/python/Makefile.in	2016-06-25 01:36:05.572772921 +0000
++++ b/python/Makefile.in	2016-06-25 01:37:01.192175813 +0000
+@@ -509,7 +509,7 @@
  @WITH_PYTHON_TRUE@python_LTLIBRARIES = libxml2mod.la
- @WITH_PYTHON_TRUE@libxml2mod_la_SOURCES = libxml.c types.c
+ @WITH_PYTHON_TRUE@libxml2mod_la_SOURCES = libxml.c libxml_wrap.h libxml2-py.h libxml2-py.c types.c
+ @WITH_PYTHON_TRUE@libxml2mod_la_LDFLAGS = $(CYGWIN_EXTRA_LDFLAGS) $(WIN32_EXTRA_LDFLAGS) -module -avoid-version \
+-@WITH_PYTHON_TRUE@        $(top_builddir)/libxml2.la $(CYGWIN_EXTRA_PYTHON_LIBADD) $(WIN32_EXTRA_PYTHON_LIBADD) $(PYTHON_LIBS)
++@WITH_PYTHON_TRUE@        $(libdir)/libxml2.la $(CYGWIN_EXTRA_PYTHON_LIBADD) $(WIN32_EXTRA_PYTHON_LIBADD) $(PYTHON_LIBS)
+ 
+ @WITH_PYTHON_TRUE@BUILT_SOURCES = libxml2-export.c libxml2-py.h libxml2-py.c
+ @WITH_PYTHON_TRUE@dist_python_DATA = \

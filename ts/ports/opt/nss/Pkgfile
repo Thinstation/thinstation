@@ -1,5 +1,5 @@
 # Description: Mozilla Network Security Services (NSS)
-# URL:         http://www.mozilla.org/projects/security/pki/nss/
+# URL:         https://developer.mozilla.org/en-US/docs/Mozilla/Projects/NSS
 # Maintainer:  Fredrik Rinnestam, fredrik at rinnestam dot se
 # Depends on:  nspr sqlite3
 
@@ -7,57 +7,53 @@ name=nss
 version=3.25
 release=1
 _version=$(echo $version |sed 's/\./_/g')
-source=(https://ftp.mozilla.org/pub/mozilla.org/security/nss/releases/NSS_${_version}_RTM/src/$name-$version.tar.gz \
+source=(http://ftp.mozilla.org/pub/security/nss/releases/NSS_${_version}_RTM/src/$name-$version.tar.gz \
         nss-config.in nss.pc.in)
 
 build() {
-    cd $name-$version/
+	cd $name-$version/
 
-    local file
+	sed -i nss/coreconf/Linux.mk \
+		-e 's|^CC.*=.*gcc$|#&|' \
+		-e 's|^CCC.*=.*g++$|#&|'
 
-    export NSPR_INCLUDE_DIR=/usr/include/nspr
-    export NSPR_LIB_DIR=/usr/lib
-    export NSS_USE_SYSTEM_SQLITE=1
-    export BUILD_OPT=1
-    export ZLIB_LIBS=-lz
-    export XCFLAGS="${CFLAGS}"
+	export NSPR_INCLUDE_DIR=/usr/include/nspr
+	export NSPR_LIB_DIR=/usr/lib
+	export NSS_USE_SYSTEM_SQLITE=1
+	export NSS_ENABLE_ECC=1
+	export NSS_ENABLE_TLS_1_3=1
+	export BUILD_OPT=1
+	export XCFLAGS="${CFLAGS}"
+	export NSS_DISABLE_GTESTS=1
 
-    make -j1 -C nss all
+	make -j1 -C nss
 
-    install -d $PKG/usr/{bin,lib/pkgconfig,include/nss}
+	install -d $PKG/usr/{bin,lib/pkgconfig,include/nss}
 
-    for file in \
-        libnss3.so libssl3.so libsmime3.so libsoftokn3.so \
-        libsoftokn3.chk libnssckbi.so libfreebl3.so libfreebl3.chk \
-        libcrmf.a libnssb.a libnssckfw.a libnssutil3.so libnssdbm3.so
-    do
-        cp -L dist/*.OBJ/lib/$file $PKG/usr/lib
-    done
+	cd dist/*.OBJ/bin
+	install -t "$PKG/usr/bin" *util shlibsign signtool signver ssltap
+	cd ../lib
+	install -t "$PKG/usr/lib" *.so
+	install -t "$PKG/usr/lib" -m644 libcrmf.a *.chk
+	cd ../../public/nss
+	install -t "$PKG/usr/include/nss" -m644 *.h
+	install -m 0755 $SRC/nss-config.in $PKG/usr/bin/nss-config
 
-    chmod +x $PKG/usr/lib/*.so
+	_version=$(printf "%i.%i.%i" ${version//./ })
+	sed -i "s/@VERSION@/$_version/" $PKG/usr/bin/nss-config
 
-    for file in \
-        certutil cmsutil crlutil modutil pk12util signtool signver ssltap
-    do
-        cp -L dist/*.OBJ/bin/$file $PKG/usr/bin
-    done
-
-    cp -L dist/public/nss/*.h $PKG/usr/include/nss
-
-    install -m 0755 $SRC/nss-config.in $PKG/usr/bin/nss-config
-
-    sed -i "s/@VERSION@/$version/" $PKG/usr/bin/nss-config
-
-    NSS_LIBS=`$PKG/usr/bin/nss-config --libs`
-    NSS_CFLAGS=`$PKG/usr/bin/nss-config --cflags`
-    sed $SRC/nss.pc.in \
-        -e "s,%libdir%,/usr/lib," \
-        -e "s,%prefix%,/usr," \
-        -e "s,%exec_prefix%,/usr/bin," \
-        -e "s,%includedir%,/usr/include/nss," \
-        -e "s,%NSS_VERSION%,$version," \
-        -e "s,%FULL_NSS_LIBS%,$NSS_LIBS," \
-        -e "s,%FULL_NSS_CFLAGS%,$NSS_CFLAGS," > \
-            $PKG/usr/lib/pkgconfig/nss.pc
+	NSS_LIBS=`$PKG/usr/bin/nss-config --libs`
+	NSS_CFLAGS=`$PKG/usr/bin/nss-config --cflags`
+	NSPR_VERSION=`pkg-config --modversion nspr`
+	sed $SRC/nss.pc.in \
+		-e "s,%libdir%,/usr/lib," \
+		-e "s,%prefix%,/usr," \
+		-e "s,%exec_prefix%,/usr/bin," \
+		-e "s,%includedir%,/usr/include/nss," \
+		-e "s,%NSS_VERSION%,$version," \
+		-e "s,%NSPR_VERSION%,$NSPR_VERSION," \
+		-e "s,%FULL_NSS_LIBS%,$NSS_LIBS," \
+		-e "s,%FULL_NSS_CFLAGS%,$NSS_CFLAGS," > \
+	$PKG/usr/lib/pkgconfig/nss.pc
 
 }
