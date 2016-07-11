@@ -1,4 +1,4 @@
-# Thinstation - UA
+# Thinstation - UA fork
 
 README - Displaying of this file can be disabled by touching `/ts/etc/READ`
 
@@ -17,6 +17,7 @@ New:
 - Update glibc,gcc and openssl
 - Updated nvidia xorg driver and kernel module
 - Add ukrainian locale (package locale uk_UA)
+- Add machine ASUS-AT4NM10, Intel-NUC5CPYH, Intel-NUCDCCP847DYE, MSI-CUBI-N 
 
 **Note that Several modules have been moved inside the kernel**
 
