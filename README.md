@@ -16,6 +16,7 @@ New:
 - Moved to kernel 4.6.2
 - Update glibc,gcc and openssl
 - Updated nvidia xorg driver and kernel module
+- add ukrainian locale (package locale uk_UA)
 
 **Note that Several modules have been moved inside the kernel**
 
