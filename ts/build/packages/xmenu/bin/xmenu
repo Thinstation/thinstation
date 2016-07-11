@@ -1,0 +1,51 @@
+#!/bin/sh
+. $TS_GLOBAL
+#Получаем IP клиента
+IPSHOW=$(ifconfig | grep 'inet addr:'| grep -v '127.0.0.1' | cut -d: -f2 | awk '{ print $1}')
+#Опции курсора и фонового цвета
+xsetroot -cursor_name top_left_arrow -solid rgb:4B/69/83
+#Menu zenity:
+ip=`zenity --list --timeout=600 --height=250 --print-column=1,2 --hide-column=1,2 \
+--text="ХОСТ: $(hostname) ||| IP: $IPSHOW""\n"'<span foreground="blue">\
+\Щоб вимкнути термінал, натисніть [Cancel]\n\
+Для підключення - виберіть сервер та натистіть [OK]\n\
+</span><span foreground="red">!У разі бездіяльності протягом 10 хв термінал вимкнеться!</span>' --column "type" --column "server" --column "Виберіть сервер:" \
+"$MENU_1_TYPE" "$MENU_1_SERVER" "$MENU_1_TITLE" \
+"$MENU_2_TYPE" "$MENU_2_SERVER" "$MENU_2_TITLE" \
+"$MENU_3_TYPE" "$MENU_3_SERVER" "$MENU_3_TITLE"`
+retval=$?
+#Действия в при выборе или отмене:
+case $retval in
+0)
+#Получаем IP сервера:
+ipserver=$(echo $ip | awk -F'|' '{ print $2 }')
+#проверка условия если rdesktop и задан юзер, то:
+if echo $ip | grep rdesktop && echo $ip | grep -u ; then
+ rdesktop $RDESKTOP_OPTIONS $ipserver
+#проверка условия если rdesktop без юзера, то:
+elif echo $ip | grep rdesktop; then
+ rdesktop -u '' $RDESKTOP_OPTIONS $ipserver
+#проверка условия если freerdp, то:
+elif echo $ip | grep freerdp; then
+ xfreerdp $FREERDP_OPTIONS /v:$ipserver
+elif echo $ip | grep nla; then
+ xfreerdp $FREERDP_OPTIONS /u:$(zenity \
+--entry \
+--title="Domain Username" \
+--text="Введіть доменне ім’я") /p:$(zenity \
+--entry \
+--title="Domain Password" \
+--text="Введіть Ваш пароль:" --hide-text) /v:$ipserver
+#проверка условия если thinlinc, то:
+elif echo $ip | grep thinlinc; then
+ thinlinc -u '' $THINLINC_OPTIONS $ipserver
+#Есле сервер не выбран и нажата кнопка ОК, то выдаётся сообщение:
+else zenity --warning --text="Ви не вибрали сервер.\n \
+Спробуйте ще раз..."
+xmenu
+fi;;
+#Если нажата кнопка [Cancel], то выключить комп:
+1|5|-1)
+poweroff;;
+esac
+exit 0
