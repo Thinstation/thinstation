@@ -1,4 +1,4 @@
-# Thinstation - UA fork
+# Thinstation
 
 README - Displaying of this file can be disabled by touching `/ts/etc/READ`
 
