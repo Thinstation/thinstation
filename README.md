@@ -17,7 +17,7 @@ New:
 - Update glibc,gcc and openssl
 - Updated nvidia xorg driver and kernel module
 - Add ukrainian locale (package locale uk_UA)
-- Add machine Intel-NUC6i3SYB (6G), Intel-NUC5i3RYB (5G), Intel-NUCD34010WYB (4G), Intel-NUCDE3815TYBE (3G), Intel-NUCD33217GK/ (2G), Intel-NUCDCP847SKE (1G), MSI-CUBI-N, ASUS-AT4NM10
+- Add machine Intel-NUC6i3SYB (6G), Intel-NUC5i3RYB (5G), Intel-NUCD34010WYB (4G), Intel-NUCDE3815TYBE (3G), Intel-NUCD33217GK/ (2G), Intel-NUCDCP847SKE (1G), MSI-CUBI-N, ASUS-AT4NM10, Fujitsu-Futro (S700,S550-2)
 - Finished Spice Support
 
 **Note that Several modules have been moved inside the kernel**
