@@ -995,7 +995,7 @@ do
 		done
 	fi
 	if [ `make_caps X$args` == "XFORCE" ]; then
-		echo $name `echo $args | cut -f1 -d#` >> ./tmp-tree/etc/modules
+		echo $name >> ./tmp-tree/etc/modules
 	fi
 	;;
     module_pkg)
@@ -1523,7 +1523,7 @@ for filename in `ls -1 $PKGDIR/` ; do
 		rm -Rf build
 	fi
 	echo "Building $filename.pkg"
-	tar -cz * > ../$filename.pkg
+	tar -cJf ../$filename.pkg *
 	cd ../../..
 	rm -Rf $PKGDIR/$filename
 	if [ -n "$PKGFILES" ] ; then
