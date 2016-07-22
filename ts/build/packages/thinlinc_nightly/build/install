@@ -1,0 +1,15 @@
+#!/bin/bash
+
+zipname=`basename $1`
+filename=`basename $1 .zip`
+INSTALLDIR=./packages/thinlinc_nightly
+
+unzip -j ./wget_tmp/$zipname -d wget_tmp "*/*linux-dynamic-i686.tar.gz"
+let returnval=$?
+mkdir -p $INSTALLDIR/lib/thinlinc
+let returnval=returnval+$?
+tar -C wget_tmp -zxf ./wget_tmp/tl-*-i686.tar.gz
+let returnval=returnval+$?
+cp -Prf ./wget_tmp/tl-*-i686/* $INSTALLDIR/lib/thinlinc/
+let returnval=returnval+$?
+exit $returnval

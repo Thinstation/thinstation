@@ -32,7 +32,7 @@ start ()
 		if [ -n "$tickers" ]; then
 			echo "1 * * * * /etc/init.d/ntpd restart" >> /tmp/crontab
 			if is_enabled $RTC_CMOS_UPDATE; then
-				echo "1 * * * * hwclock -w" >> /tmp/crontab
+				echo "2 * * * * hwclock -w" >> /tmp/crontab
 				if is_enabled $WAIT_FOR_TOCK; then
 					ntpdate -s -b $tickers
 				fi
