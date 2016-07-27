@@ -95,6 +95,7 @@ log_interface()
 	echo "CLIENT_NAME=$CLIENT_NAME" >> /var/log/net/$INTERFACE
 	echo "CLIENT_MAC=$CLIENT_MAC" >> /var/log/net/$INTERFACE
 	echo "NET_USE=$NET_USE" >> /var/log/net/$INTERFACE
+	echo "NET_DHCP_RETRY=$NET_DHCP_RETRY" >> /var/log/net/$INTERFACE
 	echo "NET_DHCP_TIMEOUT=$NET_DHCP_TIMEOUT" >> /var/log/net/$INTERFACE
 	echo "CLIENT_IP=$NET_IP_ADDRESS" >> /var/log/net/$INTERFACE
 }
@@ -270,7 +271,7 @@ configure_ip()
 		echo_log "Booting with manually configured network..." $debug
 		manual_config
 	else
-		udhcpc -R -b -t $NET_DHCP_TIMEOUT -x hostname:$CLIENT_NAME -T 1 -i $INTERFACE -C -s /etc/udev/scripts/lease_dhcp -p /var/run/udhcpc-$INTERFACE.pid
+		udhcpc -R -b -t $NET_DHCP_RETRY -T $NET_DHCP_TIMEOUT -x hostname:$CLIENT_NAME -i $INTERFACE -C -s /etc/udev/scripts/lease_dhcp -p /var/run/udhcpc-$INTERFACE.pid
 	fi
 }
 
