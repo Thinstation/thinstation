@@ -4,9 +4,9 @@
 # Depends on: nss polkit libgnomekbd fontconfig libnotify gconf dbus-glib
 
 name=gnome-settings-daemon
-version=2.32.1
+version=3.20.1
 release=1
-source=(ftp://ftp.gnome.org/pub/gnome/sources/$name/${version%.*}/$name-$version.tar.bz2 \
+source=(ftp://ftp.gnome.org/pub/gnome/sources/$name/${version%.*}/$name-$version.tar.xz \
 	notify7.patch)
 
 build() {
@@ -17,15 +17,8 @@ build() {
         NSS_LIBS="`pkg-config --libs nss` `pkg-config --libs nspr`"
         export NSS_CFLAGS NSS_LIBS
 
-        sed -i -e "s/USE_NLS=yes/USE_NLS=no/" \
-                                 -e "s/ENABLE_NLS 1/ENABLE_NLS 0/" configure
-
-	patch -p0 -i $SRC/notify7.patch
-
 	./configure --prefix=/usr \
-		--disable-nls \
 		--sysconfdir=/etc \
-		--libexecdir=/usr/libexec \
 		--enable-shared \
 		--disable-static
 	make

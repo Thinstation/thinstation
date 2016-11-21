@@ -1,0 +1,22 @@
+# Description: Ant is a Java-based build tool.
+# URL: http://ant.apache.org/
+# Packager: Rune Stokka, rune at stokka dot no
+# Maintainer: Danny Rawlins, crux at romster dot me
+# Depends on: jdk
+
+name=ant
+version=1.9.7
+release=1
+source=(http://www.apache.org/dist/ant/binaries/apache-$name-$version-bin.tar.bz2)
+
+build() {
+	cd apache-$name-$version
+	install -d $PKG/usr/{bin,lib/ant}
+	cp -rf * $PKG/usr/lib/ant
+	ln -sf /usr/lib/ant/bin/ant $PKG/usr/bin/ant
+	rm  $PKG/usr/lib/ant/{CONTRIBUTORS,INSTALL,KEYS}
+	rm  $PKG/usr/lib/ant/{LICENS*,NOTICE,README,WHATSNEW}
+	rm  $PKG/usr/lib/ant/bin/*.bat
+	rm  $PKG/usr/lib/ant/lib/README
+	rm -r $PKG/usr/lib/ant/manual
+}

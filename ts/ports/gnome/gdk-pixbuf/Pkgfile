@@ -1,0 +1,31 @@
+# Description: An image loading library for GTK+
+# URL: http://www.gtk.org/
+# Maintainer: Fredrik Rinnestam, fredrik at crux dot nu
+# Depends on: gobject-introspection libpng libtiff xorg-libx11
+
+name=gdk-pixbuf
+archname=gdk-pixbuf2
+version=2.34.0
+release=1
+source=(http://download.gnome.org/sources/$name/${version:0:4}/$name-$version.tar.xz \
+        gdk-pixbuf.loaders gdk-pixbuf-register.sh)
+
+build () {
+    cd $name-$version
+
+    ./configure --prefix=/usr \
+                 \
+                --without-libjasper \
+                --with-x11 \
+		--enable-gio-sniffing=no
+
+    make
+    make DESTDIR=$PKG install
+
+    install -m 644 $SRC/gdk-pixbuf.loaders \
+            $PKG/usr/lib/gdk-pixbuf-2.0/2.10.0/loaders.cache
+    install -m 755 $SRC/gdk-pixbuf-register.sh \
+            $PKG/usr/bin/gdk-pixbuf-register
+    rm -r $PKG/usr/share/gtk-doc
+chown -R root.root $PKG
+}

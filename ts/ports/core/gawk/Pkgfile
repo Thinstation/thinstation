@@ -1,24 +1,22 @@
 # Description: A pattern scanning and processing language
 # URL:         http://www.gnu.org/software/gawk/gawk.html
 # Maintainer:  CRUX System Team, core-ports at crux dot nu
+# Depends on:  readline libmpfr
 
 name=gawk
-version=4.0.0
-release=1
+version=4.1.3
+release=2
 source=(http://ftp.gnu.org/gnu/$name/$name-$version.tar.xz)
 
 build() {
     cd $name-$version
+
     ./configure --prefix=/usr \
                 --libexecdir=/usr/lib \
-                --mandir=/usr/man \
-                --disable-nls
+                
     make
     make DESTDIR=$PKG install
 
     rm -r $PKG/usr/share/info
-    rm $PKG/usr/bin/{gawk,pgawk}-$version \
-       $PKG/usr/man/man1/pgawk.1
-    
-    ln -sf gawk.1.gz $PKG/usr/man/man1/awk.1.gz
+    rm $PKG/usr/bin/gawk-$version
 }

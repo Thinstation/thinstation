@@ -1,32 +1,35 @@
-# Description: Network utilities
-# URL:         http://www.tazenda.demon.co.uk/phil/net-tools/
-# Maintainer:  CRUX System Team, core-ports at crux dot nu
+# $Id$
+# Maintainer: Ronald van Haren <ronald.archlinux.org>
+# Contributor: judd <jvinet@zeroflux.org>
 
 name=net-tools
-version=1.60
-release=6
-source=(http://www.tazenda.demon.co.uk/phil/net-tools/$name-$version.tar.bz2 \
-	$name-$version-config.patch \
-	$name-$version-compile_fixes.patch \
-	$name-$version-arp.patch \
-	$name-$version-man.patch \
-	$name-$version-nameif.patch \
-	$name-$version-manydevs.patch \
-	$name-$version-virtualname.patch \
-	$name-$version-ipv6.patch \
-	$name-$version-miiioctl.patch)
+version=1.60.20160710git
+release=1
+# use git snapshot currently prefered over release
 
 build() {
-    cd $name-$version
-    patch -p1 < ../$name-$version-config.patch
-    patch -p1 < ../$name-$version-compile_fixes.patch
-    patch -p1 < ../$name-$version-arp.patch
-    patch -p1 < ../$name-$version-man.patch
-    patch -p1 < ../$name-$version-nameif.patch
-    patch -p1 < ../$name-$version-manydevs.patch
-    patch -p1 < ../$name-$version-virtualname.patch
-    patch -p1 < ../$name-$version-ipv6.patch
-    patch -p1 < ../$name-$version-miiioctl.patch
-    make -j1 COPTS="$CFLAGS -D_GNU_SOURCE -Wall"
-    make BASEDIR=$PKG mandir=/usr/man install
+git clone git://git.code.sf.net/p/net-tools/code net-tools
+  sed -i "s#/sbin#/bin#" ${SRC}/${name}/Makefile
+  sed -i "s#/usr##" ${SRC}/${name}/man/Makefile
+
+find -name "*.c" -o -name "*.h"|while read src; do
+	sed -i "s%<linux/if_ether.h>%<netinet/if_ether.h>%" $src
+	sed -i "s%<linux/if_tr.h>%<netinet/if_tr.h>%" $src
+	sed -i "s%<linux/if_fddi.h>%<netinet/if_fddi.h>%" $src
+done
+
+
+  cd ${SRC}/${name}
+  yes "" | make config
+  make
+
+  make DESTDIR=$PKG/usr install
+
+  # the following is provided by yp-tools
+  rm "${PKG}"/usr/bin/{nis,yp}domainname
+  rm "${PKG}"/usr/share/man/man1/{nis,yp}domainname.1
+
+  # hostname is provided by inetutils
+  rm "${PKG}"/usr/bin/{hostname,dnsdomainname,domainname}
+  rm -rf "${PKG}"/usr/share/man/man1
 }

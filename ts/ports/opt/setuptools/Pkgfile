@@ -5,16 +5,17 @@
 # Depends on: python
 
 name=setuptools
-version=0.6c11
+pname=setuptools
+version=pip
 release=1
-source=(http://pypi.python.org/packages/source/s/$name/$name-$version.tar.gz)
+source=()
 
 build() {
-	local PYTHONVERSION=`python -c "import sys; print \"%s.%s\" % (sys.version_info[0], sys.version_info[1]);"`
-	cd $name-$version
-	python setup.py install --prefix=/usr --root=$PKG
+        pip install $name --download=$SRC --no-binary :all:
+        mkdir -p $SRC/$name
+        tar -xvf $SRC/$pname*.tar.* -C $SRC/$name || unzip -d $SRC/$name $pname-*.zip
+        cd $SRC/$name/*
 
-	echo "/usr/lib/python$PYTHONVERSION/site-packages/setuptools-$version-py$PYTHONVERSION.egg" > \
-		$PKG/usr/lib/python$PYTHONVERSION/site-packages/setuptools.pth
+        python ./setup.py install --root $PKG
 }
 

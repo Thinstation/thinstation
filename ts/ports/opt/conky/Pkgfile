@@ -4,20 +4,27 @@
 # Depends on:  curl, glib, xorg-libxdamage, xorg-libxext, xorg-libxft
 
 name=conky
-version=1.9.0
+version=1.10.4
 release=1
-source=(http://downloads.sourceforge.net/project/$name/$name/$version/$name-$version.tar.bz2)
-
+source=(https://github.com/brndnmtthws/conky/archive/v${version}.tar.gz \
+	lua53.patch)
 build() {
     cd $name-$version
-    ./configure --prefix=/usr \
-                --mandir=/usr/man \
-                --disable-lua \
-                --enable-xft  \
-                --enable-portmon \
-                --enable-mpd \
-                --enable-rss \
-                --enable-curl
+	patch -p1 -i $SRC/lua53.patch
+	cmake \
+		-D CMAKE_BUILD_TYPE=Release \
+		-D MAINTAINER_MODE=ON \
+		-D BUILD_WLAN=ON \
+		-D BUILD_XDBE=ON \
+		-D BUILD_IMLIB2=ON \
+		-D BUILD_CURL=ON \
+		-D BUILD_RSS=ON \
+		-D BUILD_WEATHER_METAR=ON \
+		-D BUILD_WEATHER_XOAP=ON \
+		-D BUILD_PULSEAUDIO=ON \
+		-D CMAKE_INSTALL_PREFIX=/usr \
+		.
+
     make
     make DESTDIR=$PKG install
 }

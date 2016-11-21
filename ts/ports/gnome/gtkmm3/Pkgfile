@@ -1,0 +1,17 @@
+# Description: A C++ wrapper for GTK+
+# URL: http://www.gtkmm.org/en/
+# Maintainer: Matt Housh, jaeger at crux dot ninja
+# Depends on: glibmm pangomm cairomm gtk3 atkmm
+
+name=gtkmm3
+version=3.20.1
+release=1
+source=(https://download.gnome.org/sources/gtkmm/${version%.*}/gtkmm-$version.tar.xz)
+
+build() {
+    cd gtkmm-$version
+    ./configure --prefix=/usr
+    make
+    make DESTDIR=$PKG install
+    rm -r $PKG/usr/share/doc
+}

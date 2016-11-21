@@ -1,0 +1,16 @@
+# Maintainer: Felix Yan <felixonmars@archlinux.org>
+
+name=emojione
+version=2.2.6
+release=1
+
+build() {
+wget https://registry.npmjs.org/$name/-/$name-$version.tgz
+  npm install -g --user root --prefix "$PKG"/usr "$SRC"/$name-$version.tgz
+  rm -rf "$PKG"/usr/etc
+  mkdir -p "$PKG/usr/share/licenses/$name"
+  ln -s "../../../lib/node_modules/$name/LICENSE.md" "$PKG/usr/share/licenses/$name/"
+
+  # Fix permissions
+  find "$PKG/usr" -type d -exec chmod 755 '{}' +
+}

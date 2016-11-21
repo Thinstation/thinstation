@@ -1,0 +1,55 @@
+# Description: Open Source H265/HEVC video encoder.
+# URL: https://bitbucket.org/multicoreware/x265/wiki/Home
+# Maintainer: Danny Rawlins, crux at romster dot me
+# Packager: Danny Rawlins, crux at romster dot me
+# Depends on: yasm cmake
+
+name=x265
+version=2.0
+release=1
+source=(https://bitbucket.org/multicoreware/$name/downloads/${name}_$version.tar.gz)
+
+build() {
+	cd ${name}_$version
+
+	install -d build-{12,10,8}
+	cd build-12
+
+	cmake ../source \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DHIGH_BIT_DEPTH='TRUE' \
+		-DMAIN12='TRUE' \
+		-DEXPORT_C_API='FALSE' \
+		-DENABLE_CLI='FALSE' \
+		-DENABLE_SHARED='TRUE'
+
+	make
+
+	cd ../build-10
+
+	cmake ../source \
+		-DCMAKE_INSTALL_PREFIX='/usr' \
+		-DHIGH_BIT_DEPTH='TRUE' \
+		-DEXPORT_C_API='FALSE' \
+		-DENABLE_CLI='FALSE' \
+		-DENABLE_SHARED='TRUE'
+
+	make
+
+	cd ../build-8
+
+	ln -s ../build-12/libx265.a libx265_main12.a
+	ln -s ../build-10/libx265.a libx265_main10.a
+
+	cmake ../source \
+		-DCMAKE_INSTALL_PREFIX='/usr' \
+		-DENABLE_SHARED='TRUE' \
+		-DEXTRA_LIB='x265_main10.a;x265_main12.a' \
+		-DEXTRA_LINK_FLAGS='-L.' \
+		-DLINKED_10BIT='TRUE' \
+		-DLINKED_12BIT='TRUE'
+
+	make
+	make DESTDIR=$PKG install
+	rm -f $PKG/usr/lib/libx265.a
+}

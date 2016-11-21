@@ -1,0 +1,24 @@
+# Description: An OpenType text shaping engine
+# URL:         http://www.freedesktop.org/wiki/Software/HarfBuzz
+# Maintainer:  Fredrik Rinnestam, fredrik at crux dot nu
+# Depends on:  cairo
+
+name=harfbuzz
+version=1.3.0
+release=1
+source=(http://www.freedesktop.org/software/harfbuzz/release/harfbuzz-$version.tar.bz2)
+
+build() {
+	cd $name-$version
+
+	sed -i s/"SUBDIRS = api shaping"/"SUBDIRS = shaping"/g test/Makefile.in
+	./configure --prefix=/usr \
+	            --with-glib \
+	            --with-freetype \
+	            --with-cairo \
+	            --with-icu=yes
+
+	make
+	make DESTDIR=$PKG install
+	rm -r $PKG/usr/share
+}

@@ -1,0 +1,18 @@
+# Maintainer: Gustavo Alvarez <sl1pkn07@gmail.com>
+
+name=libudfread
+version=git
+release=1
+source=()
+
+build() {
+  git clone git://git.videolan.org/git/libudfread.git
+  cd libudfread
+  ./bootstrap
+  ./configure \
+    --prefix=/usr \
+    --disable-static
+  make
+  make DESTDIR=$PKG install
+}
+

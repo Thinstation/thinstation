@@ -1,5 +1,5 @@
 #!/bin/bash
-
+set -x
 pkg=$1
 url=$2
 version=$3
@@ -26,7 +26,8 @@ build() {
         echo "no" | perl Makefile.PL
 
         make OPTIMIZE=\"\$CFLAGS\"
-        make INSTALLDIRS=vendor DESTDIR=\$PKG install
+	sed -ie 's/site_perl/vendor_perl/g' Makefile
+        make DESTDIR=\$PKG install
 
 #        /usr/bin/perl Build.PL
 #        ./Build

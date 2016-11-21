@@ -4,13 +4,12 @@
 # Depends on:  gtk intltool menu-cache xorg-libxdamage
 
 name=lxkeymap
-version=0.7.99+dfsg
+version=git
 release=1
-source=(https://launchpad.net/ubuntu/quantal/+source/lxkeymap/${version}-0ubuntu2/+files/${name}_$version.orig.tar.gz
-	lxkeymap.patch)
 
 build() {
-    cd $name-${version%+*}
+git clone https://github.com/RPi-Distro/lxkeymap.git
+    cd $name
     python ./setup.py build
     python ./setup.py install --prefix=/usr
 
@@ -22,5 +21,4 @@ build() {
     mv /usr/share/applications/lxkeymap.desktop $PKG/usr/share/applications/.
     mv /usr/share/lxkeymap $PKG/usr/share/.
     mv /usr/lib/python2.7/site-packages/lxkeymap-0.1-py2.7.egg-info $PKG/usr/lib/python2.7/site-packages/.
-    patch -p1 $PKG/usr/bin/lxkeymap < $SRC/lxkeymap.patch
 }

@@ -1,0 +1,15 @@
+diff -up qt-everywhere-opensource-src-4.8.4/src/tools/moc/main.cpp.moc-boost148 qt-everywhere-opensource-src-4.8.4/src/tools/moc/main.cpp
+--- qt-everywhere-opensource-src-4.8.4/src/tools/moc/main.cpp.moc-boost148	2012-11-23 04:09:53.000000000 -0600
++++ qt-everywhere-opensource-src-4.8.4/src/tools/moc/main.cpp	2013-02-11 07:07:18.942748176 -0600
+@@ -187,6 +187,11 @@ int runMoc(int _argc, char **_argv)
+     Moc moc;
+     pp.macros["Q_MOC_RUN"];
+     pp.macros["__cplusplus"];
++
++    // Workaround a bugs while parsing some boost headers. See QTBUG-22829
++    pp.macros["BOOST_TT_HAS_OPERATOR_HPP_INCLUDED"];
++    pp.macros["BOOST_LEXICAL_CAST_INCLUDED"];
++
+     QByteArray filename;
+     QByteArray output;
+     FILE *in = 0;

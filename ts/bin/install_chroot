@@ -29,7 +29,7 @@ stage1()
 			pkg=`find -L $ROOT/ts/ports/core/$core_port |grep -E pkg\.tar\."xz|gz" |grep -e "pkg.tar"`
 			tar -p -o -C $ROOT -xf $pkg 2> /dev/null
 		done
-
+	ln -sf lib lib64
 	if [ ! -d $ROOT/var/lib/pkg ]; then
 		mkdir -p $ROOT/var/lib/pkg
 		touch $ROOT/var/lib/pkg/db
@@ -107,6 +107,21 @@ stage4()
         done
         printf "\rBinary Core Port Installation %-40s\n" "Complete"
 	post_install
+	printf "\rLooking at perl packages\n"
+	answered=false
+	while ! $answered; do
+		printf "Would you like to try and build it now? Y/N:"
+		read -n 1 answer
+		case $answer in
+			Y|y)	(sleep .2; echo -e "\n")|cpan App::cpanminus
+				for perl in `cat /ts/etc/perl.list`; do
+					cpanm $perl
+				done
+				answered=true;;
+			n|n) answered=true;;
+			*) answered=false;;
+		esac
+	done
 }
 
 install_port()

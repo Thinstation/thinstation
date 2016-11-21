@@ -4,12 +4,25 @@
 
 name=unzip
 version=6.0
-release=1
-source=(http://downloads.sourceforge.net/sourceforge/infozip/${name}${version//./}.tar.gz)
+release=6
+source=(http://downloads.sourceforge.net/sourceforge/infozip/${name}${version//./}.tar.gz \
+	unzip-6.0-overflow.patch unzip-6.0-attribs-overflow.patch \
+	unzip-6.0-heap-overflow-infloop.patch \
+	unzip-6.0-cve-2014-8139.patch \
+	unzip-6.0-cve-2014-8140.patch \
+	unzip-6.0-cve-2014-8141.patch)
 
 build() {
     cd ${name}${version//./}
-    make -f unix/Makefile LOCAL_UNZIP="$CFLAGS" prefix=/usr linux
-    make -f unix/Makefile prefix=$PKG/usr install
+    patch -p1 -i $SRC/unzip-6.0-overflow.patch
+    patch -p1 -i $SRC/unzip-6.0-attribs-overflow.patch
+    patch -p1 -i $SRC/unzip-6.0-heap-overflow-infloop.patch
+    patch -p1 -i $SRC/unzip-6.0-cve-2014-8139.patch
+    patch -p1 -i $SRC/unzip-6.0-cve-2014-8140.patch
+    patch -p1 -i $SRC/unzip-6.0-cve-2014-8141.patch
+
+    sed -i 's/-O3//' unix/configure
+    make -f unix/Makefile LOCAL_UNZIP="$CFLAGS" generic
+    make -f unix/Makefile prefix=$PKG/usr MANDIR=$PKG/usr/share/man/man1 install
     ln -sf unzip $PKG/usr/bin/zipinfo
 }

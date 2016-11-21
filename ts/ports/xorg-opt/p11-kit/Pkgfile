@@ -3,7 +3,7 @@
 # Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 
 name=p11-kit
-version=0.22.1
+version=0.23.2
 release=1
 source=(http://p11-glue.freedesktop.org/releases/$name-$version.tar.gz)
 
@@ -11,11 +11,14 @@ build() {
 	cd $name-$version
 
 	./configure --prefix=/usr \
+			--sysconfdir=/etc \
 			--enable-shared \
 			--disable-rpath \
-			--disable-nls \
-			--disable-static
+			 \
+			--disable-static \
+			--with-trust-paths=/etc/ssl/certs/ca-bundle.crt
 
 	make
 	make DESTDIR=$PKG install
+	rm -rf $PKG/usr/share/gtk-doc
 }

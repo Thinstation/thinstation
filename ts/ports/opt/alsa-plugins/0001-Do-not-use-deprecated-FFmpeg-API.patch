@@ -1,0 +1,26 @@
+From a257818815ce00349a76aaf6c7826070a57c06f7 Mon Sep 17 00:00:00 2001
+From: Anatol Pomozov <anatol.pomozov@gmail.com>
+Date: Mon, 15 Feb 2016 17:40:41 -0800
+Subject: [PATCH] Do not use deprecated FFmpeg API
+
+This API as been removed in ffmpeg 3.0 (commit 2d40968dd3ff17b12f7)
+---
+ a52/pcm_a52.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/a52/pcm_a52.c b/a52/pcm_a52.c
+index 88529eb..6fad77d 100644
+--- a/a52/pcm_a52.c
++++ b/a52/pcm_a52.c
+@@ -39,7 +39,7 @@
+ #endif
+ 
+ #if LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(53, 34, 0)
+-#include <libavutil/audioconvert.h>
++#include <libavutil/channel_layout.h>
+ #include <libavutil/mem.h>
+ #define USE_AVCODEC_FRAME
+ #endif
+-- 
+2.7.1
+

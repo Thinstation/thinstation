@@ -1,15 +1,20 @@
 # Description: An initialization tools necessary to allow the PCMCIA subsystem to behave (almost) as every other hotpluggable bus system
 # URL: http://www.kernel.org/pub/linux/utils/kernel/pcmcia/pcmcia.html
-# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+# Maintainer: Mikhail Kolesnik, mike at openbunker dot org
 # Depends on: sysfsutils
 
 name=pcmciautils
 version=018
 release=1
-source=(http://mirror.linux.org.au/linux/utils/kernel/pcmcia/$name-$version.tar.bz2 )
+# missing upstream source
+#http://www.kernel.org/pub/linux/utils/kernel/pcmcia/$name-$version.tar.bz2
+source=(https://sources.archlinux.org/other/$name/$name-$version.tar.xz
+		$name-makefile.patch)
 
 build() {
 	cd $name-$version
-	make
-	make DESTDIR=$PKG mandir=/usr/man install
+	patch -p1 -i $SRC/$name-makefile.patch
+	make -j1
+	make DESTDIR=$PKG install
+	mv $PKG/etc/udev/rules.d/60-pcmcia.rules $PKG/etc/udev/rules.d/65-pcmcia.rules
 }

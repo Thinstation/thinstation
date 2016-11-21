@@ -5,19 +5,23 @@
 # Depends on: libxml2 iso-codes xorg-libx11
 
 name=libxklavier
-version=5.2.1
+version=5.4
 release=1
-source=(http://download.gnome.org/sources/$name/${version%.*}/$name-$version.tar.xz)
+source=(http://cgit.freedesktop.org/$name/snapshot/$name-$version.zip)
 
 build() {
   cd $name-$version
 
+  ./autogen.sh
   ./configure --prefix=/usr \
-              --disable-static
+              --disable-static \
+		--enable-vala=yes \
+		--enable-xkb-support \
+		--enable-xmodmap-support
 
   make
   make DESTDIR=$PKG install
 
-  rm -rf $PKG/usr/share
+  rm -rf $PKG/usr/share/gtk-doc
 }
 

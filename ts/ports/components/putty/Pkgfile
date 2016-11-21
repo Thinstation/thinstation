@@ -1,28 +1,28 @@
-# Description: PuTTY is an SSH client, primarily for Windows users
-# URL: http://www.chiark.greenend.org.uk/~sgtatham/putty
-# Maintainer: 
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 
 name=putty
-version=0.63
+version=0.67
 release=1
-source=(http://the.earth.li/~sgtatham/$name/$version/$name-$version.tar.gz)
+source=(http://the.earth.li/~sgtatham/putty/${version}/${name}-${version}.tar.gz)
 
 build() {
 	cd $name-$version
 
 	./configure --prefix=/usr \
 			--sysconfdir=/etc \
-			--mandir=/usr/man
+			--mandir=/usr/man \
 
 	make
 	make DESTDIR=$PKG install
 
 	cd icons
 	make
-	for s in 16 32 48; do
-	  mkdir -p $PKG/usr/share/icons/hicolor/${s}x${s}/apps
-	  for i in putty puttygen pscp pterm; do
-	    cp $i-$s.png $PKG/usr/share/icons/hicolor/${s}x${s}/apps/$i.png
-	  done
+	for size in 16 32 48; do
+		mkdir -p $PKG/usr/share/icons/hicolor/${size}x${size}/apps
+		for icon in `ls -1 |grep -e png |grep -e $size`; do
+			cp $icon $PKG/usr/share/icons/hicolor/${size}x${size}/apps/`echo $icon |sed -e "s/-[0-9]\+//g"`
+		done
 	done
 }

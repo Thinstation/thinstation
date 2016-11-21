@@ -1,0 +1,14 @@
+name=libsodium
+version=1.0.11
+release=1
+source=(http://download.libsodium.org/$name/releases/$name-${version}.tar.gz)
+
+build() {
+  cd "$name-$version"
+
+  ./configure --prefix=/usr
+  make
+  make DESTDIR="$PKG" install
+
+}
+

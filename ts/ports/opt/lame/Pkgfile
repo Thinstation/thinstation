@@ -4,12 +4,14 @@
 # Depends on:  ncurses
 
 name=lame
-version=3.99.2
+version=3.99.5
 release=1
-source=(http://downloads.sourceforge.net/project/$name/$name/${version%.*}/$name-$version.tar.gz)
+source=(http://downloads.sourceforge.net/project/$name/$name/${version%.*}/$name-$version.tar.gz \
+	sse.patch)
 
 build () {
     cd $name-$version
+    patch -p1 -i $SRC/sse.patch
     ./configure --prefix=/usr \
                 --mandir=/usr/man \
                 --disable-analyzer-hooks \

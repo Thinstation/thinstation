@@ -1,0 +1,24 @@
+#!/bin/sh
+#
+# /etc/rc.d/lo: start/stop loopback interface
+#
+
+case $1 in
+start)
+	/sbin/ip addr add 127.0.0.1/8 dev lo broadcast + scope host
+	/sbin/ip link set lo up
+	;;
+stop)
+	/sbin/ip link set lo down
+	/sbin/ip addr del 127.0.0.1/8 dev lo
+	;;
+restart)
+	$0 stop
+	$0 start
+	;;
+*)
+	echo "usage: $0 [start|stop|restart]"
+	;;
+esac
+
+# End of file

@@ -3,71 +3,69 @@
 # Maintainer:  CRUX System Team, core-ports at crux dot nu
 
 name=filesystem
-version=2.7
-release=1
+version=3.2
+release=4
 source=(issue motd shells group passwd shadow securetty fstab mime.types)
 
 build() {
     # Directory structure
-    mkdir $PKG/bin
-    mkdir $PKG/sbin
-    mkdir $PKG/boot
-    mkdir $PKG/dev
-    mkdir $PKG/proc
-    mkdir $PKG/sys
-    mkdir $PKG/etc
-    mkdir $PKG/tmp
-    mkdir $PKG/mnt
-    mkdir $PKG/root
-    mkdir $PKG/lib
-    mkdir $PKG/lib/modules
-    mkdir $PKG/opt
-    mkdir $PKG/opt/bin
-    mkdir $PKG/opt/sbin
-    mkdir $PKG/usr
-    mkdir $PKG/usr/{bin,include,lib,sbin,share,src,man}
-    mkdir $PKG/usr/man/man{1,2,3,4,5,6,7,8}
+    install -d $PKG/bin
+    install -d $PKG/sbin
+    install -d $PKG/boot
+    install -d $PKG/dev
+    install -d $PKG/dev/{pts,shm}
+    install -d $PKG/proc
+    install -d $PKG/sys
+    install -d $PKG/etc
+    install -d $PKG/mnt
+    install -d $PKG/run
+    install -d $PKG/lib
+#    ln -s lib $PKG/lib64
+    install -d $PKG/lib/modules
+    install -d $PKG/opt
+    install -d $PKG/opt/bin
+    install -d $PKG/opt/sbin
+    install -d $PKG/usr
+    install -d $PKG/usr/{bin,include,lib,sbin,share,src}
+    ln -s lib $PKG/usr/lib64
+    install -d -p $PKG/usr/share/man/man{1,2,3,4,5,6,7,8}
     ln -s ../var $PKG/usr/var
-    mkdir $PKG/var
-    mkdir $PKG/var/cache
-    mkdir $PKG/var/lib
-    mkdir $PKG/var/lib/pkg
-    mkdir $PKG/var/lock
-    mkdir $PKG/var/log
-    mkdir $PKG/var/log/old
-    mkdir $PKG/var/run
+    install -d $PKG/var
+    install -d $PKG/var/cache
+    install -d $PKG/var/lib
+    install -d $PKG/var/lib/pkg
+    install -d $PKG/var/log
+    install -d $PKG/var/log/old
+    install -d $PKG/var/run
     touch $PKG/var/run/utmp
-    mkdir $PKG/var/spool
-    mkdir $PKG/var/spool/mail
-    mkdir $PKG/var/tmp
-    mkdir $PKG/var/ftp
-    mkdir $PKG/var/www
-    mkdir $PKG/var/empty
+    install -d $PKG/var/spool
+    install -d $PKG/var/ftp
+    install -d $PKG/var/www
+    install -d $PKG/var/empty
     ln -s spool/mail $PKG/var/mail
-    mkdir $PKG/home
+    install -d $PKG/home
 
-    chmod 1777 $PKG/var/spool/mail
-    chmod 1777 $PKG/tmp
-    chmod 1777 $PKG/var/lock
-    chmod 1777 $PKG/var/tmp
-    chmod 0750 $PKG/root
+    install -d -m 1777 $PKG/tmp
+    install -d -m 0750 $PKG/root
+    install -d -m 1777 $PKG/var/lock
+    install -d -m 1777 $PKG/var/spool/mail
+    install -d -m 1777 $PKG/var/tmp
 
     # /dev
     mknod $PKG/dev/console c 5 1
     chmod 0600 $PKG/dev/console
 
     # /etc
-    cp issue $PKG/etc
-    cp motd $PKG/etc
-    cp shells $PKG/etc
-    cp group $PKG/etc
-    cp passwd $PKG/etc
-    cp shadow $PKG/etc
-    cp securetty $PKG/etc
-    cp fstab $PKG/etc
-    cp mime.types $PKG/etc
-    touch $PKG/etc/mtab
-    chmod 640 $PKG/etc/shadow
+    install -m 0644 issue $PKG/etc
+    install -m 0644 motd $PKG/etc
+    install -m 0644 shells $PKG/etc
+    install -m 0644 group $PKG/etc
+    install -m 0644 passwd $PKG/etc
+    install -m 0640 shadow $PKG/etc
+    install -m 0644 securetty $PKG/etc
+    install -m 0644 fstab $PKG/etc
+    install -m 0644 mime.types $PKG/etc
+    ln -s /proc/self/mounts $PKG/etc/mtab
 
     # /usr/bin/crux
 cat > $PKG/usr/bin/crux << EOF

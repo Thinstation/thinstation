@@ -14,7 +14,7 @@ build() {
     cd Bumblebee-Project-bbswitch-*
     patch -Np1 -i $SRC/makefile.patch
 
-    for KERNELTYPE in TS TS_SMP TS_64
+    for KERNELTYPE in TS
     do
 	export REPORT_KERNEL=${kver}$KERNELTYPE
 
@@ -31,7 +31,7 @@ build() {
        make install KVERSION=$KVERSION \
 	MODLIB=$MODLIB \
 	MODDIR=$MODDIR \
-	CROSS_COMPILE="/opt/cross/x-tools/x86_64-thinstation-linux-gnu/bin/x86_64-thinstation-linux-gnu-"
+#	CROSS_COMPILE="/opt/cross/x-tools/x86_64-thinstation-linux-gnu/bin/x86_64-thinstation-linux-gnu-"
 
 	/usr/src/kernels/$REPORT_KERNEL/scripts/sign-file \
         sha256 /etc/ssl/keys/kernel.key \

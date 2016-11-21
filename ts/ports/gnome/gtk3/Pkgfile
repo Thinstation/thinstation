@@ -1,0 +1,23 @@
+# Description: A multi-platform toolkit for creating graphical user interfaces
+# URL: http://www.gtk.org/
+# Maintainer: Fredrik Rinnestam, fredrik at crux dot nu
+# Depends on: gdk-pixbuf, pango, at-spi2-atk, libepoxy
+
+name=gtk3
+version=3.20.8
+release=1
+source=(http://download.gnome.org/sources/gtk+/${version:0:4}/gtk+-$version.tar.xz)
+
+build () {
+    cd gtk+-$version
+
+    ./configure --prefix=/usr \
+        --enable-x11-backend \
+        --enable-broadway-backend
+
+    make
+    make DESTDIR=$PKG install
+    rm -r $PKG/usr/share/{gtk-doc,locale,gtk-3.0}
+    rm $PKG/usr/bin/gtk-update-icon-cache
+chown -R root.root $PKG
+}

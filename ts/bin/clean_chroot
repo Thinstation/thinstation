@@ -127,6 +127,7 @@ stage1()
 	done
 	done
 	touch /cleanstage2
+	sync
 	if [ -z "$clean" ]; then
 		printf "\rPlease Type \"exit\" to Finish the Cleaning Process\t\t\t"
 	fi
@@ -134,7 +135,7 @@ stage1()
 
 stage2()
 {
-	for trash in BUILD.* autodl usr lib64 run www share home man bin boot dev etc lib mnt opt proc root sbin sys tmp var ts/components; do
+	for trash in BUILD.* autodl usr lib64 run www share home man bin boot dev etc lib mnt opt proc root sbin sys tmp var label ts/components; do
 		if [ -e $trash ] || [ -h $trash ]; then
 			rm -rf $ROOT/$trash
 		fi

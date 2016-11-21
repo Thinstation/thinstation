@@ -4,20 +4,18 @@
 # Depends on:  glib celt51 alsa-lib xorg-libpixman openssl libjpeg-turbo zlib pyparsing cyrus-sasl
 
 name=spice
-version=0.13.1
+version=0.13.2
 release=1
-#source=(http://spice-space.org/download/releases/spice-$version.tar.bz2)
+source=(http://spice-space.org/download/releases/spice-$version.tar.bz2)
 
 build() {
-export CFLAGS="$CFLAGS -Wno-error=unused-local-typedefs"
-git clone git://anongit.freedesktop.org/spice/spice
-cd spice
-./autogen.sh
-#  cd $name-$version
+
+  cd $name-$version
 
   ./configure --prefix=/usr \
               --datarootdir=/usr/lib \
-              --enable-opengl=no
+              --enable-opengl=yes \
+              --enable-smartcard=[yes
 
   make
   make DESTDIR=$PKG install

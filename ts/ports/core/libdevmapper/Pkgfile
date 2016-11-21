@@ -1,37 +1,31 @@
 # Description: Device mapper userspace library
 # URL:         http://sourceware.org/lvm2/
 # Maintainer:  CRUX System Team, core-ports at crux dot nu
-# Depends on:  udev
+# Depends on:  eudev util-linux
 
 name=libdevmapper
-version=1.02.85
+version=2.2.02.161
 release=1
-source=(http://mirrors.kernel.org/sources.redhat.com/lvm2/LVM2.2.02.106.tgz)
+source=(http://mirrors.kernel.org/sources.redhat.com/lvm2/releases/LVM$version.tgz \
+	lvm2-make-sockets-static.patch)
 
 build() {
-    cd LVM2.2.02.106
+    cd LVM$version
+  # enable lvmetad
+  sed -i 's|use_lvmetad = 0|use_lvmetad = 1|' conf/example.conf.in
 
-    # needed for static linking with eudev
-    export UDEV_LIBS="$(pkg-config --libs --static libudev)"
+  # make systemd sockets static
+  patch -p1 -i "${SRC}/lvm2-make-sockets-static.patch"
 
-    # needed for static linking
-    export LIBS="-lpthread -luuid"
+  CONFIGUREOPTS="--prefix=/usr --sysconfdir=/etc --localstatedir=/var --sbindir=/usr/bin \
+      --with-udev-prefix=/usr --with-systemdsystemunitdir=/usr/lib/systemd/system \
+      --with-default-pid-dir=/run --with-default-dm-run-dir=/run --with-default-run-dir=/run/lvm \
+      --enable-pkgconfig --enable-readline --enable-dmeventd --enable-cmdlib --enable-applib \
+      --enable-udev_sync --enable-udev_rules --with-default-locking-dir=/run/lock/lvm \
+      --enable-lvmetad --with-thin=internal --with-cache=internal"
 
-    ./configure --prefix=/usr \
-                --exec-prefix= \
-                --datarootdir=/usr \
-                --with-udev-prefix= \
-                --disable-readline \
-                --enable-pkgconfig \
-                --enable-static_link \
-                --enable-udev_sync \
-                --enable-udev_rules \
-                --with-{user,group}=root
+  ./configure $CONFIGUREOPTS --enable-udev-systemd-background-jobs
+  make
+  make DESTDIR=$PKG install
 
-    make device-mapper
-    make DESTDIR=$PKG install_device-mapper
-    install -m0644 -D udev/12-dm-permissions.rules $PKG/etc/udev/rules.d/12-dm-permissions.rules.example
-
-    # pkgconfig insists on /lib one or the other way...
-    sed -i '/^libdir=/s|${exec_prefix}|/usr|' $PKG/usr/lib/pkgconfig/devmapper.pc
 }

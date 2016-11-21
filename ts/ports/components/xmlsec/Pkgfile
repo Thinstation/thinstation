@@ -1,0 +1,18 @@
+# $Id$
+# Maintainer: AndyRTR <andyrtr@archlinux.org>
+# Contributor: Jan de Groot <jgc@archlinux.org>
+# Contributor: Hussam Al-Tayeb <ht990332@gmail.com>
+
+name=xmlsec
+version=1.2.20
+release=3
+source=(http://www.aleksey.com/xmlsec/download/${name}1-${version}.tar.gz)
+
+build() {
+  cd ${name}1-${version}
+  ./configure --prefix=/usr --disable-static
+  make
+  make DESTDIR=${PKG} install
+  install -m755 -d ${PKG}/usr/share/licenses/${name}
+  install -m644 COPYING ${PKG}/usr/share/licenses/${name}/
+}

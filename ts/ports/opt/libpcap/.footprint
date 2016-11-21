@@ -10,6 +10,7 @@ drwxr-xr-x	root/root	usr/include/pcap/
 -rw-r--r--	root/root	usr/include/pcap/bpf.h
 -rw-r--r--	root/root	usr/include/pcap/ipnet.h
 -rw-r--r--	root/root	usr/include/pcap/namedb.h
+-rw-r--r--	root/root	usr/include/pcap/nflog.h
 -rw-r--r--	root/root	usr/include/pcap/pcap.h
 -rw-r--r--	root/root	usr/include/pcap/sll.h
 -rw-r--r--	root/root	usr/include/pcap/usb.h
@@ -17,8 +18,8 @@ drwxr-xr-x	root/root	usr/include/pcap/
 drwxr-xr-x	root/root	usr/lib/
 -rw-r--r--	root/root	usr/lib/libpcap.a
 lrwxrwxrwx	root/root	usr/lib/libpcap.so -> libpcap.so.1
-lrwxrwxrwx	root/root	usr/lib/libpcap.so.1 -> libpcap.so.1.1.1
--rwxr-xr-x	root/root	usr/lib/libpcap.so.1.1.1
+lrwxrwxrwx	root/root	usr/lib/libpcap.so.1 -> libpcap.so.1.7.4
+-rwxr-xr-x	root/root	usr/lib/libpcap.so.1.7.4
 drwxr-xr-x	root/root	usr/man/
 drwxr-xr-x	root/root	usr/man/man1/
 -rw-r--r--	root/root	usr/man/man1/pcap-config.1.gz
@@ -46,16 +47,20 @@ lrwxrwxrwx	root/root	usr/man/man3/pcap_dump_fopen.3pcap.gz -> pcap_dump_open.3pc
 -rw-r--r--	root/root	usr/man/man3/pcap_fileno.3pcap.gz
 -rw-r--r--	root/root	usr/man/man3/pcap_findalldevs.3pcap.gz
 lrwxrwxrwx	root/root	usr/man/man3/pcap_fopen_offline.3pcap.gz -> pcap_open_offline.3pcap.gz
--rw-r--r--	root/root	usr/man/man3/pcap_free_datalinks.3pcap.gz
--rw-r--r--	root/root	usr/man/man3/pcap_freealldevs.3pcap.gz
+lrwxrwxrwx	root/root	usr/man/man3/pcap_fopen_offline_with_tstamp_precision.3pcap.gz -> pcap_open_offline.3pcap.gz
+lrwxrwxrwx	root/root	usr/man/man3/pcap_free_datalinks.3pcap.gz -> pcap_list_datalinks.3pcap.gz
+lrwxrwxrwx	root/root	usr/man/man3/pcap_free_tstamp_types.3pcap.gz -> pcap_list_tstamp_types.3pcap.gz
+lrwxrwxrwx	root/root	usr/man/man3/pcap_freealldevs.3pcap.gz -> pcap_findalldevs.3pcap.gz
 -rw-r--r--	root/root	usr/man/man3/pcap_freecode.3pcap.gz
 -rw-r--r--	root/root	usr/man/man3/pcap_get_selectable_fd.3pcap.gz
+-rw-r--r--	root/root	usr/man/man3/pcap_get_tstamp_precision.3pcap.gz
 -rw-r--r--	root/root	usr/man/man3/pcap_geterr.3pcap.gz
 lrwxrwxrwx	root/root	usr/man/man3/pcap_getnonblock.3pcap.gz -> pcap_setnonblock.3pcap.gz
 -rw-r--r--	root/root	usr/man/man3/pcap_inject.3pcap.gz
 -rw-r--r--	root/root	usr/man/man3/pcap_is_swapped.3pcap.gz
 -rw-r--r--	root/root	usr/man/man3/pcap_lib_version.3pcap.gz
 -rw-r--r--	root/root	usr/man/man3/pcap_list_datalinks.3pcap.gz
+-rw-r--r--	root/root	usr/man/man3/pcap_list_tstamp_types.3pcap.gz
 -rw-r--r--	root/root	usr/man/man3/pcap_lookupdev.3pcap.gz
 -rw-r--r--	root/root	usr/man/man3/pcap_lookupnet.3pcap.gz
 -rw-r--r--	root/root	usr/man/man3/pcap_loop.3pcap.gz
@@ -65,16 +70,21 @@ lrwxrwxrwx	root/root	usr/man/man3/pcap_next.3pcap.gz -> pcap_next_ex.3pcap.gz
 -rw-r--r--	root/root	usr/man/man3/pcap_next_ex.3pcap.gz
 -rw-r--r--	root/root	usr/man/man3/pcap_offline_filter.3pcap.gz
 -rw-r--r--	root/root	usr/man/man3/pcap_open_dead.3pcap.gz
+lrwxrwxrwx	root/root	usr/man/man3/pcap_open_dead_with_tstamp_precision.3pcap.gz -> pcap_open_dead.3pcap.gz
 -rw-r--r--	root/root	usr/man/man3/pcap_open_live.3pcap.gz
 -rw-r--r--	root/root	usr/man/man3/pcap_open_offline.3pcap.gz
+lrwxrwxrwx	root/root	usr/man/man3/pcap_open_offline_with_tstamp_precision.3pcap.gz -> pcap_open_offline.3pcap.gz
 lrwxrwxrwx	root/root	usr/man/man3/pcap_perror.3pcap.gz -> pcap_geterr.3pcap.gz
 lrwxrwxrwx	root/root	usr/man/man3/pcap_sendpacket.3pcap.gz -> pcap_inject.3pcap.gz
 -rw-r--r--	root/root	usr/man/man3/pcap_set_buffer_size.3pcap.gz
 -rw-r--r--	root/root	usr/man/man3/pcap_set_datalink.3pcap.gz
+-rw-r--r--	root/root	usr/man/man3/pcap_set_immediate_mode.3pcap.gz
 -rw-r--r--	root/root	usr/man/man3/pcap_set_promisc.3pcap.gz
 -rw-r--r--	root/root	usr/man/man3/pcap_set_rfmon.3pcap.gz
 -rw-r--r--	root/root	usr/man/man3/pcap_set_snaplen.3pcap.gz
 -rw-r--r--	root/root	usr/man/man3/pcap_set_timeout.3pcap.gz
+-rw-r--r--	root/root	usr/man/man3/pcap_set_tstamp_precision.3pcap.gz
+-rw-r--r--	root/root	usr/man/man3/pcap_set_tstamp_type.3pcap.gz
 -rw-r--r--	root/root	usr/man/man3/pcap_setdirection.3pcap.gz
 -rw-r--r--	root/root	usr/man/man3/pcap_setfilter.3pcap.gz
 -rw-r--r--	root/root	usr/man/man3/pcap_setnonblock.3pcap.gz
@@ -82,8 +92,12 @@ lrwxrwxrwx	root/root	usr/man/man3/pcap_sendpacket.3pcap.gz -> pcap_inject.3pcap.
 -rw-r--r--	root/root	usr/man/man3/pcap_stats.3pcap.gz
 -rw-r--r--	root/root	usr/man/man3/pcap_statustostr.3pcap.gz
 -rw-r--r--	root/root	usr/man/man3/pcap_strerror.3pcap.gz
+-rw-r--r--	root/root	usr/man/man3/pcap_tstamp_type_name_to_val.3pcap.gz
+lrwxrwxrwx	root/root	usr/man/man3/pcap_tstamp_type_val_to_description.3pcap.gz -> pcap_tstamp_type_val_to_name.3pcap.gz
+-rw-r--r--	root/root	usr/man/man3/pcap_tstamp_type_val_to_name.3pcap.gz
 drwxr-xr-x	root/root	usr/man/man5/
 -rw-r--r--	root/root	usr/man/man5/pcap-savefile.5.gz
 drwxr-xr-x	root/root	usr/man/man7/
 -rw-r--r--	root/root	usr/man/man7/pcap-filter.7.gz
 -rw-r--r--	root/root	usr/man/man7/pcap-linktype.7.gz
+-rw-r--r--	root/root	usr/man/man7/pcap-tstamp.7.gz

@@ -1,17 +1,24 @@
-# Description: ORBit2 bindings for python
-# URL: http://www.daa.com.au/~james/pygtk
-# Maintainer: Matt Housh, jaeger at morpheus dot net
-# Depends on: python
+# Description: A middleware layer between C libraries (using GObject) and language bindings.
+# URL: https://live.gnome.org/GObjectIntrospection
+# Maintainer: Danny Rawlins, crux at romster dot me
+# Packager: Matt Housh, jaeger at morpheus dot net
+# Depends on: python glib
 
 name=gobject-introspection
-version=1.32.1
+version=1.48.0
 release=1
-source=(http://ftp.gnome.org/pub/GNOME/sources/gobject-introspection/${version%.*}/$name-$version.tar.xz)
+source=(http://ftp.gnome.org/pub/GNOME/sources/$name/${version::4}/$name-$version.tar.xz)
 
 build() {
-   cd $name-$version
-   ./configure --prefix=/usr \
-               --disable-static
-   make
-   make DESTDIR=$PKG install
+	cd $name-$version
+
+	./configure \
+		--prefix=/usr \
+		--disable-doctool \
+		--disable-gtk-doc-html
+
+	make
+	make DESTDIR=$PKG install
+
+	rm -rf $PKG/usr/share/gtk-doc
 }

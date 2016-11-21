@@ -5,12 +5,17 @@
 # Depends on: setuptools
 
 name=cython
-version=0.21.2
+pname=Cython
+version=pip
 release=1
-source=(http://www.cython.org/release/Cython-$version.tar.gz)
+source=()
 
 build() {
-	cd Cython-$version
-	python setup.py install --prefix=/usr --root $PKG
+        pip install $name --download=$SRC --no-binary :all:
+        mkdir -p $SRC/$name
+        tar -xvf $SRC/$pname*.tar.* -C $SRC/$name || unzip -d $SRC/$name $pname-*.zip
+        cd $SRC/$name/*
+
+        python ./setup.py install --root $PKG
 }
 

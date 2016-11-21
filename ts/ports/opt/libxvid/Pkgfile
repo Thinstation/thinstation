@@ -5,7 +5,8 @@
 # Nice to have: yasm
 
 name=libxvid
-version=1.3.2
+archname=xvidcore
+version=1.3.4
 release=1
 source=(http://downloads.xvid.org/downloads/xvidcore-$version.tar.bz2)
 
@@ -13,7 +14,6 @@ build() {
 	cd xvidcore/build/generic
 	./configure --prefix=/usr
 	make
+	sed -i '/libdir.*STATIC_LIB/ s/^/#/' Makefile
 	make DESTDIR=$PKG install
-	ln -s libxvidcore.so.4.3 $PKG/usr/lib/libxvidcore.so
-	ln -s libxvidcore.so.4.3 $PKG/usr/lib/libxvidcore.so.4
 }

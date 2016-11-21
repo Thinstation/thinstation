@@ -1,25 +1,33 @@
-# Description: Apache module for the Subversion version control system
-# URL:         http://subversion.tigris.org
-# Maintainer:  Juergen Daubert, jue at crux dot nu
-# Depends on:  subversion apache
+# Description:	Apache modules for subversion
+# URL:		http://subversion.apache.org
+# Maintainer:	Alan Mizrahi, alan at mizrahi dot com dot ve
+# Depends on:	apr apache subversion
 
 name=mod_svn
-version=1.6.17
+version=1.9.4
 release=1
-source=(http://subversion.tigris.org/downloads/subversion-$version.tar.bz2)
+source=(http://www.apache.org/dist/subversion/subversion-$version.tar.bz2)
 
 build() {
-    cd subversion-$version
+	cd subversion-$version
 
-    ./configure --prefix=/usr \
-                --mandir=/usr/man \
-                --with-{apr,apr-util,neon}=/usr \
-                --disable-neon-version-check \
-                --disable-mod-activation \
-                --without-swig \
-                --disable-nls \
-                --with-apxs=/usr/sbin/apxs
+	./configure \
+		--prefix=/usr \
+		--with-apr=/usr \
+		--with-apr-util=/usr \
+		--without-swig \
+		--libexecdir=/usr/lib/apache \
+		--disable-mod-activation \
+		 \
+		--with-apxs=/usr/bin/apxs 
 
-    make apache-mod
-    make DESTDIR=$PKG install-mods-shared
+	make
+	make DESTDIR=$PKG install
+
+	# remove all files except the ones in /usr/lib/apache
+	find $PKG \( -path $PKG/usr/lib/apache -prune \) -o \( \! -type d -print0 \) |xargs -0 rm
+
+	# remove empty directories
+	find $PKG -type d -empty -delete
+
 }

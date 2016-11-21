@@ -3,28 +3,35 @@
 # /etc/rc.d/mysqld: start/stop mysqld daemon
 #
 
+SSD=/sbin/start-stop-daemon
+PROG=/usr/sbin/mysqld
 MYSQL_CFG=/etc/my.cnf
-
-MYSQL_PID=`sed -n 's/^pid-file[ \t]*=[ \t]*//p' $MYSQL_CFG`
-MYSQL_USR=`sed -n 's/^user[ \t]*=[ \t]*//p' $MYSQL_CFG`
+PID=/var/run/mysql/mysqld.pid
+LOG=/var/log/mysqld.log
+OPTS="--pid-file=$PID"
 
 case $1 in
 start)
-	touch $MYSQL_PID
-	chown $MYSQL_USR $MYSQL_PID
-	/usr/sbin/mysqld &
+	$SSD --start -bC --pidfile $PID --exec $PROG -- $OPTS >> $LOG 2>&1
 	;;
 stop)
-	killall -q /usr/sbin/mysqld 
-	rm $MYSQL_PID
+	$SSD --stop --remove-pidfile --retry 10 --pidfile $PID
 	;;
 restart)
 	$0 stop
-	sleep 2
 	$0 start
 	;;
+status)
+	$SSD --status --pidfile $PID
+	case $? in
+	0) echo "$PROG is running with pid $(cat $PID)" ;;
+	1) echo "$PROG is not running but the pid file $PID exists" ;;
+	3) echo "$PROG is not running" ;;
+	4) echo "Unable to determine the program status" ;;
+	esac
+	;;
 *)
-	echo "usage: $0 [start|stop|restart]"
+	echo "usage: $0 [start|stop|restart|status]"
 	;;
 esac
 

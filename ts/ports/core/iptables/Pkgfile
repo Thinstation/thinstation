@@ -3,16 +3,16 @@
 # Maintainer:  CRUX System Team, core-ports at crux dot nu
 
 name=iptables
-version=1.4.21
-release=1
+version=1.6.0
+release=2
 source=(ftp://ftp.netfilter.org/pub/iptables/$name-$version.tar.bz2) 
 
 build () {
     cd $name-$version
     ./configure --prefix=/usr \
-                --mandir=/usr/man \
                 --libexecdir=/usr/lib \
-                --enable-libipq
+                --enable-libipq \
+		--disable-nftables
 
     make
     make DESTDIR=$PKG install

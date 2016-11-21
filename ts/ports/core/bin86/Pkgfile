@@ -12,7 +12,6 @@ build() {
     cd $name-$version
     patch -p1 -i $SRC/$name-x86_64.patch
     make -j1 CFLAGS="$CFLAGS -D_POSIX_SOURCE" PREFIX=/usr
-    mkdir -p $PKG/usr/{bin,man/man1}
-    make PREFIX=$PKG/usr install
+    install -d $PKG/usr/{bin,share/man/man1}
+    make PREFIX=$PKG/usr MANDIR=$PKG/usr/share/man/man1 install
 }
-

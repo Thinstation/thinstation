@@ -4,16 +4,16 @@
 # Maintainer:   Bartlomiej Palmowski, rotwang at crux dot org dot pl
 
 name=confuse
-version=2.7
+version=2.8
 release=1
-source=(http://mirror.lihnidos.org/GNU/savannah/confuse/$name-$version.tar.gz)
+source=(https://github.com/martinh/libconfuse/releases/download/v${version}/${name}-${version}.tar.gz)
 
 build() {
     cd ${name/#lib/}-$version
     sed -i 's/-Werror//' src/Makefile.in
     ./configure --prefix=/usr \
         --enable-shared --disable-static \
-        --disable-nls
+        
     make
     make DESTDIR=$PKG install
 }

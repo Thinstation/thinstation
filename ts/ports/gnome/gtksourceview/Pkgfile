@@ -1,27 +1,31 @@
-# Description: Syntax highlighting for the GtkTextView widget
-# URL: http://mail.gnome.org/mailman/listinfo/gnome-devtools
-# Maintainer: Matt Housh, jaeger at morpheus dot net
-# Depends on: gtk, libxml2, libgnomeprint, gnome-vfs
-# Group: gnome/desktop
+# Description: A text widget adding syntax highlighting.
+# URL: http://www.gnome.org/
+# Maintainer: Danny Rawlins, crux at romster dot me
+# Packager: Danny Rawlins, crux at romster dot me
+# Depends on: gtk3
+# Optional: glade vala
 
 name=gtksourceview
-version=2.10.5
+version=3.18.1
 release=1
-source=(http://ftp.gnome.org/pub/GNOME/sources/$name/${version%.*}/$name-$version.tar.bz2)
+source=(http://ftp.gnome.org/pub/gnome/sources/$name/${version:0:4}/$name-$version.tar.xz)
 
 build() {
+unset MAKEFLAGS
 	cd $name-$version
-	rm po/*.po
-	sed -i -e 's/USE_NLS=yes/USE_NLS=no/' \
-		-e 's/ENABLE_NLS 1/ENABLE_NLS 0/' configure
 
-	./configure --prefix=/usr \
-		--disable-gtk-doc \
+	if [ -n "$(pkginfo -i | grep '^glade ')" ]; then
+		local glade=--enable-glade-catalog
+	fi
+
+	./configure \
+		--prefix=/usr \
 		--disable-nls \
-		--disable-static \
-		--enable-shared \
+		--disable-dependency-tracking \
+		"$glade"
 
 	make
 	make DESTDIR=$PKG install
-	rm -rf $PKG/usr/share/gtk-doc
+	
+	rm -r $PKG/usr/share/gtk-doc
 }

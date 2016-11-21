@@ -3,11 +3,17 @@
 # Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 
 name=pyserial
-version=2.5
+pname=pyserial
+version=pip
 release=1
-source=(http://hivelocity.dl.sourceforge.net/project/pyserial/pyserial/2.5/pyserial-2.5.tar.gz)
+source=()
 
 build() {
-	cd $name-$version
-	python ./setup.py install --root $PKG
+        pip install $name --download=$SRC --no-binary :all:
+        mkdir -p $SRC/$name
+        tar -xvf $SRC/$pname*.tar.* -C $SRC/$name || unzip -d $SRC/$name $pname-*.zip
+        cd $SRC/$name/*
+
+        python ./setup.py install --root $PKG
 }
+

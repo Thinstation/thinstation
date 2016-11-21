@@ -6,14 +6,15 @@
 # Depends on:
 
 name=cgdb
-version=0.6.7
+version=0.6.8
 release=1
-source=(http://cgdb.me/files/cgdb-0.6.7.tar.gz)
+source=(http://cgdb.me/files/cgdb-0.6.8.tar.gz)
 
 build() {
 cd $name-$version
 ./configure --prefix=/usr
 make
 make DESTDIR=$PKG install
-chown -R root:root $PKG
+
+rm -rf $PKG/usr/share/info
 }

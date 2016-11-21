@@ -5,18 +5,28 @@
 name=lp_server
 version=1.1.6
 release=1
-source=($name-$version.tar.bz2)
+source=($name-$version.tgz \
+	lp_server-1.1.6_alt.patch
+	lp_server-1.1.6_log.patch)
 
 build() {
+unset CPPFLAGS
+
 	cd $name-$version
+	patch -p0 -i $SRC/lp_server-1.1.6_alt.patch
+	patch -p0 -i $SRC/lp_server-1.1.6_log.patch
+	rm config.sub
+	cp /usr/share/automake-1.15/config.sub .
+
+	CFLAGS="-std=gnu90 $CFLAGS"
 
 	./configure --prefix=/usr \
 			--sysconfdir=/etc \
 			--libexecdir=/lib \
 			--mandir=/usr/man \
-			--disable-extras
+			--build=x86_64-pc-linux-gnu
 
-	make
+	make -j1
 	make prefix=$PKG/usr  install
 	rm -rf $PKG/man
 }

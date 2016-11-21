@@ -8,14 +8,15 @@
 name=libmpd
 version=11.8.17
 release=1
-source=(http://download.sarine.nl/Programs/gmpc/${version%.*}/$name-$version.tar.gz)
+source=(http://download.sarine.nl/Programs/gmpc/${version%.*}/$name-$version.tar.gz \
+	libmpd-11.8.17-strndup.patch)
 
 build() {
   cd $name-$version
 
-  ./configure --prefix=/usr \
-              --disable-static
+  patch -p1 -i $SRC/libmpd-11.8.17-strndup.patch
+  ./configure --prefix=/usr --disable-static
 
-  make
+  make -j1
   make DESTDIR=$PKG install
 }

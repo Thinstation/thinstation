@@ -6,7 +6,7 @@
 # the local hostname or the given one
 # Fallback to localhost if not set.
 #
-# Jürgen Daubert, jue at jue dot li
+# Juergen Daubert, jue at crux dot nu
 
 
 print_help() {
@@ -29,9 +29,9 @@ main() {
 		FQDN="$3"
 	fi
 	INFO=".\n.\n.\n.\n.\n$FQDN\nroot@$FQDN"
-	OPTS="req -new -nodes -x509 -days 365 -newkey rsa:1024"
+	OPTS="req -new -nodes -x509 -days 365 -newkey rsa:2048"
 	
-	echo -e $INFO | openssl $OPTS -out $CRT -keyout $KEY 2> /dev/null
+	printf "$INFO\n" | openssl $OPTS -out $CRT -keyout $KEY 2> /dev/null
 	
 	if [ $? -ne 0 ]; then
 		echo "Error: creating of certificate failed"

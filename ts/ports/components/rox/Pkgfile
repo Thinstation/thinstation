@@ -5,7 +5,7 @@
 # Depends on: libglade, shared-mime-info
 
 name=rox
-version=2.10
+version=2.11
 release=1
 source=(http://download.sourceforge.net/rox/$name-filer-$version.tar.bz2)
 
@@ -13,7 +13,8 @@ build () {
 	cd $name-filer-$version/ROX-Filer
 	./AppRun --compile \
 		--with-platform="" \
-		--sysconfdir=/usr/ROX/Choices
+		--sysconfdir=/usr/ROX/Choices \
+		LIBS="-ldl -lm"
 
 	rm -rf src Messages Help Action.png Action-it.png build
 	

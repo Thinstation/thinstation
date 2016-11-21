@@ -1,19 +1,24 @@
 # Description: Commandline screen capture.
-# URL: http://linuxbrit.co.uk/scrot/
-# Maintainer: Danny Rawlins, monster dot romster at gmail dot com
+# URL: http://scrot.sourcearchive.com/
+# Maintainer: Danny Rawlins, crux at romster dot me
 # Packager: Mark Rosenstand, mark at borkware dot net
 # Depends on: giblib
 
 name=scrot
-version=0.8
+version=0.8.13
 release=1
-source=(http://linuxbrit.co.uk/downloads/scrot-$version.tar.gz)
+source=(http://scrot.sourcearchive.com/downloads/${version%.*}-${version##*.}/${name}_${version%.*}.orig.tar.gz
+	http://scrot.sourcearchive.com/downloads/${version%.*}-${version##*.}/${name}_${version%.*}-${version##*.}.debian.tar.gz)
 
 build() {
-	cd scrot-$version
+	for patch in $(<$SRC/debian/patches/series); do
+		patch -p1 -d $SRC/$name-${version%.*} -i $SRC/debian/patches/$patch
+	done
+
+	cd $name-${version%.*}
+
 	./configure --prefix=/usr
 	make
 	make DESTDIR=$PKG install
 	rm -r $PKG/usr/doc
 }
-

@@ -1,0 +1,19 @@
+# Description: schroedinger-tools is a small collection tools to code YUV files and decode raw dirac bytestreams
+# URL: https://launchpad.net/schroedinger
+# Maintainer: Danny Rawlins, crux at romster dot me
+# Packager: Falcony, falcony at users dot sourceforge dot net
+# Depends on: orc
+
+name=schroedinger
+version=1.0.11
+release=1
+source=(https://launchpad.net/schroedinger/trunk/$version/+download/$name-$version.tar.gz)
+
+build() {
+	cd $name-$version
+	./configure --prefix=/usr
+	make
+	make DESTDIR=$PKG install
+	rm -r $PKG/usr/share/gtk-doc
+	rmdir $PKG/usr/share
+}

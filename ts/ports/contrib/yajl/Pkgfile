@@ -1,0 +1,21 @@
+# Description:	Yet Another JSON Library
+# URL:		http://lloyd.github.com/yajl/
+# Maintainer:	Alan Mizrahi, alan at mizrahi dot com dot ve
+# Depends on:	cmake
+
+name=yajl
+version=2.1.0
+release=1
+source=(https://github.com/lloyd/yajl/archive/$version.zip)
+
+build() {
+	mkdir build; cd build
+
+	cmake ../$name-$version \
+		-DCMAKE_BUILD_TYPE=Release \
+		-DCMAKE_INSTALL_PREFIX=/usr
+	make
+	make DESTDIR=$PKG install
+
+	rm -f $PKG/usr/lib/lib*.a
+}

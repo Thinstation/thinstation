@@ -3,6 +3,7 @@
 # Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 
 name=js
+archname=js185
 version=1.8.5
 release=1
 source=(http://ftp.mozilla.org/pub/mozilla.org/js/js185-1.0.0.tar.gz
@@ -21,10 +22,11 @@ build() {
 
 	cd js/src
 
-	./configure --prefix=/usr \
-			--with-system-nspr \
-			--enable-threadsafe \
-			--enable-readline
+	# _FORTIFY_SOURCE causes configure error
+	unset CPPFLAGS
+
+	./configure --prefix=/usr --with-system-nspr \
+	--enable-threadsafe
 
 	make
 	make DESTDIR=$PKG install

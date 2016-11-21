@@ -3,16 +3,17 @@
 # Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 
 name=libcec
-version=0.5.2.3
+version=3.1.0
 release=1
 source=()
 
 build() {
 git clone --depth 1 git://github.com/Pulse-Eight/libcec.git
-	cd $name
-	autoreconf -vif
-	./configure --prefix=/usr
-
-	make
+	mkdir libcec/build
+	cd libcec/build
+	cmake ..
+	make -j4
 	make DESTDIR=$PKG install
+	mkdir $PKG/usr/lib
+	mv $PKG/usr/local/lib/pkgconfig $PKG/usr/lib/.
 }

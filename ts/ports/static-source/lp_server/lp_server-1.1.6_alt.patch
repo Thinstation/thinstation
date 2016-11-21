@@ -1,0 +1,79 @@
+--- src/lp_server.c.orig	2001-09-18 03:51:31 +0400
++++ src/lp_server.c	2006-02-03 22:02:21 +0300
+@@ -4,8 +4,9 @@
+     Export a printer by simulating an HP JetDirect interface.
+     -n connection port (default 9100)
+     -w open output device write only (default r/w)
+-    -d device (default /dev/lp)
++    -d device (default /dev/lp0)
+     -t stty_cmds - stty commands to apply if device is serial port
++	-b - run in background mode
+ 
+     The lp_server will bind to the connection port, and wait for
+     an incoming connection.  After accepting a  connection, it 
+@@ -30,10 +31,11 @@
+ #include <version.h>
+ 
+ 
+-char *device = "/dev/lp";
++char *device = "/dev/lp0";
+ char *stty_opts;
+ char *port = "9100";
+ int write_only;
++int background;
+ void usage(void);
+ int sock, conn, dev = -1;
+ int pid;
+@@ -55,7 +57,7 @@
+ 	fd_set readfds;
+ 
+ 	name = argv[0];
+-	while( ((c = getopt(argc, argv, "D:n:wd:t:r:")) != EOF) ){
++	while( ((c = getopt(argc, argv, "D:n:wd:t:r:b")) != EOF) ){
+ 		switch(c){
+ 		case 'D': debug = atoi(optarg); break;
+ 		case 'n': port = optarg; break;
+@@ -63,11 +65,27 @@
+ 		case 'r': restrict = optarg; break;
+ 		case 'd': device = optarg; break;
+ 		case 't': stty_opts = optarg; break;
++		case 'b': background = 1; break;
+ 		default: usage();
+ 		}
+ 	}
+ 	if( optind != argc ) usage();
+ 
++	/* fork to background, write pid file, fall to lp user (uid 4) */
++	if( background ) {
++		FILE  *f;
++		daemon( 0, 0 );
++		f = fopen("/var/run/lp_server.pid", "w");
++		if (f) {
++			fprintf(f, "%d\n", getpid());
++			fclose(f);
++		} else
++			if( debug ) logmsg(1,"can't create pid file");
++		 /* fall to lp user  */
++		if ( setuid(4) )
++			exit(1);
++	}
++	
+ 	/* step 1 - bind to the port */
+ 	sock = tcp_open( port );
+ 	if( sock < 0 ) exit(1);
+@@ -231,12 +249,13 @@
+ }
+ 
+ char *msg[] = {
+-"lp_server [-n port] [-w] [-d device] [-t stty_cmds]",
++"lp_server [-n port] [-w] [-d device] [-t stty_cmds] [-b]",
+ "   Version " VERSION ,
+ "    Export a printer by simulating an HP JetDirect interface.",
+ "    -n connection port (default 9100)",
+ "    -w open output device write only (default r/w)",
+-"    -d device (default /dev/lp)",
++"    -d device (default /dev/lp0)",
++"    -b run in background mode",
+ "    -t stty_cmds - stty commands to apply if device is serial port",
+ "    -r remote_list - remote hosts allowed, in IP/netmask or hostname",
+ "           separated by commas. i.e. - 130.191.20.10/24,dickory would",

@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# /etc/rc.d/nfs: start/stop nfs client
+# /etc/rc.d/nfs: start/stop nfs daemons needed by nfs client and server
 #
 
 PIPEFS=/var/lib/nfs/rpc_pipefs
@@ -9,23 +9,24 @@ case $1 in
 start)
 	/bin/mount -t rpc_pipefs rpc_pipefs $PIPEFS
 	/usr/sbin/sm-notify
-	/usr/sbin/rpc.idmapd
-	/usr/sbin/rpc.statd
-	/bin/mount -a -t nfs
+	/etc/rc.d/rpc.idmapd start
+	/etc/rc.d/rpc.statd start
 	;;
 stop)
-	/bin/umount -a -t nfs
-	killall -q /usr/sbin/rpc.statd
-	killall -q /usr/sbin/rpc.idmapd
+	/etc/rc.d/rpc.statd stop
+	/etc/rc.d/rpc.idmapd stop
 	/bin/umount $PIPEFS
 	;;
 restart)
 	$0 stop
-	sleep 2
 	$0 start
 	;;
+status)
+	/etc/rc.d/rpc.idmapd status
+	/etc/rc.d/rpc.statd status
+	;;
 *)
-	echo "usage: $0 [start|stop|restart]"
+	echo "usage: $0 [start|stop|restart|status]"
 	;;
 esac
 

@@ -21,10 +21,10 @@ build() {
 
 	cd unix/xserver
 	cp -r $SRC/xorg-server-${_xorgver}/* .
-	patch -Np1 -i ../xserver116.patch
+	patch -Np1 -i ../xserver117.patch
         cd $SRC/$name-$version
 
-	cmake -G "Unix Makefiles"
+	cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX=/usr
         make
 	make DESTDIR=$PKG install
 

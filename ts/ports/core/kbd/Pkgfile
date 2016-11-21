@@ -1,19 +1,24 @@
 # Description: Keytable files and keyboard utilities
-# URL:         ftp://ftp.win.tue.nl/pub/linux-local/utils/kbd/
+# URL:         http://kbd-project.org/
 # Maintainer:  CRUX System Team, core-ports at crux dot nu
 
 name=kbd
-version=1.15.3
-release=1
-source=(ftp://ftp.altlinux.org/pub/people/legion/kbd/$name-$version.tar.gz)
+version=2.0.3
+release=2
+source=(http://ftp.kernel.org/pub/linux/utils/$name/$name-$version.tar.xz)
 
 build() {
     cd $name-$version
 
+    # we don't want a dependency to 'check'
+    sed -i '/^SUBDIR/s/tests//' Makefile.am
+    sed -i '/\[check >= 0.9.4\]/s/^/#/' configure.ac
+    autoreconf --install
+
     ./configure --prefix=/usr \
-                --mandir=/usr/man \
                 --datadir=/usr/share/kbd \
-                --disable-nls
+                --disable-vlock \
+                
     make
     make DESTDIR=$PKG install
 
@@ -21,7 +26,7 @@ build() {
 
     rm -r $PKG/usr/share/kbd/keymaps/{ppc,mac,atari,amiga,sun}
     rm $PKG/usr/bin/{loadunimap,mapscrn,resizecons,psf*table}
-    rm $PKG/usr/man/man8/{loadunimap,mapscrn,resizecons}.8
-    rm $PKG/usr/man/man1/psf*table.1
+    rm $PKG/usr/share/man/man8/{loadunimap,mapscrn,resizecons}.8
+    rm $PKG/usr/share/man/man1/psf*table.1
     find $PKG/usr/share/kbd/ -type f -name "README*" -delete
 }

@@ -1,17 +1,17 @@
 # Description: SQL database server
 # URL:         http://www.mysql.com
 # Maintainer:  Juergen Daubert, jue at crux dot nu
-# Depends on:  tcp_wrappers ncurses zlib openssl cmake libaio
+# Depends on:  ncurses zlib openssl cmake libaio
 
 name=mysql
-version=5.5.18
+version=5.6.33
 release=1
-source=(http://mirror.switch.ch/mirror/mysql/Downloads/MySQL-5.5/$name-$version.tar.gz \
+source=(http://mirror.switch.ch/mirror/mysql/Downloads/MySQL-5.6/$name-$version.tar.gz \
         my.cnf mysqld)
 
 build () {
     cd $name-$version
-    
+
     cmake . \
         -DBUILD_CONFIG=mysql_release \
         -DINSTALL_LAYOUT=RPM \
@@ -19,8 +19,8 @@ build () {
         -DSYSCONFDIR=/etc \
         -DINSTALL_LIBDIR=lib \
         -DINSTALL_PLUGINDIR=lib/mysql/plugin \
-        -DINSTALL_MANDIR=man \
-        -DWITH_LIBWRAP=1 \
+        -DINSTALL_MANDIR=share/man \
+        -DWITH_LIBWRAP=0 \
         -DWITH_SSL=system \
         -DWITH_ZLIB=system
 
@@ -31,10 +31,7 @@ build () {
     rm $PKG/usr/share/mysql/charsets/README
     find $PKG/usr/share/mysql/* -type d ! -name english ! -name charsets | xargs rm -rf {} \;
 
-    install -d  $PKG/var/{lib,log}
-    touch mysqld.log
-    install -m 600 -o mysql -g mysql mysqld.log $PKG/var/log
-    install -d -m 700 -o mysql -g mysql $PKG/var/lib/mysql
+    install -d -m 700 -o mysql -g mysql $PKG/var/{lib,log,run}/mysql
     install -D -m 755 $SRC/mysqld $PKG/etc/rc.d/mysqld
     install -m 600 $SRC/my.cnf $PKG/etc
 }

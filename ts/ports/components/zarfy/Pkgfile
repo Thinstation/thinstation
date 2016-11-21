@@ -10,7 +10,7 @@ source=(http://sourceforge.net/projects/${name}/files/${name}/${name}%20${versio
 build() {
 	cd $name-$version
 	patch -Np1 -i ../zarfy-destdir.patch
-	./configure --prefix=/usr
+	./configure --prefix=/usr LIBS="-lm -lX11"
 
 	make
 	make DESTDIR=$PKG install

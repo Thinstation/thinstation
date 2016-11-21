@@ -1,22 +1,22 @@
-# Description: A wrapper library for generic spell checking
-# URL: http://www.abisource.com/enchant/
-# Maintainer: Danny Rawlins, crux at romster dot me
-# Packager: James Mills, prologic at shortcircuit dot net dot au
-# Depends on: aspell glib hunspell
+# $Id$
+# Maintainer: Felix Yan <felixonmars@gmail.com>
+# Contributor: Andrea Scarpino <andrea@archlinux.org>
+# Contributor: dorphell <dorphell@archlinux.org>
 
 name=enchant
 version=1.6.0
-release=2
-source=(http://www.abisource.com/downloads/enchant/$version/enchant-$version.tar.gz)
+release=8
+source=("http://www.abisource.com/downloads/${name}/${version}/${name}-${version}.tar.gz"
+       hunspell14_buildfix.diff)
 
 build() {
-	cd enchant-$version
-
-	./configure \
-		--prefix=/usr \
-		--mandir=/usr/man \
-		--disable-dependency-tracking
-
-	make
-	make DESTDIR=$PKG install
+  cd "${SRC}/${name}-${version}"
+  # http://bugzilla.abisource.com/show_bug.cgi?id=13772
+  patch -Np1 -i ${SRC}/hunspell14_buildfix.diff
+  ./configure --prefix=/usr \
+    --disable-static \
+    --disable-ispell \
+    --with-myspell-dir=/usr/share/myspell
+  make
+  make DESTDIR="${PKG}" install
 }

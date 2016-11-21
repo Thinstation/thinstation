@@ -12,10 +12,11 @@ source=(http://www.kernel.org/pub/linux/utils/boot/$name/$name-$version.tar.gz i
 
 build() {
         cd ${name}-${version}
+
 	cp $SRC/ifmem.c com32/modules/.
 	sed -i -e "s/ifcpu.c32/ifcpu.c32 ifmem.c32/g" com32/modules/Makefile
-
-        make INSTALLROOT=$PKG install bios
+	# Get the prebuild .exe files
+	make -j1 INSTALLROOT=$PKG install bios
 
         rm -rf $PKG/usr/share/syslinux/com32
 	mv $PKG/usr/share/syslinux $PKG/usr/share/bios
@@ -25,7 +26,9 @@ build() {
         mkdir -p $PKG/usr/share/doc/syslinux
         cp -a doc/* $PKG/usr/share/doc/syslinux
 
-	make bios
+        # Build extra modules
+        make bios
+
 	chmod 644 bios/com32/modules/ifmem.c32
 	cp -a bios/com32/modules/ifmem.c32 $PKG/usr/share/syslinux/bios/.
 }

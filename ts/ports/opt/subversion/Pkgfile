@@ -2,25 +2,26 @@
 # URL: http://subversion.apache.org
 # Maintainer: Jose V Beneyto, sepen at crux dot nu
 # Packager: Simone Rota, sip at crux dot nu
-# Depends on: apr neon expat sqlite3
+# Depends on: apr serf expat sqlite3
 
 name=subversion
-version=1.6.17
+version=1.9.4
 release=1
-source=(http://subversion.tigris.org/downloads/$name-$version.tar.bz2)
+source=(http://www.apache.org/dist/$name/$name-$version.tar.bz2)
 
 build() {
     cd $name-$version
 
     ./configure --prefix=/usr \
-       --mandir=/usr/man \
-       --with-apr=/usr --with-apr-util=/usr --with-neon=/usr \
-       --disable-mod-activation --without-swig --disable-nls \
-       --disable-neon-version-check \
-       --without-apxs
+                --with-apr=/usr \
+                --with-apr-util=/usr \
+                --without-swig \
+                --without-apxs \
+                --disable-mod-activation \
+                
 
     make
-    make -j1 DESTDIR=$PKG external-install local-install
+    make -j1 DESTDIR=$PKG install
 
     # info pages seem to get generated when makeinfo is available
     rm -rf $PKG/usr/info

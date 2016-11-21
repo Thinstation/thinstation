@@ -3,7 +3,7 @@
 # Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 
 name=eekboard
-version=1.0.5
+version=1.0.8
 release=1
 source=()
 
@@ -12,13 +12,10 @@ build() {
 	cd $name
 	git checkout eekboard-$version
 
-	./autogen.sh --prefix=/usr \
-			--exec-prefix=/ \
-			--sysconfdir=/etc \
-			--mandir=/usr/man \
-			--disable-extras \
-			--with-gtk=2.0 \
-			--enable-introspection=no
+	./autogen.sh	--prefix=/usr \
+			--disable-static \
+			--enable-atspi \
+			--enable-vala=no
 
 	make
 	make DESTDIR=$PKG install

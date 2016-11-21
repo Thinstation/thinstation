@@ -5,15 +5,15 @@
 name=mtpaint
 version=3.40
 release=1
-source=(http://downloads.sourceforge.net/project/mtpaint/mtpaint/$version/mtpaint-$version.tar.bz2)
+source=(http://downloads.sourceforge.net/project/mtpaint/mtpaint/$version/mtpaint-$version.tar.bz2 \
+	giflib.patch)
 
 build() {
 	cd $name-$version
-
+#	patch -p0 -i $SRC/giflib.patch
 	./configure --prefix=/ \
 			--exec-prefix=/ \
 			--sysconfdir=/etc \
-			--libexecdir=/lib \
 			--mandir=/usr/man \
 			--disable-extras
 

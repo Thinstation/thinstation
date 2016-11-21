@@ -1,12 +1,12 @@
 # Description: Secure SHell server and client tools
 # URL:         http://www.openssh.org/
 # Maintainer:  CRUX System Team, core-ports at crux dot nu
-# Depends on:  openssl zlib tcp_wrappers
+# Depends on:  openssl zlib
 
 name=openssh
 version=7.2p2
 release=1
-source=(ftp://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable/$name-$version.tar.gz sshd)
+source=(http://mirrors.sonic.net/pub/OpenBSD/OpenSSH/portable/$name-$version.tar.gz sshd)
 
 build() {
     cd $name-$version
@@ -14,9 +14,7 @@ build() {
                 --libexecdir=/usr/lib/ssh \
                 --sysconfdir=/etc/ssh \
                 --with-mantype=man \
-                --mandir=/usr/man \
-                --with-tcp-wrappers \
-		--with-kerberos5 \
+                --mandir=/usr/share/man \
                 --with-md5-passwords \
                 --with-privsep-user=nobody \
                 --with-privsep-path=/var/empty \
@@ -24,5 +22,5 @@ build() {
     make
     make DESTDIR=$PKG install
     install -D -m 755 $SRC/sshd $PKG/etc/rc.d/sshd
-    rm -rf $PKG/usr/share $PKG/var
+    rm -r $PKG/var
 }

@@ -4,21 +4,18 @@
 # Depends on:  openssl, zlib
 
 name=curl
-version=7.49.1
+version=7.50.1
 release=1
-source=(http://curl.haxx.se/download/$name-$version.tar.lzma)
+source=(http://curl.haxx.se/download/$name-$version.tar.bz2)
 
 build() {
     cd $name-$version
     ./configure --prefix=/usr \
-                --mandir=/usr/man \
                 --enable-ipv6 \
                 --without-libidn \
+                --without-cyassl \
                 --enable-threaded-resolver \
-		--with-ssl \
-		--with-ssh \
-		--with-ca-bundle=/etc/ssl/certs/ca-bundle.crt
-
+                --with-ca-bundle=/etc/ssl/cert.pem
     make
     make DESTDIR=$PKG install
 }

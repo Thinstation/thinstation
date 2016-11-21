@@ -4,8 +4,8 @@
 # Depends on:  attr
 
 name=acl
-version=2.2.51
-release=1
+version=2.2.52
+release=2
 source=(http://download-mirror.savannah.gnu.org/releases/$name/$name-$version.src.tar.gz)
 
 build() {
@@ -16,8 +16,7 @@ build() {
 
     ./configure --prefix=/usr \
                 --bindir=/bin \
-                --libexecdir=/usr/lib \
-                --mandir=/usr/man 
+                --libexecdir=/usr/lib 
 
     make
     make DIST_ROOT=$PKG install install-lib install-dev 
@@ -27,5 +26,5 @@ build() {
     rm $PKG/usr/lib/libacl.so
     ln -s ../../lib/libacl.so.1.1.0 $PKG/usr/lib/libacl.so
 
-    rm -r $PKG/usr/share
+    rm -r $PKG/usr/share/{doc,locale}
 }

@@ -6,23 +6,19 @@
 name=ghostscript
 version=9.19
 release=1
-source=(http://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs919/$name-$version.tar.bz2
+source=(https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs919/$name-$version.tar.bz2
         http://downloads.sourceforge.net/sourceforge/gs-fonts/$name-fonts-std-8.11.tar.gz)
 
 build () {
     cd $name-$version
 
-    rm -rf freetype jpeg libpng
-
     ./configure --prefix=/usr \
                 --mandir=/usr/man \
                 --enable-cups \
+                --with-install-cups \
                 --disable-gtk \
 		--disable-dbus \
-		--disable-compile-inits \
                 --with-drivers=ALL \
-		--with-ijs \
-		--with-system-libtiff \
                 --with-fontpath=/usr/share/ghostscript/fonts:/usr/share/fonts
 
     make so all 

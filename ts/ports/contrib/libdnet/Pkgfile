@@ -4,13 +4,17 @@
 # Depends on:  libpcap, libnet 
 
 name=libdnet
-version=1.11
+version=1.12
 release=1
-source=(http://download.sourceforge.net/$name/$name-$version.tar.gz)
+source=(https://github.com/dugsong/libdnet/archive/libdnet-$version.tar.gz)
 
 build() {
-    cd  $name-$version
+    cd  $name*
+
+    CFLAGS+=' -fPIC '
+    CXXFLAGS+=' -fPIC '
     ./configure --prefix=/usr
+
     make
     make install DESTDIR=$PKG
 }

@@ -1,0 +1,13 @@
+for dir in /ts/ports/*; do
+	cd $dir
+	for dir in *; do
+		if [ -d $dir ]; then
+			cd $dir
+			pkgmk -c
+			cd ..
+			if [ "`find $dir -type f -name \*.tar.*|wc -l`" -gt "1" ]; then
+				echo $dir
+			fi
+		fi
+	done
+done

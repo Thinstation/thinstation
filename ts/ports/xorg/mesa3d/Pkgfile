@@ -1,34 +1,41 @@
 # Description: Mesa 3D Graphics Library
 # URL: http://www.mesa3d.org
 # Maintainer: CRUX Xorg Team, xorg-ports at crux dot nu
-# Depends on: libdrm, xorg-makedepend, xorg-glproto, xorg-xextproto, xorg-dri2proto, xorg-libx11, xorg-xf86vidmodeproto, xorg-libxext, xorg-libxxf86vm, xorg-libxt, xorg-libxdamage, xorg-libpciaccess, expat, talloc, libxml2-python
+# Depends on: elfutils expat libdrm libvdpau llvm xorg-dri3proto xorg-glproto xorg-libxdamage xorg-libxshmfence xorg-libxvmc xorg-presentproto xorg-libxxf86vm
+# Optional: nettle
 
 name=mesa3d
-version=11.2.2
+version=12.0.1
 release=1
-source=(ftp://ftp.freedesktop.org/pub/mesa/${version}/mesa-$version.tar.xz)
+source=(ftp://ftp.freedesktop.org/pub/mesa/$version/mesa-$version.tar.xz \
+	remove-libpthread-stubs.patch \
+	0001-st-mesa-fix-reference-counting-bug-in-st_vdpau.patch \
+	0002-vl-dri3-fix-a-memory-leak-from-front-buffer.patch)
 
 build() {
-    cd mesa-$version
-
-    autoreconf --force --install
-    ./autogen.sh --prefix=/usr \
+unset MAKEFLAGS
+	cd mesa-$version
+	patch -p1 -i $SRC/remove-libpthread-stubs.patch
+	patch -p1 -i $SRC/0001-st-mesa-fix-reference-counting-bug-in-st_vdpau.patch
+	patch -p1 -i $SRC/0002-vl-dri3-fix-a-memory-leak-from-front-buffer.patch
+	  autoreconf -fiv
+	./configure \
+		--prefix=/usr \
 		--sysconfdir=/etc \
-                --with-gallium-drivers=i915,r300,r600,svga,radeonsi,swrast,nouveau \
-		--enable-xa \
+		--enable-gallium-llvm \
+		--enable-gbm \
+		--enable-gles1 \
+		--enable-gles2 \
 		--enable-glx-tls \
-		--with-egl-platforms="drm,x11" \
-		--enable-r600-llvm-compiler \
-		--enable-llvm-shared-libs
+		--enable-osmesa \
+		--enable-texture-float \
+		--enable-xa \
+		--enable-vdpau \
+		--enable-llvm-shared-libs \
+		--disable-dependency-tracking \
+		--with-egl-platforms=x11,drm \
+		--with-gallium-drivers=r300,r600,svga,swrast,radeonsi,nouveau
 
-#   These are options that look like they'd normally be used for Mesa outside
-#   of Crux. Also, note that i915 is not typically a Gallium driver
-#		--enable-gles1 \
-#		--enable-gles2 \
-#		--enable-openvg \
-#		--enable-gbm \
-#		--enable-gallium-egl \
-#		--enable-gallium-gbm
-    make
-    make DESTDIR=$PKG install
+	make
+	make DESTDIR=$PKG install
 }

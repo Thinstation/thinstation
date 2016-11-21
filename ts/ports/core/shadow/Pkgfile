@@ -1,27 +1,24 @@
 # Description: Shadow password file utilities
 # URL:         http://pkg-shadow.alioth.debian.org/
 # Maintainer:  CRUX System Team, core-ports at crux dot nu
+# Depends on:  acl
 
 name=shadow
-version=4.1.4.3
-release=1
-source=(http://pkg-shadow.alioth.debian.org/releases/$name-$version.tar.bz2
-        pwck login.defs other system-auth)
+version=4.2.1
+release=2
+source=(http://pkg-shadow.alioth.debian.org/releases/$name-$version.tar.xz
+        pwck login.defs)
 
 build() {
     cd $name-$version
-    sed -e 's/yes/no/g' -i etc/useradd
 
     ./configure --prefix=/usr \
-                --mandir=/usr/man \
                 --sysconfdir=/etc \
                 --disable-shared \
                 --disable-shadowgrp \
-                --disable-nls \
+                 \
                 --without-selinux \
-		--without-nscd \
-                --with-libpam \
-		--with-sha-crypt \
+                --without-libpam \
                 --without-audit
 
     make
@@ -29,23 +26,19 @@ build() {
 
     install -d $PKG/etc/cron/daily $PKG/var/log
     install -m 644 $SRC/login.defs $PKG/etc
-    install -m 644 $SRC/system-auth $PKG/etc/pam.d
-    install -m 644 $SRC/other $PKG/etc/pam.d
     install -m 755 $SRC/pwck $PKG/etc/cron/daily
     mv $PKG/bin/{su,groups} $PKG/usr/bin
     touch $PKG/var/log/{lastlog,faillog}
 
     sed -i 's/1000/100/' $PKG/etc/default/useradd
 
-    rm -f $PKG/usr/man/man8/nologin.8
-    rm -f $PKG/sbin/nologin
 #    rm -r $PKG/usr/bin/gpasswd \
-#          $PKG/usr/man/man1/gpasswd.1 \
+#          $PKG/usr/share/man/man1/gpasswd.1 \
 #          $PKG/usr/sbin/{chpasswd,grpconv,grpunconv,logoutd} \
 #          $PKG/usr/sbin/{newusers,pwconv,pwunconv} \
-#          $PKG/usr/man/man8/{chpasswd.8,grpconv.8,grpunconv.8,logoutd.8} \
-#          $PKG/usr/man/man8/{newusers.8,pwconv.8,pwunconv.8} \
-#          $PKG/usr/man/man5/gshadow.5 \
-#          $PKG/usr/man/man3 \
+#          $PKG/usr/share/man/man8/{chpasswd.8,grpconv.8,grpunconv.8,logoutd.8} \
+#          $PKG/usr/share/man/man8/{newusers.8,pwconv.8,pwunconv.8} \
+#          $PKG/usr/share/man/man5/gshadow.5 \
+#          $PKG/usr/share/man/man3 \
 #          $PKG/etc/{login.access,limits,default}
 }

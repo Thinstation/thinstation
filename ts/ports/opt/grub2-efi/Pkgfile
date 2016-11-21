@@ -1,0 +1,36 @@
+# Description: GNU GRUB2 (EFI version)
+# URL: http://www.gnu.org/software/grub/
+# Maintainer: Matt Housh, jaeger at crux dot ninja
+# Depends on: grub2
+
+name=grub2-efi
+version=2.02-beta3
+release=1
+source=(http://alpha.gnu.org/gnu/grub/grub-2.02~beta3.tar.xz)
+
+build() {
+export CFLAGS="-O2 -march=x86-64 -pipe -Wno-error -mno-tls-direct-seg-refs"
+export CXXFLAGS="${CFLAGS}"
+
+    # fix for glibc 'gets' removal
+    sed -i -e '/gets is a/d' grub-2.02~beta3/grub-core/gnulib/stdio.in.h
+
+    MODLIST="boot chain configfile fat ext2 linux normal ntfs part_gpt part_msdos"
+
+    for ARCH in i386 x86_64
+    do
+        mkdir $ARCH
+        cd $ARCH
+        ../grub-2.02~beta3/configure --prefix=/usr \
+            --with-platform=efi --target=$ARCH \
+            --program-prefix=""
+        make -j1
+        make DESTDIR=$PKG install
+        cd grub-core
+        ../grub-mkimage -O $ARCH-efi -d . -o grub2-$ARCH.efi -p "" $MODLIST
+        cp grub2-$ARCH.efi $PKG/usr/lib/grub/
+        cd ../..
+    done
+
+    rm -r $PKG/usr/{bin,etc,sbin,share}
+}

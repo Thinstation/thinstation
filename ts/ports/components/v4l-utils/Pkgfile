@@ -4,12 +4,21 @@
 # Depends on:	qt4 sysfsutils
 
 name=v4l-utils
-version=0.8.8
+version=1.10.1
 release=1
 source=(http://linuxtv.org/downloads/v4l-utils/$name-$version.tar.bz2)
 
 build() {
 	cd $name-$version
-	make CFLAGS="$CFLAGS"
-	make PREFIX=/usr DESTDIR=$PKG install
+	echo "CONFIG += c++11" >> utils/qv4l2/qv4l2.pro
+	echo "QMAKE_CXXFLAGS += -std=c++11" >> utils/qv4l2/qv4l2.pro
+	./configure \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--sbindir=/usr/bin \
+		--disable-static \
+		--disable-qv4l2
+
+	make -j1
+	make -j1 PREFIX=/usr DESTDIR=$PKG install
 }

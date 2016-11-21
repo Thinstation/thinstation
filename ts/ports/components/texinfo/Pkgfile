@@ -1,26 +1,23 @@
-# Description: A reader for the documentation format of the GNU project.
-# URL: http://www.gnu.org/software/texinfo
-# Maintainer: Danny Rawlins, monster dot romster at gmail dot com
+# Description: GNU documentation system for on-line information and printed output
+# URL: http://www.gnu.org/software/texinfo/
+# Maintainer: Danny Rawlins, crux at romster dot me
 # Packager: Brett Goulder, predatorfreak at dcaf-security dot org
-# Depends on: ncurses lzma help2man
+# Depends on: ncurses
 
 name=texinfo
-version=4.13a
-release=2
-source=(ftp://ftp.gnu.org/gnu/texinfo/$name-$version.tar.lzma)
+version=6.1
+release=1
+source=(ftp://ftp.gnu.org/gnu/texinfo/$name-$version.tar.xz)
 
 build() {
-	cd $name-${version/a/}
+	cd $name-$version
 
 	./configure \
 		--prefix=/usr \
-		--mandir=/usr/man \
-		--disable-nls
+		
 
 	make
-	make \
-		TEXMF=/usr/share/texmf \
-		DESTDIR=$PKG install install-tex
+	make DESTDIR=$PKG install
 
 	rm -r $PKG/usr/share/info
 }

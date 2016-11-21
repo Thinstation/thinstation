@@ -1,34 +1,40 @@
-# Description: wxWidgets for GTK+.
-# URL: http://www.wxwidgets.org/
-# Maintainer: Danny Rawlins, monster dot romster at gmail dot com
-# Packager: Antti Nykanen, aon at iki dot fi
-# Depends on: glitz gtk
+# $Id$
+# Maintainer: Eric Bélanger <eric@archlinux.org>
 
 name=wxgtk
-version=2.8.12
-release=1
-source=(http://downloads.sourceforge.net/project/wxwindows/$version/wxGTK-$version.tar.bz2)
+version=3.0.2
+release=5
+source=(http://downloads.sourceforge.net/wxwindows/wxWidgets-${version}.tar.bz2
+        make-abicheck-non-fatal.patch)
 
 build() {
-	cd wxGTK-$version
-	
-	./configure \
-		--prefix=/usr \
-		--enable-gtk2 \
-		--enable-unicode \
-		--with-opengl
+  cd wxWidgets-${version}
 
-	make
-	make DESTDIR=$PKG install
+  # C++ ABI check is too strict and breaks with GCC 5.1
+  # https://bugzilla.redhat.com/show_bug.cgi?id=1200611
+  patch -Np1 -i ../make-abicheck-non-fatal.patch
 
-	cd contrib
-	make
-	make DESTDIR=$PKG install
-	
-	ln -sf /usr/lib/wx/config/gtk2-unicode-release-${version%.*} \
-		$PKG/usr/bin/wx-config
-	
-	rm -r \
-		$PKG/usr/share/locale \
-		$PKG/usr/share/bakefile
+  # Fix build with GCC 6
+#  patch -p1 -i ../wxgtk-gcc6.patch
+
+  ./configure	\
+	--prefix=/usr \
+	--libdir=/usr/lib \
+	--with-gtk=3 \
+	--with-opengl \
+	--enable-unicode \
+	--enable-graphics_ctx \
+	--disable-mediactrl \
+	--enable-webview \
+	--with-regex=builtin \
+	--with-libpng=sys \
+	--with-libxpm=sys \
+	--with-libjpeg=sys \
+	--with-libtiff=sys \
+	--disable-precomp-headers
+
+  make
+  make -C locale allmo
+  make DESTDIR="${PKG}" install
+  install -D -m644 docs/licence.txt "${PKG}/usr/share/licenses/${name}/LICENSE"
 }

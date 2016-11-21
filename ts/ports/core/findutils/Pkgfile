@@ -3,18 +3,17 @@
 # Maintainer:  CRUX System Team, core-ports at crux dot nu
 
 name=findutils
-version=4.4.2
-release=1
+version=4.6.0
+release=2
 source=(http://ftp.gnu.org/pub/gnu/$name/$name-$version.tar.gz)
 
 build() {
     cd $name-$version
     ./configure --prefix=/usr \
-                --disable-nls \
-                --mandir=/usr/man
+                
     make
     make DESTDIR=$PKG install
     rm $PKG/usr/bin/{updatedb,locate}
-    rm $PKG/usr/man/man1/{updatedb.1,locate.1}
-    rm -r $PKG/usr/{libexec,share,var,man/man5}
+    rm $PKG/usr/share/man/man1/{updatedb.1,locate.1}
+    rm -r $PKG/usr/{libexec,var,share/{info,man/man5}}
 }

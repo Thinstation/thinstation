@@ -1,0 +1,17 @@
+# Description: A library for layout and rendering of text
+# URL: http://www.gtk.org/
+# Maintainer: Fredrik Rinnestam, fredrik at crux dot nu
+# Depends on: harfbuzz, glib, xorg-libsm, xorg-libxext, xorg-libxft, gobject-introspection
+
+name=pango
+version=1.40.1
+release=1
+source=(http://download.gnome.org/sources/$name/${version:0:4}/$name-$version.tar.xz)
+
+build () {
+        cd $name-$version
+        ./configure --prefix=/usr
+        make
+        make DESTDIR=$PKG install
+        rm -r $PKG/usr/share/gtk-doc
+}

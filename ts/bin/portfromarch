@@ -1,0 +1,36 @@
+#!/bin/bash
+
+get_ops()
+while -n "$@"; do
+	src=$1; shift
+	dest=$1; shift
+	case $1 in
+		*) echo "to many variables, crash"; exit 1 ;;
+	esac
+done
+if [ -z $src ]; then
+	src=PKGBUILD
+fi
+if [ -z $dest ]; then
+	dest=Pkgfile
+fi
+mv PKGBUILD* PKGBUILD
+if [ ! -e PKGBUILD ]; then
+	echo "PKGBUILD not found"
+	exit 1
+fi
+cp $src $dest
+sed -i -e 's/pkgname/name/g' $dest
+sed -i -e 's/pkgver/version/g' $dest
+sed -i -e 's/pkgrel/release/g' $dest
+sed -i -e 's/pkgdir/PKG/g' $dest
+sed -i -e 's/srcdir/SRC/g' $dest
+sed -i -e '/^pkgdesc/d' $dest
+sed -i -e '/^arch/d' $dest
+sed -i -e '/^url/d' $dest
+sed -i -e '/^depends/d' $dest
+sed -i -e '/^license/d' $dest
+sed -i -e '/^sha512sum/d' $dest
+sed -i -e '/^makedepends/d' $dest
+sed -i -e '/^optdepends/d' $dest
+sed -i -e '/^md5sums/d' $dest

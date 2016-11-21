@@ -3,14 +3,17 @@
 # Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 
 name=scapy
-version=2.2.0
+pname=scapy
+version=pip
 release=1
 source=()
 
 build() {
-	wget http://www.secdev.org/projects/$name/files/$name-latest.zip
-	unzip $name-latest.zip
-	cd $name-$version/
+        pip install $name --download=$SRC --no-binary :all:
+        mkdir -p $SRC/$name
+        tar -xvf $SRC/$pname*.tar.* -C $SRC/$name || unzip -d $SRC/$name $pname-*.zip
+        cd $SRC/$name/*
 
-	python setup.py install --prefix=/usr --root $PKG
+        python ./setup.py install --root $PKG
 }
+

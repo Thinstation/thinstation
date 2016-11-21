@@ -1,0 +1,23 @@
+# Description: DVD reading library.
+# URL: http://dvdnav.mplayerhq.hu
+# Maintainer: Danny Rawlins, crux at romster dot me
+# Packager: Danny Rawlins, crux at romster dot me
+# Depends on: libdvdcss
+
+name=libdvdread
+version=git
+release=1
+
+build() {
+git clone https://github.com/microe/libdvdread.git
+	cd $name
+
+	autoreconf -f -i
+
+	./configure \
+		--prefix=/usr \
+		--mandir=/usr/man \
+		--disable-dependency-tracking
+
+	make DESTDIR=$PKG install
+}

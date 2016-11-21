@@ -2,25 +2,24 @@
 # URL: http://code.google.com/p/cryptsetup/
 # Maintainer:  Thomas Penteker, tek at serverop dot de
 # Packager: Tilman Sauerbeck, tilman at crux dot nu
-# Depends on: libdevmapper,  util-linux-ng, libgcrypt, popt
+# Depends on: libdevmapper,  util-linux, libgcrypt, popt
 
 name=cryptsetup
-version=1.5.0
+version=1.7.2
 release=1
-source=(http://$name.googlecode.com/files/$name-$version.tar.bz2)
+source=(https://kernel.org/pub/linux/utils/$name/v1.7/$name-$version.tar.xz)
 
 build() {
     cd $name-$version
 
-    ./configure \
-	--prefix=/usr \
-	--mandir=/usr/man \
-	--disable-nls \
-#	--enable-static-cryptsetup
+    LIBS="-lpthread" ./configure \
+      --prefix=/usr \
+       \
+#      --enable-static-cryptsetup
 
     make
     make DESTDIR=$PKG install
 
-    install -d $PKG/sbin
+#    install -d $PKG/sbin
 #    mv $PKG/{usr/sbin,sbin}/cryptsetup.static
 }

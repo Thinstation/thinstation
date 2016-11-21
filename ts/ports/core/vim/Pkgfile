@@ -4,44 +4,35 @@
 # Depends on:  ncurses acl
 
 name=vim
-version=7.3.303
+version=7.4.1910
 release=1
-source=(ftp://ftp.vim.org/pub/vim/unix/vim-7.3.tar.bz2
-        http://crux.nu/files/distfiles/vim-7.3.001-050.xz
-        http://crux.nu/files/distfiles/vim-7.3.051-102.xz
-        http://crux.nu/files/distfiles/vim-7.3.103-154.xz
-        http://crux.nu/files/distfiles/vim-7.3.155-198.xz
-        http://crux.nu/files/distfiles/vim-7.3.199-260.xz
-        http://crux.nu/files/distfiles/vim-7.3.261-303.xz)
+source=(http://github.com/vim/vim/archive/v$version.tar.gz)
 
 build () {
-    cd vim73/src
-
-    unxz -c $SRC/vim-7.3.*.xz | patch -p0 -d $SRC/vim73
+    cd $name-$version/src
 
     ./configure --prefix=/usr \
-                --mandir=/usr/man \
                 --with-vim-name=vim \
                 --without-x \
                 --disable-gui \
                 --enable-multibyte \
                 --disable-gpm \
-                --disable-nls
+                
 
     make VIMRTDIR= 
-    make VIMRTDIR= DESTDIR=$PKG installvimbin installruntime installlinks
+    make -j1 VIMRTDIR= DESTDIR=$PKG install
 
     mv $PKG/usr/share/vim/vimrc_example.vim $PKG/usr/share/vim/vimrc
-    rm -r $PKG/usr/{man/man?/vimtutor*,share/vim/{tutor,macros}}
+    rm -r $PKG/usr/{share/man/man?/vimtutor*,share/vim/{tutor,macros},bin/vimtutor}
     rm $PKG/usr/share/vim/*/README.txt
     ln -sf vim $PKG/usr/bin/evim
     ln -sf /bin/vi $PKG/usr/bin/vi
-    ln -sf vim.1.gz $PKG/usr/man/man1/ex.1.gz
-    ln -sf vim.1.gz $PKG/usr/man/man1/vi.1.gz
-    ln -sf vim.1.gz $PKG/usr/man/man1/rvim.1.gz
-    ln -sf vim.1.gz $PKG/usr/man/man1/view.1.gz
-    ln -sf vim.1.gz $PKG/usr/man/man1/rview.1.gz
-    ln -sf vim.1.gz $PKG/usr/man/man1/gvim.1.gz
+    ln -sf vim.1.gz $PKG/usr/share/man/man1/ex.1.gz
+    ln -sf vim.1.gz $PKG/usr/share/man/man1/vi.1.gz
+    ln -sf vim.1.gz $PKG/usr/share/man/man1/rvim.1.gz
+    ln -sf vim.1.gz $PKG/usr/share/man/man1/view.1.gz
+    ln -sf vim.1.gz $PKG/usr/share/man/man1/rview.1.gz
+    ln -sf vim.1.gz $PKG/usr/share/man/man1/gvim.1.gz
 
     ./configure --prefix=/ \
                 --datarootdir=/usr/share \
@@ -50,9 +41,9 @@ build () {
                 --disable-gui \
                 --enable-multibyte \
                 --disable-gpm \
-                --disable-nls \
+                 \
                 --with-features=tiny
 
     make VIMRTDIR=
-    make VIMRTDIR= DESTDIR=$PKG installvimbin
+    make -j1 VIMRTDIR= DESTDIR=$PKG installvimbin
 }

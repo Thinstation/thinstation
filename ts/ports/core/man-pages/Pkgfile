@@ -1,24 +1,25 @@
 # Description: The Linux manpages collection
 # URL:         http://man7.org/linux/man-pages/index.html
 # Maintainer:  CRUX System Team, core-ports at crux dot nu
-# Depends on:  man
 
 name=man-pages
-version=3.63
+version=4.07
 release=1
-source=(https://www.kernel.org/pub/linux/docs/man-pages/$name-$version.tar.gz \
-        https://www.kernel.org/pub/linux/docs/man-pages/man-pages-posix/man-pages-posix-2013-a.tar.xz)
+source=(http://www.kernel.org/pub/linux/docs/$name/$name-$version.tar.xz \
+        http://www.kernel.org/pub/linux/docs/$name/$name-posix/$name-posix-2013-a.tar.xz)
 
 build() {
     cd $name-$version
-    rm man1/time.1 man5/passwd.5 man2/quotactl.2
-    make gz
-    make MANDIR=/usr/man DESTDIR=$PKG install
+    rm man1/time.1 man5/passwd.5 man5/attr.5
+    make DESTDIR=$PKG install
 
-    cd ../$name-posix-2013-a
+    cd $SRC/$name-posix-2013-a
     make gz
-    make MANDIR=/usr/man DESTDIR=$PKG install
+    make DESTDIR=$PKG install
 
-    touch $PKG/usr/man/whatis
-    rm $PKG/usr/man/man3/getspnam.3.gz
+    touch $PKG/usr/share/man/whatis
+
+    rm $PKG/usr/share/man/man3/{error,fexecve,fnmatch,fprintf,getline,getspnam,printf,sprintf,strlen}.3
+    rm $PKG/usr/share/man/man5/tzfile.5
+    rm $PKG/usr/share/man/man8/{tzselect,zdump,zic}.8
 }

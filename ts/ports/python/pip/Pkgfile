@@ -4,12 +4,17 @@
 # Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 
 name=pip
-version=7.1.2
+pname=pip
+version=pip
 release=1
-source=(https://pypi.python.org/packages/source/p/pip/pip-$version.tar.gz)
+source=()
 
 build() {
-        cd pip-$version
-        python setup.py install --prefix=/usr --root $PKG
+        pip install $name --download=$SRC --no-binary :all:
+        mkdir -p $SRC/$name
+        tar -xvf $SRC/$pname*.tar.gz -C $SRC/$name
+        cd $SRC/$name/*
+
+        python ./setup.py install --root $PKG
 }
 

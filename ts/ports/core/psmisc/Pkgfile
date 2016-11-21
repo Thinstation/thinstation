@@ -5,12 +5,17 @@
 
 name=psmisc
 version=22.21
-release=1
-source=(http://downloads.sourceforge.net/project/$name/$name/$name-$version.tar.gz)
+release=3
+source=(http://downloads.sourceforge.net/project/$name/$name/$name-$version.tar.gz \
+    fuseropts.patch)
 
 build() {
     cd $name-$version
-    ./configure --prefix=/usr --disable-nls --mandir=/usr/man
+
+    # https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=740275
+    patch -p1 -i $SRC/fuseropts.patch
+
+    ./configure --prefix=/usr 
     make
     make DESTDIR=$PKG install
     rm $PKG/usr/bin/pstree.x11

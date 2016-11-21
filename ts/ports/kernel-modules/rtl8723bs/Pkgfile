@@ -18,11 +18,11 @@ build() {
     sed -e '/depmod/d' -i Makefile
 
 
-    for KERNELTYPE in TS TS_SMP TS_64
+    for KERNELTYPE in TS
     do
        export REPORT_KERNEL=${kver}$KERNELTYPE
 
-       make CROSS_COMPILE="/opt/cross/x-tools/x86_64-thinstation-linux-gnu/bin/x86_64-thinstation-linux-gnu-"
+       make
        make install DEST=$PKG
        make clean
        /usr/src/kernels/$REPORT_KERNEL/scripts/sign-file \

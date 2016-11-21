@@ -3,19 +3,32 @@
 # Maintainer:  CRUX System Team, core-ports at crux dot nu
 
 name=groff
-version=1.21
-release=1
+version=1.22.3
+release=2
 source=(http://ftp.gnu.org/gnu/$name/$name-$version.tar.gz)
 
 build() {
     cd $name-$version
 
+    # we install only the Base14 and EURO pdf fonts
+    # and don't lookup for fonts in the filesystem
+    # https://savannah.gnu.org/bugs/?38029
+    sed -r -e '/^EURO\|/s/N/Y/' \
+           -e '/^[A-Z]+\|N/d' \
+           -e '/\(gs\)/d' \
+           -i font/devpdf/Foundry.in
+    
     ./configure --prefix=/usr \
-                --mandir=/usr/man \
                 --without-x
 
-    make
+    make -j1
     make DESTDIR=$PKG install
+
+    sed -e 's|^\(papersize\).*|\1 /etc/papersize|' \
+        -i $PKG/usr/share/groff/current/font/*/DESC
+    
+    install -d $PKG/etc
+    echo 'letter' > $PKG/etc/papersize
 
     rm -rf $PKG/usr/share/{info,doc}
 

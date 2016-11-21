@@ -4,22 +4,20 @@
 # Depends on: gtk
 
 name=zenity
-version=2.32.1
+version=3.20.0
 release=1
-source=(ftp://ftp.gnome.org/pub/gnome/sources/$name/${version%.*}/$name-$version.tar.bz2 \
-	notify07.patch)
+source=(ftp://ftp.gnome.org/pub/gnome/sources/$name/${version%.*}/$name-$version.tar.xz)
 
 build() {
 	cd $name-$version
-	export LINGUAS=en
-
-	patch -p0 -i $SRC/notify07.patch
+	export CFLAGS="${CFLAGS} -Wno-error=implicit-function-declaration"
 
 	./configure --prefix=/usr \
-			--disable-nls \
+			 \
 			--sysconfdir=/etc \
 			--disable-scrollkeeper \
 			--with-help-formats=none \
+			--enable-libnotify
 
 	make
 	make install DESTDIR=$PKG

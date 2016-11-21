@@ -1,0 +1,21 @@
+# Description: Window Navigator Construction Kit library
+# URL: https://developer.gnome.org/libwnck/
+# Maintainer: Jose V Beneyto, sepen at crux dot nu
+# Packager: Matt Housh, jaeger at morpheus dot net
+# Depends on: gtk startup-notification intltool
+
+name=libwnck-gtk3
+version=3.14.0
+release=1
+source=(ftp://ftp.gnome.org/pub/gnome/sources/libwnck/${version%.*}/libwnck-$version.tar.xz)
+
+build() {
+  cd libwnck-$version
+
+  ./configure --prefix=/usr
+
+  make
+  make DESTDIR=$PKG install
+
+  rm -rf $PKG/usr/share
+}
