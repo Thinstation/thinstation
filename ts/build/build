@@ -124,7 +124,7 @@ remove_files()
 remove_old_boot_files()
 {
         if [ -e boot-images/initrd/added.files ]; then
-                cat boot-images/initrd/added.files | while read file; do
+                cat boot-images/initrd/added.files |sort -u | while read file; do
                         rm "$file"
                         rmdir --ignore-fail-on-non-empty -p `dirname "$file"`
                 done
@@ -1935,9 +1935,10 @@ md5sum initrd > image.md5
 for KERNVER in $KERNVERS; do
 	ln /boot/vmlinuz-$KERNVER ./vmlinuz$k
 	md5sum vmlinuz$k >> image.md5
-	if [ -n "`echo $KERNVER |grep -e 'TS_64'`" ]; then
+	# Remove the 'if' test, as all kernels should now be 64
+#	if [ -n "`echo $KERNVER |grep -e 'TS_64'`" ]; then
 		KERN64=vmlinuz$k
-	fi
+#	fi
 	let k=k+1
 done
 
@@ -1977,16 +1978,16 @@ fi
 add_image()
 {
 	if [ "$1" == "efi" ]; then
-		if [ -n "$KERN64" ]; then
+#		if [ -n "$KERN64" ]; then
 			# What we will actually boot with
 			sys_copy $INITDIR/$KERN64 $ESP/boot/$KERN64
 			# Because HashTool.efi is dumb and cant deal with a folder named boot on CD.
 			# Also makes it easier for the user to enroll the kernel hash.
 			sys_copy $INITDIR/$KERN64 $ESP/EFI/BOOT/enroll-$KERN64
-		else
-			sys_copy $INITDIR/vmlinuz $ESP/boot/vmlinuz
-			sys_copy $INITDIR/vmlinuz $ESP/EFI/BOOT/enroll-vmlinuz
-		fi
+#		else
+#			sys_copy $INITDIR/vmlinuz $ESP/boot/vmlinuz
+#			sys_copy $INITDIR/vmlinuz $ESP/EFI/BOOT/enroll-vmlinuz
+#		fi
 	else
 		for kernel in `find $INITDIR -maxdepth 1 -type f -name vmlinuz\* -printf '%f '`; do
 			sys_copy $INITDIR/$kernel $ESP/boot/$kernel
@@ -2002,14 +2003,12 @@ add_image()
 
 add_overlay()
 {
-#	set -x
 	if [ -n "$ts_bootoverlay" ]; then
 		OVERLAYDIR="boot-images/$ts_bootoverlay/"
 		find $OVERLAYDIR -type f |sed "s|$OVERLAYDIR||g"|while read file; do
 			sys_link hard "$OVERLAYDIR/$file" "$ESP/$file"
 		done
 	fi
-#	set +x
 }
 
 syslinux_scan_config()
@@ -2103,36 +2102,37 @@ syslinux_copy_files_bios()
 
 syslinux_copy_files_efi()
 {
-	efi32dir=/usr/share/syslinux/efi32
+	# Comment out all 32bit, cause were 64 bit only now.
+#	efi32dir=/usr/share/syslinux/efi32
 	efi64dir=/usr/share/syslinux/efi64
 
 	for file in `find $configdir -type f |sed -e "s|$configdir||g"`; do
-		sys_copy ${configdir}${file} "$EFI32DIR/$file"
+#		sys_copy ${configdir}${file} "$EFI32DIR/$file"
 		sys_copy ${configdir}${file} "$EFI64DIR/$file"
 	done
 	find $ESP -name syslinux.cfg.tpl -delete
 
 	if [ "$LOADER" == "lpxelinux.0" ]; then
-		sys_copy $BIOSDIR/$CONFIGFILE "$EFI32DIR/$CONFIGFILE"
+#		sys_copy $BIOSDIR/$CONFIGFILE "$EFI32DIR/$CONFIGFILE"
 		sys_copy $BIOSDIR/$CONFIGFILE "$EFI64DIR/$CONFIGFILE"
 	else
-		sys_copy $BIOSDIR/$CONFIGFILE "$EFI32DIR/syslinux.cfg"
+#		sys_copy $BIOSDIR/$CONFIGFILE "$EFI32DIR/syslinux.cfg"
 		sys_copy $BIOSDIR/$CONFIGFILE "$EFI64DIR/syslinux.cfg"
 	fi
 
 	for com in `cat /tmp/syslinux-com32`; do
-		sys_copy $efi32dir/$com "$EFI32DIR/$com"
+#		sys_copy $efi32dir/$com "$EFI32DIR/$com"
 		sys_copy $efi64dir/$com "$EFI64DIR/$com"
 		if [ "$com" == "hdt.c32" ]; then
-			sys_copy /usr/share/pci.ids $EFI32DIR/pci.ids
-			sys_copy `prt-get fsearch modules.alias |grep -v Found |head -n1` $EFI32DIR/modules.alias
+#			sys_copy /usr/share/pci.ids $EFI32DIR/pci.ids
+#			sys_copy `prt-get fsearch modules.alias |grep -v Found |head -n1` $EFI32DIR/modules.alias
 			sys_copy /usr/share/pci.ids $EFI64DIR/pci.ids
 			sys_copy `prt-get fsearch modules.alias |grep -v Found |head -n1` $EFI64DIR/modules.alias
 		fi
 	done
 
-	sys_copy $efi32dir/syslinux.efi "$EFI32DIR/syslinux.efi"
-	sys_copy $efi32dir/ldlinux.e32  "$EFI32DIR/ldlinux.e32"
+#	sys_copy $efi32dir/syslinux.efi "$EFI32DIR/syslinux.efi"
+#	sys_copy $efi32dir/ldlinux.e32  "$EFI32DIR/ldlinux.e32"
 
 	sys_copy $efi64dir/syslinux.efi "$EFI64DIR/bootx64.efi"
 	sys_copy $efi64dir/ldlinux.e64  "$EFI64DIR/ldlinux.e64"
@@ -2149,7 +2149,7 @@ refind_copy_files()
 		sys_copy $refdir/$file $EFIDIR/$file
 	done
 
-	sys_copy $refdir/refind_ia32.efi $EFIDIR/bootia32.efi
+#	sys_copy $refdir/refind_ia32.efi $EFIDIR/bootia32.efi
 	sys_copy $refdir/refind_x64.efi $EFIDIR/bootx64.efi
 
 	for file in `find $configdir -type f |sed -e "s|$configdir||g"`; do
@@ -2197,7 +2197,7 @@ if [ -z "$NOIMAGES" ]; then
 		case $image in
 			syslinux)
 				ESP=boot-images/syslinux
-				EFI32DIR=$ESP/EFI/syslinux/efi32
+#				EFI32DIR=$ESP/EFI/syslinux/efi32
 				EFI64DIR=$ESP/EFI/syslinux/efi64
 				BDIR=/syslinux
 				CONFIGFILE=syslinux.cfg
@@ -2211,7 +2211,7 @@ if [ -z "$NOIMAGES" ]; then
 			;;
 			pxe)
 				ESP=boot-images/pxe
-				EFI32DIR=$ESP/boot/efi32
+#				EFI32DIR=$ESP/boot/efi32
 				EFI64DIR=$ESP/boot/efi64
 				CONFIGFILE=pxelinux.cfg/default
 
@@ -2234,7 +2234,7 @@ if [ -z "$NOIMAGES" ]; then
 			;;
 			iso)
 				ESP=boot-images/iso/source
-				EFI32DIR=$ESP/EFI/syslinux/efi32
+#				EFI32DIR=$ESP/EFI/syslinux/efi32
 				EFI64DIR=$ESP/EFI/syslinux/efi64
 				BDIR=/syslinux
 				CONFIGFILE=isolinux.cfg
@@ -2325,19 +2325,19 @@ if [ -z "$NOIMAGES" ]; then
                                 LM=4
 				configdir=boot-images/templates/systemd-boot/$ts_gummitheme
 				sys_copy /usr/lib/prebootloader/PreLoader.efi $ESP/EFI/BOOT/bootx64.efi
-				sys_copy /usr/lib/systemd/boot/efi/systemd-bootia32.efi $ESP/EFI/BOOT/bootia32.efi
+#				sys_copy /usr/lib/systemd/boot/efi/systemd-bootia32.efi $ESP/EFI/BOOT/bootia32.efi
 				sys_copy /usr/lib/prebootloader/HashTool.efi $ESP/EFI/BOOT/HashTool.efi
 				sys_copy /usr/lib/systemd/boot/efi/systemd-bootx64.efi $ESP/EFI/BOOT/loader.efi
-				if [ -n "$KERN64" ]; then
+#				if [ -n "$KERN64" ]; then
 					sys_copy /usr/lib/prebootloader/PreLoader.efi $ESP/EFI/Microsoft/Boot/bootmgr.efi
-				else
-					sys_copy /usr/lib/systemd/boot/efi/systemd-bootia32.efi $ESP/EFI/Microsoft/Boot/bootmgr.efi
-				fi
+#				else
+#					sys_copy /usr/lib/systemd/boot/efi/systemd-bootia32.efi $ESP/EFI/Microsoft/Boot/bootmgr.efi
+#				fi
 				for file in `find $configdir -type f |sed -e "s|$configdir||g"`; do
 					sys_copy ${configdir}${file} $ESP/$file
-					if [ -n "$KERN64" ]; then
+#					if [ -n "$KERN64" ]; then
 						sed -i -e "s|/boot/vmlinuz|/boot/$KERN64|g" $ESP/$file
-					fi
+#					fi
 					sed -i -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS LM=$LM/g" $ESP/$file
 				done
 				add_image efi
