@@ -1,8 +1,8 @@
 #!/bin/sh
 
 case $1 in
-	cd)	qemu-system-x86_64 -L /usr/share/edk2.git/ovmf-ia32/ -cdrom /build/boot-images/iso/thinstation.iso -m 1536 -enable-kvm;;
+	cd)	qemu-system-x86_64 -cdrom /build/boot-images/iso/thinstation.iso -m 1536 -enable-kvm;;
 	bios)	qemu-system-x86_64 -hda /build/bios.boot -m 1536 -enable-kvm;;
-	*)	qemu-system-x86_64 -L /usr/share/edk2.git/ovmf-ia32/ -hda fat:/build/boot-images/refind/ -m 1536  --enable-kvm;;
+	*)	qemu-system-x86_64 -L . --bios /usr/share/edk2.git/ovmf-x64/OVMF-with-csm.fd -cdrom /build/boot-images/iso/thinstation.iso -m 1536  --enable-kvm;;
 esac
 
