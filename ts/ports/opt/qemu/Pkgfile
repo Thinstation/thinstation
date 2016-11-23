@@ -6,7 +6,7 @@
 # Nice to have: libseccomp libiscsi libusb usbredir
  
 name=qemu
-version=2.6.0
+version=2.7.0
 release=1
 source=(http://wiki.qemu.org/download/qemu-$version.tar.bz2)
 
@@ -18,9 +18,18 @@ build() {
       --sysconfdir=/etc \
       --disable-docs \
       --libexecdir=/usr/lib/qemu \
-      --disable-gtk \
       --localstatedir=/var \
-      --target-list=x86_64-linux-user,i386-linux-user,i386-softmmu,x86_64-softmmu
+      --audio-drv-list=alsa,sdl,pa \
+      --enable-gtk \
+      --with-gtkabi=3.0 \
+      --enable-vte \
+      --enable-gcrypt \
+      --target-list=x86_64-linux-user,i386-linux-user,i386-softmmu,x86_64-softmmu \
+      --enable-vnc-sasl \
+      --enable-libnfs \
+      --enable-libiscsi \
+      --enable-virglrenderer \
+      --enable-bluez
 
   # fix include issues with libcap
   sed -i -e '/#include "qemu\/xattr.h"/d' \

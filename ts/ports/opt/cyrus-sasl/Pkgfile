@@ -1,42 +1,47 @@
 # Description: Simple Authentication and Security Layer
-# URL:         http://asg.web.cmu.edu/sasl/sasl-library.html
+# URL:         https://cyrusimap.org/
 # Maintainer:  Thomas Penteker, tek at serverop dot de
 # Packager:    Daniel Mueller, daniel at danm dot de
-# Depends on: db, openssl
+# Depends on:  db openssl
 
 name=cyrus-sasl
 version=2.1.26
-release=1
-source=(ftp://ftp.cyrusimap.org/cyrus-sasl/cyrus-sasl-$version.tar.gz saslauthd)
+release=2
+source=(ftp://ftp.cyrusimap.org/cyrus-sasl/cyrus-sasl-$version.tar.gz
+        saslauthd fix-CVE-2013-4122.diff)
 
 build(){
-	cd $name-$version
 
-	./configure \
-		--prefix=/usr \
-		--sysconfdir=/etc/sasl \
-		--with-plugindir=/usr/lib/sasl2 \
-		--with-saslauthd=/var/sasl/saslauthd \
-		--with-dbpath=/etc/sasl/sasldb2 \
-		--with-dblib=berkeley \
-		--with-bdb-incdir=/usr/include \
-		--with-bdb-libdir=/usr/lib \
-		--with-openssl=/usr \
-		--enable-login \
-		--enable-cram \
-		--enable-digest \
-		--enable-shared \
-		--mandir=/usr/man
+  cd $name-$version
 
-	make -j1
-	make -j1 DESTDIR=$PKG install
+  patch -i ../fix-CVE-2013-4122.diff -p1
+  sed -i '228i\#include <sys/types.h>' include/sasl.h
 
-	mkdir -p \
-	    $PKG/usr/lib/sasl2 \
-	    $PKG/var/sasl/saslauthd \
-	    $PKG/etc/rc.d
-	
-	install -m 755 $SRC/saslauthd $PKG/etc/rc.d
+  ./configure \
+      --prefix=/usr \
+      --sysconfdir=/etc/sasl \
+      --with-plugindir=/usr/lib/sasl2 \
+      --with-saslauthd=/var/sasl/saslauthd \
+      --with-dbpath=/etc/sasl/sasldb2 \
+      --with-dblib=berkeley \
+      --with-bdb-incdir=/usr/include \
+      --with-bdb-libdir=/usr/lib \
+      --with-openssl=/usr \
+      --enable-login \
+      --enable-cram \
+      --enable-digest \
+      --enable-shared \
+      --mandir=/usr/man
+
+  make -j1
+  make DESTDIR=$PKG install
+
+  mkdir -p \
+      $PKG/usr/lib/sasl2 \
+      $PKG/var/sasl/saslauthd \
+      $PKG/etc/rc.d
+
+  install -m 755 $SRC/saslauthd $PKG/etc/rc.d
 
 	cd $PKG
 	echo 'prefix=/usr' > usr/lib/pkgconfig/libsasl2.pc.new
