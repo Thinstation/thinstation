@@ -108,20 +108,27 @@ stage4()
         printf "\rBinary Core Port Installation %-40s\n" "Complete"
 	post_install
 	printf "\rLooking at perl packages\n"
-	answered=false
-	while ! $answered; do
-		printf "Would you like to try and build it now? Y/N:"
-		read -n 1 answer
-		case $answer in
-			Y|y)	(sleep .2; echo -e "\n")|cpan App::cpanminus
-				for perl in `cat /ts/etc/perl.list`; do
-					cpanm $perl
-				done
-				answered=true;;
-			n|n) answered=true;;
-			*) answered=false;;
-		esac
-	done
+	if ! $autodl; then
+		answered=false
+		while ! $answered; do
+			printf "Would you like to try and build it now? Y/N:"
+			read -n 1 answer
+			case $answer in
+				Y|y)	(sleep .2; echo -e "\n")|cpan App::cpanminus
+					for perl in `cat /ts/etc/perl.list`; do
+						cpanm $perl
+					done
+					answered=true;;
+				n|n) answered=true;;
+				*) answered=false;;
+			esac
+		done
+f	else
+		(sleep .2; echo -e "\n")|cpan App::cpanminus
+                for perl in `cat /ts/etc/perl.list`; do
+			cpanm $perl
+		done
+	fi
 }
 
 install_port()

@@ -1,41 +1,38 @@
-# Description: LLVM including clang
-# URL: http://llvm.org
+# Description: LLVM compiler backend
+# URL:         http://llvm.org/
 # Maintainer:  Thomas Penteker, tek at serverop dot de
-# Packager: Tilman Sauerbeck, tilman at crux dot nu
-# Depends on: python
+# Packager:    Tilman Sauerbeck, tilman at crux dot nu
+# Depends on:  python cmake
 
 name=llvm
-version=3.8.1
-release=1
-source=(http://llvm.org/releases/$version/{$name,cfe}-$version.src.tar.xz)
+version=3.9.0
+release=2
+source=(http://llvm.org/releases/$version/$name-$version.src.tar.xz \
+        llvm-config.h)
 
 build() {
-	mv cfe-$version.src $name-$version.src/tools/clang
+  export CC=gcc
+  export CXX=g++
 
-	cd $name-$version.src
+  cd $name-$version.src
 
-	export CC=gcc
-	export CXX=c++
-	cd ..
-	mkdir build
-	cd build
+  mkdir build
+  cd build
 
-	../$name-$version.src/configure --prefix=/usr \
-		--sysconfdir=/etc \
-		--enable-libffi \
-		--enable-shared \
-		--enable-optimized \
-		--disable-debug-runtime \
-		--disable-assertions \
-		--disable-expensive-checks \
+  cmake -DLLVM_ENABLE_CXX1Y=1 \
+    -DLLVM_INCLUDE_EXAMPLES=0 \
+    -DLLVM_INCLUDE_TESTS=0 \
+    -DLLVM_TARGETS_TO_BUILD='X86;AMDGPU;BPF' \
+    -DLLVM_BUILD_LLVM_DYLIB=1 \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_INSTALL_PREFIX=/usr ..
 
-	make
-	make DESTDIR=$PKG install
+  MAKEFLAGS="$MAKEFLAGS" make
+  make DESTDIR=$PKG install
 
-	# Unfortunately, llvm's configure script seems to ignore --mandir.
-#	mv `find $PKG -typd d -name man` $PKG/usr
-#	rmdir $PKG/usr/share
+  # multilib stub
+  mv $PKG/usr/include/llvm/Config/llvm-config{,-64}.h
 
-	find $PKG -name .dir -delete
-	rm -rf $PKG/usr/docs
+  install -m 0644 $SRC/llvm-config.h $PKG/usr/include/llvm/Config/
+
 }

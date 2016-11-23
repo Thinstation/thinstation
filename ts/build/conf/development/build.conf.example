@@ -59,12 +59,13 @@
 #machine NT-A3500			# Foxconn AMD E-350 Barebone
 #machine NT-535				# Foxconn Intel D525 Barebone
 #machine Dell-FX170			# Dell FX170 D525 Atom Machine
-machine VMWare				# A good set of modules for a VmWare Virtual Machine
+#machine VMWare				# A good set of modules for a VmWare Virtual Machine
 #machine Virtualbox-4.1			# A good set of modules for a Virtualbox Virtual Machine
 #machine VIA-Epia-CLE266		# VIA Epia/Eden based on the the CLE266 chip. Rather common in thin clients a few years old
 #machine classic_generic		# Big list of modules that you can choose by unremarking them
 #machine IGEL-M300C                     # Igel CX700 Via
 #machine HP-t5135                       # HP CX700 Via
+machine qemu
 #machine foxconn-nT-330i		# Foxconn nT 330i Barebone
 #machine foxconn-nT-435			# Foxconn nT 435 Barebone
 #machine foxconn-nT-535			# Foxconn nT 535 Barebone
@@ -90,7 +91,7 @@ module vfat             	# Fat and VFat file system support
 #module ext2             	# Ext2 file system support
 #module ext3	            	# Ext3 file system support
 module ext4			# Ext4 file system support
-module nfs             	# NFS file system support
+#module nfs             	# NFS file system support
 #module cifs			# CIFS support (use either this or smbfs - not both)
 
 #################################################
@@ -108,9 +109,10 @@ module nfs             	# NFS file system support
 # --- Packages to include in boot image
 # --- Packages below may be "package" or "pkg"
 #!!Miscellaneous
-#package overlayfs
+package overlayfs			# This is needed in order for squashfs compression mode to work.
 #package ts-classic              # The classic ts logic for network/netfiles/hostname/mounting/telnetd/telnet/playcd
 #package automount
+package udisks
 package networkmanager
 #package udisks-glue
 package ntp			# Utility to obtain date & time from network
@@ -118,10 +120,10 @@ package ntp			# Utility to obtain date & time from network
 #package sound-nasd		#  sound on your thin client from another computer or
                         	#  your remote session.
 package alsa
-package gnome-media
+#package gnome-media
 #package gnome-network-properties
-package gnome-core
-package volumeicon
+#package gnome-core
+#package volumeicon
 #package kismet
 #package gst-plugins-base
 #package gst-plugins-good
@@ -135,7 +137,7 @@ package volumeicon
 #!!X related
 # --- XOrg 7.7
 #package xorg7-v4l
-#package xorg7-vesa		#A fallback driver that works with almost everything. Does allow resolution changes
+package xorg7-vesa		#A fallback driver that works with almost everything. Does allow resolution changes
 package xorg7-vmware
 #package xorg7-ati		#ATI video driver for most modern ATI chipsets. Usually requires several firmwares
 #package xorg7-nouveau		#New opensource nvidia driver
@@ -144,6 +146,7 @@ package xorg7-vmware
 #package xorg7-openchrome	#Via Video Chipsets driver
 #package xorg7-intel		#Intel video driver for most modern chipsets except the GMA3500/3600
 #package xorg7-sis
+package xorg7-qxl
 
 #!!Locale or localization files for keyboard and fonts.  (Language/Country)
 #package locale-cs_CZ  # Czech
@@ -171,7 +174,7 @@ package locale-en_US  # English-US
 
 #!Applications
 #!!Connection Package types.  Choose *at least* one!
-package freerdp		# X RDP Client - fork of rdesktop
+#package freerdp		# X RDP Client - fork of rdesktop
 #package rdesktop		# X RDP client for Windows Terminal Services (ver 1.7)
 #package vncviewer		# VNC client (vncviewer)
 #package xorg7vnc		# Remote Control Client Workstation
@@ -188,15 +191,16 @@ package freerdp		# X RDP Client - fork of rdesktop
 #package 2x			# 2X client
 #package java			# Java runtime
 #package firefox_lowmem		# Firefox 3 for low resource machines
-#package firefox		# Firefox current Web Browser
-package chrome			# Google Chrome Web Browser
+package firefox		# Firefox current Web Browser
+#package chrome			# Google Chrome Web Browser
 #package kiosk			# Rkiosk Plugin for Firefox
 #package flash_lowmem		# Flash 9 browser plugin for firefox and low resource machines
 #package flash			# Flash Current
 #package filezilla		# FileZilla FTP Client for X
 #package git			# GIT Version Control System
 #package gparted		# Gnome Partition Manager
-package open-vm-tools
+#package open-vm-tools
+#package vboxguest
 #package medit			# Notepad
 #package mplayer		# DVD and video player
 #package vmview                 # VMware Open-View Client, no PCoIP
@@ -218,6 +222,7 @@ package open-vm-tools
 
 package xfwm4
 #package xfwm4-extra
+#package xfce4-power-manager
 package terminal		# Terminal emulator for xfwm4 -- Pulls in xfwm4
 package thunar			# File Manager for xfwm4 -- Pulls in xfwm4
 
@@ -255,11 +260,13 @@ package thunar			# File Manager for xfwm4 -- Pulls in xfwm4
 
 #!!Miscellaneous
 package gtk-2.0			# Full gtk-2.0 plus clearlooks theme
+package gtk-3.0
 package icons-cursor		# Anti Aliased Mouse Cursor Theme
 package icons-hicolor           # Hi-Color icons for some applications and themes. Does not really contain any icons.
-package icons-gnome             # gnome Hi-Color icons theme. Needed by most other icon themes.
+package icons-adwaita             # gnome Hi-Color icons theme. Needed by most other icon themes.
 #package icons-tango             # tango Hi-Color icons theme
 #package icons-neu               # neu Hi-Color icons theme
+package gtk-theme-adwaita
 #package fonts-misc
 #package fonts-jis-misc		# Japanese Industrial
 #package fonts-util
@@ -267,7 +274,9 @@ package icons-gnome             # gnome Hi-Color icons theme. Needed by most oth
 #package fonts-Speedo-Bitstream
 package fonts-TTF-BH		# This one works nicely most of the time and is small.
 package fonts-TTF-vera
-#package fonts-TTF-liberation
+#package fonts-TTF-MS		# Fonts for rendering documents developed on the MS Platform.
+                            # Might want to talk to a lawyer before using these.
+package fonts-TTF-liberation
 #package fonts-75dpi-Adobe
 #package fonts-75dpi-Adobe-Utopia
 #package fonts-75dpi-BH
@@ -288,7 +297,7 @@ package fonts-TTF-vera
 #package rox			# Basic File Manager
 #package debug			# metapackage to include other debugging packages and stop during bootup to check things.
 #package extensions		# Adds various shell commands, will increase image size.
-#package extensions-x		# Adds various utility s for the X Environment !!!! INCLUDES hwlister.sh !!!!
+package extensions-x		# Adds various utility s for the X Environment !!!! INCLUDES hwlister.sh !!!!
 #package eGalax                 # eGalax TouchKit Drivers/Utility for serial and usb touchscreens by EETI.
 #package installer		# Wipes a drive, makes partitions and downloads thinstation from a pxe server
 #package devstation		# Starts a tftp server that hosts files from the boot-images/pxe folder
@@ -353,7 +362,7 @@ param baseurl        http://www.doncuppjr.net		# Used to determine url to wget f
 param haltonerror    false				# Will halt on error, default is true
 param hardlinkfs     true
 param sametimestmp   true                               # When enabled, the timestamps for all files and folders will be set to 00:00 of todays date in your timezone
-param initrdcmd	     "gzip"				# Compression mode and level of initrd file. none, gzip -9, lzma -9 ,bzip2 -9
+param initrdcmd	     "squashfs"				# Compression mode and level of initrd file. none, gzip -9, lzma -9 ,bzip2 -9
 param bootverbosity   3          			# Increased vebosity when booting TS
                                 			#   0 no verbose messages
                                 			#   1 boot
@@ -377,7 +386,7 @@ param syslinuxtheme     "default"
 
 #param bootfssize     50%                               # Modify the size of the tmpfs filesystem
 
-#package alltimezone
-#param allres		true		# Includes a lot of resolution splash images for live-cd s
+package alltimezone
+param allres		true		# Includes a lot of resolution splash images for live-cd s
 #param allfirmware	true		# Includes a lot of firmwares for live-cd s
-param blacklist snd-pcsp.ko
+#param blacklist snd-pcsp.ko
