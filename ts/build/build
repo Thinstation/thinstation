@@ -1432,17 +1432,17 @@ if [ -e ./$ts_defaultconfig ] && [ ! -z "$ts_defaultconfig" ] ; then
 fi
 
 # Set up zoneinfo file
-if [ "$TIME_ZONE" == "" ] ;
-	then
-		TIME_ZONE=UTC
+if [ "$TIME_ZONE" == "" ]; then
+	TIME_ZONE=UTC
 fi
 echo -e "\nSetting Zone Info File to $TIME_ZONE"
 tzpath=./tmp-tree/lib/zoneinfo/$TIME_ZONE
-if [ ! -d ${tzpath%/*} ] ;
-	then
-		mkdir -p ${tzpath%/*}
+if [ ! -d ${tzpath%/*} ]; then
+	mkdir -p ${tzpath%/*}
 fi
-cp /usr/share/zoneinfo/$TIME_ZONE ${tzpath%/*}/.
+if [ ! -e $tzpath ]; then
+	ln /usr/local/etc/zoneinfo/$TIME_ZONE ${tzpath%/*}/
+fi
 ln -sf /lib/zoneinfo/$TIME_ZONE ./tmp-tree/etc/localtime
 
 # Copy across sample file for www administration interface

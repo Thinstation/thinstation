@@ -16,4 +16,7 @@ build() {
 
 	make
 	make install DESTDIR=$PKG
+	for icon in `find $PKG/usr/share/icons -name security-medium.png`; do
+		ln -sf security-medium.png `dirname $icon`/stock_lock.png
+	done
 }

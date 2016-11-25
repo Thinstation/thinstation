@@ -2,7 +2,7 @@
 
 isoname=`basename $1`
 INSTALLDIR=./packages/vboxguest
-xserver=118
+xserver=119
 release=`cat /boot/KERNEL_VERSION`
 release=${release%TS}
 
@@ -25,7 +25,7 @@ let returnval=returnval+$?
 
 # Extract the 32-bit files
 mkdir -p wget_tmp/vbox
-tar -C wget_tmp/vbox -xf wget_tmp/additions/VBoxGuestAdditions-x86.tar.bz2 
+tar -C wget_tmp/vbox -xf wget_tmp/additions/VBoxGuestAdditions-amd64.tar.bz2 
 let returnval=returnval+$?
 
 # Install the Xorg driver and mount script we need and remove the rest
@@ -72,13 +72,11 @@ do_module() {
 }
 
 # Install the modules
-for kernel in ${release}TS ${release}TS_SMP; do
+for kernel in ${release}TS; do
   mkdir -p $INSTALLDIR/lib/modules/$kernel/misc
   vbox=vbox
-  if [ "$kernel" != "${release}TS_64" ]; then
   do_module $kernel vboxguest $vbox
   do_module $kernel vboxvideo $vbox
-  fi
   do_module $kernel vboxsf $vbox
 done
 
