@@ -20,9 +20,11 @@ build() {
   rm -f ffmpeg/mp_auto_pull
 
   ./configure --prefix=/usr \
+      --enable-xvmc \
       --mandir=/usr/man \
       --codecsdir=/usr/share/codecs \
-      --confdir=/etc/mplayer
+      --confdir=/etc/mplayer \
+      --extra-cflags=-I/usr/include/openjpeg-1.5
   make
   make DESTDIR=$PKG install
 

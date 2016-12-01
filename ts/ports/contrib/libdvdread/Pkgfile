@@ -5,19 +5,20 @@
 # Depends on: libdvdcss
 
 name=libdvdread
-version=git
+version=5.0.3
 release=1
+source=(http://download.videolan.org/videolan/$name/$version/$name-$version.tar.bz2)
 
 build() {
-git clone https://github.com/microe/libdvdread.git
-	cd $name
-
-	autoreconf -f -i
+	cd $name-$version
 
 	./configure \
 		--prefix=/usr \
 		--mandir=/usr/man \
-		--disable-dependency-tracking
+		--disable-dependency-tracking \
+		--disable-static
 
 	make DESTDIR=$PKG install
+	rm -rf $PKG/usr/share/doc
+	rmdir $PKG/usr/share
 }

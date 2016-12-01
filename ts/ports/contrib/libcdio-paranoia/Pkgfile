@@ -1,0 +1,27 @@
+# Description: CD paranoia libraries from libcdio
+# URL: http://www.gnu.org/software/libcdio/
+# Maintainer: Danny Rawlins, crux at romster dot me
+# Packager: Danny Rawlins, crux at romster dot me
+# Depends on: libcdio
+
+name=libcdio-paranoia
+version=10.2+0.90+1
+release=1
+source=(http://ftp.gnu.org/gnu/libcdio/$name-$version.tar.bz2)
+
+build() {
+	cd $name-$version
+
+	./configure \
+		--prefix=/usr \
+		--mandir=/usr/man \
+		--disable-static \
+		--enable-cpp-progs \
+		--disable-example-progs
+		
+
+	make
+	make DESTDIR=$PKG install
+
+	rm -r $PKG/usr/man/jp
+}

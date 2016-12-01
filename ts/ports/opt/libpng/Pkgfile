@@ -12,7 +12,7 @@ source=(http://download.sourceforge.net/$name/$name-$version.tar.xz \
 build() {
     cd $name-$version
     zcat $SRC/$name-$version-apng.patch.gz | patch -p1
-    ./configure --prefix=/usr --mandir=/usr/man
+    ./configure --prefix=/usr --mandir=/usr/man --disable-static
 
     make
     make DESTDIR=$PKG install
