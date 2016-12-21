@@ -16,10 +16,10 @@ build() {
                 --sysconfdir=/etc \
                 --disable-shared \
                 --disable-shadowgrp \
-                 \
                 --without-selinux \
                 --without-libpam \
-                --without-audit
+                --without-audit \
+		--with-group-name-max-length=24
 
     make
     make DESTDIR=$PKG install
@@ -30,7 +30,7 @@ build() {
     mv $PKG/bin/{su,groups} $PKG/usr/bin
     touch $PKG/var/log/{lastlog,faillog}
 
-    sed -i 's/1000/100/' $PKG/etc/default/useradd
+#    sed -i 's/1000/100/' $PKG/etc/default/useradd
 
 #    rm -r $PKG/usr/bin/gpasswd \
 #          $PKG/usr/share/man/man1/gpasswd.1 \

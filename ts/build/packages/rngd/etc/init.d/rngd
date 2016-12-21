@@ -2,17 +2,29 @@
 
 . $TS_GLOBAL
 
+urandom_fallback()
+{
+	echo "No Hardware Random Number Generator!!!!!!!!"
+	echo "What are we to do?"
+	echo "I know it's wrong, but if we only do it once,"
+	echo "that's o.k. right?"
+	echo "Seeding random from urandom. *sigh*"
+	# Run rngd in the foreground (-f, don't daemonize),
+	# just fill to the watermark once,
+	# and background so that we keep moving.
+	/sbin/rngd -W 50% -r /dev/urandom -f &
+}
+
 case "$1" in
 init)
   if ! pkg_initialized $PACKAGE; then
     # Prime entropy pool for random number generation
     if ! is_disabled $RNGD ; then
 	# Try /dev/hwrng first, then fallback to urandom
-	/sbin/rngd -W 50%  2> /dev/null ||\
-	/sbin/rngd -W 50% -r /dev/urandom
+	/sbin/rngd -W 50% || \
+	urandom_fallback
     fi
     pkg_set_init_flag $PACKAGE
-
   fi
   ;;
 help)

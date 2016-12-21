@@ -24,4 +24,9 @@ build() {
 
 	make
 	make DESTDIR=$PKG install
+
+	chgrp polkitd $PKG/etc/polkit-1/rules.d
+	chgrp polkitd $PKG/usr/share/polkit-1/rules.d
+
+	chmod 750 $PKG/usr/share/polkit-1/rules.d
 }

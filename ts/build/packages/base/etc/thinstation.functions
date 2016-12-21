@@ -98,7 +98,7 @@ echo_log ()
 	local debug noline string
 
 	until [ -z "$1" ]; do
-		case $1 in
+		case "$1" in
 		"-n")
 			noline="-n"
 		;;
@@ -106,18 +106,18 @@ echo_log ()
 			debug="TRUE"
 		;;
 		*)
-			string=$1
+			string="$1"
 		;;
 		esac
 		shift
 	done
 	if [ -n "$debug" ] ; then
-		echo -e $noline $string > $CONSOLE
+		echo -e $noline "$string" > $CONSOLE
 	fi
 	if [ -z "$APPLOG" ]; then
-	  echo -e $noline $string >> $LOGFILE
+	  echo -e $noline "$string" >> $LOGFILE
 	else
-	  echo -e $noline $string >> $APPLOG
+	  echo -e $noline "$string" >> $APPLOG
 	fi
 }
 

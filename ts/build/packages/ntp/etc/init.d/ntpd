@@ -57,6 +57,7 @@ stop ()
 
 case "$1" in
 init)
+	So we actually need to do ntpd stuff twice, as it needs the network, and the network might need it.
 	if ! pkg_initialized $PACKAGE; then
 		pkg_set_init_flag $PACKAGE
 		if [ -n "$NET_TIME_SERVER" ]; then
@@ -64,8 +65,9 @@ init)
 			if [ -n "$NET_TIME_SERVER_BACKUP" ]; then
 				echo "server $NET_TIME_SERVER_BACKUP" >> /etc/ntp.conf
 			fi
-			start
 		fi
+	else
+		start
 	fi
 	;;
 restart)
