@@ -50,7 +50,9 @@ main()
 {
 	bb_switch
 	if ! vesa_mode; then
-		if lspci -k |grep -E 'radeon|vmwgfx|nouveau|i915|gma500_gfx|qxl|hyperv_fb' > /dev/null 2>&1; then
+		# This is very dependent upon full lspci, as busybox lspci needs modules to be in memory,
+		# and at this point, nothing is.
+		if lspci -mm -k |grep -E 'radeon|vmwgfx|nouveau|i915|gma500_gfx|qxl|hyperv_fb' > /dev/null 2>&1; then
 			kms=true
 		fi
 	fi
@@ -68,5 +70,4 @@ main()
 		fi
 	fi
 }
-
 main
