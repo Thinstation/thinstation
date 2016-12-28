@@ -23,7 +23,6 @@ EOF
 		--config-cache \
 		--enable-shared \
 		--disable-binfmt \
-		--disable-vconsole \
 		--disable-quotacheck \
 		--disable-qrencode \
 		--disable-microhttpd \
@@ -49,4 +48,7 @@ EOF
     # Keep udevinfo for legacy support
     mkdir -p $PKG/usr/bin
     ln -s /bin/udevadm $PKG/usr/bin/udevinfo
+
+    mkdir -p $PKG/usr/lib/systemd
+    cp -a $SRC/systemd-$version/src/systemctl/systemd-sysv-install.SKELETON $PKG/usr/lib/systemd/systemd-sysv-install
 }

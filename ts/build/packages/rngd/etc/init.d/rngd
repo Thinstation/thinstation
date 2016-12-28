@@ -9,20 +9,25 @@ urandom_fallback()
 	echo "I know it's wrong, but if we only do it once,"
 	echo "that's o.k. right?"
 	echo "Seeding random from urandom. *sigh*"
-	# Run rngd in the foreground (-f, don't daemonize),
-	# just fill to the watermark once,
-	# and background so that we keep moving.
-	/sbin/rngd -W 75% -r /dev/urandom -f &
+	# Ultimately, this is only 'an' source of randomness, amongst at least
+	# two, from which the kernel will deliver blocks of entropy. We know
+	# that it's potentially poor quality, will mostly dominate the pool,
+	# but we must have entropy to get through init, so that the user will
+	# make more entropy! It's created by the kernel, and then fed back to
+	# the kernel and mixed with new entropy. Eventually, this well runs
+	# dry and the kernel will only have system generated entropy to choose
+	# from, but that's what's supposed to be the most secure.
+	dd if=/dev/urandom of=/tmp/.urandom-seed bs=1M count=2
+	/sbin/rngd -r /tmp/.urandom-seed
 }
 
 case "$1" in
 init)
   if ! pkg_initialized $PACKAGE; then
-    # Prime entropy pool for random number generation
     if ! is_disabled $RNGD ; then
-	# Try /dev/hwrng first, then fallback to urandom
-	/sbin/rngd -W 50% || \
-	urandom_fallback
+		# Add hardware random number generator as an entropy source,
+		# or fallback to urandom for a seed.
+		/sbin/rngd -W 50% || urandom_fallback
     fi
     pkg_set_init_flag $PACKAGE
   fi

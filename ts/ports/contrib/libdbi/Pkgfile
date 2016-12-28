@@ -1,0 +1,15 @@
+# $Id$
+# Maintainer: Thorsten Töpper <atsutane-tu@freethoughts.de>
+# Contributor: Carl Flippin <carlf@photocarl.org>
+
+name=libdbi
+version=0.9.0
+release=2
+source=("http://downloads.sourceforge.net/project/${name}/${name}/${name}-${version}/${name}-${version}.tar.gz")
+
+build() {
+  cd "${SRC}/${name}-${version}"
+  ./configure --prefix=/usr
+  make CFLAGS="-fno-fast-math"
+  make DESTDIR=${PKG} install
+}

@@ -1,0 +1,27 @@
+# $Id$
+# Maintainer: Gaetan Bisson <bisson@archlinux.org>
+# Contributor: mathieui <mathieui@mathieui.net>
+# Contributor: jiribb <jiribb@gmail.com>
+
+name=ldns
+version=1.6.17
+release=4
+source=("https://www.nlnetlabs.nl/downloads/${name}/${name}-${version}.tar.gz"
+        'perl-recent.patch')
+
+build() {
+	cd "${SRC}/${name}-${version}"
+	patch -p1 -i ../perl-recent.patch
+	./configure \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--localstatedir=/var \
+		--disable-rpath \
+		--with-drill \
+		--with-examples \
+		--with-trust-anchor=/etc/trusted-key.key \
+
+	make
+	make DESTDIR="${PKG}" install
+	install -D -m644 LICENSE "${PKG}/usr/share/licenses/${name}/LICENSE"
+}

@@ -762,7 +762,7 @@ if [ -n "$ts_bootresolution" ] ;then
 	if [ -n "$ts_splash" ] ; then splashvar="splash=$ts_splash" ; fi
 	if [ -n "$ts_boottheme" ] ; then splashvar="$splashvar,theme:$ts_boottheme" ; fi
 	if [ -n "$ts_silenttty" ] ; then splashvar="$splashvar,tty:$ts_silenttty" ; fi
-	KERNEL_PARAMETERS="$KERNEL_PARAMETERS $splashvar"
+	KERNEL_PARAMETERS="$KERNEL_PARAMETERS"
 	echo -e "+ Adding splash boot logo\n"
 	res=${ts_bootresolution%-*}
 	echo $res
@@ -1398,7 +1398,7 @@ else
 fi
 
 if [ -z "$DEBUG_KERNEL" ] ; then
-  	DEBUGCONSOLE="console=tty1 vt.global_cursor_default=0 quiet loglevel=3"
+  	DEBUGCONSOLE="quiet vga=current loglevel=3 rd.systemd.show_status=false rd.udev.log-priority=3"
 fi
 
 # Should we delete the dri folder?

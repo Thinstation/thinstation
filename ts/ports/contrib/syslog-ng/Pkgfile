@@ -1,0 +1,26 @@
+# $Id$
+# Maintainer: Eric Bélanger <eric@archlinux.org>
+
+name=syslog-ng
+version=3.6.3
+release=2
+source=(http://www.balabit.com/downloads/files/syslog-ng/sources/$version/source/${name}_$version.tar.gz
+        syslog-ng.conf syslog-ng.logrotate)
+
+build() {
+  cd $name-$version
+
+  ./configure --prefix=/usr --sysconfdir=/etc/syslog-ng  \
+    --localstatedir=/var/lib/syslog-ng --datadir=/usr/share/syslog-ng \
+    --with-pidfile-dir=/run --disable-spoof-source --enable-ipv6 --enable-sql \
+    --enable-systemd --with-systemdsystemunitdir=/usr/lib/systemd/system \
+    --enable-manpages --with-jsonc=system
+
+  make
+  make check
+  make DESTDIR="$PKG" install
+
+  install -dm755 "$PKG/var/lib/syslog-ng" "$PKG/etc/syslog-ng/patterndb.d"
+  install -Dm644 "$SRC/syslog-ng.conf" "$PKG/etc/syslog-ng/syslog-ng.conf"
+  install -Dm644 "$SRC/syslog-ng.logrotate" "$PKG/etc/logrotate.d/syslog-ng"
+}

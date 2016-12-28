@@ -336,6 +336,7 @@ lrwxrwxrwx	root/root	usr/lib/systemd/system/sysinit.target.wants/systemd-udev-tr
 lrwxrwxrwx	root/root	usr/lib/systemd/system/sysinit.target.wants/systemd-udevd.service -> ../systemd-udevd.service
 lrwxrwxrwx	root/root	usr/lib/systemd/system/sysinit.target.wants/systemd-update-done.service -> ../systemd-update-done.service
 lrwxrwxrwx	root/root	usr/lib/systemd/system/sysinit.target.wants/systemd-update-utmp.service -> ../systemd-update-utmp.service
+lrwxrwxrwx	root/root	usr/lib/systemd/system/sysinit.target.wants/systemd-vconsole-setup.service -> ../systemd-vconsole-setup.service
 -rw-r--r--	root/root	usr/lib/systemd/system/syslog.socket
 -rw-r--r--	root/root	usr/lib/systemd/system/system-update.target
 -rw-r--r--	root/root	usr/lib/systemd/system/system.slice
@@ -399,6 +400,7 @@ lrwxrwxrwx	root/root	usr/lib/systemd/system/sysinit.target.wants/systemd-update-
 -rw-r--r--	root/root	usr/lib/systemd/system/systemd-update-utmp-runlevel.service
 -rw-r--r--	root/root	usr/lib/systemd/system/systemd-update-utmp.service
 -rw-r--r--	root/root	usr/lib/systemd/system/systemd-user-sessions.service
+-rw-r--r--	root/root	usr/lib/systemd/system/systemd-vconsole-setup.service
 -rw-r--r--	root/root	usr/lib/systemd/system/time-sync.target
 -rw-r--r--	root/root	usr/lib/systemd/system/timers.target
 drwxr-xr-x	root/root	usr/lib/systemd/system/timers.target.wants/
@@ -438,12 +440,14 @@ lrwxrwxrwx	root/root	usr/lib/systemd/system/timers.target.wants/systemd-tmpfiles
 -rwxr-xr-x	root/root	usr/lib/systemd/systemd-sleep
 -rwxr-xr-x	root/root	usr/lib/systemd/systemd-socket-proxyd
 -rwxr-xr-x	root/root	usr/lib/systemd/systemd-sysctl
+-rwxrwxr-x	root/root	usr/lib/systemd/systemd-sysv-install
 -rwxr-xr-x	root/root	usr/lib/systemd/systemd-timedated
 -rwxr-xr-x	root/root	usr/lib/systemd/systemd-timesyncd
 -rwxr-xr-x	root/root	usr/lib/systemd/systemd-udevd
 -rwxr-xr-x	root/root	usr/lib/systemd/systemd-update-done
 -rwxr-xr-x	root/root	usr/lib/systemd/systemd-update-utmp
 -rwxr-xr-x	root/root	usr/lib/systemd/systemd-user-sessions
+-rwxr-xr-x	root/root	usr/lib/systemd/systemd-vconsole-setup
 drwxr-xr-x	root/root	usr/lib/systemd/user-generators/
 drwxr-xr-x	root/root	usr/lib/systemd/user/
 -rw-r--r--	root/root	usr/lib/systemd/user/basic.target
@@ -527,6 +531,7 @@ drwxr-xr-x	root/root	usr/lib/udev/rules.d/
 -rw-r--r--	root/root	usr/lib/udev/rules.d/80-drivers.rules
 -rw-r--r--	root/root	usr/lib/udev/rules.d/80-net-setup-link.rules
 -rw-r--r--	root/root	usr/lib/udev/rules.d/81-crux.rules
+-rw-r--r--	root/root	usr/lib/udev/rules.d/90-vconsole.rules
 -rw-r--r--	root/root	usr/lib/udev/rules.d/99-systemd.rules
 -rwxr-xr-x	root/root	usr/lib/udev/scsi_id
 -rwxr-xr-x	root/root	usr/lib/udev/v4l_id
@@ -1171,6 +1176,7 @@ drwxr-xr-x	root/root	usr/share/man/man5/
 -rw-r--r--	root/root	usr/share/man/man5/tmpfiles.d.5.gz
 -rw-r--r--	root/root	usr/share/man/man5/udev.conf.5.gz
 -rw-r--r--	root/root	usr/share/man/man5/user.conf.d.5.gz
+-rw-r--r--	root/root	usr/share/man/man5/vconsole.conf.5.gz
 drwxr-xr-x	root/root	usr/share/man/man7/
 -rw-r--r--	root/root	usr/share/man/man7/bootup.7.gz
 -rw-r--r--	root/root	usr/share/man/man7/daemon.7.gz
@@ -1289,6 +1295,8 @@ drwxr-xr-x	root/root	usr/share/man/man8/
 -rw-r--r--	root/root	usr/share/man/man8/systemd-update-utmp.service.8.gz
 -rw-r--r--	root/root	usr/share/man/man8/systemd-user-sessions.8.gz
 -rw-r--r--	root/root	usr/share/man/man8/systemd-user-sessions.service.8.gz
+-rw-r--r--	root/root	usr/share/man/man8/systemd-vconsole-setup.8.gz
+-rw-r--r--	root/root	usr/share/man/man8/systemd-vconsole-setup.service.8.gz
 -rw-r--r--	root/root	usr/share/man/man8/telinit.8.gz
 -rw-r--r--	root/root	usr/share/man/man8/udevadm.8.gz
 drwxr-xr-x	root/root	usr/share/pkgconfig/
