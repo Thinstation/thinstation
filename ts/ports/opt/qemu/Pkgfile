@@ -6,7 +6,7 @@
 # Nice to have: libseccomp libiscsi libusb usbredir
  
 name=qemu
-version=2.7.0
+version=2.8.0
 release=1
 source=(http://wiki.qemu.org/download/qemu-$version.tar.bz2)
 
@@ -46,5 +46,7 @@ build() {
   install -D -m 644 qemu-img.1 $PKG/usr/man/man1/qemu-img.1
   install -D -m 644 qemu-nbd.8 $PKG/usr/man/man8/qemu-nbd.8
 
-  rm -rf $PKG/usr/share/locale
+#  rm -rf $PKG/usr/share/locale
+
+  chmod u+s $PKG/usr/lib/qemu/qemu-bridge-helper
 }

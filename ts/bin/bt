@@ -1,8 +1,22 @@
 #!/bin/sh
+set -x
+set -e
+
+VGA="-vga qxl -global qxl-vga.vram_size=132710400"
+SOUND="-soundhw ac97"
+CPU="-smp cores=4,threads=2,sockets=1"
+MEMORY="-m 2048"
+#RNG="-object rng-random,id=RNG"
+MOUSE="-usbdevice tablet"
+KVM="-enable-kvm"
+EFI="-L . --bios /usr/share/edk2.git/ovmf-x64/OVMF-with-csm.fd"
+NETWORK="-net bridge,br=virbr0 -net nic,macaddr=52:54:00:12F:34f:56,model=virtio"
+
+STANDARD_MACHINE="$SOUND $RNG $VGA $CPU $MEMORY $MOUSE $KVM $NETWORK"
 
 case $1 in
-	cd)	qemu-system-x86_64 -soundhw ac97 -vga qxl -global qxl-vga.vram_size=132710400 -smp cores=4,threads=1,sockets=1 -cdrom /build/boot-images/iso/thinstation.iso -m 2048 -usbdevice tablet -enable-kvm;;
-	bios)	qemu-system-x86_64 -hda /build/bios.boot -m 1536 -enable-kvm;;
-	*)	qemu-system-x86_64 -L . --bios /usr/share/edk2.git/ovmf-x64/OVMF-with-csm.fd -cdrom /build/boot-images/iso/thinstation.iso -m 1536  --enable-kvm;;
+	cd)	qemu-system-x86_64 $STANDARD_MACHINE -cdrom /build/boot-images/iso/thinstation.iso;;
+	bios)	qemu-system-x86_64 $STANDARD_MACHINE -hda /build/bios.boot;;
+	*)	qemu-system-x86_64 $STANDARD_MACHINE -cdrom /build/boot-images/iso/thinstation.iso $EFI;;
 esac
 

@@ -1,0 +1,22 @@
+# $Id$
+# Maintainer: Jaroslav Lichtblau <dragonlord@aur.archlinux.org> 
+
+name=ccze
+version=0.2.1
+release=9
+source=(ftp://ftp.debian.org/debian/pool/main/c/$name/${name}_${version}.orig.tar.gz \
+        $name-fix-segfault.diff)
+
+build() {
+  cd "${SRC}"/$name-$version
+
+  patch -Np0 -i "${SRC}"/$name-fix-segfault.diff
+
+  #killing a bug
+  sed -e 's/-Wswitch -Wmulticharacter/-Wswitch/' -i src/Makefile.in
+  sed -e '/#undef error_t/d' -i system.h.in
+
+  ./configure --prefix=/usr --mandir=/usr/share/man
+  make
+  make DESTDIR="${PKG}" install
+}

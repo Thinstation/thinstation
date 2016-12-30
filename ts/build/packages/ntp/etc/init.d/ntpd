@@ -57,6 +57,7 @@ stop ()
 
 case "$1" in
 init)
+	# So we actually need to run through this script twice, as it needs the network, and the network might need it.
 	if ! pkg_initialized $PACKAGE; then
 		pkg_set_init_flag $PACKAGE
 		if [ -n "$NET_TIME_SERVER" ]; then
@@ -64,8 +65,10 @@ init)
 			if [ -n "$NET_TIME_SERVER_BACKUP" ]; then
 				echo "server $NET_TIME_SERVER_BACKUP" >> /etc/ntp.conf
 			fi
-			start
 		fi
+	else
+		# The second time, this is run as the package is already initialized
+		start
 	fi
 	;;
 restart)

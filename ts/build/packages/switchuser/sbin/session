@@ -3,9 +3,9 @@ trap "" INT QUIT TSTP
 . /etc/thinstation.global
 hide_cursor
 
-if [ "`tty`" != "$CONSOLE" ]; then
-	exit 0
-fi
+#if [ "`tty`" != "$CONSOLE" ]; then
+#	exit 0
+#fi
 if [ "$TSUSER" != "root" ]; then
 	HOME=/home/$TSUSER
 else
@@ -51,4 +51,12 @@ if [ "$1" == "close" ] && [ -z "`pidof shutdown`" ]; then
 			umount /media/$mount
 		done
 	fi
+fi
+if [ "$1" == "open" ]; then
+        mkdir -p $HOME
+        rm -rf $HOME/.{config,local,gconf,gconfd,gnome2,xinitrc}
+        for file in `ls -A /etc/skel`; do
+                cp -a /etc/skel/$file $HOME/. 2>/dev/null
+        done
+        chown -R $TSUSER.$TSUSER $HOME
 fi

@@ -1,0 +1,15 @@
+# $Id$
+# Maintainer: Eric Bélanger <eric@archlinux.org>
+
+name=eventlog
+version=0.2.12
+release=4
+source=(http://www.balabit.com/downloads/files/${name}/${version%.*}/${name}_${version}.tar.gz)
+
+build() {
+  cd ${name}-${version}
+  ./configure --prefix=/usr --sysconfdir=/etc --localstatedir=/var
+  make
+  make DESTDIR="${PKG}" install
+  install -D -m644 COPYING "${PKG}"/usr/share/licenses/${name}/LICENSE
+}

@@ -1,3 +1,9 @@
+package lightdm
+package openssh
+package switchuser
+package nano
+package ccze
+package most
 ################################################
 ### ---     Thinstation Build Config     --- ###
 ################################################
@@ -60,12 +66,12 @@
 #machine NT-535				# Foxconn Intel D525 Barebone
 #machine Dell-FX170			# Dell FX170 D525 Atom Machine
 #machine VMWare				# A good set of modules for a VmWare Virtual Machine
-#machine Virtualbox-4.1			# A good set of modules for a Virtualbox Virtual Machine
+machine Virtualbox-4.1			# A good set of modules for a Virtualbox Virtual Machine
+machine qemu
 #machine VIA-Epia-CLE266		# VIA Epia/Eden based on the the CLE266 chip. Rather common in thin clients a few years old
 #machine classic_generic		# Big list of modules that you can choose by unremarking them
 #machine IGEL-M300C                     # Igel CX700 Via
 #machine HP-t5135                       # HP CX700 Via
-machine qemu
 #machine foxconn-nT-330i		# Foxconn nT 330i Barebone
 #machine foxconn-nT-435			# Foxconn nT 435 Barebone
 #machine foxconn-nT-535			# Foxconn nT 535 Barebone
@@ -109,7 +115,7 @@ module ext4			# Ext4 file system support
 # --- Packages to include in boot image
 # --- Packages below may be "package" or "pkg"
 #!!Miscellaneous
-package overlayfs			# This is needed in order for squashfs compression mode to work.
+#package overlayfs			# This is needed in order for squashfs compression mode to work.
 #package ts-classic              # The classic ts logic for network/netfiles/hostname/mounting/telnetd/telnet/playcd
 #package automount
 package udisks
@@ -123,22 +129,24 @@ package alsa
 #package gnome-media
 #package gnome-network-properties
 #package gnome-core
-#package volumeicon
+package gnome-control-center
+package volumeicon
 #package kismet
 #package gst-plugins-base
 #package gst-plugins-good
 #package crystalhd
 #package libva
 #package iptables		# IP Tables support
-#package cpufreq
+package cpufreq
 #package cpuspeed
 #package wine			# Windows Application Execution Platform
 
 #!!X related
 # --- XOrg 7.7
 #package xorg7-v4l
-package xorg7-vesa		#A fallback driver that works with almost everything. Does allow resolution changes
-package xorg7-vmware
+#package xorg7-vesa		#A fallback driver that works with almost everything. Does allow resolution changes
+#package xorg7-vmware
+package xorg7-qxl
 #package xorg7-ati		#ATI video driver for most modern ATI chipsets. Usually requires several firmwares
 #package xorg7-nouveau		#New opensource nvidia driver
 #package xorg7_nvidia		#Proprietary nvidia driver
@@ -146,7 +154,6 @@ package xorg7-vmware
 #package xorg7-openchrome	#Via Video Chipsets driver
 #package xorg7-intel		#Intel video driver for most modern chipsets except the GMA3500/3600
 #package xorg7-sis
-package xorg7-qxl
 
 #!!Locale or localization files for keyboard and fonts.  (Language/Country)
 #package locale-cs_CZ  # Czech
@@ -191,8 +198,8 @@ package locale-en_US  # English-US
 #package 2x			# 2X client
 #package java			# Java runtime
 #package firefox_lowmem		# Firefox 3 for low resource machines
-package firefox		# Firefox current Web Browser
-package chrome			# Google Chrome Web Browser
+#package firefox		# Firefox current Web Browser
+#package chrome			# Google Chrome Web Browser
 #package kiosk			# Rkiosk Plugin for Firefox
 #package flash_lowmem		# Flash 9 browser plugin for firefox and low resource machines
 #package flash			# Flash Current
@@ -200,7 +207,7 @@ package chrome			# Google Chrome Web Browser
 #package git			# GIT Version Control System
 #package gparted		# Gnome Partition Manager
 #package open-vm-tools
-#package vboxguest
+package vboxguest
 #package medit			# Notepad
 #package mplayer		# DVD and video player
 #package vmview                 # VMware Open-View Client, no PCoIP
@@ -222,7 +229,7 @@ package chrome			# Google Chrome Web Browser
 
 package xfwm4
 #package xfwm4-extra
-#package xfce4-power-manager
+package xfce4-power-manager
 package terminal		# Terminal emulator for xfwm4 -- Pulls in xfwm4
 package thunar			# File Manager for xfwm4 -- Pulls in xfwm4
 
@@ -261,12 +268,13 @@ package thunar			# File Manager for xfwm4 -- Pulls in xfwm4
 #!!Miscellaneous
 package gtk-2.0			# Full gtk-2.0 plus clearlooks theme
 package gtk-3.0
+package gtk-theme-adwaita
 package icons-cursor		# Anti Aliased Mouse Cursor Theme
 package icons-hicolor           # Hi-Color icons for some applications and themes. Does not really contain any icons.
-package icons-adwaita             # gnome Hi-Color icons theme. Needed by most other icon themes.
+#package icons-gnome             # gnome Hi-Color icons theme. Needed by most other icon themes.
+package icons-adwaita
 #package icons-tango             # tango Hi-Color icons theme
 #package icons-neu               # neu Hi-Color icons theme
-package gtk-theme-adwaita
 #package fonts-misc
 #package fonts-jis-misc		# Japanese Industrial
 #package fonts-util
@@ -274,10 +282,10 @@ package gtk-theme-adwaita
 #package fonts-Speedo-Bitstream
 package fonts-TTF-BH		# This one works nicely most of the time and is small.
 package fonts-TTF-vera
-package noto-fonts
 #package fonts-TTF-MS		# Fonts for rendering documents developed on the MS Platform.
                             # Might want to talk to a lawyer before using these.
 package fonts-TTF-liberation
+package fonts-TTF-noto
 #package fonts-75dpi-Adobe
 #package fonts-75dpi-Adobe-Utopia
 #package fonts-75dpi-BH
@@ -298,7 +306,7 @@ package fonts-TTF-liberation
 #package rox			# Basic File Manager
 #package debug			# metapackage to include other debugging packages and stop during bootup to check things.
 #package extensions		# Adds various shell commands, will increase image size.
-package extensions-x		# Adds various utility s for the X Environment !!!! INCLUDES hwlister.sh !!!!
+#package extensions-x		# Adds various utility s for the X Environment !!!! INCLUDES hwlister.sh !!!!
 #package eGalax                 # eGalax TouchKit Drivers/Utility for serial and usb touchscreens by EETI.
 #package installer		# Wipes a drive, makes partitions and downloads thinstation from a pxe server
 #package devstation		# Starts a tftp server that hosts files from the boot-images/pxe folder
@@ -363,7 +371,7 @@ param baseurl        http://www.doncuppjr.net		# Used to determine url to wget f
 param haltonerror    false				# Will halt on error, default is true
 param hardlinkfs     true
 param sametimestmp   true                               # When enabled, the timestamps for all files and folders will be set to 00:00 of todays date in your timezone
-param initrdcmd	     "squashfs"				# Compression mode and level of initrd file. none, gzip -9, lzma -9 ,bzip2 -9
+param initrdcmd	     "gzip"				# Compression mode and level of initrd file. none, gzip -9, lzma -9 ,bzip2 -9
 param bootverbosity   3          			# Increased vebosity when booting TS
                                 			#   0 no verbose messages
                                 			#   1 boot
@@ -390,4 +398,4 @@ param syslinuxtheme     "default"
 package alltimezone
 param allres		true		# Includes a lot of resolution splash images for live-cd s
 #param allfirmware	true		# Includes a lot of firmwares for live-cd s
-#param blacklist snd-pcsp.ko
+param blacklist snd-pcsp.ko

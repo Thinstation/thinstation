@@ -1,0 +1,58 @@
+#systemd 30
+
+cat << EOF >> /etc/passwd
+systemd-journal-gateway:x:191:191::/:/usr/bin/nologin
+systemd-timesync:x:192:192::/:/usr/bin/nologin
+systemd-network:x:193:193::/:/usr/bin/nologin
+systemd-bus-proxy:x:194:194::/:/usr/bin/nologin
+systemd-resolve:x:195:195::/:/usr/bin/nologin
+systemd-coredump:x:997:997::/:/sbin/nologin
+systemd-journal-remote:x:998:998::/:/sbin/nologin
+systemd-journal-upload:x:999:999::/:/sbin/nologin
+EOF
+
+cat << EOF >> /etc/group
+systemd-journal:x:190:
+systemd-journal-gateway:x:191:
+systemd-timesync:x:192:
+systemd-network:x:193:
+systemd-bus-proxy:x:194:
+systemd-resolve:x:195:
+systemd-coredump:x:997:
+systemd-journal-remote:x:998:
+systemd-journal-upload:x:999:
+EOF
+
+mkdir -p /var/log/journal/remote/
+chmod g+s /var/log/journal/remote/
+chown -R systemd-journal-remote:systemd-journal-remote /var/log/journal/remote/
+
+mkdir -p /var/lib/systemd/journal-upload
+chown -R systemd-journal-upload:systemd-journal-upload /var/lib/systemd/journal-upload
+
+mkdir -p /var/log/journal/
+chgrp systemd-journal /var/log/journal/
+chmod g+s /var/log/journal/
+
+rm -f /{init,linuxrc,sbin/init}
+ln -sf /lib/systemd/systemd /init
+ln -sf /lib/systemd/systemd /linuxrc
+ln -sf /lib/systemd/systemd /sbin/init}
+
+# Totally expunge all knowledge of plymouth, so if we can't splash, at least we don't make lots of noise
+if [ "`readlink $( which grep )`" == "/bin/busybox" ]; then
+	rarg="-r"
+else
+	rarg="-R"
+fi
+for plyterm in	systemd-ask-password-plymouth.service \
+		systemd-ask-password-plymouth.path \
+		plymouth-quit-wait.service \
+		plymouth-quit.service \
+		plymouth-start.service \
+		syslog.target \
+		systemd-journal-upload.service
+		do 
+			 grep -I $rarg /lib/systemd/system/* -e $plyterm |cut -d ":" -f1 |xargs sed -i -e "s/$plyterm//g" > /dev/null 2>&1
+		done
+

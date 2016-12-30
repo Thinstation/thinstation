@@ -1,0 +1,65 @@
+# $Id$
+# Maintainer: Maxime Gauduin <alucryd@archlinux.org>
+# Contributor: Morfeo <morfeo89@hotmail.it>
+
+name=lightdm
+version=1.18.3
+release=1
+source=("https://launchpad.net/lightdm/${version%.*}/${version}/+download/lightdm-${version}.tar.xz"
+        'lightdm.service'
+        'lightdm.tmpfiles'
+        'lightdm.pam'
+        'lightdm-autologin.pam'
+        'lightdm.rules'
+        'lightdm-default-config.patch'
+        'Xsession')
+
+build() {
+  cd lightdm-${version}
+
+  patch -Np1 -i ../lightdm-default-config.patch
+
+  export MOC4='moc'
+  export MOC5='moc-qt5'
+
+  ./configure \
+    --prefix='/usr' \
+    --libexecdir='/usr/lib/lightdm' \
+    --localstatedir='/var' \
+    --sbindir='/usr/bin' \
+    --sysconfdir='/etc' \
+    --with-greeter-user='lightdm' \
+    --with-greeter-session='lightdm-gtk-greeter' \
+    --disable-static \
+    --disable-tests
+  make
+
+  make DESTDIR="${PKG}" install
+  install -m 755 ../Xsession "${PKG}"/etc/lightdm/Xsession
+
+  install -dm 755 "${PKG}"/var/cache/lightdm
+  install -dm 770 "${PKG}"/var/lib/lightdm{,-data}
+  install -dm 711 "${PKG}"/var/log/lightdm
+  chmod +t "${PKG}"/var/{cache/lightdm,lib/lightdm{,-data}}
+  chown 620:620 -R "${PKG}"/var/lib/lightdm{,-data}
+  chgrp 620 "${PKG}"/var/log/lightdm
+
+  # PAM
+  install -m 644 ../lightdm.pam "${PKG}"/etc/pam.d/lightdm
+  install -m 644 ../lightdm-autologin.pam "${PKG}"/etc/pam.d/lightdm-autologin
+
+  # PolicyKit
+  install -dm 750 -g 102 "${PKG}"/usr/share/polkit-1/rules.d
+  install -m 644 ../lightdm.rules "${PKG}"/usr/share/polkit-1/rules.d/lightdm.rules
+
+  # Systemd
+  install -dm 755 "${PKG}"/usr/lib/{systemd/system,tmpfiles.d}
+  install -m 644 ../lightdm.service "${PKG}"/usr/lib/systemd/system/lightdm.service
+  install -m 644 ../lightdm.tmpfiles "${PKG}"/usr/lib/tmpfiles.d/lightdm.conf
+
+  make DESTDIR="${PKG}" -C liblightdm-gobject install
+  make DESTDIR="${PKG}" -C liblightdm-qt install
+
+  make DESTDIR="${PKG}" -C liblightdm-gobject install
+  make DESTDIR="${PKG}" -C liblightdm-qt install
+}

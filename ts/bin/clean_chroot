@@ -135,6 +135,11 @@ stage1()
 
 stage2()
 {
+	for mount in dev/pts dev proc sys mnt tmp; do
+		while mountpoint $mount > /dev/null 2>&1; do
+			umount $mount
+		done
+	done
 	for trash in BUILD.* autodl usr lib64 run www share home man bin boot dev etc lib mnt opt proc root sbin sys tmp var label ts/components; do
 		if [ -e $trash ] || [ -h $trash ]; then
 			rm -rf $ROOT/$trash
