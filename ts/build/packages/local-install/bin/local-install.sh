@@ -436,30 +436,31 @@ notifyServer()
 
 
 case "$1" in
-    
+
     version-local)
         getVersionLocal
     ;;
-    
-    
-    
+
+
+
     version-remote)
         getVersionRemote
     ;;
-    
-    
-    
+
+
+
     mount)
         mountPartitions '/mnt/local-install/part1' '/mnt/local-install/part2'
     ;;
 
 
+
     notify-server)
         notifyServer
     ;;
-    
-    
-    
+
+
+
     upgrade)
         versionLocal=$(getVersionLocal)
         versionRemote=$(getVersionRemote)
@@ -478,7 +479,7 @@ case "$1" in
             logger --stderr --tag $LOGGERTAG "upgrade: No need to upgrade, local version is $versionLocal and remote version is $versionRemote"
             exit 3
         fi
-    
+        
         downloadImage $(getDeviceForMountPoint '/mnt/local-install/part1') '/mnt/local-install/part1' '/mnt/local-install/part2'
         
         # If download went well, run the after upgrade script
@@ -507,31 +508,28 @@ case "$1" in
         
         downloadImage $(getDeviceForMountPoint '/mnt/local-install/part1') '/mnt/local-install/part1' '/mnt/local-install/part2'
     ;;
-    
-    
-        
+
+
+
     install)
         #DISKS_COUNT=$(ls -1 /dev/sd? /dev/mmcblk? | grep -v ^1 | wc -l)
         DISKS_COUNT=$(find /dev/ | grep -E "$deviceRegEx" | wc -l)
 
         if [ $DISKS_COUNT -eq 1 ]; then
             # We only have one disc so install to that one.
-			#INSTALL_DISK=$(ls -1 /dev/sd? /dev/mmcblk?)
-			INSTALL_DISK=$(find /dev/ | grep -E "$deviceRegEx")
-        
-		else
-			# There are multiple disks, ask the user.
-			
+            INSTALL_DISK=$(find /dev/ | grep -E "$deviceRegEx")
+
+        else
+            # There are multiple disks, ask the user.
+
             echo "Select which device to install Thinstation on:"
             # Print out a list of all disks available for installation
-            #echo "$(ls -1 /dev/sd? /dev/mmcblk?)"
-            #DISKS=$(ls -1 /dev/sd? /dev/mmcblk?)
             DISKS=$(find /dev/ | grep -E "$deviceRegEx")
-            
+
             for DISK in ${DISKS}; do
                 echo "    ${DISK}"
             done
-            
+
             echo ""
             echo "If you need more information about the devices use the commands lsblk or blkid"
             echo ""
@@ -539,16 +537,16 @@ case "$1" in
             printf "Install on device: "
 
             read ANSWER
-            
+
             if [ -e "$ANSWER" ]; then
                 INSTALL_DISK="$ANSWER"
             else
                 echo "The device path you entered does not exist! Type exactly as in the list above."
                 exit 0
             fi
-            
+
         fi
-        
+
 
         echo ""
         echo ""
@@ -569,7 +567,7 @@ case "$1" in
         #echo "INSTALL_DISK = '$INSTALL_DISK'"
         #echo "INSTALL_DISK_NAME = '$INSTALL_DISK_NAME'"
 
-        
+
         # Unmont all partitions
         umount $INSTALL_DISK*
 
@@ -580,26 +578,26 @@ case "$1" in
         #PARTITIONSCOUNT=$((${#arr[@]} / 4))
 
         #echo $PARTITIONSCOUNT
-        
+
         #PARTNUM=1
-		#while [ $PARTNUM -le $PARTITIONSCOUNT ]; do
+        #while [ $PARTNUM -le $PARTITIONSCOUNT ]; do
         #    #parted -s /dev/sda rm ${PARTNUM}
         #    #parted -s $INSTALL_DISK rm ${PARTNUM} > /dev/null 2>&1
         #    echo "deleting partition $PARTNUM on $INSTALL_DISK"
         #    parted -s $INSTALL_DISK rm ${PARTNUM} > /dev/null 2>&1
         #
-		#	let PARTNUM=PARTNUM+1
+        #    let PARTNUM=PARTNUM+1
         #done
 
-        
+
         # Delete all partitions 1-40
         #PARTNUM=1
-		#while [ $PARTNUM -le 40 ]; do
+        #while [ $PARTNUM -le 40 ]; do
         #    #parted -s /dev/sda rm ${PARTNUM}
         #    #parted -s $INSTALL_DISK rm ${PARTNUM} > /dev/null 2>&1
         #    parted -s $INSTALL_DISK rm ${PARTNUM} > /dev/null 2>&1
         #
-		#	let PARTNUM=PARTNUM+1
+        #    let PARTNUM=PARTNUM+1
         #done
 
 
@@ -609,7 +607,7 @@ case "$1" in
             parted -s $INSTALL_DISK rm ${PARTNUM} > /dev/null 2>&1
         done
 
-        
+
         if [ "$(firmwareType)" = "UEFI" ]; then
             echo "This computer uses UEFI firmware, setting up gpt partitions for EFI boot"
             parted -s ${INSTALL_DISK} mklabel gpt
@@ -650,11 +648,11 @@ case "$1" in
         # Format the new partitions
         mkfs.vfat ${INSTALL_PARTITION_1_DEVICE}
         mkfs.ext4 ${INSTALL_PARTITION_2_DEVICE}
-		
+
         # Get the mount point for the partitions
         #INSTALL_PARTITION_1_MOUNT=$(cat /proc/mounts | grep -e ${INSTALL_PARTITION_1_DEVICE} | cut -d' ' -f2)
         #INSTALL_PARTITION_2_MOUNT=$(cat /proc/mounts | grep -e ${INSTALL_PARTITION_2_DEVICE} | cut -d' ' -f2)
-		
+
         mkdir -p /mnt/local-install/part1
         mkdir -p /mnt/local-install/part2
         mount ${INSTALL_PARTITION_1_DEVICE} /mnt/local-install/part1
@@ -668,109 +666,12 @@ case "$1" in
         umount /mnt/local-install/part1
         umount /mnt/local-install/part2
         rm -rf /mnt/local-install
-
-
-exit 0
-        
-        while [ -z "$INSTALL_PARTITION_1_MOUNT" ]; do
-            echo 'Waiting for partition '${INSTALL_PARTITION_1_DEVICE}' to be mounted...'
-            sleep 1
-            INSTALL_PARTITION_1_MOUNT=$(getMountPointForDevice ${INSTALL_PARTITION_1_DEVICE})
-        done
-
-        #while [ -z "$INSTALL_PARTITION_2_MOUNT" ]; do
-        #	echo 'Waiting for partition '${INSTALL_PARTITION_2_DEVICE}' to be mounted...'
-        #	sleep 1
-        #	INSTALL_PARTITION_2_MOUNT=$(getMountPointForDevice ${INSTALL_PARTITION_2_DEVICE})
-        #done
-        #INSTALL_PARTITION_1_MOUNT=$(getMountPointForDevice ${INSTALL_PARTITION_1_DEVICE}99)
-        #
-        # ext4 apparently don't show up in /proc/mounts so we manipulate it manually by replacing the last character from 1 to 2
-        #INSTALL_PARTITION_2_MOUNT=${INSTALL_PARTITION_1_MOUNT::${#INSTALL_PARTITION_1_MOUNT}-1}
-
-        # Get length of string and -1
-        strLength=${#INSTALL_PARTITION_1_MOUNT}
-        let strLength=strLength-1
-		
-        INSTALL_PARTITION_2_MOUNT="${INSTALL_PARTITION_1_MOUNT:0:$strLength}2"
-	
-        echo "install part mountpoint1 '$INSTALL_PARTITION_1_MOUNT'"
-        echo "install part mountpoint2 '$INSTALL_PARTITION_2_MOUNT'"
-
-
-        # Download the Thinstation image
-        downloadImage $INSTALL_PARTITION_1_DEVICE $INSTALL_PARTITION_1_MOUNT $INSTALL_PARTITION_2_MOUNT
-		
-    
-    ;;
-    
-    
-    old-install)
-        # Disk to install TS on.
-
-        echo "This script will overwrite any data on the local disk (sda) and install TS."
-        echo "Write YES to continue and lose all local data."
-
-        read ANSWER
-
-        if [ "${ANSWER}" != "YES" ]; then
-            echo "Exiting"
-            exit 0
-        fi
-
-        #for MP in /mnt/disc/sda/*; do
-        #    umount ${MP}
-        #done 
-        umount $DISK_INSTALL
-
-        PARTS=$(awk '$4 ~ /^sda[0-9]/ { gsub(/sda/,"",$4);print $4 }' /proc/partitions)
-
-        for PARTNUM in ${PARTS}; do
-            parted -s /dev/sda rm ${PARTNUM}
-        done
-
-        # Partition the disk and create filesystems.
-        parted -s /dev/sda mklabel msdos
-        parted -s /dev/sda mkpart primary fat32 "2048s 2099199s"
-        parted -s /dev/sda set 1 boot on
-        mkfs.vfat /dev/sda1
-
-        parted -s /dev/sda mkpart primary ext4 "2099200s 2304000s"
-        mkfs.ext4 /dev/sda2
-
-        # Install the image.
-        echo "Downloading syslinux image."
-        #wget -nv -nd -N --no-parent --reject "index.htm*,web.config" -P ${TMP_DIR} -r -l 1 ${SYSLINUX_URL}
-        wget --no-verbose -P ${TMP_DIR} --no-host-directories --cut-dirs=1 --no-parent --recursive --timestamping --reject "index.htm*,web.config" ${SYSLINUX_URL}
-
-        if [ ${?} -eq 0 ]; then
-            cp -R ${TMP_DIR}/* /mnt/disc/sda/part1
-            sync
-            chmod 755 ${TMP_DIR}/boot/syslinux/syslinux
-            ${TMP_DIR}/boot/syslinux/syslinux /dev/sda1
-
-            #create the thinstation.profile directory and thinstation.conf.user file
-            # (oterwise the boot-process takes some extra time if the file doesn't exist)
-            mkdir -p /mnt/disc/sda/part2/thinstation.profile
-            touch /mnt/disc/sda/part2/thinstation.profile/thinstation.conf.user
-            echo ""
-            echo ""
-            #echo "Installation complete. You must reboot if you want to use the new version now."
-            logger --stderr --tag $LOGGERTAG "Installation complete. You must reboot if you want to use the new version now."
-            echo ""
-        else
-            #echo "Failed to download syslinux over http."
-            logger --stderr --tag $LOGGERTAG "Failed to download syslinux over http from ${SYSLINUX_URL}"
-            exit 1
-        fi
-
-        rm -rf ${TMP_DIR}/*
     ;;
 
 
 
     *)
-        echo "Usage: $0 {install|old-install|version-local|version-remote|mount|notify-server|upgrade|upgrade-force}"
+        echo "Usage: $0 {install|version-local|version-remote|mount|notify-server|upgrade|upgrade-force}"
         exit 1
     ;;
 esac
