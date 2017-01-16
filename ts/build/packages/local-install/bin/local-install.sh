@@ -1,4 +1,6 @@
 #!/bin/bash
+# Description: Installs the Thinstation image to the local computer with a central version management for the image on a server.
+# Created: Marcus Eyre (marcus at eyre dot se), original script in 2012 but in this form January 2017.
 
 . /etc/thinstation.env
 . $TS_GLOBAL
