@@ -1,0 +1,10 @@
+#! /bin/sh
+
+. `dirname $0`/common
+
+if ! pkg_initialized $PACKAGE; then
+	pkg_set_init_flag $PACKAGE
+	echo "0  * * * * /bin/checklogs" >> /tmp/crontab
+	set | grep CRON_JOB | cut -d"'" -f2 >> /tmp/crontab
+	crontab /tmp/crontab
+fi

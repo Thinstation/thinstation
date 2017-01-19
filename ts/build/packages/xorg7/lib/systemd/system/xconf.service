@@ -1,0 +1,17 @@
+[Unit]
+Description=Configure Thinstation Xorg Settings
+DefaultDependencies=no
+Conflicts=shutdown.target
+After=session.service
+Before=session-setup.service
+ConditionPathIsReadWrite=/etc
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+EnvironmentFile=/etc/thinstation.env
+ExecStart=/lib/thinstation/system/xconf
+SyslogIdentifier=thinstation
+
+[Install]
+WantedBy=multi-user.target

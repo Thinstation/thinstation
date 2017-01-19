@@ -1,0 +1,206 @@
+#!/bin/bash
+#
+# Description: Customizes NetworkManager by creating system connection 
+# entries. Uses thinstation.conf variables to control creation of 
+# system-connections (variables are documented in networkmanager/build/conf).
+#
+# Current limitations: Ethernet-specific.
+
+# exit if anything fails
+set -e
+
+# appends IPV4 configuration to connection definition file
+# $SCFILE (which must be set by caller)
+#
+append_ipv4_connection_config() {
+   
+   echo "Appending IPV4 connection configuration..."
+
+   ## translate IPv4-related TS_GLOBALs into SCFILE modifications
+   [ -n "$NET_IPV4_DNS1" ] && IPV4_DNS_OPT="dns=$NET_IPV4_DNS1;$NET_IPV4_DNS2"
+   [ -n "$NET_IPV4_DNS" ] && IPV4_DNS_OPT="dns=$NET_IPV4_DNS"
+   [ -n "$NET_IPV4_DNS_SEARCH" ] \
+       && IPV4_DNS_SEARCH_OPT="dns-search=$NET_IPV4_DNS_SEARCH;"
+
+   # always write the category and method, adding DNS if any specified 
+   echo "[ipv4]" >> $SCFILE
+
+   echo "method=$NET_IPV4_MODE" >> $SCFILE
+
+   [ -n "$IPV4_DNS_OPT" ] && echo "$IPV4_DNS_OPT" >> $SCFILE
+   [ -n "$IPV4_DNS_SEARCH_OPT" ] && \
+       echo "$IPV4_DNS_SEARCH_OPT" >> $SCFILE       
+
+   # add address info if method is "manual"
+   if [ "$NET_IPV4_MODE" == "manual" ]; then
+      GW=";$NET_IPV4_GATEWAY"
+      IPADDR=${NET_IPV4_ADDRESS%%/*}
+      PREFIX=${NET_IPV4_ADDRESS##*/}
+      IPV4_ADDRESSES="addresses1=$IPADDR;$PREFIX$GW"
+      echo $IPV4_ADDRESSES >> $SCFILE
+
+      x=2
+      while [ -n "`eval echo '$NET_IPV4_ADDRESS'$x`" ]; do
+         GW=";`eval echo '$NET_IPV4_GATEWAY'$x`"
+         IPTMP=`eval echo '$NET_IPV4_ADDRESS'$x`
+         IPADDR=${IPTMP%%/*}
+         PREFIX=${IPTMP##*/}
+         IPV4_ADDRESSES="addresses$x=$IPADDR;$PREFIX$GW"
+         echo $IPV4_ADDRESSES >> $SCFILE
+         let x=x+1
+      done
+   fi
+
+   x=1;
+   while [ -n "`eval echo '$NET_IPV4_ROUTE'$x'_IP'`" ]; do
+      GW="`eval echo '$NET_IPV4_ROUTE'$x'_GW'`"
+      METRIC=`eval echo '$NET_IPV4_ROUTE'$x'_METRIC'`
+      IPTMP=`eval echo '$NET_IPV4_ROUTE'$x'_IP'`
+      IPADDR=${IPTMP%%/*}
+      PREFIX=${IPTMP##*/}
+      if [ -z "$METRIC" ]; then METRIC=0; fi
+      IPV4_ROUTE="routes$x=$IPADDR;$PREFIX;$GW;$METRIC;"
+      echo $IPV4_ROUTE >> $SCFILE
+      let x=x+1
+   done
+
+   echo "Finished appending IPV4 connection configuration."
+}
+
+# appends IPV6 configuration to connection definition file
+# $SCFILE (which must be set by caller)
+#
+append_ipv6_connection_config() {
+   ## translate IPv6-related TS_GLOBALs into SCFILE modifications
+
+   echo "Appending IPV6 connection configuration..."
+
+   [ -n "$NET_IPV6_DNS1" ] && IPV6_DNS_OPT="dns=$NET_IPV6_DNS1;$NET_IPV6_DNS2"
+   [ -n "$NET_IPV6_DNS_SEARCH" ] \
+	&& IPV6_DNS_SEARCH_OPT="dns-search=$NET_IPV6_DNS_SEARCH;"
+
+   # always write the category and method, adding DNS if any specified 
+   echo "[ipv6]" >> $SCFILE
+
+   if [ "$NET_IPV6_MODE" == "disabled" ]; then
+       # "ignore" is used for IPv6, but for consistently we use
+       # "disable" in thinstation.conf for both protocols
+       NET_IPV6_MODE="ignore"
+   fi
+
+   echo "method=$NET_IPV6_MODE" >> $SCFILE
+
+   [ -n "$IPV6_DNS_OPT" ] && echo "$IPV6_DNS_OPT" >> $SCFILE       
+   [ -n "$IPV6_DNS_SEARCH_OPT" ] && \
+       echo "$IPV6_DNS_SEARCH_OPT" >> $SCFILE       
+
+   # add address info if method is "manual"
+   if [ "$NET_IPV6_MODE" == "manual" ]; then
+      GW=";$NET_IPV6_GATEWAY"
+      IPADDR=${NET_IPV6_ADDRESS%%/*}
+      PREFIX=${NET_IPV6_ADDRESS##*/}
+      # NOTE: '/' is used for IPv6 address lines with this version of NM plugin
+      IPV6_ADDRESSES="addresses1=$IPADDR/$PREFIX$GW"
+      echo $IPV6_ADDRESSES >> $SCFILE
+   fi
+
+   echo "Finished appending IPV6 connection configuration."
+}
+
+# appends ethernet configuration to connection definition file
+# $SCFILE (which must be set by caller)
+#
+append_ethernet_connection () {
+   echo "Appending ethernet connection configuration..."
+   conn_name=$1
+
+   # Generated UUID based on host/time
+   UUID=`python -c "import uuid;print str(uuid.uuid1());"`
+
+   cat <<EOF >> $SCFILE
+[connection]
+id=$conn_name
+uuid=$UUID
+type=802-3-ethernet
+autoconnect=true
+timestamp=0
+EOF
+   echo "Finished appending ethernet connection configuration..."
+}
+
+# appends 802.3 ethernet configuration to connection definition file
+# $SCFILE (which must be set by caller)
+#
+append_802_dot_3_ethernet_config() {
+   echo "Appending 802.3 connection configuration..."
+   echo "[802-3-ethernet]" >> $SCFILE
+   # if MTU is set, create a non-empty MTU_OPT for inclusion
+   [ -n "$NET_MTU" ] && echo "mtu=$NET_MTU" >> $SCFILE
+   echo "Finished appending 802.3 connection configuration."
+}
+
+# Creates NetworkManager system-connection file for Ethernet interfaces in 
+# $SCFILE (which must be set by caller)
+#
+create_ethernet_system_connection() {
+
+   if [ -n "$NET_MTU" ] || \
+      [ "$NET_IPV4_MODE" != "auto" ] || \
+      [ "$NET_IPV6_MODE" != "auto" ]; then
+
+      # Only create a system connection file if either MTU is 
+      # specified or at least one mode is set to "auto". Otherwise
+      # we fall back to default NM behavior (i.e. no system connection
+      # file)
+ 
+      echo "Creating ethernet system connection"
+
+      # create system-connection file if at least one method is non-auto 
+      # (since auto is the default) or if MTU is specified
+
+      conn_name="ethernet"
+      echo "#$conn_name connection" > $SCFILE
+      append_ethernet_connection "$conn_name"
+      append_802_dot_3_ethernet_config
+
+      # Append IPv4 configuration to system-connection file
+      append_ipv4_connection_config
+
+      # Append IPv6 configuration to system-connection file
+      append_ipv6_connection_config
+
+      # set file perms for SCFILE
+      chmod 600 $SCFILE
+      chown root:root $SCFILE
+
+      echo "Finished creating ethernet system connection"
+   else
+      echo "Skipping system connection creation - no thinstation.conf customizations present"
+   fi
+}
+
+## MAIN
+
+# system-connections directory path
+SCDIR="/etc/NetworkManager/system-connections"
+
+# File to create in system-connections dir
+SCFILE="$SCDIR/ethernet"
+
+# Source TS variables 
+. `dirname $0`/common
+
+# Assume that if not specified, an interface will auto-configure
+# (we do this here to avoid creating a system-configuration file
+# if both modes are not specified in thinstation.conf (i.e. 
+# default NetworkManager behavior) 
+: ${NET_IPV4_MODE:="auto"}
+: ${NET_IPV6_MODE:="auto"}
+
+# Correct a likely data entry mistake
+[ "$NET_IPV4_MODE" == "disable" ] && NET_IPV4_MODE="disabled";
+[ "$NET_IPV6_MODE" == "disable" ] && NET_IPV6_MODE="disabled";
+
+create_ethernet_system_connection
+
+echo "Finished creating system connections for NetworkManager."

@@ -1,5 +1,5 @@
 #rngd 50
 
-systemctl enable rngd -q > /dev/null 2>&1
-
-
+if is_disabled $RNGD ; then
+  rm /lib/systemd/system/multi-user.target.wants/rngd.service
+fi

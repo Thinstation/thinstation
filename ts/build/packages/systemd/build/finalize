@@ -34,25 +34,5 @@ mkdir -p /var/log/journal/
 chgrp systemd-journal /var/log/journal/
 chmod g+s /var/log/journal/
 
-rm -f /{init,linuxrc,sbin/init}
-ln -sf /lib/systemd/systemd /init
-ln -sf /lib/systemd/systemd /linuxrc
-ln -sf /lib/systemd/systemd /sbin/init}
-
-# Totally expunge all knowledge of plymouth, so if we can't splash, at least we don't make lots of noise
-if [ "`readlink $( which grep )`" == "/bin/busybox" ]; then
-	rarg="-r"
-else
-	rarg="-R"
-fi
-for plyterm in	systemd-ask-password-plymouth.service \
-		systemd-ask-password-plymouth.path \
-		plymouth-quit-wait.service \
-		plymouth-quit.service \
-		plymouth-start.service \
-		syslog.target \
-		systemd-journal-upload.service
-		do 
-			 grep -I $rarg /lib/systemd/system/* -e $plyterm |cut -d ":" -f1 |xargs sed -i -e "s/$plyterm//g" > /dev/null 2>&1
-		done
+systemd-machine-id-setup
 

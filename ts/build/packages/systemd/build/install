@@ -2,30 +2,28 @@
 
 export PACKAGE=systemd
 export PORTS="$PACKAGE"
-#export DROP_DIRS="lib/systemd/system"
-export DROP_FILES="ldconfig.service systemd-sysv-install systemd-sysv-generator systemd-journal-upload.service"
-#	99-systemd.rules \
-#			libgudev-1.0.so \
-#			libgudev-1.0.so.0 \
-#			libgudev-1.0.so.0.2.0 \
-#			libudev.so \
-#			accelerometer"
+export DROP_FILES="systemd-resolve systemd-resolved systemd-resolved.service
+       dbus-org.freedesktop.resolve1.service
+       org.freedesktop.resolve1.busname org.freedesktop.resolve1.service
+       resolved.conf systemd-resolved.service org.freedesktop.resolve1.conf
+       networkctl systemd-networkd systemd-networkd-wait-online
+       org.freedesktop.network1.busname systemd-networkd.service
+       dbus-org.freedesktop.network1.service systemd-networkd.socket
+       systemd-networkd-wait-online.service org.freedesktop.network1.service
+       org.freedesktop.network1.conf getty@tty1.service"
+export DROP_DIRS="lib/zsh lib/systemd/network etc/systemd/network"
+
 repackage -e
-
-echo -e "#!/bin/sh\nexit 0" > packages/systemd/lib/systemd/systemd-sysv-install
-chmod +x packages/systemd/lib/systemd/systemd-sysv-install
-
-#for file in `find packages/systemd/{etc,bin,lib,var} -type f |grep -v udev`; do
-#	rm $file
-#done
-#for link in `find packages/systemd/{etc,bin,lib,var} -type l |grep -v udev`; do
-#	rm $link
-#done
-#find packages/systemd -type d -empty -delete
-
-#ln -sf `readlink packages/systemd/lib/libudev.so.1` packages/systemd/lib/libudev.so.0
-#ln -sf /lib/systemd/systemd packages/systemd/init
-
 returnval=$?
+
+mkdir -p ./packages/$PACKAGE/sbin
+for i in runlevel reboot shutdown poweroff halt telinit; do
+	ln -sf ../bin/systemctl ./packages/$PACKAGE/sbin/$i
+	let returnval=returnval+$?
+done
+for i in init linuxrc sbin/init ; do
+	ln -sf ../lib/systemd/systemd ./packages/$PACKAGE/$i
+	let returnval=returnval+$?
+done
 
 exit $returnval

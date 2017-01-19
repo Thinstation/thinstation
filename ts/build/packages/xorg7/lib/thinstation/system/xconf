@@ -1,0 +1,218 @@
+#! /bin/sh
+
+. `dirname $0`/common
+
+get_options ()
+{
+	tmpfile=/tmp/x_$1
+	tssection=`make_caps $1`
+	for option in 1 2 3 4 5 6 7 8 9; do
+		(eval echo '$X_'$tssection'_OPTION'$option) |
+		while read name value; do
+			if [ -n "$name" ]; then echo -e "\tOption       \"$name\" \"$value\"" >> $tmpfile; fi
+		done
+	done
+}
+
+device_ ()
+{
+	# VNC stuff goes in the device section
+	if [ -s /lib/X11/vnc_device.tpl ]; then
+		VNC_PATH=/lib/X11
+		cat $VNC_PATH/vnc_device.tpl >> /tmp/x_Device
+	fi
+	# The old driver options are really device options, so let's add them in here
+	for option in 1 2 3 4 5 6 7 8 9; do
+		(eval echo '$X_DRIVER_OPTION'$option) |
+		while read name value; do
+			if [ -n "$name" ]; then	echo -e "\tOption       \"$name\" \"$value\""	>> /tmp/x_Device; fi
+		done
+	done
+
+	if [ -n "$X_DRIVER_NAME" ] || [ -n "$X_DRIVER_BUSID" ] || [ -s /tmp/x_Device ]; then
+	CONF=/etc/X11/xorg.conf.d/07-device.conf
+						echo -e "Section \"Device\""			> $CONF
+						echo -e "\tIdentifier   \"Card0\""		>> $CONF
+		if [ -n "$X_DRIVER_NAME" ] && [ -e /lib/xorg/modules/drivers/${X_DRIVER_NAME}_drv.so ]; then
+						echo -e "\tDriver       \"$X_DRIVER_NAME\""	>> $CONF; fi
+		if [ -n "$X_BUSID" ]; then	echo -e "\tBusID        \"$X_DRIVER_BUSID\""	>> $CONF; fi
+		if [ -s /tmp/x_Device ]; then	cat /tmp/x_Device				>> $CONF; fi
+						echo -e "EndSection"				>> $CONF
+	fi
+}
+
+keyboard_ ()
+{
+	if [ -n "$KEYBOARD_DRIVER" ] || [ -n "$KEYBOARD_DEVICE" ]; then
+	CONF=/etc/X11/xorg.conf.d/05-keyboard.conf
+							echo -e "Section \"InputDevice\""			> $CONF
+							echo -e "\tIdentifier  \"Keyboard0\""			>> $CONF
+		if [ -n "$KEYBOARD_DRIVER" ]; then	echo -e "\tDriver      \"$KEYBOARD_DRIVER\""		>> $CONF; fi
+		if [ -n "$KEYBOARD_DEVICE" ]; then	echo -e "\tOption      \"Device\" \"$KEYBOARD_DEVICE\""	>> $CONF; fi
+							echo -e "EndSection"					>> $CONF
+	fi
+	if [ -n "$XKEYBOARD" ]; then
+	CONF=/etc/X11/xorg.conf.d/00-keyboard.conf
+							echo -e "Section \"InputClass\""				> $CONF
+							echo -e "\tIdentifier	\"Keyboard Defaults\""			>> $CONF
+							echo -e "\tMatchIsKeyboard	 \"on\""			>> $CONF
+							echo -e "\tOption \"XkbLayout\"  \"$XKEYBOARD\""		>> $CONF
+		if [ -n "$XKBMODEL" ]; then		echo -e "\tOption \"XkbModel\"   \"$XKBMODEL\""			>> $CONF; fi
+		if [ -n "$XKBVARIANT" ]; then		echo -e "\tOption \"XkbVariant\" \"$XKBVARIANT\""		>> $CONF; fi
+		if [ -n "$XKBOPTIONS" ]; then		echo -e "\tOption \"XkbOptions\" \"$XKBOPTIONS\""		>> $CONF; fi
+		if [ -n "$KEYBOARD_AUTOREPEAT" ]; then	echo -e "\tOption \"AutoRepeat\" \"$KEYBOARD_AUTOREPEAT\""	>> $CONF; fi
+		if [ -s /tmp/x_Keyboard ]; then		cat /tmp/x_Keyboard						>> $CONF; fi
+							echo -e "EndSection"						>> $CONF
+	fi
+}
+
+mouse_ ()
+{
+	if [ -n "$MOUSE_DRIVER" ] || [ -n "$MOUSE_DEVICE" ] || [ -n "$MOUSE_PROTOCOL" ] || [ -n "$MOUSE_ZAXISMAPPING" ]; then
+	CONF=/etc/X11/xorg.conf.d/05-mouse.conf
+							echo -e "Section \"InputDevice\""					> $CONF
+							echo -e "\tIdentifier   \"Mouse0\""					>> $CONF
+		if [ -n "$MOUSE_DRIVER" ]; then		echo -e "\tDriver   	\"$MOUSE_DRIVER\""				>> $CONF; fi
+		if [ -n "$MOUSE_PROTOCOL" ]; then	echo -e "\tOption       \"Protocol\"     \"$MOUSE_PROTOCOL\""		>> $CONF; fi
+		if [ -n "$MOUSE_DEVICE" ]; then		echo -e "\tOption       \"Device\"       \"$MOUSE_DEVICE\""		>> $CONF; fi
+		if [ -n "$MOUSE_ZAXISMAPPING" ]; then	echo -e "\tOption       \"ZAxisMapping\" \"$MOUSE_ZAXISMAPPING\""	>> $CONF; fi
+							echo -e "EndSection"							>> $CONF
+	fi
+	if [ -n "$MOUSE_RESOLUTION" ] ; then 		echo -e "\tOption       \"Resolution\"   \"$MOUSE_RESOLUTION\"" >> /tmp/x_Mouse ; fi
+	if [ -s /tmp/x_Mouse ]; then
+	CONF=/etc/X11/xorg.conf.d/01-mouse.conf
+							echo -e "Section \"InputClass\""		> $CONF
+							echo -e "\tIdentifier	\"Mouse Defaults\""	>> $CONF
+							echo -e "\tMatchIsPointer	\"on\""		>> $CONF
+							cat /tmp/x_Mouse				>> $CONF
+							echo -e "EndSection"				>> $CONF
+	fi
+}
+
+monitor_ ()
+{
+	# Modelines go in the Monitor section
+	if [ -n "$X_MONITOR_MODELINE" ]; then
+							echo -e "\tModeLine $X_MONITOR_MODELINE"	>> /tmp/x_Monitor
+	fi
+	for option in 1 2 3 4 5 6 7 8 9; do
+		ml=`eval echo '$X_MONITOR_MODELINE'$option`
+		if [ -n "$ml" ] ; then 			echo -e "\tModeLine $ml"			>> /tmp/x_Monitor; fi
+	done
+	if [ -n "$SCREEN_HORIZSYNC" ]; then SCREEN_HORIZSYNC=`echo "$SCREEN_HORIZSYNC" |grep -o -r -e '[0-9]*-[0-9]*' |head -n1`; fi
+	if [ -n "$SCREEN_VERTREFRESH" ]; then SCREEN_VERTREFRESH=`echo "$SCREEN_VERTREFRESH" |grep -o -r -e '[0-9]*-[0-9]*' |head -n1`; fi
+	if [ -s /tmp/x_Monitor ] || [ -n "$SCREEN_HORIZSYNC" ] || [ -n "$SCREEN_VERTREFRESH" ]; then
+	CONF=/etc/X11/xorg.conf.d/08-monitor.conf
+							echo -e "Section \"Monitor\""			> $CONF
+							echo -e "\tIdentifier \"Monitor0\""		>> $CONF
+							echo -e "\tVendorName \"Monitor Name\""		>> $CONF
+							echo -e "\tModelName  \"Monitor Model\""	>> $CONF
+		if [ -n "$SCREEN_HORIZSYNC" ]; then	echo -e "\tHorizSync   $SCREEN_HORIZSYNC"	>> $CONF; fi
+		if [ -n "$SCREEN_VERTREFRESH" ]; then	echo -e "\tVertRefresh $SCREEN_VERTREFRESH"	>> $CONF; fi
+		if [ -s /tmp/x_Monitor ]; then		cat /tmp/x_Monitor				>> $CONF; fi
+							echo -e "EndSection"				>> $CONF
+	fi
+}
+
+serverflags_ ()
+{
+	# ServerFlags (allow for older settings)
+	CONF=/tmp/x_ServerFlags
+	if [ -s /tmp/x_ServerFlags ]; then
+	CONF=/etc/X11/xorg.conf.d/09-serverflags.conf
+		echo -e "Section \"ServerFlags\""	> $CONF
+		cat /tmp/x_ServerFlags			>> $CONF
+		echo -e "EndSection"			>> $CONF
+	fi
+}
+
+screen_ ()
+{
+	if [ -n "$SCREEN_RESOLUTION" ] \
+	|| [ -e /etc/X11/xorg.conf.d/10-serverlayout.conf ] \
+	|| [ -e /etc/X11/xorg.conf.d/08-monitor.conf ] \
+	|| [ -e /etc/X11/xorg.conf.d/60-fonts.conf ]; then
+		CONF=/etc/X11/xorg.conf.d/12-screen.conf
+		for mode in `echo $SCREEN_RESOLUTION |grep -o -e '[0-9]*x[0-9]*'`; do
+			MODES="$MODES\"$mode\" "
+		done
+					echo -e "Section \"Screen\""		> $CONF
+					echo -e "\tIdentifier \"Screen0\""	>> $CONF
+					echo -e "\tDevice     \"Card0\""	>> $CONF
+					echo -e "\tMonitor    \"Monitor0\""	>> $CONF
+		for DEPTH in 1 4 8 15 16 24; do
+					echo -e "\tSubSection \"Display\""	>> $CONF
+					echo -e "\t\tViewport   0 0"		>> $CONF
+		if [ -n "$MODES" ];then echo -e "\t\tModes      $MODES"		>> $CONF; fi
+					echo -e "\t\tDepth     $DEPTH"		>> $CONF
+					echo -e "\tEndSubSection"		>> $CONF
+		done
+					echo -e "EndSection"			>> $CONF
+	fi
+}
+
+dri_ ()
+{
+	CONF=/etc/X11/xorg.conf.d/15-dri.conf
+	echo -e "Section \"Dri\""	> $CONF
+	echo -e "\tMode\t0660"		>> $CONF
+	echo -e "EndSection"		>> $CONF
+}
+
+serverlayout_ ()
+{
+	CONF=/tmp/x_ServerLayout
+        if [ -n "$SCREEN_BLANK_TIME" ]; then    echo -e "\tOption \"BlankTime\"    \"$SCREEN_BLANK_TIME\""      >> $CONF; fi
+        if [ -n "$SCREEN_STANDBY_TIME" ]; then  echo -e "\tOption \"StandbyTime\"  \"$SCREEN_STANDBY_TIME\""    >> $CONF; fi
+        if [ -n "$SCREEN_SUSPEND_TIME" ]; then  echo -e "\tOption \"SuspendTime\"  \"$SCREEN_SUSPEND_TIME\""    >> $CONF; fi
+        if [ -n "$SCREEN_OFF_TIME" ]; then      echo -e "\tOption \"OffTime\"      \"$SCREEN_OFF_TIME\""        >> $CONF; fi
+        if [ -n "$DONT_VT_SWITCH_STATE" ]; then echo -e "\tOption \"DontVTSwitch\" \"$DONT_VT_SWITCH_STATE\""   >> $CONF; fi
+        if [ -n "$DONT_ZAP_STATE" ]; then       echo -e "\tOption \"DontZap\"      \"$DONT_ZAP_STATE\""         >> $CONF; fi
+	if [ -s /tmp/x_ServerLayout ] || [ -e $VNC_PATH/vnc_input.tpl ]; then
+	CONF=/etc/X11/xorg.conf.d/10-serverlayout.conf
+							echo -e "Section \"ServerLayout\""			> $CONF
+							echo -e "\tIdentifier \"TS Configured\""		>> $CONF
+							echo -e "\tScreen   0\t\"Screen0\" 0 0" 		>> $CONF
+		if [ -s $VNC_PATH/vnc_input.tpl ]; then	cat $VNC_PATH/vnc_input.tpl				>> $CONF; fi
+		if [ -s /tmp/x_ServerLayout ]; then	cat /tmp/x_ServerLayout					>> $CONF; fi
+							echo -e "EndSection"					>> $CONF
+	fi
+	if [ -s $VNC_PATH/vnc_keyboard.tpl ]; then
+	CONF=/etc/X11/xorg.conf.d/11-vnc.conf
+		cat $VNC_PATH/vnc_keyboard.tpl >> $CONF
+	fi
+}
+
+files_ ()
+{
+#	if [ -n "$SCREEN_X_FONT_SERVER" ]; then
+#		CONF=/etc/X11/xorg.conf.d/60-fonts.conf
+#		echo -e "Section \"Files\""				> $CONF
+#		echo -e "\tFontPath   \"tcp/$SCREEN_X_FONT_SERVER\""	>> $CONF
+#		echo -e "EndSection"					>> $CONF
+#		echo -e "Section \"ServerLayout\""                      >> $CONF
+#		echo -e "\tIdentifier \"TS Configured\""                >> $CONF
+#		echo -e "\tScreen   0\t\"Screen0\" 0 0"                 >> $CONF
+#		echo -e "\tOption         \"Xinerama\" \"0\""           >> $CONF
+#		echo -e "EndSection"                                    >> $CONF
+#	fi
+	return 0
+}
+
+modes_ ()
+{
+    return 0
+}
+
+X_SERVER=Xorg
+	
+if ! pkg_initialized $PACKAGE; then
+	pkg_set_init_flag $PACKAGE
+fi
+
+echo "X_SERVER=$X_SERVER" >> $TS_RUNTIME
+for section in ServerLayout Files Keyboard Mouse Monitor Device Modes ServerFlags Screen Dri; do
+	get_options $section
+	`make_lower $section`_
+	if [ -e /tmp/x_$section ]; then rm /tmp/x_$section; fi
+done
