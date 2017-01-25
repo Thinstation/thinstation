@@ -1,6 +1,7 @@
 [Unit]
-Description=Thistation Session Initialize
-After=profile_setup.service net.profile_setup.service
+Description=Thistation Profile Setup
+Wants=network-online.target
+After=network_files.service network-online.target
 Before=shutdown.target
 ConditionPathIsReadWrite=/etc
 
@@ -8,7 +9,7 @@ ConditionPathIsReadWrite=/etc
 Type=oneshot
 RemainAfterExit=yes
 EnvironmentFile=/etc/thinstation.env
-ExecStart=/lib/thinstation/system/session
+ExecStart=/lib/thinstation/system/profile_setup
 SyslogIdentifier=thinstation
 
 [Install]

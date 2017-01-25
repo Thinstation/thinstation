@@ -1,0 +1,16 @@
+[Unit]
+Description=Thistation Network Files
+Wants=network-online.target
+After=profile_setup.service network-online.target
+Before=net.profile_setup.service
+ConditionPathIsReadWrite=/etc
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+EnvironmentFile=/etc/thinstation.env
+ExecStart=/lib/thinstation/system/network_files
+SyslogIdentifier=thinstation
+
+[Install]
+WantedBy=multi-user.target
