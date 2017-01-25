@@ -104,6 +104,14 @@ downloadImage()
             chmod 755 ${TMP_DIR}/image/boot/syslinux/syslinux
             #${TMP_DIR}/boot/syslinux/syslinux /dev/sda1
             ${TMP_DIR}/image/boot/syslinux/syslinux $1
+        else
+            # UEFI firmware
+            # Since some hardware don't follow EFI standard/best practice but is hardcoded to Microsoft
+            # we do this ugly quick fix in order to ensure that the boot loader is found by the firmware...
+            mkdir -p ${2}/EFI/Microsoft/BOOT
+            cp -R ${TMP_DIR}/image/EFI/BOOT/* ${2}/EFI/Microsoft/BOOT/
+            cp ${TMP_DIR}/image/EFI/BOOT/bootx64.efi ${2}/EFI/Microsoft/BOOT/bootmgfw.efi
+            sync
         fi
 
 
