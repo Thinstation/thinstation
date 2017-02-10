@@ -1,11 +1,9 @@
 #! /bin/sh
 
-. $TS_GLOBAL
+. `dirname $0`/common
 HOME=/etc/skel
 
-case "$1" in
-init)
- if ! pkg_initialized $PACKAGE; then
+if ! pkg_initialized $PACKAGE; then
 	pkg_set_init_flag $PACKAGE
 	if [ -e $HOME/.config/xfce4/helpers.rc ]; then
 		sed -i -e 's/WebBrowser=google-chrome/WebBrowser=firefox/g' $HOME/.config/xfce4/helpers.rc
@@ -44,8 +42,4 @@ init)
 	    cp /etc/TS.default/prefs.tpl $FFPREFS
 	    echo 'user_pref("browser.startup.homepage", "'$FF_HOMEPAGE'");' >>$FFPREFS
 	fi
- fi
-;;
-esac
-
-exit 0
+fi
