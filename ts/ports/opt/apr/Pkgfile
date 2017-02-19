@@ -12,7 +12,8 @@ source=(http://www.apache.org/dist/$name/$name-$version.tar.bz2 \
 build(){
     cd $name-$version
     ./configure --prefix=/usr \
-                --with-installbuilddir=/usr/share/apr-1 
+                --with-installbuilddir=/usr/share/apr-1 \
+		--disable-static
     make 
     make -j1 DESTDIR=$PKG install
 
@@ -23,7 +24,8 @@ build(){
                 --with-berkeley-db=/usr \
                 --with-gdbm=/usr \
                 --without-sqlite3 \
-                --disable-util-dso
+                --disable-util-dso \
+		--disable-static
     make
     make DESTDIR=$PKG install
 

@@ -1,0 +1,9 @@
+[Unit]
+Description=Hardware RNG Entropy Gatherer Daemon Backup
+
+[Service]
+ExecStartPre=/bin/sh -c 'echo "No Hardware Random Number Generator!!!!!!!!\nWhat are we to do?\nI know it\'s wrong, but if we only do it once,\nthat\'s o.k. right?\nSeeding random from urandom. *sigh*"'
+ExecStartPre=/bin/dd if=/dev/urandom of=/tmp/.rng bs=1M count=2
+ExecStart=/sbin/rngd -r /tmp/.rng -f
+SuccessExitStatus=66
+

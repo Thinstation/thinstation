@@ -1,0 +1,104 @@
+#!/bin/sh
+
+. `dirname $0`/common
+
+bb_switch()
+{
+	# Compensate for NVidia Optimus hardware. Video mux must be turned OFF
+	# to switch to integrated graphics, and nvidia module must be either
+	# blacklisted or removed. 
+
+	# Unload nvidia module, if present, so bbswitch can be loaded 
+	busybox rmmod -r nvidia  >/dev/null 2>&1
+
+	# Load bbswitch with side-effect of turning off discrete graphics card, 
+	# and enabling integrated card
+	busybox modprobe bbswitch load_state=0 unload_state=1 >/dev/null 2>&1
+	MODPROBE_RC=$?
+
+	if [ $MODPROBE_RC == 0 ] ; then
+		# Optimus hardware. Delete nvidia modules to absolutely prevent 
+		# them from being reloaded (which causes discrete card to be switched 
+		# back on)
+		for module in `find /lib/modules -name 'nvidia*.ko'`; do
+			echo "blacklist `echo $module |cut -d "." -f1`" >> /etc/modprobe.d/blacklist.conf
+		done
+	fi
+	# let udev reload nvidia, if necessary
+}
+
+vesa_mode()
+{
+	if is_enabled $VESAMODE; then
+		for module in radeon vmwgfx nouveau i915 gma500_gfx drm_kms_helper hyperv_fb; do
+			echo "blacklist $module" >> /etc/modprobe.d/blacklist.conf
+		done
+		if [ -e /sys/devices/virtual/vtconsole/vtcon1 ]; then
+			# EFI fb will not work with vesa, so use fbdev
+			echo "X_DRIVER_NAME=fbdev" >> $TS_RUNTIME
+		else
+			echo "X_DRIVER_NAME=vesa" >> $TS_RUNTIME
+		fi
+		return 0
+	fi
+	return 1
+}
+
+vga_quirks()
+{
+	if [ -n "$DEBUG_INIT" ] ; then
+		echo_log "Setting Up Framebuffer"
+	fi
+
+	bb_switch
+	if ! vesa_mode; then
+		# This is very dependent upon full lspci, as busybox lspci needs modules to be in memory,
+		# and at this point, nothing is.
+		if lspci -k |grep -E 'radeon|vmwgfx|nouveau|i915|gma500_gfx|qxl|hyperv_fb' > /dev/null 2>&1; then
+			kms=true
+		fi
+	fi
+	if ! is_enabled $kms; then
+		if [ ! -e /sys/devices/virtual/vtconsole/vtcon1 ]; then
+			if [ -z "$uvesafb" ] || ! is_disabled $uvesafb; then
+				if module_available uvesafb; then
+					busybox modprobe uvesafb > /dev/null 2>&1
+					continue
+				fi
+			fi
+		else
+			# EFI fb will not work with vesa, so use fbdev
+			echo "X_DRIVER_NAME=fbdev" >> $TS_RUNTIME
+		fi
+	fi
+}
+
+udev_filter()
+{
+	if [ -d /lib/udev/filter ]; then
+		if [ -n "$DEBUG_INIT" ] ; then
+			echo_log "Running Udev Filters"
+		fi
+
+        	busybox lspci -mmn | sed -e "s,Class ,," -e "s,\",,g" | cut -d' ' -f 3-4 > /tmp/devices
+        	for filter in /lib/udev/filter/*; do
+                	. $filter /tmp/devices > /dev/null 2>&1
+        	done
+        	rm /tmp/devices
+	fi
+}
+
+run_depmod()
+{
+	if is_enabled $rundepmod; then
+		if [ -n "$DEBUG_INIT" ] ; then
+			echo_log "Running depmod"
+		fi
+
+        	busybox depmod 2>/dev/null
+	fi
+}
+
+vga_quirks
+udev_filter
+run_depmod

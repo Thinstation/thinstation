@@ -1,5 +1,5 @@
 #!/bin/sh
-echo -n "" > /.gitignore
+echo -n "" > /ts/.gitignore
 pidcheck="gitignore pid$$"
 TSWRKNG=/ts/build
 TSWRKNGSED="\/ts\/build"
@@ -15,19 +15,13 @@ for i in /ts/wind_cache/*; do
     fi
     cat $i | grep -v "\.dna" | sed -e "s/rm [-f ]*//" -e "s/\/\//\//g" -e "s/$TSWRKNGSED\/packages//" >> $k/.gitignore
   else
-    cat $i | grep -v "\.dna" | sed -e "s/rm [-f ]*//" -e "s/\/\//\//g" >> /.gitignore
+    cat $i | grep -v "\.dna" | sed -e "s/rm [-f ]*//" -e "s/\/\//\//g" -e "s/\/ts//" >> /ts/.gitignore
   fi
 done
 
-update -c -d -t | sed -e "s/rm [-f ]*//" -e "s/\/\//\//g" >> /.gitignore
-update -c -d -k | sed -e "s/rm [-rf ]*/$TSWRKNGSED\//" -e "s/\/\//\//g" >> /.gitignore
-
-for i in share home man bin boot dev etc include lib lib64 mnt opt proc root sbin sys tmp var ts/components www usr ;
-  do
-  echo "/$i" >> /.gitignore
-done
+update -c -d -t | sed -e "s/rm [-f ]*//" -e "s/\/\//\//g" >> /ts/.gitignore
+update -c -d -k | sed -e "s/rm [-rf ]*/$TSWRKNGSED\//" -e "s/\/\//\//g" >> /ts/.gitignore
 
 for i in build.conf thinstation.conf background*.jpg background*.svg utils/tools/splash/lps thinstation.conf.sample tmp-tree packages/zcustom; do
-  echo "ts/build/$i" >> /.gitignore
+  echo "$i" >> /ts/.gitignore
 done
-echo "/build" >> /.gitignore

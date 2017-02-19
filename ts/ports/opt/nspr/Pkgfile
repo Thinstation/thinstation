@@ -12,7 +12,8 @@ build() {
     local NSPR_LIBS NSPR_CFLAGS NSPR_VERSION
 
     cd $name-$version/nspr
-	sed -ri 's#^(RELEASE_BINS =).*#\1#' pr/src/misc/Makefile.in
+    sed -ri 's#^(RELEASE_BINS =).*#\1#' pr/src/misc/Makefile.in
+    sed -i 's#$(LIBRARY) ##' config/rules.mk
 
     ./configure \
         --prefix=/usr \

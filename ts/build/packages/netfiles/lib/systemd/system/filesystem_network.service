@@ -1,0 +1,15 @@
+[Unit]
+Description=Thistation Network Filesystem Generator
+After=profile_setup.service
+Before=network-pre.target
+ConditionPathIsReadWrite=/etc
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+EnvironmentFile=/etc/thinstation.env
+ExecStart=/lib/thinstation/system/filesystem_network
+SyslogIdentifier=thinstation
+
+[Install]
+WantedBy=multi-user.target

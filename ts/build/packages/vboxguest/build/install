@@ -32,11 +32,13 @@ let returnval=returnval+$?
 # Not sure what the PAM module is for, and the init scripts are duplicates
 mkdir -p $INSTALLDIR/lib/xorg/modules/drivers
 cp wget_tmp/vbox/lib/VBoxGuestAdditions/vboxvideo_drv_$xserver.so $INSTALLDIR/lib/xorg/modules/drivers/vboxvideo_drv.so
+#let returnval=returnval+$?
 mkdir -p $INSTALLDIR/sbin
 mkdir -p $INSTALLDIR/bin
-cp wget_tmp/vbox/lib/VBoxGuestAdditions/mount.vboxsf $INSTALLDIR/sbin
-cp wget_tmp/vbox/lib/VBoxGuestAdditions/98vboxadd-xclient $INSTALLDIR/bin/VBoxClient-all
-rm -rf wget_tmp/vbox/lib/VBoxGuestAdditions
+mv wget_tmp/vbox/lib/VBoxGuestAdditions/mount.vboxsf $INSTALLDIR/sbin
+mv wget_tmp/vbox/lib/VBoxGuestAdditions/98vboxadd-xclient $INSTALLDIR/bin/VBoxClient-all
+rm -f wget_tmp/vbox/lib/VBoxGuestAdditions/vbox{mouse,video}*
+rm -f wget_tmp/vbox/lib/VBoxGuestAdditions/pam_vbox.so
 mkdir -p wget_tmp/vbox/lib/dri
 ln -s /lib/VBoxOGL.so wget_tmp/vbox/lib/dri/vboxvideo_dri.so
 
@@ -56,9 +58,45 @@ cp wget_tmp/vbox/share/VBoxGuestAdditions/vboxclient.desktop $INSTALLDIR/etc/xdg
 # For init, only the service one looks needed
 # We've basically done the x11 init script above, and relying on autoconfig
 # We're installing the modules ourselves, so skip the vboxadd script
-mkdir -p $INSTALLDIR/etc/init.d
-mkdir -p $INSTALLDIR/etc/rc2.d
-cp wget_tmp/vbox/init/vboxadd-service $INSTALLDIR/etc/init.d
+# Function is a modified version from additions/routines.sh
+systemd_wrap_init_script()
+{
+    name=$1
+    unit_path=$INSTALLDIR/lib/systemd/system
+    mkdir -p $unit_path/multi-user.target.wants
+    ln -s ../$name.service $unit_path/multi-user.target.wants
+    script=wget_tmp/vbox/lib/VBoxGuestAdditions/$name
+    description=`sed -n 's/# *Short-Description: *\(.*\)/\1/p' "${script}"`
+    required=`sed -n 's/# *Required-Start: *\(.*\)/\1/p' "${script}" | sed 's/\$[a-z]*//'`
+    runlevels=`sed -n 's/# *Default-Start: *\(.*\)/\1/p' "${script}"`
+    before=`for i in ${runlevels}; do printf "runlevel${i}.target "; done`
+    after=`for i in ${required}; do printf "${i}.service "; done`
+    script=/lib/VBoxGuestAdditions/$name
+    cat > "${unit_path}/${name}.service" << EOF
+[Unit]
+SourcePath=${script}
+Description=${description}
+Before=${before}shutdown.target
+After=${after}
+Conflicts=shutdown.target
+
+[Service]
+Type=forking
+Restart=no
+TimeoutSec=5min
+IgnoreSIGPIPE=no
+KillMode=process
+GuessMainPID=no
+RemainAfterExit=yes
+ExecStart=${script} start
+ExecStop=${script} stop
+
+[Install]
+WantedBy=multi-user.target
+EOF
+}
+systemd_wrap_init_script vboxadd-service
+let returnval=returnval+$?
 
 do_module() {
   pushd wget_tmp/$3/src/vboxguest-*/$2

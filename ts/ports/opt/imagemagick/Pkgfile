@@ -5,16 +5,17 @@
 # Depends on:  libtool freetype ghostscript lcms libungif libxml2
 
 name=imagemagick
-version=6.9.5-9
+version=6.9.5-10
 release=1
-source=(http://www.imagemagick.org/download/ImageMagick-$version.tar.xz)
+source=(https://www.imagemagick.org/download/releases/ImageMagick-$version.tar.xz)
 
 build () {
     cd ImageMagick-$version
 
     ./configure --prefix=/usr \
                 --mandir=/usr/man \
-                --enable-shared \
+		--sysconfdir=/etc \
+                --disable-static \
                 --with-perl
 
     make

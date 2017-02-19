@@ -9,4 +9,8 @@ repackage -e
 
 returnval=$?
 
+mkdir -p packages/$PACKAGE/lib/systemd/system/multi-user.target.wants
+ln -s ../NetworkManager.service packages/$PACKAGE/lib/systemd/system/multi-user.target.wants
+let returnval=returnval+$?
+
 exit $returnval

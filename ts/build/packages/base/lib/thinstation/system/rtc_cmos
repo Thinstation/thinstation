@@ -1,0 +1,16 @@
+#!/bin/sh
+
+. `dirname $0`/common
+
+if [ "`make_caps x$RTC_CMOS`" == "XLOCAL" ]; then
+	if [ -n "$DEBUG_INIT" ] ; then
+	        echo_log "Using Local Time"
+	fi
+	sed -i -e "s/UTC/LOCAL/" /etc/adjtime
+        hwclock -s
+else
+	if [ -n "$DEBUG_INIT" ] ; then
+	        echo_log "Using UTC Time"
+	fi
+fi
+
