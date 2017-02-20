@@ -1,0 +1,45 @@
+#! /bin/sh
+
+. `dirname $0`/common
+HOME=/etc/skel
+
+if ! pkg_initialized $PACKAGE; then
+	pkg_set_init_flag $PACKAGE
+	if [ -e $HOME/.config/xfce4/helpers.rc ]; then
+		sed -i -e 's/WebBrowser=google-chrome/WebBrowser=firefox/g' $HOME/.config/xfce4/helpers.rc
+	fi
+	if [ ! -e $HOME/.mozilla ] && [ -e /etc/FF.tar.gz ]; then
+		tar -C $HOME -zxvf /etc/FF.tar.gz
+	fi
+	if [ ! -e $HOME/.mozilla/firefox ] ; then
+		mkdir -p $HOME/.mozilla/firefox
+		cp /etc/firefox/profiles.tpl $HOME/.mozilla/firefox/profiles.ini
+	fi
+	if [ ! -e $HOME/.mozilla/firefox/TS.default ] ; then
+		cp -Lrf /etc/TS.default $HOME/.mozilla/firefox/.
+	fi
+	if [ ! -e "$HOME/.mozilla/firefox/Crash Reports" ] ; then
+		mkdir -p "$HOME/.mozilla/firefox/Crash Reports"
+		cp -Lrf /etc/firefox/crashreporter.ini "$HOME/.mozilla/firefox/Crash Reports/."
+	fi
+	FFPREFS=$HOME/.mozilla/firefox/TS.default/prefs.js
+	if [ ! -e $FFPREFS ] ; then
+	    if [ -z "$FF_HOMEPAGE" ]; then
+		FF_HOMEPAGE="http://www.thinstation.org"
+	    fi
+	    let x=0
+	    # Add any configuration parameters
+	    while [ -n "`eval echo '$SESSION_'$x'_TYPE'`" ] ; do
+		FFTYPE=`eval echo '$SESSION_'$x'_TYPE'`
+		if [ "`make_caps $FFTYPE`" = "FIREFOX" ] ; then
+		    FFHP=`eval echo '$SESSION_'$x'_FIREFOX_HOMEPAGE'`
+		fi
+		let x=x+1
+	    done
+	    if [ -n "$FFHP" ] ; then
+		FF_HOMEPAGE=$FFHP
+	    fi
+	    cp /etc/TS.default/prefs.tpl $FFPREFS
+	    echo 'user_pref("browser.startup.homepage", "'$FF_HOMEPAGE'");' >>$FFPREFS
+	fi
+fi
