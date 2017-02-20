@@ -96,8 +96,10 @@ downloadImage()
 
 
     if [ ${?} -eq 0 ]; then
+        logger --stderr --tag $LOGGERTAG "downloadImage: Download was successful, copying files to boot partition, please wait..."
+
         #cp -R ${TMP_DIR}/* /mnt/disc/sda/part1
-        cp -R ${TMP_DIR}/image/* $2
+        cp -Rf ${TMP_DIR}/image/* $2
         sync
         
         if [ "$(firmwareType)" = "BIOS" ]; then
@@ -109,8 +111,8 @@ downloadImage()
             # Since some hardware don't follow EFI standard/best practice but is hardcoded to Microsoft
             # we do this ugly quick fix in order to ensure that the boot loader is found by the firmware...
             mkdir -p ${2}/EFI/Microsoft/BOOT
-            cp -R ${TMP_DIR}/image/EFI/BOOT/* ${2}/EFI/Microsoft/BOOT/
-            cp ${TMP_DIR}/image/EFI/BOOT/bootx64.efi ${2}/EFI/Microsoft/BOOT/bootmgfw.efi
+            cp -Rf ${TMP_DIR}/image/EFI/BOOT/* ${2}/EFI/Microsoft/BOOT/
+            cp -f ${TMP_DIR}/image/EFI/BOOT/bootx64.efi ${2}/EFI/Microsoft/BOOT/bootmgfw.efi
             sync
         fi
 
@@ -147,7 +149,7 @@ downloadImage()
         echo ""
     else
         #echo "Failed to download syslinux over http."
-        logger --stderr --tag $LOGGERTAG "Failed to download the local-install image over http from ${downloadURL}"
+        logger --stderr --tag $LOGGERTAG "downloadImage: Failed to download the local-install image over http from ${downloadURL}"
         return 4
     fi
 
@@ -460,7 +462,34 @@ case "$1" in
 
 
     mount)
+        # First unmount the partitions if they are already mounted...
+        $0 umount
+        
         mountPartitions '/mnt/local-install/part1' '/mnt/local-install/part2'
+
+        if [ $(getVersionLocal) -eq 0 ]; then
+            #echo "no local installation found"
+            if [ $(isMounted '/mnt/local-install') -eq 0 ]; then
+                #echo "mount: /mnt/local-install is not mounted"
+                rmdir '/mnt/local-install/part1'
+                rmdir '/mnt/local-install/part2'
+                rmdir '/mnt/local-install'
+            #else
+                #echo "mount: /mnt/local-install/ is mounted, will not remove directory"
+            fi
+            logger --stderr --tag $LOGGERTAG "mount: No local installation was found."
+            #exit 1
+        fi
+    ;;
+
+
+
+    umount)
+        umount '/mnt/local-install/part1'
+        umount '/mnt/local-install/part2'
+        rmdir '/mnt/local-install/part1'
+        rmdir '/mnt/local-install/part2'
+        rmdir '/mnt/local-install'
     ;;
 
 
@@ -663,25 +692,31 @@ case "$1" in
         #INSTALL_PARTITION_1_MOUNT=$(cat /proc/mounts | grep -e ${INSTALL_PARTITION_1_DEVICE} | cut -d' ' -f2)
         #INSTALL_PARTITION_2_MOUNT=$(cat /proc/mounts | grep -e ${INSTALL_PARTITION_2_DEVICE} | cut -d' ' -f2)
 
-        mkdir -p /mnt/local-install/part1
-        mkdir -p /mnt/local-install/part2
-        mount ${INSTALL_PARTITION_1_DEVICE} /mnt/local-install/part1
-        mount ${INSTALL_PARTITION_2_DEVICE} /mnt/local-install/part2
+        sync
+
+        # Mount to a temporary folder (don't use /mnt/local-install/partX in case local-install is already installed on
+        #  this computer and we are now installing to e.g. a usb flash drive.
+        mkdir -p /mnt/local-install/install_part1
+        mkdir -p /mnt/local-install/install_part2
+        mount ${INSTALL_PARTITION_1_DEVICE} /mnt/local-install/install_part1
+        mount ${INSTALL_PARTITION_2_DEVICE} /mnt/local-install/install_part2
 
         # Download the Thinstation image
-        downloadImage $INSTALL_PARTITION_1_DEVICE '/mnt/local-install/part1' '/mnt/local-install/part2'
+        downloadImage $INSTALL_PARTITION_1_DEVICE '/mnt/local-install/install_part1' '/mnt/local-install/install_part2'
+
 
         # Clean up
         sync
-        umount /mnt/local-install/part1
-        umount /mnt/local-install/part2
-        rm -rf /mnt/local-install
+        umount /mnt/local-install/install_part1
+        umount /mnt/local-install/install_part2
+        rmdir /mnt/local-install/install_part1
+        rmdir /mnt/local-install/install_part2
     ;;
 
 
 
     *)
-        echo "Usage: $0 {install|version-local|version-remote|mount|notify-server|upgrade|upgrade-force}"
+        echo "Usage: $0 {install|version-local|version-remote|mount|umount|notify-server|upgrade|upgrade-force}"
         exit 1
     ;;
 esac
