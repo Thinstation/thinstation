@@ -6,21 +6,21 @@
 create_wind()
 {
 	printf "\n\tCreating fast clean cache for $i"
-	echo "#`md5sum .dna`" > /ts/wind_cache/$i.turbo
-        update -c -d $i >> /ts/wind_cache/$i.turbo
-        . /ts/wind_cache/$i.turbo
+	echo "#`md5sum .dna`" > $cache/wind_cache/$i.turbo
+        update -c -d $i >> $cache/wind_cache/$i.turbo
+        . $cache/wind_cache/$i.turbo
 	errata=true
 }
 
 create_unwind()
 {
 	printf "\n\tCreating fast install cache for $i"
-        echo "#`md5sum .dna`" > /ts/unwind_cache/$i.turbo
+        echo "#`md5sum .dna`" > $cache/unwind_cache/$i.turbo
         update -d $i |
         sed -e 's/^mkdir \-/2:/g' -e 's/^ln \-/4:/g' -e 's/^touch /5:/g' -e 's/^ln \//3:/g' |
         sort |
         uniq |
-        sed -e 's/^2:/mkdir \-/g' -e 's/^3:/ln \//g' -e 's/^4:/ln \-/g' -e 's/^5:/touch /g' >> /ts/unwind_cache/$i.turbo
+        sed -e 's/^2:/mkdir \-/g' -e 's/^3:/ln \//g' -e 's/^4:/ln \-/g' -e 's/^5:/touch /g' >> $cache/unwind_cache/$i.turbo
 	errata=true
 }
 
@@ -62,26 +62,30 @@ stage1()
 		fi
 	done
 
-	# Remove any empty folders
-	find -L $TSWRKNG -type d -empty -delete
+	for working in $TSWRKNG $XTRWRKNG; do
+	if [ $working = $TSWRKNG ]; then cache=/ts;
+	else cache=$working; fi
 
-	for i in `ls --color=never $TSWRKNG/packages`; do
+	# Remove any empty folders
+	find -L $working -type d -empty -delete
+
+	for i in `ls --color=never $working/packages`; do
 		errata=false
-		if [ -e $TSWRKNG/packages/$i/.dna ]; then
-			cd $TSWRKNG/packages/$i
+		if [ -e $working/packages/$i/.dna ]; then
+			cd $working/packages/$i
 			printf "\rCleaning package %-40s" "$i"
-			if [ -e /ts/wind_cache/$i.turbo ]; then
-				if cat /ts/wind_cache/$i.turbo |grep -e "#" |cut -d "#" -f2 |md5sum -c --quiet; then
-					. /ts/wind_cache/$i.turbo
+			if [ -e $cache/wind_cache/$i.turbo ]; then
+				if cat $cache/wind_cache/$i.turbo |grep -e "#" |cut -d "#" -f2 |md5sum -c --quiet; then
+					. $cache/wind_cache/$i.turbo
 				else
 					create_wind
 				fi
 			else
 				create_wind
 			fi
-			if [ -e /ts/unwind_cache/$i.turbo ]; then
-				if cat /ts/unwind_cache/$i.turbo|grep -e "#" |cut -d "#" -f2 |md5sum -c --quiet; then
-					echo "Allready made" >> /dev/null
+			if [ -e $cache/unwind_cache/$i.turbo ]; then
+				if cat $cache/unwind_cache/$i.turbo|grep -e "#" |cut -d "#" -f2 |md5sum -c --quiet; then
+					echo "Already made" >> /dev/null
 				else
 					create_unwind
 				fi
@@ -93,11 +97,12 @@ stage1()
 			printf "\n"
 		fi
 	done
+	done
 	printf "\rPackages are %-40s\n" "Clean"
 	echo -e "Cleaning tools"
 	update -c -t
 	echo "Checking Ports Directories for Downloaded Files"
-	for distro in ts; do cd /$distro/ports
+	for distro in /ts $XTRWRKNG; do cd $distro/ports
 	for port_type in `list_folders`; do cd $port_type
 	for port in `list_folders`; do cd $port
 		printf "\rCleaning %-59s" "$port"

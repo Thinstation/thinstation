@@ -40,6 +40,11 @@ package_path()
 		pkgpath="$temp_folder/$package"
 	else
 		pkgpath="$TSWRKNG/packages/$package"
+		for work in $TSWRKNG $XTRWRKNG; do
+			if [ -d "$work/packages/$package" ]; then
+				pkgpath="$work/packages/$package"
+			fi
+		done
 	fi
 }
 
@@ -206,11 +211,11 @@ create_empty()
 merge_trunk()
 {
 	if [ -e $INSTALLDIR/build/extra ]; then
-		for dir in `find $INSTALLDIR/build/extra -type d |cut -d '/' -f6-`; do
+		for dir in `find $INSTALLDIR/build/extra -type d -printf "%P\n"`; do
 			mkdir -p $INSTALLDIR/$dir
 		done
 		IFS=$'\n\t'
-		for file in `find $INSTALLDIR/build/extra ! -type d |cut -d '/' -f6-`; do
+		for file in `find $INSTALLDIR/build/extra ! -type d -printf "%P\n"`; do
 			if [ -e $INSTALLDIR/"$file" ]; then
 				rm $INSTALLDIR/"$file"
 			fi
@@ -222,7 +227,11 @@ merge_trunk()
 
 from_env()
 {
-	INSTALLDIR=./packages/$PACKAGE
+	for i in $TSWRKNG $XTRWRKNG; do
+		if [ -d $i/packages/$PACKAGE ]; then
+			INSTALLDIR=$i/packages/$PACKAGE
+		fi
+	done
 	temp_folder=./build-$PACKAGE
 	for package in $PORTS; do
 		main

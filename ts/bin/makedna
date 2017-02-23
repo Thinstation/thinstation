@@ -8,10 +8,11 @@ showhelp()
 {
 	echo -e "This utility is designed to create a .dna file for a Thinstation Package"
 	echo -e "It should be invoked as   'makedna <tspackage>' \n"
-	echo -e "Allthough it is in the executalbe path and can be called from anywhere,"
-	echo -e "it will always go to the working directory for Thinstation which is defined"
-	echo -e "in the environment variable \$TSWRKNG. This variable can be adjusted for a "
-	echo -e "single session or permanently by editing /ts/TS_ENV. \n"
+	echo -e "Although it is in the executable path and can be called from anywhere,"
+	echo -e "it will always search packages in the directory for Thinstation which"
+	echo -e "is defined in the environment variable \$TSWRKNG and \$XTRWRKNG. These"
+	echo -e "variables can be adjusted for a single session or permanently by"
+	echo -e "editing /ts/TS_ENV. \n"
 	echo -e "This script will create a .dna file in the root of the package dir for the "
 	echo -e "package specified at the time of invokation."
 }
@@ -88,12 +89,14 @@ getlinks()
 	fi
 	for i in `find -L $dir -samefile $rterm 2>/dev/null |grep -w -v "$cterm"`;
 		do
-			link[$index]=`echo $i |cut -d / -f3-`
-			if [ "${link[$index]}" == "$loc/$file" ];
+			if [ `dirname $i` = `dirname $i | xargs realpath --relative-base=$PWD` ]; then
+				link[$index]=`echo $i |cut -d / -f3-`
+				if [ "${link[$index]}" == "$loc/$file" ];
 				then
 					unset link[$index]
 				else
 					index=$(( $index + 1 ))
+				fi
 			fi
 		done
 	if [ "${#link[@]}" -gt "9" ];
@@ -304,6 +307,7 @@ init()
 {
 	package=$1
 	override=$2
+	work=$TSWRKNG
 	if [ "$package" == "" -o "$package" == "--help" ];
 		then
 			showhelp
@@ -315,15 +319,19 @@ init()
 			then
 				dir=boot-images
 		else
-			dir=packages/$package
+			for work in $TSWRKNG $XTRWRKNG; do
+				if [ -d $work/packages/$package ]; then
+					dir=packages/$package
+					break
+				fi
+			done
+			if [ -z "$dir" ]; then
+				echo -e "\nThe package '$package' was not found.\n\n"
+				showhelp
+				exit
+			fi
 	fi
-	cd $TSWRKNG
-	if [ ! -e $dir ];
-		then
-			echo -e "\nThe package '$package' was not found.\n\n"
-			showhelp
-			exit
-	fi
+	cd $work
 	if [ -f $dir/.dna ];
 		then
 			rm $dir/.dna
