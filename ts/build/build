@@ -341,6 +341,21 @@ for pkgname in `list_all_packages`; do
 done
 }
 
+find_package()
+{
+	pkgtype=packages
+	if [ -n "$2" ]; then pkgtype=$2; fi
+
+	for pkgroot in $TSWRKNG $XTRWRKNG; do
+		if [ -d $pkgroot/$pkgtype/$1 ]; then
+			pkgpath=$pkgroot/$pkgtype/$1
+			return 0
+		fi
+	done
+
+	return 1
+}
+
 module_package_dependencies()
 {
 	# Adding additional modules and packages which are dependencies of other modules
@@ -379,12 +394,12 @@ module_package_dependencies()
 						package)
 							if [ ! -e $PACDIR/$name.package ] && \
 							   [ ! -e $PACDIR/$name.pkg ]; then
-								if [ -d ./packages/$name ]; then
+								if find_package $name ; then
 									if ! is_enabled $DISPLAYED; then
 										echo "Adding module dependencies for $module"
 										DISPLAYED=true
 									fi
-									echo "cp -Rp --remove-destination ./packages/$name/* ./tmp-tree > /dev/null 2>&1">>\
+									echo "cp -Rp --remove-destination $pkgpath/* ./tmp-tree > /dev/null 2>&1">>\
 										$PACDIR/$name.package
 									touch /tmp/dirty
 									echo -e "\t\t\t\tPackage : $name"
@@ -394,9 +409,9 @@ module_package_dependencies()
 							elif [ -z "`find ./tmp-tree/lib/modules -name ${module}.ko`" ] && \
 								 [ -n "`find $pkgname/lib/modules/$KERNVER -name ${module}.ko`" ] && \
 								 [ ! -e $PACDIR/$name.pkg ]; then
-								if [ -d  ./packages/$name ]; then
+								if find_package $name ; then
 									echo "building-pkg $name"
-									echo -e "cp -Rp ./packages/$name $PKGDIR" >> $PACDIR/$name.pkg
+									echo -e "cp -Rp $pkgpath/$name $PKGDIR" >> $PACDIR/$name.pkg
 									touch /tmp/dirty
 								else
 									echo "Not Found $name!!"
@@ -493,10 +508,16 @@ package_dependencies ()
 		(cat packages.list ) |
 		while read filename; do
 			package=`basename $filename .$1`
-			if [ -s packages/$package/dependencies ] ; then
-				(cat packages/$package/dependencies |grep -v ^#) |
+			if find_package $package && [ -s $pkgpath/dependencies ] ; then
+				(cat $pkgpath/dependencies |grep -v ^#) |
 				while read name cross; do
-					if	[ "$1" = "package" ] || \
+					if ! find_package $name; then
+						if ! is_enabled $DISPLAYED; then
+							echo "Adding dependent packages of $package:"
+							DISPLAYED=TRUE
+						fi
+						echo "                              Not found: $name"
+					elif	[ "$1" = "package" ] || \
 						[ "$name" = "base" ]; then
 						if	[ ! -e $PACDIR/$name.package ] && \
 							[ ! -e $PACDIR/$name.pkg ]; then
@@ -508,7 +529,7 @@ package_dependencies ()
 									DISPLAYED=TRUE
 								fi
 								echo "                              package $name"
-								echo "cp -Rp --remove-destination ./packages/$name/* ./tmp-tree > /dev/null 2>&1">>\
+								echo "cp -Rp --remove-destination $pkgpath/* ./tmp-tree > /dev/null 2>&1">>\
 									$PACDIR/$name.package
 								echo $name.package >> packages.added
 								touch /tmp/dirty
@@ -525,7 +546,7 @@ package_dependencies ()
 									DISPLAYED=TRUE
 								fi
 								echo "                         pkg $name"
-								echo -e "cp -Rp --remove-destination ./packages/$name $PKGDIR" >>\
+								echo -e "cp -Rp --remove-destination $pkgpath $PKGDIR" >>\
 									$PACDIR/$name.pkg
 								echo $name.pkg >> packages.added
 								touch /tmp/dirty
@@ -534,7 +555,7 @@ package_dependencies ()
 					fi
 				done
 				unset DISPLAYED
-			elif [ ! -e packages/$package/dependencies ]; then
+			elif [ ! -e $pkgpath/dependencies ]; then
 				echo "Not Found $package dependency!!"
 			fi
 		done
@@ -649,7 +670,7 @@ web_package ()
     package=$2
     filename=`make_caps $2`
 
-    if [ -e ./packages/$package ] ; then
+    if find_package $package ; then
       if [ -e $PACDIR/httpproxy.param ] ; then
         . $PACDIR/httpproxy.param
       fi
@@ -667,8 +688,8 @@ web_package ()
       if [ "$CHOICE" = "Y" ] ; then
  	mkdir ./wget_tmp
 	get_file $URL ./wget_tmp
-	if ./packages/$package/build/install $URL ; then
-	  touch ./packages/$package/build/installed
+	if $pkgpath/build/install $URL ; then
+	  touch $pkgpath/build/installed
 	  echo -e "$package: Setup Complete"
 	else
 	  echo -e "\nError has occured while installing package $package"
@@ -958,26 +979,32 @@ do
 	;;
     package)
 	echo "Package: $name"
-	if [ -d ./packages/$name ]; then
-	   echo "cp -Rp --remove-destination ./packages/$name/* ./tmp-tree > /dev/null 2>&1">>\
+	if find_package $name ; then
+	   echo "cp -Rp --remove-destination $pkgpath/* ./tmp-tree > /dev/null 2>&1">>\
 	     $PACDIR/$name.package
 	else
 	   echo "Not Found $name!!"
 	fi
 	;;
     machine)
-	read_conf ./machine/$name/module.list
-	if [ -e ./machine/$name/firmware.list ]; then
-		read_conf ./machine/$name/firmware.list
-	fi
-	if [ -e ./machine/$name/param.list ]; then
-		read_conf ./machine/$name/param.list
-	fi
-	if [ -e ./machine/$name/package.list ]; then
-		read_conf ./machine/$name/package.list
-	fi
-	if [ -e ./machine/$name/etc ]; then
-		cp -rf ./machine/$name/etc ./tmp-tree/.
+
+	echo "Machine: $name"
+	if find_package $name machine ; then
+	    read_conf $pkgpath/module.list
+	    if [ -e $pkgpath/firmware.list ]; then
+		read_conf $pkgpath/firmware.list
+	    fi
+	    if [ -e $pkgpath/param.list ]; then
+		read_conf $pkgpath/param.list
+	    fi
+	    if [ -e $pkgpath/package.list ]; then
+		read_conf $pkgpath/package.list
+	    fi
+	    if [ -e $pkgpath/etc ]; then
+		cp -rf $pkgpath/etc ./tmp-tree/.
+	    fi
+	else
+	   echo "Not Found $name!!"
 	fi
 	;;
     module)
@@ -1020,7 +1047,11 @@ do
 	;;
     pkg)
         echo "building-pkg $name"
-	echo -e "cp -Rp --remove-destination ./packages/$name $PKGDIR" >> $PACDIR/$name.pkg
+	if find_package $name ; then
+	    echo -e "cp -Rp --remove-destination $pkgpath $PKGDIR" >> $PACDIR/$name.pkg
+	else
+	   echo "Not Found $name!!"
+	fi
 	;;
     *)
 	echo "Unknown config line: $type $name $args"
@@ -1039,7 +1070,7 @@ install_non_distributable()
 		if [ -e $PACDIR/fulllocales.param ]; then
                                 . $PACDIR/fulllocales.param
 		fi
-		if [ ! -e ./packages/$package/build/installed ] && [ -e ./packages/$package/build/install ] ; then
+		if find_package $package && [ ! -e $pkgpath/build/installed ] && [ -e $pkgpath/build/install ] ; then
 			if [ -e $PACDIR/"$package"url.param ]; then
 				. $PACDIR/"$package"url.param
 				URL=`eval echo '$ts_'$package'url'`
@@ -1051,9 +1082,9 @@ install_non_distributable()
 					remove_files
 					exit 1
 				fi
-			elif [ "`cat ./packages/$package/build/install |grep -c -e repackage`" -gt "0" ]; then
-				if ./packages/$package/build/install ; then
-					touch ./packages/$package/build/installed
+			elif [ "`cat $pkgpath/build/install |grep -c -e repackage`" -gt "0" ]; then
+				if $pkgpath/build/install ; then
+					touch $pkgpath/build/installed
 					echo -e "$package: Setup complete"
 				else
 					echo -e "\nError has occured while installing package"
@@ -1063,11 +1094,11 @@ install_non_distributable()
 				fi
 			fi
 		fi
-		if [ -e ./packages/$package/build/license ] ; then
+		if find_package $package && [ -e $pkgpath/build/license ] ; then
 			if [ "`make_caps $LICENSE`" = "DECLINE" ] ; then
 				CHOICE=NO
 			elif [ "`make_caps $LICENSE`" != "ACCEPT" ] ; then
-				cat ./packages/$package/build/license | more
+				cat $pkgpath/build/license | more
 				echo "Do you agree to this notice (YES/NO)"
 				read CHOICE
 				CHOICE=`make_caps $CHOICE`
@@ -1251,6 +1282,7 @@ if [ -e $PACDIR/tsuser.param ]; then
     echo "$ts_tsuser:x:1000:" >> ./tmp-tree/etc/group
     sed -i -e "s/tsuser/$ts_tsuser/g" ./tmp-tree/etc/group
     sed -i -e "s/\-a root/\-a $ts_tsuser/g" ./tmp-tree/etc/inittab
+    sed -i -e "s/\-a root/\-a $ts_tsuser/g" ./tmp-tree/lib/systemd/system/display-manager.service
     if [ -e ./tmp-tree/etc/pam.d/login ]; then
       sed -i -e "s/user = root/user = $ts_tsuser/g" ./tmp-tree/etc/pam.d/login
     fi
@@ -1472,12 +1504,12 @@ fi
 
 for package in `ls $PACDIR | grep "\.package" | sed -e "s/\.package//"`
 do
-  if [ -e "./packages/$package/build/finalize" ]; then
+  if find_package $package && [ -e "$pkgpath/build/finalize" ]; then
     mkdir -p ./tmp-tree/finalize
-    cp ./packages/$package/build/finalize ./tmp-tree/finalize/`head -n 1 ./packages/$package/build/finalize | cut -d' ' -f 2`$package
+    cp $pkgpath/build/finalize ./tmp-tree/finalize/`head -n 1 $pkgpath/build/finalize | cut -d' ' -f 2`$package
   fi
-  if [ -e "./packages/$package/build/image" ]; then
-    cat ./packages/$package/build/image >> build.image
+  if find_package $package && [ -e "$pkgpath/build/image" ]; then
+    cat $pkgpath/build/image >> build.image
   fi
 done
 
@@ -1833,10 +1865,12 @@ done
 if [ -n "$REMOVEALL" ]; then
 	remove_files
 	remove_old_boot_files
-	for package in `ls ./packages`;	do
-		if [ -e ./packages/$package/build/remove ] && [ -e ./packages/$package/build/installed ] ; then
-			./packages/$package/build/remove
+	for pkgroot in $TSWRKNG $XTRWRKNG; do
+	for package in `ls $pkgroot/packages`;	do
+		if [ -e $pkgroot/packages/$package/build/remove ] && [ -e $pkgroot/packages/$package/build/installed ] ; then
+			$pkgroot/packages/$package/build/remove
 		fi
+	done
 	done
 	echo "All commerical binaries removed, quitting."
 	exit 0
@@ -1858,10 +1892,12 @@ fi
 
 # Run update for all packages with update script
 if [ -n "$UPDATE" ]; then
-	for package in `ls ./packages`;	do
-		if [ -e ./packages/$package/build/update ]; then
-			./packages/$package/build/update
+	for pkgroot in $TSWRKNG $XTRWRKNG; do
+	for package in `ls $pkgroot/packages`;	do
+		if [ -e $pkgroot/packages/$package/build/update ]; then
+			$pkgroot/packages/$package/build/update
 		fi
+	done
 	done
 	echo "All packages updated."
 fi
