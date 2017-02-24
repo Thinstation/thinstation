@@ -3,6 +3,7 @@ trap "exit 1" SIGINT SIGHUP SIGTERM
 
 export TSVER=6.1
 export TSWRKNG=/ts/build
+export XTRWRKNG=
 export TSPKGROOT=ts/build/packages
 export TSCOMPROOT=ts/components
 export LANG=C
@@ -31,6 +32,11 @@ if [ -e /dostage2 ] ; then
 fi
 
 cp -af /ts/etc/* /etc/.
+if [ -n "$XTRWRKNG" ]; then
+	for i in $XTRWRKNG; do
+		cat $XTRWRKNG/ports/prt-get.conf >> /etc/prt-get.conf
+	done
+fi
 
 if [ -e /dostage3 ] ; then
 	/ts/bin/install_chroot
