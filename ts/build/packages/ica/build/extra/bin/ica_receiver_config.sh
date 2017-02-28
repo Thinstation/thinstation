@@ -7,12 +7,6 @@ ICA_STOREBROWSE=$ICA_ROOT/util/storebrowse
 ICA_SELFSERVICE=$ICA_ROOT/selfservice
 LOGGERTAG="ica_receiver_config.sh"
 
-	# Workaround for Citrix Receiver 13.2 which gives error (134) "Couldn't read from random dev, and no entropy store, aborting"
-	# change random to use urandom instead...
-	if [ -e /dev/urandom ]; then
-		ln -sf /dev/urandom /dev/random
-	fi
-
 	####
 	# Start of Receiver configuration
 	##
