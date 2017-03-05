@@ -3,20 +3,21 @@
 # Maintainer:  CRUX System Team, core-ports at crux dot nu
 
 name=shadow
-version=4.1.4.3
+version=4.2.1
 release=1
-source=(http://pkg-shadow.alioth.debian.org/releases/$name-$version.tar.bz2
+source=(http://pkg-shadow.alioth.debian.org/releases/$name-$version.tar.xz
         pwck login.defs other system-auth)
 
 build() {
     cd $name-$version
     sed -e 's/yes/no/g' -i etc/useradd
+    sed -i -e "/pam_selinux/d" etc/pam.d/su
+    sed -i -e "/pam_selinux/d" etc/pam.d/login
 
     ./configure --prefix=/usr \
                 --mandir=/usr/man \
                 --sysconfdir=/etc \
                 --disable-shared \
-                --disable-shadowgrp \
                 --disable-nls \
                 --without-selinux \
 		--without-nscd \
