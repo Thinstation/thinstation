@@ -173,6 +173,9 @@ xfconf_settings()
                 xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/dpms-on-ac-off -t uint -s $SCREEN_OFF_TIME -n
 		xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/dpms-on-battery-off -t uint -s $SCREEN_OFF_TIME -n
         fi
+	if [ -n "$XFWM4_SHOW_SUSPEND" ]; then
+		xfconf-query -c xfce4-session -p /shutdown/ShowSuspend -t bool -s $XFWM4_SHOW_SUSPEND -n
+	fi
 }
 
 wm_menu()
@@ -221,30 +224,14 @@ wm_menu()
 			screenrc=$HOME/.config/xfce4/desktop/icons.screen0.rc
 			mkdir -p $HOME/.config/xfce4/desktop
 			echo -e "[xfdesktop-version-4.10.3+-rcfile_format]\n4.10.3+=true\n" > $screenrc
-			sindex=0
-			if is_enabled $DEKSTOP_SHOWHOME; then
-				echo -e "[$HOME]\nrow=$sindex\ncol=0\n" >> $screenrc
-				let sindex+=1
-			fi
-			if is_enabled $DESKTOP_SHOWFILESYSTEM; then
-				echo -e "[/]\nrow=$sindex\ncol=0\n" >> $screenrc
-				let sindex+=1
-			fi
-			for iconfile in `cat /tmp/icon.sort |sort |cut -d " " -f2`; do
-				echo -e "[$iconfile]" >> $screenrc
-				echo -e "row=$sindex" >> $screenrc
-				echo -e "col=0\n" >> $screenrc
-				let sindex+=1
-			done
-			rm /tmp/icon.sort
-			unset sindex
 	fi
+
+	sindex=50
 	(cat $WKDIR/session |grep -Ev '^xfwm4 ') |
 		while read type title screen position workspace autostart custom icon_mode server options; do
 			if [ "$server" = "." ]; then unset server ; fi
 			if [ "$options" = "." ]; then unset options ; fi
-			if is_enabled $autostart; then mode=auto; else mode=$MAXIMIZE_DEFAULT;fi
-			command="pkg $mode $type \"$server\" \"$options\""
+			command="pkg $MAXIMIZE_DEFAULT $type \"$server\" \"$options\""
 			package=$type
 			icon=$type
 			case "$icon_mode" in
@@ -264,15 +251,40 @@ wm_menu()
 				ON|SUBMENU)
 					ICONDIR=$HOME/Desktop
 					make_desktop
+					desktop_icon_file=$ICONDIR/`replace_char "$title.desktop" "[ /]" "_"`
+					echo "$sindex $desktop_icon_file" >> /tmp/icon.sort
+					let sindex+=1
 				;;
 			esac
 			case "$autostart" in
 				ON)
+					command="pkg auto $type \"$server\" \"$options\""
 					ICONDIR=$HOME/.config/autostart
 					make_desktop
 				;;
 			esac
 		done
+
+	sindex=0
+	if is_enabled $DEKSTOP_SHOWHOME; then
+		echo -e "[$HOME]\nrow=$sindex\ncol=0\n" >> $screenrc
+		let sindex+=1
+	fi
+	if is_enabled $DESKTOP_SHOWFILESYSTEM; then
+		echo -e "[/]\nrow=$sindex\ncol=0\n" >> $screenrc
+		let sindex+=1
+	fi
+	if [ -e /tmp/icon.sort ]; then
+		for iconfile in `cat /tmp/icon.sort |sort |cut -d " " -f2`; do
+			echo -e "[$iconfile]" >> $screenrc
+			echo -e "row=$sindex" >> $screenrc
+			echo -e "col=0\n" >> $screenrc
+			let sindex+=1
+		done
+		rm /tmp/icon.sort
+	fi
+	unset sindex
+
 	mkdir -p ~/.config/menus
 	menufile=~/.config/menus/xfce-applications.menu
 		echo "<!DOCTYPE Menu PUBLIC \"-//freedesktop//DTD Menu 1.0//EN\""		>$menufile
