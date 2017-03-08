@@ -11,12 +11,14 @@ if [ "`tty`" == "$CONSOLE" ]; then
 	else
 		HOME=/root
 	fi
-       	mkdir -p $HOME
-        rm -rf $HOME/.{config,local,gconf,gconfd,gnome2,xinitrc}
-        for file in `ls -A /etc/skel`; do
-       	        cp -a /etc/skel/$file $HOME/. 2>/dev/null
-        done
-        chown -R "`id -un`.`id -gn`" $HOME
+	if ! is_enabled $DESTRUCTIVE_RELOAD; then
+		mkdir -p $HOME
+		rm -rf $HOME/.{config,local,gconf,gconfd,gnome2,xinitrc}
+		for file in `ls -A /etc/skel`; do
+			cp -a /etc/skel/$file $HOME/. 2>/dev/null
+		done
+		chown -R "`id -un`.`id -gn`" $HOME
+	fi
 	if [ -e $WKDIR/consoleapps ]; then
 		splash_exit
 		show_cursor
