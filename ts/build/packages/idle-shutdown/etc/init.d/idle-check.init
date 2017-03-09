@@ -14,7 +14,7 @@ init)
     if [ -z ${SHUTDOWN_IDLE_INTERVAL} ]; then
       SHUTDOWN_IDLE_INTERVAL=5
     fi
-    echo "*/$SHUTDOWN_IDLE_INTERVAL * * * * /bin/idle-check.sh" >> /tmp/crontab
+    echo "*/$SHUTDOWN_IDLE_INTERVAL * * * * /bin/idle-check.sh 2>&1 >/dev/null" >> /tmp/crontab
     crontab /tmp/crontab
     ;;
 help)

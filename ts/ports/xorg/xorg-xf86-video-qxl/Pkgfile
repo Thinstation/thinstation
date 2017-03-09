@@ -1,0 +1,21 @@
+# Description: xorg driver xf86-video-qxl
+# URL: http://xorg.freedesktop.org
+# Maintainer: CRUX Xorg Team, xorg-ports at crux dot nu
+# Depends on: xorg-server
+
+name=xorg-xf86-video-qxl
+archname=${name#xorg-}
+version=0.1.4
+release=2
+source=(http://xorg.freedesktop.org/releases/individual/driver/xf86-video-qxl-$version.tar.bz2)
+
+build() {
+	cd xf86-video-qxl-$version
+#	git clone git://anongit.freedesktop.org/xorg/driver/xf86-video-qxl
+#	cd xf86-video-qxl
+#	./autogen.sh
+	./configure --prefix=/usr --mandir=/usr/man #--enable-xspice=yes
+
+	make
+	make DESTDIR=$PKG install
+}

@@ -1,0 +1,95 @@
+# Description: Open source version of Google Chrome web browser.
+# URL: http://chromium.org/
+# Maintainer: Jose V Beneyto, sepen at crux dot nu
+# Packager: Tadeusz Sosnierz, tadzikes gmail com
+# Depends on: dbus-glib gperf gtk libevent libexif libgcrypt mesa3d ninja nss pciutils speech-dispatcher xorg-libxscrnsaver xorg-libxt xorg-libxtst yasm
+
+name=chromium
+version=51.0.2704.84
+release=1
+source=(http://commondatastorage.googleapis.com/$name-browser-official/$name-$version.tar.xz \
+	$name.sh $name.desktop)
+
+build() {
+if [ -e ../../google_api.key ]; then
+	. ../../google_api.key
+	API_KEY="-Dgoogle_api_key=$_google_api_key"
+	CLIENT_ID="-Dgoogle_default_client_id=$_google_default_client_id"
+	CLIENT_SECRET="-Dgoogle_default_client_secret=$_google_default_client_secret"
+fi
+
+  cd $name-$version
+
+  touch chrome/test/data/webui/i18n_process_css_test.html
+
+  export CFLAGS="$CFLAGS $(pkg-config --cflags nspr)"
+  export LDFLAGS="$LDFLAGS $(pkg-config --libs nspr)"
+
+  build/gyp_chromium build/all.gyp --depth=. \
+	$API_KEY \
+	$CLIENT_ID \
+	$CLIENT_SECRET \
+        -Duse_sysroot=0 \
+        -Dclang=0 \
+        -Dpython_ver="2.7" \
+	-Dno_strict_aliasing=1 \
+	-Dwerror= \
+	-Dlinux_sandbox_path=/usr/lib/$name/chrome-sandbox \
+	-Dlinux_strip_binary=1 \
+        -Dlinux_use_gold_binary=0 \
+        -Dlinux_use_gold_flags=0 \
+	-Drelease_extra_cflags="$CFLAGS" \
+	-Dproprietary_codecs=1 \
+        -Dffmpeg_branding=Chrome \
+        -Dlibspeechd_h_prefix=speech-dispatcher/ \
+	-Duse_system_libjpeg=1 \
+	-Duse_system_libxslt=1 \
+	-Duse_system_libxml=1 \
+	-Duse_system_bzip2=1 \
+	-Duse_system_zlib=0 \
+	-Duse_system_libpng=0 \
+	-Duse_system_ffmpeg=0 \
+	-Duse_system_yasm=0 \
+	-Duse_system_libevent=1 \
+	-Duse_system_sqlite=0 \
+	-Duse_system_ssl=0 \
+        -Duse_system_icu=0 \
+	-Dremove_webcore_debug_symbols=1 \
+	-Duse_gconf=0 \
+	-Duse_cups=0 \
+	-Duse_gnome_keyring=0 \
+        -Duse_kerberos=0 \
+        -Duse_pulseaudio=0 \
+	-Dlinux_link_gnome_keyring=0 \
+        -Dlinux_link_libpci=1 \
+        -Dlinux_link_libspeechd=0 \
+	-Denable_webrtc=1 \
+	-Ddisable_nacl=1 \
+        -Dicu_use_data_file_flag=1
+
+  ninja -C out/Release chrome chrome_sandbox
+
+  install -m 0755 -D out/Release/chrome $PKG/usr/lib/$name/$name
+  install -m 4755 -o root -g root -D out/Release/chrome_sandbox $PKG/usr/lib/$name/chrome-sandbox
+  install -m 0644 -D out/Release/*.pak $PKG/usr/lib/$name
+  install -d $PKG/usr/lib/$name/locales
+  install -m 0644 out/Release/locales/en-US.pak $PKG/usr/lib/$name/locales
+  cp -a out/Release/resources $PKG/usr/lib/$name
+  install -m 0644 -D out/Release/chrome.1 $PKG/usr/share/man/man1/$name.1
+
+  # fix v8 natives
+  cp -a out/Release/{natives,snapshot}_blob.bin $PKG/usr/lib/$name
+
+  for size in 22 24 48 128 256; do
+    install -m 0644 -D chrome/app/theme/$name/product_logo_${size}.png \
+      $PKG/usr/share/icons/hicolor/${size}x${size}/apps/$name.png
+  done
+
+  # fix icu installation
+  cp -a out/Release/icudtl.dat $PKG/usr/lib/$name
+
+  install -d $PKG/usr/share/pixmaps
+  ln -sf /usr/share/icons/hicolor/48x48/apps/$name.png $PKG/usr/share/pixmaps/$name.png
+  install -m 0644 -D $SRC/$name.desktop $PKG/usr/share/applications/$name.desktop
+  install -m 0755 -D $SRC/$name.sh $PKG/usr/bin/$name
+}

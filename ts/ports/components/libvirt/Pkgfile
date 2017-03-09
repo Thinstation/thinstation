@@ -1,0 +1,15 @@
+# Description:	Virtualization API
+# URL:		http://libvirt.org/
+# Maintainer:	Pierre Chaussee, syl at clyl dot net
+# Depends on:	
+name=libvirt
+version=1.3.5
+release=1
+source=(ftp://libvirt.org/$name/$name-$version.tar.gz)
+
+build () {
+	cd $name-$version
+	./configure --prefix=/usr
+	make 
+	make DESTDIR=$PKG install
+}

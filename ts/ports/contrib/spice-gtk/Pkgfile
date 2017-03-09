@@ -1,0 +1,25 @@
+# Description:  spice client
+# URL: http://spice-space.org
+# Maintainer:
+# Depends on: gtk-2.0 celt
+
+name=spice-gtk
+version=0.26
+release=1
+source=(http://spice-space.org/download/gtk/spice-gtk-$version.tar.bz2)
+
+build() {
+	cd spice-gtk-$version
+	./configure --prefix=/usr \
+			--with-gtk=2.0 \
+			--enable-smartcard=no \
+			--exec-prefix=/ \
+			--sysconfdir=/etc \
+			--libexecdir=/lib \
+			--mandir=/usr/man \
+			--disable-introspection
+
+	make
+	make DESTDIR=$PKG install
+	mv $PKG/lib/pkgconfig $PKG/usr/lib/.
+}

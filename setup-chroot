@@ -43,6 +43,7 @@ get_opts()
 		-o|--options)	shift ; export build_opts=$@ ; shift $# ;;
 		-c|--clean)	unset build exec_cmd; shift $# ; export clean=true ;;
 		-e|--exec)	shift ; export exec_cmd=$@ ; shift $# ;;
+		-u|--user)	shift ; export chuser=$1 ;;
 		*)		echo "Invalid Argument: $1" ; help ; exit 255 ;;
 		esac
 		shift
@@ -59,7 +60,7 @@ first_or_last()
 
 get_gnome_proxy()
 {
-	if which gconftool-2 > /dev/null; then
+	if which gconftool-2 &>/dev/null; then
 	        mode=`gconftool-2 -g /system/proxy/mode 2>/dev/null`
         	use_http_proxy=`gconftool-2 -g /system/http_proxy/use_http_proxy 2>/dev/null`
 	        use_same_proxy=`gconftool-2 -g /system/http_proxy/use_same_proxy 2>/dev/null`
@@ -145,7 +146,12 @@ launch_chroot()
 			dbus-uuidgen --get > var/lib/dbus/machine-id
 		fi
 	fi
-	chroot $PWD /ts/TS_ENV
+	if [ -n "$chuser" ]; then
+		chroot_cmd="chroot --userspec=$chuser"
+	else
+		chroot_cmd="chroot"
+	fi
+	$chroot_cmd $PWD /ts/TS_ENV
 	howdiditgo=$?
 	if first_or_last ; then
 		do_unmounts

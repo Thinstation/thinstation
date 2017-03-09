@@ -1,0 +1,25 @@
+# Description: toolset for interaction with virtualized desktop devices
+# URL:         http://spice-space.org
+# Maintainer:  Thomas Penteker, tek at serverop dot de 
+# Depends on:  glib celt51 alsa-lib xorg-libpixman openssl libjpeg-turbo zlib pyparsing cyrus-sasl
+
+name=spice
+version=0.13.1
+release=1
+#source=(http://spice-space.org/download/releases/spice-$version.tar.bz2)
+
+build() {
+export CFLAGS="$CFLAGS -Wno-error=unused-local-typedefs"
+git clone git://anongit.freedesktop.org/spice/spice
+cd spice
+./autogen.sh
+#  cd $name-$version
+
+  ./configure --prefix=/usr \
+              --datarootdir=/usr/lib \
+              --enable-opengl=no
+
+  make
+  make DESTDIR=$PKG install
+
+}

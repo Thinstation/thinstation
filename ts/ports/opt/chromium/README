@@ -1,0 +1,39 @@
+
+README for chromium
+
+
+NOTES
+
+	Some features of Chromium > 23.x.x.x use Google APIs, and to access those APIs
+	either an API Key or a set of OAuth 2.0 tokens is required. You can specify
+	the API keys to use either when you build Chromium, or at runtime using
+	environment variables.
+	After build chromium you will have a binary without API keys baked in, so
+	instead you should provide them at runtime.
+
+	To read more about API keys:
+	http://www.chromium.org/developers/how-tos/api-keys
+
+
+WARNING
+
+	To build chromium you need a functioning shared semaphore implementation on the
+	host operating system. For POSIX semaphores to work, you need r/w access to
+	shared memory (/dev/shm).
+
+        Be sure you enabled /dev/shm or you will get errors like:
+
+	sl = self._semlock = _multiprocessing.SemLock(kind, value, maxvalue)
+	OSError: [Errno 13] Permission denied
+
+
+POSTINSTALLATION
+
+	If you can't run chromium and you got a message like this:
+
+	$ chromium
+	[1410:1410:1506374616:FATAL:platform_font_gtk.cc(329)] Check failed: typeface.
+        Could not find any font: Fixed, sans
+        Aborted
+
+	You can solve this by installing for example xorg/xorg-font-dejavu-ttf.

@@ -1,0 +1,19 @@
+# Description: Adwaita Icon Theme
+# URL:         https://git.gnome.org/browse/adwaita-icon-theme/
+# Packager:    Svyatoslav Mishyn, juef at openmailbox dot org
+# Maintainer:  Fredrik Rinnestam, fredrik at rinnestam dot se
+# Depends On:  librsvg
+
+name=adwaita-icon-theme
+version=3.20
+release=1
+source=(http://ftp.gnome.org/pub/gnome/sources/$name/${version:0:4}/$name-$version.tar.xz)
+
+build() {
+	cd $name-$version
+
+	./configure --prefix=/usr
+
+	make
+	make install DESTDIR=$PKG
+}

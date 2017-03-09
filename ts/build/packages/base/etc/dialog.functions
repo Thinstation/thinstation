@@ -22,7 +22,7 @@ x_check_status()
 
 check_reconnect()
 {
-        if [ -e /tmp/.X11-unix/X$DISPLAY_NUMBER ] ; then
+	if [ -e /tmp/.X11-unix/X$DISPLAY_NUMBER ] ; then
                 prompt=$(make_caps $RECONNECT_PROMPT | cut -c1-4)
                 NO_SESSION=$(make_lower $NO_SESSION)
                 if [ "$prompt" = "MENU" ] ; then
@@ -122,7 +122,7 @@ read_options()
 			echo "$OPTIONS" > /tmp/.dialog_${client}_options
 		fi
 	fi
-	if [ -e /tmp/.dialog_${client}_user ]; then
+	if [ -e /tmp/.dialog_${client}_user ] && is_enabled $REMEMBER_USER; then
 		DIALOG_USER=$(cat /tmp/.dialog_${client}_user)
 	fi
 	if [ -e /tmp/.dialog_${client}_server ]; then

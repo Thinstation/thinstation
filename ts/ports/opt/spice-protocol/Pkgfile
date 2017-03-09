@@ -1,0 +1,21 @@
+# Description: protocol headers for interaction with virtualized desktop devices
+# URL:         http://spice-space.org
+# Maintainer:  Thomas Penteker, tek at serverop dot de 
+# Depends on:  pyparsing
+
+name=spice-protocol
+version=0.12.11
+release=1
+source=(http://spice-space.org/download/releases/spice-protocol-$version.tar.bz2)
+
+build() {
+
+  cd $name-$version
+
+  ./configure --prefix=/usr \
+              --datarootdir=/usr/lib
+
+  make
+  make DESTDIR=$PKG install
+
+}

@@ -1,0 +1,22 @@
+# Description: gtk2 theme matching the default gtk3 theme Adwaita
+# URL:         https://git.gnome.org/browse/gnome-themes-standard/
+# Packager:    Svyatoslav Mishyn, juef at openmailbox dot org
+# Maintainer:  Fredrik Rinnestam, fredrik at rinnestam dot se
+# Depends on:  gtk
+
+name=gtk-theme-adwaita
+version=3.20
+release=1
+source=(http://ftp.gnome.org/pub/gnome/sources/gnome-themes-standard/${version:0:4}/gnome-themes-standard-${version}.tar.xz)
+
+build() {
+	cd gnome-themes-standard-$version
+
+	sed -i "s/HighContrast//" themes/Makefile.in
+	./configure	--prefix=/usr         \
+			--disable-glibtest    \
+			--disable-nls         \
+
+	make
+	make install DESTDIR=$PKG
+}

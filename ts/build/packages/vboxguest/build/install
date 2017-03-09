@@ -65,7 +65,7 @@ do_module() {
   make KERN_DIR=/lib/modules/$1/build clean
   make KERN_DIR=/lib/modules/$1/build
   let returnval=returnval+$?
-  perl /usr/src/kernels/$1/scripts/sign-file sha256 /etc/ssl/keys/kernel.key /etc/ssl/certs/kernel.crt $2.ko
+  /usr/src/kernels/$1/scripts/sign-file sha256 /etc/ssl/keys/kernel.key /etc/ssl/certs/kernel.crt $2.ko
   popd
   cp wget_tmp/$3/src/vboxguest-*/$2/$2.ko $INSTALLDIR/lib/modules/$1/misc
   let returnval=returnval+$?
@@ -81,6 +81,9 @@ for kernel in ${release}TS ${release}TS_SMP; do
   fi
   do_module $kernel vboxsf $vbox
 done
+
+# Don't wine so much when were not in a VBox VM
+sed -i -E 's/notify-send[ ":a-zA-Z.]+/exit/g' $INSTALLDIR/bin/VBoxClient-all
 
 cp -a $INSTALLDIR/build/extra/* $INSTALLDIR
 let returnval=returnval+$?

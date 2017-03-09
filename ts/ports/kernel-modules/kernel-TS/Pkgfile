@@ -9,25 +9,21 @@ sversion=`cat /ts/ports/kernel-modules/VERSION`
 release=1
 kernel=${sversion}TS
 source=(ftp://ftp.kernel.org/pub/linux/kernel/v4.x/linux-$sversion.tar.xz \
-	cs5536.patch
-	../kernel-TS/tmpfs_user_xattr.patch
-	ts.config
-	radeon_fix.patch)
+	tmpfs_user_xattr.patch
+	ts.config)
 
 build() {
 export MAKEFLAGS="-j7"
 	cd linux-$sversion
 	cp $SRC/ts.config ./.config
 
-	patch --no-backup-if-mismatch -p1 < ../tmpfs_user_xattr.patch
-	patch --no-backup-if-mismatch -p0 -i $SRC/cs5536.patch
-	patch --no-backup-if-mismatch -p1 < ../radeon_fix.patch
+#	patch --no-backup-if-mismatch -p1 < ../tmpfs_user_xattr.patch
 
 	if [ -e /etc/ssl/keys/kernel.key ]; then
-		touch x509.genkey
-		cp /etc/ssl/keys/kernel.key signing_key.priv
-		cp /etc/ssl/certs/kernel.crt signing_key.x509
-		cp /etc/ssl/certs/kernel-ca.crt extra_certificates
+		touch certs/x509.genkey
+		cp /etc/ssl/keys/kernel.key certs/signing_key.pem
+		openssl x509 -inform DER -in /etc/ssl/certs/kernel.crt -outform PEM >> certs/signing_key.pem
+		cp /etc/ssl/certs/kernel-ca.crt certs/extra_certificates
 	fi
 
 	make modules_prepare headers_install
@@ -52,7 +48,7 @@ export MAKEFLAGS="-j7"
 	rm lib/modules/${kernel}/{source,build}
 	rm -rf lib/firmware
 	cp $SRC/linux-$sversion/.config $PKG/boot/config-${kernel}
-	echo ${kernel} >$PKG/boot/KERNEL_VERSION
+	echo ${kernel%_*} > $PKG/boot/KERNEL_VERSION
 
 	ln -sf /usr/src/kernels/${kernel} $PKG/lib/modules/${kernel}/build
 	ln -sf build $PKG/lib/modules/${kernel}/source

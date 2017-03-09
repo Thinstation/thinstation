@@ -1,18 +1,19 @@
 # Description: Library and utilities to access the PCI bus configuration registers
 # URL:         http://mj.ucw.cz/pciutils.shtml
 # Maintainer:  CRUX System Team, core-ports at crux dot nu
+# Depends on:  eudev
 
 name=pciutils
-version=3.1.8
+version=3.4.1
 release=1
 source=(ftp://atrey.karlin.mff.cuni.cz/pub/linux/pci/$name-$version.tar.gz)
 
 build() {
     cd $name-$version
-    make OPT="$CFLAGS" PREFIX=/usr ZLIB=no STATIC=YES SHARED=YES
-    make DESTDIR=$PKG PREFIX=/usr MANDIR=/usr/man install install-lib
 
+    local CONF="ZLIB=no DESTDIR=$PKG PREFIX=/usr"
+
+    make -j1 $CONF OPT="$CFLAGS" SHARED=yes install install-lib
     make clean
-    make OPT="$CFLAGS" PREFIX=/usr ZLIB=no
-    make DESTDIR=$PKG PREFIX=/usr MANDIR=/usr/man install install-lib
+    make -j1 $CONF OPT="$CFLAGS" SHARED=no  install install-lib
 }

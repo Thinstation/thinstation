@@ -66,10 +66,23 @@ find_vga_drivers()
 
 	GMA_VENDORS=`		grep /lib/modules/$KERNEL/modules.alias -e gma500_gfx	|cut -c 16-19`
 	GMA_DEVICES=`		grep /lib/modules/$KERNEL/modules.alias -e gma500_gfx	|cut -c 25-28`
+
+	QXL_VENDORS=`		grep /lib/modules/$KERNEL/modules.alias -e qxl   	|cut -c 16-19`
+	QXL_DEVICES=`		grep /lib/modules/$KERNEL/modules.alias -e qxl   	|cut -c 25-28`
 }
 
 detect_vga_adapters()
 {
+	for vid in $QXL_VENDORS ; do
+		if [ "$VENDOR" == "$vid" ] ; then
+			for pid in $QXL_DEVICES ; do
+				if [ "$DEVICE" == "$pid" ]; then
+					QXL=true
+					kms=true
+				fi
+			done
+		fi
+	done
 	for vid in $VMWGFX_VENDORS ; do
 		if [ "$VENDOR" == "$vid" ] ; then
 			for pid in $VMWGFX_DEVICES ; do

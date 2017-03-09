@@ -910,7 +910,7 @@ copy_firmware()
 			fi
 		done
 	else
-		echo -e "\tError, Firmware $1 not found"
+		echo -e "\tNotice, Firmware $1 not found"
 #		echo "$1" >> /missing
 	fi
 }
@@ -973,7 +973,7 @@ do
 		done
 	fi
 	if [ `make_caps X$args` == "XFORCE" ]; then
-		echo $name `echo $args | cut -f1 -d#` >> ./tmp-tree/etc/modules
+		echo $name >> ./tmp-tree/etc/modules
 	fi
 	;;
     module_pkg)
@@ -1109,10 +1109,16 @@ if is_enabled $ts_earlymicrocode ; then
 	rm -rf kernel/x86
 elif is_enabled $ts_allfirmware ; then
 	echo "Doing an All Firmware Build!"
-	for microcode in `find /lib/firmware/intel-ucode -type f -printf '%f '` \
-			 `find /lib/firmware/amd-ucode -type f -printf '%f '`; do
+	if [ -e /lib/firmware/amd-ucode ]; then
+	    for microcode in `find /lib/firmware/amd-ucode -type f -printf '%f '`; do
 		copy_firmware $microcode
-	done
+	    done
+	fi
+	if [ -e /lib/firmware/intel-ucode ]; then
+	    for microcode in `find /lib/firmware/intel-ucode -type f -printf '%f '`; do
+		copy_firmware $microcode
+	    done
+	fi
 fi
 
 for KERNVER in $KERNVERS; do
@@ -1507,7 +1513,7 @@ for filename in `ls -1 $PKGDIR/` ; do
 		rm -Rf build
 	fi
 	echo "Building $filename.pkg"
-	tar -cz * > ../$filename.pkg
+	tar -cJf ../$filename.pkg *
 	cd ../../..
 	rm -Rf $PKGDIR/$filename
 	if [ -n "$PKGFILES" ] ; then
@@ -2039,8 +2045,8 @@ syslinux_com_deps()
 syslinux_copy_files_bios()
 {
 	if [ -z "$ts_bootserver" ]; then
-		inet_dev=`ip route list |grep -e default |cut -d " " -f5`
-		ts_bootserver=`ip addr show $inet_dev |grep -e "inet " |cut -d " " -f6 |cut -d "/" -f1`
+		inet_dev=`ip route list |grep -e default |cut -d " " -f5| head -n1`
+		ts_bootserver=`ip addr show $inet_dev |grep -e "inet " |cut -d " " -f6 |cut -d "/" -f1| head -n1`
 	fi
 	biosdir=/usr/share/syslinux/bios
 	configdir=boot-images/templates/syslinux/$ts_syslinuxtheme
