@@ -605,10 +605,19 @@ case "$1" in
         #echo "INSTALL_DISK_NAME = '$INSTALL_DISK_NAME'"
 
 
+
+        # Turn of udev commands so they do not interfear with our installation (eg. package automount and module autofs4)
+        udevadm control --stop-exec-queue
+
+        sync
+        sleep 3
+
+
         # Unmont all partitions
         umount $INSTALL_DISK*
 
-
+        sync
+        sleep 3
 
         # Count the number of partitions
         #IFS=" " read -a arr <<<$(cat /proc/partitions | grep -e "sda[0-9+]")
@@ -691,6 +700,7 @@ case "$1" in
         #INSTALL_PARTITION_2_MOUNT=$(cat /proc/mounts | grep -e ${INSTALL_PARTITION_2_DEVICE} | cut -d' ' -f2)
 
         sync
+        sleep 3
 
         # Mount to a temporary folder (don't use /mnt/local-install/partX in case local-install is already installed on
         #  this computer and we are now installing to e.g. a usb flash drive.
@@ -705,10 +715,16 @@ case "$1" in
 
         # Clean up
         sync
+        sleep 3
         umount /mnt/local-install/install_part1
         umount /mnt/local-install/install_part2
         rmdir /mnt/local-install/install_part1
         rmdir /mnt/local-install/install_part2
+
+
+
+        # Resume udev commands
+        udevadm control --start-exec-queue
     ;;
 
 
@@ -737,9 +753,20 @@ case "$1" in
         #echo "INSTALL_DISK_NAME = '$INSTALL_DISK_NAME'"
 
 
+
+        # Turn of udev commands so they do not interfear with our installation (eg. package automount and module autofs4)
+        udevadm control --stop-exec-queue
+
+
+        sync
+        sleep 3
+
         # Unmont all partitions
         umount $INSTALL_DISK*
 
+
+        sync
+        sleep 3
 
 
         # Delete all partitions
@@ -795,7 +822,6 @@ case "$1" in
         #INSTALL_PARTITION_2_MOUNT=$(cat /proc/mounts | grep -e ${INSTALL_PARTITION_2_DEVICE} | cut -d' ' -f2)
 
         sync
-
         sleep 3
 
 
@@ -806,6 +832,7 @@ case "$1" in
         mount ${INSTALL_PARTITION_1_DEVICE} /mnt/local-install/install_part1
         mount ${INSTALL_PARTITION_2_DEVICE} /mnt/local-install/install_part2
 
+        sync
         sleep 3
 
         # Download the Thinstation image
@@ -819,6 +846,11 @@ case "$1" in
         umount /mnt/local-install/install_part2
         rmdir /mnt/local-install/install_part1
         rmdir /mnt/local-install/install_part2
+
+
+
+        # Resume udev commands
+        udevadm control --start-exec-queue
     ;;
 
 
