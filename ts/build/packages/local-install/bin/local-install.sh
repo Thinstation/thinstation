@@ -328,14 +328,14 @@ mountPartitions()
             mount '/dev/disk/by-partlabel/Thinstation_Userconf' ${2}
             if [ ${?} -ne 0 ]; then
                 returnValue=0
-            
+
                 # Clean up the created directory (we don't do rm -rf since that could possibly couse erazing everything
                 # on the partition if we mounted the partition but got an error anyway...
                 rmdir ${2}
             fi
         fi
 
-        
+
     else
         #echo "This computer uses BIOS firmware, searching for boot image by disk"
 
@@ -349,16 +349,16 @@ mountPartitions()
                 #if [ $(isMounted ${partitionBootMount}) -eq 1 ]; then
                 if [ "$(isMounted ${1})" -eq 1 ]; then
                     #echo "mounted"
-                    
+
                     # OK, we have something mounted, see if it is our Thinstation_Boot partition
                     #if [ "$(getValueFromFile 'LOCAL_INSTALL_VERSION' ${partitionBootMount}/version 0)" -ge 1 ]; then
                     if [ "$(getValueFromFile 'LOCAL_INSTALL_VERSION' ${1}/version 0)" -ge 1 ]; then
                         #returnValue=$(getValueFromFile 'LOCAL_INSTALL_VERSION' ${partitionBootMount}/version 0)
                         returnValue=1
-                        
+
                         partitionBootDevice=${DISK}1
                         partitionUserDevice=${DISK}2
-                        
+
                         # Now exit the for loop since we don't need to analyze anymore partitions.
                         break
                     else
@@ -369,7 +369,7 @@ mountPartitions()
                 #else
                     #echo "${partitionBootMount} is not mounted"
                 fi
-                
+
                 # Mount the partition and test it
                 #mkdir -p ${partitionBootMount}
                 mkdir -p ${1}
@@ -385,8 +385,6 @@ mountPartitions()
                     partitionUserDevice=${DISK}2
                     break
                 fi
-                
-                
             fi
         done
 
@@ -401,7 +399,7 @@ mountPartitions()
         fi
 
     fi
-    
+
     echo $returnValue
 
 }
@@ -415,7 +413,7 @@ notifyServer()
         logger --stderr --tag $LOGGERTAG "Exiting version notification since \$LOCAL_INSTALL_TFTP_NOTIFY_PATH was not set. If you want notification to a server, set \$LOCAL_INSTALL_TFTP_NOTIFY_PATH='/' or \$LOCAL_INSTALL_TFTP_NOTIFY_PATH='/client-versions/' it must however end with a '/'"
         returnValue=1
     fi
-    
+
     if [ "$returnValue" -eq 0 ] && [ -z "${SERVER_IP}" ]; then
         logger --stderr --tag $LOGGERTAG "Exiting version notification since \$SERVER_IP was not set."
         returnValue=2
@@ -425,18 +423,18 @@ notifyServer()
         logger --stderr --tag $LOGGERTAG 'Exiting version notification to TFTP server since no local installation was found.'
         returnValue=3
     fi
-    
+
     if [ "$returnValue" -eq 0 ]; then
         mkdir -p ${TMP_DIR}
         printf $(getVersionLocal) > "${TMP_DIR}/version-local"
         tftp -p -l "${TMP_DIR}/version-local" -r "${LOCAL_INSTALL_TFTP_NOTIFY_PATH}$(/bin/hostname).version" $SERVER_IP
-        
+
         if [ ${?} -ne 0 ]; then
             returnValue=4
         fi
         rm "${TMP_DIR}/version-local"
     fi
-    
+
     echo $returnValue
 }
 
@@ -503,24 +501,24 @@ case "$1" in
     upgrade)
         versionLocal=$(getVersionLocal)
         versionRemote=$(getVersionRemote)
-        
+
         if [ "$versionLocal" -eq 0 ]; then
             logger --stderr --tag $LOGGERTAG "upgrade: Exiting upgrade since no local installation was found."
             exit 1
         fi
-        
+
         if [ "$versionRemote" -eq 0 ]; then
             logger --stderr --tag $LOGGERTAG "upgrade: Unable to fetch remote version over HTTP at ${LOCAL_INSTALL_URL}version"
             exit 2
         fi
-        
+
         if [ "$versionLocal" -ge "$versionRemote" ]; then
             logger --stderr --tag $LOGGERTAG "upgrade: No need to upgrade, local version is $versionLocal and remote version is $versionRemote"
             exit 3
         fi
-        
+
         downloadImage $(getDeviceForMountPoint '/mnt/local-install/part1') '/mnt/local-install/part1' '/mnt/local-install/part2'
-        
+
         # If download went well, run the after upgrade script
         if [ ${?} -eq 0 ]; then
             downloadAndExecute 'after_upgrade_finished.sh'
@@ -528,23 +526,23 @@ case "$1" in
             exit 4
         fi
     ;;
-    
-    
-    
+
+
+
     upgrade-force)
         versionLocal=$(getVersionLocal)
         versionRemote=$(getVersionRemote)
-        
+
         if [ "$versionLocal" -eq 0 ]; then
             logger --stderr --tag $LOGGERTAG "upgrade: Exiting upgrade since no local installation was found."
             exit 1
         fi
-        
+
         if [ "$versionRemote" -eq 0 ]; then
             logger --stderr --tag $LOGGERTAG "upgrade: Unable to fetch remote version over HTTP at ${LOCAL_INSTALL_URL}version"
             exit 2
         fi
-        
+
         downloadImage $(getDeviceForMountPoint '/mnt/local-install/part1') '/mnt/local-install/part1' '/mnt/local-install/part2'
     ;;
 
@@ -715,8 +713,117 @@ case "$1" in
 
 
 
+    install-force)
+
+        if [ -f $2 ]; then
+            logger --stderr --tag $LOGGERTAG "install-force: Parameter 2 path for device to install on is not defined: '$2'"
+            exit 1
+        fi
+
+        if [ ! -b $2 ]; then
+            logger --stderr --tag $LOGGERTAG "install-force: Parameter 2 device does not exist: '$2'"
+            exit 2
+        fi
+
+
+        # Set INSTALL_DISK to the device defined by parameter 2
+        INSTALL_DISK=$(find $2 | grep -E "$deviceRegEx")
+
+
+        # Extract the device name into a variable, e.g. if INSTALL_DISK is "/dev/sda" INSTALL_DISK_NAME will be "sda"
+        INSTALL_DISK_NAME="$(find $INSTALL_DISK -printf ""%f"")"
+
+        #echo "INSTALL_DISK = '$INSTALL_DISK'"
+        #echo "INSTALL_DISK_NAME = '$INSTALL_DISK_NAME'"
+
+
+        # Unmont all partitions
+        umount $INSTALL_DISK*
+
+
+
+        # Delete all partitions
+        for PARTNUM in $(cat /proc/partitions | grep -e "sda[0-9+]" | cut -d' ' -f12); do
+            echo "deleting partition $PARTNUM on $INSTALL_DISK"
+            parted -s $INSTALL_DISK rm ${PARTNUM} > /dev/null 2>&1
+        done
+
+
+        if [ "$(firmwareType)" = "UEFI" ]; then
+            echo "This computer uses UEFI firmware, setting up gpt partitions for EFI boot"
+            parted -s ${INSTALL_DISK} mklabel gpt
+            #parted -s ${INSTALL_DISK} mkpart ESP fat32 1MiB 512Mib
+            parted -s ${INSTALL_DISK} mkpart ESP fat32 1MiB 1024MiB
+            parted -s ${INSTALL_DISK} set 1 boot on
+            #parted -s ${INSTALL_DISK} name 1 '"Thinstation EFI Boot"'
+            parted -s ${INSTALL_DISK} name 1 Thinstation_EFI_Boot
+            parted -s ${INSTALL_DISK} mkpart primary ext4 1028MiB 1128MiB
+            parted -s ${INSTALL_DISK} name 2 Thinstation_Userconf
+
+        else
+            echo "This computer uses BIOS firmware, setting up msdos partitions for MBR boot"
+            # Partition the disk and create filesystems.
+            parted -s ${INSTALL_DISK} mklabel msdos
+            parted -s ${INSTALL_DISK} mkpart primary fat32 "2048s 2099199s"
+            parted -s ${INSTALL_DISK} set 1 boot on
+            parted -s ${INSTALL_DISK} mkpart primary ext4 "2099200s 2304000s"
+        fi
+
+        # Check what the new partition name is
+        # It the disk is mmcblk0 the partition is namned mmcblk0p1 (adding a p before the partition number)
+        if cat /proc/partitions | egrep -wq "${INSTALL_DISK_NAME}p1"; then
+            INSTALL_PARTITION_1="${INSTALL_DISK_NAME}p1"
+            INSTALL_PARTITION_1_DEVICE="${INSTALL_DISK}p1"
+
+            INSTALL_PARTITION_2="${INSTALL_DISK_NAME}p2"
+            INSTALL_PARTITION_2_DEVICE="${INSTALL_DISK}p2"
+        else
+            INSTALL_PARTITION_1="${INSTALL_DISK_NAME}1"
+            INSTALL_PARTITION_1_DEVICE="${INSTALL_DISK}1"
+
+            INSTALL_PARTITION_2="${INSTALL_DISK_NAME}2"
+            INSTALL_PARTITION_2_DEVICE="${INSTALL_DISK}2"
+        fi
+
+
+        # Format the new partitions
+        mkfs.vfat ${INSTALL_PARTITION_1_DEVICE}
+        mkfs.ext4 ${INSTALL_PARTITION_2_DEVICE}
+
+        # Get the mount point for the partitions
+        #INSTALL_PARTITION_1_MOUNT=$(cat /proc/mounts | grep -e ${INSTALL_PARTITION_1_DEVICE} | cut -d' ' -f2)
+        #INSTALL_PARTITION_2_MOUNT=$(cat /proc/mounts | grep -e ${INSTALL_PARTITION_2_DEVICE} | cut -d' ' -f2)
+
+        sync
+
+        sleep 3
+
+
+        # Mount to a temporary folder (don't use /mnt/local-install/partX in case local-install is already installed on
+        #  this computer and we are now installing to e.g. a usb flash drive.
+        mkdir -p /mnt/local-install/install_part1
+        mkdir -p /mnt/local-install/install_part2
+        mount ${INSTALL_PARTITION_1_DEVICE} /mnt/local-install/install_part1
+        mount ${INSTALL_PARTITION_2_DEVICE} /mnt/local-install/install_part2
+
+        sleep 3
+
+        # Download the Thinstation image
+        downloadImage $INSTALL_PARTITION_1_DEVICE '/mnt/local-install/install_part1' '/mnt/local-install/install_part2'
+
+
+        # Clean up
+        sync
+        sleep 3
+        umount /mnt/local-install/install_part1
+        umount /mnt/local-install/install_part2
+        rmdir /mnt/local-install/install_part1
+        rmdir /mnt/local-install/install_part2
+    ;;
+
+
     *)
-        echo "Usage: $0 {install|version-local|version-remote|mount|umount|notify-server|upgrade|upgrade-force}"
+        echo "Usage: $0 {install|install-force|version-local|version-remote|mount|umount|notify-server|upgrade|upgrade-force}"
         exit 1
     ;;
 esac
