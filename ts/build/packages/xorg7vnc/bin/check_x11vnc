@@ -1,8 +1,7 @@
 #!/bin/sh
 if [ -z "`pidof x11vnc`" ]; then
-  /usr/bin/x11vnc -forever -rfbport 5900 -rfbauth /home/tsuser/.vnc/passwd -o /var/log/x11vnc &
-  ##x11vnc -forever  -q -usepw -httpdir /lib/www/html/x11vnc -o /var/log/x11vnc &
+  x11vnc -forever  -q -usepw -httpdir /lib/www/html/x11vnc -o /var/log/x11vnc &
   # Now we have got it started stop this cron nonsense:
-  sed -i s/"*\/1 \* \* \* \* \/bin\/check_x11vnc"// /tmp/crontab
+  #sed -i s/"*\/1 \* \* \* \* \/bin\/check_x11vnc"// /tmp/crontab
   crontab /tmp/crontab
 fi
