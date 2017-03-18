@@ -72,6 +72,10 @@ machine Virtualbox-4.1			# A good set of modules for a Virtualbox Virtual Machin
 #machine foxconn-nT-i2847		# Foxconn nT i2847 Barebone
 #machine foxconn-nT-iBT18		# Foxconn nT iBT18 Barebone
 #machine foxconn-nT-n270		# Foxconn nT n270 Barebone
+#machine Acer-Revo-M1-601		# Acer Revo M1-601
+#machine Lenovo-T420s			# Lenovo T420s Laptop
+#machine Lenovo-T430s			# Lenovo T430s Laptop
+
 
 #!!Wireless Stuff
 #package wpa_supplicant
@@ -111,6 +115,8 @@ module ext4			# Ext4 file system support
 package overlayfs			# This is needed in order for squashfs compression mode to work.
 #package ts-classic              # The classic ts logic for network/netfiles/hostname/mounting/telnetd/telnet/playcd
 #package automount
+#package netfiles			# Adds only this package instead of the whole ts-classic. netfiles lets you get thinstation.conf.xxx files
+							# from the TFTP-server
 package udisks
 package networkmanager
 #package udisks-glue
@@ -192,6 +198,7 @@ package freerdp		# X RDP Client - fork of rdesktop
 #package firefox_lowmem		# Firefox 3 for low resource machines
 package firefox		# Firefox current Web Browser
 #package chrome			# Google Chrome Web Browser
+#package chromium		# Chromium Web Browser
 #package kiosk			# Rkiosk Plugin for Firefox
 #package flash_lowmem		# Flash 9 browser plugin for firefox and low resource machines
 #package flash			# Flash Current
@@ -289,15 +296,30 @@ package fonts-TTF-liberation
 #package fonts-Type1-Bitstream
 #package fonts-Type1-IBM
 #package fonts-Type1-xfree86
-#package lshw			# list hardware
-#package e3 			# Basic vi like Editor
-#package rox			# Basic File Manager
-#package debug			# metapackage to include other debugging packages and stop during bootup to check things.
-#package extensions		# Adds various shell commands, will increase image size.
+#package lshw				# list hardware
+#package e3 				# Basic vi like Editor
+#package rox				# Basic File Manager
+#package debug				# metapackage to include other debugging packages and stop during bootup to check things.
+#package extensions			# Adds various shell commands, will increase image size.
 #package extensions-x		# Adds various utility s for the X Environment !!!! INCLUDES hwlister.sh !!!!
-#package eGalax                 # eGalax TouchKit Drivers/Utility for serial and usb touchscreens by EETI.
-#package installer		# Wipes a drive, makes partitions and downloads thinstation from a pxe server
-#package devstation		# Starts a tftp server that hosts files from the boot-images/pxe folder
+#package eGalax				# eGalax TouchKit Drivers/Utility for serial and usb touchscreens by EETI.
+#package installer			# Wipes a drive, makes partitions and downloads thinstation from a pxe server
+#package devstation			# Starts a tftp server that hosts files from the boot-images/pxe folder
+#package ca-bundle			# Adds many standard SSL and PKI root certificats. Include this package if you have issues with certificate trusts.
+package set-resolution		# Allows the user to change the resolution via the start-menu.
+#package local-install		# Makes it possible to install Thinstation locally on the machine but still have a central image
+							# management via automatic updates and version control when the client boots. For more information
+							# see /ts/build/Documentation/README.local-install and /ts/build/thinstation.conf.sample
+							# (generated during first build)
+#package custom-idle         # Shuts down the client based after X minutes if some applications/sessions are not running.
+#package custom-background	# Allows you to dynamically set a diffrent background in the conf-files when the client boots.
+                            #     For example have a background-image in the build with an error-message and then in
+                            #     thinstation.conf.network set the "regular" background. This way the user will receive an
+                            #     error message on the screen if the client was unable to get the config files from the
+                            #     Web- or TFTP-server when it booted.
+#package hdd-spindown		# Sets hard drives into sleep mode (spin down) when they are idle. See thinstation.conf.sample for info.
+#package openssl             # Probably needed by the Citrix Receiver 13.2 version.
+
 
 # Parameters
 ########################################
@@ -344,13 +366,16 @@ param bootresolution 1280x768-32
 #param bootresolution 1680x1050-32
 #param bootresolution 1920x1080-32
 #param bootresolution 1400x1050-32
+#param bootresolution 1920x1200-32
 
 param desktop file:./backgrounds/Hive_Lite.jpg		# Custom image to load as desktop background
 param defaultconfig  thinstation.conf.buildtime  	# The file with default setup.  No other config file is found
                                                  	#  during boot.
 param basename       thinstation     			# Used for all config/tftp/scp file names
-param basepath       ts5.4               		# Used to determine path to tftp/scp files
+param basepath       ts5.5               		# Used to determine path to tftp/scp files
 param baseurl        http://www.doncuppjr.net		# Used to determine url to wget files
+#param baseurl        http://192.168.78.17		# Used to determine url to wget/http files - your local web server
+#param baseurl        'http://${SERVER_IP}'		# Used to determine url to wget/http files - if you wan't to use a web server on the same server as the TFTP server
 #param keyfile        ./id_rsa       			# Path for private key file used for ssh/scp
 #param knownhosts     ./known_hosts  			# Path for ssh known_hosts file for ssh/scp
 #param localpkgs      false				# to determine is PKG files are to be loaded locally
@@ -377,7 +402,11 @@ param bootverbosity   3          			# Increased vebosity when booting TS
 #!!Advanced
 # Leave this alone unless you can t download (wget required on your Linux box):
 param downloads         /downloads
-param bootimages        "iso syslinux pxe"
+param bootimages        "iso syslinux pxe refind"
+#param bootserver        "192.168.1.1"		# Used for the pxe image config files to specify where to download
+											# the syslinux image from. Result is generated in
+											# /ts/build/boot-images/pxe/boot/lpxelinux/pxelinux.cfg/default
+											# so that you can specify APPEND initrd=http://<bootserver>/boot/initrd
 param syslinuxtheme     "default"
 #param httpproxy	http://192.168.1.2:8080
 

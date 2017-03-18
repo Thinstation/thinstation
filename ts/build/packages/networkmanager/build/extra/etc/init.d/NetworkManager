@@ -25,6 +25,12 @@ init)
 			nm-online -t $NET_LINKWAIT
 			echo -e "\n"
 		fi
+
+
+        # Since the variables in /var/log/net/xxx did not set correctly when init.d/hostname is executed before init.d/NetworkManager
+        # we launch net.sh again.
+        # We need the variables set in the /var/log/net/xxx files in order for the package netfiles to work.
+        /etc/init.d/hostname
 	fi
     ;;
 help)
