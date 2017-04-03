@@ -16,6 +16,13 @@ if ! pkg_initialized $PACKAGE; then
  ICA_CACHE=$ICA_CACHEDIR/StoreCache.ctx
  APPSRV_CUSTOM=/tmp/appsrv.ini.new
  WFCLIENT_CUSTOM=/tmp/wfclient.ini.new
+ if [ -e $ICA_DIR/appsrv.template ]; then
+  APPSRV_TPL=$ICA_DIR/appsrv.template
+  WFCLIENT_TPL=$ICA_DIR/wfclient.template
+ else
+  APPSRV_TPL=$ICA_DIR/appsrv.ini
+  WFCLIENT_TPL=$ICA_DIR/wfclient.ini
+ fi
 
  if [ -n "$PKCS11_MODULE" ]; then
    awk -v pkcs="$PKCS11_MODULE" '{ print $0; if($1 == "<key>PKCS11module</key>") { getline; print "<value>" pkcs "</value>"} }' < $ICA_DIR/AuthManConfig.xml > $ICA_DIR/AuthManConfig.old
@@ -32,6 +39,7 @@ if ! pkg_initialized $PACKAGE; then
  if [ ! -e $ICA_CACHEDIR ]; then
    mkdir $ICA_CACHEDIR
    cp $ICA_CACHETMPL $ICA_CACHE
+   chmod u+w $ICA_CACHE
  fi
 
  # Set file Permissions and links to those of a normal ICA install
@@ -47,7 +55,7 @@ if ! pkg_initialized $PACKAGE; then
 
  # Checks for pre-existing files, from permanent storage
  if [ ! -e $ICA_CONF/appsrv.ini ] ; then
-  cat $ICA_DIR/appsrv.ini >$ICA_CONF/appsrv.ini
+  cat $APPSRV_TPL >$ICA_CONF/appsrv.ini
 
   let x=0
 
@@ -222,9 +230,7 @@ if ! pkg_initialized $PACKAGE; then
  # Checks for pre-existing files, from permanent storage
  if [ ! -e $ICA_CONF/wfclient.ini ] ; then
 
-  line=`grep -n Thinwire $ICA_DIR/wfclient.ini | cut -d : -f 1`
-
-    
+  line=`grep -n Thinwire $WFCLIENT_TPL | cut -d : -f 1`
 
  # Choose ICA colour Depth
 
@@ -281,7 +287,7 @@ if ! pkg_initialized $PACKAGE; then
   done
 
   let line=line-1
-  head -n $line $ICA_DIR/wfclient.ini | \
+  head -n $line $WFCLIENT_TPL | \
       sed -f /tmp/script >> $ICA_CONF/wfclient.ini
   if [ -e $WFCLIENT_CUSTOM ] ; then
 	   cat $WFCLIENT_CUSTOM >> $ICA_CONF/wfclient.ini
@@ -301,7 +307,7 @@ if ! pkg_initialized $PACKAGE; then
   done
 
   let line=line+1
-  tail -n +$line $ICA_DIR/wfclient.ini | \
+  tail -n +$line $WFCLIENT_TPL | \
       sed -f /tmp/script >> $ICA_CONF/wfclient.ini
   if [ -e $WFCLIENT_CUSTOM ] ; then
 	   cat $WFCLIENT_CUSTOM >> $ICA_CONF/wfclient.ini

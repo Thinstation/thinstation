@@ -23,6 +23,17 @@ stale_tasks()
 	fi
 }
 
+if [ "$1" == "open" ]; then
+	umask 027
+	if is_enabled $DESTRUCTIVE_RELOAD; then
+		mkdir -p $HOME
+                for file in `ls -A /etc/skel`; do
+                        cp -a /etc/skel/$file $HOME/. 2>/dev/null
+                done
+		chown -R "$TSUSER.`id -gn $TSUSER`" $HOME
+	fi
+fi
+
 if [ "$1" == "close" ] && [ -z "`pidof shutdown`" ]; then
 	timeout=0
 	while stale_tasks && [ "$timeout" -lt "30" ]; do

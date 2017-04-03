@@ -1,0 +1,19 @@
+# Description: OTR Library for implementing Off-the-Record in Messaging
+# URL: 
+# Maintainer: None
+
+name=libotr
+version=4.1.0
+release=1
+source=(https://otr.cypherpunks.ca/$name-$version.tar.gz)
+
+build() {
+	cd $name-$version
+
+	./configure --prefix=/usr --disable-static
+
+	make
+	make DESTDIR=$PKG install
+
+	rm -rf $PKG/usr/share/man
+}

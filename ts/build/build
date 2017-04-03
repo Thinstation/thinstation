@@ -209,20 +209,6 @@ calculate_lib_dependencies()
 }
 export -f calculate_lib_dependencies
 
-resolve_links()
-{
-	for link in `find $pkgname/lib -mindepth 1 -maxdepth 1 -type l \
-        |grep -E 'so.[0-9]+$|so.[0-9]+.[0-9]+$|.so$' \
-        |sort -u`; do
-        	if [ -e $link ]; then
-        		linkdest=`readlink $link`
-			linkdir=`dirname $link`
-	                rm $link
-			cp -a $linkdir/$linkdest $link
-        	fi
-	done
-}
-
 lib_dependencies()
 {
 	echo -e "\nAdding Library Dependencies\n"
@@ -239,14 +225,6 @@ lib_dependencies()
 			export cputil="cp -a"
 		else
 			export cputil=ln
-		fi
-		if [ -d $pkgname/lib ]; then
-			find $pkgname/lib -mindepth 1 -maxdepth 1 -type l |grep -e .so$ |grep -v python |xargs rm >/dev/null 2>&1
-			resolve_links
-			# Delete versions of files and links that are almost never used. Fingers Crossed.
-			find $pkgname/lib -mindepth 1 -maxdepth 1 -name lib\* |grep -E '.so.[0-9]+.[0-9]+' |grep -Ev 'libwinpr|libfreerdp|libxfreerdp|nvidia' |xargs rm >/dev/null 2>&1
-			find $pkgname/lib -mindepth 1 -maxdepth 1 -name lib\* |grep -E '.so.[0-9]+.[0-9]+.[0-9]+' |grep -Ev 'libwinpr|libfreerdp|libxfreerdp|nvidia' |xargs rm >/dev/null 2>&1
-			find $pkgname/lib -mindepth 1 -maxdepth 1 -type f |grep -E 'libnss_[a-z]+\-[0-9]+.[0-9]+.so$' |xargs rm >/dev/null 2>&1
 		fi
 		find $pkgname -type f > filelist
 		file -e encoding -e tokens -e compress -e ascii -e apptype -e tar -e cdf -f filelist -n -r \
@@ -1106,6 +1084,13 @@ mkdir -p $MODDIR
 read_conf ./build.urls
 read_conf
 
+if [ -e $PACDIR/earlymicrocode.param ]; then
+	. $PACDIR/earlymicrocode.param
+fi
+if [ -e $PACDIR/allfirmware.param ]; then
+	. $PACDIR/allfirmware.param
+fi
+
 # Check if kernel exists
 for KERNVER in $KERNVERS; do
 	if [ ! -e /boot/vmlinuz-$KERNVER ] ; then
@@ -1115,28 +1100,33 @@ for KERNVER in $KERNVERS; do
 	fi
 done
 
+if is_enabled $ts_earlymicrocode ; then
+	echo "Creating Early Microcode!"
+	mkdir -p kernel/x86/microcode
+	cat /lib/firmware/intel-ucode/*-*-* > kernel/x86/microcode/GenuineIntel.bin
+	cat /lib/firmware/amd-ucode/microcode_amd*.bin > kernel/x86/microcode/AuthenticAMD.bin
+	ls kernel/x86/microcode/* | cpio -o -C 1024 -H newc -R 0:0 > $INITDIR/ucode
+	rm -rf kernel/x86
+elif is_enabled $ts_allfirmware ; then
+	echo "Doing an All Firmware Build!"
+	if [ -e /lib/firmware/amd-ucode ]; then
+	    for microcode in `find /lib/firmware/amd-ucode -type f -printf '%f '`; do
+		copy_firmware $microcode
+	    done
+	fi
+	if [ -e /lib/firmware/intel-ucode ]; then
+	    for microcode in `find /lib/firmware/intel-ucode -type f -printf '%f '`; do
+		copy_firmware $microcode
+	    done
+	fi
+fi
+
 for KERNVER in $KERNVERS; do
 	mkdir -p ./tmp-tree/lib/modules/$KERNVER
         copy_module modules.builtin $KERNVER ./tmp-tree
         copy_module modules.order $KERNVER ./tmp-tree
 	if [ -e ./ALLMODULES ]; then
 		ALLMODULES=true
-	fi
-	if [ -e $PACDIR/allfirmware.param ]; then
-		. $PACDIR/allfirmware.param
-		if is_enabled $ts_allfirmware ; then
-			echo "Doing an All Firmware Build!"
-			if [ -e /lib/firmware/amd-ucode ]; then
-				for microcode in `find /lib/firmware/amd-ucode -type f -printf '%f '`; do
-					copy_firmware $microcode
-				done
-			fi
-			if [ -e /lib/firmware/intel-ucode ]; then
-				for microcode in `find /lib/firmware/intel-ucode -type f -printf '%f '`; do
-					copy_firmware $microcode
-				done
-			fi
-		fi
 	fi
 	if is_enabled $ALLMODULES ; then
 		echo "Doing an All Modules Build!"
@@ -1248,7 +1238,7 @@ if [ -e $PACDIR/tsuser.param ]; then
 		fi
 	fi
     echo "$ts_tsuser:$GETPASSWD:1000:1000:$ts_tsuser:/home/$ts_tsuser:/bin/sh" >> ./tmp-tree/etc/passwd
-    echo "$ts_tsuser:x:1000:" >> ./tmp-tree/etc/group
+    echo "$ts_tsuser:!:1000:" >> ./tmp-tree/etc/group
     sed -i -e "s/tsuser/$ts_tsuser/g" ./tmp-tree/etc/group
     sed -i -e "s/\-a root/\-a $ts_tsuser/g" ./tmp-tree/etc/inittab
     if [ -e ./tmp-tree/etc/pam.d/login ]; then
@@ -1695,7 +1685,7 @@ filesystem_fixups()
 
 # this is the starting point =>
 remove_files
-rm -rf boot-images/initrd/{kernel_parameters,initrd,image.md5,lib.squash,vmlinuz*}
+rm -rf boot-images/initrd/{kernel_parameters,initrd,ucode,image.md5,lib.squash,vmlinuz*}
 
 # Check OS for required commands. If some are missing the build system may fail silently.
 echo -n "Checking for required commands... "
@@ -1913,7 +1903,13 @@ if [ -n "$ts_kernelcmdline" ]; then
 fi
 
 if [ "$ts_initrdcmd" == "squashfs" ]; then
-	KERNEL_PARAMETERS="$KERNEL_PARAMETERS load_ramdisk=1 ramdisk_blocksize=4096 root=\/dev\/ram0 ramdisk_size=$MAXIMAGE"
+	if is_enabled $ts_earlymicrocode; then
+		blocks=`cat $INITDIR/ucode | cpio -t -C 1024 2>&1 | grep blocks | cut -d' ' -f 1`
+		KERNEL_PARAMETERS="$KERNEL_PARAMETERS load_ramdisk=1 ramdisk_start=$blocks ramdisk_blocksize=4096 root=\/dev\/ram0 ramdisk_size=$MAXIMAGE"
+		unset blocks
+	else
+		KERNEL_PARAMETERS="$KERNEL_PARAMETERS load_ramdisk=1 ramdisk_blocksize=4096 root=\/dev\/ram0 ramdisk_size=$MAXIMAGE"
+	fi
 fi
 
 if [ -z "$kernel_parameters" ]; then
@@ -1932,6 +1928,9 @@ fi
 cd boot-images/initrd
 rm -f vmlinuz*
 md5sum initrd > image.md5
+if is_enabled $ts_earlymicrocode; then
+	md5sum ucode >> image.md5
+fi
 for KERNVER in $KERNVERS; do
 	ln /boot/vmlinuz-$KERNVER ./vmlinuz$k
 	md5sum vmlinuz$k >> image.md5
@@ -1994,6 +1993,9 @@ add_image()
 	fi
 
 	sys_link hard $INITDIR/initrd $ESP/boot/initrd
+	if is_enabled $ts_earlymicrocode; then
+		sys_link hard $INITDIR/ucode $ESP/boot/ucode
+	fi
 	sys_link hard $INITDIR/image.md5 $ESP/boot/image.md5
 	if [ -e $INITDIR/lib.squash ] && [ "$1" != "efi" ]; then
 		sys_link hard $INITDIR/lib.squash $ESP/boot/lib.squash
@@ -2058,6 +2060,9 @@ syslinux_copy_files_bios()
 	mkdir -p `dirname $BIOSDIR/$CONFIGFILE`
 	cat $BIOSDIR/syslinux.cfg.tpl |sed -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS LM=$LM/g"> $BIOSDIR/$CONFIGFILE
         sed -i -e "s/\$LM/$LM/g" $BIOSDIR/$CONFIGFILE
+	if is_enabled $ts_earlymicrocode ; then
+		sed -i -e "s:/boot/initrd:/boot/ucode,/boot/initrd:" $BIOSDIR/$CONFIGFILE
+	fi
 	if [ "$LOADER" == "lpxelinux.0" ]; then
 		for file in `find $BIOSDIR -type f`; do
 			if [ -n "`file -e tokens $file| grep -e ASCII |cut -d ":" -f1`" ];then
@@ -2155,6 +2160,9 @@ refind_copy_files()
 	for file in `find $configdir -type f |sed -e "s|$configdir||g"`; do
 		sys_copy ${configdir}${file} "$EFIDIR/$file"
 		sed -i -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS LM=$LM/g" "$EFIDIR/$file"
+		if is_enabled $ts_earlymicrocode ; then
+			sed -i -e "s:initrd=/boot/initrd:initrd=/boot/ucode initrd=/boot/initrd:" $EFIDIR/$file
+		fi
 	done
 }
 
@@ -2253,13 +2261,16 @@ if [ -z "$NOIMAGES" ]; then
 
 				IMAGEDIR_FINAL=`dirname $ESP`
 
-				if [ -e $INITDIR/boot.efi ]; then
-				sys_copy $INITDIR/boot.efi $ESP/EFI/BOOT/boot.efi
+				if [ -n "$EFIOVERLAY" ]; then
 				for dir in $EFIOVERLAY; do
 				for file in `find $dir -type f |sed "s|$dir||g"`; do
 					sys_link hard $dir/$file $ESP/`basename $dir`/$file
 				done
 				done
+				fi
+
+				if [ -e $INITDIR/boot.efi ]; then
+				sys_copy $INITDIR/boot.efi $ESP/EFI/BOOT/boot.efi
 				iso_efi_boot="\
 					-eltorito-alt-boot \
 					-eltorito-platform efi \

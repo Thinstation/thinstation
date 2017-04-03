@@ -12,7 +12,9 @@ case "$1" in
 init)
     if ! pkg_initialized $PACKAGE; then
 
-	# Your startup instructions go here
+	if [ -n "$ETHTOOL_DEV" ] && [ -n "$ETHTOOL_OPTS" ]; then
+		ethtool -s $ETHTOOL_DEV $ETHTOOL_OPTS
+	fi
 
 	pkg_set_init_flag $PACKAGE
     fi
