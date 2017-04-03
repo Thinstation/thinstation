@@ -44,8 +44,10 @@ stage1()
 
 stage2()
 {
-	for Pkgfile in `find -L $ROOT/ts/ports -name Pkgfile |grep -Ev "proprietary|binary-core|binary-opt"`;do
-		install_port
+	for Root in $ROOT/ts $XTRWRKNG; do
+		for Pkgfile in `find -L $Root/ports -name Pkgfile |grep -Ev "proprietary|binary-core|binary-opt"`;do
+			install_port
+		done
 	done
 	printf "\rPort Installation %-40s\n" "Complete"
 	post_install
@@ -55,13 +57,16 @@ stage2()
 
 stage3()
 {
-	for i in `ls --color=never $TSWRKNG/packages` ;
+	for Root in $TSWRKNG $XTRWRKNG; do
+		if [ $Root = $TSWRKNG ]; then Cache=/ts;
+		else Cache=$Root; fi
+		for i in `ls --color=never $Root/packages` ;
 		do
 			printf "\rPopulating Package %-40s" "$i"
-			cd $TSWRKNG/packages/$i
-			if [ -e /ts/unwind_cache/$i.turbo ]; then
-				if cat /ts/unwind_cache/$i.turbo |grep -e "#" |cut -d "#" -f2 |md5sum -c --quiet ; then
-					. /ts/unwind_cache/$i.turbo
+			cd $Root/packages/$i
+			if [ -e $Cache/unwind_cache/$i.turbo ]; then
+				if cat $Cache/unwind_cache/$i.turbo |grep -e "#" |cut -d "#" -f2 |md5sum -c --quiet ; then
+					. $Cache/unwind_cache/$i.turbo
 				else
 					update $i
 				fi
@@ -69,6 +74,7 @@ stage3()
 				update $i
 			fi
 		done
+	done
 	printf "\rPackage Population %-40s\n" "Complete"
 	echo "Populating tools"
 	update -t
@@ -134,8 +140,8 @@ stage4()
 install_port()
 {
 	. $Pkgfile
-	port_name=`echo $Pkgfile |cut -d "/" -f6`
-	port_dir=`echo $Pkgfile |cut -d "/" -f1-6`
+	port_dir=`dirname $Pkgfile`
+	port_name=`basename $port_dir`
 	pkg_name="`find -L $port_dir -type f -name ${name}#${version}-${release}.pkg.tar.\* -printf '%f'`"
 	printf "\rInstalling Port %-40s" "$port_name"
 	if [ -f $port_dir/$pkg_name ]; then

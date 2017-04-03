@@ -2,24 +2,43 @@
 
 create_wind()
 {
-	echo "#`md5sum .dna`" > /ts/wind_cache/$i.turbo
-        update -c -d $i >> /ts/wind_cache/$i.turbo
-	. /ts/wind_cache/$i.turbo
+	printf "\n\tCreating fast clean cache for $i"
+	echo "#`md5sum .dna`" > $cache/wind_cache/$i.turbo
+        update -c -d $i >> $cache/wind_cache/$i.turbo
+        . $cache/wind_cache/$i.turbo
+	errata=true
 }
 
 create_unwind()
 {
-	echo -e "\tCreating fast install cache for $i"
-        echo "#`md5sum .dna`" > /ts/unwind_cache/$i.turbo
+	printf "\n\tCreating fast install cache for $i"
+        echo "#`md5sum .dna`" > $cache/unwind_cache/$i.turbo
         update -d $i |
-        sed -e 's/^cp \//3:/g' -e 's/mkdir \-/2:/g' -e 's/ln \-/4:/g' |
+        sed -e 's/^mkdir \-/2:/g' -e 's/^ln \-/4:/g' -e 's/^touch /5:/g' -e 's/^ln \//3:/g' |
         sort |
         uniq |
-        sed -e 's/^2:/mkdir \-/g' -e 's/^3:/cp \//g' -e 's/^4:/ln \-/g' >> /ts/unwind_cache/$i.turbo
+        sed -e 's/^2:/mkdir \-/g' -e 's/^3:/ln \//g' -e 's/^4:/ln \-/g' -e 's/^5:/touch /g' >> $cache/unwind_cache/$i.turbo
+	errata=true
 }
 
 i=$1
-cd $TSWRKNG/packages/$i
-create_wind
-create_unwind
-. /ts/unwind_cache/$i.turbo
+for working in $TSWRKNG $XTRWRKNG; do
+	if [ $working = $TSWRKNG ]; then cache=/ts;
+	else cache=$working; fi
+
+	if [ -d $working/packages/$i ]; then
+		if [ ! -e $working/packages/$i/.dna ]; then
+			echo "Missing .dna file for package '$i'."
+			exit
+		fi
+
+		cd $working/packages/$i
+		create_wind
+		create_unwind
+		. $cache/unwind_cache/$i.turbo
+	fi
+done
+
+if [ "$errata" != true ]; then
+	echo "Package directory for '$i' not found."
+fi
