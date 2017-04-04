@@ -8,10 +8,11 @@
 name=xfce4-panel
 version=4.12.0
 release=1
-source=(http://archive.xfce.org/src/xfce/$name/${version%.*}/$name-$version.tar.bz2)
+source=(http://archive.xfce.org/src/xfce/$name/${version%.*}/$name-$version.tar.bz2 clock_timezone.patch)
 
 build () {
   cd $name-$version
+  patch -Np1 < ../clock_timezone.patch
 
   ./configure --prefix=/usr \
               --sysconfdir=/etc \
