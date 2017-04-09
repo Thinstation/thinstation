@@ -1,0 +1,43 @@
+##
+# --- Description of the set-resolution package
+#
+#   This package gives you the ability to change the resolution on your Thinstation without the need to reboot
+#   It will also write the resolution into $STORAGE_PATH/thinstation.profile/thinstation.conf.user
+#   so that the resolution change is saved after reboot.
+#
+#   This package works great together with the package "local-install" where you install Thinstation locally
+#   on the computers hard drive:
+#       1) include the package local-install
+#       2) in thinstation.build.conf set
+#           STORAGE_PATH=/mnt/local-install/part2
+#           STORAGE_CONFIG1=/mnt/local-install/part2
+#       3) you are now good to go... Use the menu under Start > Configuration > "Display Properties - Set Resolution permanently"
+#          or run e.g. "set-resolution --wizard" or "set-resolution --save-resolution 1020x768"
+#
+#   There are no specific parameters for this package, it just contains the set-resolution.sh script and relies on
+#   the STORAGE_PATH parameter.
+#
+#
+# SET_RESOLUTION_DPI                        Set the DPI. Don't actually know if this makes a difference but seeing the option
+#                                           in xrandr I just added the option here to change it.
+#
+# SET_RESOLUTION_MULTIMONITOR               True if you want to use SET_MONITOR to expand over multiple monitors. Otherwise, look
+#                                           at using USE_XRANDR and XRANDR_OPTIONS instead.
+#
+# SET_RESOLUTION_MULTIMONITOR_EXPAND        How to expand multiple monitors. Default is to mirror the display over all monitors.
+#                                           If you want to expand the display (dual monitor) you normally wan't the value 'right'
+#                                           Valid values are: up|down|left|right|mirror
+#
+# SET_RESOLUTION_MULTIMONITOR_AUTOSCALE     Scales all monitors so that the display image fits on all monitors. If one monitor has
+#                                           a lower resolution then it will be scaled (zoomed out) so that the whole display image
+#                                           is fitted on that monitor or panned so that the display image is larger than what fits
+#                                           on the screen resulting in the diplay image moving around when the mouse is moved to
+#                                           the edge of the screen.
+#                                           Valid values are: false|panning|scale
+#
+#                                           Default is 'scale' (actually 'false' turns off the feature and goes with default that comes
+#                                           with xrandr/the window manager; 'panning' does panning and everything else results in 'scale'
+#
+#SET_RESOLUTION_DPI=142
+#SET_RESOLUTION_MULTIMONITOR_EXPAND='right'
+#SET_RESOLUTION_MULTIMONITOR_AUTOSCALE='scale'

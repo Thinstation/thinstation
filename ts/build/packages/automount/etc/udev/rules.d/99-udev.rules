@@ -8,7 +8,7 @@
 # Note you must use the RUN option if trying to use actual device in script
 
 KERNEL=="fd[0-9]*",      SYMLINK=="floppy/%n",  RUN+="/etc/udev/scripts/floppy.sh"
-KERNEL=="lp[0-9]*",      SYMLINK=="printers/%n"
+KERNEL=="lp[0-9]*",      SYMLINK=="printers/%n", OWNER="root", GROUP="lp", MODE="0666"
 
 #Storage Devices
 SUBSYSTEM=="block", ENV{ID_CDROM}=="1", ENV{GENERATED}!="1", IMPORT{program}="cdrom_id $devnode"
