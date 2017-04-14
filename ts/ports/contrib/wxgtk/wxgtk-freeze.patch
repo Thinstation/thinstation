@@ -1,0 +1,48 @@
+--- wxWidgets/branches/WX_3_0_BRANCH/src/generic/listctrl.cpp	2013/12/02 12:56:44	75325
++++ wxWidgets/branches/WX_3_0_BRANCH/src/generic/listctrl.cpp	2014/07/03 14:16:37	76808
+@@ -1420,6 +1420,13 @@
+ 
+ void wxListTextCtrlWrapper::EndEdit(EndReason reason)
+ {
++    if( m_aboutToFinish )
++    {
++        // We already called Finish which cannot be called
++        // more than once.
++        return;
++    }
++
+     m_aboutToFinish = true;
+ 
+     switch ( reason )
+@@ -1525,6 +1532,7 @@
+ {
+     if ( !m_aboutToFinish )
+     {
++        m_aboutToFinish = true;
+         if ( !AcceptChanges() )
+             m_owner->OnRenameCancelled( m_itemEdited );
+ 
+--- wxWidgets/branches/WX_3_0_BRANCH/src/generic/treectlg.cpp	2014/03/07 13:16:15	76093
++++ wxWidgets/branches/WX_3_0_BRANCH/src/generic/treectlg.cpp	2014/07/03 14:16:37	76808
+@@ -458,6 +458,13 @@
+ 
+ void wxTreeTextCtrl::EndEdit(bool discardChanges)
+ {
++    if ( m_aboutToFinish )
++    {
++        // We already called Finish which cannot be called
++        // more than once.
++        return;
++    }
++
+     m_aboutToFinish = true;
+ 
+     if ( discardChanges )
+@@ -555,6 +562,7 @@
+ {
+     if ( !m_aboutToFinish )
+     {
++        m_aboutToFinish = true;
+         if ( !AcceptChanges() )
+             m_owner->OnRenameCancelled( m_itemEdited );
+ 
