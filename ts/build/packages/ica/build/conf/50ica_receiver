@@ -1,0 +1,71 @@
+
+# --- Citrix Receiver Configuration Options
+#ICA_RECEIVER_STOREFRONT_1_ADDRESS                             The address to the store you want to add. You can add many stores
+#                                                              by increasing the numer, e.g.
+#                                                                   ICA_RECEIVER_STOREFRONT_1_ADDRESS="storefront.mycompany.com"
+#                                                                   ICA_RECEIVER_STOREFRONT_2_ADDRESS="storefront.othercompany.com"
+#                                                                   ICA_RECEIVER_STOREFRONT_3_ADDRESS="storefront2.othercompany.com"
+#ICA_RECEIVER_STOREFRONT_1_DEFAULT_GATEWAY                     If you need to change the Default Gateway for the added store.
+#                                                              You can find the info if you go in to Receiver --> Preferences,
+#                                                              the tab Accounts, press Edit and there you find the "Server URL:"
+#                                                              and "Default Gateway:" (droplist)
+#
+#                                                              That info should be defined as
+#                                                                   ICA_RECEIVER_STOREFRONT_1_DEFAULT_GATEWAY="'Default Gateway Name as in the droplist' 'Server URL (the one that ends with /discovery)'"
+#
+#                                                              e.g. in the configuration files:
+#                                                                   ICA_RECEIVER_STOREFRONT_1_DEFAULT_GATEWAY="'Internal Gateway' 'https://storefront.myinternaldomain.com/citrix/myStoreName/discovery'"
+#                                                              (note that name and url are within single quotes (') and everything is enclosed with double quotes (")
+#
+#                                                              If the information does display completly in the application GUI you can see the information by running
+#                                                                   /opt/Citrix/ICAClient/util/storebrowse --liststores
+#
+#
+#ICA_RECEIVER_STOREFRONT_DEFAULT                               If you want to specify a specific default store. If you don't specify
+#                                                              a default store the first store becomes the default store.
+#                                                              The address is the /discovery address, e.g.
+#                                                                   ICA_RECEIVER_STOREFRONT_DEFAULT='https://storefront.mycompany.com/citrix/mycompany/discovery'
+#
+#ICA_RECEIVER_RECONNECT_ON_LOGON                               true or false. Corresponding to the GUI option. If true, sessions are reconnected to when the user logs on to the Citrix Recever / StoreFront
+#ICA_RECEIVER_RECONNECT_ON_LAUNCH_OR_REFRESH                   true or false. Corresponding to the GUI option. If true, sessions are reconnected to when the user logs on to, or clicks Refresh in the Citrix Recever / StoreFront
+#ICA_RECEIVER_DISPLAY_DESKTOPS_IN_FULLSCREEN                   true or false. Corresponding to the GUI option. If true, starts all sessions in full screen mode.
+#ICA_RECEIVER_SHARED_USER_MODE                                 true or false. Google it... If you don't know it you probably don't need it.
+#ICA_RECEIVER_FULLSCREEN_MODE                                  true or false. If true, Citrix Reciver (the application, not the sessions) starts in full screen mode. To use in kiosk mode.
+#ICA_RECEIVER_SELF_SELECTION                                   true or false. Google it... If you don't know it you probably don't need it.
+#
+#ICA_RECEIVER_AUTOSTART                                        true or false. If true the Citrix Receiver application is autostarted
+#                                                              at boot (after configuration is completed). The result is that the user
+#                                                              gets a login screen to the directly at boot. Recommended to have
+#
+#ICA_RECEIVER_CLEAR_CREDENTIALS_WHEN_SESSION_LAUNCHED          true or false. If true, the users credentials are cleard afther he/she
+#                                                              have launched their first session. This increases security on the Thinstation client.
+#                                                              Otherwise: if the user logs on to the Receiver and launches a session, and leaves or disconnects
+#                                                              the session, his/hers credentials are still logged on to the Receiver and anyone could simple start (logon)
+#
+#ICA_RECEIVER_CLEAR_CREDENTIALS_AFTER_SESSION_ENDS             Same as ICA_RECEIVER_CLEAR_CREDENTIALS_WHEN_SESSION_LAUNCHED, but instead of
+#                                                              clearing the session directly after the first session starts, the credentials are cleard
+#                                                              X minutes (ICA_RECEIVER_CLEAR_CREDENTIALS_CHECK_INTERVAL) after the last session has ended.
+#                                                              This makes it easier for the user since he/she can then close sessions and easily start them
+#                                                              again directly (within the time timeout limit) without having to logon.
+#
+#ICA_RECEIVER_CLEAR_CREDENTIALS_CHECK_INTERVAL                  Numeric value, default if not defined is 5. The check interval (timeout) used
+#                                                              by ICA_RECEIVER_CLEAR_CREDENTIALS_WHEN_SESSION_LAUNCHED and ICA_RECEIVER_CLEAR_CREDENTIALS_AFTER_SESSION_ENDS
+#
+#ICA_RECEIVER_STOREFRONT_STOREBROWSE_CONFIGSELFSERVICE_EXTRA_1   Gives you the possibiliy to add your own extra configuration for storebrowse
+#                                                                You can have as many commands you like, just use ..._EXTRA_2, ..._EXTRA_3 etc.
+#                                                                It simply runs storebrowse --configselfservice ICA_RECEIVER_STOREFRONT_STOREBROWSE_CONFIGSELFSERVICE_EXTRA_1
+#                                                                Example:
+#                                                                ICA_RECEIVER_STOREFRONT_STOREBROWSE_CONFIGSELFSERVICE_EXTRA_1="MySetting=True"
+#                                                                ICA_RECEIVER_STOREFRONT_STOREBROWSE_CONFIGSELFSERVICE_EXTRA_2="MyOtherSetting=False"
+#
+#
+#Examples of configuration for Citrix Receiver:
+#ICA_RECEIVER_STOREFRONT_1_ADDRESS="storefront.mycompany.com"
+#ICA_RECEIVER_STOREFRONT_1_DEFAULT_GATEWAY="'StoreFront' 'https://storefront.mycompany.com/citrix/mycompany/discovery'"
+#ICA_RECEIVER_STOREFRONT_2_ADDRESS="storefront.othercompany.com"
+#ICA_RECEIVER_RECONNECT_ON_LOGON=true
+#ICA_RECEIVER_RECONNECT_ON_LAUNCH_OR_REFRESH=true
+#ICA_RECEIVER_DISPLAY_DESKTOPS_IN_FULLSCREEN=true
+#ICA_RECEIVER_AUTOSTART=true
+#ICA_RECEIVER_CLEAR_CREDENTIALS_AFTER_SESSION_ENDS=true
+

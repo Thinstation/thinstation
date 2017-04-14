@@ -7,7 +7,7 @@ ACTION=$2
 
 case $ACTION in
 
-up|dhcp4-change)
+up|dhcp4-change|add)
   . /var/log/net/$INTERFACE
   NETWORKUP=TRUE
   gw=`echo $IP4_ADDRESS_0 | cut -d/ -f2 | cut -d' ' -f2`
@@ -26,13 +26,58 @@ down)
 
 esac
 
+
+# Quick fix by Marcus Eyre 2016-11-30 since the following parameters didn't work...
+# Keeping the old parameters as fall back since i'm not quite sure if those are valid in e.g.
+# BIOS mode instead of UEFI...
+logger --stderr --tag 'networkmanager 00-update-status' "starting here"
+
+infofile="/var/lib/NetworkManager/dhclient-*${INTERFACE}.lease"
+if [ -e ${infofile} ]; then
+    logger --stderr --tag 'networkmanager 00-update-status' "we can extract ip-addresses, file exists ${infofile}"
+    regexip='((1?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])\.){3}((1?[0-9]?[0-9]|2[0-4][0-9]|25[0-5]))'
+
+    ip=$(grep -e 'fixed-address' /var/lib/NetworkManager/dhclient-*${INTERFACE}.lease | grep -oE $regexip)
+    gw=$(grep -e 'routers' /var/lib/NetworkManager/dhclient-*${INTERFACE}.lease | grep -oE $regexip)
+    subnet=$(grep -e 'subnet-mask' /var/lib/NetworkManager/dhclient-*${INTERFACE}.lease | grep -oE $regexip)
+    dhcpserver=$(grep -e 'dhcp-server-identifier' /var/lib/NetworkManager/dhclient-*${INTERFACE}.lease | grep -oE $regexip)
+    tftpserver=$(grep -e 'tftp-server-name' /var/lib/NetworkManager/dhclient-*${INTERFACE}.lease | grep -oE $regexip)
+
+    #dhcpserver=$(grep -e 'dhcp-server-identifier' /var/lib/NetworkManager/dhclient-*${INTERFACE}.lease | sed 's/.*"\(.*\)"[^"]*$/\1/')
+    #tftpserver=$(grep -e 'tftp-server-name' /var/lib/NetworkManager/dhclient-*${INTERFACE}.lease | sed 's/.*"\(.*\)"[^"]*$/\1/')
+else
+    logger --stderr --tag 'networkmanager 00-update-status' "we can't extract the ip-addresses, file does not exist: ${infofile}"
+    # Fall back mode to what it was originally...
+    ip=$DHCP4_IP_ADDRESS
+    #gw was not set here, guess it came from somewhere else...
+    subnet=$DHCP4_NETWORK_NUMBER
+    #dhcpserver was not set, I added this since it could be a good thing to have...
+    tftpserver=$DHCP4_NEXT_SERVER
+fi
+
+
+
+# Check if we have set an alternative tftp server address in the thinstation.conf files...
+if [ -n "$NET_FILE_ALTERNATE" ] ; then
+    SERVER_IP=$NET_FILE_ALTERNATE
+else
+    SERVER_IP=$tftpserver
+fi
+
+
+
 echo "DEVTYPE=$DEVTYPE"				> /var/log/net/$INTERFACE
 echo "CLIENT_NAME=$CLIENT_NAME"			>> /var/log/net/$INTERFACE
 echo "CLIENT_MAC=$CLIENT_MAC"			>> /var/log/net/$INTERFACE
-echo "CLIENT_IP=$DHCP4_IP_ADDRESS"		>> /var/log/net/$INTERFACE
+#echo "CLIENT_IP=$DHCP4_IP_ADDRESS"		>> /var/log/net/$INTERFACE
+echo "CLIENT_IP=$ip"			>> /var/log/net/$INTERFACE
 echo "CLIENT_GATEWAY=$gw"			>> /var/log/net/$INTERFACE
-echo "SUBNET=$DHCP4_NETWORK_NUMBER"		>> /var/log/net/$INTERFACE
-echo "SERVER_IP=$DHCP4_NEXT_SERVER"		>> /var/log/net/$INTERFACE
+#echo "SUBNET=$DHCP4_NETWORK_NUMBER"		>> /var/log/net/$INTERFACE
+echo "SUBNET=$subnet"				>> /var/log/net/$INTERFACE
+echo "DHCP_SERVER=$dhcpserver"			>> /var/log/net/$INTERFACE
+echo "TFTP_SERVER=$tftpserver"			>> /var/log/net/$INTERFACE
+#echo "SERVER_IP=$DHCP4_NEXT_SERVER"		>> /var/log/net/$INTERFACE
+echo "SERVER_IP=$SERVER_IP"			>> /var/log/net/$INTERFACE
 echo "NETWORKUP=$NETWORKUP"			>> /var/log/net/$INTERFACE
 echo "NETMASK_SIZE=$DHCP4_SUBNET_MASK"		>> /var/log/net/$INTERFACE
 echo "DHCP_SERVER_ID=$DHCP4_DHCP_SERVER_IDENTIFIER">> /var/log/net/$INTERFACE
