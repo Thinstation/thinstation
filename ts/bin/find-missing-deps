@@ -1,9 +1,9 @@
-dependency=$1
-
+#!/bin/sh
+export LD_LIBRARY_PATH=/usr/lib/samba:/usr/share/syslinux/efi64
 if [ ! -e /tmp/binlist ]; then
 	echo "Finding all files"
-	if [ -n "$2" ]; then
-		location=$2
+	if [ -n "$1" ]; then
+		location=$1
 	else
 		location=/{bin,boot,etc,home,lib,opt,root,sbin,share,usr,var,www}
 	fi
@@ -13,9 +13,9 @@ if [ ! -e /tmp/binlist ]; then
 		echo $file >> /tmp/binlist
 	done
 fi
-echo "Looking for dependent binaries on $dependency"
+echo "Looking for missing dependencies"
 for bin in `cat /tmp/binlist`; do
-	if objdump -x $bin 2>/dev/null |grep -e NEEDED |grep -e $dependency >/dev/null; then
+	if ldd $bin 2>/dev/null |grep -e "not found" >/dev/null; then
 		echo $bin
 	fi
 done
