@@ -1,8 +1,13 @@
-#efa1644a3db6a9ddd31f2cf1922b9e85  .dna
+#e39c5d490fe5f02b91f60a60a309650b  .dna
 
 mkdir -p /ts/build/packages/pcscd/lib
+mkdir -p /ts/build/packages/pcscd/lib/systemd/system
+mkdir -p /ts/build/packages/pcscd/lib/systemd/system/sockets.target.wants
 mkdir -p /ts/build/packages/pcscd/sbin
 ln /usr/lib/libpcsclite.so.1.0.0 /ts/build/packages/pcscd/lib/.
+ln /usr/lib/systemd/system/pcscd.service /ts/build/packages/pcscd/lib/systemd/system/.
+ln /usr/lib/systemd/system/pcscd.socket /ts/build/packages/pcscd/lib/systemd/system/.
 ln /usr/sbin/pcscd /ts/build/packages/pcscd/sbin/.
+ln -sf /lib/systemd/system/pcscd.socket /ts/build/packages/pcscd/lib/systemd/system/sockets.target.wants/pcscd.socket
 ln -sf libpcsclite.so.1.0.0 /ts/build/packages/pcscd/lib/libpcsclite.so
 ln -sf libpcsclite.so.1.0.0 /ts/build/packages/pcscd/lib/libpcsclite.so.1

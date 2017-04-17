@@ -74,9 +74,13 @@ if [ -d $dir/scripts ]; then
   chmod a+x $INSTALLDIR/lib/vmware/view/virtualPrinting/scripts/*.sh
 fi
 cp -a $dir/bin/conf $INSTALLDIR/etc/cups
-cp -a $dir/bin/init.d/linux $INSTALLDIR/etc/init.d
+mkdir -p $INSTALLDIR/etc/rc.d/{rc2.d,rc3.d,rc5.d}
+cp -a $dir/bin/init.d/linux $INSTALLDIR/etc/rc.d/init.d
+ln -s ../init.d/thnuclnt $INSTALLDIR/etc/rc.d/rc2.d/S99thnuclnt 
+ln -s ../init.d/thnuclnt $INSTALLDIR/etc/rc.d/rc3.d/S99thnuclnt 
+ln -s ../init.d/thnuclnt $INSTALLDIR/etc/rc.d/rc5.d/S99thnuclnt 
 chmod a+x $INSTALLDIR/etc/init.d/*
-cp -a $dir/bin/i586-linux-vmAppLd $INSTALLDIR/lib/thnuclnt
+cp -a $dir/bin/x86_64-linux-vmAppLd $INSTALLDIR/lib/thnuclnt
 rm $INSTALLDIR/lib/thnuclnt/{thnuchk.so,thnuconf.so,build.spec}
 ln -s thnuclnt.so $INSTALLDIR/lib/thnuclnt/thnuchk.so
 ln -s thnuclnt.so $INSTALLDIR/lib/thnuclnt/thnuconf.so
