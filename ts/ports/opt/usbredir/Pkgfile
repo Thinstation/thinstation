@@ -1,0 +1,18 @@
+# Description: send usb device traffic over a network connection
+# URL:         http://www.spice-space.org/page/UsbRedir
+# Maintainer:  Thomas Penteker, tek at serverop dot de
+# Depends on:
+
+name=usbredir
+version=0.7
+release=1
+source=(http://spice-space.org/download/usbredir/usbredir-$version.tar.bz2)
+
+build() {
+	cd $name-$version
+  ./configure --prefix=/usr \
+              --mandir=/usr/man
+
+  make
+  make install DESTDIR=$PKG
+}
