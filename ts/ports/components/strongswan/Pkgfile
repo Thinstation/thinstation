@@ -1,0 +1,43 @@
+# Maintainer: Oskari Rauta <oskari.rauta at gmail dot com>
+
+name=strongswan
+version=5.5.3
+release=2
+source=("https://download.strongswan.org/strongswan-${version}.tar.bz2"
+	"configure_ac.patch"
+	"ipsec"
+	)
+
+# We don't build libipsec because it would get loaded before kernel-netlink and netkey, which
+# would case processing to be handled in user space. Also, the plugin is experimental. If you need it,
+# add --enable-libipsec and --enable-kernel-libipsec
+build()
+{
+    cd "${SRC}/${name}-${version}"
+    patch -p1 -l < "${SRC}/configure_ac.patch"
+    autoreconf
+
+  ./configure --prefix=/usr \
+        --sysconfdir=/etc \
+        --with-ipsecdir=/usr/lib/strongswan \
+        --enable-sqlite \
+        --enable-openssl --enable-curl \
+        --enable-sql --enable-attr-sql \
+        --enable-farp --enable-dhcp \
+        --enable-eap-sim --enable-eap-sim-file --enable-eap-simaka-pseudonym \
+        --enable-eap-simaka-reauth --enable-eap-identity --enable-eap-md5 \
+        --enable-eap-gtc --enable-eap-aka --enable-eap-aka-3gpp2 \
+        --enable-eap-mschapv2 --enable-eap-radius --enable-xauth-eap \
+        --enable-ha --enable-vici --enable-swanctl --disable-systemd --enable-ext-auth \
+        --disable-mysql --disable-ldap -enable-cmd --enable-forecast --enable-connmark \
+	--enable-aesni --enable-eap-ttls --enable-radattr --enable-xauth-pam --enable-xauth-noauth \
+	--enable-eap-dynamic --enable-eap-peap --enable-eap-tls --enable-chapoly --enable-unity \
+	--with-capabilities=libcap --enable-nm
+#	--enable-ruby-gems --enable-python-eggs
+  make
+  make DESTDIR=${PKG} install
+  mkdir -p ${PKG}/etc/init.d
+  cp ${SRC}/ipsec ${PKG}/etc/init.d
+  chmod a+x ${PKG}/etc/init.d/ipsec
+}
+
