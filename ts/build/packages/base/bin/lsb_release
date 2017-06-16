@@ -1,36 +1,6 @@
 #!/bin/sh
 
-case $1 in
-"-v")
-        echo "No LSB modules are available."
-        ;;
-"-i")
-        echo "Distributor ID: Thinstation - By Donald A. Cupp Jr."
-        ;;
-"-irc")
-        echo "Distributor ID: Thinstation - By Donald A. Cupp Jr."
-        echo "Release:        $TS_VERSION"
-        echo "Codename:       $CODENAME"
-        ;;
-"-d")
-        echo "Description:    Thinstation GNU/Linux $TS_VERSION ($CODENAME) WS Version: $HDUPDATE_WS_VERSION"
-        ;;
-"-r")
-        echo "Release:        $TS_VERSION"
-        ;;
-"-c")
-        echo "Codename:       $CODENAME"
-        ;;
-"-a")
-        echo "Distributor ID: Thinstation - By Donald A. Cupp Jr."
-        echo "Description:    Thinstation GNU/Linux $TS_VERSION ($CODENAME) WS Version: $HDUPDATE_WS_VERSION"
-        echo "Release:        $TS_VERSION" 
-        echo "Codename:       $CODENAME"
-        ;;
-"-s")
-        echo "No LSB modules are available."
-        ;;
-*)
+Usage() {
         echo "Usage: lsb_release [options]"
         echo ""
         echo "Options:"
@@ -42,5 +12,55 @@ case $1 in
         echo "  -c, --codename     show code name of this distribution"
         echo "  -a, --all          show all of the above information"
         echo "  -s, --short        show requested information in short format"
-;;
+}
+
+output() {
+        if [ -n "$ARG_S" ]; then
+            OUTPUT="${OUTPUT}${OUTPUT:+ }$3$2$3"
+        else
+            echo "$1 $2"
+        fi
+}
+
+if [ -z "$1" ]; then ARG_V="v"; fi
+
+eval set -- `getopt acdhirsv $@`
+while true; do
+case "$1" in
+"-a") ARG_C="c"; ARG_D="d"; ARG_I="i"; ARG_R="r"; ARG_V="v" ;;
+"-c") ARG_C="c" ;;
+"-d") ARG_D="d" ;;
+"-i") ARG_I="i" ;;
+"-r") ARG_R="r" ;;
+"-s") ARG_S="y" ;;
+"-v") ARG_V="v" ;;
+"-h") Usage ;;
+"--") break ;;
+*) Usage; exit -1; ;;
 esac
+shift
+done
+
+for i in $ARG_V $ARG_I $ARG_D $ARG_R $ARG_C; do
+case $i in
+"v")
+        output "LSB Version:   " "n/a"
+        ;;
+"i")
+        output "Distributor ID:" "ThinstationByDonaldACuppJr"
+        ;;
+"d")
+        output "Description:   " "Thinstation GNU/Linux $TS_VERSION ($CODENAME) WS Version: $HDUPDATE_WS_VERSION" "\""
+        ;;
+"r")
+        output "Release:       " "$TS_VERSION"
+        ;;
+"c")
+        output "Codename:      " "$CODENAME"
+        ;;
+esac
+done
+
+if [ -n "$ARG_S" ]; then
+        echo "$OUTPUT"
+fi

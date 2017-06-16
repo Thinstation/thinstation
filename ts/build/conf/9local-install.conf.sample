@@ -1,0 +1,122 @@
+##
+# --- Settings for the local-install package
+#
+# local-install                 A package that:
+#                                   ¤ Installs Thinstation as on the computer and thereby drastically
+#                                     shortens the boot time since the image dosn't have to be loaded
+#                                     via a thumbdrive or PXE server.
+#                                   ¤ Has version control that checks a web server for new versions and
+#                                     if so, downloads and installs it.
+#                                   ¤ Allows you to have version control and test environments before
+#                                     deploying your new changes/image in a full environment. See
+#                                     recommendation for version and test environment below.
+#                                   ¤ When running the upgrade script at boot it can also report the
+#                                     current installed version number of your image to the TFTP
+#                                     server, thereby give you full control of what versions all of
+#                                     your thinstation clients currently have. This also gives you
+#                                     a complete inventory of all your Thinstation clients.
+#                                   ¤ IMPORTANT! Thinstation will NOT bee automatically installed to
+#                                     every client that boots your thinstation image. To "set up" or
+#                                     "initially install" a computer to use Thinstation you boot it
+#                                     with your thinstation image via e.g. PXE and then via the menu
+#                                     run Local-install --> Install Thinstation or manually run the
+#                                     command "local-install.sh install". After that your computer
+#                                     is set up go! it will now automatically update your thinstation
+#                                     image as soon as you increase the version number in the "version"
+#                                     file giving you a very simple way to handle all your thinstation clients.
+#                                   ¤ Also creates a second partition where user configuration can
+#                                     be stored.For example the package "set-resolution" uses this
+#                                     location to store the screen resolution for the individual computer.
+#                                     You need to configure
+#                                       STORAGE_PATH=/mnt/local-install/part2
+#                                       STORAGE_CONFIG1=/mnt/local-install/part2
+#                                   ¤ During boot the partitions where Thinstation is istalled are mounted to
+#                                       "/mnt/local-install/part1" (boot partition)
+#                                       "/mnt/local-install/part2" (user configuration)
+#
+#
+#
+#                               Setting up the file structure on the server:
+#                                   You should copy the folders refind and syslinux from /build/boot-images
+#                                   to the web-server(s) "local-install" folder. The web-server(s) structure should
+#                                   contain the following files:
+#                                   /ts5.5/                                     [folder, this is the path for LOCAL_INSTALL_URL]
+#                                       local-install/                          [folder]
+#                                           refind/                             [folder]
+#                                           syslinux/
+#                                           after_upgrade_finished.sh           [file, optional but very useful]
+#                                           version                             [file, required, ** see below]
+#                                       thinstation.conf.network                [file, *** see below] 
+#
+#                                   ** IMPORTANT!
+#                                       the file "version" at the server must contain
+#                                           LOCAL_INSTALL_VERSION=x
+#                                       where x is a number of 1 or higher.
+#
+#                                   *** this is where you normally place the thinstation.conf.xxx files if you include
+#                                      the package netfiles (highly recommended) and in build.conf have the parameters set to
+#                                           param basename       thinstation
+#                                           param basepath       ts5.5
+#                                           param baseurl        http://same url as LOCAL_INSTALL_URL or if you want to use the same
+#                                                                server as the dhcp server set (must be within single quote like below)
+#                                           param baseurl 'http://${SERVER_IP}'
+#
+#                                   The "after_upgrade_finished.sh" file will be downloaded and executed after the
+#                                   upgrade is successfully finished. For example inside the "after_upgrade_finished.sh"
+#                                   placethe following code your clients will automatically reboot when they are upgraded.
+#                                   #!bin/sh
+#                                   reboot
+#
+#                               Tip! During test you can run "local-install.sh upgrade-force" (or via the menu)and when you are
+#                                   ready to deploy the new version to all clients you simply increase LOCAL_INSTALL_VERSION by +1 
+#                                   and at next boot the clients will upgrade.
+#                                   To make sure all clients receive the updates take a look at the package custom-idle to make
+#                                   them shutdown when not used for a longer period of time or simply make a reboot daily.
+#
+#                               Tip! You can (actually, you should) include the package set-resolution. This will enable the user to
+#                                   change resolution on the computer permanently (otherwise the resolution will revert upon reboot.)
+#
+#                               Tip! You can (actually, you should) include the package hdd-spindown. This will both lower the noise
+#                                   of the computers (no vibrating hard disks) and increases the lifetime of the disks.
+#
+#                               Tip! You can with benifit include the package custom-background. With that package you can have a
+#                                   background displaying an error-message to the user as the default background in build.conf and in
+#                                   thinstation.conf.network you set CUSTOM_BACKGROUND=/root/.custom-background/normal.jpg
+#                                   and in thinstatsion.conf.group-test you set CUSTOM_BACKGROUND=/root/.custom-background/test.jpg
+#
+#
+# LOCAL_INSTALL_URL                 The http-path where we will look for the the boot-image files, the
+#                                   "version" file (that determins the version of the Thinstation image on
+#                                   the server) and the "after_upgrade_finished.sh" script that will be run
+#                                   (if it exists) after the upgrade has been completed.
+#                                   You can set the URL to http://${SERVER_IP}/ if you want to use the same
+#                                   address as the DHCP-server. You can have the TFTP service and Web server
+#                                   service installed on the DHCP server(s). In my case I set up (for redundancy)
+#                                   a split DHCP scope over two DHCP servers (Microsoft ActiveDirectory Domain
+#                                   Controllers) and installed both the IIS (web service) and SolarWinds
+#                                   TFTP service, and used Microsoft DFS Replication on the tftp- and www
+#                                   folders between the two DHCP/Domain Controllers.
+#
+#                                   NOTE that the url path must end with a slash ("/")
+#
+# LOCAL_INSTALL_DEVICEREGEX         The regex expression used to present viable disk(s) to install Thinstation to
+#                                   during the initial setup. Default is to present all sd? and mmcblk? disks. This
+#                                   will include normal SAS/SATA disks (sda, sdb, sdc ...) and also built in memory
+#                                   cards (mmcblk0, mmcblk1, mmcblk2 ...) but you can change this value if you need.
+#
+# LOCAL_INSTALL_TFTP_NOTIFY_PATH	The full path on the TFTP-server where the <hostname>.version files
+#                                   will be uploaded to. The path must end with a slash ("/"),
+#                                   for example /ts5.5/client-versions/
+#
+#
+# --- Recommendation for setting up a test envirionment before deploying a new image/version in production
+#       You can with benifit setup a test environment to test your new image before you set it into production.
+#       For instructions see build/Documentation/README.local-install
+#
+#
+#
+#LOCAL_INSTALL_DEVICEREGEX='(sd[a-z]$)|(mmcblk[0-9]$)'
+#LOCAL_INSTALL_URL=http://${SERVER_IP}/ts5.5/prod/
+#LOCAL_INSTALL_TFTP_NOTIFY_PATH=/client-versions/
+#STORAGE_PATH=/mnt/local-install/part2
+#STORAGE_CONFIG1=/mnt/local-install/part2

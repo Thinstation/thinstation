@@ -43,14 +43,17 @@ if [ -e /var/log/Xorg.0.log ]; then
 	done
 fi
 
+if [ -e /sys/devices/platform/uvesafb.0/vbe_modes ]; then
+	cp /sys/devices/platform/uvesafb.0/vbe_modes /vbe_modes.list
+fi
+
 if [ -n "$SERVER_IP" ]; then
 	tftp -p -l /module.list -r module.list $SERVER_IP
 
 	if [ -e /package.list ]; then
 		tftp -p -l /package.list -r package.list $SERVER_IP
 	fi
-	if [ -e /sys/devices/platform/uvesafb.0/vbe_modes ]; then
-		cp /sys/devices/platform/uvesafb.0/vbe_modes /vbe_modes.list
+	if [ -e /vbe_modes.list ]; then
 		tftp -p -l /vbe_modes.list -r vbe_modes.list $SERVER_IP
 	fi
 	if [ -e /firmware.list ]; then
