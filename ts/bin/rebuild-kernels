@@ -1,5 +1,7 @@
 #!/bin/bash
 
+otherports="bbswitch rtl8723bs"
+
 kernels()
 {
 	for port in kernel-{TS,TS_SMP,TS_64}; do
@@ -15,7 +17,7 @@ kernels()
 
 modules()
 {
-	for port in bbswitch rtl8723bs; do
+	for port in $otherports; do
         	if prt-get current $port > /dev/null; then
                 	prt-get update -fr -if -im $port
 	        else
