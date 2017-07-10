@@ -1,0 +1,33 @@
+#! /bin/sh
+
+. `dirname $0`/common
+
+if ! pkg_initialized $PACKAGE; then
+	pkg_set_init_flag $PACKAGE
+
+	if is_disabled "$FREERDP_NLA"; then
+		FRDPOPTIONS="$FRDPOPTIONS -sec-nla"
+	fi
+
+	if is_disabled "$FREERDP_GETUSER"; then
+		rm -f /etc/cmd/freerdp.getuser
+		rm -f /etc/cmd/freerdp.getpass
+	fi
+
+	if [ -n "$FREERDP_SMARTCARD" ]; then
+		FRDPOPTIONS="$FRDPOPTIONS /smartcard:$FREERDP_SMARTCARD"
+	fi
+
+	if [ -n "$FREERDP_SOUND" ]; then
+		FRDPOPTIONS="$FRDPOPTIONS /sound:$FREERDP_SOUND"
+	fi
+
+	if is_enabled "$FREERDP_CERTIGNORE"; then
+		FRDPOPTIONS="$FRDPOPTIONS /cert-ignore"
+	fi
+
+	if [ -n "$FRDPOPTIONS" ]; then
+		sed -i -e "s,xfreerdp,xfreerdp$FRDPOPTIONS," /etc/cmd/freerdp.global
+		sed -i -e "s,xfreerdp,xfreerdp$FRDPOPTIONS," /etc/cmd/freerdp.window
+	fi
+fi
