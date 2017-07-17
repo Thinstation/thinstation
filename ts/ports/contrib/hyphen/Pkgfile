@@ -1,0 +1,44 @@
+# $Id$
+# Maintainer: AndyRTR <andyrtr@archlinux.org>
+
+pkgbase=hyphen
+name=('hyphen' 'hyphen-en')
+version=2.8.8
+release=1
+source=(http://downloads.sourceforge.net/hunspell/${name}-${version}.tar.gz)
+sha1sums=('0556c392beb59433e577e3517575801212201df6')
+
+build() {
+  cd $name-$version
+  ./configure --prefix=/usr --disable-static
+  make
+ pkgdesc="library for high quality hyphenation and justification"
+ depends=('glibc' 'perl')
+
+  make DESTDIR="$PKG/" install-libLTLIBRARIES
+  make DESTDIR="$PKG/" install-binSCRIPTS
+  make DESTDIR="$PKG/" install-includeHEADERS
+
+  # license
+  install -D -m644 COPYING "${PKG}"/usr/share/licenses/${name}/LICENSE
+ pkgdesc="English hyphenation rules"
+ # arch=('any')
+ optdepends=('hyphen: offers hyphenation library functions')
+
+  make DESTDIR="$PKG/" install-hyphDATA
+
+  pushd ${PKG}/usr/share/hyphen/
+   en_US_aliases="en_AG en_AU en_BS en_BW en_BZ en_CA en_DK en_GB en_GH en_HK en_IE en_IN en_JM en_NA en_NZ en_PH en_SG en_TT en_ZA en_ZW"
+   for lang in $en_US_aliases; do
+        ln -s hyph_en_US.dic hyph_$lang.dic
+   done
+  popd
+  
+  # the symlinks
+  install -dm755 ${PKG}/usr/share/myspell/dicts
+  pushd $PKG/usr/share/myspell/dicts
+    for file in $PKG/usr/share/hyphen/*; do
+      ln -sv /usr/share/hyphen/$(basename $file) .
+    done
+  popd
+}

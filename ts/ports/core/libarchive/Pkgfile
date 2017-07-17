@@ -1,25 +1,29 @@
 # Description: Library to create and read several archive formats
-# URL: http://people.freebsd.org/~kientzle/libarchive/
-# Maintainer: CRUX System Team, core-ports at crux dot nu
-# Depends on: bzip2, xz, zlib, acl
+# URL:         http://www.libarchive.org/
+# Maintainer:  CRUX System Team, core-ports at crux dot nu
+# Depends on:  bzip2, xz, zlib, acl
 
 name=libarchive
-version=2.8.5
-release=1
-source=(http://$name.googlecode.com/files/$name-$version.tar.gz)
+version=3.2.1
+release=3
+source=(http://www.libarchive.org/downloads/$name-$version.tar.gz)
 
 build() {
-	cd libarchive-$version
+	cd $name-$version
 
 	# We're passing --without-lzmadec, because we want to use xz for
 	# LZMA support, not the obsolete lzmadec library.
 	#
-	# We're passing --without-xml2 and --without-expat to avoid linking
-	# to libraries which are only available in opt. XML support is only
-	# needed for the xar format which we can live without.
-	./configure --prefix=/usr --mandir=/usr/man \
+	# We're passing --without-xml2, --without-expatto and --without-nettle
+	# to avoid linking to libraries which are only available in opt. 
+	# XML support is only needed for the xar format which we can live without.
+	
+	./configure --prefix=/usr \
 	            --without-lzmadec \
-	            --without-xml2 --without-expat --without-openssl
+	            --without-xml2 \
+                    --without-expat \
+                    --without-nettle \
+                    --without-openssl
 
 	make
 	make DESTDIR=$PKG install

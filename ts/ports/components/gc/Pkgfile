@@ -1,23 +1,26 @@
-# Description: Thinstation essential package
-# URL: http://www.thinstation.org
-# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+# $Id$
+# Maintainer: Daniel Isenmann <daniel [at] archlinux.org>
+# Contributor: dorphell <dorphell@gmx.net>
 
 name=gc
-version=7.2d
+version=7.6.0
 release=1
-source=(http://www.hpl.hp.com/personal/Hans_Boehm/gc/gc_source/gc-$version.tar.gz)
+source=(http://www.hboehm.info/gc/gc_source/${name}-${version}.tar.gz)
 
 build() {
-	cd $name-7.2
+  cd ${name}-${version}
 
-	./configure --prefix=/usr \
-			--exec-prefix=/ \
-			--sysconfdir=/etc \
-			--libexecdir=/lib \
-			--mandir=/usr/man \
-			--disable-extras
+  sed -i 's#pkgdata#doc#' doc/doc.am
+  autoreconf -fi
 
-	make
-	make DESTDIR=$PKG install
-	rm -rf $PKG/usr/share
+  #https://github.com/ivmai/bdwgc/issues/87
+  CXXFLAGS+=' -std=gnu++98' ./configure --prefix=/usr --enable-cplusplus --disable-static
+  sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
+  make
+  make check
+  make DESTDIR="${PKG}" install
+
+  sed -i -e 's/GC_MALLOC 1L/gc 3/' doc/gc.man
+  install -m755 -d "${PKG}/usr/share/man/man3"
+  install -m644 doc/gc.man "${PKG}/usr/share/man/man3/gc.3"
 }

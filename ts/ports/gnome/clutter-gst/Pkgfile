@@ -1,0 +1,25 @@
+# $Id$
+# Maintainer: Jan Alexander Steffens (heftig) <jan.steffens@gmail.com>
+
+name=clutter-gst
+version=3.0.18
+release=1
+source=(http://download.gnome.org/sources/$name/${version:0:3}/$name-$version.tar.xz)
+
+build() {
+  cd $name-$version
+  ./configure \
+    --prefix=/usr \
+    --sysconfdir=/etc \
+    
+
+  # https://bugzilla.gnome.org/show_bug.cgi?id=655517
+  sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
+
+  make
+  make check
+  make DESTDIR="$PKG" install
+
+  # https://bugzilla.gnome.org/show_bug.cgi?id=746883
+  rm -rf "${PKG}"/usr/lib/gstreamer-1.0
+}

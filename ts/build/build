@@ -1639,16 +1639,6 @@ filesystem_fixups()
 					>>./tmp-tree/lib/gdk-pixbuf-2.0/$lver/loaders.cache
 			done
 		fi
-		if [ -d ./tmp-tree/lib/pango ] ;then
-			echo -e "\tCaching pango modules"
-			for module in `find ./tmp-tree/lib/pango -type f -printf "%f "`; do
-				module=`find /usr/lib/pango -name $module`
-				pver=`echo $module |cut -d "/" -f5`
-				pango-querymodules $module | \
-					grep -v "#" \
-					>> ./tmp-tree/lib/pango/$pver/modules.cache
-			done
-		fi
 		if [ -d ./tmp-tree/lib/gtk-2.0 ]; then
 			echo -e "\tCaching gtk-2.0 immodules"
 			gver=`find ./tmp-tree/lib/gtk-2.0 -type d -name immodules | cut -d "/" -f5`
@@ -1731,7 +1721,7 @@ if [ -n "$missing_commands" ]; then
 	exit 1
 fi
 
-required_tools="mkisofs mksquashfs unsquashfs gdk-pixbuf-query-loaders pango-querymodules glib-compile-schemas gio-querymodules rsvg-convert convert cryptmd5 vncpasswd smbpasswd"
+required_tools="mkisofs mksquashfs unsquashfs gdk-pixbuf-query-loaders glib-compile-schemas gio-querymodules rsvg-convert convert cryptmd5 vncpasswd smbpasswd"
 for tool in $required_tools; do
 	if [ ! `which $tool` ]; then
 		missing_tools="$missing_tools $tool"

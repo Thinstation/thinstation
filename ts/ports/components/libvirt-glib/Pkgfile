@@ -1,0 +1,19 @@
+# $Id$
+# Maintainer: Sergej Pupykin <pupykin.s+arch@gmail.com>
+# Maintainer: Stefano Facchini <stefano.facchini@gmail.com>
+
+name=libvirt-glib
+version=1.0.0
+release=1
+source=(ftp://libvirt.org/libvirt/glib/$name-$version.tar.gz)
+
+build() {
+  cd "$SRC/$name-$version"
+  ./configure --prefix=/usr \
+              --disable-static \
+              --with-python=/usr/bin/python2
+  make -j1
+  make DESTDIR="$PKG/" install
+}
+
+# vim:set ts=2 sw=2 et:

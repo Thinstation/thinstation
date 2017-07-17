@@ -1,0 +1,20 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=gnome-icon-theme-symbolic
+version=3.12.0
+release=1
+source=(http://ftp.gnome.org/pub/gnome/sources/$name/${version%.*}/$name-$version.tar.xz)
+
+build() {
+	cd $name-$version
+
+	./configure --prefix=/usr \
+			--exec-prefix=/ \
+			--sysconfdir=/etc \
+			--mandir=/usr/man
+
+	make
+	make DESTDIR=$PKG install
+}

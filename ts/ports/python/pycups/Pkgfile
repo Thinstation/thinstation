@@ -4,12 +4,17 @@
 # Depends on:	cups python
 
 name=pycups
-version=1.9.73
+pname=pycups
+version=pip
 release=1
-source=(http://cyberelk.net/tim/data/pycups/pycups-$version.tar.bz2)
+source=()
 
 build() {
-	cd $name-$version
-	python setup.py build
-	python setup.py install --root=$PKG
+        pip install $name --download=$SRC --no-binary :all:
+        mkdir -p $SRC/$name
+        tar -xvf $SRC/$pname*.tar.* -C $SRC/$name
+        cd $SRC/$name/*
+
+        python ./setup.py install --root $PKG
 }
+

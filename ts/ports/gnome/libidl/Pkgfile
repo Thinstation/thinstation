@@ -1,0 +1,22 @@
+# Description: A library for creating trees of CORBA Interface Definition Language (IDL) files
+# URL: http://andrewtv.org/libIDL/
+# Maintainer: Tilman Sauerbeck, tilman at crux dot nu
+# Depends on: glib
+
+name=libidl
+archname=libidl2
+version=0.8.14
+release=1
+source=(http://download.gnome.org/sources/libIDL/0.8/libIDL-$version.tar.bz2)
+
+build() {
+	cd libIDL-$version
+
+	./configure --prefix=/usr \
+			--disable-static \
+			--enable-shared
+
+	make
+	make DESTDIR=$PKG install
+	rm -rf $PKG/usr/share
+}

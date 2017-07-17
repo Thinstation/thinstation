@@ -1,0 +1,57 @@
+# $Id$
+# Maintainer: Gaetan Bisson <bisson@archlinux.org>
+# Contributor: Tobias Kieslich <tobias@justdreams.de>
+# Contributor: tobias <tobias@archlinux.org>
+
+pkgname=inkscape
+pkgver=0.92.1
+pkgrel=3
+pkgdesc='Professional vector graphics editor'
+url='https://inkscape.org/'
+license=('GPL' 'LGPL')
+arch=('i686' 'x86_64')
+makedepends=('boost' 'intltool')
+depends=('gc' 'gsl' 'gtkmm' 'gtkspell' 'imagemagick' 'libxslt' 'poppler-glib'
+         'popt' 'potrace' 'ttf-dejavu' 'python2' 'desktop-file-utils'
+         'hicolor-icon-theme')
+optdepends=('gvfs: import clip art'
+            'pstoedit: latex formulas'
+            'python2-scour: optimized SVG output'
+            'texlive-core: latex formulas'
+            'python2-numpy: some extensions'
+            'python2-lxml: some extensions and filters'
+            'uniconvertor: reading/writing to some proprietary formats')
+source=('https://media.inkscape.org/dl/resources/file/inkscape-0.92.1.tar_XlpI7qT.bz2')
+sha256sums=('257405bf802de125f17d123638093a37db02ebe334d243cf9b0d8903f7c89005')
+
+prepare() {
+	cd "${srcdir}/${pkgname}-${pkgver}"
+	./autogen.sh
+
+	sed -i 's|/usr/bin/python\>|/usr/bin/python2|g' cxxtest/*.py
+	sed -i 's|/usr/bin/env python\>|/usr/bin/env python2|g' share/*/{test/,}*.py
+	sed -i 's|"python" },|"python2" },|g' src/extension/implementation/script.cpp
+	sed -i 's|python -c|python2 -c|g' configure share/extensions/uniconv*.py
+	sed -i 's|"python"|"python2"|g' src/main.cpp
+
+	sed -i 's| abs(| std::fabs(|g' src/ui/tools/flood-tool.cpp
+}
+
+build() {
+	cd "${srcdir}/${pkgname}-${pkgver}"
+
+	./configure \
+		--prefix=/usr \
+		--with-python \
+		--with-perl \
+		--enable-lcms \
+		--enable-poppler-cairo \
+		--disable-strict-build \
+		--disable-dependency-tracking
+	make
+}
+
+package() {
+	cd "${srcdir}/${pkgname}-${pkgver}"
+	make DESTDIR="${pkgdir}" install
+}

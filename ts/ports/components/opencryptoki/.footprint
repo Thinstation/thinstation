@@ -1,6 +1,8 @@
 drwxr-xr-x	root/root	etc/
 drwxr-xr-x	root/root	etc/ld.so.conf.d/
 -rw-r--r--	root/root	etc/ld.so.conf.d/opencryptoki-i686.conf
+drwxr-xr-x	root/root	etc/opencryptoki/
+-rw-r--r--	root/root	etc/opencryptoki/opencryptoki.conf
 drwxr-xr-x	root/root	etc/rc.d/
 drwxr-xr-x	root/root	etc/rc.d/init.d/
 -rwxr-xr-x	root/root	etc/rc.d/init.d/pkcsslotd
@@ -14,11 +16,16 @@ lrwxrwxrwx	root/root	lib/opencryptoki/libopencryptoki.so.0 -> libopencryptoki.so
 lrwxrwxrwx	root/root	lib/opencryptoki/methods -> //sbin
 drwxr-xr-x	root/root	lib/opencryptoki/stdll/
 lrwxrwxrwx	root/root	lib/opencryptoki/stdll/PKCS11_CCA.so -> libpkcs11_cca.so
+lrwxrwxrwx	root/root	lib/opencryptoki/stdll/PKCS11_ICSF.so -> libpkcs11_icsf.so
 lrwxrwxrwx	root/root	lib/opencryptoki/stdll/PKCS11_SW.so -> libpkcs11_sw.so
 -rwxr-xr-x	root/root	lib/opencryptoki/stdll/libpkcs11_cca.la
 lrwxrwxrwx	root/root	lib/opencryptoki/stdll/libpkcs11_cca.so -> libpkcs11_cca.so.0.0.0
 lrwxrwxrwx	root/root	lib/opencryptoki/stdll/libpkcs11_cca.so.0 -> libpkcs11_cca.so.0.0.0
 -rwxr-xr-x	root/root	lib/opencryptoki/stdll/libpkcs11_cca.so.0.0.0
+-rwxr-xr-x	root/root	lib/opencryptoki/stdll/libpkcs11_icsf.la
+lrwxrwxrwx	root/root	lib/opencryptoki/stdll/libpkcs11_icsf.so -> libpkcs11_icsf.so.0.0.0
+lrwxrwxrwx	root/root	lib/opencryptoki/stdll/libpkcs11_icsf.so.0 -> libpkcs11_icsf.so.0.0.0
+-rwxr-xr-x	root/root	lib/opencryptoki/stdll/libpkcs11_icsf.so.0.0.0
 -rwxr-xr-x	root/root	lib/opencryptoki/stdll/libpkcs11_sw.la
 lrwxrwxrwx	root/root	lib/opencryptoki/stdll/libpkcs11_sw.so -> libpkcs11_sw.so.0.0.0
 lrwxrwxrwx	root/root	lib/opencryptoki/stdll/libpkcs11_sw.so.0 -> libpkcs11_sw.so.0.0.0
@@ -29,9 +36,9 @@ lrwxrwxrwx	root/root	lib/pkcs11/libopencryptoki.so -> ../opencryptoki/libopencry
 lrwxrwxrwx	root/root	lib/pkcs11/methods -> //sbin
 lrwxrwxrwx	root/root	lib/pkcs11/stdll -> ../opencryptoki/stdll/
 drwxr-xr-x	root/root	sbin/
--rwxr-xr-x	root/root	sbin/pkcs11_startup
--rwxr-xr-x	root/root	sbin/pkcs_slot
+-rwxr-xr-x	root/root	sbin/pkcscca
 -rwxr-xr-x	root/root	sbin/pkcsconf
+-rwxr-xr-x	root/root	sbin/pkcsicsf
 -rwxr-xr-x	root/root	sbin/pkcsslotd
 drwxr-xr-x	root/root	usr/
 drwxr-xr-x	root/root	usr/include/
@@ -41,10 +48,12 @@ drwxr-xr-x	root/root	usr/include/opencryptoki/
 -rw-r--r--	root/root	usr/include/opencryptoki/pkcs11types.h
 drwxr-xr-x	root/root	usr/man/
 drwxr-xr-x	root/root	usr/man/man1/
--rw-r--r--	root/root	usr/man/man1/pkcs11_startup.1.gz
+-rw-r--r--	root/root	usr/man/man1/pkcscca.1.gz
 -rw-r--r--	root/root	usr/man/man1/pkcsconf.1.gz
+-rw-r--r--	root/root	usr/man/man1/pkcsep11_migrate.1.gz
+-rw-r--r--	root/root	usr/man/man1/pkcsicsf.1.gz
 drwxr-xr-x	root/root	usr/man/man5/
--rw-r--r--	root/root	usr/man/man5/pk_config_data.5.gz
+-rw-r--r--	root/root	usr/man/man5/opencryptoki.conf.5.gz
 drwxr-xr-x	root/root	usr/man/man7/
 -rw-r--r--	root/root	usr/man/man7/opencryptoki.7.gz
 drwxr-xr-x	root/root	usr/man/man8/
@@ -52,5 +61,15 @@ drwxr-xr-x	root/root	usr/man/man8/
 drwxr-xr-x	root/root	usr/var/
 drwxr-xr-x	root/root	usr/var/lib/
 drwxr-xr-x	root/root	usr/var/lib/opencryptoki/
-drwxr-xr-x	root/root	usr/var/lib/opencryptoki/ccatok/
-drwxr-xr-x	root/root	usr/var/lib/opencryptoki/swtok/
+drwxrwx---	root/pkcs11	usr/var/lib/opencryptoki/ccatok/
+drwxrwx---	root/pkcs11	usr/var/lib/opencryptoki/ccatok/TOK_OBJ/
+drwxrwx---	root/pkcs11	usr/var/lib/opencryptoki/icsf/
+drwxrwx---	root/pkcs11	usr/var/lib/opencryptoki/swtok/
+drwxrwx---	root/pkcs11	usr/var/lib/opencryptoki/swtok/TOK_OBJ/
+drwxr-xr-x	root/root	usr/var/lock/
+drwxrwx---	root/pkcs11	usr/var/lock/opencryptoki/
+drwxrwx---	root/pkcs11	usr/var/lock/opencryptoki/ccatok/
+drwxrwx---	root/pkcs11	usr/var/lock/opencryptoki/icsf/
+drwxrwx---	root/pkcs11	usr/var/lock/opencryptoki/swtok/
+drwxr-xr-x	root/root	usr/var/log/
+drwxrwx---	root/pkcs11	usr/var/log/opencryptoki/

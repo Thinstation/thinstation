@@ -1,0 +1,26 @@
+# Description: C++ interface to GTK+.
+# URL: http://gtkmm.sourceforge.net/
+# Maintainer: Danny Rawlins, crux at romster dot me
+# Packager: Younes Hafri, ycrux at club-internet dot fr
+# Depends on: pangomm atkmm xorg-libxdamage
+
+name=gtkmm
+version=2.24.4
+release=2
+source=(http://ftp.gnome.org/pub/GNOME/sources/$name/${version%.*}/$name-$version.tar.xz)
+
+build() {
+	cd $name-$version
+
+	CXXFLAGS+=' -std=c++11'
+
+	./configure \
+		--prefix=/usr \
+		--disable-dependency-tracking \
+		--disable-documentation
+
+	sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
+
+	make
+	make DESTDIR=$PKG install
+}

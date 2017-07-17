@@ -2,20 +2,25 @@
 # URL: http://www.trolltech.com
 # Maintainer: Jose V Beneyto, sepen at crux dot nu
 # Packager: Johannes Winkelmann, jw at smts dot ch
-# Depends on: fontconfig glib libmng libpng mesa3d xorg-libxcursor xorg-libxi xorg-libxinerama xorg-libxrandr dbus
+# Depends on: fontconfig glib libmng libpng mesa3d xorg-libxcursor xorg-libxi xorg-libxinerama xorg-libxrandr xorg-libsm dbus
 
 name=qt4
-version=4.8.4
-release=1
-source=(http://releases.qt-project.org/qt4/source/qt-everywhere-opensource-src-$version.tar.gz)
+version=4.8.7
+release=2
+source=(http://download.qt-project.org/official_releases/qt/${version%.*}/$version/qt-everywhere-opensource-src-$version.tar.gz \
+	qt-everywhere-opensource-src-4.8.7-gcc6.patch)
 
 build () {
     cd qt-everywhere-opensource-src-$version
 
     sed -i 's|X11R6/||g' mkspecs/*/*.conf
-    sed -i "s|-O2|$CXXFLAGS|" mkspecs/common/g++.conf
+
+    sed -i "s|-O2|$CXXFLAGS|" mkspecs/common/g++-unix.conf
     sed -i "s|INSTALLS += translations||" projects.pro
     sed -i 's|"$COMPILER" -c|$COMPILER -c|' config.tests/unix/fvisibility.test
+
+    patch -p1 -i $SRC/qt-everywhere-opensource-src-4.8.7-gcc6.patch
+    export CXXFLAGS="$CXXFLAGS -std=gnu++98 -Wno-deprecated"
 
     ./configure -prefix /usr/share/qt4 \
                 -bindir /usr/share/qt4/bin \
@@ -25,12 +30,15 @@ build () {
                 -platform linux-g++ -release -shared -sm \
                 -nis -verbose -system-zlib \
                 -system-lib{png,jpeg} -xmlpatterns \
-                -no-{fast,nas-sound,rpath} -system-proxies \
+                -no-{cups,fast,nas-sound,phonon} \
                 -x{cursor,inerama,kb,randr,render} \
                 -nomake demos -nomake examples -nomake docs \
-                -no-separate-debug-info -opensource -confirm-license
+                -no-separate-debug-info -opensource -confirm-license \
+		-I /usr/local/include/openssl \
+		-L /usr/local/lib
 
-    LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$PWD/lib" make
+
+    LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$PWD/lib" make -j11
     make INSTALL_ROOT=$PKG install
 
     rm -rf `find $PKG/usr/share/qt4/mkspecs/* | \
@@ -55,6 +63,6 @@ build () {
 
     for f in assistant designer linguist lrelease lupdate moc qmake qtconfig uic \
     pixeltool qdbus qdbuscpp2xml qdbusxml2cpp qt3to4 rcc uic3; do
-        ln -s /usr/share/qt4/bin/$f $PKG/usr/bin/$f
+        ln -s ../share/qt4/bin/$f $PKG/usr/bin/$f
     done
 }

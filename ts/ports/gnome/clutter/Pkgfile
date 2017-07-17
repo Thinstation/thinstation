@@ -1,0 +1,28 @@
+# $Id$
+# Maintainer: Jan de Groot <jgc@archlinux.org>
+# Contributor: Sergej Pupykin <pupykin.s+arch@gmail.com>
+# Contributor: William Rea <sillywilly@gmail.com>
+
+name=clutter
+version=1.26.0
+release=1
+source=(https://download.gnome.org/sources/$name/${version:0:4}/$name-$version.tar.xz)
+
+build() {
+  cd "$name-$version"
+  ./configure --prefix=/usr \
+     \
+    --enable-egl-backend \
+    --enable-gdk-backend \
+    --disable-wayland-backend \
+    --enable-x11-backend \
+    --enable-evdev-input \
+    --disable-wayland-compositor \
+    --enable-gtk-doc
+
+  # https://bugzilla.gnome.org/show_bug.cgi?id=655517
+  sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
+
+  make
+  make DESTDIR="$PKG" install
+}

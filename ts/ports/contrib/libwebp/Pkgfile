@@ -1,0 +1,24 @@
+# Description: A library for a new image format comparable to JPEG.
+# URL: https://developers.google.com/speed/webp/
+# Maintainer: Danny Rawlins, crux at romster dot me
+# Packager: Danny Rawlins, crux at romster dot me
+# Depends on: libpng libtiff libjpeg giflib
+
+name=libwebp
+version=0.5.1
+release=1
+source=(http://downloads.webmproject.org/releases/webp/$name-$version.tar.gz)
+
+build() {
+	cd $name-$version
+
+	./configure \
+		--prefix=/usr \
+		--disable-static \
+		--enable-swap-16bit-csp \
+		--enable-experimental \
+		--enable-libwebp{mux,demux,decoder,extras}
+
+	make
+	make DESTDIR=$PKG install
+}

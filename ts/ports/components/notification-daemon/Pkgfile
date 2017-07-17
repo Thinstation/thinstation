@@ -4,17 +4,14 @@
 # Depends on: libnotify
 
 name=notification-daemon
-version=0.4.0
+version=3.20.0
 release=1
-source=(http://galago-project.org/files/releases/source/$name/$name-$version.tar.bz2 libnotify07.patch)
+source=(http://download.gnome.org/sources/${name}/${version:0:4}/${name}-${version}.tar.xz)
 
 build() {
     cd $name-$version
-    patch -Np1 < ../libnotify07.patch
-    sed -i -e "s/USE_NLS=yes/USE_NLS=no/" \
-           -e "s/ENABLE_NLS 1/ENABLE_NLS 0/" configure
 
-    ./configure --prefix=/usr --libexecdir=/usr/lib/notification-daemon --disable-nls --enable-sound=no
+    ./configure --prefix=/usr --libexecdir=/usr/lib/notification-daemon  --enable-sound=no
     make
     make DESTDIR=$PKG install
 }

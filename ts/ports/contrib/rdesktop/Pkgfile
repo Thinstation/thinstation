@@ -6,10 +6,15 @@
 name=rdesktop
 version=1.8.3
 release=1
-source=(http://download.sourceforge.net/rdesktop/$name-$version.tar.gz)
+source=(http://download.sourceforge.net/rdesktop/$name-$version.tar.gz \
+	bd6aa6acddf0ba640a49834807872f4cc0d0a773.patch \
+	c6e8e1074b8ac57de6c80c4e3ed38e105b4d94f1.patch)
+
 build(){
 	cd $name-$version
 
+	patch -p1 -i $SRC/bd6aa6acddf0ba640a49834807872f4cc0d0a773.patch
+	patch -p1 -i $SRC/c6e8e1074b8ac57de6c80c4e3ed38e105b4d94f1.patch
 	./configure	--prefix=/usr \
 			--enable-smartcard
 

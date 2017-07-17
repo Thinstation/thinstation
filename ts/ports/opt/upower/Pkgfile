@@ -5,23 +5,25 @@
 # Depends on: 	udev, glib2, dbus-glib, gudev, kmod
 
 name=upower
-version=0.9.18
+version=0.99.4
 release=1
 source=(http://upower.freedesktop.org/releases/$name-$version.tar.xz)
 
 build () {
+	export PKG_CONFIG_PATH=/usr/lib/pkgconfig
 	cd $name-$version
 	./configure --prefix=/usr --sysconfdir=/etc --localstatedir=/var \
-		--libexecdir=/usr/lib/udisks --disable-static --enable-shared --disable-introspection
-	sed -i -e 's|profile.d|bash_completion.d|' tools/Makefile
+		--libexecdir=/usr/lib/udisks --disable-static --enable-shared \
+
+#	sed -i -e 's|profile.d|bash_completion.d|' tools/Makefile
 
 #	Before we make we have to remove the command option "-nonet" in the doc/man/Makefile
 #	This is to workaround a bug trying to use -nonet which causes this error
 #	I/O error : Attempt to load network entity http://(path)....docbook.xsl
-	cd $SRC/$name-$version/doc/man
-	sed -i -e 's/-nonet//g' Makefile
+#	cd $SRC/$name-$version/doc/man
+#	sed -i -e 's/-nonet//g' Makefile
 
-	cd $SRC/$name-$version
+#	cd $SRC/$name-$version
 	make
 	make DESTDIR=$PKG install
 }

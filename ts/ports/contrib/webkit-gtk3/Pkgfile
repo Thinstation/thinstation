@@ -1,0 +1,31 @@
+# Description: Small, efficient and fast rendering engine for Web Browsers.
+# URL: http://www.webkitgtk.org/
+# Maintainer: Danny Rawlins, crux at romster dot me
+# Packager: Brett Goulder, predatorfreak at dcaf-security dot org
+# Depends on: enchant glu gperf gst-plugins-base gtk gtk3 harfbuzz-icu libsecret libsoup libwebp ruby shared-mime-info xorg-libxt
+
+name=webkit-gtk3
+version=2.4.11
+release=1
+source=(http://webkitgtk.org/releases/webkitgtk-$version.tar.xz)
+
+build() {
+unset MAKEFLAGS
+	cd webkitgtk-$version
+
+	install -d build
+	cd build
+
+	../configure \
+		--prefix=/usr \
+		--disable-gtk-doc-html \
+		--disable-silent-rules \
+		--enable-video \
+		--enable-jit \
+		--with-gtk=3.0
+
+	make
+	make DESTDIR=$PKG install
+
+	rm -r $PKG/usr/share/locale
+}

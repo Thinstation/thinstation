@@ -1,0 +1,19 @@
+# Description:  Event-driven I/O server-side JavaScript environment based on V8
+# URL:          http://nodejs.org/
+# Maintainer:   James Mills, prologic at shortcircuit dot net dot au
+#
+# Depends on:
+
+name=nodejs
+_name=node
+version=6.4.0
+release=3
+source=(http://nodejs.org/dist/v${version}/$_name-v${version}.tar.gz)
+
+build() {
+    cd $_name-v${version}
+
+    ./configure --prefix=/usr --without-npm
+    make
+    make DESTDIR=$PKG install
+}

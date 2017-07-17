@@ -1,28 +1,24 @@
 # Description: Lightweight Directory Access Protocol (LDAP) Toolkit
 # URL: http://www.openldap.org/
 # Packager: Daniel Mueller, daniel at danm dot de
-# Maintainer: Richard Poettler, richard dot poettler at gmail dot com
+# Maintainer: Jose V Beneyto, sepen at crux dot nu
 # Depends on: perl, openssl, cyrus-sasl
 
 name=openldap
-version=2.4.13
-release=1
+version=2.4.44
+release=2
 source=(ftp://ftp.openldap.org/pub/OpenLDAP/openldap-release/$name-$version.tgz \
-	$name-config.patch slurpd slapd)
+	$name-config.patch slapd)
 
 build() {
+unset MAKEFLAGS
 	cd $name-$version
 	patch -p0 -i $SRC/$name-config.patch
-
-	# Workaround for: (ITS#5464) ucred guarded by __USE_GNU in glibc 2.8
-	# http://www.openldap.org/lists/openldap-bugs/200804/msg00074.html
-	export CPPFLAGS="$CPPFLAGS -D_GNU_SOURCE"
 
 	./configure --prefix=/usr \
 		--sysconfdir=/etc \
 		--libexecdir=/usr/sbin \
 		--localstatedir=/var/openldap \
-		--disable-nls \
 		--enable-syslog \
 		--with-threads \
 		--with-tls \
@@ -33,9 +29,6 @@ build() {
 		--enable-modules \
 		--enable-crypt \
 		--enable-rewrite \
-		--enable-ldbm \
-		--enable-ldbm-api=berkeley \
-		--enable-ldbm-type=btree \
 		--enable-bdb \
 		--enable-hdb \
 		--enable-ldap \
@@ -44,29 +37,18 @@ build() {
 		--enable-dnssrv \
 		--enable-null \
 		--enable-perl \
-		--with-dyngroup \
-		--with-proxycache \
-		--enable-wrappers \
-		--enable-slurpd \
 		--enable-aci \
-		--enable-shared
+		--enable-shared \
+		--disable-static
 
 	make depend
 	make
 	make DESTDIR=$PKG install   
 
-	sed -i -e "s|-L${PKG}/usr/lib||g" $PKG/usr/lib/*.la
-	/sbin/ldconfig -n $PKG/usr/lib
+	ln -sf liblber.so $PKG/usr/lib/liblber.so.2
+	ln -sf libldap.so $PKG/usr/lib/libldap.so.2
+	ln -sf libldap_r.so $PKG/usr/lib/libldap_r.so.2
 
-	# compatiblity links
-	(cd $PKG/usr/lib; 
-	 ln -s liblber.so liblber.so.2;
-	 ln -s libldap.so libldap.so.2;
-	 ln -s libldap_r.so libldap_r.so.2) || exit 1
-
-	mkdir -p $PKG/etc/rc.d
-	install -m 755 $SRC/slapd $PKG/etc/rc.d/slapd
-	install -m 755 $SRC/slurpd $PKG/etc/rc.d/slurpd
-
+	install -D -m 0755 $SRC/slapd $PKG/etc/rc.d/slapd
 	rm -f $PKG/etc/openldap/schema/README
 }

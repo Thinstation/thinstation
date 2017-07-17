@@ -1,0 +1,33 @@
+# $Id$
+# Maintainer:  Bartłomiej Piotrowski <bpiotrowski@archlinux.org>
+# Contributor: Massimiliano Torromeo <massimiliano.torromeo@gmail.com>
+# Contributor: Kovivchak Evgen <oneonfire@gmail.com>
+
+pkgname=jemalloc
+epoch=1
+pkgver=5.0.1
+pkgrel=3
+pkgdesc='General-purpose scalable concurrent malloc implementation'
+arch=('i686' 'x86_64')
+license=('BSD')
+url='http://www.canonware.com/jemalloc/'
+depends=('glibc')
+provides=('libjemalloc.so')
+optdepends=('perl: for jeprof')
+source=("https://github.com/jemalloc/jemalloc/releases/download/${pkgver}/${pkgname}-${pkgver}.tar.bz2")
+sha256sums=('4814781d395b0ef093b21a08e8e6e0bd3dab8762f9935bbfb71679b0dea7c3e9')
+
+build() {
+  cd $pkgname-$pkgver
+
+  ./configure --prefix=/usr
+  make
+}
+
+package() {
+  cd $pkgname-$pkgver
+
+  make DESTDIR="$pkgdir" install
+
+  install -Dm644 COPYING "$pkgdir/usr/share/licenses/$pkgname/COPYING"
+}

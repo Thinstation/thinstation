@@ -1,21 +1,22 @@
 # Description: Miscellaneous system utilities
 # URL:         http://userweb.kernel.org/~kzak/util-linux-ng/
 # Maintainer:  CRUX System Team, core-ports at crux dot nu
-# Depends on:  ncurses zlib
+# Depends on:  eudev ncurses zlib
 
 name=util-linux
-version=2.26.2
+version=2.28
 release=1
-source=(https://www.kernel.org/pub/linux/utils/$name/v2.26/$name-$version.tar.xz)
+source=(https://www.kernel.org/pub/linux/utils/$name/v2.28/$name-$version.tar.xz)
 
 build() {
     cd $name-$version
 
     ./configure --prefix=/usr \
-                --mandir=/usr/man \
-		--disable-{nls,login,su,nologin,chfn,chsh} \
+                 \
+                --disable-{login,su,sulogin,nologin,runuser} \
+                --disable-chfn-chsh \
                 --enable-{write,raw,kill} \
-		--without-{user,python,selinux} \
+                --without-python
 
     make
     make DESTDIR=$PKG install
@@ -23,10 +24,7 @@ build() {
     install -d $PKG/{etc,var/{lib/libuuid,run/uuidd}}
     touch $PKG/etc/adjtime
 
-    rm -r $PKG/usr/share/doc
-    rm $PKG/usr/share/bash-completion/completions/{fsck.minix,mkfs.bfs,mkfs.minix}
+    rm -r $PKG/usr/share/{doc,bash-completion}
     rm $PKG/sbin/{mkfs.bfs,mkfs.minix,fsck.minix}
-    rm $PKG/usr/man/man8/{fsck.minix,mkfs.bfs,mkfs.minix}.8
-    rm $PKG/usr/bin/{chfn,chsh}
-    rm $PKG/usr/man/man1/{chfn,chsh}.1
+    rm $PKG/usr/share/man/man8/{fsck.minix,mkfs.bfs,mkfs.minix}.8
 }

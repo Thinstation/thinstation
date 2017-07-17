@@ -1,0 +1,20 @@
+# $Id$
+# Maintainer: Tobias Powalowski <tpowa@archlinux.org>
+# Contributor: Federico Quagliata (quaqo) <quaqo@despammed.com>
+
+name=cracklib
+version=2.9.6
+release=1
+source=(https://github.com/cracklib/cracklib/releases/download/$name-$version/$name-$version.tar.gz)
+
+build() {
+  cd $SRC/$name-$version
+  ./configure --prefix=/usr --sbindir=/usr/bin --without-python
+  make 
+  make DESTDIR=$PKG install
+  # symlink cracklib-small #34778
+  mkdir -p $PKG/usr/share/dict
+  ln -sf /usr/share/cracklib/cracklib-small $PKG/usr/share/dict/cracklib-small
+  sh ./util/cracklib-format dicts/cracklib-small \
+    | sh ./util/cracklib-packer $PKG/usr/share/cracklib/pw_dict
+}

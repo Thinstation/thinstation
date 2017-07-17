@@ -1,0 +1,17 @@
+# Description:	atk to at-spi2 bridge library
+# URL:		http://developer.gnome.org/atk/unstable/atk-AtkSocket.html
+# Maintainer:	Fredrik Rinnestam, fredrik at crux dot nu
+# Depends on:	atk, at-spi2-core
+
+name=at-spi2-atk
+version=2.20.1
+release=1
+source=(http://ftp.gnome.org/pub/gnome/sources/at-spi2-atk/${version:0:4}/at-spi2-atk-$version.tar.xz)
+
+build() {
+	cd $name-$version
+	./configure --prefix=/usr
+	make
+	make DESTDIR=$PKG install
+chown -R root.root $PKG
+}

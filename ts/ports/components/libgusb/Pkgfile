@@ -1,0 +1,18 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=libgusb
+version=0.2.9
+release=1
+source=(http://people.freedesktop.org/~hughsient/releases/${name}-${version}.tar.xz)
+
+build() {
+	cd $name-$version
+
+	./configure --prefix=/usr \
+			--disable-static
+
+	make
+	make DESTDIR=$PKG install
+}

@@ -3,21 +3,21 @@
 # Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 
 name=motif
-version=2.3.4
+version=2.3.6
 release=1
-source=(http://downloads.sourceforge.net/project/motif/Motif%20$version%20Source%20Code/motif-$version-src.tgz)
+source=(https://downloads.sourceforge.net/project/motif/Motif%20$version%20Source%20Code/motif-$version.tar.gz)
 
 build() {
 	cd $name-$version
 
-	./autogen.sh
-
+	export LDFLAGS="-lX11"
+#	./autogen.sh
 	./configure --prefix=/usr \
 			--sysconfdir=/etc \
 			--mandir=/usr/man \
-			--disable-extras
+			--disable-static
 
-	make
+	make -j1
 	make DESTDIR=$PKG install
 	rm -rf $PKG/usr/man
 }

@@ -1,0 +1,16 @@
+# $Id$
+# Maintainer: Jan de Groot <jgc@archlinux.org>
+
+name=clutter-gtk
+version=1.8.0
+release=1
+source=(http://download.gnome.org/sources/$name/${version:0:3}/$name-$version.tar.xz)
+
+build() {
+  cd $name-$version
+  ./configure --prefix=/usr
+  # https://bugzilla.gnome.org/show_bug.cgi?id=655517
+  sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
+  make
+  make DESTDIR="$PKG" install
+}

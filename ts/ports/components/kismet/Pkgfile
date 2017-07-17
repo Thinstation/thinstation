@@ -1,24 +1,25 @@
-# Description: Thinstation essential package
-# URL: http://www.thinstation.org
-# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+# $Id$
+# Maintainer:
+# Contributor: Angel Velasquez <angvp@archlinux.org> 
+# Contributor: Jason Chu <jason@archlinux.org>
+# Contributor: Juergen Hoetzel <jason@archlinux.org>
 
 name=kismet
-version=2011-03-R2
+version=2016_07_R1
+_realver="${version//_/-}"
 release=1
-source=(http://www.kismetwireless.net/code/$name-$version.tar.gz)
+source=("https://www.kismetwireless.net/code/${name}-${_realver}.tar.xz")
 
 build() {
-	cd $name-$version
+    cd ${name}-${_realver}
 
-	./configure --prefix=/usr \
-			--disable-extras
+    ./configure --prefix=/usr \
+                --sysconfdir=/etc \
+                --localstatedir=/var
+    make dep all plugins
+    make DESTDIR="$PKG" install plugins-install
+    install -o root -g 315 -m 4550 kismet_capture "${PKG}/usr/bin/"
 
-	make
-	make DESTDIR=$PKG install
-	cd plugin-autowep
-        KIS_SRC_DIR=../ make
-	KIS_SRC_DIR=../ make DESTDIR=$PKG install
-	cd ../plugin-ptw
-        KIS_SRC_DIR=../ make
-	KIS_SRC_DIR=../ make DESTDIR=$PKG install
+    # the README is very comprehensive, a good idea to include it
+    install -Dm 644 README "$PKG/usr/share/doc/$name/README"
 }

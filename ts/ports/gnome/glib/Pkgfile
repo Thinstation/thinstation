@@ -1,0 +1,29 @@
+# Description: Low-level data structure handling, portability wrappers, and interfaces for runtime functionality
+# URL:         http://www.gtk.org/
+# Maintainer:  Fredrik Rinnestam, fredrik at crux dot nu
+# Depends on:  libpcre libffi python
+
+name=glib
+archname=glib2
+version=2.48.1
+release=1
+source=(http://download.gnome.org/sources/$name/${version:0:4}/$name-$version.tar.xz \
+	gschemas.compiled)
+
+build () {
+    cd $name-$version
+
+    ./configure --prefix=/usr \
+                --disable-man \
+                --with-pcre=system
+    make
+    make -j1 DESTDIR=$PKG install
+
+    install -d $PKG/usr/share/man/man1
+    find docs -name '*.1' -exec install -m 0644 {} $PKG/usr/share/man/man1 \;
+
+    install -m 0644 $SRC/gschemas.compiled $PKG/usr/share/glib-2.0/schemas/gschemas.compiled
+    rm -rf $PKG/usr/share/{gtk-doc,locale}
+    rm -r $PKG/usr/share/bash-completion
+chown -R root.root $PKG
+}

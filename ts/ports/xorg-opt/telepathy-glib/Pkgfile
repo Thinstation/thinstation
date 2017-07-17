@@ -1,0 +1,17 @@
+# $Id$
+# Maintainer:  Ionut Biru <ibiru@archlinux.org>
+# Contributor: Kessia 'even' Pinheiro <kessiapinheiro at gmail.com
+# Contributor: Bjorn Lindeijer <bjorn lindeijer nl>
+
+name=telepathy-glib
+version=0.24.1
+release=1
+source=(http://telepathy.freedesktop.org/releases/$name/$name-$version.tar.gz{,.asc})
+
+build() {
+    cd $name-$version
+    PYTHON=/usr/bin/python2 ./configure --prefix=/usr \
+        --enable-static=no
+    make
+    make DESTDIR="$PKG" install
+}

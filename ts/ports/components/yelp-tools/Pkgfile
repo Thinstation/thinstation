@@ -1,0 +1,21 @@
+# Description: Tools for creating Yelp documentation.
+# URL: http://www.gnome.org/
+# Maintainer: Danny Rawlins, crux at romster dot me
+# Packager: Danny Rawlins, crux at romster dot me
+# Depends on: yelp-xsl libxslt libxml2 itstool
+
+name=yelp-tools
+version=3.10.0
+release=1
+source=(http://ftp.gnome.org/pub/gnome/sources/$name/${version%.*}/$name-$version.tar.xz)
+
+build() {
+	cd $name-$version
+
+	./configure \
+		--prefix=/usr \
+		--mandir=/usr/man
+
+	make
+	make DESTDIR=$PKG install
+}

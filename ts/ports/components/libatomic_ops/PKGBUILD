@@ -1,0 +1,35 @@
+# $Id$
+# Maintainer: Jan de Groot <jgc@archlinux.org>
+# Contributor: Adam Walters <abwalters@abwalters.us>
+# Contributor: William Rea <sillywilly@gmail.com>
+# Contributor: Rémy Oudompheng <remy@archlinux.org>
+
+pkgname=libatomic_ops
+pkgver=7.4.6
+pkgrel=1
+pkgdesc="Provides semi-portable access to hardware provided atomic memory operations"
+arch=('i686' 'x86_64')
+url="https://github.com/ivmai/libatomic_ops"
+depends=('glibc')
+license=('GPL2' 'MIT')
+source=($url/releases/download/v$pkgver/${pkgname}-${pkgver}.tar.gz)
+sha256sums=('96e88ba450ae5fa10aa8e94e6b151a63ffbe47f8069574bd12da22ae80c686db')
+
+build() {
+  cd $pkgname-$pkgver
+  ./autogen.sh
+  ./configure --prefix=/usr --disable-static --enable-shared
+  make
+}
+
+check() {
+  cd $pkgname-$pkgver
+  make check
+}
+
+package() {
+  cd $pkgname-$pkgver
+  make DESTDIR="$pkgdir" install
+  install -Dm644 doc/LICENSING.txt "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+  rm -rf "$pkgdir/usr/share/doc/"
+}

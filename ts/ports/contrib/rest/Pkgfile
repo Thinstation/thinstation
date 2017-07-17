@@ -1,0 +1,18 @@
+# $Id$
+# Maintainer: Jan Alexander Steffens (heftig) <jan.steffens@gmail.com>
+
+name=rest
+version=0.8.0
+release=1
+source=(http://download.gnome.org/sources/$name/${version:0:3}/$name-${version}.tar.xz)
+
+build() {
+  cd $name-$version
+  ./configure \
+    --prefix=/usr \
+    --sysconfdir=/etc \
+    
+
+  make
+  make DESTDIR="$PKG" install
+}

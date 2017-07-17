@@ -1,0 +1,24 @@
+# Description: A library which provides functions for reading DVD video disks.
+# URL: http://www.videolan.org/developers/libdvdcss.html
+# Maintainer: Danny Rawlins, crux at romster dot me
+# Packager: Matt Housh, jaeger at crux dot nu
+
+name=libdvdcss
+version=1.4.0
+release=1
+source=(http://download.videolan.org/pub/$name/$version/$name-$version.tar.bz2)
+
+build() {
+	cd $name-$version
+
+	./configure \
+		--prefix=/usr \
+		--mandir=/usr/man \
+		--disable-static
+
+	make
+	make DESTDIR=$PKG install
+
+	rm -rf $PKG/usr/share/doc
+	rmdir $PKG/usr/share
+}

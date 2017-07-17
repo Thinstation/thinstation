@@ -1,72 +1,34 @@
-# Description: Thinstation essential package
-# URL: http://www.thinstation.org
-# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+# $Id$
+# Maintainer: Gaetan Bisson <bisson@archlinux.org>
+# Contributor: Tobias Kieslich <tobias@justdreams.de>
+# Contributor: tobias <tobias@archlinux.org>
 
 name=inkscape
-version=0.48.4
-release=1
-source=(http://iweb.dl.sourceforge.net/project/inkscape/inkscape/$version/inkscape-$version.tar.bz2)
+version=0.92.1
+release=3
+source=(https://media.inkscape.org/dl/resources/file/inkscape-0.92.1.tar_XlpI7qT.bz2)
 
 build() {
-	cd $name-$version
-#	for i in `grep -R * -e gtypes.h |cut -d: -f1`;do
-#		sed -i -e 's/glib\/gtypes.h/glib.h/g' $i
-#	done
-#       for i in `grep -R * -e gmessages.h |cut -d: -f1`;do
-#                sed -i -e 's/glib\/gmessages.h/glib.h/g' $i
-#        done
-#        for i in `grep -R * -e gstring.h |cut -d: -f1`;do
-#                sed -i -e 's/glib\/gstring.h/glib.h/g' $i
-#        done
-#        for i in `grep -R * -e gslist.h |cut -d: -f1`;do
-#                sed -i -e 's/glib\/gslist.h/glib.h/g' $i
-#        done
-#        for i in `grep -R * -e glist.h |cut -d: -f1`;do
-#                sed -i -e 's/glib\/glist.h/glib.h/g' $i
-#        done
-#        for i in `grep -R * -e gmain.h |cut -d: -f1`;do
-#                sed -i -e 's/glib\/gmain.h/glib.h/g' $i
-#        done
-#        for i in `grep -R * -e ghash.h |cut -d: -f1`;do
-#                sed -i -e 's/glib\/ghash.h/glib.h/g' $i
-#        done
-#        for i in `grep -R * -e gdir.h |cut -d: -f1`;do
-#                sed -i -e 's/glib\/gdir.h/glib.h/g' $i
-#        done
-#	for i in `grep -R * -e gfileutils.h |cut -d: -f1`;do
-#                sed -i -e 's/glib\/gfileutils.h/glib.h/g' $i
-#        done
-#        for i in `grep -R * -e gquark.h |cut -d: -f1`;do
-#                sed -i -e 's/glib\/gquark.h/glib.h/g' $i
-#        done
-#        for i in `grep -R * -e gmacros.h |cut -d: -f1`;do
-#                sed -i -e 's/glib\/gmacros.h/glib.h/g' $i
-#        done
-#        for i in `grep -R * -e gversionmacros.h |cut -d: -f1`;do
-#                sed -i -e 's/glib\/gversionmacros.h/glib.h/g' $i
-#        done
-#        for i in `grep -R * -e gutils.h |cut -d: -f1`;do
-#                sed -i -e 's/glib\/gutils.h/glib.h/g' $i
-#        done
-#        for i in `grep -R * -e gerror.h |cut -d: -f1`;do
-#                sed -i -e 's/glib\/gerror.h/glib.h/g' $i
-#        done
-#        for i in `grep -R * -e gmem.h |cut -d: -f1`;do
-#                sed -i -e 's/glib\/gmem.h/glib.h/g' $i
-#        done
-#        for i in `grep -R * -e gconvert.h |cut -d: -f1`;do
-#                sed -i -e 's/glib\/gconvert.h/glib.h/g' $i
-#        done
-#        for i in `grep -R * -e gstrfuncs.h |cut -d: -f1`;do
-#                sed -i -e 's/glib\/gstrfuncs.h/glib.h/g' $i
-#        done
+	tar -xvf *.bz2
+	cd "${SRC}/${name}-${version}"
+	./autogen.sh
 
-	./configure --prefix=/usr \
-			--exec-prefix=/ \
-			--sysconfdir=/etc \
-			--libexecdir=/lib \
-			--mandir=/usr/man \
+#	sed -i 's|/usr/bin/python\>|/usr/bin/python2|g' cxxtest/*.py
+#	sed -i 's|/usr/bin/env python\>|/usr/bin/env python2|g' share/*/{test/,}*.py
+#	sed -i 's|"python" },|"python2" },|g' src/extension/implementation/script.cpp
+#	sed -i 's|python -c|python2 -c|g' configure share/extensions/uniconv*.py
+#	sed -i 's|"python"|"python2"|g' src/main.cpp
 
+	sed -i 's| abs(| std::fabs(|g' src/ui/tools/flood-tool.cpp
+
+	./configure \
+		--prefix=/usr \
+		--with-python \
+		--with-perl \
+		--enable-lcms \
+		--enable-poppler-cairo \
+		--disable-strict-build \
+		--disable-dependency-tracking
 	make
-	make DESTDIR=$PKG install
+	make DESTDIR="${PKG}" install
 }

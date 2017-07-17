@@ -1,0 +1,22 @@
+# $Id$
+# Maintainer: Jan Alexander Steffens (heftig) <jan.steffens@gmail.com>
+# Contributor: Ionut Biru <ibiru@archlinux.org>
+
+name=accountsservice
+version=0.6.42
+release=1
+source=("http://www.freedesktop.org/software/accountsservice/$name-$version.tar.xz")
+
+build() {
+  cd $name-$version
+	./configure \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--localstatedir=/var \
+		--disable-static \
+		--enable-gtk-doc \
+		--enable-docbook-docs \
+		
+  make
+  make DESTDIR="$PKG" install
+}

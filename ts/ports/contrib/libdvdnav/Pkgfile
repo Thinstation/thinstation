@@ -1,0 +1,26 @@
+# Description: DVD Navigation library.
+# URL: http://dvdnav.mplayerhq.hu/
+# Maintainer: Danny Rawlins, crux at romster dot me
+# Packager: Matt Housh, jaeger at morpheus dot net
+# Depends on: libdvdread
+
+name=libdvdnav
+version=5.0.3
+release=1
+source=(http://download.videolan.org/videolan/$name/$version/$name-$version.tar.bz2)
+
+build() {
+	cd $name-$version
+
+	./configure \
+		--prefix=/usr \
+		--mandir=/usr/man \
+		--disable-dependency-tracking \
+		--disable-static
+
+	make CFLAGS="$CFLAGS"
+	make DESTDIR=$PKG install
+
+	rm -rf $PKG/usr/share/doc
+	rmdir $PKG/usr/share
+}

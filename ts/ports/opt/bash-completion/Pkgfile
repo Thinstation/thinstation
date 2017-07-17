@@ -1,0 +1,30 @@
+# Description: Bash completion functions
+# URL: http://bash-completion.alioth.debian.org/
+# Maintainer: Jose V Beneyto, sepen at crux dot nu
+# Packager: Johannes Winkelmann, jw at smts dot ch
+# Depends on: bash
+
+name=bash-completion
+version=2.3
+release=2
+source=(https://github.com/scop/bash-completion/releases/download/$version/bash-completion-$version.tar.xz)
+build() {
+    cd $name-$version
+
+    sed -i Makefile.* \
+	-e 's|pkgconfigdir = .*|pkgconfigdir = /usr/lib/pkgconfig|g' \
+	-e 's|profiledir = .*|profiledir = /etc|g'
+
+    ./configure --prefix=/usr --sysconfdir=/etc
+
+    make
+    make DESTDIR=$PKG install
+
+    mv $PKG/etc/bash_completion{.sh,}
+    chmod 0755 $PKG/usr/share/$name/bash_completion
+
+    # removed package tools from other systems rather than CRUX
+    rm $PKG/usr/share/$name/completions/{apt-*,aptitude,dpkg*}
+    rm $PKG/usr/share/$name/completions/{explode,install,make,remove,sbo,slack,upgrade}pkg
+    rm $PKG/usr/share/$name/completions/{pkg-get,pkg_*,pkg{add,rm,tool,util},slapt-*}
+}

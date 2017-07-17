@@ -5,13 +5,17 @@
 # Depends on: python
 
 name=pyxdg
-version=0.19
+pname=pyxdg
+version=pip
 release=1
-source=(http://people.freedesktop.org/~lanius/$name-$version.tar.gz)
+source=()
 
 build() {
-	cd $name-$version
-	python setup.py install --prefix=/usr --root=$PKG
-	rm $PKG/usr/lib/python2.7/site-packages/pyxdg-$version-py2.7.egg-info
+        pip install $name --download=$SRC --no-binary :all:
+        mkdir -p $SRC/$name
+        tar -xvf $SRC/$pname*.tar.* -C $SRC/$name || unzip -d $SRC/$name $pname-*.zip
+        cd $SRC/$name/*
+
+        python ./setup.py install --root $PKG
 }
 

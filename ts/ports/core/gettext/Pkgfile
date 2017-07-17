@@ -4,21 +4,20 @@
 # Depends on:  ncurses acl
 
 name=gettext
-version=0.18.1.1
+version=0.19.8.1
 release=1
-source=(http://ftp.gnu.org/gnu/$name/$name-$version.tar.gz)
+source=(http://ftp.gnu.org/gnu/$name/$name-$version.tar.xz)
 
 build() {
     cd $name-$version
     ./configure --prefix=/usr \
-                --mandir=/usr/man \
                 --disable-csharp \
                 --disable-{,native-}java \
-                --disable-nls \
+                --disable-static \
                 --without-{emacs,git} \
                 --with-included-{glib,libcroco,libxml}
     make
     make -j1 DESTDIR=$PKG install
     rm -r $PKG/usr/share/{info,doc}
-    rm $PKG/usr/share/gettext/intl/{COPYING*,ChangeLog}
+    rm $PKG/usr/share/gettext/intl/COPYING.LIB
 }

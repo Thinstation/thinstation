@@ -1,19 +1,16 @@
 # Description: Mail transfer agent
 # URL:         http://www.exim.org
 # Maintainer:  CRUX System Team, core-ports at crux dot nu
-# Depends on:  db openssl libpcre tcp_wrappers
+# Depends on:  db openssl libpcre
 
 name=exim
-version=4.77
+version=4.89
 release=1
-source=(ftp://ftp.exim.org/pub/exim/exim4/$name-$version.tar.bz2 \
-        $name $name-config.patch
-        $name-$version-compile_number.patch)
+source=(ftp://ftp.exim.org/pub/exim/exim4/$name-$version.tar.xz \
+        $name $name-config.patch)
 
 build() {
     cd $name-$version
-
-    patch -p1 -i $SRC/$name-$version-compile_number.patch
 
     sed "s/#CFLAGS#/$CFLAGS/" $SRC/$name-config.patch | patch -p1
     cp src/EDITME Local/Makefile
@@ -21,8 +18,10 @@ build() {
     make -j1
     make DESTDIR=$PKG install
 
+    mv $PKG/usr/sbin/{$name-$version-?,$name}
+
     install -D -m 755 $SRC/exim $PKG/etc/rc.d/exim
-    install -D -m 644 doc/exim.8 $PKG/usr/man/man8/exim.8
+    install -D -m 644 doc/exim.8 $PKG/usr/share/man/man8/exim.8
 
     install -d $PKG/var/{log,spool} $PKG/usr/bin
     install -d -m 0750 -o mail -g mail $PKG/var/{log,spool}/exim
@@ -31,6 +30,11 @@ build() {
     chown mail:mail $PKG/var/log/exim/*
     chmod 640 $PKG/var/log/exim/*
 
-    ln -sf $name-$version-1 $PKG/usr/sbin/sendmail
-    ln -sf ../sbin/$name-$version-1 $PKG/usr/bin/mailq
+    ln -sf $name $PKG/usr/sbin/sendmail
+    ln -sf ../sbin/$name $PKG/usr/bin/mailq
+
+    install -d $PKG/etc/ssl/{certs,keys}
+    touch $PKG/etc/ssl/certs/exim.crt
+    touch $PKG/etc/ssl/keys/exim.key
+    chmod 0600 $PKG/etc/ssl/{keys/exim.key,certs/exim.crt}
 }
