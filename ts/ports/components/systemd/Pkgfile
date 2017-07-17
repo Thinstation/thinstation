@@ -6,11 +6,14 @@ name=systemd
 version=231
 release=1
 source=(https://github.com/systemd/systemd/archive/v$version.tar.gz \
+	silent-start.patch
 	81-crux.rules)
 
 build() {
-unset MAKEFLAGS
-    cd $name-$version
+   unset MAKEFLAGS
+   cd $name-$version
+   patch -p0 -i $SRC/silent-start.patch
+
 cat > config.cache << EOF
 cc_cv_CFLAGS__flto=no
 EOF
