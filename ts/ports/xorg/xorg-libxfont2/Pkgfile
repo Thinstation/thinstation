@@ -1,0 +1,19 @@
+# Description: xorg lib libXfont
+# URL: http://xorg.freedesktop.org
+# Maintainer: CRUX Xorg Team, xorg-ports at crux dot nu
+# Depends on: freetype, xorg-xproto, xorg-xtrans, xorg-fontsproto, xorg-libfontenc
+
+name=xorg-libxfont2
+archname=${name#xorg-}
+version=2.0.1
+release=1
+source=(http://xorg.freedesktop.org/releases/individual/lib/libXfont2-$version.tar.bz2)
+
+build() {
+	cd libXfont2-$version
+
+	./configure --prefix=/usr --disable-static
+
+	make
+	make DESTDIR=$PKG install
+}

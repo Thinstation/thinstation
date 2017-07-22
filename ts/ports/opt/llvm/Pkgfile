@@ -1,41 +1,72 @@
-# Description: LLVM including clang
-# URL: http://llvm.org
-# Maintainer:  Thomas Penteker, tek at serverop dot de
-# Packager: Tilman Sauerbeck, tilman at crux dot nu
-# Depends on: python
+# $Id$
+# Maintainer: Evangelos Foutras <evangelos@foutrelis.com>
+# Contributor: Jan "heftig" Steffens <jan.steffens@gmail.com>
+# Contributor: Sebastian Nowicki <sebnow@gmail.com>
+# Contributor: Devin Cofer <ranguvar{AT]archlinux[DOT}us>
+# Contributor: Tobias Kieslich <tobias@justdreams.de>
+# Contributor: Geoffroy Carrier <geoffroy.carrier@aur.archlinux.org>
+# Contributor: Tomas Lindquist Olsen <tomas@famolsen.dk>
+# Contributor: Roberto Alsina <ralsina@kde.org>
+# Contributor: Gerardo Exequiel Pozzi <vmlinuz386@yahoo.com.ar>
 
 name=llvm
-version=3.7.1
-release=1
-source=(http://llvm.org/releases/$version/{$name,cfe}-$version.src.tar.xz)
+version=4.0.1
+release=4
+_ocaml_ver=4.04.1
+source=(http://releases.llvm.org/$version/llvm-$version.src.tar.xz{,.sig}
+        http://releases.llvm.org/$version/cfe-$version.src.tar.xz{,.sig}
+        http://releases.llvm.org/$version/clang-tools-extra-$version.src.tar.xz{,.sig}
+        http://releases.llvm.org/$version/compiler-rt-$version.src.tar.xz{,.sig}
+        http://releases.llvm.org/$version/lld-$version.src.tar.xz{,.sig}
+        http://releases.llvm.org/$version/lldb-$version.src.tar.xz{,.sig}
+        0001-GCC-compatibility-Ignore-the-fno-plt-flag.patch
+        0002-Enable-SSP-and-PIE-by-default.patch
+        disable-llvm-symbolizer-test.patch
+        lldb-gcc7.patch
+        lldb-libedit.patch
+        llvm-config.h)
 
 build() {
-	mv cfe-$version.src $name-$version.src/tools/clang
+  cd "$SRC/llvm-$version.src"
+  mkdir build
 
-	cd $name-$version.src
+  mv "$SRC/cfe-$version.src" tools/clang
+  mv "$SRC/clang-tools-extra-$version.src" tools/clang/tools/extra
+  mv "$SRC/compiler-rt-$version.src" projects/compiler-rt
+  mv "$SRC/lld-$version.src" tools/lld
+  mv "$SRC/lldb-$version.src" tools/lldb
 
-	export CC=gcc
-	export CXX=c++
-	cd ..
-	mkdir build
-	cd build
+  # Disable test that fails when compiled as PIE
+  # https://bugs.llvm.org/show_bug.cgi?id=31870
+  patch -Np1 <../disable-llvm-symbolizer-test.patch
 
-	../$name-$version.src/configure --prefix=/usr \
-		--sysconfdir=/etc \
-		--enable-libffi \
-		--enable-shared \
-		--enable-optimized \
-		--disable-debug-runtime \
-		--disable-assertions \
-		--disable-expensive-checks \
+  # Enable SSP and PIE by default
+  patch -Np1 -d tools/clang <../0001-GCC-compatibility-Ignore-the-fno-plt-flag.patch
+  patch -Np1 -d tools/clang <../0002-Enable-SSP-and-PIE-by-default.patch
 
-	make
-	make DESTDIR=$PKG install
+  # Fix LLDB input with recent libedit versions
+#  patch -Np0 -d tools/lldb <../lldb-gcc7.patch
+#  patch -Np1 -d tools/lldb <../lldb-libedit.patch
+  cd build
+  cmake \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_INSTALL_PREFIX=/usr \
+    -DLLVM_BUILD_LLVM_DYLIB=ON \
+    -DLLVM_LINK_LLVM_DYLIB=ON \
+    -DLLVM_INSTALL_UTILS=OFF \
+    -DLLVM_ENABLE_RTTI=ON \
+    -DLLVM_ENABLE_FFI=ON \
+    -DLLVM_BUILD_TESTS=OFF \
+    -DLLVM_BUILD_DOCS=OFF \
+    -DLLVM_ENABLE_SPHINX=ON \
+    -DLLVM_ENABLE_DOXYGEN=OFF \
+    -DSPHINX_WARNINGS_AS_ERRORS=OFF \
+    -DFFI_INCLUDE_DIR=$(pkg-config --variable=includedir libffi) \
+    -DLLVM_BINUTILS_INCDIR=/usr/include \
+    ..
 
-	# Unfortunately, llvm's configure script seems to ignore --mandir.
-#	mv `find $PKG -typd d -name man` $PKG/usr
-#	rmdir $PKG/usr/share
+  make
+  make DESTDIR="$PKG" install
 
-	find $PKG -name .dir -delete
-	rm -rf $PKG/usr/docs
+  find $PKG -name six.py -delete
 }

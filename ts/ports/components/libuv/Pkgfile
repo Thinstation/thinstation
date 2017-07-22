@@ -1,0 +1,27 @@
+# $Id$
+# Maintainer: Massimiliano Torromeo <massimiliano.torromeo@gmail.com>
+
+name=libuv
+version=1.13.1
+release=1
+source=("https://github.com/libuv/libuv/archive/v$version/$name-$version.tar.gz")
+
+build() {
+	cd "$SRC"/$name-$version
+	./autogen.sh
+	./configure --prefix=/usr
+	make
+	make check
+
+	make DESTDIR="$PKG" install
+
+	install -Dm644 LICENSE \
+		"$PKG"/usr/share/licenses/$name/LICENSE
+	install -Dm644 AUTHORS \
+		"$PKG"/usr/share/doc/$name/AUTHORS
+	install -Dm644 README.md \
+		"$PKG"/usr/share/doc/$name/README.md
+	install -Dm644 ChangeLog \
+		"$PKG"/usr/share/doc/$name/ChangeLog
+}
+

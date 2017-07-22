@@ -1,0 +1,19 @@
+# $Id$
+# Maintainer: Felix Yan <felixonmars@archlinux.org>
+# Contributor: Stéphane Gaudreault <stephane@archlinux.org>
+# Contributor: Tom Newsom <Jeepster@gmx.co.uk>
+
+name=swig
+version=3.0.12
+release=1
+source=(http://downloads.sourceforge.net/${name}/${name}-${version}.tar.gz)
+
+build() {
+  cd ${name}-${version}
+  ./configure --prefix=/usr
+  make
+  make check || warning "Tests failed"
+  make DESTDIR="${PKG}" install
+  install -D -m644 LICENSE "${PKG}"/usr/share/licenses/${name}/LICENSE
+  install -D -m644 LICENSE-UNIVERSITIES "${PKG}"/usr/share/licenses/${name}/LICENSE-UNIVERSITIES
+}
