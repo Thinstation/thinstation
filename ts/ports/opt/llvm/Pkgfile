@@ -65,8 +65,9 @@ build() {
     -DLLVM_BINUTILS_INCDIR=/usr/include \
     ..
 
-  make
+  make -j11
   make DESTDIR="$PKG" install
 
   find $PKG -name six.py -delete
+  rm -rf $PKG/usr/{include,lib,share} 
 }
