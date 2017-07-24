@@ -1,0 +1,15 @@
+#$Id$
+# Maintainer:  Anatol Pomozov <anatol@archlinux.org>
+
+name=virglrenderer
+version=0.6.0
+release=1
+source=(https://www.freedesktop.org/software/virgl/virglrenderer-$version.tar.bz2{,.sig})
+
+build() {
+  cd virglrenderer-$version 
+  ./configure --prefix=/usr
+  make
+  make DESTDIR="$PKG" install
+  install -D -m644 COPYING "$PKG/usr/share/licenses/$name/COPYING"
+}

@@ -1,0 +1,27 @@
+#$Id$
+# Maintainer:  Anatol Pomozov <anatol@archlinux.org>
+
+pkgname=virglrenderer
+pkgver=0.6.0
+pkgrel=1
+pkgdesc='A virtual 3D GPU library, that allows the guest operating system to use the host GPU to accelerate 3D rendering'
+arch=(i686 x86_64)
+url='https://virgil3d.github.io/'
+license=(MIT)
+depends=(libepoxy mesa)
+source=(https://www.freedesktop.org/software/virgl/virglrenderer-$pkgver.tar.bz2{,.sig})
+validpgpkeys=(10A6D91DA1B05BD29F6DEBAC0C74F35979C486BE) # David Airlie <airlied@redhat.com>
+sha1sums=('3f48d665e8776a45f7f6ffa851e960e6761d872a'
+          'SKIP')
+
+build() {
+  cd virglrenderer-$pkgver 
+  ./configure --prefix=/usr
+  make
+}
+
+package() {
+  cd virglrenderer-$pkgver
+  make DESTDIR="$pkgdir" install
+  install -D -m644 COPYING "$pkgdir/usr/share/licenses/$pkgname/COPYING"
+}

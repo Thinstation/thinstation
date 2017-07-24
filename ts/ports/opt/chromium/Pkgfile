@@ -11,7 +11,8 @@ _freetype_rev=5a3490e054bda8a318ebde482
 source=(http://commondatastorage.googleapis.com/$name-browser-official/$name-$version.tar.xz \
         $name.sh $name.desktop
 	0001-ClientNativePixmapFactoryDmabuf-uses-ioctl-instead-o.patch
-	0001-Fix-kernel-version-condition-for-including-dma-buf.h.patch)
+	0001-Fix-kernel-version-condition-for-including-dma-buf.h.patch
+	nosandboxwarning.patch)
 
 build() {
 export REPORT_KERNEL=4.9.33TS_SMP
@@ -34,6 +35,7 @@ fi
   # https://bugs.chromium.org/p/chromium/issues/detail?id=707604
   patch -p1 -i $SRC/0001-ClientNativePixmapFactoryDmabuf-uses-ioctl-instead-o.patch
   patch -p1 -i $SRC/0001-Fix-kernel-version-condition-for-including-dma-buf.h.patch
+  patch -p0 -i $SRC/nosandboxwarning.patch
 
   mkdir -p third_party/node/linux/node-linux-x64/bin
   ln -s /usr/bin/node third_party/node/linux/node-linux-x64/bin/
@@ -57,13 +59,14 @@ fi
     'remove_webcore_debug_symbols=true'
     'symbol_level=0'
     'treat_warnings_as_errors=false'
+    'use_gtk3=true'
     'use_allocator="none"'
     'use_cups=false'
     'use_gconf=false'
     'use_gnome_keyring=false'
     'use_gold=false'
     'use_kerberos=false'
-    'use_pulseaudio=false'
+    'link_pulseaudio=true'
     'use_sysroot=false'
     'use_system_libjpeg=true'
     "google_api_key=\"${_google_api_key}\""
@@ -103,4 +106,8 @@ fi
   ln -sf /usr/share/icons/hicolor/48x48/apps/$name.png $PKG/usr/share/pixmaps/$name.png
   install -m 0644 -D $SRC/$name.desktop $PKG/usr/share/applications/$name.desktop
   install -m 0755 -D $SRC/$name.sh $PKG/usr/bin/$name
+
+  mkdir -p $PKG/usr/lib/chromium/swiftshader/
+  ln -sf /usr/lib/libGLESv2.so $PKG/usr/lib/chromium/swiftshader/libGLESv2.so
+  ln -sf /usr/lib/libEGL.so $PKG/usr/lib/chromium/swiftshader/libEGL.so
 }
