@@ -365,17 +365,17 @@ splash_set_event_dev() {
 	# IF try ladder. Something should catch.
 	local t="$(grep -Hsi keyboard /sys/class/input/input*/name | sed -e 's#.*input\([0-9]*\)/name.*#event\1#')"
 	if [ -z "${t}" ]; then
-			t="$(grep -Hsi keyboard /sys/class/input/event*/device/driver/description | grep -o 'event[0-9]\+')"
-		fi
-	if [ -z "${t}" ]; then
-			for i in /sys/class/input/input* ; do
-				if [ "$((0x$(cat $i/capabilities/ev) & 0x100002))" = "1048578" ]; then
-					t="$(echo $i | sed -e 's#.*input\([0-9]*\)#event\1#')"
-				fi
-			done
+		t="$(grep -Hsi keyboard /sys/class/input/event*/device/driver/description | grep -o 'event[0-9]\+')"
 	fi
 	if [ -z "${t}" ]; then
-		by_path="`find /dev/input/by-path |grep -e kbd |tail -n1`"
+		for i in /sys/class/input/input* ; do
+			if [ "$((0x$(cat $i/capabilities/ev) & 0x100002))" = "1048578" ]; then
+				t="$(echo $i | sed -e 's#.*input\([0-9]*\)#event\1#')"
+			fi
+		done
+	fi
+	if [ -z "${t}" ]; then
+		by_path="`find /dev/input/by-path |grep -e kbd -m1`"
 		if [ -n "$by_path" ]; then
 			t="`basename $( readlink -f $by_path )`"
 		fi
