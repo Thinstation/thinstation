@@ -17,6 +17,7 @@ dir=wget_tmp/vmware/vmware-horizon-$component
 case $component in
 client)
 cp -a $dir/bin/* $INSTALLDIR/bin
+# executable in bin was replaced by script to set env; exec moved to lib
 if [ -d $dir/lib ]; then
   cp -a $dir/lib  $INSTALLDIR/
   chmod a+x $INSTALLDIR/lib/vmware/view/bin/*
@@ -24,11 +25,18 @@ fi
 cp -a $dir/share/* $INSTALLDIR/lib
 cp -a $dir/doc/* $INSTALLDIR/lib/doc/$package
 chmod a+x $INSTALLDIR/bin/vmware-view{,-log-collector}
+# 4.5 added usbdloader
+if [ -e $dir/bin/vmware-view-usbdloader ]; then
+  chmod a+x $INSTALLDIR/bin/vmware-view-usbdloader
+fi
 ;;
 mmr)
 if [ -d $dir ]; then
   mkdir -p $INSTALLDIR/etc/vmware/vdp/host_overlay_plugins
-  cp -a $dir/config/* $INSTALLDIR/etc/vmware/vdp/host_overlay_plugins/
+  # 4.5 removed config
+  if [ -d $dir/config ]; then
+    cp -a $dir/config/* $INSTALLDIR/etc/vmware/vdp/host_overlay_plugins/
+  fi
   cp -a $dir/lib $INSTALLDIR
 fi
 ;;
@@ -42,6 +50,7 @@ if [ -e $INSTALLDIR/lib/vmware/libssl.so.1.0.2 ] &&
   ln -s libcrypto.so.1.0.2 $INSTALLDIR/lib/vmware/libcrypto.so.1.0.1
 fi
 chmod a+x $INSTALLDIR/lib/libpcoip_*.so
+chmod a+x $INSTALLDIR/lib/vmware/*.so*
 chmod a+x $INSTALLDIR/bin/{vmware-remotemks*,vmware-flash-projector}
 ;;
 rtav)
@@ -58,7 +67,12 @@ fi
 usb)
 mkdir -p $INSTALLDIR/lib/vmware/view/usb
 cp -a $dir/bin/* $INSTALLDIR/lib/vmware/view/usb
+# 4.5 changed USB
+if [ -d $dir/lib ]; then
+  cp -a $dir/lib/* $INSTALLDIR/lib
+fi
 chmod a+x $INSTALLDIR/lib/vmware/view/usb/*
+# In some older versions, USB had its own SSL, so use the system one
 if [ -e $INSTALLDIR/lib/vmware/view/usb/libcrypto.so.1.0.1 ]; then
   rm -f $INSTALLDIR/lib/vmware/view/usb/lib{crypto,ssl}.so.1.0.1
   ln -s /usr/lib/libssl.so.1.0.1 $INSTALLDIR/lib/vmware/view/usb
@@ -138,5 +152,9 @@ ln -s /lib/doc/vmware-view-client/VMware-view-client-EULA-en.txt $INSTALLDIR/lib
 fi
 
 cp -Prfd $INSTALLDIR/build/extra/* $INSTALLDIR/.
+
+if [ ! -x $INSTALLDIR/lib/vmware/view/usb/vmware-view-usbd ]; then
+  rm $INSTALLDIR/lib/systemd/system/{,multi-user.target.wants}/vmware.view.usbd.service
+fi
 
 exit $returnval
