@@ -13,7 +13,7 @@ Work To Do / Work in Progress: mail to developer List if you can help
 
 New:
 
-- Moved to kernel 4.6.3
+- Moved to kernel 4.9.33
 - Update glibc,gcc and openssl
 - Updated nvidia xorg driver and kernel module
 - Add ukrainian locale (package locale uk_UA)
