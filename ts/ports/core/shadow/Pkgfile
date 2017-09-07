@@ -11,11 +11,13 @@ source=(http://pkg-shadow.alioth.debian.org/releases/$name-$version.tar.xz
 
 build() {
     cd $name-$version
+    sed -e 's/yes/no/g' -i etc/useradd
+    sed -i -e "/pam_selinux/d" etc/pam.d/su
+    sed -i -e "/pam_selinux/d" etc/pam.d/login
 
     ./configure --prefix=/usr \
                 --sysconfdir=/etc \
                 --disable-shared \
-                --disable-shadowgrp \
 		--with-group-name-max-length=32 \
 		--without-selinux
 

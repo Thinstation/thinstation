@@ -147,6 +147,10 @@ $WINS_ON   wins server = $SAMBA_WINS
 # this has been changed in version 1.9.18 to no.
    dns proxy = no 
 
+# Client signing - This controls whether the client is allowed or required to
+# use SMB signing. Possible values are auto, mandatory and disabled.
+;   client signing = auto
+
 # Case Preservation can be handy - system default is _no_
 # NOTE: These can be set on a per share basis
 ;  preserve case = no

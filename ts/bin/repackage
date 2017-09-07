@@ -235,6 +235,37 @@ from_env()
 	touch $INSTALLDIR/build/installed
 }
 
+reduce_libs()
+{
+    if [ -e $pkgpath/lib ]; then
+	for link in `find $pkgpath/lib -mindepth 1 -maxdepth 1 -type l \
+            | grep -E '\.so' | sort -u`; do
+
+	  # Normalize the link
+	  linkdest=`readlink $link | sed -e 's,\.\./\.\./lib/,,' -e 's,^/lib/,,'`
+	  linkdir=`dirname $link`
+	  # If the link is to another directory, leave it alone
+	  if [ `echo $linkdest | grep -E '/'` ]; then
+	      continue
+	  fi
+
+	  soname=`objdump -p $linkdir/$linkdest | grep SONAME | awk '{print $2}'`
+	  base=`basename $link`
+	  if [ -z "$soname" ]; then
+	      echo "MISSING SONAME $link"
+	      exit 1
+	  fi
+	  if [ "$base" == "$soname" ]; then
+	      rm $link
+	      cp $linkdir/$linkdest $link
+	      rm $linkdir/$linkdest
+	  else
+	      rm $link
+	  fi
+	done
+    fi
+}
+
 remove_libs()
 {
 	if [ -e $pkgpath/lib ]; then
@@ -253,6 +284,7 @@ main()
 	extra_files
 	remove_empty
 #	remove_libs
+	reduce_libs
 }
 
 get_opts $@

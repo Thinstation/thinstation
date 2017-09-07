@@ -1,28 +1,27 @@
-# Description: Thinstation essential package
-# URL: http://www.thinstation.org
-# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+# Description: ftp client
+# URL:         http://filezilla-project.org
+# Maintainer:  Thomas Penteker, tek at serverop dot de
+# Packager:    Bartlomiej Palmowski, rotwang at crux dot org dot pl
+# Depends on:  wxgtk libidn gnutls xdg-utils tinyxml
 
 name=filezilla
-version=3.7.4.1
+version=3.16.1
 release=1
-source=(http://sourceforge.net/projects/filezilla/files/FileZilla_Client/${version}/FileZilla_${version}_src.tar.bz2)
+source=(http://downloads.sourceforge.net/project/$name/FileZilla_Client/$version/FileZilla_${version}_src.tar.bz2)
 
 build() {
-	cd $name-$version
-
-	./configure --prefix=/ \
-			--exec-prefix=/ \
-			--datarootdir=/usr/share \
-			--sysconfdir=/etc \
-			--libexecdir=/lib \
-			--mandir=/usr/man \
-			--with-tinyxml=builtin \
-			--disable-manualupdatecheck \
-			--disable-autoupdatecheck \
-			--without-dbus \
-			--disable-static \
-			--enable-shared
-
-	make
-	make DESTDIR=$PKG install
+    cd $name-$version
+    ./configure \
+        --prefix=/usr \
+        --mandir=/usr/man \
+        --disable-manualupdatecheck \
+        --disable-autoupdatecheck \
+        --disable-locales \
+        --disable-static \
+        --disable-dependency-tracking \
+        --without-dbus \
+	--with-pugixml=builtin
+    make
+    make DESTDIR=$PKG install
+    rm -rf $PKG/usr/share/locale
 }
