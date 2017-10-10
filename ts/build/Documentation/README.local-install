@@ -1,0 +1,160 @@
+﻿You can with benefit use the package local-install with it's version control to both deploy, maintain, test and
+develop/upgrade Thinstation for your Thinstation clients.
+
+The local-install package will make Thinstation:
+¤ Centrally managed with version control (no more floor-walking to upgrade the computers)
+¤ Fast boot, (the best of both worlds, centrally managed image but the boot speed of a locally installed Thinstation)
+¤ Stability, since the Thinstation boot image is stored locally, you're not dependant of a tftp- or web-server as with PXE boot
+¤ No-touch installations, if there is something wrong with a users computer, simply reboot it and you have a fresh Thinstation (like as with PXE boot)
+¤ Multiple different images, makes it easy to test new Thinstation images in a test environment before deploying in production.
+
+You find most of the configuration information is thinstation.conf.sample file (generated during your first build)
+This documentation focuses on how to set up a test and production environment.
+
+
+
+To set up a test environment for a smaller number of computers in order to test and verify your newly built
+image/changes before you deploy it full out in your production environment. There are a few parameters to
+let you control this.
+
+param baseurl                       (only used in build.conf)
+param basepath                      (only used in build.conf)
+param basename                      (only used in build.conf)
+NET_FILE_ENABLED=On                 (only used in thinstation.conf.buildtime)
+NET_FILE_METHOD=http                (only used in thinstation.conf.buildtime)
+LOCAL_INSTALL_URL                   (at least in thinstation.conf.buildtime)
+LOCAL_INSTALL_TFTP_NOTIFY_PATH      (optional, but if you want this it needs to be at least in thinstation.conf.buildtime)
+
+
+the version file existing at the LOCAL_INSTALL_URL path
+thinstation.hosts
+thinstation.conf.group-test (or whatever you like to call your group/groups)
+Different folders for LOCAL_INSTALL_URL (needed) and possibly also for the netfiles (thinstation.conf.xxx) files (notneeded but good to have if you do larger changes) 
+
+You probably also want to include the following packages in build.conf (see each package for information)
+package set-resolution              (to be able to save the screen resolution upon next boot)
+package hdd-spindown                (to lower noise and increase the lifetime of the local hard disk - the disk is only used during boot)
+package custom-idle                 (shutdown and/or reboot daily to make sure all clients get updated correctly - besides the green power saving for users not shutting down their local computers)
+package custom-background           (good to use in combination with the netfiles package. Display an error message background if network configuration files failed)
+
+
+--------------------------------
+FOR THE PRODUCTION ENVIRONMENT
+--------------------------------
+
+a) In build.conf, set
+---
+package local-install
+package netfiles
+package custom-idle         (recommended but not needed)
+package hdd-spindown        (recommended but not needed)
+
+param basepath       prod
+param baseurl        http://my_webserver
+param basename       thinstation
+
+
+
+b) In thinstation.conf.buildtime set
+STORAGE_PATH=/mnt/local-install/part2
+STORAGE_CONFIG1=/mnt/local-install/part2
+LOCAL_INSTALL_URL=http://my_webserver/prod/local-install/
+
+or, if you as in my case have set up a split DHCP and have the TFTP and web service on those DHCP servers
+together with Microsoft DFS Replication  replication the TFTP and web server folders between the DHCP servers,
+then you set the SYSLINUX_URL to use the same server as it's DHCP-servers
+
+LOCAL_INSTALL_URL=http://${SERVER_IP}/prod/local-install/
+
+
+c) In the root of the webserver create a folder named "prod" and place your files there, they are:
+¤ thinstation.hosts
+¤ thinstation.conf.network
+¤ thinstation.conf.group-test
+
+
+d) In the "prod" folder, create a subfolder named "local-install" (url will be http://my_webserver/prod/local-install/ )
+From the boot-images copy the folders refind and syslinux to the "local-install" folder. The url will be
+http://my_webserver/prod/local-install/refind/
+http://my_webserver/prod/local-install/syslinux/
+
+
+e) In the "local-install" folder, create a file named "version" which should contain the following line
+LOCAL_INSTALL_VERSION=1
+the url will be http://my_webserver/prod/local-install/version
+
+
+f) In the "local-install" folder create a file named "after_upgrade_finished.sh" which should contain the following two lines
+#!/bin/sh
+reboot
+
+the url will be http://my_webserver/prod/local-install/after_upgrade_finished.sh
+The file "after_upgrade_finished.sh" is optional but recommended. In this file you can do whatever you like/need. The file
+is executed after the upgrade is done, normally you only need to have the following lines in the file in order to
+automatically reboot the machine when upgrading.
+
+
+
+--------------------------------
+FOR THE TEST ENVIRONMENT
+--------------------------------
+a) In the root of the webserver create a folder named "test".
+
+b) Follow step d-f as for the production environment but do it under the test folder.
+
+c) You should now have the following url:s
+http://my_webserver/prod/thinstation.hosts
+http://my_webserver/prod/thinstation.conf.network
+http://my_webserver/prod/thinstation.conf.group-test
+http://my_webserver/prod/local-install/refind/          (including its. subfolders/files)
+http://my_webserver/prod/local-install/syslinux/        (including its. subfolders/files)
+http://my_webserver/prod/local-install/version
+http://my_webserver/prod/local-install/after_upgrade_finished.sh
+
+http://my_webserver/test/local-install/refind/          (including its. subfolders/files)
+http://my_webserver/test/local-install/syslinux/        (including its. subfolders/files)
+http://my_webserver/test/local-install/version
+http://my_webserver/test/local-install/after_upgrade_finished.sh
+
+
+
+
+-----
+- To switch or move machines between the prod and test environment you simply do the following:
+-----
+¤ Edit the file "thinstation.conf.group-test" and set LOCAL_INSTALL_URL=http://my_webserver/test/local-install/
+¤ Edit the file "thinstation.hosts" and add a line with the mac address and set the group to "test". This will make the machine
+  use the test image instead of the prod image. Remember to change the version numbers so that the machine(s) actually
+  detects/installs the new version. Or you can manually force an upgrade on the machine (via the menu in the GUI or by running
+  "local-force_upgrade.sh upgrade-force")
+
+
+
+
+Optionally but most often not needed - If you also need/like to have a completely new set of configuration files for your test environment,
+create/copy your new thinstation.conf.network etc. files to the "test" folder. When you build your new test image you simply change "param basepath prod"
+to "param basepath test". Don't forget to change it back when you make the final build for the production environment...
+
+If you need a separate configuration files for your test environment it's a bit trickier to move the machines between prod and test but do the following:
+    To move a machine from prod to test
+        1. In your "prod" folder, edit the file "thinstation.conf.group-test" and set LOCAL_INSTALL_URL=http://my_webserver/test/local-install/
+        2. In your "prod" folder, edit the file "thinstation.hosts" and add a line with the mac address and set the group to "test"
+        3. Remember that in build.conf in your test build you need to set "param basepath test"
+
+    To move one or all machines from test to prod
+        1. Make sure that the version file in your "prod" folder has a higher version number than your test image.
+        2. Make sure that the image in your prod (if you deploy the previously tested image into prod) have the right param basepath pointing
+           to the prod folder when you make your final build for production.
+        3. Now in the "test2 folder, edit thinstation.conf.network (to move all machines from test to prod) or create a group to move
+           individual machines (you might have a liste of preiously moved machins in the hosts file in the prod folder).
+           Set LOCAL_INSTALL_URL=http://my_webserver/prod/local-install/
+        4. Done!
+
+        An alternative option if your "test" environment has a higher version number than your production (most likely the case) and you don't
+        want all production clients to an unnecessary "upgrade" to the same image, do the following:
+        1. In your test/thinstation.conf.network set LOCAL_INSTALL_URL=http://my_webserver/prod/local-install/
+        2. In your test/local-install/after_upgrade_finished.sh file, make it looks like below
+            #!/bin/sh
+            rm -f /mnt/local-install/part1/version
+            local-install.sh upgrade-force
+            reboot

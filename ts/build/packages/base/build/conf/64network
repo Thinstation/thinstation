@@ -52,8 +52,10 @@ NET_REMOTE_ACCESS_FROM="duck.quak.org.au 192.168.0.0 .disney.us"
 # NET_GATEWAY            IP Address of gateway
 # NET_DHCP_DELAY	 Delay before continuing script after bringing up interface, only needed if
 #                        using spanning tree "port discovery" in a switched environment.  Default is 0 seconds.
-# NET_FILE_METHOD        Method to download files, ie scp or tftp, scp is only available if package ssh
-#                        is selected in build as a "package".
+# NET_FILE_METHOD        Method to download files. Can be either of the following values: tftp, wget, http, scp.
+#                        scp is only available if package ssh is selected in build as a "package".
+#                        With the package netfiles you can use NET_FILE_METHOD, NET_FILE_ENABLED and NET_FILE_ALTERNATE
+#                        to download configuration files (thinstation.conf.group-<my group>, thinstation.conf.<mac-address> etc.)
 # NET_FILE_ENABLED       Use server for config file, On/Off
 # NET_FILE_USER          User to connect to SCP server as
 # NET_FILE_ALTERNATE     Alternate server for vmware or non-standard dhcp servers
@@ -67,7 +69,7 @@ NET_REMOTE_ACCESS_FROM="duck.quak.org.au 192.168.0.0 .disney.us"
 #NET_GATEWAY=192.168.0.254
 #NET_DHCP_DELAY=30
 #NET_FILE_ENABLED=Off
-#NET_FILE_METHOD=tftp
+#NET_FILE_METHOD=http
 #NET_FILE_USER=not_needed_for_tftp
 #NET_FILE_ALTERNATE=192.168.0.4
 #NET_DNS1=192.168.0.2

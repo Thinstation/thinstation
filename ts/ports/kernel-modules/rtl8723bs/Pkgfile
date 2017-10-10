@@ -10,8 +10,9 @@ kver=`cat /ts/ports/kernel-modules/VERSION`
 source=()
 
 build() {
-    git clone --depth 1 https://github.com/hadess/rtl8723bs.git $name
+    git clone https://github.com/hadess/rtl8723bs.git $name
     cd $name
+    git checkout 38afe345faeb27e776180c3f63eabd67d74977ec
     sed -e 's|/lib/modules/$(KVER)/kernel|$(PKG)/lib/modules/$(KVER)/kernel|g' -i Makefile
     sed -e 's|/lib/firmware|$(PKG)/lib/firmware|g' -i Makefile
     sed -e 's|^install:|install:\n\tmkdir -p $(MODDESTDIR)\n\tmkdir -p $(PKG)/lib/firmware/rtlwifi|g' -i Makefile
@@ -30,5 +31,6 @@ build() {
 	/etc/ssl/certs/kernel.crt \
 	$PKG/lib/modules/$REPORT_KERNEL/kernel/drivers/net/wireless/r8723bs.ko
     done
+    rm -rf $PKG/lib/firmware
 }
 

@@ -1,0 +1,54 @@
+##
+# --- Settings for the hdd-spindown package
+#
+# hdd-spindown		A package that sets the hard drives into sleep mode, spins them down.
+#			This is very good to use if you rarely access the hard drives,
+#			e.g. if you use the package "local-install" then you use your drive
+#			initially when you load the thinstation image from the hard drive, but
+#			after that you don't use the hard drive and then it's a good idea to
+#			put it into sleep mode (spin it down).
+#
+#			When I crated this package I had trouble to get the drive to actually spin down,
+#			hence the logging feature... I finally got it working by setting SPINDONW_B=127
+#			and SPINDOWN_S=60. I'm not entierly sure about how S and B but I realised that B=127
+#			is usually a desired value since the drive then will work at a good preformance when
+#			it is in use but setting S to a "to high" value resuled for me that the drive didn't
+#			spin down. B=127 is about 10 minutes if I got the info correct and it seamd that you
+#			needed to have S less than 10 minutes (120) so thereby I set it to 5 minutes (S=60)
+#
+# SPINDOWN_B		Default to 127. Possible values are between 1 and 255, low values mean more
+#			aggressive power management and higher values mean better performance.
+#			Values from 1 to 127 permit spin-down, whereas values from 128 to 254 do not.
+#			A value of 255 completely disables the feature.
+#			This value goes into the -B parameter of the "hdparm" command.
+#
+# SPINDOWN_S		Default spin-down idle time to 15 minutes. 1 to 240 specify multiples of
+#			5 seconds and values from 241 to 251 multiples of 30 minutes.
+#			This value goes into the -S parameter of the "hdparm" command.
+#
+# SPINDOWN_DEVICE	Default is /dev/sd? which will make all local drives spin down.
+#			The device(s) you wish to put into sleep mode. You can use wildcard such as
+#			? or even * but be carefule. A good example is to set it to /dev/sd? which
+#			will have effect on all local drives.
+#
+#			You can test/verify the state of the drive by running "hdparm -C /dev/sda"
+#			is should say "drive state is: standby". To wake the drive you can run "sync"
+#			and then it should say "drive state is: active/idle"
+#
+# SPINDOWN_FORCE_AT_BOOT	This will force a spindown of the devices at boot. This is a normally
+#			a good thing to do if you want do spindown the drives. If there are som configuration
+#			issues with the B or S parameters this might help to actually spin them down anywhay,
+#			at least initially...
+#			This function never actually worked for me, I could hear at boot how the drive spinned down
+#			but instantly spinned up again. But since the function was already written I kept it so you
+#			you may try but don't hope to much... Work with the S and B values instead would be my sugesstion...
+#
+#
+# SPINDOWN_LOGGING	This will enable extra logging info that writes info about the active
+#			and standby time to "/var/log/messages". You can then use "grep hdd-spindown /var/log/messages"
+#			to see when the drive enters standby mode.
+#
+SPINDOWN_B=127
+SPINDOWN_S=60
+SPINDOWN_DEVICE=/dev/sd?
+#SPINDOWN_FORCE_AT_BOOT=ON
