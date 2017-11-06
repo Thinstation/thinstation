@@ -1714,6 +1714,55 @@ EOF
 			depmod -b ./tmp-tree $KERNVER 2>/dev/null
 		done
 	fi
+
+	# Certify
+	echo -e "\tRehashing Certificates\n"
+	dest=./tmp-tree/etc/firefox
+	if [ -e $dest/cert8.db ]; then
+        	rm $dest/cert8.db
+        	IFS=$'\n'
+        	for cert in `ls ./Certs/Public-CA`; do
+                	NICK=`echo "$cert" |sed -e 's/\.pem//g'`
+                	certutil -d $dest -A -i ./Certs/Public-CA/"$cert" -n "$NICK" -t",,"
+        	done
+
+	        for cert in `ls ./Certs/Private-CA`; do
+        	        NICK=`echo "$cert" |sed -e 's/\.pem//g'`
+                	certutil -d $dest -A -i ./Certs/Private-CA/"$cert" -n "$NICK" -t"CT,C,C"
+        	done
+
+        	for cert in `ls ./Certs/Peer`; do
+                	NICK=`echo "$cert" |sed -e 's/\.pem//g'`
+                	certutil -d $dest -A -i ./Certs/Peer/"$cert" -n "$NICK" -t"P,,"
+		done
+        	unset IFS
+	fi
+	dest=./tmp-tree/etc/ssl
+	if [ -e $dest/cert.pem ]; then
+        	rm $dest/cert.pem
+        	IFS=$'\n'
+        	for cert in `ls ./Certs/Public-CA`; do
+                	cp ./Certs/Public-CA/"$cert" $dest/certs/`echo "$cert" |sed -e 's/ /_/g'`
+        	done
+        	for cert in `ls ./Certs/Private-CA`; do
+                	cp ./Certs/Private-CA/"$cert" $dest/certs/`echo "$cert" |sed -e 's/ /_/g'`
+        	done
+        	for cert in `ls ./Certs/Peer`; do
+                	cp ./Certs/Peer/"$cert" $dest/certs/`echo "$cert" |sed -e 's/ /_/g'`
+        	done
+        	unset IFS
+
+        	c_rehash $dest/certs
+
+        	for cert in `ls -1 $dest/certs |grep -E '[A-Za-z0-9]\.0'`; do
+                	cat $dest/certs/$cert >> $dest/cert.pem
+        	done
+        	ln $dest/cert.pem $dest/certs/ca-bundle.crt
+        	ln $dest/cert.pem $dest/certs/ca-certificates.crt
+	fi
+	if [ -e $dest ]; then
+		hardlink $dest > /dev/null
+	fi
 }
 
 # this is the starting point =>
