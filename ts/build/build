@@ -1718,8 +1718,7 @@ EOF
 	# Certify
 	echo -e "\tRehashing Certificates\n"
 	dest=./tmp-tree/etc/firefox
-	if [ -e $dest/cert8.db ]; then
-		rm $dest/cert8.db
+	if [ -e $dest ]; then
 		IFS=$'\n'
 		for cert in `ls ./Certs/Public-CA`; do
 			NICK=`echo "$cert" |sed -e 's/\.pem//g'`
@@ -1738,13 +1737,13 @@ EOF
 	dest=./tmp-tree/etc/ssl
 	if [ -e $dest/cert.pem ]; then
 		rm $dest/cert.pem
-		IFS=$'\n'		
+		IFS=$'\n'
 		for cert in `ls ./Certs/Public-CA`; do
 			cp ./Certs/Public-CA/"$cert" $dest/certs/`echo "$cert" |sed -e 's/ /_/g'`
 		done
 		for cert in `ls ./Certs/Private-CA`; do
 			cp ./Certs/Private-CA/"$cert" $dest/certs/`echo "$cert" |sed -e 's/ /_/g'`
-		done	
+		done
 		for cert in `ls ./Certs/Peer`; do
 			cp ./Certs/Peer/"$cert" $dest/certs/`echo "$cert" |sed -e 's/ /_/g'`
 		done
