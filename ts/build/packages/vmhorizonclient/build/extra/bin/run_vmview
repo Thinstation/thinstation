@@ -1,0 +1,17 @@
+#!/bin/sh
+
+#. /etc/thinstation.global
+
+while [ -n "$1" ]; do
+case $1 in
+-*)
+  ARGS="$ARGS $1"
+;;
+*)
+  ARGS="$ARGS `cat \"$HOME/.vmware/$1.vdm\"`"
+;;
+esac
+shift
+done
+
+eval vmware-view $ARGS
