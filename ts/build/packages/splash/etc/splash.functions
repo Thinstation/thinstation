@@ -362,25 +362,35 @@ splash_profile() {
 # Set the input device if it exists. This will make it possible to use F2 to
 # switch from verbose to silent.
 splash_set_event_dev() {
-        local t="$(grep -Hsi keyboard /sys/class/input/input*/name | sed -e 's#.*input\([0-9]*\)/name.*#event\1#')"
-        if [ -z "${t}" ]; then
-                t="$(grep -Hsi keyboard /sys/class/input/event*/device/driver/description | grep -o 'event[0-9]\+')"
-                if [ -z "${t}" ]; then
-                        for i in /sys/class/input/input* ; do
-                                if [ "$((0x$(cat $i/capabilities/ev) & 0x100002))" = "1048578" ]; then
-                                        t="$(echo $i | sed -e 's#.*input\([0-9]*\)#event\1#')"
-                                fi
-                        done
+	# IF try ladder. Something should catch.
+	local t=""
+	by_path="`find /dev/input/by-path |grep -e kbd -m1`"
+	if [ -n "$by_path" ]; then
+		t="`basename $( readlink -f $by_path )`"
+	fi
+	if [ -z "${t}" ]; then
+		t="$(grep -Hsi keyboard /sys/class/input/input*/name | sed -e 's#.*input\([0-9]*\)/name.*#event\1#')"	
+	fi
+	if [ -z "${t}" ]; then
+		t="$(grep -Hsi keyboard /sys/class/input/event*/device/driver/description | grep -o 'event[0-9]\+')"
+	fi
+	if [ -z "${t}" ]; then
+		for i in /sys/class/input/input* ; do
+			if [ "$((0x$(cat $i/capabilities/ev) & 0x100002))" = "1048578" ]; then
+				t="$(echo $i | sed -e 's#.*input\([0-9]*\)#event\1#')"
+			fi
+		done
+	fi
+	# Least likely to be right, so make it last.
+	# Sometimes picks the wrong device.
+	if [ -z "${t}" ]; then
+		# Try an alternative method of finding the event device. The idea comes
+		# from Bombadil <bombadil(at)h3c.de>. We're couting on the keyboard controller
+		# being the first device handled by kbd listed in input/devices.
+		t="$(/bin/grep -s -m 1 '^H: Handlers=kbd' /proc/bus/input/devices | grep -o 'event[0-9]*')"
+	fi
 
-                        if [ -z "${t}" ]; then
-                                # Try an alternative method of finding the event device. The idea comes
-                                # from Bombadil <bombadil(at)h3c.de>. We're couting on the keyboard controller
-                                # being the first device handled by kbd listed in input/devices.
-                                t="$(/bin/grep -s -m 1 '^H: Handlers=kbd' /proc/bus/input/devices | grep -o 'event[0-9]*')"
-                        fi
-                fi
-        fi
-        [ -n "${t}" ] && splash_comm_send "set event dev /dev/input/${t}"
+	[ -n "${t}" ] && splash_comm_send "set event dev /dev/input/${t}"
 }
 
 ###########################################################################

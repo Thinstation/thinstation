@@ -11,19 +11,13 @@
 case "$1" in
 init)
     if ! pkg_initialized $PACKAGE; then
-	USBDIR=/etc/hotplug/usb
-	$(USBDIR)/hplj1000 install-usermap
-        $(USBDIR)/hplj1005 install-usermap
-        $(USBDIR)/hplj1018 install-usermap
-        $(USBDIR)/hplj1020 install-usermap
-        $(USBDIR)/hpljP1005 install-usermap
-        $(USBDIR)/hpljP1006 install-usermap
-        $(USBDIR)/hpljP1007 install-usermap
-        $(USBDIR)/hpljP1008 install-usermap
-        $(USBDIR)/hpljP1505 install-usermap
         # modprobe usblp
-        $(USBDIR)/hplj1000 install-usblp
+        /etc/hotplug/usb/hplj1000 install-usblp
 
+	cat <<'EOF' >> /etc/cups/cups-files.conf
+# 'FileDevice Yes' line installed by ThinStation on behalf of foo2zjs...
+FileDevice Yes
+EOF
 	pkg_set_init_flag $PACKAGE
     fi
     ;;
