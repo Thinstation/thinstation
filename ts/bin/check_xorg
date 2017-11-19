@@ -2,6 +2,16 @@ cd /tmp
 
 # set -x
 
+update_port()
+{
+#       echo "hell yes"
+        sed -i -e "s/$version/$latest_version/g" $pkgfile
+        prt-get update -fr -if -im $pkg
+        echo $pkg >> /updated
+}
+
+
+
 for ptype in lib app driver proto lib util font xserver; do
 	wget --no-remove-listing ftp://ftp.freedesktop.org/pub/xorg/individual/$ptype/ > /dev/null 2>&1
 	pkgs="`cat .listing |grep -Ev '\.asc|\.gz|\.sig|\.\.|intel-gpu-tools' |cut -c 57-|cut -d "-" -f1 |uniq` intel-gpu-tools"
@@ -30,6 +40,13 @@ for ptype in lib app driver proto lib util font xserver; do
 			echo "ERROR ERROR ERROR $pkg"
 		elif [ "$version" != "$latest_version" ]; then
 			echo $pkg $version $latest_version
+			echo -e "Would you like to try and update?"
+                        read answer
+                        case $answer in
+                                y|Y)    update_port;;
+                                *)	continue;;
+                        esac
+
 		else
 			echo "$pkg" >> /tmp/up2date
 		fi
