@@ -946,12 +946,9 @@ fi
 (cat $CONF_FILE; echo) | # make sure there is a LF at the end
 while read type name args
 do
-    type=`echo $type | sed -e s/
-//g | sed -e 's/\&/\\\&/g'`
-    name=`echo $name | sed -e s/
-//g | sed -e 's/\&/\\\&/g'`
-    args=`echo $args | sed -e s/
-//g | sed -e 's/\&/\\\&/g'`
+    type=`echo $type | sed -e 's/\^M//g' | sed -e 's/\&/\\\&/g'`
+    name=`echo $name | sed -e 's/\^M//g' | sed -e 's/\&/\\\&/g'`
+    args=`echo $args | sed -e 's/\^M//g' | sed -e 's/\&/\\\&/g'`
     case $type in
     \#*|"") continue
 	    ;;
@@ -1729,7 +1726,9 @@ EOF
 	fi
 	dest=./tmp-tree/etc/ssl
 	if [ -e $dest/cert.pem ]; then
-		rm $dest/cert.pem
+		rm -f $dest/cert.pem
+		rm -f $dest/certs/ca-bundle.crt
+		rm -f $dest/certs/ca-certificates.crt
 		IFS=$'\n'
 		for cert in `ls ./Certs/Public-CA`; do
 			cp ./Certs/Public-CA/"$cert" $dest/certs/`echo "$cert" |sed -e 's/ /_/g'`
