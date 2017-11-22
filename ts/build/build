@@ -946,9 +946,9 @@ fi
 (cat $CONF_FILE; echo) | # make sure there is a LF at the end
 while read type name args
 do
-    type=`echo $type | sed -e s///g | sed -e 's/\&/\\\&/g'`
-    name=`echo $name | sed -e s///g | sed -e 's/\&/\\\&/g'`
-    args=`echo $args | sed -e s///g | sed -e 's/\&/\\\&/g'`
+    type=`echo $type | sed -e 's/\^M//g' | sed -e 's/\&/\\\&/g'`
+    name=`echo $name | sed -e 's/\^M//g' | sed -e 's/\&/\\\&/g'`
+    args=`echo $args | sed -e 's/\^M//g' | sed -e 's/\&/\\\&/g'`
     case $type in
     \#*|"") continue
 	    ;;
@@ -1575,6 +1575,29 @@ filesystem_fixups()
 	fi
 	echo "CDVOLNAME=$ts_cdvolname" >> ./tmp-tree/etc/thinstation.env
 	echo "TS_VERSION=$TSVER" >> ./tmp-tree/etc/thinstation.env
+	cat <<EOF> ./tmp-tree/etc/os-release
+NAME=ThinStation
+VERSION="$TSVER"
+ID=thinstation
+VERSION_ID=$TSVER
+PRETTY_NAME="ThinStation $TSVER $CODENAME"
+ANSI_COLOR="0;34"
+CPE_NAME="cpe:/o:thinstation:thinstation:$TSVER"
+HOME_URL="https://thinstation.org/"
+SUPPORT_URL="https://thinstation.org/wiki/Communicating_and_getting_help"
+BUG_REPORT_URL="https://www.github.com/thinstation"
+PRIVACY_POLICY_URL=https://thinstation.org/wiki/Legal:PrivacyPolicy
+EOF
+	cat <<EOF> ./tmp-tree/etc/thinstation-release
+ThinStation release $TSVER $CODENAME
+EOF
+	cat <<'EOF'> ./tmp-tree/etc/issue
+\S
+Kernel \r on an \m (\l)
+EOF
+	for link in release system-release system-release-cpe; do
+		ln -sf thinstation-release ./tmp-tree/etc/$link
+	done
 	if [ -e ./tmp-tree/etc/icewm/toolbar ]; then
 		echo -e "\tFixing IceWM toolbar"
 		sed -i "s/\$XTERM_CMD/$XTERM_CMD/g" ./tmp-tree/etc/icewm/toolbar
@@ -1585,10 +1608,10 @@ filesystem_fixups()
 		for i in `ls ./tmp-tree/lib/gconv --color=never |cut -d . -f1`; do
 			cat /usr/lib/gconv/gconv-modules|grep -e "$i" >>./tmp-tree/lib/gconv/gconv-modules
 		done
-        cp -H `which iconvconfig` ./tmp-tree/bin/.
-        chroot ./tmp-tree /bin/iconvconfig
-        rm ./tmp-tree/bin/iconvconfig
-        fi
+		cp -H `which iconvconfig` ./tmp-tree/bin/.
+		chroot ./tmp-tree /bin/iconvconfig
+		rm ./tmp-tree/bin/iconvconfig
+	fi
 	echo -e "\tRemoving Extra Files"
 	find ./tmp-tree -name .gitignore -delete
 	if [ ! -e ./tmp-tree/etc/init.d/audio ]; then
@@ -1680,6 +1703,52 @@ filesystem_fixups()
 		for KERNVER in $KERNVERS; do
 			depmod -b ./tmp-tree $KERNVER 2>/dev/null
 		done
+	fi
+
+	# Certify
+	echo -e "\tRehashing Certificates\n"
+	dest=./tmp-tree/etc/firefox
+	if [ -e $dest ]; then
+		IFS=$'\n'
+		for cert in `ls ./Certs/Public-CA`; do
+			NICK=`echo "$cert" |sed -e 's/\.pem//g'`
+			certutil -d $dest -A -i ./Certs/Public-CA/"$cert" -n "$NICK" -t",,"
+		done
+		for cert in `ls ./Certs/Private-CA`; do
+			NICK=`echo "$cert" |sed -e 's/\.pem//g'`
+			certutil -d $dest -A -i ./Certs/Private-CA/"$cert" -n "$NICK" -t"CT,C,C"
+		done
+		for cert in `ls ./Certs/Peer`; do
+			NICK=`echo "$cert" |sed -e 's/\.pem//g'`
+			certutil -d $dest -A -i ./Certs/Peer/"$cert" -n "$NICK" -t"P,,"
+		done
+		unset IFS
+	fi
+	dest=./tmp-tree/etc/ssl
+	if [ -e $dest/cert.pem ]; then
+		rm -f $dest/cert.pem
+		rm -f $dest/certs/ca-bundle.crt
+		rm -f $dest/certs/ca-certificates.crt
+		IFS=$'\n'
+		for cert in `ls ./Certs/Public-CA`; do
+			cp ./Certs/Public-CA/"$cert" $dest/certs/`echo "$cert" |sed -e 's/ /_/g'`
+		done
+		for cert in `ls ./Certs/Private-CA`; do
+			cp ./Certs/Private-CA/"$cert" $dest/certs/`echo "$cert" |sed -e 's/ /_/g'`
+		done
+		for cert in `ls ./Certs/Peer`; do
+			cp ./Certs/Peer/"$cert" $dest/certs/`echo "$cert" |sed -e 's/ /_/g'`
+		done
+		unset IFS
+		c_rehash $dest/certs
+		for cert in `ls -1 $dest/certs |grep -E '[A-Za-z0-9]\.0'`; do
+			cat $dest/certs/$cert >> $dest/cert.pem
+		done
+		ln $dest/cert.pem $dest/certs/ca-bundle.crt
+		ln $dest/cert.pem $dest/certs/ca-certificates.crt
+	fi
+	if [ -e $dest ]; then
+		hardlink $dest > /dev/null
 	fi
 }
 
