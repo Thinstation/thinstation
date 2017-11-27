@@ -30,3 +30,10 @@ if [ "$XFWM4_THEME" != "ALL" ]; then
 		echo -e "\tXfwm4 Theme $XFWM4_THEME not found!"
 	fi
 fi
+if is_enabled $XFWM4_KIOSK; then
+	rm -f /bin/xfce4-panel
+	sed -e '/DONT_VT_SWITCH_STATE/d'	-i /etc/thinstation.defaults
+	sed -e '/DONT_ZAP_STATE/d'		-i /etc/thinstation.defaults 
+	echo 'DONT_VT_SWITCH_STATE=true'	>> /etc/thinstation.defaults
+	echo 'DONT_ZAP_STATE=true'		>> /etc/thinstation.defaults
+fi
