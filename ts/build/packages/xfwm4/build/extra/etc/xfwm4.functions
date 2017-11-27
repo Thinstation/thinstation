@@ -97,7 +97,11 @@ xfconf_settings()
 		xfconf-query -c xfce4-panel -p /plugins/plugin-2 --reset
 	fi
 	xfconf-query -c xfce4-panel -p /panels/panel-1/plugin-ids $PANEL
-
+	if is_enabled $XFWM4_KIOSK; then
+		xfconf-query -c xfce4-desktop -p /desktop-icons/style -t uint -s 0 -n
+		xfconf-query -c xfce4-desktop -p /desktop-menu/show -t bool -s false -n
+		xfconf-query -c xfce4-desktop -p /windowlist-menu/show -t bool -s false -n
+	fi
 	if [ -n "$DESKTOP_ICON_SIZE" ]; then
 		xfconf-query -c xfce4-desktop -p /desktop-icons/icon-size -t uint -s $DESKTOP_ICON_SIZE -n
 	fi
@@ -141,11 +145,11 @@ xfconf_settings()
 	if [ "`make_caps x$XFWM4_START_POSITION`" == "XBOTTOM" ]; then
 		xfconf-query -c xfce4-panel -p /panels/panel-1/position -t string -s "p=8;x=0;y=0" -n
 	fi
-    if is_disabled $XFWM4_START_DISABLE_SUSPEND; then
-        xfconf-query -c xfce4-session -p /shutdown/ShowSuspend --create --set false --type bool
-    else
-        xfconf-query -c xfce4-session -p /shutdown/ShowSuspend --create --set true --type bool
-    fi
+	if is_disabled $XFWM4_START_DISABLE_SUSPEND; then
+		xfconf-query -c xfce4-session -p /shutdown/ShowSuspend --create --set false --type bool
+	else
+		xfconf-query -c xfce4-session -p /shutdown/ShowSuspend --create --set true --type bool
+	fi
 	xfconf-query -c xfwm4 -p /general/double_click_distance -t int -s 5 -n
 	xprop -root -format _NET_NUMBER_OF_DESKTOPS 32c -set _NET_NUMBER_OF_DESKTOPS 1
 	if is_enabled $XFWM4_COMPOSITING; then
