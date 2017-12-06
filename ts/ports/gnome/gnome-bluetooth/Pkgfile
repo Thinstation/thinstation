@@ -1,0 +1,29 @@
+# $Id$
+# Maintainer: Ionut Biru <ibiru@archlinux.org>
+# Contributor: Roman Kyrylych <roman@archlinux.org>
+
+name=gnome-bluetooth
+version=3.20.0
+release=1
+source=(ftp://ftp.gnome.org/pub/gnome/sources/$name/${version%.*}/$name-$version.tar.xz)
+
+build() {
+  cd $name-$version
+  ./configure --prefix=/usr \
+    --sysconfdir=/etc \
+    --localstatedir=/var \
+    --enable-gtk-doc \
+    --disable-desktop-update \
+    --disable-icon-update \
+    --disable-schemas-compile \
+    
+
+  # https://bugzilla.gnome.org/show_bug.cgi?id=655517
+  sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
+
+  make
+  make DESTDIR="$PKG" install
+
+#  install -m644 -D ../61-gnome-bluetooth-rfkill.rules \
+#      "$PKG/usr/lib/udev/rules.d//61-gnome-bluetooth-rfkill.rules"
+}
