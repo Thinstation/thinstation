@@ -7,12 +7,14 @@ name=bbswitch
 version=0.8
 release=1
 kver=`cat /ts/ports/kernel-modules/VERSION`
-source=(https://api.github.com/repos/Bumblebee-Project/bbswitch/tarball/v$version makefile.patch)
+source=(https://api.github.com/repos/Bumblebee-Project/bbswitch/tarball/v$version makefile.patch \
+	linux4.12.patch)
 
 build() {
-    tar xzfv v$version    
+    tar xzfv v$version
     cd Bumblebee-Project-bbswitch-*
     patch -Np1 -i $SRC/makefile.patch
+    patch -Np1 -i $SRC/linux4.12.patch
 
     for KERNELTYPE in TS TS_SMP TS_64
     do
