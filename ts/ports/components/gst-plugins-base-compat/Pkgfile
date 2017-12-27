@@ -1,0 +1,28 @@
+# Description: An essential exemplary set of plugins for gstreamer.
+# URL: http://gstreamer.freedesktop.org/modules/gst-plugins-base.html
+# Maintainer: Daryl Fonseca-Holt, wyatt at prairieturtle dot ca
+# Packager: Matt Housh, jaeger at morpheus dot net
+# Depends on: alsa-lib cdparanoia gstreamer-compat libtheora libvisual orc pango util-linux xorg-libxv
+
+name=gst-plugins-base-compat
+version=0.10.36
+release=2
+source=(http://gstreamer.freedesktop.org/src/gst-plugins-base/gst-plugins-base-$version.tar.xz)
+
+build() {
+	cd gst-plugins-base-$version
+	export CFLAGS="$CFLAGS -msse2"
+
+	./configure \
+		--prefix=/usr \
+		--enable-orc \
+		--disable-debug \
+		--disable-nls \
+		--disable-dependency-tracking \
+		--disable-valgrind \
+		--disable-examples
+
+	make
+	make DESTDIR=$PKG install
+	rm -r $PKG/usr/share/gtk-doc
+}
