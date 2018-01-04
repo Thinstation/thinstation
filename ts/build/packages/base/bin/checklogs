@@ -1,6 +1,6 @@
 #! /bin/sh
 
-for filename in `find /var/log -type f -not -name "*.old" `
+for filename in `find /var/log -type f -not -name "*.old" -not -path "*/journal/*" `
 do
 	FILESIZE=`ls -s $filename | sed -e "s/^\s*\([0-9]*\).*/\1/"`
 	if [ $FILESIZE -ge 100 ] ; then
