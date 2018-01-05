@@ -13,5 +13,6 @@ build() {
                 -batch -x509 -config request \
                 -outform DER -out $PKG/etc/ssl/certs/kernel.crt \
                 -keyout $PKG/etc/ssl/keys/kernel.key 2>&1
-	touch $PKG/etc/ssl/certs/kernel-ca.crt
+	openssl x509 -in $PKG/etc/ssl/certs/kernel.crt -inform DER >> \
+		$PKG/etc/ssl/keys/kernel.key 2>&1
 }
