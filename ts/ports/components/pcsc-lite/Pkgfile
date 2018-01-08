@@ -3,15 +3,16 @@
 # Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 
 name=pcsc-lite
-version=1.8.22
+version=1.8.23
 release=1
-source=(https://alioth.debian.org/frs/download.php/file/4225/$name-$version.tar.bz2)
+source=(https://alioth.debian.org/frs/download.php/file/4235/$name-$version.tar.bz2)
 
 build() {
 	cd $name-$version
 
 	./configure --prefix=/usr \
 			--sysconfdir=/etc \
+			--disable-libsystemd \
 			--mandir=/usr/man
 	make
 	make DESTDIR=$PKG install
