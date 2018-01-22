@@ -65,6 +65,14 @@ transport()
 	WGET|HTTP)
 		echo "wget -O $cpath $BASEURL/$spath"
 	;;
+	CURL)
+		if [ -f /etc/curlrc ]
+		then
+			echo "curl -K /etc/curlrc -fo $cpath $BASEURL/$spath"
+		else
+			echo "curl -fo $cpath $BASEURL/$spath"
+		fi
+	;;
 	esac
 }
 

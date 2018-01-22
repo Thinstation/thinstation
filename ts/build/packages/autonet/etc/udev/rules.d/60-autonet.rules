@@ -3,7 +3,5 @@
 #
 # See the udev.rules.examples file for more examples of how to create rules
 #
-SUBSYSTEM!="net", GOTO="net_end"
-ACTION=="add", RUN+="/etc/udev/scripts/pre-net.sh"
-ACTION=="remove", RUN+="/etc/udev/scripts/net.sh"
-LABEL="net_end"
+SUBSYSTEM=="net", KERNEL!="tap*", KERNEL!="tun*", ACTION=="add", RUN+="/etc/udev/scripts/pre-net.sh"
+SUBSYSTEM=="net", KERNEL!="tap*", KERNEL!="tun*", ACTION=="remove", RUN+="/etc/udev/scripts/net.sh"
