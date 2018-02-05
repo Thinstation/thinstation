@@ -77,7 +77,11 @@ media-provider)
 usb)
 mkdir -p $INSTALLDIR/lib/vmware/view/usb
 cp -a $dir/bin/* $INSTALLDIR/lib/vmware/view/usb
+ln -s /lib/vmware/view/usb/vmware-usbarbitrator $INSTALLDIR/bin/
 # 4.5 changed USB
+if [ -e $dir/etc ]; then
+  cp -a $dir/etc/* $INSTALLDIR/etc
+fi
 if [ -d $dir/lib ]; then
   cp -a $dir/lib/* $INSTALLDIR/lib
 fi
