@@ -1,0 +1,50 @@
+# Maintainer: Jan de Groot <jgc@archlinux.org>
+# Contributor: NicoHood <archlinux {cat} nicohood {dog} de>
+# Contributor: <alcasa dot mz at gmail dot com>
+# Contributor: twa022 <twa022 at gmail dot com>
+
+pkgname=xfce4-pulseaudio-plugin
+pkgver=0.3.4
+pkgrel=1
+pkgdesc="Pulseaudio plugin for Xfce4 panel"
+arch=('x86_64')
+license=('GPL2')
+url="https://goodies.xfce.org/projects/panel-plugins/xfce4-pulseaudio-plugin"
+groups=('xfce4-goodies')
+depends=('xfce4-panel' 'libpulse' 'libkeybinder3' 'gtk-update-icon-cache' 'libnotify')
+makedepends=('intltool' 'dbus-glib' git xfce4-dev-tools)
+optdepends=('pavucontrol: default pulseaudio mixer')
+_commit=e055393468e04bc34e0047dc5bb3c983d8183d8a  # tags/xfce4-pulseaudio-plugin-0.3.4^0
+source=("git+https://git.xfce.org/panel-plugins/xfce4-pulseaudio-plugin/#commit=$_commit")
+sha256sums=('SKIP')
+
+pkgver() {
+  cd $pkgname
+  git describe --tags | sed 's/^xfce4-pulseaudio-plugin-//;s/-/+/g'
+}
+
+prepare() {
+  cd $pkgname
+  NOCONFIGURE=1 ./autogen.sh
+}
+
+build() {
+  cd "$pkgname"
+  ./configure \
+    --prefix=/usr \
+    --sysconfdir=/etc \
+    --libexecdir=/usr/lib \
+    --localstatedir=/var \
+    --enable-keybinder \
+    --enable-libnotify \
+    --enable-maintainer-mode
+
+  sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
+
+  make
+}
+
+package() {
+  cd "$pkgname"
+  make DESTDIR="${pkgdir}" install
+}

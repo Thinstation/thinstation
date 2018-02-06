@@ -14,7 +14,19 @@ source=(https://cdn.kernel.org/pub/linux/kernel/v4.x/linux-$sversion.tar.xz \
 build() {
 export MAKEFLAGS="-j7"
 	cd linux-$sversion
+
+	for patch in `ls ../../../p1/`; do
+		patch -F3 -p1 -i $patch
+	done
+
 	cp $SRC/ts.config ./.config
+	make silentoldconfig
+#	make upboard_defconfig
+#	cat <<'EOF' >> .config
+#CONFIG_CROSS_COMPILE="/opt/cross/x-tools/x86_64-thinstation-linux-gnu/bin/x86_64-thinstation-linux-gnu-"
+#CONFIG_LOCALVERSION="TS_64"
+#EOF
+
 
 	if [ -e /etc/ssl/keys/kernel.key ]; then
 		touch certs/x509.genkey

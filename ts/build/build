@@ -361,8 +361,9 @@ module_package_dependencies()
 									DISPLAYED=true
 								fi
 								echo -e "\t\t\t\tModule : $name"
-								copy_module ${name}.ko $KERNVER $pkgname
-								touch /tmp/dirty
+								if copy_module ${name}.ko $KERNVER $pkgname; then
+									touch /tmp/dirty
+								fi
 							fi
 						;;
 						firmware)
@@ -2381,7 +2382,7 @@ if [ -z "$NOIMAGES" ]; then
 				else
 				ESP=boot-images/systemd-boot
 				EFIOVERLAY="$ESP/EFI $ESP/loader"
-                                LM=4
+                                LM=2
 				configdir=boot-images/templates/systemd-boot/$ts_gummitheme
 				sys_copy /usr/lib/prebootloader/PreLoader.efi $ESP/EFI/BOOT/bootx64.efi
 				sys_copy /usr/lib/systemd/boot/efi/systemd-bootia32.efi $ESP/EFI/BOOT/bootia32.efi

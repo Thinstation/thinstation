@@ -652,7 +652,8 @@ partition()
 	dd if=/dev/zero of=$device bs=1M count=2; orbail 16
 	dd if=/dev/zero of=$device bs=512 count=32 seek=$(($disk_size - 32)); orbail 17
 	sync
-	blockdev --rereadpt $device; orbail 18
+	sleep 1
+	blockdev --rereadpt $device || blockdev --rereadpt $device; orbail 18
 	echo ""
 	sgdisk -o $device; orbail 19
 	sync
