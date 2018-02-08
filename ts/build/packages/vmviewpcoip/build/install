@@ -21,6 +21,8 @@ cp -a $dir/bin/* $INSTALLDIR/bin
 if [ -d $dir/lib ]; then
   cp -a $dir/lib  $INSTALLDIR/
   chmod a+x $INSTALLDIR/lib/vmware/view/bin/*
+  sed -i -e 's/$ENABLE_SEAMLESS_WINDOW = /"$ENABLE_SEAMLESS_WINDOW" = /' \
+      -e 's/glibcxx=.*/glibcxx=1/' $INSTALLDIR/bin/vmware-view
 fi
 cp -a $dir/share/* $INSTALLDIR/lib
 cp -a $dir/doc/* $INSTALLDIR/lib/doc/$package
@@ -73,6 +75,13 @@ media-provider)
   # Our libstdc++ is better than 3.4.19
   rm -rf $INSTALLDIR/lib/vmware/mediaprovider/gcc
   chmod a+x $INSTALLDIR/lib/vmware/mediaprovider/*.so
+;;
+seamless-window)
+# Added in 4.7 - Untested on Thinstation
+  cp -a $dir/vmware-view-crtbora $INSTALLDIR/lib/vmware/view/bin
+  cp -a $dir/lib/* $INSTALLDIR/lib
+  chmod a+x $INSTALLDIR/lib/vmware/view/bin/vmware-view-crtbora
+  chmod a+x $INSTALLDIR/lib/vmware/*.so*
 ;;
 usb)
 mkdir -p $INSTALLDIR/lib/vmware/view/usb
