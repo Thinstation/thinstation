@@ -6,19 +6,26 @@
 name=libunique
 version=1.1.6
 release=1
-source=(ftp://ftp.gnome.org/pub/gnome/sources/$name/${version%.*}/$name-$version.tar.bz2)
+source=(ftp://ftp.gnome.org/pub/gnome/sources/$name/${version%.*}/$name-$version.tar.bz2 \
+	remove_G_CONST_RETURN.patch \
+	unique-gdbus.patch)
 
 build() {
 	cd $name-$version
-	CFLAGS="$CFLAGS -DG_CONST_RETURN=const"
+	patch -p1 -i $SRC/remove_G_CONST_RETURN.patch
+	patch -p1 -i $SRC/unique-gdbus.patch
 
 	./configure --prefix=/usr \
-			--disable-introspection \
 			--disable-gtk-doc \
-			--enable-shared \
-			--disable-static
+			--disable-static \
+			--disable-dbus
 
-	make
+        sed -i -e 's/tests //g' Makefile
+	sed -i -e 's/tests //g' Makefile.am
+	sed -i -e 's/tests //g' Makefile.in
+        sed -i -e 's|tests/Makefile ||g' configure
+
+	make -j1
 	make install DESTDIR=$PKG
 	rm -rf $PKG/usr/share
 }

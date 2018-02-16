@@ -1,0 +1,26 @@
+# Description: An open source JPEG 2000 codec.
+# URL: http://www.openjpeg.org/
+# Maintainer: Danny Rawlins, crux at romster dot me
+# Packager: Danny Rawlins, crux at romster dot me
+# Depends on: lcms2 libpng xz
+
+name=openjpeg
+version=1.5.2
+release=1
+source=(http://downloads.sourceforge.net/project/openjpeg.mirror/$version/$name-$version.tar.gz)
+
+build() {
+	cd $name-$version
+
+	autoreconf -fi
+
+	./configure \
+		--prefix=/usr \
+		--mandir=/usr/man \
+		--disable-static
+
+	make
+	make DESTDIR=$PKG install
+
+	rm -r $PKG/usr/share/doc
+}

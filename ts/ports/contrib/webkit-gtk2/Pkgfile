@@ -1,0 +1,35 @@
+# Description: Small, efficient and fast rendering engine for Web Browsers.
+# URL: http://www.webkitgtk.org/
+# Maintainer: Danny Rawlins, crux at romster dot me
+# Packager: Brett Goulder, predatorfreak at dcaf-security dot org
+# Depends on: enchant gst-plugins-base gtk harfbuzz-icu libsoup glu ruby gperf libwebp libsecret shared-mime-info xorg-libxt
+
+name=webkit-gtk2
+version=2.4.11
+release=1
+source=(http://webkitgtk.org/releases/webkitgtk-$version.tar.xz
+	webkitgtk-2.4.9-abs.patch)
+
+build() {
+	cd webkitgtk-$version
+	patch -Np1 < ../webkitgtk-2.4.9-abs.patch
+
+	install -d build
+	cd build
+
+	../configure \
+		--prefix=/usr \
+		--disable-geolocation \
+		--disable-gtk-doc-html \
+		--disable-silent-rules \
+		--enable-video \
+		--enable-jit \
+		--libexecdir=/usr/lib/webkitgtk2 \
+		--with-gtk=2.0 \
+		--disable-webkit2
+
+	make
+	make DESTDIR=$PKG install
+
+	rm -r $PKG/usr/share/locale
+}

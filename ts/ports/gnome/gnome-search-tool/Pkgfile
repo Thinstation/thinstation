@@ -1,0 +1,24 @@
+# Description: GNOME utility to search for files
+# URL: https://git.gnome.org/browse/gnome-search-tool
+# Maintainer:
+# Depends on:
+# Group: gnome/desktop
+
+name=gnome-search-tool
+version=3.6.0
+release=1
+source=(http://ftp.gnome.org/pub/GNOME/sources/$name/${version%.*}/$name-$version.tar.xz)
+
+build() {
+	cd $name-$version
+
+	LINGUAS=en
+	export LINGUAS
+	./configure --prefix=/usr \
+		--libexecdir=/usr/libexec \
+		--disable-static \
+		--enable-shared
+
+	make
+	make DESTDIR=$PKG install
+}

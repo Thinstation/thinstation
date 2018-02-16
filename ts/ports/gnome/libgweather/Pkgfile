@@ -1,0 +1,25 @@
+# $Id$
+# Maintainer: Jan de Groot  <jgc@archlinux.org>
+
+name=libgweather
+version=3.20.2
+release=1
+options=(!emptydirs)
+source=(https://download.gnome.org/sources/$name/${version:0:4}/$name-$version.tar.xz)
+sha256sums=('f74f1d355ef26e0fe4d3c77b5b7c91f68014e435d29065613e45cdb8db7ecc97')
+
+build() {
+  cd "$name-$version"
+
+  ./configure \
+	--prefix=/usr \
+	--sysconfdir=/etc \
+	--localstatedir=/var \
+	--disable-static \
+	--with-zoneinfo-dir=/usr/local/etc/zoneinfo/
+
+  sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
+
+  make
+  make DESTDIR="$PKG" install
+}

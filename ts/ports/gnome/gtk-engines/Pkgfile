@@ -1,0 +1,21 @@
+# Description: Standard theme engines for GTK+2
+# URL:         http://live.gnome.org/GnomeArt/Tutorials/GtkEngines
+# Maintainer:  Juergen Daubert, jue at crux dot nu
+# Depends on:  gtk intltool
+
+name=gtk-engines
+version=2.21.0
+release=1
+source=(https://sources.archlinux.org/other/gtk-engines/${name}-${version}.tar.gz)
+
+build() {
+    cd $name-$version
+
+    ./configure --prefix=/usr \
+			--enable-animation \
+
+#    sed -i -e 's/glib\/gtimer.h/glib.h/g' engines/clearlooks/src/animation.c
+    make
+    make DESTDIR=$PKG install
+    rm -r $PKG/usr/share/{locale,gtk-engines}
+}

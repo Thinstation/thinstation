@@ -1,0 +1,40 @@
+commit 03c016bea939ee4a26e90d80fa1012a993a8ea47
+Author: Victor Toso <me@victortoso.com>
+Origin: upstream, https://cgit.freedesktop.org/spice/spice-gtk/commit/?id=03c016bea939ee4a26e90d80fa1012a993a8ea47
+Bug-Debian: https://bugs.debian.org/843471
+Date:   Fri Oct 14 18:12:01 2016 +0200
+
+    clipboard: Fix crash by handling error
+    
+    As manual states below, text could be NULL for different reasons and
+    we should handle that. I've included a debug message to help
+    identifying possible regressions from wayland's clipboard.
+    
+    This crash is a regression from 7b0de6217670e0f668aff2949f
+    
+     "The text parameter to callback will contain the resulting text if
+     the request succeeded, or NULL if it failed. This could happen for
+     various reasons, in particular if the clipboard was empty or if the
+     contents of the clipboard could not be converted into text form."
+    
+    Resolves: rhbz#1384676
+    
+    Signed-off-by: Victor Toso <victortoso@redhat.com>
+    Acked-by: Pavel Grunt <pgrunt@redhat.com>
+
+diff --git a/src/spice-gtk-session.c b/src/spice-gtk-session.c
+index 3ff4e9a..3e0ec74 100644
+--- a/src/spice-gtk-session.c
++++ b/src/spice-gtk-session.c
+@@ -945,6 +945,11 @@ static void clipboard_received_text_cb(GtkClipboard *clipboard,
+     if (self == NULL)
+         return;
+ 
++    if (text == NULL) {
++        SPICE_DEBUG("Failed to retrieve clipboard text");
++        return;
++    }
++
+     g_return_if_fail(SPICE_IS_GTK_SESSION(self));
+ 
+     selection = get_selection_from_clipboard(self->priv, clipboard);

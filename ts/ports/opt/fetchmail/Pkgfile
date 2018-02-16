@@ -1,21 +1,25 @@
 # Description: A remote-mail retrieval utility
-# URL:         http://fetchmail.berlios.de/
+# URL:         http://www.fetchmail.info
 # Maintainer:  Juergen Daubert, jue at crux dot nu
 # Depends on:  openssl
 
 name=fetchmail
-version=6.3.21
-release=1
-source=(http://download.berlios.de/$name/$name-$version.tar.xz)
+version=6.3.26
+release=2
+source=(http://downloads.sourceforge.net/project/$name/branch_6.3/$name-$version.tar.xz \
+	disable-sslv3.patch)
 
 build() {
     cd $name-$version
 
+    patch -p1 -i $SRC/disable-sslv3.patch
+    # don't build python stuff
+    sed -i '19,21s/^/#/' Makefile.am
+    autoreconf -vi
+
     ./configure --prefix=/usr \
-                --mandir=/usr/man \
                 --with-ssl=/usr \
-                --disable-nls \
-                PYTHON=:
+                --disable-nls
     make
     make DESTDIR=$PKG install
 }

@@ -1,25 +1,25 @@
-# Description: Xdialog is designed to be a replacement for dialog or cdialog.  
-# URL: http://xdialog.dyns.net/
-# Maintainer: Victor Martinez, pitillo at ono dot com
-# Depends on: gtk
+# Description: PDF rendering library based on xpdf 3.0
+# URL:         http://poppler.freedesktop.org/
+# Maintainer:  Juergen Daubert, jue at crux dot nu
+# Packager:    Matt Housh, jaeger at crux dot nu
+# Depends on:  cairo lcms2
 
 name=poppler
-version=0.24.5
-release=2
-source=(http://poppler.freedesktop.org/poppler-$version.tar.xz)
+version=0.57.0
+release=1
+source=(http://poppler.freedesktop.org/$name-$version.tar.xz)
 
-build () {
-git clone --depth 1 git://git.freedesktop.org/git/poppler/test
-  cd $name-$version
-  ./configure --prefix=/usr \
-	      --disable-introspection \
-	      --enable-shared \
-	      --disable-static \
-	      --enable-libcurl \
-	      --enable-zlib \
-              --enable-xpdf-headers
+build() {
+    cd $name-$version
 
-  make
-  make DESTDIR=$PKG install
-  rm -rf $PKG/usr/share
+    ./configure --prefix=/usr \
+                --mandir=/usr/man \
+		--disable-static \
+                --enable-{zlib,libpng,cmyk,libcurl} \
+                --enable-cms=lcms2 \
+                --enable-xpdf-headers \
+                --disable-poppler-{qt4,qt5}
+
+    make
+    make DESTDIR=$PKG install
 }

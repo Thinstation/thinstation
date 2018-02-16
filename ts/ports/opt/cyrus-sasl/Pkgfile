@@ -1,40 +1,48 @@
 # Description: Simple Authentication and Security Layer
-# URL:         http://asg.web.cmu.edu/sasl/sasl-library.html
+# URL:         https://cyrusimap.org/
 # Maintainer:  Thomas Penteker, tek at serverop dot de
 # Packager:    Daniel Mueller, daniel at danm dot de
-# Depends on: db, openssl
+# Depends on:  db openssl
 
 name=cyrus-sasl
-version=2.1.25
-release=1
-source=(ftp://ftp.andrew.cmu.edu/pub/cyrus-mail/$name-$version.tar.gz saslauthd)
+version=2.1.26
+release=2
+source=(ftp://ftp.cyrusimap.org/cyrus-sasl/cyrus-sasl-$version.tar.gz \
+	cyrus-sasl-2.1.27-openssl-1.1.0.patch \
+        saslauthd fix-CVE-2013-4122.diff)
 
 build(){
-	cd $name-$version
 
-	./configure \
-	    --prefix=/usr \
-	    --sysconfdir=/etc/sasl \
-	    --with-plugindir=/usr/lib/sasl2 \
-	    --with-saslauthd=/var/sasl/saslauthd \
-	    --with-dbpath=/etc/sasl/sasldb2 \
-	    --with-dblib=berkeley \
-	    --with-bdb-incdir=/usr/include \
-	    --with-bdb-libdir=/usr/lib \
-	    --with-openssl=/usr \
+  cd $name-$version
+
+  patch -i ../fix-CVE-2013-4122.diff -p1
+  patch -p1 -i $SRC/cyrus-sasl-2.1.27-openssl-1.1.0.patch
+  sed -i '228i\#include <sys/types.h>' include/sasl.h
+
+  ./configure \
+      --prefix=/usr \
+      --sysconfdir=/etc/sasl \
+      --with-plugindir=/usr/lib/sasl2 \
+      --with-saslauthd=/var/sasl/saslauthd \
+      --with-dbpath=/etc/sasl/sasldb2 \
+      --with-dblib=berkeley \
+      --with-bdb-incdir=/usr/include \
+      --with-bdb-libdir=/usr/lib \
+      --with-openssl=/usr \
       --enable-login \
       --enable-cram \
       --enable-digest \
-	    --enable-shared \
+      --enable-shared \
       --mandir=/usr/man
 
-	make
-	make DESTDIR=$PKG install
+  make -j1
+  make DESTDIR=$PKG install
 
-	mkdir -p \
-	    $PKG/usr/lib/sasl2 \
-	    $PKG/var/sasl/saslauthd \
-	    $PKG/etc/rc.d
-	
-	install -m 755 $SRC/saslauthd $PKG/etc/rc.d
+  mkdir -p \
+      $PKG/usr/lib/sasl2 \
+      $PKG/var/sasl/saslauthd \
+      $PKG/etc/rc.d
+
+  install -m 755 $SRC/saslauthd $PKG/etc/rc.d
+
 }

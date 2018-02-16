@@ -1,0 +1,18 @@
+# $Id$
+# Maintainer: Jan Alexander Steffens (heftig) <jan.steffens@gmail.com>
+
+name=libwacom
+version=0.21
+release=1
+source=(https://sourceforge.net/projects/linuxwacom/files/libwacom/$name-$version.tar.bz2{,.sig})
+
+build() {
+  cd $name-$version
+  ./configure --prefix=/usr
+  make
+  make DESTDIR="$PKG" install
+  install -D -m644 COPYING "${PKG}/usr/share/licenses/${name}/LICENSE"
+  install -m755 -d ${PKG}/usr/lib/udev/rules.d
+  cd tools
+  ./generate-udev-rules > ${PKG}/usr/lib/udev/rules.d/65-libwacom.rules
+}

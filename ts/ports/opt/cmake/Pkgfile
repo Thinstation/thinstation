@@ -5,13 +5,13 @@
 # Depends on: ncurses
 
 name=cmake
-version=3.2.2
+version=3.8.2
 release=1
 source=(http://www.cmake.org/files/v${version%.*}/cmake-$version.tar.gz)
 
 build() {
 	cd cmake-$version
-	./bootstrap --prefix=/usr
+	./bootstrap --prefix=/usr --system-curl --system-libs
 	make
 	make DESTDIR=$PKG install
 	rm -r $PKG/usr/doc

@@ -1,0 +1,20 @@
+diff -u -r fetchmail-6.3.26/socket.c fetchmail-6.3.26-nossl3/socket.c
+--- fetchmail-6.3.26/socket.c	2013-04-23 22:00:45.000000000 +0200
++++ fetchmail-6.3.26-nossl3/socket.c	2016-03-03 18:18:46.688881618 +0100
+@@ -907,14 +907,11 @@
+ 	_ssl_context[sock] = NULL;
+ 	if(myproto) {
+ 		if(!strcasecmp("ssl2",myproto)) {
+-#if HAVE_DECL_SSLV2_CLIENT_METHOD + 0 > 0
+-			_ctx[sock] = SSL_CTX_new(SSLv2_client_method());
+-#else
+ 			report(stderr, GT_("Your operating system does not support SSLv2.\n"));
+ 			return -1;
+-#endif
+ 		} else if(!strcasecmp("ssl3",myproto)) {
+-			_ctx[sock] = SSL_CTX_new(SSLv3_client_method());
++			report(stderr, GT_("Your operating system does not support SSLv3.\n"));
++			return -1;
+ 		} else if(!strcasecmp("tls1",myproto)) {
+ 			_ctx[sock] = SSL_CTX_new(TLSv1_client_method());
+ 		} else if (!strcasecmp("ssl23",myproto)) {

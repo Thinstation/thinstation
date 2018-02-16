@@ -1,0 +1,27 @@
+# Description: SVG rendering library with cairo backend
+# URL: http://librsvg.sourceforge.net/
+# Maintainer: Jose V Beneyto, sepen at crux dot nu
+# Packager: Juergen Daubert, juergen dot daubert at t-online dot de
+# Depends on: gtk libcroco
+
+name=librsvg
+version=2.40.16
+release=2
+source=(ftp://ftp.gnome.org/pub/gnome/sources/$name/${version%.*}/$name-$version.tar.xz)
+
+build() {
+  cd $name-$version
+
+  ./configure --prefix=/usr \
+              --mandir=/usr/man \
+              --enable-gtk-theme \
+              --enable-pixbuf-loader \
+              --disable-gtk-doc \
+	       \
+	      --enable-shared \
+	      --disable-static
+
+  make
+  make DESTDIR=$PKG install
+  rm -rf $PKG/usr/share/{gtk-doc,themes/bubble/gtk-3.0}
+}

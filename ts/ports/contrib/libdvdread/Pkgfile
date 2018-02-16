@@ -1,0 +1,24 @@
+# Description: DVD reading library.
+# URL: http://dvdnav.mplayerhq.hu
+# Maintainer: Danny Rawlins, crux at romster dot me
+# Packager: Danny Rawlins, crux at romster dot me
+# Depends on: libdvdcss
+
+name=libdvdread
+version=5.0.3
+release=1
+source=(http://download.videolan.org/videolan/$name/$version/$name-$version.tar.bz2)
+
+build() {
+	cd $name-$version
+
+	./configure \
+		--prefix=/usr \
+		--mandir=/usr/man \
+		--disable-dependency-tracking \
+		--disable-static
+
+	make DESTDIR=$PKG install
+	rm -rf $PKG/usr/share/doc
+	rmdir $PKG/usr/share
+}

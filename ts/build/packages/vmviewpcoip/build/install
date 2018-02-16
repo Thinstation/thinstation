@@ -21,6 +21,8 @@ cp -a $dir/bin/* $INSTALLDIR/bin
 if [ -d $dir/lib ]; then
   cp -a $dir/lib  $INSTALLDIR/
   chmod a+x $INSTALLDIR/lib/vmware/view/bin/*
+  sed -i -e 's/$ENABLE_SEAMLESS_WINDOW = /"$ENABLE_SEAMLESS_WINDOW" = /' \
+      -e 's/glibcxx=.*/glibcxx=1/' $INSTALLDIR/bin/vmware-view
 fi
 cp -a $dir/share/* $INSTALLDIR/lib
 cp -a $dir/doc/* $INSTALLDIR/lib/doc/$package
@@ -64,10 +66,31 @@ if [ -d $dir ]; then
   cp -a $dir/lib/* $INSTALLDIR/lib
 fi
 ;;
+media-provider)
+# Added in 4.6 - Improves Skype for Business
+  mkdir -p $INSTALLDIR/lib/udev/rules.d
+  mkdir -p $INSTALLDIR/lib/vmware/mediaprovider
+  cp -a $dir/etc/* $INSTALLDIR/lib/udev/rules.d
+  cp -a $dir/lib/* $INSTALLDIR/lib/vmware/mediaprovider
+  # Our libstdc++ is better than 3.4.19
+  rm -rf $INSTALLDIR/lib/vmware/mediaprovider/gcc
+  chmod a+x $INSTALLDIR/lib/vmware/mediaprovider/*.so
+;;
+seamless-window)
+# Added in 4.7 - Untested on Thinstation
+  cp -a $dir/vmware-view-crtbora $INSTALLDIR/lib/vmware/view/bin
+  cp -a $dir/lib/* $INSTALLDIR/lib
+  chmod a+x $INSTALLDIR/lib/vmware/view/bin/vmware-view-crtbora
+  chmod a+x $INSTALLDIR/lib/vmware/*.so*
+;;
 usb)
 mkdir -p $INSTALLDIR/lib/vmware/view/usb
 cp -a $dir/bin/* $INSTALLDIR/lib/vmware/view/usb
+ln -s /lib/vmware/view/usb/vmware-usbarbitrator $INSTALLDIR/bin/
 # 4.5 changed USB
+if [ -e $dir/etc ]; then
+  cp -a $dir/etc/* $INSTALLDIR/etc
+fi
 if [ -d $dir/lib ]; then
   cp -a $dir/lib/* $INSTALLDIR/lib
 fi
@@ -152,9 +175,5 @@ ln -s /lib/doc/vmware-view-client/VMware-view-client-EULA-en.txt $INSTALLDIR/lib
 fi
 
 cp -Prfd $INSTALLDIR/build/extra/* $INSTALLDIR/.
-
-if [ ! -x $INSTALLDIR/lib/vmware/view/usb/vmware-view-usbd ]; then
-  rm $INSTALLDIR/lib/systemd/system/{,multi-user.target.wants}/vmware.view.usbd.service
-fi
 
 exit $returnval

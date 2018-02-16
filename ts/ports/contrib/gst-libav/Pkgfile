@@ -1,0 +1,21 @@
+# Description: Gstreamer libav Plugin.
+# URL: http://gstreamer.freedesktop.org/modules/gst-libav.html
+# Maintainer: Danny Rawlins, crux at romster dot me
+# Packager: Danny Rawlins, crux at romster dot me
+# Depends on: ffmpeg gst-plugins-base
+
+name=gst-libav
+version=1.8.2
+release=1
+source=(http://gstreamer.freedesktop.org/src/$name/$name-$version.tar.xz)
+
+build() {
+	cd $name-$version
+
+	./configure \
+		--prefix=/usr \
+		--with-system-libav
+
+	make
+	make DESTDIR=$PKG install
+}

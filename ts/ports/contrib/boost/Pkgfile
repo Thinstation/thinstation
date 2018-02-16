@@ -1,0 +1,29 @@
+# Description: Free peer-reviewed portable C++ source libraries.
+# URL: http://www.boost.org/
+# Maintainer: Danny Rawlins, crux at romster dot me
+# Packager: sten, nick dot steeves at shaw dot ca
+# Depends on: icu python
+
+name=boost
+version=1.63.0
+release=1
+source=(http://downloads.sourceforge.net/project/$name/$name/$version/${name}_${version//./_}.tar.bz2)
+
+build() {
+	cd ${name}_${version//./_}
+
+	local JOBS=$(awk 'BEGIN{RS="-j|--jobs="} NR==2 {print $1}' <<< $MAKEFLAGS)
+	test -n "$JOBS" && export JOBS="-j $JOBS"
+
+	./bootstrap.sh --prefix=$PKG/usr --with-toolset=gcc --with-icu
+
+	./b2 stage \
+		variant=release \
+		threading=multi \
+		runtime-link=shared \
+		link=shared,static \
+		debug-symbols=off \
+		$JOBS
+
+	./b2 install threading=multi link=shared
+}

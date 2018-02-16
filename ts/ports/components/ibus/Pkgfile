@@ -1,0 +1,40 @@
+# $Id$
+# Maintainer: Felix Yan <felixonmars@archlinux.org>
+
+pkgbase=ibus
+name=(ibus libibus)
+version=1.5.14
+release=1
+
+build() {
+git clone https://github.com/ibus/ibus.git
+cd $name
+git fetch origin ${version%.*}.y
+git checkout ${version%.*}.y
+  ./autogen.sh \
+    --prefix=/usr \
+    --libexecdir=/usr/lib/ibus \
+    --sysconfdir=/etc \
+    --disable-gconf \
+    --enable-dconf \
+    --enable-gtk-doc \
+    --disable-memconf \
+    --enable-ui \
+    --enable-python-library \
+    --enable-vala=yes
+
+
+  make
+  install=ibus.install
+
+  make DESTDIR="${PKG}" install
+  sed -ri 's:"(/desktop):"/org/freedesktop\1:' $PKG/usr/share/glib-2.0/schemas/*.xml
+#  make -C src DESTDIR="${PKG}" uninstall
+#  make -C bindings DESTDIR="${PKG}" uninstall
+#  rm -rf "$PKG/usr/lib/python2.7/site-packages/gi" # compiled pyc/pyo files were not cleaned
+#  make DESTDIR="${PKG}" uninstall-pkgconfigDATA
+#  make -C src DESTDIR="${PKG}" install
+#  make -C bindings DESTDIR="${PKG}" install
+#  make DESTDIR="${PKG}" install-pkgconfigDATA
+}
+

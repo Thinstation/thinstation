@@ -3,31 +3,30 @@
 # Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 
 name=open-vm-tools
-version=9.4.6-1770165
+version=10.1.5
 kver=`cat /ts/ports/kernel-modules/VERSION`
 release=1
-source=(http://downloads.sourceforge.net/project/open-vm-tools/open-vm-tools/stable-9.4.x/open-vm-tools-$version.tar.gz
+source=(https://github.com/vmware/open-vm-tools/archive/stable-${version/_/-}.tar.gz \
 	network-script
 	tools.conf
 	vmware-guestd
 	xautostart.conf)
 
 build() {
-	cd $name-$version
+	cd $name-stable-$version/$name
 
-	export CFLAGS="-DGLIB_DISABLE_DEPRECATION_WARNINGS ${CFLAGS}"
-	export CUSTOM_PROCPS_NAME="procps"
+	CXXFLAGS+=' -std=gnu++11 -fpermissive '
+#	CFLAGS+=' -fpermissive '
+
 	sed -i 's|-Werror||g' configure.ac
-
-	aclocal
-	libtoolize
-	automake --add-missing
-	autoconf
-
+	autoreconf -vi
 	./configure --prefix=/usr \
+			--sysconfdir=/etc \
 			--without-kernel-modules \
 			--with-gtkmm \
-			--without-icu
+			--without-xmlsecurity \
+			--disable-static
+
 	make
 	make DESTDIR=$PKG install
 

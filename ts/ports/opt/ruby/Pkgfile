@@ -1,24 +1,20 @@
 # Maintainer:  Juergen Daubert, jue at crux dot nu
 # Description: Ruby interpreter
 # URL:         http://www.ruby-lang.org
-# Depends on:  db, gdbm, ncurses, openssl, readline, zlib
+# Depends on:  gdbm libgmp openssl readline zlib libffi libyaml
 
 name=ruby
-version=1.9.3-p0
+version=2.4.1
 release=1
-source=(ftp://ftp.ruby-lang.org/pub/$name/1.9/$name-$version.tar.bz2 \
-        $name-arch.patch)
+source=(http://cache.ruby-lang.org/pub/$name/${version%.*}/$name-$version.tar.xz)
 
 build () {
     cd $name-$version
 
-    patch -p0 -i $SRC/$name-arch.patch
-
     ./configure --prefix=/usr \
-                --mandir=/usr/man \
                 --enable-shared \
                 --disable-install-doc \
-                --with-ruby-version=minor 
+                --with-ruby-version=minor
 
     make
     make DESTDIR=$PKG install

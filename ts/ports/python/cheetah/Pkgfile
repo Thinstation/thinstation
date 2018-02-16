@@ -3,11 +3,16 @@
 # Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 
 name=cheetah
-version=2.4.4
+pname=Cheetah
+version=pip
 release=1
-source=(https://pypi.python.org/packages/source/C/Cheetah/Cheetah-$version.tar.gz)
+source=()
 
 build() {
-	cd Cheetah-$version
+	pip install $name --download=$SRC
+	mkdir -p $SRC/$name
+	tar -xvf $SRC/$pname*.tar.gz -C $SRC/$name
+	cd $SRC/$name/*
+
 	python ./setup.py install --root $PKG
 }

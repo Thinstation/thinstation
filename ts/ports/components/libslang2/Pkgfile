@@ -14,8 +14,8 @@ source=(ftp://space.mit.edu/pub/davis/$tarname/v2.2/$tarname-$version.tar.bz2)
 build () {
     cd $tarname-$version
     ./configure --prefix=/usr --mandir=/usr/man
-    make all
-    make DESTDIR=$PKG install-all
+    make all -j1
+    make DESTDIR=$PKG install-all -j1
     rm -rf $PKG/usr/share/doc
     chmod 755 $PKG/usr/lib/libslang.so.$version \
               $PKG/usr/lib/slang/v2/modules/*.so

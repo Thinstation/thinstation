@@ -1,0 +1,23 @@
+# Description: Perl Compatible Regular Expressions
+# URL: http://www.pcre.org
+# Maintainer: Jose V Beneyto, sepen at crux dot nu
+# Packager: Jose V Beneyto, sepen at crux dot nu
+# Depends on:
+
+name=libpcre2
+version=10.22
+release=1
+source=(ftp://ftp.csx.cam.ac.uk/pub/software/programming/pcre/pcre2-$version.tar.bz2)
+
+build() {
+    cd pcre2-$version
+
+    ./configure --prefix=/usr \
+                --enable-jit \
+		--disable-static
+
+    make
+    make DESTDIR=$PKG install
+
+    rm -r $PKG/usr/share/doc
+}

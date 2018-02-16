@@ -1,0 +1,33 @@
+# $Id$
+# Maintainer: Tobias Powalowski <tpowa@archlinux.org>
+# Contributor : Mico Tischler <mt-ml at gmx dot net>
+# Contributor : Keshav Amburay <(the ddoott ridikulus ddoott rat) (aatt) (gemmaeiil) (ddoott) (ccoomm)>
+
+name="sbsigntools"
+version=0.8
+release=2
+source=("0001-sbsigntools-fix-autogen.sh-for-build-service.patch"
+        update-openssl-api-usage-to-support-openssl-1.1.patch)
+
+build() {
+	git clone https://git.kernel.org/pub/scm/linux/kernel/git/jejb/sbsigntools.git
+	cd sbsigntools
+	git checkout v${version}
+	cd ..
+	git clone git://git.ozlabs.org/~ccan/ccan
+
+	cd "${SRC}/${name}"
+	patch -p1 -i "${SRC}/0001-sbsigntools-fix-autogen.sh-for-build-service.patch"
+	patch -p1 -i ../update-openssl-api-usage-to-support-openssl-1.1.patch
+
+	git submodule init
+	git config submodule."lib/ccan.git".url "${SRC}/ccan"
+	git submodule update
+
+        NOCONFIGURE=1 ./autogen.sh
+	./configure --prefix="/usr" --bindir="/usr/bin" --libexecdir="/usr/lib" --mandir="/usr/share/man" --sysconfdir="/etc"
+	cp "lib/ccan.git/config.h" "lib/ccan/"
+	make
+
+	make DESTDIR="${PKG}" install
+}

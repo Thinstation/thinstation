@@ -5,12 +5,17 @@
 # Depends on: apr neon expat sqlite3
 
 name=subversion
-version=1.6.17
+version=1.9.5
 release=1
-source=(http://subversion.tigris.org/downloads/$name-$version.tar.bz2)
+source=(http://www.apache.org/dist/$name/$name-$version.tar.bz2 \
+	subversion.rpath.fix.patch \
+	ruby-frozen-nil.patch)
 
 build() {
     cd $name-$version
+
+    patch -p1 -i $SRC/ruby-frozen-nil.patch
+    patch -p0 -i $SRC/subversion.rpath.fix.patch
 
     ./configure --prefix=/usr \
        --mandir=/usr/man \
@@ -20,7 +25,7 @@ build() {
        --without-apxs
 
     make
-    make -j1 DESTDIR=$PKG external-install local-install
+    make -j1 DESTDIR=$PKG install
 
     # info pages seem to get generated when makeinfo is available
     rm -rf $PKG/usr/info

@@ -3,17 +3,21 @@
 # Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 
 name=rtmpdump
-version=0.5.2.3
+version=2.4.r96.fa8646d
 release=1
-source=()
+source=(libdir.patch)
 
 build() {
-git clone --depth 1 git://git.ffmpeg.org/rtmpdump
+git clone git://git.ffmpeg.org/rtmpdump
 	cd $name
 
+        sed -e 's/^CRYPTO=OPENSSL/#CRYPTO=OPENSSL/' -e 's/#CRYPTO=GNUTLS/CRYPTO=GNUTLS/' -i Makefile -i librtmp/Makefile
 	sed -i -e s:=/usr/local:=/usr:g Makefile
 	sed -i -e s:=/usr/local:=/usr:g librtmp/Makefile
 #	sed -i -e s:=/usr/local:=/usr:g librtmp/librtmp.pc
+	cd librtmp
+	patch -p0 -i $SRC/libdir.patch
+	cd ..
 
 	make
 	make DESTDIR=$PKG install

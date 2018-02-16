@@ -47,6 +47,7 @@ init)
 	    VDITITLE=`replace_char "$VDITITLE" " " "_"`
 	    VDIPARAMS=/tmp/VDI$VDITITLE
 	    VDICONFIG=/etc/skel/.vmware/$VDITITLE.vdm
+	    VDIICON=`eval echo '$SESSION_'$x'_ICON'`
 	    touch $VDICONFIG
 	    # we need to pass the TS selected keyboard map through to rdesktop
 	    rdesktopoptions="-k $KEYBOARD_MAP"
@@ -59,8 +60,8 @@ init)
 	      var="\$${session%%=*}"
 	      vdivalue=`eval echo $var`
 	      # fix for mixed case (case sensitive) parameters
-	      if [ "$vdioption" == "serverurl" ] ; then vdioption="serverURL" ; fi
-	      if [ "$vdioption" == "server" ] ; then vdioption="serverURL" ; fi
+	      if [ "$vdioption" == "serverurl" ] ; then vdioption="serverURL" ; VDISERVER=$vdivalue ; fi
+	      if [ "$vdioption" == "server" ] ; then vdioption="serverURL" ; VDISERVER=$vdivalue ; fi
 	      if [ "$vdioption" == "noninteractive" ] ; then vdioption="nonInteractive" ; fi
 	      if [ "$vdioption" == "desktopname" ] ; then vdioption="desktopName" ; fi
 	      if [ "$vdioption" == "domainname" ] ; then vdioption="domainName" ; fi
@@ -116,6 +117,11 @@ init)
 	    if [ -n "$xfreerdpoptions" ]; then
 	      echo "--xfreerdpOptions='$xfreerdpoptions'" >> $VDICONFIG
 	    fi
+	    if is_disabled $VDIICON; then
+	      if [ -n "$VDISERVER" ]; then
+		echo "$VDISERVER" >> /etc/skel/.vmware/view-recent-brokers
+	      fi
+	    fi
   	  fi
 	  let x=x+1
 	done
@@ -129,7 +135,9 @@ init)
 	  ln /lib/pcoip/vchan_plugins/libmksvchanclient.so /lib/vmware/view/vdpService/libmksvchanclient.so
 	fi
 
-	if [ -d /usr/lib/vmware/view/usb ]; then
+	if [ -e /etc/init.d/vmware-USBArbitrator ]; then
+	  /etc/init.d/vmware-USBArbitrator start
+	elif [ -d /usr/lib/vmware/view/usb ]; then
 	  /usr/lib/vmware/view/usb/vmware-usbarbitrator
 	  /usr/lib/vmware/view/usb/vmware-view-usbd
 	fi

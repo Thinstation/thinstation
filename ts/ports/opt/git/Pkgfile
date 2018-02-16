@@ -6,60 +6,28 @@
 # Nice to have: tk
 
 name=git
-version=1.9.1
+version=2.12.2
 release=1
 source=(https://www.kernel.org/pub/software/scm/git/$name-{,manpages-}$version.tar.gz)
 
 build() {
 	cd $name-$version
 
-  export PYTHON_PATH='/usr/bin/python2'
-  cd "$SRC/$name-$version"
-  make prefix=/usr gitexecdir=/usr/lib/git-core \
-    CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" \
-    USE_LIBPCRE=1 \
-    NO_CROSS_DIRECTORY_HARDLINKS=1 \
-    MAN_BOLD_LITERAL=1 \
-    all doc
+	# install Error.pm. this pretty much sucks, but i'm too lazy to
+	# investigate whether there's a better way.
+	sed -i -e '47d' -e '49d' perl/Makefile.PL
 
-  make -C contrib/credential/gnome-keyring
+	make CFLAGS="$CFLAGS" prefix=/usr gitexecdir=/usr/lib/git-core \
+	     INSTALLSITEMAN3DIR=/usr/share/man/man3 DESTDIR=$PKG install
 
-  make prefix=/usr gitexecdir=/usr/lib/git-core \
-    CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" \
-    USE_LIBPCRE=1 \
-    NO_CROSS_DIRECTORY_HARDLINKS=1 \
-    MAN_BOLD_LITERAL=1 \
-    INSTALLDIRS=vendor DESTDIR="$PKG" install install-doc
+	cd $SRC
 
-  # bash completion
-  mkdir -p "$PKG"/usr/share/bash-completion/completions/
-  install -m644 ./contrib/completion/git-completion.bash "$PKG"/usr/share/bash-completion/completions/git
-  # fancy git prompt
-  mkdir -p "$PKG"/usr/share/git/
-  install -m644 ./contrib/completion/git-prompt.sh "$PKG"/usr/share/git/git-prompt.sh
-  # gnome credentials helper
-  install -m755 contrib/credential/gnome-keyring/git-credential-gnome-keyring \
-      "$PKG"/usr/lib/git-core/git-credential-gnome-keyring
-  make -C contrib/credential/gnome-keyring clean
-  # the rest of the contrib stuff
-  cp -a ./contrib/* $PKG/usr/share/git/
+	for i in man*; do
+		install -d $PKG/usr/share/man/$i
+		install -m 644 $i/* $PKG/usr/share/man/$i;
+	done
 
-  # scripts are for python 2.x
-  sed -i 's|#![ ]*/usr/bin/env python$|#!/usr/bin/env python2|' \
-    $(find "$PKG" -name '*.py') \
-    "$PKG"/usr/lib/git-core/git-p4 \
-    "$PKG"/usr/share/git/gitview/gitview \
-    "$PKG"/usr/share/git/remote-helpers/git-remote-bzr \
-    "$PKG"/usr/share/git/remote-helpers/git-remote-hg
-  sed -i 's|#![ ]*/usr/bin/python$|#!/usr/bin/python2|' \
-    "$PKG"/usr/share/git/svn-fe/svnrdump_sim.py
+	find $PKG \( -name perllocal.pod -o -name .packlist \) -delete
+	rm -rf $PKG/usr/share/{locale,gitk}
 
-  # remove perllocal.pod, .packlist, and empty directories.
-  rm -rf "$PKG"/usr/lib/perl5
-
-
-  mv  $PKG/usr/share/man/man1 $PKG/usr/man/.
-  mv  $PKG/usr/share/man/man5 $PKG/usr/man/.
-  mv  $PKG/usr/share/man/man7 $PKG/usr/man/.
-#  rm -rf $PKG/usr/share
 }

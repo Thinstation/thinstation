@@ -1,0 +1,23 @@
+# $Id$
+# Maintainer: Jan Alexander Steffens (heftig) <jan.steffens@gmail.com>
+
+name=grilo
+version=0.3.1
+release=1
+source=(https://download.gnome.org/sources/${name}/${version:0:3}/${name}-${version}.tar.xz)
+
+build() {
+  cd "${SRC}/${name}-${version}"
+  ./configure --prefix=/usr \
+	--sysconfdir=/etc \
+	--disable-static \
+	--disable-debug \
+	 \
+	 \
+	--libdir=/usr/lib
+
+  sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
+
+  make
+  make DESTDIR="${PKG}" install
+}

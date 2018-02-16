@@ -1,0 +1,23 @@
+# $Id$
+# Maintainer: Jan Alexander Steffens (heftig) <jan.steffens@gmail.com>
+# Contributor: Ionut Biru <ibiru@archlinux.org>
+
+name=colord-gtk
+version=0.1.26
+release=2
+source=(http://www.freedesktop.org/software/colord/releases/$name-$version.tar.xz{,.asc})
+
+build() {
+  cd "$name-$version"
+  
+	./configure \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--localstatedir=/var \
+		--disable-static \
+		 \
+		
+
+  make
+  make DESTDIR="$PKG" install
+}

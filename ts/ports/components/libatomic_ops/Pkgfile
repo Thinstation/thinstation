@@ -1,0 +1,21 @@
+# $Id$
+# Maintainer: Jan de Groot <jgc@archlinux.org>
+# Contributor: Adam Walters <abwalters@abwalters.us>
+# Contributor: William Rea <sillywilly@gmail.com>
+# Contributor: Rémy Oudompheng <remy@archlinux.org>
+
+name=libatomic_ops
+version=7.4.6
+release=1
+source=(https://github.com/ivmai/libatomic_ops/releases/download/v$version/${name}-${version}.tar.gz)
+
+build() {
+  cd $name-$version
+  ./autogen.sh
+  ./configure --prefix=/usr --disable-static --enable-shared
+  make
+  make check
+  make DESTDIR="$PKG" install
+  install -Dm644 doc/LICENSING.txt "$PKG/usr/share/licenses/$name/LICENSE"
+  rm -rf "$PKG/usr/share/doc/"
+}

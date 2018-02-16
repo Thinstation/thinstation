@@ -4,16 +4,16 @@
 # Depends on: openldap krb5-TS
 
 name=autofs
-version=5.0.6
+version=5.1.2
 release=1
-source=(http://www.kernel.org/pub/linux/daemons/$name/v5/$name-$version.tar.bz2 )
+source=(http://www.kernel.org/pub/linux/daemons/$name/v5/$name-$version.tar.xz )
 
 build() {
 	cd $name-$version
 	./configure --prefix=/usr --with-confdir=/etc
 	make
 	make INSTALLROOT=$PKG install
-	sed -i -e 's|fstype=nfs|fstype=nfs,vers=3|g' $PKG/etc/auto.*
-mkdir $PKG/bin
-cp daemon/automount $PKG/bin/.
+#	sed -i -e 's|fstype=nfs|fstype=nfs,vers=3|g' $PKG/etc/auto.*
+	mkdir $PKG/bin
+	cp daemon/automount $PKG/bin/.
 }

@@ -3,37 +3,46 @@
 # Maintainer:  CRUX System Team, core-ports at crux dot nu
 
 name=ncurses
-version=5.9
-release=1
+version=6.0
+release=2
 source=(http://ftp.gnu.org/gnu/$name/$name-$version.tar.gz)
 
 build() {
     cd $name-$version
 
-    local OPTIONS="\
---with-install-prefix=$PKG \
---prefix=/usr \
---with-normal \
---with-shared \
---without-debug \
---without-ada \
---without-tests
-"
+    ./configure --prefix=/usr \
+                --mandir=/usr/share/man \
+                --with-{normal,shared} \
+                --without-{debug,ada,tests} \
+                --enable-pc-files \
+                --with-pkg-config-libdir=/usr/lib/pkgconfig \
+                --enable-widec
 
-    ./configure $OPTIONS
     make
-    make install
-    make distclean
+    make DESTDIR=$PKG install
 
-    ./configure $OPTIONS --enable-widec
-    make
-    make install
+    install -d $PKG/{lib,usr/include/ncursesw}
 
-    mkdir $PKG/lib
+    # move library to /lib and create symlinks
+    mv $PKG/usr/lib/libncursesw.so.* $PKG/lib
+    ln -sf ../../lib/libncursesw.so.$version $PKG/usr/lib/libncursesw.so
+    ln -s libncursesw.so.$version $PKG/lib/libncurses.so.${version%%.*}
 
-    for i in w ''; do
-        mv $PKG/usr/lib/libncurses$i.so.* $PKG/lib
-        ln -sf libncurses$i.so $PKG/usr/lib/libcurses$i.so
-        ln -sf ../../lib/libncurses$i.so.$version $PKG/usr/lib/libncurses$i.so
+    # linker scripts and .pc files for non-wide ncurses
+    for LIB in ncurses form panel menu ; do
+       echo "INPUT(-l${LIB}w)" > $PKG/usr/lib/lib${LIB}.so
+       ln -s ${LIB}w.pc $PKG/usr/lib/pkgconfig/${LIB}.pc
     done
+
+    # linker script for the curses library
+    echo "INPUT(-lncursesw)" > $PKG/usr/lib/libcursesw.so
+    ln -s libncurses.so $PKG/usr/lib/libcurses.so
+
+    # symlinks for ncurses 5 (remove them later))
+    ln -s libncursesw.so $PKG/usr/lib/libncurses.so.5
+    ln -s libncursesw.so $PKG/usr/lib/libncursesw.so.5
+    ln -s libncursesw.so $PKG/usr/lib/libncursesw.so.6
+
+    # some progs expect a /usr/include/curses.h
+    ln -s ../curses.h $PKG/usr/include/ncursesw/ncurses.h
 }

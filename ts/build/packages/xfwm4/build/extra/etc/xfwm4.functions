@@ -96,6 +96,13 @@ xfconf_settings()
 	else
 		xfconf-query -c xfce4-panel -p /plugins/plugin-2 --reset
 	fi
+
+	if [ -d /etc/xfwm4.d ]; then
+		for conf in /etc/xfwm4.d/*; do
+			. $conf
+		done
+	fi
+
 	xfconf-query -c xfce4-panel -p /panels/panel-1/plugin-ids $PANEL
 
 	if [ -n "$DESKTOP_ICON_SIZE" ]; then

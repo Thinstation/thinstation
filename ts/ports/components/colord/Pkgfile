@@ -1,0 +1,28 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=colord
+version=1.3.2
+release=1
+source=(http://www.freedesktop.org/software/colord/releases/$name-$version.tar.xz)
+
+build() {
+	cd $name-$version
+	./configure \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--localstatedir=/var \
+		--disable-static \
+		--with-systemdsystemunitdir=/usr/lib/systemd/system \
+		--disable-argyllcms-sensor \
+		--with-daemon-user=colord \
+		--disable-systemd-login
+
+  sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
+  make
+  make DESTDIR="$PKG" install
+
+  # the build system has no colord user, so the chown fails
+  chown -R colord:colord "$PKG/var/lib/colord"
+}

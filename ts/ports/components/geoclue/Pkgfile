@@ -1,0 +1,25 @@
+# Description: D-Bus service that provides location information
+# URL: http://freedesktop.org/wiki/Software/GeoClue
+# Maintainer: John Vogel, jvogel4 at stny dot rr dot com
+# Packager: John Vogel, jvogel4 at stny dot rr dot com
+# Depends on: glib glibmm json-glib
+
+name=geoclue
+version=2.4.3
+release=2
+source=(http://www.freedesktop.org/software/$name/releases/${version%\.*}/$name-$version.tar.xz)
+
+build() {
+	cd $name-$version
+	./configure \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--libexecdir=/usr/lib \
+		--disable-gtk-doc-html \
+		--disable-3g-source \
+		--disable-cdma-source \
+		--disable-modem-gps-source \
+		--disable-nmea-source
+	make
+	make DESTDIR=$PKG install
+}

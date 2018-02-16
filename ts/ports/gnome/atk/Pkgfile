@@ -1,0 +1,18 @@
+# Description: A set of interfaces for accessibility
+# URL: http://www.gtk.org/
+# Maintainer: Fredrik Rinnestam, fredrik at crux dot nu
+# Depends on: glib, gobject-introspection
+
+name=atk
+version=2.20.0
+release=1
+source=(http://download.gnome.org/sources/$name/${version:0:4}/$name-$version.tar.xz)
+
+build () {
+    cd $name-$version
+    ./configure --prefix=/usr
+    make
+    make DESTDIR=$PKG install
+    rm -r $PKG/usr/share/{locale,gtk-doc}
+chown -R root.root $PKG
+}

@@ -1,0 +1,19 @@
+# $Id$
+# Maintainer: Jan de Groot <jgc@archlinux.org>
+
+name=libpwquality
+version=1.4.0
+release=1
+source=(https://github.com/libpwquality/libpwquality/releases/download/$name-$version/$name-$version.tar.bz2)
+
+build() {
+    cd "$name-$version"
+    ./configure --prefix=/usr \
+        --sysconfdir=/etc \
+        --localstatedir=/var \
+        --with-python-rev=2.7 \
+        --with-python-binary=python2
+    sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
+    make
+    make DESTDIR="$PKG" install
+}

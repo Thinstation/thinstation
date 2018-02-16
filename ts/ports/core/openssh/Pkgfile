@@ -4,12 +4,14 @@
 # Depends on:  openssl zlib tcp_wrappers
 
 name=openssh
-version=7.2p2
+version=7.5p1
 release=1
-source=(ftp://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable/$name-$version.tar.gz sshd)
+source=(https://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable/${name}-${version}.tar.gz sshd \
+	openssl-1.1.0.patch)
 
 build() {
     cd $name-$version
+    patch -p1 -i $SRC/openssl-1.1.0.patch
     ./configure --prefix=/usr \
                 --libexecdir=/usr/lib/ssh \
                 --sysconfdir=/etc/ssh \

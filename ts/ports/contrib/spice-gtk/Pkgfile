@@ -4,22 +4,31 @@
 # Depends on: gtk-2.0 celt
 
 name=spice-gtk
-version=0.26
+version=0.33
 release=1
-source=(http://spice-space.org/download/gtk/spice-gtk-$version.tar.bz2)
+source=(http://spice-space.org/download/gtk/spice-gtk-$version.tar.bz2 \
+	debian_843471-clipboard_Fix_crash_by_handling_error.patch
+        ssl-Stop-creating-our-own-X509_LOOKUP_METHOD.patch
+        ssl-Rework-our-custom-BIO-type.patch
+	ssl-Use-accessors-rather-than-direct-struct-access.patch)
 
 build() {
 	cd spice-gtk-$version
+
+	patch -Np1 -i ../debian_843471-clipboard_Fix_crash_by_handling_error.patch
+	patch -Np1 -i ../ssl-Stop-creating-our-own-X509_LOOKUP_METHOD.patch
+	patch -Np1 -i ../ssl-Rework-our-custom-BIO-type.patch
+	patch -Np1 -i ../ssl-Use-accessors-rather-than-direct-struct-access.patch
+
 	./configure --prefix=/usr \
-			--with-gtk=2.0 \
-			--enable-smartcard=no \
+			--with-gtk=3.0 \
 			--exec-prefix=/ \
 			--sysconfdir=/etc \
-			--libexecdir=/lib \
 			--mandir=/usr/man \
 			--disable-introspection
 
 	make
-	make DESTDIR=$PKG install
+	make -j1 DESTDIR=$PKG install
+	mkdir $PKG/usr/lib
 	mv $PKG/lib/pkgconfig $PKG/usr/lib/.
 }

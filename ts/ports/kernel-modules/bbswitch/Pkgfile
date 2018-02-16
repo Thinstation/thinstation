@@ -16,11 +16,11 @@ build() {
 
     for KERNELTYPE in TS TS_SMP TS_64
     do
-	export REPORT_KERNEL=${kver}$KERNELTYPE
+       export REPORT_KERNEL=${kver}$KERNELTYPE
 
        cd $SRC
-	cp -a Bumblebee-Project-bbswitch-* $KERNELTYPE
-	cd $KERNELTYPE
+       cp -a Bumblebee-Project-bbswitch-* $KERNELTYPE
+       cd $KERNELTYPE
        KVERSION=${kver}$KERNELTYPE
        KCOMPDIR=${KERNELTYPE##TS}
        KDIR=/lib/modules/$KVERSION/build
@@ -32,11 +32,6 @@ build() {
 	MODLIB=$MODLIB \
 	MODDIR=$MODDIR \
 	CROSS_COMPILE="/opt/cross/x-tools/x86_64-thinstation-linux-gnu/bin/x86_64-thinstation-linux-gnu-"
-
-	/usr/src/kernels/$REPORT_KERNEL/scripts/sign-file \
-        sha256 /etc/ssl/keys/kernel.key \
-        /etc/ssl/certs/kernel.crt \
-        $PKG/lib/modules/$REPORT_KERNEL/kernel/drivers/video/bbswitch.ko
     done
 }
 

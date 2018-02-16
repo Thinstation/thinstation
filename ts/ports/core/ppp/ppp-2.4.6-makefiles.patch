@@ -1,0 +1,270 @@
+diff -Nur ppp-2.4.6.orig/chat/Makefile.linux ppp-2.4.6/chat/Makefile.linux
+--- ppp-2.4.6.orig/chat/Makefile.linux	2014-01-02 05:42:08.000000000 +0100
++++ ppp-2.4.6/chat/Makefile.linux	2014-02-24 09:00:16.666577906 +0100
+@@ -1,7 +1,7 @@
+ #	$Id: Makefile.linux,v 1.15 2006/06/04 05:07:46 paulus Exp $
+ 
+ DESTDIR = $(INSTROOT)@DESTDIR@
+-BINDIR = $(DESTDIR)/sbin
++BINDIR = $(DESTDIR)/bin
+ MANDIR = $(DESTDIR)/share/man/man8
+ 
+ CDEF1=	-DTERMIOS			# Use the termios structure
+@@ -10,7 +10,8 @@
+ CDEF4=	-DFNDELAY=O_NDELAY		# Old name value
+ CDEFS=	$(CDEF1) $(CDEF2) $(CDEF3) $(CDEF4)
+ 
+-COPTS=	-O2 -g -pipe
++COPTS=	@CFLAGS@
++LDFLAGS=	@LDFLAGS@
+ CFLAGS=	$(COPTS) $(CDEFS)
+ 
+ INSTALL= install
+@@ -21,7 +22,7 @@
+ 	$(CC) -o chat chat.o
+ 
+ chat.o:	chat.c
+-	$(CC) -c $(CFLAGS) -o chat.o chat.c
++	$(CC) -c $(CFLAGS) $(LDFLAGS) -o chat.o chat.c
+ 
+ install: chat
+ 	mkdir -p $(BINDIR) $(MANDIR)
+diff -Nur ppp-2.4.6.orig/configure ppp-2.4.6/configure
+--- ppp-2.4.6.orig/configure	2014-01-02 05:42:08.000000000 +0100
++++ ppp-2.4.6/configure	2014-02-24 09:00:16.743242620 +0100
+@@ -185,7 +185,10 @@
+     rm -f $2
+     if [ -f $1 ]; then
+ 	echo "  $2 <= $1"
+-	sed -e "s,@DESTDIR@,$DESTDIR,g" -e "s,@SYSCONF@,$SYSCONF,g" $1 >$2
++	sed -e "s|@DESTDIR@|$DESTDIR|g" \
++	    -e "s|@SYSCONF@|$SYSCONF|g" \
++	    -e "s|@CFLAGS@|$CFLAGS|g" \
++	    -e "s|@LDFLAGS@|$LDFLAGS|g" $1 >$2
+     fi
+ }
+ 
+diff -Nur ppp-2.4.6.orig/linux/Makefile.top ppp-2.4.6/linux/Makefile.top
+--- ppp-2.4.6.orig/linux/Makefile.top	2014-01-02 05:42:08.000000000 +0100
++++ ppp-2.4.6/linux/Makefile.top	2014-02-24 09:00:16.743242620 +0100
+@@ -1,7 +1,7 @@
+ # PPP top-level Makefile for Linux.
+ 
+ DESTDIR = $(INSTROOT)@DESTDIR@
+-BINDIR = $(DESTDIR)/sbin
++BINDIR = $(DESTDIR)/bin
+ INCDIR = $(DESTDIR)/include
+ MANDIR = $(DESTDIR)/share/man
+ ETCDIR = $(INSTROOT)@SYSCONF@/ppp
+diff -Nur ppp-2.4.6.orig/pppd/Makefile.linux ppp-2.4.6/pppd/Makefile.linux
+--- ppp-2.4.6.orig/pppd/Makefile.linux	2014-01-02 05:42:08.000000000 +0100
++++ ppp-2.4.6/pppd/Makefile.linux	2014-02-24 09:00:16.743242620 +0100
+@@ -5,7 +5,7 @@
+ 
+ # Default installation locations
+ DESTDIR = $(INSTROOT)@DESTDIR@
+-BINDIR = $(DESTDIR)/sbin
++BINDIR = $(DESTDIR)/bin
+ MANDIR = $(DESTDIR)/share/man/man8
+ INCDIR = $(DESTDIR)/include
+ 
+@@ -32,7 +32,8 @@
+ 
+ # CC = gcc
+ #
+-COPTS = -O2 -pipe -Wall -g
++COPTS = @CFLAGS@
++LDFLAGS = @LDFLAGS@
+ LIBS =
+ 
+ # Uncomment the next 2 lines to include support for Microsoft's
+diff -Nur ppp-2.4.6.orig/pppd/plugins/Makefile.linux ppp-2.4.6/pppd/plugins/Makefile.linux
+--- ppp-2.4.6.orig/pppd/plugins/Makefile.linux	2014-01-02 05:42:08.000000000 +0100
++++ ppp-2.4.6/pppd/plugins/Makefile.linux	2014-02-24 09:00:16.779908379 +0100
+@@ -1,11 +1,11 @@
+ #CC	= gcc
+-COPTS	= -O2 -g
++COPTS	= @CFLAGS@
+ CFLAGS	= $(COPTS) -I.. -I../../include -fPIC
+-LDFLAGS	= -shared
++LDFLAGS	= @LDFLAGS@ -shared
+ INSTALL	= install
+ 
+ DESTDIR = $(INSTROOT)@DESTDIR@
+-BINDIR = $(DESTDIR)/sbin
++BINDIR = $(DESTDIR)/bin
+ MANDIR = $(DESTDIR)/share/man/man8
+ LIBDIR = $(DESTDIR)/lib/pppd/$(VERSION)
+ 
+diff -Nur ppp-2.4.6.orig/pppd/plugins/pppoatm/Makefile.linux ppp-2.4.6/pppd/plugins/pppoatm/Makefile.linux
+--- ppp-2.4.6.orig/pppd/plugins/pppoatm/Makefile.linux	2014-01-02 05:42:08.000000000 +0100
++++ ppp-2.4.6/pppd/plugins/pppoatm/Makefile.linux	2014-02-24 09:00:16.809907637 +0100
+@@ -1,7 +1,7 @@
+ #CC	= gcc
+-COPTS	= -O2 -g
++COPTS	= @CFLAGS@
+ CFLAGS	= $(COPTS) -I../.. -I../../../include -fPIC
+-LDFLAGS	= -shared
++LDFLAGS	= @LDFLAGS@
+ INSTALL	= install
+ 
+ #***********************************************************************
+@@ -33,7 +33,7 @@
+ all: $(PLUGIN)
+ 
+ $(PLUGIN): $(PLUGIN_OBJS)
+-	$(CC) $(CFLAGS) -o $@ -shared $^ $(LIBS)
++	$(CC) $(CFLAGS) -o $@ $(LDFLAGS) -shared $^ $(LIBS)
+ 
+ install: all
+ 	$(INSTALL) -d -m 755 $(LIBDIR)
+diff -Nur ppp-2.4.6.orig/pppd/plugins/pppol2tp/Makefile.linux ppp-2.4.6/pppd/plugins/pppol2tp/Makefile.linux
+--- ppp-2.4.6.orig/pppd/plugins/pppol2tp/Makefile.linux	2014-01-02 05:42:08.000000000 +0100
++++ ppp-2.4.6/pppd/plugins/pppol2tp/Makefile.linux	2014-02-24 09:01:06.325349425 +0100
+@@ -1,12 +1,12 @@
+ #CC	= gcc
+-COPTS	= -O2 -g
++COPTS	= @CFLAGS@
+ CFLAGS	= $(COPTS) -I. -I../.. -I../../../include -fPIC
+-LDFLAGS	= -shared
++LDFLAGS	= @LDFLAGS@
+ INSTALL	= install
+ 
+ #***********************************************************************
+ 
+-DESTDIR = @DESTDIR@
++DESTDIR = $(INSTROOT)@DESTDIR@
+ LIBDIR = $(DESTDIR)/lib/pppd/$(VERSION)
+ 
+ VERSION = $(shell awk -F '"' '/VERSION/ { print $$2; }' ../../patchlevel.h)
+@@ -16,7 +16,7 @@
+ all: $(PLUGINS)
+ 
+ %.so: %.o
+-	$(CC) $(CFLAGS) -o $@ -shared $^ $(LIBS)
++	$(CC) $(CFLAGS) -o $@ $(LDFLAGS) -shared $^ $(LIBS)
+ 
+ install: all
+ 	$(INSTALL) -d -m 755 $(LIBDIR)
+diff -Nur ppp-2.4.6.orig/pppd/plugins/radius/Makefile.linux ppp-2.4.6/pppd/plugins/radius/Makefile.linux
+--- ppp-2.4.6.orig/pppd/plugins/radius/Makefile.linux	2014-01-02 05:42:08.000000000 +0100
++++ ppp-2.4.6/pppd/plugins/radius/Makefile.linux	2014-02-24 09:00:16.809907637 +0100
+@@ -12,7 +12,8 @@
+ INSTALL	= install
+ 
+ PLUGIN=radius.so radattr.so radrealms.so
+-CFLAGS=-I. -I../.. -I../../../include -O2 -fPIC -DRC_LOG_FACILITY=LOG_DAEMON
++CFLAGS=@CFLAGS@ -I. -I../.. -I../../../include -O2 -fPIC -DRC_LOG_FACILITY=LOG_DAEMON
++LDFLAGS=@LDFLAGS@
+ 
+ # Uncomment the next line to include support for Microsoft's
+ # MS-CHAP authentication protocol.
+@@ -43,13 +44,13 @@
+ 	$(INSTALL) -c -m 444 pppd-radattr.8 $(MANDIR)
+ 
+ radius.so: radius.o libradiusclient.a
+-	$(CC) -o radius.so -shared radius.o libradiusclient.a
++	$(CC) -o radius.so -shared $(LDFLAGS) radius.o libradiusclient.a
+ 
+ radattr.so: radattr.o
+-	$(CC) -o radattr.so -shared radattr.o
++	$(CC) -o radattr.so -shared $(LDFLAGS) radattr.o
+ 
+ radrealms.so: radrealms.o
+-	$(CC) -o radrealms.so -shared radrealms.o
++	$(CC) -o radrealms.so -shared $(LDFLAGS) radrealms.o
+ 
+ CLIENTOBJS = avpair.o buildreq.o config.o dict.o ip_util.o \
+ 	clientid.o sendserver.o lock.o util.o md5.o
+diff -Nur ppp-2.4.6.orig/pppd/plugins/rp-pppoe/Makefile.linux ppp-2.4.6/pppd/plugins/rp-pppoe/Makefile.linux
+--- ppp-2.4.6.orig/pppd/plugins/rp-pppoe/Makefile.linux	2014-01-02 05:42:08.000000000 +0100
++++ ppp-2.4.6/pppd/plugins/rp-pppoe/Makefile.linux	2014-02-24 09:00:16.809907637 +0100
+@@ -15,7 +15,7 @@
+ #***********************************************************************
+ 
+ DESTDIR = $(INSTROOT)@DESTDIR@
+-BINDIR = $(DESTDIR)/sbin
++BINDIR = $(DESTDIR)/bin
+ LIBDIR = $(DESTDIR)/lib/pppd/$(PPPDVERSION)
+ 
+ PPPDVERSION = $(shell awk -F '"' '/VERSION/ { print $$2; }' ../../patchlevel.h)
+@@ -25,12 +25,14 @@
+ # Version is set ONLY IN THE MAKEFILE!  Don't delete this!
+ RP_VERSION=3.8p
+ 
+-COPTS=-O2 -g
++COPTS=@CFLAGS@
+ CFLAGS=$(COPTS) -I../../../include '-DRP_VERSION="$(RP_VERSION)"'
++LDFLAGS=@LDFLAGS@
++
+ all: rp-pppoe.so pppoe-discovery
+ 
+ pppoe-discovery: pppoe-discovery.o debug.o
+-	$(CC) -o pppoe-discovery pppoe-discovery.o debug.o
++	$(CC) -o pppoe-discovery $(LDFLAGS) pppoe-discovery.o debug.o
+ 
+ pppoe-discovery.o: pppoe-discovery.c
+ 	$(CC) $(CFLAGS) -c -o pppoe-discovery.o pppoe-discovery.c
+@@ -39,7 +41,7 @@
+ 	$(CC) $(CFLAGS) -c -o debug.o debug.c
+ 
+ rp-pppoe.so: plugin.o discovery.o if.o common.o
+-	$(CC) -o rp-pppoe.so -shared plugin.o discovery.o if.o common.o
++	$(CC) -o rp-pppoe.so -shared $(LDFLAGS) plugin.o discovery.o if.o common.o
+ 
+ install: all
+ 	$(INSTALL) -d -m 755 $(LIBDIR)
+diff -Nur ppp-2.4.6.orig/pppdump/Makefile.linux ppp-2.4.6/pppdump/Makefile.linux
+--- ppp-2.4.6.orig/pppdump/Makefile.linux	2014-01-02 05:42:08.000000000 +0100
++++ ppp-2.4.6/pppdump/Makefile.linux	2014-02-24 09:00:16.809907637 +0100
+@@ -1,8 +1,9 @@
+ DESTDIR = $(INSTROOT)@DESTDIR@
+-BINDIR = $(DESTDIR)/sbin
++BINDIR = $(DESTDIR)/bin
+ MANDIR = $(DESTDIR)/share/man/man8
+ 
+-CFLAGS= -O -I../include/net
++CFLAGS = @CFLAGS@ -I../include/net
++LDFLAGS = @LDFLAGS@
+ OBJS = pppdump.o bsd-comp.o deflate.o zlib.o
+ 
+ INSTALL= install
+@@ -10,7 +11,7 @@
+ all:	pppdump
+ 
+ pppdump: $(OBJS)
+-	$(CC) -o pppdump $(OBJS)
++	$(CC) $(LDFLAGS) -o pppdump $(OBJS)
+ 
+ clean:
+ 	rm -f pppdump $(OBJS) *~
+diff -Nur ppp-2.4.6.orig/pppstats/Makefile.linux ppp-2.4.6/pppstats/Makefile.linux
+--- ppp-2.4.6.orig/pppstats/Makefile.linux	2014-01-02 05:42:08.000000000 +0100
++++ ppp-2.4.6/pppstats/Makefile.linux	2014-02-24 09:00:16.809907637 +0100
+@@ -3,14 +3,15 @@
+ # $Id: Makefile.linux,v 1.9 2006/06/04 05:07:46 paulus Exp $
+ #
+ DESTDIR = $(INSTROOT)@DESTDIR@
+-BINDIR = $(DESTDIR)/sbin
++BINDIR = $(DESTDIR)/bin
+ MANDIR = $(DESTDIR)/share/man/man8
+ 
+ PPPSTATSRCS = pppstats.c
+ PPPSTATOBJS = pppstats.o
+ 
+ #CC = gcc
+-COPTS = -O
++COPTS = @CFLAGS@
++LDFLAGS = @LDFLAGS@
+ COMPILE_FLAGS = -I../include
+ LIBS =
+ 
+@@ -26,7 +27,7 @@
+ 	$(INSTALL) -c -m 444 pppstats.8 $(MANDIR)
+ 
+ pppstats: $(PPPSTATSRCS)
+-	$(CC) $(CFLAGS) -o pppstats pppstats.c $(LIBS)
++	$(CC) $(CFLAGS) $(LDFLAGS) -o pppstats pppstats.c $(LIBS)
+ 
+ clean:
+ 	rm -f pppstats *~ #* core

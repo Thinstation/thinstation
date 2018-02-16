@@ -5,18 +5,17 @@
 # Depends on: gtk libsigc++
 
 name=gsettings-desktop-schemas
-version=3.6.0
+version=3.21.2
 release=1
 source=(http://ftp.gnome.org/pub/GNOME/sources/$name/${version%.*}/$name-$version.tar.xz)
 
 build() {
 	cd $name-$version
+	sed -i -r 's:"(/system):"/org/gnome\1:g' schemas/*.in
 
 	./configure \
 		--prefix=/usr \
-		--disable-dependency-tracking \
-		--disable-introspection \
-		--disable-nls \
+		--disable-dependency-tracking
 
 	make
 	make DESTDIR=$PKG install

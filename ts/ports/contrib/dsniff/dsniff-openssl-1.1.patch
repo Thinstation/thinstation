@@ -1,0 +1,243 @@
+Patch by Christoph Biedl <debian.axhn@manchmal.in-ulm.de> for dsniff >=
+2.4b1, which fixes building with OpenSSL 1.1.0. Adapted for compatibility
+with older OpenSSL versions by Robert Scheck <robert@fedoraproject.org>.
+
+--- dsniff-2.4/ssh.c			2017-02-11 22:31:54.705269813 +0100
++++ dsniff-2.4/ssh.c.openssl_110	2017-02-11 22:45:31.193447230 +0100
+@@ -234,6 +234,10 @@
+ 	u_char *p, cipher, cookie[8], msg[1024];
+ 	u_int32_t num;
+ 	int i;
++#if OPENSSL_VERSION_NUMBER >= 0x10100000L
++	const BIGNUM *servkey_e, *servkey_n;
++	const BIGNUM *hostkey_e, *hostkey_n;
++#endif
+ 	
+ 	/* Generate anti-spoofing cookie. */
+ 	RAND_bytes(cookie, sizeof(cookie));
+@@ -243,11 +247,23 @@
+ 	*p++ = SSH_SMSG_PUBLIC_KEY;			/* type */
+ 	memcpy(p, cookie, 8); p += 8;			/* cookie */
+ 	num = 768; PUTLONG(num, p);			/* servkey bits */
++#if OPENSSL_VERSION_NUMBER >= 0x10100000L
++	RSA_get0_key(ssh->ctx->servkey, &servkey_n, &servkey_e, NULL);
++	put_bn(servkey_e, &p);				/* servkey exponent */
++	put_bn(servkey_n, &p);				/* servkey modulus */
++#else
+ 	put_bn(ssh->ctx->servkey->e, &p);		/* servkey exponent */
+ 	put_bn(ssh->ctx->servkey->n, &p);		/* servkey modulus */
++#endif
+ 	num = 1024; PUTLONG(num, p);			/* hostkey bits */
++#if OPENSSL_VERSION_NUMBER >= 0x10100000L
++	RSA_get0_key(ssh->ctx->hostkey, &hostkey_n, &hostkey_e, NULL);
++	put_bn(hostkey_e, &p);				/* hostkey exponent */
++	put_bn(hostkey_n, &p);				/* hostkey modulus */
++#else
+ 	put_bn(ssh->ctx->hostkey->e, &p);		/* hostkey exponent */
+ 	put_bn(ssh->ctx->hostkey->n, &p);		/* hostkey modulus */
++#endif
+ 	num = 0; PUTLONG(num, p);			/* protocol flags */
+ 	num = ssh->ctx->encmask; PUTLONG(num, p);	/* ciphers */
+ 	num = ssh->ctx->authmask; PUTLONG(num, p);	/* authmask */
+@@ -298,7 +314,11 @@
+ 	SKIP(p, i, 4);
+ 
+ 	/* Decrypt session key. */
++#if OPENSSL_VERSION_NUMBER >= 0x10100000L
++	if (BN_cmp(servkey_n, hostkey_n) > 0) {
++#else
+ 	if (BN_cmp(ssh->ctx->servkey->n, ssh->ctx->hostkey->n) > 0) {
++#endif
+ 		rsa_private_decrypt(enckey, enckey, ssh->ctx->servkey);
+ 		rsa_private_decrypt(enckey, enckey, ssh->ctx->hostkey);
+ 	}
+@@ -318,8 +338,13 @@
+ 	BN_clear_free(enckey);
+ 	
+ 	/* Derive real session key using session id. */
++#if OPENSSL_VERSION_NUMBER >= 0x10100000L
++	if ((p = ssh_session_id(cookie, hostkey_n,
++				servkey_n)) == NULL) {
++#else
+ 	if ((p = ssh_session_id(cookie, ssh->ctx->hostkey->n,
+ 				ssh->ctx->servkey->n)) == NULL) {
++#endif
+ 		warn("ssh_session_id");
+ 		return (-1);
+ 	}
+@@ -328,10 +353,15 @@
+ 	}
+ 	/* Set cipher. */
+ 	if (cipher == SSH_CIPHER_3DES) {
++#if OPENSSL_VERSION_NUMBER >= 0x10100000L
++		warnx("cipher 3des no longer supported");
++		return (-1);
++#else
+ 		ssh->estate = des3_init(ssh->sesskey, sizeof(ssh->sesskey));
+ 		ssh->dstate = des3_init(ssh->sesskey, sizeof(ssh->sesskey));
+ 		ssh->encrypt = des3_encrypt;
+ 		ssh->decrypt = des3_decrypt;
++#endif
+ 	}
+ 	else if (cipher == SSH_CIPHER_BLOWFISH) {
+ 		ssh->estate = blowfish_init(ssh->sesskey,sizeof(ssh->sesskey));
+@@ -357,6 +387,10 @@
+ 	u_char *p, cipher, cookie[8], msg[1024];
+ 	u_int32_t num;
+ 	int i;
++#if OPENSSL_VERSION_NUMBER >= 0x10100000L
++	BIGNUM *servkey_n, *servkey_e;
++	BIGNUM *hostkey_n, *hostkey_e;
++#endif
+ 	
+ 	/* Get public key. */
+ 	if ((i = SSH_recv(ssh, pkt, sizeof(pkt))) <= 0) {
+@@ -379,21 +413,43 @@
+ 
+ 	/* Get servkey. */
+ 	ssh->ctx->servkey = RSA_new();
++#if OPENSSL_VERSION_NUMBER >= 0x10100000L
++	servkey_n = BN_new();
++	servkey_e = BN_new();
++	RSA_set0_key(ssh->ctx->servkey, servkey_n, servkey_e, NULL);
++#else
+ 	ssh->ctx->servkey->n = BN_new();
+ 	ssh->ctx->servkey->e = BN_new();
++#endif
+ 
+ 	SKIP(p, i, 4);
++#if OPENSSL_VERSION_NUMBER >= 0x10100000L
++	get_bn(servkey_e, &p, &i);
++	get_bn(servkey_n, &p, &i);
++#else
+ 	get_bn(ssh->ctx->servkey->e, &p, &i);
+ 	get_bn(ssh->ctx->servkey->n, &p, &i);
++#endif
+ 
+ 	/* Get hostkey. */
+ 	ssh->ctx->hostkey = RSA_new();
++#if OPENSSL_VERSION_NUMBER >= 0x10100000L
++	hostkey_n = BN_new();
++	hostkey_e = BN_new();
++	RSA_set0_key(ssh->ctx->hostkey, hostkey_n, hostkey_e, NULL);
++#else
+ 	ssh->ctx->hostkey->n = BN_new();
+ 	ssh->ctx->hostkey->e = BN_new();
++#endif
+ 
+ 	SKIP(p, i, 4);
++#if OPENSSL_VERSION_NUMBER >= 0x10100000L
++	get_bn(hostkey_e, &p, &i);
++	get_bn(hostkey_n, &p, &i);
++#else
+ 	get_bn(ssh->ctx->hostkey->e, &p, &i);
+ 	get_bn(ssh->ctx->hostkey->n, &p, &i);
++#endif
+ 
+ 	/* Get cipher, auth masks. */
+ 	SKIP(p, i, 4);
+@@ -405,8 +461,13 @@
+ 	RAND_bytes(ssh->sesskey, sizeof(ssh->sesskey));
+ 
+ 	/* Obfuscate with session id. */
++#if OPENSSL_VERSION_NUMBER >= 0x10100000L
++	if ((p = ssh_session_id(cookie, hostkey_n,
++				servkey_n)) == NULL) {
++#else
+ 	if ((p = ssh_session_id(cookie, ssh->ctx->hostkey->n,
+ 				ssh->ctx->servkey->n)) == NULL) {
++#endif
+ 		warn("ssh_session_id");
+ 		return (-1);
+ 	}
+@@ -422,7 +483,11 @@
+ 		else BN_add_word(bn, ssh->sesskey[i]);
+ 	}
+ 	/* Encrypt session key. */
++#if OPENSSL_VERSION_NUMBER >= 0x10100000L
++	if (BN_cmp(servkey_n, hostkey_n) < 0) {
++#else
+ 	if (BN_cmp(ssh->ctx->servkey->n, ssh->ctx->hostkey->n) < 0) {
++#endif
+ 		rsa_public_encrypt(bn, bn, ssh->ctx->servkey);
+ 		rsa_public_encrypt(bn, bn, ssh->ctx->hostkey);
+ 	}
+@@ -470,10 +535,15 @@
+ 		ssh->decrypt = blowfish_decrypt;
+ 	}
+ 	else if (cipher == SSH_CIPHER_3DES) {
++#if OPENSSL_VERSION_NUMBER >= 0x10100000L
++		warnx("cipher 3des no longer supported");
++		return (-1);
++#else
+ 		ssh->estate = des3_init(ssh->sesskey, sizeof(ssh->sesskey));
+ 		ssh->dstate = des3_init(ssh->sesskey, sizeof(ssh->sesskey));
+ 		ssh->encrypt = des3_encrypt;
+ 		ssh->decrypt = des3_decrypt;
++#endif
+ 	}
+ 	/* Get server response. */
+ 	if ((i = SSH_recv(ssh, pkt, sizeof(pkt))) <= 0) {
+--- dsniff-2.4/sshcrypto.c		2017-02-11 22:31:54.688270184 +0100
++++ dsniff-2.4/sshcrypto.c.openssl_110	2017-02-11 22:35:30.594555807 +0100
+@@ -28,10 +28,12 @@
+ 	u_char			iv[8];
+ };
+ 
++#if OPENSSL_VERSION_NUMBER < 0x10100000L
+ struct des3_state {
+ 	des_key_schedule	k1, k2, k3;
+ 	des_cblock		iv1, iv2, iv3;
+ };
++#endif
+ 
+ void
+ rsa_public_encrypt(BIGNUM *out, BIGNUM *in, RSA *key)
+@@ -39,10 +41,20 @@
+ 	u_char *inbuf, *outbuf;
+ 	int len, ilen, olen;
+ 
++#if OPENSSL_VERSION_NUMBER >= 0x10100000L
++	const BIGNUM *n, *e;
++	RSA_get0_key(key, &n, &e, NULL);
++	if (BN_num_bits(e) < 2 || !BN_is_odd(e))
++#else
+ 	if (BN_num_bits(key->e) < 2 || !BN_is_odd(key->e))
++#endif
+ 		errx(1, "rsa_public_encrypt() exponent too small or not odd");
+ 
++#if OPENSSL_VERSION_NUMBER >= 0x10100000L
++	olen = BN_num_bytes(n);
++#else
+ 	olen = BN_num_bytes(key->n);
++#endif
+ 	outbuf = malloc(olen);
+ 
+ 	ilen = BN_num_bytes(in);
+@@ -71,7 +83,13 @@
+ 	u_char *inbuf, *outbuf;
+ 	int len, ilen, olen;
+ 
++#if OPENSSL_VERSION_NUMBER >= 0x10100000L
++	const BIGNUM *n;
++	RSA_get0_key(key, &n, NULL, NULL);
++	olen = BN_num_bytes(n);
++#else
+ 	olen = BN_num_bytes(key->n);
++#endif
+ 	outbuf = malloc(olen);
+ 
+ 	ilen = BN_num_bytes(in);
+@@ -146,6 +164,7 @@
+ 	swap_bytes(dst, dst, len);
+ }
+ 
++#if OPENSSL_VERSION_NUMBER < 0x10100000L
+ /* XXX - SSH1's weirdo 3DES... */
+ void *
+ des3_init(u_char *sesskey, int len)
+@@ -194,3 +213,4 @@
+ 	des_ncbc_encrypt(dst, dst, len, dstate->k2, &dstate->iv2, DES_ENCRYPT);
+ 	des_ncbc_encrypt(dst, dst, len, dstate->k1, &dstate->iv1, DES_DECRYPT);
+ }
++#endif

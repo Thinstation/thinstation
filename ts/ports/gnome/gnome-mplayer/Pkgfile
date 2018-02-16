@@ -5,9 +5,9 @@
 # Depends on:  gtk mplayer dbus-glib
 
 name=gnome-mplayer
-version=1.0.7
+version=1.0.9b
 release=1
-source=(http://$name.googlecode.com/files/$name-$version.tar.gz)
+source=(https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/gnome-mplayer/gnome-mplayer-$version.tar.gz)
 
 build() {
     cd $name-$version
@@ -16,6 +16,7 @@ build() {
 
     make
     make DESTDIR=$PKG install
+    sed -i -r 's:"(/apps):"/org/gnome\1:g' $PKG/usr/share/glib-2.0/schemas/*.xml
     rm -rf $PKG/usr/share/doc
     rm -rf $PKG/usr/share/locale
 }

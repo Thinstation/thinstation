@@ -4,9 +4,9 @@
 # Depends on: libdrm, xorg-makedepend, xorg-glproto, xorg-xextproto, xorg-dri2proto, xorg-libx11, xorg-xf86vidmodeproto, xorg-libxext, xorg-libxxf86vm, xorg-libxt, xorg-libxdamage, xorg-libpciaccess, expat, talloc, libxml2-python
 
 name=mesa3d
-version=11.2.2
+version=17.1.5
 release=1
-source=(ftp://ftp.freedesktop.org/pub/mesa/${version}/mesa-$version.tar.xz)
+source=(ftp://ftp.freedesktop.org/pub/mesa/mesa-$version.tar.xz)
 
 build() {
     cd mesa-$version
@@ -14,10 +14,12 @@ build() {
     autoreconf --force --install
     ./autogen.sh --prefix=/usr \
 		--sysconfdir=/etc \
-                --with-gallium-drivers=i915,r300,r600,svga,radeonsi,swrast,nouveau \
+                --with-gallium-drivers=i915,nouveau,r300,r600,radeonsi,svga,swrast,swr,virgl \
 		--enable-xa \
 		--enable-glx-tls \
-		--with-egl-platforms="drm,x11" \
+		--with-dri-drivers=i915,i965,r200,radeon,nouveau,swrast \
+		--with-platforms=x11,drm \
+		--with-vulkan-drivers=intel,radeon \
 		--enable-r600-llvm-compiler \
 		--enable-llvm-shared-libs
 
@@ -29,6 +31,6 @@ build() {
 #		--enable-gbm \
 #		--enable-gallium-egl \
 #		--enable-gallium-gbm
-    make
+    make -j11
     make DESTDIR=$PKG install
 }

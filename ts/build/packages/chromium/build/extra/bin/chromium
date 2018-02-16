@@ -13,7 +13,12 @@ if [ -e ~/.proxy ] ; then
 		fi
 	fi
 fi
+if [ "`id -u`" == "0" ]; then
+	sandbox="--no-sandbox"
+else
+	unset sandbox
+fi
 
-exec /usr/lib/chromium/chromium $proxyline --user-data-dir "$@"
+exec /usr/lib/chromium/chromium $sandbox $proxyline --user-data-dir "$@"
 
 # End of file

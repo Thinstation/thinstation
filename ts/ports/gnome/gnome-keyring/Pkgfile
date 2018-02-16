@@ -4,26 +4,25 @@
 # Group: gnome/desktop
 
 name=gnome-keyring
-version=2.31.4
+version=3.20.0
 release=1
-source=(http://ftp.gnome.org/pub/GNOME/sources/$name/${version%.*}/$name-$version.tar.bz2)
+source=(http://ftp.gnome.org/pub/GNOME/sources/$name/${version%.*}/$name-$version.tar.xz)
 
 build() {
 	cd $name-$version
-	rm po/*.po
-	sed -i -e 's/USE_NLS=yes/USE_NLS=no/' \
-		-e 's/ENABLE_NLS 1/ENABLE_NLS 0/' configure
+
 	./configure --prefix=/usr \
 			--libexecdir=/usr/libexec \
+			--sysconfdir=/etc \
 			--disable-tests \
 			--disable-debug \
-			--disable-nls \
 			--enable-pam \
 			--with-root-certs=/etc/ssl/certs/ \
 			--enable-shared \
 			--disable-static
 
-	make
+	make -j1
 	make DESTDIR=$PKG install
+	sed -i -r 's:"(/desktop):"/org/gnome\1:g' $PKG/usr/share/glib-2.0/schemas/*.xml
 	rm -rf $PKG/usr/share/gtk-doc
 }
