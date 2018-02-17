@@ -3,21 +3,19 @@
 # Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 
 name=pavucontrol
-version=2.0
+version=3.0
 release=1
-source=(http://freedesktop.org/software/pulseaudio/$name/$name-$version.tar.xz
-	gtk-adjustment.patch)
+source=(http://freedesktop.org/software/pulseaudio/$name/$name-$version.tar.xz)
 
 build() {
 	cd $name-$version
-	patch -Np1 < ../gtk-adjustment.patch
+	CXXFLAGS="$CXXFLAGS -std=c++11"
 
   CXXFLAGS+=' -std=c++11'
 	./configure --prefix=/usr \
 			--sysconfdir=/etc \
 			--mandir=/usr/man \
-			--disable-nls \
-			--disable-gtk3
+			--disable-nls
 
 	make
 	make DESTDIR=$PKG install

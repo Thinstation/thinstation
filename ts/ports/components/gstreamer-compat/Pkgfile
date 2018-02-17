@@ -1,0 +1,30 @@
+# Description: Gstreamer is a library that allows the construction of graphs of media-handling components.
+# URL: http://gstreamer.freedesktop.org/
+# Maintainer: Daryl Fonseca-Holt, wyatt at prairieturtle dot ca
+# Packager: Matt Housh, jaeger at morpheus dot net
+# Depends on: glib libxml2 python gobject-introspection
+
+name=gstreamer-compat
+version=0.10.36
+release=3
+source=(http://gstreamer.freedesktop.org/src/gstreamer/gstreamer-$version.tar.xz
+	bison.patch)
+
+build() {
+	cd gstreamer-$version
+
+	patch -p1 -i $SRC/bison.patch
+
+	./configure \
+		--prefix=/usr \
+		--libexecdir=/usr/lib \
+		--disable-debug \
+		--disable-nls \
+		--disable-dependency-tracking \
+		--disable-valgrind \
+		--disable-examples
+  
+	make
+	make DESTDIR=$PKG install
+	rm -r $PKG/usr/share/gtk-doc
+}

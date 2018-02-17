@@ -3,13 +3,15 @@
 # Maintainer: None
 
 name=system-config-printer
-version=1.3.13
+version=1.4.8
 release=1
-source=(http://cyberelk.net/tim/data/$name/1.3/$name-$version.tar.xz)
+source=(https://github.com/zdohnal/$name/releases/download/v$version/$name-$version.tar.gz)
+source=(https://github.com/zdohnal/$name/archive/$version.tar.gz)
 
 build() {
 	cd $name-$version
 
+	./bootstrap
 	./configure --sysconfdir=/etc --prefix=/usr --with-udev-rules --disable-nls
 
 	make man_MANS=

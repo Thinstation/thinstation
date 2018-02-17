@@ -8,7 +8,8 @@ drwxr-xr-x	root/root	etc/rc.d/
 -rwxr-xr-x	root/root	etc/rc.d/cups-browsed
 drwxr-xr-x	root/root	usr/
 drwxr-xr-x	root/root	usr/bin/
-lrwxrwxrwx	root/root	usr/bin/foomatic-rip -> /usr/lib/cups/filter/foomatic-rip
+lrwxrwxrwx	root/root	usr/bin/driverless -> ../lib/cups/driver/driverless
+lrwxrwxrwx	root/root	usr/bin/foomatic-rip -> ../lib/cups/filter/foomatic-rip
 -rwxr-xr-x	root/root	usr/bin/ttfread
 drwxr-xr-x	root/root	usr/include/
 drwxr-xr-x	root/root	usr/include/cupsfilters/
@@ -16,6 +17,7 @@ drwxr-xr-x	root/root	usr/include/cupsfilters/
 -rw-r--r--	root/root	usr/include/cupsfilters/colormanager.h
 -rw-r--r--	root/root	usr/include/cupsfilters/driver.h
 -rw-r--r--	root/root	usr/include/cupsfilters/image.h
+-rw-r--r--	root/root	usr/include/cupsfilters/ppdgenerator.h
 -rw-r--r--	root/root	usr/include/cupsfilters/raster.h
 drwxr-xr-x	root/root	usr/include/fontembed/
 -rw-r--r--	root/root	usr/include/fontembed/bitset.h
@@ -27,14 +29,18 @@ drwxr-xr-x	root/root	usr/lib/
 drwxr-xr-x	root/root	usr/lib/cups/
 drwxr-xr-x	root/root	usr/lib/cups/backend/
 -rwxr-xr-x	root/root	usr/lib/cups/backend/beh
+lrwxrwxrwx	root/root	usr/lib/cups/backend/driverless -> ../driver/driverless
 -rwxr-xr-x	root/root	usr/lib/cups/backend/implicitclass
 -rwxr-xr-x	root/root	usr/lib/cups/backend/parallel
 -rwxr-xr-x	root/root	usr/lib/cups/backend/serial
+drwxr-xr-x	root/root	usr/lib/cups/driver/
+-rwxr-xr-x	root/root	usr/lib/cups/driver/driverless
 drwxr-xr-x	root/root	usr/lib/cups/filter/
 -rwxr-xr-x	root/root	usr/lib/cups/filter/bannertopdf
 -rwxr-xr-x	root/root	usr/lib/cups/filter/commandtoescpx
 -rwxr-xr-x	root/root	usr/lib/cups/filter/commandtopclx
 -rwxr-xr-x	root/root	usr/lib/cups/filter/foomatic-rip
+-rwxr-xr-x	root/root	usr/lib/cups/filter/gstopdf
 -rwxr-xr-x	root/root	usr/lib/cups/filter/gstopxl
 -rwxr-xr-x	root/root	usr/lib/cups/filter/gstoraster
 -rwxr-xr-x	root/root	usr/lib/cups/filter/imagetopdf
@@ -45,15 +51,15 @@ drwxr-xr-x	root/root	usr/lib/cups/filter/
 -rwxr-xr-x	root/root	usr/lib/cups/filter/pdftopdf
 -rwxr-xr-x	root/root	usr/lib/cups/filter/pdftops
 -rwxr-xr-x	root/root	usr/lib/cups/filter/pdftoraster
--rwxr-xr-x	root/root	usr/lib/cups/filter/pstopdf
 -rwxr-xr-x	root/root	usr/lib/cups/filter/rastertoescpx
+-rwxr-xr-x	root/root	usr/lib/cups/filter/rastertopclm
 -rwxr-xr-x	root/root	usr/lib/cups/filter/rastertopclx
 -rwxr-xr-x	root/root	usr/lib/cups/filter/rastertopdf
+-rwxr-xr-x	root/root	usr/lib/cups/filter/rastertops
 -rwxr-xr-x	root/root	usr/lib/cups/filter/sys5ippprinter
--rwxr-xr-x	root/root	usr/lib/cups/filter/textonly
 -rwxr-xr-x	root/root	usr/lib/cups/filter/texttopdf
 -rwxr-xr-x	root/root	usr/lib/cups/filter/texttops
--rwxr-xr-x	root/root	usr/lib/cups/filter/urftopdf
+-rwxr-xr-x	root/root	usr/lib/cups/filter/texttotext
 -rw-r--r--	root/root	usr/lib/libcupsfilters.a
 -rwxr-xr-x	root/root	usr/lib/libcupsfilters.la
 lrwxrwxrwx	root/root	usr/lib/libcupsfilters.so -> libcupsfilters.so.1.0.0
@@ -101,6 +107,7 @@ drwxr-xr-x	root/root	usr/share/cups/drv/
 -rw-r--r--	root/root	usr/share/cups/drv/cupsfilters.drv
 drwxr-xr-x	root/root	usr/share/cups/mime/
 -rw-r--r--	root/root	usr/share/cups/mime/cupsfilters-ghostscript.convs
+-rw-r--r--	root/root	usr/share/cups/mime/cupsfilters-poppler.convs
 -rw-r--r--	root/root	usr/share/cups/mime/cupsfilters.convs
 -rw-r--r--	root/root	usr/share/cups/mime/cupsfilters.types
 drwxr-xr-x	root/root	usr/share/cups/ppdc/
@@ -108,6 +115,7 @@ drwxr-xr-x	root/root	usr/share/cups/ppdc/
 -rw-r--r--	root/root	usr/share/cups/ppdc/pcl.h
 drwxr-xr-x	root/root	usr/share/man/
 drwxr-xr-x	root/root	usr/share/man/man1/
+-rw-r--r--	root/root	usr/share/man/man1/driverless.1.gz
 -rw-r--r--	root/root	usr/share/man/man1/foomatic-rip.1.gz
 drwxr-xr-x	root/root	usr/share/man/man5/
 -rw-r--r--	root/root	usr/share/man/man5/cups-browsed.conf.5.gz
@@ -122,4 +130,3 @@ drwxr-xr-x	root/root	usr/share/ppd/cupsfilters/
 -rw-r--r--	root/root	usr/share/ppd/cupsfilters/Ricoh-PDF_Printer-PDF.ppd
 -rw-r--r--	root/root	usr/share/ppd/cupsfilters/pxlcolor.ppd
 -rw-r--r--	root/root	usr/share/ppd/cupsfilters/pxlmono.ppd
--rw-r--r--	root/root	usr/share/ppd/cupsfilters/textonly.ppd

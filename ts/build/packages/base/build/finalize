@@ -1,15 +1,37 @@
 #base 00
 for i in /*; do
-  if [ $i != "/dev" ] && [ $i != "/proc" ]; then
+  if [ $i != "/dev" ] && [ $i != "/proc" ] && [ $i != "/tmp" ]; then
 #    chown -R root:root $i
     chmod -R g-w,o-w $i
   fi
 done
 mkdir -p /var/run/applications
 chmod -R g+w,o+w /var/run/applications
+chmod +t /var/run/applications
 if [ "`readlink /bin/su`" == "/bin/busybox" ]; then
 	chmod u+s /bin/busybox
 else
 	chmod u+s /bin/su
 fi
 chmod 640 /etc/securetty
+chmod 1777 /var/tmp
+ssl=-1
+crypto=-1
+for i in 2 1 0; do
+if [ -e /lib/libssl.so.1.0.$i ]; then
+	if [ $ssl != -1 ]; then
+		rm /lib/libssl.so.1.0.$i;
+		ln -s /lib/libssl.so.1.0.$ssl /lib/libssl.so.1.0.$i
+	else
+		ssl=$i
+	fi
+fi
+if [ -e /lib/libcrypto.so.1.0.$i ]; then
+	if [ $crypto != -1 ]; then
+		rm /lib/libcrypto.so.1.0.$i;
+		ln -s /lib/libcrypto.so.1.0.$crypto /lib/libcrypto.so.1.0.$i
+	else
+		crypto=$i
+	fi
+fi
+done

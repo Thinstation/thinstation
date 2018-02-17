@@ -1,0 +1,17 @@
+# Description: The Oil Runtime Compiler.
+# URL: https://gstreamer.freedesktop.org/projects/orc.html
+# Maintainer: Danny Rawlins, crux at romster dot me
+# Packager: Syl, syl at clyl dot net
+
+name=orc
+version=0.4.27
+release=1
+source=(http://gstreamer.freedesktop.org/src/$name/$name-$version.tar.xz)
+
+build() {
+	cd $name-$version
+	./configure --prefix=/usr
+	make
+	make DESTDIR=$PKG install
+	rm -r $PKG/usr/share/gtk-doc
+}

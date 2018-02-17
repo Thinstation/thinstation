@@ -4,9 +4,9 @@
 # Depends on:  acl tcp_wrappers libusb-compat libpng libtiff openssl poppler
 
 name=cups
-version=2.1.4
+version=2.2.6
 release=1
-source=(https://github.com/apple/cups/releases/download/release-$version/$name-$version-source.tar.gz
+source=(https://github.com/apple/cups/releases/download/v$version/$name-$version-source.tar.gz
         cups-config.patch cups)
 
 build () {
@@ -28,6 +28,7 @@ build () {
                 --without-{java,perl,php,python} \
                 --without-rcdir \
                 --with-optim="$CFLAGS" \
+		--disable-systemd \
                 --enable-{ssl,gnutls} \
                 --enable-tcp-wrappers \
                 --enable-acl \
