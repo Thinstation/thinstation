@@ -45,6 +45,7 @@ if ! pkg_initialized $PACKAGE; then
 	    VDITITLE=`replace_char "$VDITITLE" " " "_"`
 	    VDIPARAMS=/tmp/VDI$VDITITLE
 	    VDICONFIG=/etc/skel/.vmware/$VDITITLE.vdm
+	    VDIICON=`eval echo '$SESSION_'$x'_ICON'`
 	    touch $VDICONFIG
 	    # we need to pass the TS selected keyboard map through to rdesktop
 	    rdesktopoptions="-k $KEYBOARD_MAP"
@@ -57,8 +58,8 @@ if ! pkg_initialized $PACKAGE; then
 	      var="\$${session%%=*}"
 	      vdivalue=`eval echo $var`
 	      # fix for mixed case (case sensitive) parameters
-	      if [ "$vdioption" == "serverurl" ] ; then vdioption="serverURL" ; fi
-	      if [ "$vdioption" == "server" ] ; then vdioption="serverURL" ; fi
+	      if [ "$vdioption" == "serverurl" ] ; then vdioption="serverURL" ; VDISERVER=$vdivalue ; fi
+	      if [ "$vdioption" == "server" ] ; then vdioption="serverURL" ; VDISERVER=$vdivalue ; fi
 	      if [ "$vdioption" == "noninteractive" ] ; then vdioption="nonInteractive" ; fi
 	      if [ "$vdioption" == "desktopname" ] ; then vdioption="desktopName" ; fi
 	      if [ "$vdioption" == "domainname" ] ; then vdioption="domainName" ; fi
@@ -113,6 +114,11 @@ if ! pkg_initialized $PACKAGE; then
 	    echo "--rdesktopOptions='$rdesktopoptions'" >> $VDICONFIG
 	    if [ -n "$xfreerdpoptions" ]; then
 	      echo "--xfreerdpOptions='$xfreerdpoptions'" >> $VDICONFIG
+	    fi
+	    if is_disabled $VDIICON; then
+	      if [ -n "$VDISERVER" ]; then
+		echo "$VDISERVER" >> /etc/skel/.vmware/view-recent-brokers
+	      fi
 	    fi
   	  fi
 	  let x=x+1
