@@ -1,0 +1,101 @@
+#!/bin/bash
+export INSTANCE=$$
+
+state_checks()
+{
+	test $(id -u) -ne 0 && echo "please run as root" && exit 1
+}
+
+help()
+{
+	echo -e "
+	This script sets up a chroot with dev proc and sys
+
+	-h : Show this help message.
+	"
+}
+
+get_opts()
+{
+	until [ -z "$1" ] ; do
+		case $1 in
+		-h|--help)	help ; exit 255 ;;
+		*)		echo "Invalid Argument: $1" ; help ; exit 255 ;;
+		esac
+		shift
+	done
+}
+
+first_or_last()
+{
+	sessions="`ps x -o pid,ppid,comm |grep -e 'cast' |grep -v grep |grep -v $INSTANCE -c`"
+	return $sessions
+}
+
+mounted()
+{
+	if [ "`cat /proc/mounts |grep -e $PWD/$1 -c`" -ne "0" ]; then
+		return 0
+	else
+		return 1
+	fi
+}
+
+do_mounts()
+{
+	if ! mounted dev ; then mount --bind /dev dev ; fi
+	if ! mounted proc ; then mount -t proc proc proc ; fi
+	if ! mounted sys ; then mount -t sysfs none sys ; fi
+#	if ! mounted dev/pts ; then mount --bind /dev/pts dev/pts ; fi
+}
+
+launch_chroot()
+{
+	do_mounts
+	if first_or_last; then
+		if which dbus-uuidgen > /dev/null; then
+			mkdir -p var/lib/dbus
+			dbus-uuidgen --get > var/lib/dbus/machine-id
+		fi
+	fi
+	chroot_cmd="chroot"
+	$chroot_cmd $PWD
+	howdiditgo=$?
+	if first_or_last ; then
+		do_unmounts
+	fi
+}
+
+do_unmounts()
+{
+	for mount in dev/pts dev proc sys ; do
+		while mounted $mount ; do
+			umount $mount
+		done
+	done
+}
+
+main()
+{
+	get_opts $@
+	state_checks
+	launch_chroot
+	if [ -e dostage4 ] ; then
+		copy_host_essential
+		launch_chroot
+	fi
+	if [ -e installed ] ; then
+		rm installed
+		if [ "$install_only" == "true" ] ; then
+			exit 0
+		else
+			copy_host_essential
+			launch_chroot
+		fi
+	fi
+}
+
+trap "do_unmounts; exit 1" SIGINT SIGHUP SIGTERM
+main $@
+if [ "$howdiditgo" == "0" ] ; then echo -e "\nGoodbye. \n" ; fi
+exit $howdiditgo

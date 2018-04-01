@@ -4,11 +4,10 @@
 # Depends on:  nspr sqlite3
 
 name=nss
-version=3.25
+version=3.35
 release=1
-_version=$(echo $version |sed 's/\./_/g')
-source=(http://ftp.mozilla.org/pub/security/nss/releases/NSS_${_version}_RTM/src/$name-$version.tar.gz \
-        nss-config.in nss.pc.in)
+source=(http://ftp.mozilla.org/pub/security/nss/releases/NSS_${version//./_}_RTM/src/$name-$version.tar.gz \
+        nss-config.in nss.pc.in nss-util.pc.in nss-softokn.pc.in)
 
 build() {
 	cd $name-$version/
@@ -23,20 +22,23 @@ build() {
 	export NSS_ENABLE_ECC=1
 	export NSS_ENABLE_TLS_1_3=1
 	export BUILD_OPT=1
-	export XCFLAGS="${CFLAGS}"
+	export XCFLAGS="-Wno-error ${CFLAGS}"
 	export NSS_DISABLE_GTESTS=1
+	unset USE_64
 
 	make -j1 -C nss
 
-	install -d $PKG/usr/{bin,lib/pkgconfig,include/nss}
+	install -d $PKG/usr/{bin,lib/pkgconfig,include/nss/private}
 
 	cd dist/*.OBJ/bin
 	install -t "$PKG/usr/bin" *util shlibsign signtool signver ssltap
 	cd ../lib
 	install -t "$PKG/usr/lib" *.so
-	install -t "$PKG/usr/lib" -m644 libcrmf.a *.chk
+	install -t "$PKG/usr/lib" -m644 libcrmf.a libfreebl.a *.chk
 	cd ../../public/nss
 	install -t "$PKG/usr/include/nss" -m644 *.h
+	cd ../../private/nss
+	install -t "$PKG/usr/include/nss/private" -m644 blapi.h alghmac.h
 	install -m 0755 $SRC/nss-config.in $PKG/usr/bin/nss-config
 
 	_version=$(printf "%i.%i.%i" ${version//./ })
@@ -45,15 +47,17 @@ build() {
 	NSS_LIBS=`$PKG/usr/bin/nss-config --libs`
 	NSS_CFLAGS=`$PKG/usr/bin/nss-config --cflags`
 	NSPR_VERSION=`pkg-config --modversion nspr`
-	sed $SRC/nss.pc.in \
-		-e "s,%libdir%,/usr/lib," \
-		-e "s,%prefix%,/usr," \
-		-e "s,%exec_prefix%,/usr/bin," \
-		-e "s,%includedir%,/usr/include/nss," \
-		-e "s,%NSS_VERSION%,$version," \
-		-e "s,%NSPR_VERSION%,$NSPR_VERSION," \
-		-e "s,%FULL_NSS_LIBS%,$NSS_LIBS," \
-		-e "s,%FULL_NSS_CFLAGS%,$NSS_CFLAGS," > \
-	$PKG/usr/lib/pkgconfig/nss.pc
+	for module in nss nss-util nss-softokn; do
+		sed $SRC/$module.pc.in \
+			-e "s,%libdir%,/usr/lib," \
+			-e "s,%prefix%,/usr," \
+			-e "s,%exec_prefix%,/usr/bin," \
+			-e "s,%includedir%,/usr/include/nss," \
+			-e "s,%NSS_VERSION%,$version," \
+			-e "s,%NSPR_VERSION%,$NSPR_VERSION," \
+			-e "s,%FULL_NSS_LIBS%,$NSS_LIBS," \
+			-e "s,%FULL_NSS_CFLAGS%,$NSS_CFLAGS," > \
+		$PKG/usr/lib/pkgconfig/$module.pc
+	done
 
 }

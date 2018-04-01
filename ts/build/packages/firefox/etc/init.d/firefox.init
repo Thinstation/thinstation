@@ -24,6 +24,9 @@ init)
 		mkdir -p "$HOME/.mozilla/firefox/Crash Reports"
 		cp -Lrf /etc/firefox/crashreporter.ini "$HOME/.mozilla/firefox/Crash Reports/."
 	fi
+	if [ -e /etc/firefox/cert8.db ]; then
+		cp /etc/firefox/cert8.db $HOME/$HOME/.mozilla/firefox/TS.default
+	fi
 	FFPREFS=$HOME/.mozilla/firefox/TS.default/prefs.js
 	if [ ! -e $FFPREFS ] ; then
 	    if [ -z "$FF_HOMEPAGE" ]; then

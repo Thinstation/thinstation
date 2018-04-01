@@ -3,25 +3,43 @@
 # Maintainer:  Fredrik Rinnestam, fredrik at rinnestam dot se
 
 name=nspr
-version=4.12
+version=4.18
 release=1
-source=(http://ftp.mozilla.org/pub/mozilla.org/nspr/releases/v$version/src/$name-$version.tar.gz)
+source=(https://ftp.mozilla.org/pub/nspr/releases/v$version/src/$name-$version.tar.gz
+        $name.pc.in)
 
 build() {
+    local NSPR_LIBS NSPR_CFLAGS NSPR_VERSION
+
     cd $name-$version/nspr
-    sed -ri 's#^(RELEASE_BINS =).*#\1#' pr/src/misc/Makefile.in
 
     ./configure \
         --prefix=/usr \
         --libdir=/usr/lib \
         --includedir=/usr/include/nspr \
         --enable-optimize="$CFLAGS" \
-	--with-mozilla \
-	--with-pthreads \
+        --enable-64bit \
         --disable-debug
 
     make
     make DESTDIR=$PKG install
 
+    NSPR_LIBS=`./config/nspr-config --libs`
+    NSPR_CFLAGS=`./config/nspr-config --cflags`
+    NSPR_VERSION=`./config/nspr-config --version`
+
+    install -d $PKG/usr/lib/pkgconfig
+
+    sed $SRC/nspr.pc.in \
+        -e "s,@libdir@,/usr/lib," \
+        -e "s,@prefix@,/usr," \
+        -e "s,@exec_prefix@,/usr/bin," \
+        -e "s,@includedir@,/usr/include/nspr," \
+        -e "s,@NSPR_VERSION@,$NSPR_VERSION," \
+        -e "s,@FULL_NSPR_LIBS@,$NSPR_LIBS," \
+        -e "s,@FULL_NSPR_CFLAGS@,$NSPR_CFLAGS," > \
+        $PKG/usr/lib/pkgconfig/nspr.pc
+
+    rm $PKG/usr/bin/{compile-et.pl,prerr.properties}
     rm -r $PKG/usr/include/nspr/md
 }

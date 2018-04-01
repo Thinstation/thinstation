@@ -1,4 +1,6 @@
-package extensions-x
+#package foo2zjs
+package extensions
+
 ################################################
 ### ---     Thinstation Build Config     --- ###
 ################################################
@@ -60,14 +62,14 @@ package extensions-x
 #machine NT-A3500			# Foxconn AMD E-350 Barebone
 #machine NT-535				# Foxconn Intel D525 Barebone
 #machine Dell-FX170			# Dell FX170 D525 Atom Machine
-machine VMWare				# A good set of modules for a VmWare Virtual Machine
-machine Virtualbox-4.1			# A good set of modules for a Virtualbox Virtual Machine
-machine virtio
-machine qemu
+#machine VMWare				# A good set of modules for a VmWare Virtual Machine
+#machine Virtualbox-4.1			# A good set of modules for a Virtualbox Virtual Machine
+machine qemu				# A good set of modules for qemu
 #machine VIA-Epia-CLE266		# VIA Epia/Eden based on the the CLE266 chip. Rather common in thin clients a few years old
 #machine classic_generic		# Big list of modules that you can choose by unremarking them
 #machine IGEL-M300C                     # Igel CX700 Via
 #machine HP-t5135                       # HP CX700 Via
+#machine HP-t620						#HP t620 Thin Client
 #machine foxconn-nT-330i		# Foxconn nT 330i Barebone
 #machine foxconn-nT-435			# Foxconn nT 435 Barebone
 #machine foxconn-nT-535			# Foxconn nT 535 Barebone
@@ -128,7 +130,8 @@ package ntp			# Utility to obtain date & time from network
 #package sound-nasd		#  sound on your thin client from another computer or
                         	#  your remote session.
 package alsa
-package gnome-media
+#package pulseaudio		#Enable Pulse Audio Server. Required for Skype Virtualisation Pack in Horizon View Client 4.5+
+#package gnome-media
 #package gnome-network-properties
 package gnome-core
 package volumeicon
@@ -145,7 +148,7 @@ package gst-plugins-good
 #!!X related
 # --- XOrg 7.7
 #package xorg7-v4l
-package xorg7-vesa		#A fallback driver that works with almost everything. Does allow resolution changes
+#package xorg7-vesa		#A fallback driver that works with almost everything. Does allow resolution changes
 #package xorg7-vmware
 #package xorg7-ati		#ATI video driver for most modern ATI chipsets. Usually requires several firmwares
 #package xorg7-nouveau		#New opensource nvidia driver
@@ -153,7 +156,7 @@ package xorg7-vesa		#A fallback driver that works with almost everything. Does a
 #package xorg7_nvidia_64         # Additional 64bit module
 #package xorg7-openchrome	#Via Video Chipsets driver
 #package xorg7-intel		#Intel video driver for most modern chipsets except the GMA3500/3600
-package xorg7-qxl		#QEMU video driver
+package xorg7-qxl		#Qemu video driver
 #package xorg7-sis
 
 #!!Locale or localization files for keyboard and fonts.  (Language/Country)
@@ -183,7 +186,7 @@ package locale-en_US  # English-US
 
 #!Applications
 #!!Connection Package types.  Choose *at least* one!
-package freerdp		# X RDP Client - fork of rdesktop
+#package freerdp		# X RDP Client - fork of rdesktop
 #package rdesktop		# X RDP client for Windows Terminal Services (ver 1.7)
 #package vncviewer		# VNC client (vncviewer)
 #package xorg7vnc		# Remote Control Client Workstation
@@ -202,7 +205,7 @@ package freerdp		# X RDP Client - fork of rdesktop
 #package firefox_lowmem		# Firefox 3 for low resource machines
 #package firefox		# Firefox current Web Browser
 #package chrome			# Google Chrome Web Browser
-package chromium		# Chromium Web Browser
+#package chromium		# Chromium Web Browser
 #package kiosk			# Rkiosk Plugin for Firefox
 #package flash_lowmem		# Flash 9 browser plugin for firefox and low resource machines
 #package flash			# Flash Current
@@ -215,13 +218,14 @@ package chromium		# Chromium Web Browser
 #package mplayer		# DVD and video player
 #package vmview                 # VMware Open-View Client, no PCoIP
 #package vmviewpcoip            # VMware Open-View Client, PCOIP
+#package vmhorizonclient				# VMware Horizon Client 4.x
 #package xbmc			# XBMC Media Center for X
 #package evince			# X PDF Viewer
 
 #!!Window Managers. Choose no more than 1 window manager.
 # Not needed if you don t want to manage windows.
 #package openbox		# A spartin clean/fast window manager.
-#package xdesktop-kiosk		# A locked down desktop kiosk using the openbox wm (See packages/xdesktop-kiosk/build/conf for 
+#package xdesktop-kiosk		# A locked down desktop kiosk using the openbox wm (See packages/xdesktop-kiosk/build/conf for
 				# more help.
 #package icewm			# "ICEWM" window manager.  Makes TS a light workstation.
 #package icewm-theme-xp
@@ -335,9 +339,9 @@ package fonts-TTF-liberation
 param fastboot       true				# Mangles the filesystem a special way as to improve boot spead and reduce
 							# memory utilization. Cool/Dangerous . Harder to dubug other packages. (Finishing Touch)
 							# Set to 'true' to enable or 'lotsofmem' for slightly slower booting but no squash lag on app launch.
-#param tsuser         tsuser                            # Name of the user that thinstation will run as. Needs userauto package.
-#param tsuserpasswd   pleasechangeme			# Do Change! Console/telnet password for non-root
-
+param tsuser         tsuser                            # Name of the user that thinstation will run as. Needs userauto package.
+param tsuserpasswd   pleasechangeme			# Do Change! Console/telnet password for non-root
+package switchuser
 param rootpasswd     pleasechangeme			# Do Change!  Console/telnet password for root
                                         		# If this is enabled, Telnetd will be enabled.
 param xorgvncpasswd  pleasechangeme			# VNC Access Password
@@ -377,7 +381,7 @@ param desktop file:./backgrounds/Hive_Lite.jpg		# Custom image to load as deskto
 param defaultconfig  thinstation.conf.buildtime  	# The file with default setup.  No other config file is found
                                                  	#  during boot.
 param basename       thinstation     			# Used for all config/tftp/scp file names
-param basepath       ts5.6               		# Used to determine path to tftp/scp files
+param basepath       ts5.5               		# Used to determine path to tftp/scp files
 param baseurl        http://www.doncuppjr.net		# Used to determine url to wget files
 #param baseurl        http://192.168.78.17		# Used to determine url to wget/http files - your local web server
 #param baseurl        'http://${SERVER_IP}'		# Used to determine url to wget/http files - if you wan't to use a web server on the same server as the TFTP server

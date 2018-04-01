@@ -1,24 +1,27 @@
 # Description: Open source version of Google Chrome web browser.
 # URL: http://chromium.org/
-# Maintainer: Jose V Beneyto, sepen at crux dot nu
-# Packager: Tadeusz Sosnierz, tadzikes gmail com
+# Maintainer: CRUX System Team, core-ports at crux dot nu
 # Depends on: dbus-glib gperf gtk gtk3 libevent libexif libgcrypt ninja nodejs nss pciutils speech-dispatcher xorg-libxscrnsaver xorg-libxt yasm
 
 name=chromium
-version=59.0.3071.115
+version=64.0.3282.186
 release=1
-_freetype_rev=5a3490e054bda8a318ebde482
-source=(http://commondatastorage.googleapis.com/$name-browser-official/$name-$version.tar.xz \
-        $name.sh $name.desktop
-	0001-ClientNativePixmapFactoryDmabuf-uses-ioctl-instead-o.patch
-	0001-Fix-kernel-version-condition-for-including-dma-buf.h.patch
-	nosandboxwarning.patch)
+source=(https://commondatastorage.googleapis.com/$name-browser-official/$name-$version.tar.xz
+	last-commit-position.patch $name.sh
+	chromium-64.0.3282.119-constexpr-1.patch
+	chromium-use-fromUTF8-for-UnicodeString-construction.patch
+	chromium-omnibox-unescape-fragment.patch
+	chromium-skia-harmony.patch
+	chromium-memcpy-r0.patch
+	chromium-clang-r2.patch
+	chromium-cups-r0.patch
+	gcc5.patch)
 
 build() {
-export REPORT_KERNEL=4.9.33TS_SMP
+export REPORT_KERNEL=4.14.16TS_SMP
 export REPORT_ARCH=i686
-git clone https://chromium.googlesource.com/chromium/src/third_party/freetype2
-
+export CC="gcc -m32"
+export CXX="g++ -m32"
 if [ -e ../../google_api.key ]; then
         . ../../google_api.key
         API_KEY="-Dgoogle_api_key=$_google_api_key"
@@ -26,88 +29,144 @@ if [ -e ../../google_api.key ]; then
         CLIENT_SECRET="-Dgoogle_default_client_secret=$_google_default_client_secret"
 fi
 
-  cd $name-$version
-  ln -sf $SRC/freetype2 third_party/freetype/src
+	cd $name-$version
 
-  export CFLAGS="$CFLAGS $(pkg-config --cflags nspr)"
-  export LDFLAGS="$LDFLAGS $(pkg-config --libs nspr)"
+	if [ -n "$(pkginfo -i | grep '^ccache ')" ]; then
+		# Avoid falling back to preprocessor mode when sources contain time macros
+		export CCACHE_SLOPPINESS=time_macros
+	fi
 
-  # https://bugs.chromium.org/p/chromium/issues/detail?id=707604
-  patch -p1 -i $SRC/0001-ClientNativePixmapFactoryDmabuf-uses-ioctl-instead-o.patch
-  patch -p1 -i $SRC/0001-Fix-kernel-version-condition-for-including-dma-buf.h.patch
-  patch -p0 -i $SRC/nosandboxwarning.patch
+	export CFLAGS="$CFLAGS $(pkg-config --cflags nspr)"
+	export LDFLAGS="$LDFLAGS $(pkg-config --libs nspr)"
 
-  mkdir -p third_party/node/linux/node-linux-x64/bin
-  ln -s /usr/bin/node third_party/node/linux/node-linux-x64/bin/
+	# we don't use git sources
+	patch -p1 -i $SRC/last-commit-position.patch
 
-  # Fix a build issue with GCC-6
-#  sed 's/^config("compiler") {/&\ncflags_cc = [ "-fno-delete-null-pointer-checks" ]/' \
-#    -i build/config/linux/BUILD.gn
+	# Corrects error call to non-constexpr function
+	patch -p1 -i $SRC/chromium-64.0.3282.119-constexpr-1.patch
 
-  _gn_args=(
-    'blink_gc_plugin=false'
-    'clang_use_chrome_plugins=false'
-    'enable_hangout_services_extension=true'
-    'enable_nacl=false'
-    'enable_nacl_nonsfi=false'
-    'fatal_linker_warnings=false'
-    'ffmpeg_branding="Chrome"'
-    'is_clang=false'
-    'is_debug=false'
-    'linux_use_bundled_binutils=false'
-    'proprietary_codecs=true'
-    'remove_webcore_debug_symbols=true'
-    'symbol_level=0'
-    'treat_warnings_as_errors=false'
-    'use_gtk3=true'
-    'use_allocator="none"'
-    'use_cups=false'
-    'use_gconf=false'
-    'use_gnome_keyring=false'
-    'use_gold=false'
-    'use_kerberos=false'
-    'link_pulseaudio=true'
-    'use_sysroot=false'
-    'use_system_libjpeg=true'
-    "google_api_key=\"${_google_api_key}\""
-    "google_default_client_id=\"${_google_default_client_id}\""
-    "google_default_client_secret=\"${_google_default_client_secret}\""
-  )
+	# Fix for gcc5
+	patch -p1 -i $SRC/gcc5.patch
 
-  python2 tools/gn/bootstrap/bootstrap.py --gn-gen-args="${_gn_args[*]}"
-  out/Release/gn gen out/Release --args="${_gn_args[*]}" --script-executable=/usr/bin/python2
+	wget https://chromium.googlesource.com/chromium/src.git/+/$version?format=TEXT -O ../chromium-$version.txt
+	# https://crbug.com/710701
+	local _chrome_build_hash=$(base64 -d ../chromium-$version.txt |
+		grep -Po '^parent \K[0-9a-f]{40}$')
+	if [[ -z $_chrome_build_hash ]]; then
+		error "Unable to find Chrome build hash."
+		return 1
+	fi
+	echo "LASTCHANGE=$_chrome_build_hash-" >build/util/LASTCHANGE
 
-  # Ninja, by default, sets the number of jobs to the number of availalble threads
-#  local JOBS=$(awk 'BEGIN{RS="-j|--jobs="} NR==2 {print $1}' <<< $MAKEFLAGS)
-#  test -n "$JOBS" && export JOBS="-j $JOBS"
+	# https://chromium-review.googlesource.com/c/chromium/src/+/712575
+	# _flags+=('exclude_unwind_tables=true')
+	CFLAGS+='   -fno-unwind-tables -fno-asynchronous-unwind-tables'
+	CXXFLAGS+=' -fno-unwind-tables -fno-asynchronous-unwind-tables'
+	CPPFLAGS+=' -DNO_UNWIND_TABLES'
 
-  ninja $JOBS -C out/Release chrome chrome_sandbox
+	# https://crbug.com/772655
+	patch -p1 -i $SRC/chromium-use-fromUTF8-for-UnicodeString-construction.patch
 
-  install -m 0755 -D out/Release/chrome $PKG/usr/lib/$name/$name
-  install -m 4755 -o root -g root -D out/Release/chrome_sandbox $PKG/usr/lib/$name/chrome-sandbox
-  install -m 0644 -D out/Release/*.pak $PKG/usr/lib/$name
-  install -d $PKG/usr/lib/$name/locales
-  install -m 0644 out/Release/locales/en-US.pak $PKG/usr/lib/$name/locales
-  cp -a out/Release/resources $PKG/usr/lib/$name
-  install -m 0644 -D out/Release/chrome.1 $PKG/usr/share/man/man1/$name.1
+	# https://crbug.com/789163
+	patch -p1 -i $SRC/chromium-omnibox-unescape-fragment.patch
 
-  # fix v8 natives
-  cp -a out/Release/{natives,snapshot}_blob.bin $PKG/usr/lib/$name
+	# https://crbug.com/skia/6663#c10
+	patch -p4 -i $SRC/chromium-skia-harmony.patch
 
-  for size in 22 24 48 128 256; do
-      install -m 0644 -D chrome/app/theme/$name/product_logo_${size}.png \
-      $PKG/usr/share/icons/hicolor/${size}x${size}/apps/$name.png
-  done
+	# Fixes from Gentoo
+	patch -p1 -i $SRC/chromium-memcpy-r0.patch
+	patch -p1 -i $SRC/chromium-clang-r2.patch
+	patch -p1 -i $SRC/chromium-cups-r0.patch
 
-  # fix icu installation
-  cp -a out/Release/icudtl.dat $PKG/usr/lib/$name
+	mkdir -p third_party/node/linux/node-linux-x64/bin
+	ln -s /usr/bin/node third_party/node/linux/node-linux-x64/bin/
 
-  install -d $PKG/usr/share/pixmaps
-  ln -sf /usr/share/icons/hicolor/48x48/apps/$name.png $PKG/usr/share/pixmaps/$name.png
-  install -m 0644 -D $SRC/$name.desktop $PKG/usr/share/applications/$name.desktop
-  install -m 0755 -D $SRC/$name.sh $PKG/usr/bin/$name
+	local LIB
+	for LIB in libjpeg libjpeg_turbo yasm; do
+		find -type f -path "*third_party/$LIB/*" \
+			\! -path "*third_party/$LIB/chromium/*" \
+			\! -path "*third_party/$LIB/google/*" \
+			\! -path './base/third_party/icu/*' \
+			\! -path './third_party/yasm/run_yasm.py' \
+                        \! -regex '.*\.\(gn\|gni\|isolate\)' \
+			\! -path './third_party/freetype/src/src/psnames/pstables.h' \
+			-delete
+	done
 
-  mkdir -p $PKG/usr/lib/chromium/swiftshader/
-  ln -sf /usr/lib/libGLESv2.so $PKG/usr/lib/chromium/swiftshader/libGLESv2.so
-  ln -sf /usr/lib/libEGL.so $PKG/usr/lib/chromium/swiftshader/libEGL.so
+	/usr/bin/python2 build/linux/unbundle/replace_gn_files.py \
+		--system-libraries libjpeg libxml libevent yasm
+
+	/usr/bin/python2 third_party/libaddressinput/chromium/tools/update-strings.py
+
+	_gn_args=(
+		'host_cpu="x86"'
+		'target_cpu="x86"'
+		'v8_target_cpu="x86"'
+		'blink_gc_plugin=false'
+		'clang_use_chrome_plugins=false'
+		'enable_hangout_services_extension=true'
+		'enable_nacl=false'
+		'enable_swiftshader=false'
+		'fatal_linker_warnings=false'
+		'ffmpeg_branding="Chrome"'
+		'is_clang=false'
+		'is_debug=false'
+		'linux_use_bundled_binutils=false'
+		'use_custom_libcxx=false'
+		'proprietary_codecs=true'
+		'remove_webcore_debug_symbols=true'
+		'symbol_level=0'
+		'treat_warnings_as_errors=false'
+		'use_allocator="none"'
+		'use_cups=true'
+		'use_gconf=false'
+		'use_gnome_keyring=true'
+		'use_gold=false'
+		'use_kerberos=false'
+		'use_pulseaudio=true'
+		'use_sysroot=false'
+		"google_api_key=\"${_google_api_key}\""
+		"google_default_client_id=\"${_google_default_client_id}\""
+		"google_default_client_secret=\"${_google_default_client_secret}\""
+	)
+
+	/usr/bin/python2 tools/gn/bootstrap/bootstrap.py --gn-gen-args="${_gn_args[*]}"
+	out/Release/gn gen out/Release --args="${_gn_args[*]}" --script-executable=/usr/bin/python2
+JOBS=8
+	ninja -j ${JOBS-1} -C out/Release chrome chrome_sandbox
+
+	install -m 0755 -D out/Release/chrome $PKG/usr/lib/$name/$name
+	install -m 4755 -o root -g root -D out/Release/chrome_sandbox $PKG/usr/lib/$name/chrome-sandbox
+	install -m 0644 -D out/Release/*.pak $PKG/usr/lib/$name
+	install -d $PKG/usr/lib/$name/locales
+	install -m 0644 out/Release/locales/en-US.pak $PKG/usr/lib/$name/locales
+	cp -a out/Release/resources $PKG/usr/lib/$name
+
+	install -m 0644 -D chrome/installer/linux/common/desktop.template $PKG/usr/share/applications/$name.desktop
+	install -m 0644 -D chrome/app/resources/manpage.1.in $PKG/usr/share/man/man1/$name.1
+
+	sed -i \
+		-e "s/@@MENUNAME@@/Chromium/g" \
+		-e "s/@@PACKAGE@@/chromium/g" \
+		-e "s/@@USR_BIN_SYMLINK_NAME@@/chromium/g" \
+		$PKG/usr/share/applications/$name.desktop \
+		$PKG/usr/share/man/man1/$name.1
+
+	# fix v8 natives
+	cp -a out/Release/{natives,snapshot}_blob.bin $PKG/usr/lib/$name
+
+	for size in 16 32; do
+		install -m 0644 -D chrome/app/theme/default_100_percent/$name/product_logo_${size}.png \
+		$PKG/usr/share/icons/hicolor/${size}x${size}/apps/$name.png
+	done
+
+	for size in 22 24 48 64 128 256; do
+		install -m 0644 -D chrome/app/theme/$name/product_logo_${size}.png \
+		$PKG/usr/share/icons/hicolor/${size}x${size}/apps/$name.png
+	done
+
+	# fix icu installation
+	install -m 0644 -D out/Release/icudtl.dat $PKG/usr/lib/$name/icudtl.dat
+
+	install -m 0755 -D $SRC/$name.sh $PKG/usr/bin/$name
 }

@@ -64,8 +64,8 @@ syslinux()
 		else
 			echo_log "Debug not enabled, boot halted."
 	                force_splash_exit
-        	        halt
-        	fi
+		        halt
+		fi
 	fi
 	if [ -e $UPDATE ]; then
 		rm $FILE
@@ -130,6 +130,21 @@ pxelinux()
 isolinux()
 {
 	FILE=/mnt/cdrom0/"$squash_location"lib.squash
+	#wait for CD
+	local timeout=10
+        while [ "$BOOTABLE" != "TRUE" ] && [ "$timeout" -ne "0" ]; do
+		if mountpoint /mnt/cdrom0 >/dev/null 2>&1; then
+                        BOOTABLE=TRUE
+                else
+			BOOTABLE=FALSE
+			let timeout-=1
+			printf "\rWaiting for Storage -- $timeout"
+			sleep .5
+			mount -a 2>/dev/null
+		fi
+		printf "\n"
+	done
+
 	if [ ! -e $FILE ]; then
 		if [ -z $squash_location ]; then
 			filename=lib.squash
@@ -195,6 +210,10 @@ mount_squash()
 			fi
 			mount -o ro,loop -t squashfs /tmp/lib.squash /lib
 		fi
+	fi
+	if [ "$LM" == "4" ] && ! is_enabled $MEMORY_CONSTRAINED; then
+		sed -ie '/\/mnt\/cdrom0/d' /etc/fstab
+		umount /mnt/cdrom0
 	fi
 }
 

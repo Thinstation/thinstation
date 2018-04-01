@@ -1,9 +1,12 @@
-#include <bits/wordsize.h>
+/* llvm-config.h stub */
 
-#if __WORDSIZE == 32
-#include "llvm-config-32.h"
-#elif __WORDSIZE == 64
+#ifndef __STUB__LLVMCONFIG_H__
+#define __STUB__LLVMCONFIG_H__
+
+#if defined(__x86_64__)
 #include "llvm-config-64.h"
 #else
-#error "Unknown word size"
+#include "llvm-config-32.h"
+#endif
+
 #endif
