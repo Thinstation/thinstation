@@ -1,36 +1,36 @@
 # Description: Mesa 3D Graphics Library
 # URL: http://www.mesa3d.org
 # Maintainer: CRUX Xorg Team, xorg-ports at crux dot nu
-# Depends on: libdrm, xorg-makedepend, xorg-glproto, xorg-xextproto, xorg-dri2proto, xorg-libx11, xorg-xf86vidmodeproto, xorg-libxext, xorg-libxxf86vm, xorg-libxt, xorg-libxdamage, xorg-libpciaccess, expat, talloc, libxml2-python
+# Depends on: elfutils libdrm libvdpau llvm xorg-dri3proto xorg-glproto xorg-libxdamage xorg-libxshmfence xorg-libxvmc xorg-presentproto xorg-libxxf86vm
 
 name=mesa3d
-version=17.1.5
+version=17.3.5
 release=1
-source=(ftp://ftp.freedesktop.org/pub/mesa/mesa-$version.tar.xz)
+source=(https://mesa.freedesktop.org/archive/mesa-$version.tar.xz)
 
 build() {
-    cd mesa-$version
+	cd mesa-$version
 
-    autoreconf --force --install
-    ./autogen.sh --prefix=/usr \
+	export LDFLAGS="$LDFLAGS -lLLVM"
+
+	./configure \
+		--prefix=/usr \
 		--sysconfdir=/etc \
-                --with-gallium-drivers=i915,nouveau,r300,r600,radeonsi,svga,swrast,swr,virgl \
-		--enable-xa \
+		--enable-llvm \
+		--enable-gbm \
+		--enable-gles1 \
+		--enable-gles2 \
 		--enable-glx-tls \
-		--with-dri-drivers=i915,i965,r200,radeon,nouveau,swrast \
+		--enable-osmesa \
+		--enable-texture-float \
+		--enable-xa \
+		--enable-vdpau \
+		--enable-llvm-shared-libs \
+		--disable-dependency-tracking \
 		--with-platforms=x11,drm \
-		--with-vulkan-drivers=intel,radeon \
-		--enable-r600-llvm-compiler \
-		--enable-llvm-shared-libs
+		--with-gallium-drivers=r300,r600,svga,swrast,radeonsi,nouveau,virgl,swr  \
+		--with-vulkan-drivers=intel,radeon
 
-#   These are options that look like they'd normally be used for Mesa outside
-#   of Crux. Also, note that i915 is not typically a Gallium driver
-#		--enable-gles1 \
-#		--enable-gles2 \
-#		--enable-openvg \
-#		--enable-gbm \
-#		--enable-gallium-egl \
-#		--enable-gallium-gbm
-    make -j11
-    make DESTDIR=$PKG install
+	make
+	make DESTDIR=$PKG install
 }

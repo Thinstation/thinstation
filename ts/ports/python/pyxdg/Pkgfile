@@ -1,8 +1,8 @@
-# Description: Python library to access freedesktop.org standards.
-# URL: http://freedesktop.org/wiki/Software/pyxdg
+# Description: A language that lets writing C extensions for the Python language.
+# URL: http://www.cython.org/
 # Maintainer: Danny Rawlins, monster dot romster at gmail dot com
-# Packager: Antonio SJ Musumeci, bile at landofbile dot com
-# Depends on: python
+# Packager: Victor Martinez, pitillo at ono dot com
+# Depends on: setuptools
 
 name=pyxdg
 pname=pyxdg
@@ -11,11 +11,10 @@ release=1
 source=()
 
 build() {
-        pip install $name --download=$SRC --no-binary :all:
+        pip download $name --no-binary :all:
         mkdir -p $SRC/$name
-        tar -xvf $SRC/$pname*.tar.* -C $SRC/$name || unzip -d $SRC/$name $pname-*.zip
+        tar -xvf $SRC/$pname-*.* -C $SRC/$name || unzip -d $SRC/$name $pname-*.zip
         cd $SRC/$name/*
 
         python ./setup.py install --root $PKG
 }
-

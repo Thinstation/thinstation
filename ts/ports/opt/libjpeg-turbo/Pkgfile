@@ -1,0 +1,16 @@
+# Description:	Library of JPEG support functions.
+# URL:		http://www.libjpeg-turbo.org/
+# Maintainer:	Fredrik Rinnestam, fredrik at crux dot nu
+
+name=libjpeg-turbo
+version=1.5.3
+release=1
+source=(http://downloads.sourceforge.net/libjpeg-turbo/libjpeg-turbo-$version.tar.gz)
+
+build() {
+	cd $name-$version
+	./configure --prefix=/usr --with-jpeg8 --mandir=/usr/share/man
+	make
+	make DESTDIR=$PKG install
+	rm -r $PKG/usr/share/doc
+}

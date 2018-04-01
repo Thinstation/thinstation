@@ -1,18 +1,19 @@
 # Description: A fast, non-validating, stream-oriented XML parsing library
-# URL:         http://expat.sourceforge.net/
+# URL:         https://libexpat.github.io/
 # Maintainer:  Juergen Daubert, jue at crux dot nu
 
 name=expat
-version=2.0.1
-release=2
-source=(http://download.sourceforge.net/$name/$name-$version.tar.gz
-        expat-CVE-2009-3560.patch expat-CVE-2009-3720.patch)
+version=2.2.5
+release=1
+source=(http://download.sourceforge.net/$name/$name-$version.tar.bz2)
 
 build() { 
     cd $name-$version
-    patch -p0 -d lib -i $SRC/expat-CVE-2009-3560.patch
-    patch -p0 -d lib -i $SRC/expat-CVE-2009-3720.patch
+    
     ./configure --prefix=/usr
+    
     make
-    make prefix=$PKG/usr install
+    make DESTDIR=$PKG install
+
+    rm -r $PKG/usr/share/doc
 }

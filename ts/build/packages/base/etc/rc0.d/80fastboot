@@ -211,6 +211,10 @@ mount_squash()
 			mount -o ro,loop -t squashfs /tmp/lib.squash /lib
 		fi
 	fi
+	if [ "$LM" == "4" ] && ! is_enabled $MEMORY_CONSTRAINED; then
+		sed -ie '/\/mnt\/cdrom0/d' /etc/fstab
+		umount /mnt/cdrom0
+	fi
 }
 
 if ! is_disabled $FASTBOOT; then

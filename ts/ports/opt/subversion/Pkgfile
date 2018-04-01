@@ -2,27 +2,23 @@
 # URL: http://subversion.apache.org
 # Maintainer: Jose V Beneyto, sepen at crux dot nu
 # Packager: Simone Rota, sip at crux dot nu
-# Depends on: apr neon expat sqlite3
+# Depends on: serf
 
 name=subversion
-version=1.9.5
+version=1.9.7
 release=1
-source=(http://www.apache.org/dist/$name/$name-$version.tar.bz2 \
-	subversion.rpath.fix.patch \
-	ruby-frozen-nil.patch)
+source=(https://www.apache.org/dist/$name/$name-$version.tar.bz2)
 
 build() {
     cd $name-$version
 
-    patch -p1 -i $SRC/ruby-frozen-nil.patch
-    patch -p0 -i $SRC/subversion.rpath.fix.patch
-
     ./configure --prefix=/usr \
-       --mandir=/usr/man \
-       --with-apr=/usr --with-apr-util=/usr --with-neon=/usr \
-       --disable-mod-activation --without-swig --disable-nls \
-       --disable-neon-version-check \
-       --without-apxs
+                --with-apr=/usr \
+                --with-apr-util=/usr \
+                --without-swig \
+                --without-apxs \
+                --disable-mod-activation \
+                --disable-nls
 
     make
     make -j1 DESTDIR=$PKG install
