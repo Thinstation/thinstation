@@ -38,13 +38,16 @@ package_path()
 {
 	if [ "$temp_folder" != "" ] ; then
 		pkgpath="$temp_folder/$package"
+		return 0
 	else
 		pkgpath="$TSWRKNG/packages/$package"
 		for work in $TSWRKNG $XTRWRKNG; do
 			if [ -d "$work/packages/$package" ]; then
 				pkgpath="$work/packages/$package"
+				return 0
 			fi
 		done
+		return 1
 	fi
 }
 
@@ -177,11 +180,12 @@ remove_empty()
 
 clean()
 {
-	if [ -n "$PACKAGE" ] && [ -e ./packages/$PACKAGE ]; then
-		for object in `ls -A --color=never ./packages/$PACKAGE |grep -E -v 'build|.dna|.gitignore|dependencies'`; do
-			rm -rf ./packages/$PACKAGE/$object
+	package=$PACKAGE
+	if [ -n "$PACKAGE" ] && package_path; then
+		for object in `ls -A --color=never $pkgpath |grep -E -v 'build|.dna|.gitignore|dependencies'`; do
+			rm -rf $pkgpath/$object
 		done
-		rm -f ./packages/$PACKAGE/build/installed
+		rm -f $pkgpath/build/installed
 	else
 		echo "$PACKAGE does not exist"
 		exit 1
