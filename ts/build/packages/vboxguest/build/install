@@ -2,7 +2,7 @@
 
 isoname=`basename $1`
 INSTALLDIR=./packages/vboxguest
-xserver=118
+xserver=119
 release=`cat /boot/KERNEL_VERSION`
 release=${release%TS}
 
@@ -77,9 +77,9 @@ for kernel in ${release}TS ${release}TS_SMP; do
   vbox=vbox
   if [ "$kernel" != "${release}TS_64" ]; then
   do_module $kernel vboxguest $vbox
-  do_module $kernel vboxvideo $vbox
-  fi
   do_module $kernel vboxsf $vbox
+  fi
+  do_module $kernel vboxvideo $vbox
 done
 
 # Don't wine so much when were not in a VBox VM

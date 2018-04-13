@@ -7,10 +7,12 @@ name=glib
 version=2.54.3
 release=1
 source=(http://download.gnome.org/sources/$name/${version:0:4}/$name-$version.tar.xz \
-	gschemas.compiled)
+	gschemas.compiled \
+        0001-Fix-trashing-on-overlayfs.patch)
 
 build () {
     cd $name-$version
+    patch -Np1 < ../0001-Fix-trashing-on-overlayfs.patch
 
     ./configure --prefix=/usr \
                 --disable-man \

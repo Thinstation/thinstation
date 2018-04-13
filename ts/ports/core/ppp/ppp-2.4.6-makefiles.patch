@@ -1,15 +1,6 @@
 diff -Nur ppp-2.4.6.orig/chat/Makefile.linux ppp-2.4.6/chat/Makefile.linux
 --- ppp-2.4.6.orig/chat/Makefile.linux	2014-01-02 05:42:08.000000000 +0100
 +++ ppp-2.4.6/chat/Makefile.linux	2014-02-24 09:00:16.666577906 +0100
-@@ -1,7 +1,7 @@
- #	$Id: Makefile.linux,v 1.15 2006/06/04 05:07:46 paulus Exp $
- 
- DESTDIR = $(INSTROOT)@DESTDIR@
--BINDIR = $(DESTDIR)/sbin
-+BINDIR = $(DESTDIR)/bin
- MANDIR = $(DESTDIR)/share/man/man8
- 
- CDEF1=	-DTERMIOS			# Use the termios structure
 @@ -10,7 +10,8 @@
  CDEF4=	-DFNDELAY=O_NDELAY		# Old name value
  CDEFS=	$(CDEF1) $(CDEF2) $(CDEF3) $(CDEF4)
@@ -44,30 +35,9 @@ diff -Nur ppp-2.4.6.orig/configure ppp-2.4.6/configure
      fi
  }
  
-diff -Nur ppp-2.4.6.orig/linux/Makefile.top ppp-2.4.6/linux/Makefile.top
---- ppp-2.4.6.orig/linux/Makefile.top	2014-01-02 05:42:08.000000000 +0100
-+++ ppp-2.4.6/linux/Makefile.top	2014-02-24 09:00:16.743242620 +0100
-@@ -1,7 +1,7 @@
- # PPP top-level Makefile for Linux.
- 
- DESTDIR = $(INSTROOT)@DESTDIR@
--BINDIR = $(DESTDIR)/sbin
-+BINDIR = $(DESTDIR)/bin
- INCDIR = $(DESTDIR)/include
- MANDIR = $(DESTDIR)/share/man
- ETCDIR = $(INSTROOT)@SYSCONF@/ppp
 diff -Nur ppp-2.4.6.orig/pppd/Makefile.linux ppp-2.4.6/pppd/Makefile.linux
 --- ppp-2.4.6.orig/pppd/Makefile.linux	2014-01-02 05:42:08.000000000 +0100
 +++ ppp-2.4.6/pppd/Makefile.linux	2014-02-24 09:00:16.743242620 +0100
-@@ -5,7 +5,7 @@
- 
- # Default installation locations
- DESTDIR = $(INSTROOT)@DESTDIR@
--BINDIR = $(DESTDIR)/sbin
-+BINDIR = $(DESTDIR)/bin
- MANDIR = $(DESTDIR)/share/man/man8
- INCDIR = $(DESTDIR)/include
- 
 @@ -32,7 +32,8 @@
  
  # CC = gcc
@@ -92,7 +62,7 @@ diff -Nur ppp-2.4.6.orig/pppd/plugins/Makefile.linux ppp-2.4.6/pppd/plugins/Make
  
  DESTDIR = $(INSTROOT)@DESTDIR@
 -BINDIR = $(DESTDIR)/sbin
-+BINDIR = $(DESTDIR)/bin
++BINDIR = $(DESTDIR)/sbin
  MANDIR = $(DESTDIR)/share/man/man8
  LIBDIR = $(DESTDIR)/lib/pppd/$(VERSION)
  
@@ -154,7 +124,7 @@ diff -Nur ppp-2.4.6.orig/pppd/plugins/radius/Makefile.linux ppp-2.4.6/pppd/plugi
  
  PLUGIN=radius.so radattr.so radrealms.so
 -CFLAGS=-I. -I../.. -I../../../include -O2 -fPIC -DRC_LOG_FACILITY=LOG_DAEMON
-+CFLAGS=@CFLAGS@ -I. -I../.. -I../../../include -O2 -fPIC -DRC_LOG_FACILITY=LOG_DAEMON
++CFLAGS=@CFLAGS@ -I. -I../.. -I../../../include -fPIC -DRC_LOG_FACILITY=LOG_DAEMON
 +LDFLAGS=@LDFLAGS@
  
  # Uncomment the next line to include support for Microsoft's
@@ -179,15 +149,6 @@ diff -Nur ppp-2.4.6.orig/pppd/plugins/radius/Makefile.linux ppp-2.4.6/pppd/plugi
 diff -Nur ppp-2.4.6.orig/pppd/plugins/rp-pppoe/Makefile.linux ppp-2.4.6/pppd/plugins/rp-pppoe/Makefile.linux
 --- ppp-2.4.6.orig/pppd/plugins/rp-pppoe/Makefile.linux	2014-01-02 05:42:08.000000000 +0100
 +++ ppp-2.4.6/pppd/plugins/rp-pppoe/Makefile.linux	2014-02-24 09:00:16.809907637 +0100
-@@ -15,7 +15,7 @@
- #***********************************************************************
- 
- DESTDIR = $(INSTROOT)@DESTDIR@
--BINDIR = $(DESTDIR)/sbin
-+BINDIR = $(DESTDIR)/bin
- LIBDIR = $(DESTDIR)/lib/pppd/$(PPPDVERSION)
- 
- PPPDVERSION = $(shell awk -F '"' '/VERSION/ { print $$2; }' ../../patchlevel.h)
 @@ -25,12 +25,14 @@
  # Version is set ONLY IN THE MAKEFILE!  Don't delete this!
  RP_VERSION=3.8p
@@ -220,7 +181,7 @@ diff -Nur ppp-2.4.6.orig/pppdump/Makefile.linux ppp-2.4.6/pppdump/Makefile.linux
 @@ -1,8 +1,9 @@
  DESTDIR = $(INSTROOT)@DESTDIR@
 -BINDIR = $(DESTDIR)/sbin
-+BINDIR = $(DESTDIR)/bin
++BINDIR = $(DESTDIR)/sbin
  MANDIR = $(DESTDIR)/share/man/man8
  
 -CFLAGS= -O -I../include/net
@@ -246,7 +207,7 @@ diff -Nur ppp-2.4.6.orig/pppstats/Makefile.linux ppp-2.4.6/pppstats/Makefile.lin
  #
  DESTDIR = $(INSTROOT)@DESTDIR@
 -BINDIR = $(DESTDIR)/sbin
-+BINDIR = $(DESTDIR)/bin
++BINDIR = $(DESTDIR)/sbin
  MANDIR = $(DESTDIR)/share/man/man8
  
  PPPSTATSRCS = pppstats.c

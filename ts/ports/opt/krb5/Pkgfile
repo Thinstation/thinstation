@@ -4,12 +4,14 @@
 # Depends on:
 
 name=krb5
-version=1.15.1
+version=1.15.2
 release=1
-source=(http://web.mit.edu/kerberos/dist/krb5/${version%.*}/krb5-${version}.tar.gz)
+source=(http://web.mit.edu/kerberos/dist/krb5/${version%.*}/krb5-${version}.tar.gz pkinit_errors.patch)
 
 build() {
     	cd $name-$version/src
+	patch -Np1 < $SRC/pkinit_errors.patch
+
 
 	sed -e "s@python2.5/Python.h@& python2.7/Python.h@g" -e "s@-lpython2.5]@&,\n  AC_CHECK_LIB(python2.7,main,[PYTHON_LIB=-lpython2.7])@g" -i configure.in
 	sed -e "s@interp->result@Tcl_GetStringResult(interp)@g" \

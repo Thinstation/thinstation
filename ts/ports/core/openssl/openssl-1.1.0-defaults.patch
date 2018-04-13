@@ -1,0 +1,51 @@
+diff -up openssl-1.1.0-pre5/apps/openssl.cnf.defaults openssl-1.1.0-pre5/apps/openssl.cnf
+--- openssl-1.1.0-pre5/apps/openssl.cnf.defaults	2016-04-19 16:57:52.000000000 +0200
++++ openssl-1.1.0-pre5/apps/openssl.cnf	2016-07-18 14:22:08.252691017 +0200
+@@ -72,7 +72,7 @@ cert_opt 	= ca_default		# Certificate fi
+ 
+ default_days	= 365			# how long to certify for
+ default_crl_days= 30			# how long before next CRL
+-default_md	= default		# use public key default MD
++default_md	= sha256		# use SHA-256 by default
+ preserve	= no			# keep passed DN ordering
+ 
+ # A few difference way of specifying how similar the request should look
+@@ -104,6 +104,7 @@ emailAddress		= optional
+ ####################################################################
+ [ req ]
+ default_bits		= 2048
++default_md		= sha256
+ default_keyfile 	= privkey.pem
+ distinguished_name	= req_distinguished_name
+ attributes		= req_attributes
+@@ -126,17 +127,18 @@ string_mask = utf8only
+ 
+ [ req_distinguished_name ]
+ countryName			= Country Name (2 letter code)
+-countryName_default		= AU
++countryName_default		= XX
+ countryName_min			= 2
+ countryName_max			= 2
+ 
+ stateOrProvinceName		= State or Province Name (full name)
+-stateOrProvinceName_default	= Some-State
++#stateOrProvinceName_default	= Default Province
+ 
+ localityName			= Locality Name (eg, city)
++localityName_default		= Default City
+ 
+ 0.organizationName		= Organization Name (eg, company)
+-0.organizationName_default	= Internet Widgits Pty Ltd
++0.organizationName_default	= Default Company Ltd
+ 
+ # we can do this but it is not needed normally :-)
+ #1.organizationName		= Second Organization Name (eg, company)
+@@ -145,7 +147,7 @@ localityName			= Locality Name (eg, city
+ organizationalUnitName		= Organizational Unit Name (eg, section)
+ #organizationalUnitName_default	=
+ 
+-commonName			= Common Name (e.g. server FQDN or YOUR name)
++commonName			= Common Name (eg, your name or your server\'s hostname)
+ commonName_max			= 64
+ 
+ emailAddress			= Email Address

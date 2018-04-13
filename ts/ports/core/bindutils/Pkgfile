@@ -4,13 +4,14 @@
 # Depends on:  openssl
 
 name=bindutils
-version=9.11.2
+version=9.12.0
 release=1
 source=(ftp://ftp.isc.org/isc/bind9/$version/bind-$version.tar.gz)
 
 build() {
     cd bind-$version
 
+    sed -i -e "s/json\.h/json_config.h/" configure
     ./configure --prefix=/usr \
                 --disable-linux-caps \
                 --with-libxml2=no

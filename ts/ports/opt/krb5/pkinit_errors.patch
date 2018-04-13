@@ -1,0 +1,35 @@
+--- a/plugins/preauth/pkinit/pkinit_crypto_openssl.c	2017-11-07 17:18:42.868904188 +0000
++++ b/plugins/preauth/pkinit/pkinit_crypto_openssl.c	2017-11-07 17:23:03.474755127 +0000
+@@ -1668,6 +1668,7 @@
+         i = X509_verify_cert(cert_ctx);
+         if (i <= 0) {
+             int j = X509_STORE_CTX_get_error(cert_ctx);
++            unsigned int k = 0;
+             X509 *cert;
+ 
+             cert = X509_STORE_CTX_get_current_cert(cert_ctx);
+@@ -1693,17 +1694,17 @@
+             else
+                 X509_NAME_oneline(X509_get_subject_name(reqctx->received_cert),
+                                   buf, sizeof(buf));
+-            pkiDebug("problem with cert DN = %s (error=%d) %s\n", buf, j,
++            printf("problem with cert DN = %s (error=%d) %s\n", buf, j,
+                      X509_verify_cert_error_string(j));
+-#ifdef DEBUG_CERTCHAIN
+             size = sk_X509_num(signerCerts);
+-            pkiDebug("received cert chain of size %d\n", size);
+-            for (j = 0; j < size; j++) {
+-                X509 *tmp_cert = sk_X509_value(signerCerts, j);
++            printf("received cert chain of size %d\n", size);
++            for (k = 0; k < size; k++) {
++                X509 *tmp_cert = sk_X509_value(signerCerts, k);
+                 X509_NAME_oneline(X509_get_subject_name(tmp_cert), buf, sizeof(buf));
+-                pkiDebug("cert #%d: %s\n", j, buf);
++                printf("cert #%d: %s\n", k, buf);
++                X509_NAME_oneline(X509_get_issuer_name(tmp_cert), buf, sizeof(buf));
++                printf("  issuer: %s\n", buf);
+             }
+-#endif
+         } else {
+             /* retrieve verified certificate chain */
+             if (cms_msg_type == CMS_SIGN_CLIENT || cms_msg_type == CMS_SIGN_DRAFT9)
