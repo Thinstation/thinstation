@@ -1,0 +1,73 @@
+diff -up openssl-1.1.0f/Configurations/unix-Makefile.tmpl.build openssl-1.1.0f/Configurations/unix-Makefile.tmpl
+--- openssl-1.1.0f/Configurations/unix-Makefile.tmpl.build	2017-06-02 13:51:39.621289504 +0200
++++ openssl-1.1.0f/Configurations/unix-Makefile.tmpl	2017-06-02 13:54:45.298654812 +0200
+@@ -553,7 +553,7 @@ uninstall_runtime:
+ install_man_docs:
+ 	@[ -n "$(INSTALLTOP)" ] || (echo INSTALLTOP should not be empty; exit 1)
+ 	@echo "*** Installing manpages"
+-	$(PERL) $(SRCDIR)/util/process_docs.pl \
++	TZ=UTC $(PERL) $(SRCDIR)/util/process_docs.pl \
+ 		--destdir=$(DESTDIR)$(MANDIR) --type=man --suffix=$(MANSUFFIX)
+ 
+ uninstall_man_docs:
+@@ -565,7 +565,7 @@ uninstall_man_docs:
+ install_html_docs:
+ 	@[ -n "$(INSTALLTOP)" ] || (echo INSTALLTOP should not be empty; exit 1)
+ 	@echo "*** Installing HTML manpages"
+-	$(PERL) $(SRCDIR)/util/process_docs.pl \
++	TZ=UTC $(PERL) $(SRCDIR)/util/process_docs.pl \
+ 		--destdir=$(DESTDIR)$(HTMLDIR) --type=html
+ 
+ uninstall_html_docs:
+diff -up openssl-1.1.0f/Configurations/10-main.conf.build openssl-1.1.0f/Configurations/10-main.conf
+--- openssl-1.1.0f/Configurations/10-main.conf.build	2017-05-25 14:46:17.000000000 +0200
++++ openssl-1.1.0f/Configurations/10-main.conf	2017-06-02 13:51:39.622289528 +0200
+@@ -662,6 +662,7 @@ sub vms_info {
+         cflags           => add("-m64 -DL_ENDIAN"),
+         perlasm_scheme   => "linux64le",
+         shared_ldflag    => add("-m64"),
++        multilib         => "64",
+     },
+ 
+     "linux-armv4" => {
+@@ -702,6 +703,7 @@ sub vms_info {
+     "linux-aarch64" => {
+         inherit_from     => [ "linux-generic64", asm("aarch64_asm") ],
+         perlasm_scheme   => "linux64",
++        multilib         => "64",
+     },
+     "linux-arm64ilp32" => {  # https://wiki.linaro.org/Platform/arm64-ilp32
+         inherit_from     => [ "linux-generic32", asm("aarch64_asm") ],
+diff -up openssl-1.1.0g/test/evptests.txt.build openssl-1.1.0g/test/evptests.txt
+--- openssl-1.1.0g/test/evptests.txt.build	2017-11-02 15:29:05.000000000 +0100
++++ openssl-1.1.0g/test/evptests.txt	2017-11-03 16:37:01.253671494 +0100
+@@ -3707,14 +3707,6 @@ MCowBQYDK2VuAyEA3p7bfXt9wbTTW2HC7OQ1Nz+D
+ 
+ PrivPubKeyPair = Bob-25519:Bob-25519-PUBLIC
+ 
+-Derive=Alice-25519
+-PeerKey=Bob-25519-PUBLIC
+-SharedSecret=4A5D9D5BA4CE2DE1728E3BF480350F25E07E21C947D19E3376F09B3C1E161742
+-
+-Derive=Bob-25519
+-PeerKey=Alice-25519-PUBLIC
+-SharedSecret=4A5D9D5BA4CE2DE1728E3BF480350F25E07E21C947D19E3376F09B3C1E161742
+-
+ # Illegal sign/verify operations with X25519 key
+ 
+ Sign=Alice-25519
+@@ -3727,6 +3719,14 @@ Result = KEYOP_INIT_ERROR
+ Function = EVP_PKEY_verify_init
+ Reason = operation not supported for this keytype
+ 
++Derive=Alice-25519
++PeerKey=Bob-25519-PUBLIC
++SharedSecret=4A5D9D5BA4CE2DE1728E3BF480350F25E07E21C947D19E3376F09B3C1E161742
++
++Derive=Bob-25519
++PeerKey=Alice-25519-PUBLIC
++SharedSecret=4A5D9D5BA4CE2DE1728E3BF480350F25E07E21C947D19E3376F09B3C1E161742
++
+ ## ECDH Tests: test with randomly generated keys for all the listed curves
+ 
+ 

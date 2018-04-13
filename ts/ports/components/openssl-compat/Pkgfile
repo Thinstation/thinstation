@@ -4,13 +4,13 @@
 
 name=openssl-compat
 version=1.0.2n
-release=1
+release=fips2016
 source=(http://www.openssl.org/source/openssl-$version.tar.gz)
 
 build() {
     cd openssl-$version
     export MAKEFLAGS="$MAKEFLAGS -j1"
-    ./config --prefix=/usr --libdir=lib/openssl-1.0 --openssldir=/etc/ssl shared
+    ./config --prefix=/usr --libdir=lib/openssl-1.0 --openssldir=/etc/ssl fips shared
     sed -i "s|-O3|$CFLAGS|" Makefile
     sed -i "s|SHLIB_VERSION_NUMBER\=.*|SHLIB_VERSION_NUMBER=1.0.2|" Makefile
     sed -i "s|SHLIB_MINOR\=.*|SHLIB_MINOR=0.2|" Makefile
