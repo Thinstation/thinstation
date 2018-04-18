@@ -1,0 +1,54 @@
+#!/bin/bash
+
+. /etc/thinstation.env
+. $TS_GLOBAL
+
+LOGGERTAG="autoruns"
+
+
+runCommand()
+{
+    let x=0
+    #echo "`eval echo '$'${1}'_'$x`"
+
+    while [ -n "`eval echo '$'${1}'_'$x`" ] ; do
+        # grab the command into a variable
+        cmd=`eval echo '$'${1}'_'$x`
+        
+        logger --stderr --tag $LOGGERTAG "runCommand: Executing '${1}_$x' command: '$cmd'"
+
+        # execute the command
+        $cmd
+
+        let x=x+1
+    done
+}
+
+#####
+# Main script
+##
+
+
+case "$1" in
+
+    rc5)
+        runCommand AUTORUNS_RC5
+    ;;
+
+
+
+    xfce)
+        runCommand AUTORUNS_XFCE
+    ;;
+
+
+
+    *)
+        echo "Runs commands stored in variables AUTORUNS_<type>_<x> where <type> is either RC5 or XFCE and <x> is count from 0"
+        echo "Example of variables in thinstation.conf.network: AUTORUNS_XFCE_0=\"My_command_to_execute\""
+        echo "Usage: $0 {rc5|xfce}"
+        exit 1
+    ;;
+esac
+
+exit 0

@@ -1,0 +1,20 @@
+# Description: A library to handle keyboard descriptions.
+# URL: https://xkbcommon.org/
+# Maintainer: Danny Rawlins, crux at romster dot me
+# Depends on: xkeyboard-config
+
+name=libxkbcommon
+version=0.7.1
+release=1
+source=(https://xkbcommon.org/download/$name-$version.tar.xz)
+
+build() {
+	cd $name-$version
+
+	./configure \
+		--prefix=/usr \
+		--disable-docs
+
+	make
+	make DESTDIR=$PKG install
+}

@@ -1,0 +1,848 @@
+#!/bin/bash
+
+# Set resolution with setres and save it in local profile for next reboot.
+
+. $TS_GLOBAL
+#LOGGERTAG="set-resolution"
+LOGGERTAG=$0
+PROFILE_DIR="${STORAGE_PATH}/thinstation.profile"
+
+
+
+writeLog()
+{
+    logger --stderr --tag $LOGGERTAG "$1"
+}
+
+
+
+getMonitors()
+{
+    echo "$(xrandr --listactivemonitors | grep -E '[0-9+]:' | sed 's/.* //')"
+}
+
+
+getMonitorsCount()
+{
+    echo "$(getMonitors | wc -l)"
+}
+
+getResolution()
+{
+    currentResolutions=$(xrandr --dryrun | grep -oE '.*\bconnected|(  [0-9]+x[0-9]+.*current)' | awk '{print $1}' | awk 'BEGIN { OFS = ";"; ORS = "" } { print $1, $2}')
+
+    IFS=$';'
+    partIsName=1
+    for part in $currentResolutions; do
+        if [ "$partIsName" -eq 1 ]; then
+            monitorName=$part
+            partIsName=0
+        else
+            if [ "$monitorName" = "$1" ]; then
+                echo $part
+                break
+            fi
+            partIsName=1
+        fi
+    done
+}
+
+
+
+
+
+
+case "$1" in
+    init)
+        # This should only executed at launch of X to auto expand monitors, executed by the file /etc/xdg/autostart/set-resolution.desktop
+        if is_enabled $SET_RESOLUTION_MULTIMONITOR; then
+            writeLog "Executing multimonitor setup with command '$0 --multimonitor'"
+            $0 --multimonitor
+        else
+            writeLog "Not executing multimonitor setup. SET_RESOLUTION_MULTIMONITOR is not enabled, value is '$SET_RESOLUTION_MULTIMONITOR'"
+        fi
+    ;;
+
+
+
+    --multimonitor)
+        monitors=$(getMonitors)
+        monitorsCount=$(getMonitorsCount)
+
+        displayImageWidth=0
+        displayImageHight=0
+
+
+
+        ###
+        # Step 1, try to change the resolution if a user resolution is specified.
+        #
+
+        if [ -n "$SCREEN_RESOLUTION" ]; then
+            writeLog "SCREEN_RESOLUTION = '$SCREEN_RESOLUTION', will try to set that resolution on all monitors..."
+
+            for m in ${monitors}; do
+                # Try to change the resolution
+                xrandr --output $m --mode $SCREEN_RESOLUTION
+
+                if [ ${?} -eq 0 ]; then
+                    writeLog "Successfully change resolution to $SCREEN_RESOLUTION on monitor $m"
+
+                    # Set displayImageHight and displayImageWidth to the values specified by the user.
+                    #maxWidth=$(echo $SCREEN_RESOLUTION | sed 's/x.*//')
+                    #maxHight=$(echo $SCREEN_RESOLUTION | sed 's/.*x//')
+                else
+                    writeLog "Failed to change resolution to $SCREEN_RESOLUTION on monitor $m, probably the monitor does not support the resolution."
+                fi
+            done
+
+            # Sleep 1 second so that xrandr has some time to update it's values.
+            sleep 1
+        else
+            writeLog "SCREEN_RESOLUTION is not set, using default/optimal resolution for monitor $m"
+        fi
+
+
+
+        ###
+        # Step 2, grab the monitor with highest resolution
+        #
+
+        # Grab the highest resolution of all monitors
+        for m in ${monitors}; do
+            monitorResolution=$(getResolution $m)
+            monitorWidth=$(echo $monitorResolution | sed 's/x.*//')
+            monitorHight=$(echo $monitorResolution | sed 's/.*x//')
+
+            # See if this monitor has a higher resolution
+            if [ "$monitorWidth" -gt "$displayImageWidth" ]; then
+                displayImageWidth=$monitorWidth
+            fi
+
+            if [ "$monitorHight" -gt "$displayImageHight" ]; then
+                displayImageHight=$monitorHight
+            fi
+        done
+
+
+
+        ###
+        # Step 3, expand or mirror the monitors.
+        #
+
+        writeLog "SET_RESOLUTION_MULTIMONITOR_EXPAND is set to '$SET_RESOLUTION_MULTIMONITOR_EXPAND'"
+
+        mCount=0
+        xrandrCommand=''
+
+        ###
+        # Process all monitors to expand or mirror them.
+
+        # Make the for-loop split the string on newline
+        for m in ${monitors}; do
+            let "mCount += 1"
+            writeLog "Expanding monitor no. $mCount, '$m'"
+
+            monitorResolution=$(getResolution $m)
+            monitorWidth=$(echo $monitorResolution | sed 's/x.*//')
+            monitorHight=$(echo $monitorResolution | sed 's/.*x//')
+
+
+            writeLog "mCount = '$mCount'"
+            #writeLog "lastPos = '$lastPos'"
+            writeLog "monitorWidth = '$monitorWidth'"
+            writeLog "monitorHight = '$monitorHight'"
+            writeLog "displayImageWidth = '$displayImageWidth'"
+            writeLog "displayImageHight = '$displayImageHight'"
+            #writeLog "maxAlreadySet = '$maxAlreadySet'"
+
+            xrandrCommand+=" --output $m"
+
+            # If this is monitor 2+ in the list, exand to it.
+            if [ -n "$firstMonitorName" ]; then
+
+                case "$(make_lower $SET_RESOLUTION_MULTIMONITOR_EXPAND)" in
+                    up)
+                        writeLog "Expanding monitor $m above $lastMonitorName"
+                        xrandrCommand+=" --above $lastMonitorName"
+                    ;;
+
+                    down)
+                        writeLog "Expanding monitor $m below $lastMonitorName"
+                        xrandrCommand+=" --below $lastMonitorName"
+                    ;;
+
+                    left)
+                        writeLog "Expanding monitor $m left-of $lastMonitorName"
+                        xrandrCommand+=" --left-of $lastMonitorName"
+                    ;;
+
+                    right)
+                        writeLog "Expanding monitor $m right-of $lastMonitorName"
+                        xrandrCommand+=" --right-of $lastMonitorName"
+                    ;;
+
+                    *)
+                        # Mirror option
+                        writeLog "Mirroring monitor $m to same as $firstMonitorName"
+                        xrandrCommand+=" --same-as $firstMonitorName"
+                    ;;
+                esac
+
+
+            else
+                # This is the first monitor, set the firstMonitorName variable so we can use it if we are mirroring the displays.
+                firstMonitorName=$m
+		xrandrCommand+=" --primary"
+            fi
+
+
+
+            # For all monitors (incl. first monitor), see if we need to scale or pan the monitor
+            case "$(make_lower $SET_RESOLUTION_MULTIMONITOR_EXPAND)" in
+                up|down|left|right)
+                    writeLog "Panning or scaling not needed for monitor $m since SET_RESOLUTION_MULTIMONITOR_EXPAND = '$SET_RESOLUTION_MULTIMONITOR_EXPAND'"
+                    xrandrCommand+=" --scale-from ${monitorResolution}"
+                ;;
+
+                *)
+                    # mirror mode, see if we need to scale or pan the monitor
+                    if [ -n "$SET_RESOLUTION_MULTIMONITOR_AUTOSCALE" ] && is_disabled $SET_RESOLUTION_MULTIMONITOR_AUTOSCALE; then
+                        writeLog "Monitors $m will not be panned or scaled to fit the highest resolution. SET_RESOLUTION_MULTIMONITOR_AUTOSCALE is '$SET_RESOLUTION_MULTIMONITOR_AUTOSCALE'"
+                    else
+                        # Add options for scaling or panning
+
+                        # See if we need to scale this monitor
+                        if [ "$monitorWidth" -lt "$displayImageWidth" -o "$monitorHight" -lt "$displayImageHight" ]; then
+                            case "$(make_lower $SET_RESOLUTION_MULTIMONITOR_AUTOSCALE)" in
+                                panning)
+                                    writeLog "Panning monitor $m having resolution ${monitorResolution} into ${displayImageWidth}x${displayImageHight}"
+                                    #xrandr --output LVDS1 --mode 1600x900 --scale-from 1600x900 --panning 1920x1200 --output HDMI2 --mode 1920x1200 --same-as LVDS1
+                                    #xrandr --output LVDS1 --mode 1600x900 --scale-from 1600x900 --panning 1920x1200 --output HDMI2 --mode 1920x1200 --same-as LVDS1
+                                    xrandrCommand+=" --scale-from ${monitorResolution} --panning ${displayImageWidth}x${displayImageHight}"
+                                ;;
+
+
+                                *)
+                                    writeLog "Scaling monitor $m having resolution ${monitorResolution} into ${displayImageWidth}x${displayImageHight}"
+                                    xrandrCommand+=" --scale-from ${displayImageWidth}x${displayImageHight}"
+                                ;;
+                            esac
+                        else
+                            writeLog "Monitor $m, no panning or scaling needed, resolution ${monitorResolution} is the same as the deskop size ${displayImageWidth}x${displayImageHight}"
+                        fi
+                    fi
+                ;;
+            esac
+
+
+
+            lastMonitorName=$m
+        done
+
+        writeLog "xrandrCommand = '$xrandrCommand'"
+        # Execute
+        xrandr${xrandrCommand}
+
+    ;;
+
+
+
+    --multimonitorOld)
+        monitors=$(getMonitors)
+        monitorsCount=$(getMonitorsCount)
+
+
+        # Expand monitors
+        if [ $monitorsCount -ge 2 ] ; then
+            writeLog 'Multiple monitors detected'
+
+            lastPos=0
+            displayImageWidth=0
+            displayImageHight=0
+            #maxAlreadySet=0
+
+
+
+            ###
+            # Step 1, try to change the resolution if a user resolution is specified.
+            #
+            writeLog "SCREEN_RESOLUTION = '$SCREEN_RESOLUTION'"
+
+            for m in ${monitors}; do
+                if [ -n "$SCREEN_RESOLUTION" ]; then
+                    # Try to change the resolution
+                    xrandr --output $m --mode $SCREEN_RESOLUTION
+
+                    if [ ${?} -eq 0 ]; then
+                        writeLog "Successfully change resolution to $SCREEN_RESOLUTION on monitor $m"
+
+                        # Set displayImageHight and displayImageWidth to the values specified by the user.
+                        displayImageWidth=$(echo $SCREEN_RESOLUTION | sed 's/x.*//')
+                        displayImageHight=$(echo $SCREEN_RESOLUTION | sed 's/.*x//')
+                        #maxAlreadySet=1
+                    else
+                        writeLog "Failed to change resolution to $SCREEN_RESOLUTION on monitor $m, probably the monitor does not support the resolution."
+                    fi
+                else
+                    writeLog "SCREEN_RESOLUTION is not set, using default/optimal resolution for monitor $m"
+
+                    # Grab the highest resolution of all monitors so we can use it to calculate lastPos and also for scaling if needed.
+                    monitorResolution=$(getResolution $m)
+                    monitorWidth=$(echo $monitorResolution | sed 's/x.*//')
+                    monitorHight=$(echo $monitorResolution | sed 's/.*x//')
+
+                    # See if this monitor has a higher resolution
+                    if [ "$monitorWidth" -gt "$displayImageWidth" ]; then
+                        displayImageWidth=$monitorWidth
+                    fi
+
+                    if [ "$monitorHight" -gt "$displayImageHight" ]; then
+                        displayImageHight=$monitorHight
+                    fi
+
+                fi
+            done
+#            if [ -n "$SCREEN_RESOLUTION" ]; then
+#                 # Make the for-loop split the string on newline
+#                 IFS=$'\n'
+#                 for m in ${monitors}; do
+#
+#                     # Split the row into an array
+#                     IFS=' ' read -ra rowPart <<< "$m"
+#
+#                     monitorName=${rowPart[3]}
+#
+#     #                # Split the resolution part of the row
+#     #                IFS='/' read -ra rowPartResolution <<< "${rowPart[2]}"
+#     #
+#     #                monitorWidth=${rowPartResolution[0]}
+#     #                monitorHight=$(echo ${rowPartResolution[1]} | sed 's/.*x//')
+#     #
+#     #                # See if we need to scale this monitor
+#     #                if [ "$monitorHight" -lt "$displayImageWidth" -o "$monitorWidth" -lt "$displayImageHight" ]; then
+#     #                    echo "Scaling monitor $monitorName having resolution ${monitorWidth}x${monitorHight} into ${displayImageWidth}x${displayImageHight}"
+#     #                    xrandr --output $monitorName --scale-from ${displayImageWidth}x${displayImageHight}
+#     #                else
+#     #                    echo "Monitor $monitorName, no scaling needed, resolution ${monitorWidth}x${monitorHight} is the same as the deskop size ${displayImageWidth}x${displayImageHight}"
+#     #                fi
+#
+#                     # Try to change the resolution
+#                     xrandr --output $monitorName --mode $SCREEN_RESOLUTION
+#
+#                     if [ ${?} -eq 0 ]; then
+#                         writeLog "Successfully change resolution to $SCREEN_RESOLUTION on monitor $monitorName"
+#
+#                         # Set displayImageHight and displayImageWidth to the values specified by the user.
+#                         displayImageWidth=$(echo $SCREEN_RESOLUTION | sed 's/x.*//')
+#                         displayImageHight=$(echo $SCREEN_RESOLUTION | sed 's/.*x//')
+#                         maxAlreadySet=1
+#                     else
+#                         writeLog "Failed to change resolution to $SCREEN_RESOLUTION on monitor $monitorName, probably the monitor does not support the resolution."
+#                     fi
+#                 done
+#             else
+#                 writeLog "SCREEN_RESOLUTION is not set, using default/optimal resolution for each monitor."
+#
+#             fi
+
+
+
+
+
+            ###
+            # Step 2, expand or mirror the monitors.
+            #
+
+            writeLog "SET_RESOLUTION_MULTIMONITOR_EXPAND is set to '$SET_RESOLUTION_MULTIMONITOR_EXPAND'"
+
+            mCount=0
+
+            ###
+            # Process all monitors to expand or mirror them.
+
+            # Make the for-loop split the string on newline
+            for m in ${monitors}; do
+                let "mCount += 1"
+                writeLog "Expanding monitor $m"
+
+                monitorResolution=$(getResolution $m)
+                monitorWidth=$(echo $monitorResolution | sed 's/x.*//')
+                monitorHight=$(echo $monitorResolution | sed 's/.*x//')
+
+
+#                 # If no user resolution is specified, dynamically set the scaling to the highest resolution
+#                 if [ "$maxAlreadySet" -eq 0 ]; then
+#                     monitorResolution=$(getResolution $m)
+#                     monitorWidth=$(echo $monitorResolution | sed 's/x.*//')
+#                     monitorHight=$(echo $monitorResolution | sed 's/.*x//')
+#
+#                     # See if this monitor has a higher resolution
+#                     if [ "$monitorWidth" -gt "$displayImageWidth" ]; then
+#                         displayImageWidth=$monitorWidth
+#                     fi
+#
+#                     if [ "$monitorHight" -gt "$displayImageHight" ]; then
+#                         displayImageHight=$monitorHight
+#                     fi
+#                 fi
+
+                writeLog "mCount = '$mCount'"
+                writeLog "lastPos = '$lastPos'"
+                writeLog "monitorWidth = '$monitorWidth'"
+                writeLog "monitorHight = '$monitorHight'"
+                writeLog "displayImageWidth = '$displayImageWidth'"
+                writeLog "displayImageHight = '$displayImageHight'"
+                #writeLog "maxAlreadySet = '$maxAlreadySet'"
+
+# xrandr --output LVDS1 --mode 1600x900 --pos 0x0 --scale-from 1600x900  --primary --output HDMI2 --mode 1920x1200 --right-of LVDS1 --pos 1920x0
+
+                # If this is monitor 2+ in the list, exand to it.
+                if [ -n "$firstMonitorName" ]; then
+
+                    case "$(make_lower $SET_RESOLUTION_MULTIMONITOR_EXPAND)" in
+                        up)
+                            #monitorExpand='--above'
+                            writeLog "Expanding monitor $m above $lastMonitorName' to position 0x0"
+                            #xrandr --output $m --above $lastMonitorName
+                            #xrandr --output $m --above $lastMonitorName --pos 0x-${lastPos}
+                            xrandr --output $m --above $lastMonitorName --pos 0x0
+                            #let "lastPos += $monitorHight"
+                            let "lastPos += $displayImageHight * $mCount"
+                        ;;
+
+                        down)
+                            #monitorExpand='--below'
+                            writeLog "Expanding monitor $m below $lastMonitorName' to position 0x${lastPos}"
+                            #xrandr --output $m --below $lastMonitorName
+                            xrandr --output $m --below $lastMonitorName --pos 0x${lastPos}
+                            #let "lastPos += $monitorHight"
+                            let "lastPos += $displayImageHight * $mCount"
+                        ;;
+
+                        left)
+                            #monitorExpand='--left-of'
+                            writeLog "Expanding monitor $m left-of $lastMonitorName' to position 0x0"
+                            #xrandr --output $m --left-of $lastMonitorName
+                            #xrandr --output $m --left-of $lastMonitorName --pos -${lastPos}x0
+                            xrandr --output $m --left-of $lastMonitorName --pos 0x0
+                            #let "lastPos += $monitorWidth"
+                            let "lastPos += $displayImageWidth * $mCount"
+                            
+                            # Move the position of the last monitor (NOTE! This will only work if two monitors, if more then that the
+                            # other monitors won't be positioned correctly and this script need some redoing...
+                            writeLog "Repositioning previous monitor $lastMonitorName to position ${displayImageWidth}x0"
+                            xrandr --output $lastMonitorName --pos ${displayImageWidth}x0
+                        ;;
+
+                        right)
+                            #monitorExpand='--right-of'
+                            writeLog "Expanding monitor $m right-of $lastMonitorName' to position ${lastPos}x0"
+                            #xrandr --output $m --right-of $lastMonitorName
+                            xrandr --output $m --right-of $lastMonitorName --pos ${lastPos}x0
+                            #let "lastPos += $monitorWidth"
+                            let "lastPos += $displayImageWidth * $mCount"
+                        ;;
+
+                        *)
+                            #monitorExpand='--same-as' #mirror
+                            # Mirror option
+                            writeLog "Mirroring monitor $m to same as $firstMonitorName' to position 0x0"
+                            xrandr --output $m --pos 0x0 --same-as $firstMonitorName
+                    esac
+                else
+                    # This is the first monitor, set the firstMonitorName variable so we can use it if we are mirroring the displays.
+                    firstMonitorName=$m
+
+                    # As a precaution, set the position correct.
+                    xrandr --output $m --pos 0x0
+
+                    # Increase lastPos to the right direction if we are expanding
+                    case "$(make_lower $SET_RESOLUTION_MULTIMONITOR_EXPAND)" in
+                        up|down)
+                            #let "lastPos += $monitorHight"
+                            let "lastPos += $displayImageHight * $mCount"
+                        ;;
+                        left|right)
+                            #let "lastPos += $monitorWidth"
+                            let "lastPos += $displayImageWidth * $mCount"
+                        ;;
+                    esac
+                fi
+
+                lastMonitorName=$m
+            done
+
+    exit 0
+
+#             # Make the for-loop split the string on newline
+#             IFS=$'\n'
+#             for m in ${monitors}; do
+#                 writeLog "Expanding monitor $m"
+#
+#                 # Split the row into an array
+#                 IFS=' ' read -ra rowPart <<< "$m"
+#
+#                 monitorName=${rowPart[3]}
+#
+#
+#
+#                 # If no user resolution is specified, dynamically set the scaling to the highest resolution
+#                 if [ "$maxAlreadySet" -eq 0 ]; then
+#                     # Split the resolution part of the row
+#                     IFS='/' read -ra rowPartResolution <<< "${rowPart[2]}"
+#
+#                     monitorWidth=${rowPartResolution[0]}
+#                     monitorHight=$(echo ${rowPartResolution[1]} | sed 's/.*x//')
+#
+#                     # See if this monitor has a higher resolution
+#                     if [ "$monitorWidth" -gt "$displayImageWidth" ]; then
+#                         displayImageWidth=$monitorWidth
+#                     fi
+#
+#                     if [ "$monitorHight" -gt "$displayImageHight" ]; then
+#                         displayImageHight=$monitorHight
+#                     fi
+#                 fi
+#
+#                 #echo "lastPos = $lastPos"
+#                 writeLog "monitorName  = '$monitorName'"
+#                 writeLog "monitorWidth = '$monitorWidth'"
+#                 writeLog "monitorHight = '$monitorHight'"
+#                 writeLog "displayImageWidth = '$displayImageWidth'"
+#                 writeLog "displayImageHight = '$displayImageHight'"
+#                 writeLog "maxAlreadySet = '$maxAlreadySet'"
+#
+#                 # If this is monitor 2+ in the list, exand to it.
+#                 if [ -n "$firstMonitorName" ]; then
+#
+#                     case "$(make_lower $SET_RESOLUTION_MULTIMONITOR_EXPAND)" in
+#                         up)
+#                             #monitorExpand='--above'
+#                             writeLog "Running up command 'xrandr --output $monitorName --above $lastMonitorName'"
+#                             xrandr --output $monitorName --above $lastMonitorName
+#                             #xrandr --output $monitorName --above $lastMonitorName --pos 0x-${lastPos}
+#                             #let "lastPos += $monitorHight"
+#                         ;;
+#
+#                         down)
+#                             #monitorExpand='--below'
+#                             writeLog "Running down command 'xrandr --output $monitorName --below $lastMonitorName'"
+#                             xrandr --output $monitorName --below $lastMonitorName
+#                             #xrandr --output $monitorName --below $lastMonitorName --pos 0x${lastPos}
+#                             #let "lastPos += $monitorHight"
+#                         ;;
+#
+#                         left)
+#                             #monitorExpand='--left-of'
+#                             writeLog "Running left command 'xrandr --output $monitorName --left-of $lastMonitorName'"
+#                             xrandr --output $monitorName --left-of $lastMonitorName
+#                             #xrandr --output $monitorName --left-of $lastMonitorName --pos -${lastPos}x0
+#                             #let "lastPos += $monitorWidth"
+#                         ;;
+#
+#                         right)
+#                             #monitorExpand='--right-of'
+#                             writeLog "Running right command 'xrandr --output $monitorName --right-of $lastMonitorName'"
+#                             xrandr --output $monitorName --right-of $lastMonitorName
+#                             #xrandr --output $monitorName --right-of $lastMonitorName --pos ${lastPos}x0
+#                             #let "lastPos += $monitorWidth"
+#                         ;;
+#
+#                         *)
+#                             #monitorExpand='--same-as' #mirror
+#                             # Mirror option
+#                             writeLog "Running mirror command 'xrandr --output $monitorName --same-as $firstMonitorName'"
+#                             xrandr --output $monitorName --same-as $firstMonitorName
+#                     esac
+#                 else
+#                     # This is the first monitor, set the firstMonitorName variable so we can use it if we are mirroring the displays.
+#                     firstMonitorName=$monitorName
+#                 fi
+#
+#                 lastMonitorName=$monitorName
+#             done
+
+
+
+
+
+            ###
+            # Step 3, scale all monitors so that the image is fitted to the highest resolution.
+
+            #writeLog "SET_RESOLUTION_MULTIMONITOR_AUTOSCALE = '$SET_RESOLUTION_MULTIMONITOR_AUTOSCALE'"
+
+            #if [ -z "$SET_RESOLUTION_MULTIMONITOR_AUTOSCALE" ] || is_enabled $SET_RESOLUTION_MULTIMONITOR_AUTOSCALE; then
+            #if [ -z "$SET_RESOLUTION_MULTIMONITOR_AUTOSCALE" ] || [ "$(make_lower $SET_RESOLUTION_MULTIMONITOR_AUTOSCALE)" != "scale" ] || [ "$(make_lower $SET_RESOLUTION_MULTIMONITOR_AUTOSCALE)" = "panning" ]; then
+            if [ -n "$SET_RESOLUTION_MULTIMONITOR_AUTOSCALE" ] && is_disabled $SET_RESOLUTION_MULTIMONITOR_AUTOSCALE; then
+                writeLog "Monitors will not be panned or scaled to fit the highest resolution. SET_RESOLUTION_MULTIMONITOR_AUTOSCALE is '$SET_RESOLUTION_MULTIMONITOR_AUTOSCALE'"
+            else
+                for m in ${monitors}; do
+                    #echo "Scaling monitor $m"
+
+                    monitorResolution=$(getResolution $m)
+                    monitorWidth=$(echo $monitorResolution | sed 's/x.*//')
+                    monitorHight=$(echo $monitorResolution | sed 's/.*x//')
+
+                    case "$(make_lower $SET_RESOLUTION_MULTIMONITOR_EXPAND)" in
+                        up|down|left|right)
+                            writeLog "Monitor $m, no panning or caling since SET_RESOLUTION_MULTIMONITOR_EXPAND = '$SET_RESOLUTION_MULTIMONITOR_EXPAND'"
+                            #xrandr --output $m --panning $monitorResolution --scale-from $monitorResolution
+                        ;;
+
+
+                        *)
+                            # mirror, now we need to scale or pan the display image to fit/pan to this monitors resolution
+
+                            # See if we need to scale this monitor
+                            if [ "$monitorWidth" -lt "$displayImageWidth" -o "$monitorHight" -lt "$displayImageHight" ]; then
+                                #xrandr --output $monitorName --scale-from ${displayImageWidth}x${displayImageHight}
+
+                                case "$(make_lower $SET_RESOLUTION_MULTIMONITOR_AUTOSCALE)" in
+                                    panning)
+                                        writeLog "Panning monitor $m having resolution ${monitorResolution} into ${displayImageWidth}x${displayImageHight}"
+                                        #xrandr --output LVDS1 --mode 1600x900 --scale-from 1600x900 --panning 1920x1200 --output HDMI2 --mode 1920x1200 --same-as LVDS1
+                                        #xrandr --output LVDS1 --mode 1600x900 --scale-from 1600x900 --panning 1920x1200 --output HDMI2 --mode 1920x1200 --same-as LVDS1
+                                        xrandr --output $m --scale-from ${monitorResolution} --panning ${displayImageWidth}x${displayImageHight}
+                                    ;;
+
+
+                                    *)
+                                        writeLog "Scaling monitor $m having resolution ${monitorResolution} into ${displayImageWidth}x${displayImageHight}"
+                                        xrandr --output $m --scale-from ${displayImageWidth}x${displayImageHight}
+                                    ;;
+                                esac
+
+                            else
+                                writeLog "Monitor $m, no panning or scaling needed, resolution ${monitorResolution} is the same as the deskop size ${displayImageWidth}x${displayImageHight}"
+                            fi
+                        ;;
+                    esac
+                done
+
+#                 # Make the for-loop split the string on newline
+#                 IFS=$'\n'
+#                 for m in ${monitors}; do
+#                     #echo "Scaling monitor $m"
+#
+#                     # Split the row into an array
+#                     IFS=' ' read -ra rowPart <<< "$m"
+#
+#                     monitorName=${rowPart[3]}
+#
+#                     # Split the resolution part of the row
+#                     IFS='/' read -ra rowPartResolution <<< "${rowPart[2]}"
+#
+#                     monitorWidth=${rowPartResolution[0]}
+#                     monitorHight=$(echo ${rowPartResolution[1]} | sed 's/.*x//')
+#
+#                     # See if we need to scale this monitor
+#                     if [ "$monitorHight" -lt "$displayImageWidth" -o "$monitorWidth" -lt "$displayImageHight" ]; then
+#                         #xrandr --output $monitorName --scale-from ${displayImageWidth}x${displayImageHight}
+#
+#                         case "$(make_lower $SET_RESOLUTION_MULTIMONITOR_AUTOSCALE)" in
+#                             panning)
+#                                 writeLog "Panning monitor $monitorName having resolution ${monitorWidth}x${monitorHight} into ${displayImageWidth}x${displayImageHight}"
+#                                 #xrandr --output LVDS1 --mode 1600x900 --scale-from 1600x900 --panning 1920x1200 --output HDMI2 --mode 1920x1200 --same-as LVDS1
+#                                 #xrandr --output LVDS1 --mode 1600x900 --scale-from 1600x900 --panning 1920x1200 --output HDMI2 --mode 1920x1200 --same-as LVDS1
+#                                 xrandr --output $monitorName --scale-from ${monitorWidth}x${monitorHight} --panning ${displayImageWidth}x${displayImageHight}
+#                             ;;
+#
+#
+#                             *)
+#                                 writeLog "Scaling monitor $monitorName having resolution ${monitorWidth}x${monitorHight} into ${displayImageWidth}x${displayImageHight}"
+#                                 xrandr --output $monitorName --scale-from ${displayImageWidth}x${displayImageHight}
+#                             ;;
+#                         esac
+#
+#                     else
+#                         writeLog "Monitor $monitorName, no panning or scaling needed, resolution ${monitorWidth}x${monitorHight} is the same as the deskop size ${displayImageWidth}x${displayImageHight}"
+#                     fi
+#                 done
+            fi
+
+        else
+            echo "Did not detect multiple monitors"
+        fi
+
+
+        # Set the DPI
+        if [ -n "$SET_RESOLUTION_DPI" ]; then
+            xrandr --dpi $SET_RESOLUTION_DPI
+        fi
+    ;;
+
+
+
+
+
+
+
+
+
+
+
+
+    --wizard)
+        # Command to list all resolutions for per monitor
+        # xrandr --dryrun | grep -oE '.*\bconnected|(  [0-9]+x[0-9]+)'
+        #
+        # print the resolutions
+        # xrandr --dryrun | grep -oE '.*\bconnected|(  [0-9]+x[0-9]+)' | awk '{print $1}'
+        #
+        # grab the resolutions
+        # xrandr --dryrun | grep -oE '.*\bconnected|(  [0-9]+x[0-9]+)' | grep -oE '[0-9]+x[0-9]+'
+
+        RESOLUTIONS=($(xrandr --dryrun | grep -oE '.*\bconnected|(  [0-9]+x[0-9]+)' | grep -oE '[0-9]+x[0-9]+'))
+
+        # Get all available resolutions into an array
+        #RESOLUTIONS=($(xrandr | cut -d' ' -f4 | grep -P '[0-9]x[0-9]'))
+
+        if [ ${#RESOLUTIONS[@]} -le 0 ]; then
+            echo "Unable to get the available resolutions from 'xrandr', exiting."
+            sleep 10s
+        else
+            #echo "Your current resolution is $(xrandr | grep \* | cut -d' ' -f4)"
+            echo "Your current resolution is $(xrandr --dryrun | grep -oE '.*\bconnected|(  [0-9]+x[0-9]+.*current)' | awk '{print $1}' | awk '{printf "%s %s", $1, $2}')"
+            
+
+            # Try to check what resolution we have saved for next boot.
+            if [ -n "${STORAGE_PATH}" ] && [ -f "${PROFILE_DIR}/thinstation.conf.user" ] ; then
+                SAVED_RES=$(grep -P "^SCREEN_RESOLUTION=" ${PROFILE_DIR}/thinstation.conf.user | cut -d'=' -f2)
+                if [ -n "${SAVED_RES}" ]; then
+                    echo 
+                    echo "The resolution saved in ${PROFILE_DIR}/thinstation.conf.user (that will be used on next restart) is ${SAVED_RES//"\""/""}"
+                fi
+            fi
+
+            echo 
+            echo "Your available resolutions are:"
+            # print the resolutions
+            xrandr --dryrun | grep -oE '.*\bconnected|(  [0-9]+x[0-9]+)' | awk '{print $1}'
+            #awk '{printf "%s = %s", $1, $2}'
+
+            #for r in "${RESOLUTIONS[@]}"
+            #do
+            #	echo "   $r"
+            #done
+
+            echo
+            echo "or you can enter 0 to remove SCREEN_RESOLUTION from the config file..."
+            printf "Enter the resolution you want to use: "
+
+            read ANSWER
+
+            if [ "$ANSWER" = "0" ] || [[ " ${RESOLUTIONS[@]} " =~ " ${ANSWER} " ]]; then
+                #set-resolution.sh $ANSWER
+                $0 --save-resolution $ANSWER
+            else
+                echo "\"${ANSWER}\" is not a valid resolution. You must enter the resolution exactly as stated above, for example: ${RESOLUTIONS[0]}"
+                echo ""
+                echo "Exiting..."
+                sleep 10s
+                # I added the sleep for 10 seconds since this is written to run in a terminal i X without hold
+                # and thereby the terminal closes as soon as the script ends, = the user wont see the message without the sleep
+            fi
+        fi
+    ;;
+
+
+
+
+
+    --save-resolution)
+        REGEX="^[0-9]+x[0-9]+$"
+
+        if [ "$2" = "0" ]; then
+            writeLog "The argument was '$2' removing (commenting) SCREEN_RESOLUTION in config file."
+
+            if [ -f ${PROFILE_DIR}/thinstation.conf.user ]; then
+                grep -q -P '^SCREEN_RESOLUTION=' ${PROFILE_DIR}/thinstation.conf.user && sed -ie '/^SCREEN_RESOLUTION=/ s/^#*/#/' ${PROFILE_DIR}/thinstation.conf.user
+            fi
+
+
+
+        elif [[ ! $2  =~ $REGEX ]]; then
+            writeLog "The argument '$2' is not a valid resolution!"
+            exit 1
+
+
+
+        else
+            #if [[ "$(xrandr | grep \* | cut -d' ' -f4)" == "$2" ]]; then
+            #if [[ "$(xrandr --dryrun | grep -oE '.*\bconnected|(  [0-9]+x[0-9]+)' | grep -oE '[0-9]+x[0-9]+')" == "$2" ]]; then
+                if [ -n "${STORAGE_PATH}" ] && [ -d "${STORAGE_PATH}" ]; then
+
+                    # Create the directory if needed...
+                    if [ ! -d "${PROFILE_DIR}" ]; then
+                        mkdir -p ${PROFILE_DIR}
+                    fi
+
+                    if [ -f ${PROFILE_DIR}/thinstation.conf.user ]; then
+                        grep -q -P '^SCREEN_RESOLUTION=' ${PROFILE_DIR}/thinstation.conf.user && sed -i "/^SCREEN_RESOLUTION=/c\SCREEN_RESOLUTION=\"$2\"" ${PROFILE_DIR}/thinstation.conf.user || echo "SCREEN_RESOLUTION=\"$2\"" >> ${PROFILE_DIR}/thinstation.conf.user
+                    else
+                        echo "SCREEN_RESOLUTION=\"$2\"" > ${PROFILE_DIR}/thinstation.conf.user
+                    fi
+
+                    writeLog "Saved the resolution to $2 to the configuration file\"${PROFILE_DIR}/thinstation.conf.user\""
+                else
+                    writeLog "Unable to save the resolution $2 to the configuration file! The STORAGE_PATH is not declared or the path does not exist. STORAGE_PATH is \"${STORAGE_PATH}\""
+                fi
+            #else
+            #    logger --stderr --tag $LOGGERTAG "Something went wrong when trying to change the resolution to $2. The resolution might not be available, for available resolutions run \"xrandr\". To see what error message was returned run \"setres $2\""
+            #fi
+
+
+            # Update the profile setup before executing set-monitor
+            /etc/init.d/profile_setup init >/dev/null
+
+            # Run --multimonitor to set the resolution.
+            $0 --multimonitor
+        fi
+    ;;
+
+
+
+    *)
+        echo ""
+        echo "Usage: $0 COMMAND"
+        echo ""
+        echo "Change resolution, configure multiple monitors for mirroring or expansion."
+        echo "Viable COMMAND's:"
+        echo -e "\n    --multimonitor\tRun configuration"
+                        echo -e "\t\t\tThis uses the following variables in"
+                        echo -e "\t\t\tyour thinstation.conf.* files:"
+                        echo -e "\t\t\t\tSET_RESOLUTION_MULTIMONITOR_EXPAND"
+                        echo -e "\t\t\t\tSET_RESOLUTION_MULTIMONITOR_AUTOSCALE"
+                        echo -e "\t\t\t\tSET_RESOLUTION_DPI"
+                        echo -e "\t\t\t\tFor more information see the package documentation"
+                        echo -e "\t\t\t\tin thinstation.conf.sample"
+        echo -e "\n    --wizard\t\tStart a wizard to change the screen resolution"
+        echo -e "\n    --save-resolution <width>x<hight>"
+                        echo -e "\t\t\tSave the resolution <width>x<hight> as SCREEN_RESOLTUION"
+                        echo -e "\t\t\tin the thinstation.conf.user file under STORAGE_PATH"
+                        echo -e "\t\t\tlocation. Example of the <width>x<hight> parameter is"
+                        echo -e "\t\t\t--save-resolution 1024x768"
+        echo -e "\n    --save-resolution 0"
+                        echo -e "\t\t\tRemove (comment) the line SCREEN_RESOLUTION"
+                        echo -e "\t\t\tin the thinstation.conf.user file under STORAGE_PATH"
+                        echo -e "\t\t\tlocation."
+        echo -e "\nExample usages:"
+        echo -e "    $0 --save-resolution 0"
+        echo -e "    $0 --save-resolution 1024x768"
+        echo -e "    $0 --wizard"
+        echo -e "    $0 --multimonitor"
+        echo ""
+        echo "NOTE: There is a bug if you have set SET_RESOLUTION_MULTIMONITOR_EXPAND='mirror'"
+        echo "      and SET_RESOLUTION_MULTIMONITOR_AUTOSCALE='panning' then need to restart"
+        echo "      X-Window before you can use scale and/or expand again correctly."
+        echo "      This is however only an issue while you are testing, normally you just"
+        echo "      boot the computer and don't change the scaling/expansion."
+        echo ""
+        echo "      Also, if you connect a display monitor you need to reboot before it will"
+        echo "      be available for this command/xrandr."
+
+
+        exit 1
+    ;;
+esac

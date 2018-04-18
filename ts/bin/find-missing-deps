@@ -1,0 +1,21 @@
+#!/bin/sh
+export LD_LIBRARY_PATH=/usr/lib/samba:/usr/share/syslinux/efi64
+if [ ! -e /tmp/binlist ]; then
+	echo "Finding all files"
+	if [ -n "$1" ]; then
+		location=$1
+	else
+		location=/{bin,boot,etc,home,lib,opt,root,sbin,share,usr,var,www}
+	fi
+	eval find $location -type f > /tmp/filelist
+	echo "Determining which files are ELF"
+	for file in `file -f /tmp/filelist |grep -e ELF |grep -E "shared|executable" |cut -d: -f1`; do
+		echo $file >> /tmp/binlist
+	done
+fi
+echo "Looking for missing dependencies"
+for bin in `cat /tmp/binlist`; do
+	if ldd $bin 2>/dev/null |grep -e "not found" >/dev/null; then
+		echo $bin
+	fi
+done
