@@ -14,11 +14,6 @@ etc/cups/interfaces
 "
 repackage -e
 
-# Fix Link
-rm packages/cups/etc/rc2.d/S82cups-browsed
-ln -sf /etc/init.d/cups-browsed packages/cups/etc/rc2.d/S96cups-browsed
-sed -i -e 's/start /init /g' packages/cups/etc/init.d/cups-browsed
-
 mksslcert packages/cups/etc/ssl/keys/cups.key packages/cups/etc/ssl/certs/cups.crt localhost 2>/dev/null
 
 returnval=$?

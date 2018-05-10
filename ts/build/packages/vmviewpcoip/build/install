@@ -10,7 +10,11 @@ rm -rf wget_tmp/vmware
 sh wget_tmp/$gzname -x wget_tmp/vmware
 returnval=$?
 
-mkdir -p $INSTALLDIR/{bin,lib/doc/$package,lib/vmware/rdpvcbridge}
+mkdir -p $INSTALLDIR/{bin,lib/doc/$package,lib/vmware/rdpvcbridge,etc/vmware}
+
+VERSION=`cat wget_tmp/vmware/vmware-installer/manifest.xml | grep "<version>" | cut -d"<" -f2 | cut -d">" -f2`
+sed -e "s,@@VERSION@@,$VERSION,g" -e "s,@@VMWARE_INSTALLER@@,/lib/vmware-installer-horizon/$VERSION,g" wget_tmp/vmware/vmware-installer/bootstrap > $INSTALLDIR/etc/vmware/bootstrap
+echo "BINDIR=/bin" >> $INSTALLDIR/etc/vmware/bootstrap
 
 for component in client mmr pcoip rtav smartcard usb virtual-printing tsdr; do
 dir=wget_tmp/vmware/vmware-horizon-$component
@@ -21,6 +25,8 @@ cp -a $dir/bin/* $INSTALLDIR/bin
 if [ -d $dir/lib ]; then
   cp -a $dir/lib  $INSTALLDIR/
   chmod a+x $INSTALLDIR/lib/vmware/view/bin/*
+  sed -i -e 's/$ENABLE_SEAMLESS_WINDOW = /"$ENABLE_SEAMLESS_WINDOW" = /' \
+      -e 's/glibcxx=.*/glibcxx=1/' $INSTALLDIR/bin/vmware-view
 fi
 cp -a $dir/share/* $INSTALLDIR/lib
 cp -a $dir/doc/* $INSTALLDIR/lib/doc/$package
@@ -64,10 +70,34 @@ if [ -d $dir ]; then
   cp -a $dir/lib/* $INSTALLDIR/lib
 fi
 ;;
+media-provider)
+# Added in 4.6 - Improves Skype for Business
+  mkdir -p $INSTALLDIR/lib/udev/rules.d
+  mkdir -p $INSTALLDIR/lib/vmware/mediaprovider
+  cp -a $dir/etc/* $INSTALLDIR/lib/udev/rules.d
+  cp -a $dir/lib/* $INSTALLDIR/lib/vmware/mediaprovider
+  # Our libstdc++ is better than 3.4.19
+  rm -rf $INSTALLDIR/lib/vmware/mediaprovider/gcc
+  chmod a+x $INSTALLDIR/lib/vmware/mediaprovider/*.so
+;;
+seamless-window)
+# Added in 4.7 - Untested on Thinstation
+  cp -a $dir/vmware-view-crtbora $INSTALLDIR/lib/vmware/view/bin
+  cp -a $dir/lib/* $INSTALLDIR/lib
+  chmod a+x $INSTALLDIR/lib/vmware/view/bin/vmware-view-crtbora
+  chmod a+x $INSTALLDIR/lib/vmware/*.so*
+;;
 usb)
 mkdir -p $INSTALLDIR/lib/vmware/view/usb
 cp -a $dir/bin/* $INSTALLDIR/lib/vmware/view/usb
-# 4.5 changed USB
+# 4.5 changed USB and removed vmware-view-usbd
+ln -s /lib/vmware/view/usb/vmware-usbarbitrator $INSTALLDIR/bin/
+if [ -e $INSTALLDIR/lib/vmware/view/usb/vmware-view-usbd ]; then
+  ln -s /lib/vmware/view/usb/vmware-view-usbd $INSTALLDIR/bin/
+fi
+if [ -e $dir/etc ]; then
+  cp -a $dir/etc/* $INSTALLDIR/etc
+fi
 if [ -d $dir/lib ]; then
   cp -a $dir/lib/* $INSTALLDIR/lib
 fi
