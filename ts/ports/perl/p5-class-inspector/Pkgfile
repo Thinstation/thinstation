@@ -1,0 +1,22 @@
+# Description:	Get information about a class and its structure
+# URL:		https://metacpan.org/pod/Class::Inspector
+# Maintainer:	
+# Depends on:	perl
+
+name=p5-class-inspector
+version=1.32
+release=1
+source=(http://search.cpan.org/CPAN/authors/id/P/PL/PLICEASE/Class-Inspector-${version}.tar.gz)
+
+build() {
+	cd Class-Inspector-$version
+
+	# PERL_MM_USE_DEFAULT=1 \
+	perl Makefile.PL
+	make OPTIMIZE="$CFLAGS" DESTDIR="$PKG" install
+
+	find "$PKG" -depth \
+		-type f \( -name .packlist -o -name \*.bs -o -name perllocal.pod \) -delete , \
+		-type f -name autosplit.ix \( -exec grep -q '^[[:space:]]*package' {} \; -o -delete \) , \
+		-type d -empty -exec rmdir {} +
+}

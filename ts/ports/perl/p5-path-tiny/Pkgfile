@@ -1,0 +1,23 @@
+# Description:	File path utility
+# URL:		https://github.com/dagolden/Path-Tiny
+# Maintainer:	
+# Depends on:	perl
+# Optional:	p5-unicode-utf8
+
+name=p5-path-tiny
+version=0.104
+release=1
+source=(http://search.cpan.org/CPAN/authors/id/D/DA/DAGOLDEN/Path-Tiny-${version}.tar.gz)
+
+build() {
+	cd Path-Tiny-$version
+
+	# PERL_MM_USE_DEFAULT=1 \
+	perl Makefile.PL
+	make OPTIMIZE="$CFLAGS" DESTDIR="$PKG" install
+
+	find "$PKG" -depth \
+		-type f \( -name .packlist -o -name \*.bs -o -name perllocal.pod \) -delete , \
+		-type f -name autosplit.ix \( -exec grep -q '^[[:space:]]*package' {} \; -o -delete \) , \
+		-type d -empty -exec rmdir {} +
+}

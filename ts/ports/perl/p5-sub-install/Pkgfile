@@ -1,0 +1,22 @@
+# Description:	Install subroutines into packages easily
+# URL:		https://github.com/rjbs/Sub-Install
+# Maintainer:	
+# Depends on:	perl
+
+name=p5-sub-install
+version=0.928
+release=1
+source=(http://search.cpan.org/CPAN/authors/id/R/RJ/RJBS/Sub-Install-${version}.tar.gz)
+
+build() {
+	cd Sub-Install-$version
+
+	# PERL_MM_USE_DEFAULT=1 \
+	perl Makefile.PL
+	make OPTIMIZE="$CFLAGS" DESTDIR="$PKG" install
+
+	find "$PKG" -depth \
+		-type f \( -name .packlist -o -name \*.bs -o -name perllocal.pod \) -delete , \
+		-type f -name autosplit.ix \( -exec grep -q '^[[:space:]]*package' {} \; -o -delete \) , \
+		-type d -empty -exec rmdir {} +
+}

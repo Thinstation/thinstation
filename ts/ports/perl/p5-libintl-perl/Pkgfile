@@ -1,0 +1,23 @@
+# Description:	High-Level Interface to Uniforum Message Translation
+# URL:		http://www.guido-flohr.net/en/projects/
+# Maintainer:	
+# Depends on:	perl
+# Optional:	p5-file-sharedir
+
+name=p5-libintl-perl
+version=1.29
+release=1
+source=(http://search.cpan.org/CPAN/authors/id/G/GU/GUIDO/libintl-perl-${version}.tar.gz)
+
+build() {
+	cd libintl-perl-$version
+
+	# PERL_MM_USE_DEFAULT=1 \
+	perl Makefile.PL
+	make OPTIMIZE="$CFLAGS" DESTDIR="$PKG" install
+
+	find "$PKG" -depth \
+		-type f \( -name .packlist -o -name \*.bs -o -name perllocal.pod \) -delete , \
+		-type f -name autosplit.ix \( -exec grep -q '^[[:space:]]*package' {} \; -o -delete \) , \
+		-type d -empty -exec rmdir {} +
+}

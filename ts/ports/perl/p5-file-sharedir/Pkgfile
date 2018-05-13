@@ -1,0 +1,23 @@
+# Description:	Locate per-dist and per-module shared files
+# URL:		https://metacpan.org/release/File-ShareDir
+# Maintainer:	
+# Depends on:	p5-class-inspector p5-file-sharedir-install
+# Optional:	p5-inc-latest
+
+name=p5-file-sharedir
+version=1.104
+release=1
+source=(http://search.cpan.org/CPAN/authors/id/R/RE/REHSACK/File-ShareDir-${version}.tar.gz)
+
+build() {
+	cd File-ShareDir-$version
+
+	# PERL_MM_USE_DEFAULT=1 \
+	perl Makefile.PL
+	make OPTIMIZE="$CFLAGS" DESTDIR="$PKG" install
+
+	find "$PKG" -depth \
+		-type f \( -name .packlist -o -name \*.bs -o -name perllocal.pod \) -delete , \
+		-type f -name autosplit.ix \( -exec grep -q '^[[:space:]]*package' {} \; -o -delete \) , \
+		-type d -empty -exec rmdir {} +
+}

@@ -1,0 +1,22 @@
+# Description:	Perl interface to the SHA-1 algorithm
+# URL:		http://search.cpan.org/~gaas/Digest-SHA1/
+# Maintainer:	
+# Depends on:	perl
+
+name=p5-digest-sha1
+version=2.13
+release=1
+source=(http://search.cpan.org/CPAN/authors/id/G/GA/GAAS/Digest-SHA1-${version}.tar.gz)
+
+build() {
+	cd Digest-SHA1-$version
+
+	# PERL_MM_USE_DEFAULT=1 \
+	perl Makefile.PL
+	make OPTIMIZE="$CFLAGS" DESTDIR="$PKG" install
+
+	find "$PKG" -depth \
+		-type f \( -name .packlist -o -name \*.bs -o -name perllocal.pod \) -delete , \
+		-type f -name autosplit.ix \( -exec grep -q '^[[:space:]]*package' {} \; -o -delete \) , \
+		-type d -empty -exec rmdir {} +
+}

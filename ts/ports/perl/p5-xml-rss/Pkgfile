@@ -1,0 +1,22 @@
+# Description:	Creates and updates RSS files
+# URL:		http://metacpan.org/release/XML-RSS
+# Maintainer:	
+# Depends on:	p5-datetime-format-mail p5-datetime-format-w3cdtf p5-html-parser p5-module-build p5-xml-parser
+
+name=p5-xml-rss
+version=1.60
+release=1
+source=(http://search.cpan.org/CPAN/authors/id/S/SH/SHLOMIF/XML-RSS-${version}.tar.gz)
+
+build() {
+	cd XML-RSS-$version
+
+	# PERL_MM_USE_DEFAULT=1 \
+	perl Makefile.PL
+	make OPTIMIZE="$CFLAGS" DESTDIR="$PKG" install
+
+	find "$PKG" -depth \
+		-type f \( -name .packlist -o -name \*.bs -o -name perllocal.pod \) -delete , \
+		-type f -name autosplit.ix \( -exec grep -q '^[[:space:]]*package' {} \; -o -delete \) , \
+		-type d -empty -exec rmdir {} +
+}

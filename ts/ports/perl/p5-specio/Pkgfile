@@ -1,0 +1,23 @@
+# Description:	Type constraints and coercions for Perl
+# URL:		http://metacpan.org/release/Specio
+# Maintainer:	
+# Depends on:	p5-devel-stacktrace p5-eval-closure p5-module-runtime p5-mro-compat p5-role-tiny p5-sub-quote p5-test-fatal p5-try-tiny
+# Optional:	p5-ref-util
+
+name=p5-specio
+version=0.42
+release=1
+source=(http://search.cpan.org/CPAN/authors/id/D/DR/DROLSKY/Specio-${version}.tar.gz)
+
+build() {
+	cd Specio-$version
+
+	# PERL_MM_USE_DEFAULT=1 \
+	perl Makefile.PL
+	make OPTIMIZE="$CFLAGS" DESTDIR="$PKG" install
+
+	find "$PKG" -depth \
+		-type f \( -name .packlist -o -name \*.bs -o -name perllocal.pod \) -delete , \
+		-type f -name autosplit.ix \( -exec grep -q '^[[:space:]]*package' {} \; -o -delete \) , \
+		-type d -empty -exec rmdir {} +
+}

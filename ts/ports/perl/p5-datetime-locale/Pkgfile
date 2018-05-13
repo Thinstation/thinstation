@@ -1,0 +1,22 @@
+# Description:	Localization support for DateTime.pm
+# URL:		http://metacpan.org/release/DateTime-Locale
+# Maintainer:	
+# Depends on:	p5-dist-checkconflicts p5-file-sharedir p5-file-sharedir-install p5-namespace-autoclean p5-params-validationcompiler p5-specio
+
+name=p5-datetime-locale
+version=1.20
+release=1
+source=(http://search.cpan.org/CPAN/authors/id/D/DR/DROLSKY/DateTime-Locale-${version}.tar.gz)
+
+build() {
+	cd DateTime-Locale-$version
+
+	# PERL_MM_USE_DEFAULT=1 \
+	perl Makefile.PL
+	make OPTIMIZE="$CFLAGS" DESTDIR="$PKG" install
+
+	find "$PKG" -depth \
+		-type f \( -name .packlist -o -name \*.bs -o -name perllocal.pod \) -delete , \
+		-type f -name autosplit.ix \( -exec grep -q '^[[:space:]]*package' {} \; -o -delete \) , \
+		-type d -empty -exec rmdir {} +
+}

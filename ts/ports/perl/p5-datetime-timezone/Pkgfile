@@ -1,0 +1,22 @@
+# Description:	Time zone object base class and factory
+# URL:		http://metacpan.org/release/DateTime-TimeZone
+# Maintainer:	
+# Depends on:	p5-class-singleton p5-module-runtime p5-namespace-autoclean p5-params-validationcompiler p5-specio p5-try-tiny
+
+name=p5-datetime-timezone
+version=2.18
+release=1
+source=(http://search.cpan.org/CPAN/authors/id/D/DR/DROLSKY/DateTime-TimeZone-${version}.tar.gz)
+
+build() {
+	cd DateTime-TimeZone-$version
+
+	# PERL_MM_USE_DEFAULT=1 \
+	perl Makefile.PL
+	make OPTIMIZE="$CFLAGS" DESTDIR="$PKG" install
+
+	find "$PKG" -depth \
+		-type f \( -name .packlist -o -name \*.bs -o -name perllocal.pod \) -delete , \
+		-type f -name autosplit.ix \( -exec grep -q '^[[:space:]]*package' {} \; -o -delete \) , \
+		-type d -empty -exec rmdir {} +
+}

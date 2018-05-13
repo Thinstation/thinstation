@@ -1,0 +1,22 @@
+# Description:	Smart URI fetching/caching
+# URL:		https://github.com/neilb/URI-Fetch
+# Maintainer:	
+# Depends on:	p5-class-errorhandler p5-libwww-perl p5-uri
+
+name=p5-uri-fetch
+version=0.13
+release=1
+source=(http://search.cpan.org/CPAN/authors/id/N/NE/NEILB/URI-Fetch-${version}.tar.gz)
+
+build() {
+	cd URI-Fetch-$version
+
+	# PERL_MM_USE_DEFAULT=1 \
+	perl Makefile.PL
+	make OPTIMIZE="$CFLAGS" DESTDIR="$PKG" install
+
+	find "$PKG" -depth \
+		-type f \( -name .packlist -o -name \*.bs -o -name perllocal.pod \) -delete , \
+		-type f -name autosplit.ix \( -exec grep -q '^[[:space:]]*package' {} \; -o -delete \) , \
+		-type d -empty -exec rmdir {} +
+}
