@@ -1,0 +1,17 @@
+# Description: elliptic curve based signing and verification tool
+# URL:         http://www.tedunangst.com/flak/post/signify
+# Maintainer:  Thomas Penteker, tek at serverop dot de
+
+name=signify
+version=0.1p1
+release=1
+source=(https://crux.nu/~tek/$name-$version.tar.gz)
+
+build() {
+	cd $name-$version
+
+  make CFLAGS='-Wall -O2 -I. -DSIGNIFYROOT=\"/etc/ports\"'
+
+  install -D signify $PKG/usr/bin/signify
+  install -D signify.1 $PKG/usr/share/man/man1/signify.1
+}
