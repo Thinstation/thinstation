@@ -69,22 +69,15 @@ stage2()
 stage3()
 {
 	for Root in $TSWRKNG $XTRWRKNG; do
-		if [ $Root = $TSWRKNG ]; then Cache=/ts;
-		else Cache=$Root; fi
-		for i in `ls --color=never $Root/packages` ;
-		do
-			printf "\rPopulating Package %-40s" "$i"
-			cd $Root/packages/$i
-			if [ -e $Cache/unwind_cache/$i.turbo ]; then
-				if cat $Cache/unwind_cache/$i.turbo |grep -e "#" |cut -d "#" -f2 |md5sum -c --quiet ; then
-					. $Cache/unwind_cache/$i.turbo
-				else
-					update $i
-				fi
-			else
-				update $i
-			fi
-		done
+		if [ $Root = $TSWRKNG ]
+		then Cache=/ts
+		else Cache=$Root
+		fi
+		export Root
+		export Cache
+		procs=`nproc`
+                let procs-=1
+		ls --color=never $Root/packages |xargs -n 1 -P $procs -I {} bash -c 'unwind_package "$@"' _ {}
 	done
 	printf "\rPackage Population %-40s\n" "Complete"
 	echo "Populating tools"
@@ -96,6 +89,22 @@ stage3()
 	fi
 	rm /dostage3
 	touch /dostage4
+}
+
+unwind_package()
+{
+	pkg=$1
+	printf "\rPopulating Package %-40s" "$pkg"
+        cd $Root/packages/$pkg
+        if [ -e $Cache/unwind_cache/$pkg.turbo ]; then
+        	if cat $Cache/unwind_cache/$pkg.turbo |grep -e "#" |cut -d "#" -f2 |md5sum -c --quiet ; then
+                	. $Cache/unwind_cache/$pkg.turbo
+                else
+                       	update $pkg
+                fi
+        else
+              	update $pkg
+        fi
 }
 
 stage4()
@@ -193,6 +202,7 @@ post_install()
 	fi
 }
 
+export -f unwind_package
 export -f install_port
 export -f install_binary_port
 
