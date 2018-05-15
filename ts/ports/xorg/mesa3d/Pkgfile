@@ -1,35 +1,23 @@
 # Description: Mesa 3D Graphics Library
 # URL: http://www.mesa3d.org
 # Maintainer: CRUX Xorg Team, xorg-ports at crux dot nu
-# Depends on: elfutils expat libdrm libvdpau llvm xorg-dri3proto xorg-glproto xorg-libxdamage xorg-libxshmfence xorg-libxvmc xorg-presentproto xorg-libxxf86vm
-# Optional: nettle
+# Depends on: elfutils libdrm libvdpau llvm xorg-dri3proto xorg-glproto xorg-libxdamage xorg-libxshmfence xorg-libxvmc xorg-presentproto xorg-libxxf86vm
 
 name=mesa3d
-version=13.0.1
+version=18.0.3
 release=1
-source=(ftp://ftp.freedesktop.org/pub/mesa/$version/mesa-$version.tar.xz \
-	remove-libpthread-stubs.patch \
-	0001-st-mesa-fix-reference-counting-bug-in-st_vdpau.patch \
-	0002-vl-dri3-fix-a-memory-leak-from-front-buffer.patch)
+source=(https://mesa.freedesktop.org/archive/mesa-$version.tar.xz)
 
 build() {
-#unset MAKEFLAGS
 	cd mesa-$version
-	patch -Np1 -i $SRC/remove-libpthread-stubs.patch
-#	patch -p1 -i $SRC/0001-st-mesa-fix-reference-counting-bug-in-st_vdpau.patch
-#	patch -p1 -i $SRC/0002-vl-dri3-fix-a-memory-leak-from-front-buffer.patch
-	  autoreconf -fiv
+
+	export LDFLAGS="$LDFLAGS -lLLVM"
+
 	./configure \
 		--prefix=/usr \
 		--sysconfdir=/etc \
-		--disable-xvmc \
-		--enable-gallium-llvm \
-		--enable-llvm-shared-libs \
-		--enable-shared-glapi \
-		--enable-egl \
-		--enable-glx \
+		--enable-llvm \
 		--enable-gbm \
-		--enable-dri \
 		--enable-gles1 \
 		--enable-gles2 \
 		--enable-glx-tls \
@@ -37,13 +25,11 @@ build() {
 		--enable-texture-float \
 		--enable-xa \
 		--enable-vdpau \
-		--enable-nine \
+		--enable-llvm-shared-libs \
 		--disable-dependency-tracking \
-		--with-egl-platforms=x11,drm,wayland \
-		--with-gallium-drivers=r300,r600,svga,swrast,radeonsi,nouveau,virgl \
-		--with-dri-drivers=i915,i965,r200,radeon,nouveau,swrast \
-		--with-vulkan-drivers=intel,radeon \
-		--with-sha1=libgcrypt
+		--with-platforms=x11,drm \
+		--with-gallium-drivers=r300,r600,svga,swrast,radeonsi,nouveau,virgl,swr  \
+		--with-vulkan-drivers=intel,radeon
 
 	make
 	make DESTDIR=$PKG install
