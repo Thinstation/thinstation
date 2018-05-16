@@ -8,13 +8,18 @@ version=1
 sversion=`cat /ts/ports/kernel-modules/VERSION`
 release=1
 kernel=${sversion}TS
-source=(https://cdn.kernel.org/pub/linux/kernel/v4.x/linux-$sversion.tar.xz
+source=(https://cdn.kernel.org/pub/linux/kernel/v4.x/linux-$sversion.tar.xz \
 	ts.config)
 
 build() {
 	cd linux-$sversion
-	cp $SRC/ts.config ./.config
 
+	for patch in `ls ../../../p1/`; do
+		patch -F3 -p1 -i $patch
+	done
+
+	cp $SRC/ts.config ./.config
+	make silentoldconfig
 	if [ -e /etc/ssl/keys/kernel.key ]; then
 		sed -i -e "s,MODULE_SIG_KEY=.*,MODULE_SIG_KEY=\"/etc/ssl/keys/kernel.key\"," .config
 		mkdir -p $PKG/usr/src/kernels/${kernel}/certs
@@ -24,13 +29,14 @@ build() {
 		sed -i -e "s,SYSTEM_TRUSTED_KEYS=.*,SYSTEM_TRUSTED_KEYS=\"/etc/ssl/certs/kernel-ca.crt\"," .config
 	fi
 
-	make modules_prepare headers_install
+	make modules_prepare headers_install tools/objtool
 	mkdir -p $PKG/usr/src/kernels/${kernel}
 	cp --parents `find -type f -name "Makefile*" -o -name "Kconfig*"` $PKG/usr/src/kernels/${kernel}
-	cp -a {include,scripts,.config,usr} $PKG/usr/src/kernels/${kernel}
+	cp -a {include,scripts,.config,usr,tools} $PKG/usr/src/kernels/${kernel}
 	cp -a arch/x86/include $PKG/usr/src/kernels/${kernel}/arch/x86
 	ln -sf /usr/src/kernels/${kernel}/usr/include/asm-generic $PKG/usr/src/kernels/${kernel}/usr/include/asm
 	rm $PKG/usr/src/kernels/${kernel}/scripts/{mod,kconfig}/*.o
+
 
 	make
 	make INSTALL_PATH=$PKG install
