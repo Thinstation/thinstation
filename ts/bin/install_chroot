@@ -5,7 +5,7 @@
 
 stage1()
 {
-	echo "Chroot not previuosly setup. Doing it NOW!"
+	echo "Chroot not previously setup. Doing it NOW!"
 
 	for dir in proc sys home dev mnt downloads var/lib/pkg; do
 		if [ ! -e $dir ] ; then
@@ -44,7 +44,7 @@ stage1()
 
 stage2()
 {
-	for Pkgfile in `find -L $ROOT/ts/ports -name Pkgfile |grep -Ev "proprietary|binary-core|binary-opt"`;do
+	for Pkgfile in `find -L $ROOT/ts/ports -name Pkgfile |grep -Ev "proprietary|binary-core|binary-opt|broken"`;do
 		install_port
 	done
 	printf "\rPort Installation %-40s\n" "Complete"

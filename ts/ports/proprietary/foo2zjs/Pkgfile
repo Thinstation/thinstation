@@ -10,7 +10,12 @@ source=(http://foo2zjs.rkkda.com/foo2zjs.tar.gz)
 
 build() {
 	cd foo2zjs
-	make
+	sed -e 's|=/etc|=$(DESTDIR)/etc|g' -i Makefile
+	sed -e 's|=/lib|=$(DESTDIR)/lib|g' -i Makefile
+	sed -e 's|ln -sf $(USBDIR)|ln -sf $(RUSBDIR)|g' -i Makefile
+	sed -e 's|LIBUDEVDIR=|RUSBDIR=/etc/hotplug/usb\nLIBUDEVDIR=|g' -i Makefile
+	sed -e '/install-usermap/d' -i Makefile
+	make -j1
 
 	./getweb all
 
@@ -19,7 +24,10 @@ build() {
 	mkdir -p $PKG/usr/share/cups/model
 	mkdir -p $PKG/usr/share/applications
 	mkdir -p $PKG/usr/share/pixmaps
-	make DESTDIR=$PKG install
+	mkdir -p $PKG/etc/udev/rules.d
+	make DESTDIR=$PKG install -j1
+	make DESTDIR=$PKG install-hotplug -j1
 	rm $PKG/usr/lib/cups/filter/command2foo2lava-pjl
 	ln -s /usr/bin/command2foo2lava-pjl $PKG/usr/lib/cups/filter/command2foo2lava-pjl
+
 }

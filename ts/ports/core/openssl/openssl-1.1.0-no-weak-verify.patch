@@ -1,0 +1,26 @@
+diff -up openssl-1.1.0g/crypto/asn1/a_verify.c.no-md5-verify openssl-1.1.0g/crypto/asn1/a_verify.c
+--- openssl-1.1.0g/crypto/asn1/a_verify.c.no-md5-verify	2017-11-02 15:29:02.000000000 +0100
++++ openssl-1.1.0g/crypto/asn1/a_verify.c	2017-11-03 16:15:46.125801341 +0100
+@@ -7,6 +7,9 @@
+  * https://www.openssl.org/source/license.html
+  */
+ 
++/* for secure_getenv */
++#define _GNU_SOURCE
++
+ #include <stdio.h>
+ #include <time.h>
+ #include <sys/types.h>
+@@ -126,6 +129,12 @@ int ASN1_item_verify(const ASN1_ITEM *it
+         if (ret != 2)
+             goto err;
+         ret = -1;
++    } else if ((mdnid == NID_md5
++               && secure_getenv("OPENSSL_ENABLE_MD5_VERIFY") == NULL) ||
++               mdnid == NID_md4 || mdnid == NID_md2 || mdnid == NID_sha) {
++        ASN1err(ASN1_F_ASN1_ITEM_VERIFY,
++                ASN1_R_UNKNOWN_MESSAGE_DIGEST_ALGORITHM);
++        goto err;
+     } else {
+         const EVP_MD *type;
+         type = EVP_get_digestbynid(mdnid);

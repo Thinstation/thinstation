@@ -5,16 +5,17 @@
 # Depends on:  intltool gtk xorg-libxscrnsaver startup-notification nss libidn xorg-libxdamage
 
 name=pidgin
-version=2.11.0
+version=2.12.0
 release=1
 source=(http://downloads.sourceforge.net/project/$name/Pidgin/$version/$name-$version.tar.bz2)
 
 build () {
     cd $name-$version
     ./configure --prefix=/usr \
+	--sysconfdir=/etc \
         --mandir=/usr/man \
-         \
         --disable-schemas-install \
+	--with-gstreamer=1.0 \
         --with-nspr-includes=/usr/include/nspr \
         --with-nss-includes=/usr/include/nss \
         --with-nspr-libs=/usr/lib \
@@ -22,7 +23,7 @@ build () {
 	--with-gnutls-includes=/usr/include/gnutls \
 	--with-gnutls-libs=/usr/lib \
 	--disable-gtkspell \
-	--enable-gnutls=no \
+	--disable-gnutls \
         --disable-avahi \
 	--disable-tcl \
         --disable-vv

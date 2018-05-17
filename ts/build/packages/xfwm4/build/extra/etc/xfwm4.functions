@@ -1,28 +1,28 @@
 make_desktop()
 {
-	mkdir -p $ICONDIR
-	LINK=$ICONDIR/`replace_char "$title.desktop" "[ /]" "_"`
+	mkdir -p "$ICONDIR"
+	LINK="$ICONDIR"/`replace_char "$title.desktop" "[ /]" "_"`
 	if [ -n "$menu" ]; then
-		menu="`echo $menu | awk -F:: "{ print \\$NF }"`"
+		submenu="`echo $menu | awk -F:: "{ print \\$NF }"`"
 	else
-		menu="X-Xfce-Toplevel"
+		submenu="X-Xfce-Toplevel"
 	fi
-	echo "[Desktop Entry]"			>$LINK
-	echo "Version=1.0"			>>$LINK
-	echo "Name=$title"			>>$LINK
-	echo "Comment=$title"			>>$LINK
-	echo "TryExec=$command"			>>$LINK
-	echo "Exec=$command"			>>$LINK
+	echo "[Desktop Entry]"			>"$LINK"
+	echo "Version=1.0"			>>"$LINK"
+	echo "Name=$title"			>>"$LINK"
+	echo "Comment=$title"			>>"$LINK"
+	echo "TryExec=$command"			>>"$LINK"
+	echo "Exec=$command"			>>"$LINK"
 	if [ -n "$Path" ]; then
-	echo "Path=$Path"			>>$LINK
+	echo "Path=$Path"			>>"$LINK"
 	fi
-	echo "StartupNotify=false"		>>$LINK
-	echo "Terminal=false"			>>$LINK
-	echo "Type=Application"			>>$LINK
-	echo "Icon=$icon"			>>$LINK
-	echo "Categories=GTK;GNOME;$menu;"	>>$LINK
-	chmod +x $LINK
-	unset menu
+	echo "StartupNotify=false"		>>"$LINK"
+	echo "Terminal=false"			>>"$LINK"
+	echo "Type=Application"			>>"$LINK"
+	echo "Icon=$icon"			>>"$LINK"
+	echo "Categories=GTK;GNOME;$submenu;"	>>"$LINK"
+	chmod +x "$LINK"
+	unset submenu
 }
 
 xfconf_settings()
@@ -104,7 +104,11 @@ xfconf_settings()
 	fi
 
 	xfconf-query -c xfce4-panel -p /panels/panel-1/plugin-ids $PANEL
-
+	if is_enabled $XFWM4_KIOSK; then
+		xfconf-query -c xfce4-desktop -p /desktop-icons/style -t uint -s 0 -n
+		xfconf-query -c xfce4-desktop -p /desktop-menu/show -t bool -s false -n
+		xfconf-query -c xfce4-desktop -p /windowlist-menu/show -t bool -s false -n
+	fi
 	if [ -n "$DESKTOP_ICON_SIZE" ]; then
 		xfconf-query -c xfce4-desktop -p /desktop-icons/icon-size -t uint -s $DESKTOP_ICON_SIZE -n
 	fi
@@ -148,11 +152,11 @@ xfconf_settings()
 	if [ "`make_caps x$XFWM4_START_POSITION`" == "XBOTTOM" ]; then
 		xfconf-query -c xfce4-panel -p /panels/panel-1/position -t string -s "p=8;x=0;y=0" -n
 	fi
-    if is_disabled $XFWM4_START_DISABLE_SUSPEND; then
-        xfconf-query -c xfce4-session -p /shutdown/ShowSuspend --create --set false --type bool
-    else
-        xfconf-query -c xfce4-session -p /shutdown/ShowSuspend --create --set true --type bool
-    fi
+	if is_disabled $XFWM4_START_DISABLE_SUSPEND; then
+		xfconf-query -c xfce4-session -p /shutdown/ShowSuspend --create --set false --type bool
+	else
+		xfconf-query -c xfce4-session -p /shutdown/ShowSuspend --create --set true --type bool
+	fi
 	xfconf-query -c xfwm4 -p /general/double_click_distance -t int -s 5 -n
 	xprop -root -format _NET_NUMBER_OF_DESKTOPS 32c -set _NET_NUMBER_OF_DESKTOPS 1
 	if is_enabled $XFWM4_COMPOSITING; then
@@ -247,6 +251,11 @@ wm_menu()
 			command="pkg $MAXIMIZE_DEFAULT $type \"$server\" \"$options\""
 			package=$type
 			icon=$type
+			menu="`echo $title | awk -F:: -v OFS=:: "{ NF--; print }"`"
+			if [ -n "$menu" ]; then
+				title="`echo $title | awk -F:: "{ print \\$NF }"`"
+				echo $menu >> /tmp/typelist
+			fi
 			case "$icon_mode" in
 				ON|MENU)
 					ICONDIR=$HOME/.local/share/applications
@@ -263,10 +272,15 @@ wm_menu()
 			case "$icon_mode" in
 				ON|SUBMENU)
 					ICONDIR=$HOME/Desktop
+					if [ -n "$menu" ]; then
+						ICONDIR="$ICONDIR/`echo $menu | sed -e 's/::/\//g'`"
+					fi
 					make_desktop
-					desktop_icon_file=$ICONDIR/`replace_char "$title.desktop" "[ /]" "_"`
-					echo "$sindex $desktop_icon_file" >> /tmp/icon.sort
-					let sindex+=1
+					if [ -z "$menu" ]; then
+						desktop_icon_file=$ICONDIR/`replace_char "$title.desktop" "[ /]" "_"`
+						echo "$sindex $desktop_icon_file" >> /tmp/icon.sort
+						let sindex+=1
+					fi
 				;;
 			esac
 			case "$autostart" in

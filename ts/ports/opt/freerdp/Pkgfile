@@ -6,12 +6,12 @@
 name=freerdp
 version=latest
 release=master
-source=(freerdp-2.0.0-tprdp.patch)
+source=()
 
 build() {
 	git clone git://github.com/FreeRDP/FreeRDP.git -b ${release}
 	cd FreeRDP
-	patch -Np1 < ../freerdp-2.0.0-tprdp.patch
+
 	cmake .	-DCMAKE_INSTALL_PREFIX=/usr \
 		-DCMAKE_INSTALL_LIBDIR=lib \
 		-DDOCBOOKXSL_DIR=/usr/share/sgml/docbook/xsl-ns-stylesheets \
@@ -22,8 +22,8 @@ build() {
 		-DWITH_CHANNELS=ON \
 		-DWITH_SERVER=OFF \
 		-DWITH_CLIENT=ON \
-		-DWITH_GSTREAMER_0_10=ON \
-		-DWITH_GSTREAMER_1_0=OFF \
+		-DWITH_GSTREAMER_0_10=OFF \
+		-DWITH_GSTREAMER_1_0=ON \
 		-DWITH_PULSE=ON \
 		-DWITH_ALSA=ON \
 		-DWITH_CUPS=ON \

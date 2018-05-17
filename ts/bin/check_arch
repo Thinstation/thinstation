@@ -15,6 +15,15 @@ else
 	git pull
 	cd ..
 fi
+
+update_port()
+{
+#	echo "hell yes"
+	sed -i -e "s/$TSVER/$pkgver/g" $TPKGFILE
+	prt-get update -fr -if -im $prt
+	echo $prt >> /updated
+}
+
 for prt in `prt-get listinst`; do
 	TPKGFILE=`prt-get path $prt`/Pkgfile
 	. $TPKGFILE
@@ -24,15 +33,23 @@ for prt in `prt-get listinst`; do
 	fi
 	ADIR=`find /arch/ -mindepth 2 -maxdepth 2 -type d -name $archname`
 	if [ -n "$ADIR" ]; then
-		APKGFILE=`find $ADIR -name PKGBUILD |grep -v testing |grep -E '\-any|\-i686'`
+		APKGFILE=`find $ADIR -name PKGBUILD |grep -v testing |grep -E 'trunk'`
 		. $APKGFILE
 		if [ "$TSVER" != "$pkgver" ]; then
 			echo $prt
 			echo -e "Thin Version is $TSVER"
 			echo -e "Arch Version is $pkgver\n"
+			echo -e "Would you like to try and update?"
+			read answer
+			case $answer in
+				y|Y)	update_port;;
+				*)	unset TPKGFILE ADIR APKGFILE pkgver version archname
+					continue;;
+			esac
 		fi
 	else
 		echo -e "Port $prt not found\n"
+		echo $prt >> /notfound
 	fi
 	unset TPKGFILE ADIR APKGFILE pkgver version archname
 done

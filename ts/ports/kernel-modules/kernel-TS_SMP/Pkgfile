@@ -15,6 +15,7 @@ build() {
 export MAKEFLAGS="-j7"
 	cd linux-$sversion
 	cp $SRC/ts.config ./.config
+	make silentoldconfig
 
 	if [ -e /etc/ssl/keys/kernel.key ]; then
 		sed -i -e "s,MODULE_SIG_KEY=.*,MODULE_SIG_KEY=\"/etc/ssl/keys/kernel.key\"," .config

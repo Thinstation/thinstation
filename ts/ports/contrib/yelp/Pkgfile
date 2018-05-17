@@ -1,0 +1,22 @@
+# $Id$
+# Maintainer: Jan Alexander Steffens (heftig) <jan.steffens@gmail.com>
+# Contributor: Jan de Groot <jgc@archlinux.org>
+
+name=yelp
+version=3.22
+release=1
+#source=("git://git.gnome.org/yelp#commit=$_commit")
+
+build() {
+  git clone git://git.gnome.org/yelp
+  cd $name
+  git checkout gnome-3-22
+  NOCONFIGURE=1 ./autogen.sh
+  ./configure --prefix=/usr --sysconfdir=/etc --localstatedir=/var \
+    --disable-static --enable-gtk-doc --disable-nls
+  sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
+
+  # Documentation generation segfaults without X11
+  xvfb-run -a -n 81 -s "-extension GLX -screen 0 1280x1024x24" make
+  make DESTDIR="$PKG" install
+}

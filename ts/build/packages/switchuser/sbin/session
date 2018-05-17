@@ -14,7 +14,7 @@ fi
 
 stale_tasks()
 {
-	tasklist=`ps x |grep -e '/usr/sbin/console-kit-daemon --no-daemon' -A 10000 |grep -E -v 'pam-foreground|ps x|/usr/sbin/console-kit-daemon --no-daemon|login|/sbin/session|grep|cut$|echo$'`
+	tasklist=`ps x |grep -e '/bin/login' -A 10000 |grep -E -v 'pam-foreground|ps x|/usr/sbin/console-kit-daemon --no-daemon|login|0 init|/sbin/session|/sbin/pcscd|/lib/systemd/systemd-udevd|grep|cut$|echo$'`
 	tasklist=`echo "$tasklist" |cut -d ' ' -f2`
 	if [ -n "$tasklist" ]; then
 		return 0

@@ -1,0 +1,61 @@
+From 09c11e5a2bd43e1459c7a2115f177e29ed92494e Mon Sep 17 00:00:00 2001
+From: Iain Lane <iain@orangesquash.org.uk>
+Date: Tue, 21 Apr 2015 15:00:09 +0100
+Subject: [PATCH] Fix trashing on overlayfs
+
+In order to determine whether to trash a file to the home directory, we
+compare its st_dev to our home directory's st_dev field.
+
+This is the wrong thing to do on overlayfs when deleting files, because
+st_dev contains the ID of the filesystem providing the file (which can
+be the lower or upper filesystem), but directories always return the ID
+of the overlayfs. Thus the comparison fails and we are unable to trash
+the file.
+
+Fix this by checking st_dev of the parent directory when we are deleting
+a file.
+---
+ gio/glocalfile.c | 20 +++++++++++++++++++-
+ 1 file changed, 19 insertions(+), 1 deletion(-)
+
+diff --git a/gio/glocalfile.c b/gio/glocalfile.c
+index 8f64777..544e0f2 100644
+--- a/gio/glocalfile.c
++++ b/gio/glocalfile.c
+@@ -1910,7 +1910,7 @@ g_local_file_trash (GFile         *file,
+   char *basename, *trashname, *trashfile, *infoname, *infofile;
+   char *original_name, *original_name_escaped;
+   int i;
+-  char *data;
++  char *data, *path;
+   gboolean is_homedir_trash;
+   char delete_time[32];
+   int fd;
+@@ -1934,6 +1934,24 @@ g_local_file_trash (GFile         *file,
+ 
+   is_homedir_trash = FALSE;
+   trashdir = NULL;
++
++  /* On overlayfs, a file's st_dev will be different to the home directory's.
++   * We still want to create our trash directory under the home directory, so
++   * instead we should stat the directory that the file we're deleting is in as
++   * this will have the same st_dev.
++   */
++  if (!S_ISDIR (file_stat.st_mode))
++    {
++      path = g_path_get_dirname (local->filename);
++      /* If the parent is a symlink to a different device then it might have
++       * st_dev equal to the home directory's, in which case we will end up
++       * trying to rename across a filesystem boundary, which doesn't work. So
++       * we use g_stat here instead of g_lstat, to know where the symlink
++       * points to. */
++      g_stat (path, &file_stat);
++      g_free (path);
++    }
++
+   if (file_stat.st_dev == home_stat.st_dev)
+     {
+       is_homedir_trash = TRUE;
+-- 
+2.10.2
+
