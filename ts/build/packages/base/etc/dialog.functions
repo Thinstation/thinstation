@@ -173,9 +173,9 @@ set_default()
 choose_pixmap()
 {
 	if [ -e /lib/icons/hicolor/32x32/apps/$client.png ]; then
-		echo "<input file>/lib/icons/hicolor/32x32/apps/$client.png</input>"
+		echo "/lib/icons/hicolor/32x32/apps/$client.png"
 	else
-		echo "<input file>/lib/pixmaps/${client}_32x32.xpm</input>"
+		echo "/lib/pixmaps/${client}_32x32.xpm"
 	fi
 }
 
@@ -189,22 +189,8 @@ dialog_no_value()
 create_dialog()
 {
 	MAIN_DIALOG='
-<window title="'"$DIALOG_TITLE"'" decorated="true" width-request="325" height-request="235" allow-grow="false" allow-shrink="false" skip_taskbar_hint="true">
+<window title="'"$DIALOG_TITLE"'" decorated="true" width-request="325" height-request="195" allow-grow="false" allow-shrink="false" skip_taskbar_hint="true" image-name="'$(choose_pixmap)'">
 	<vbox>
-		<hbox>
-			<pixmap>
-				<height>32</height>
-				<width>32</width>
-				'$(choose_pixmap)'
-			</pixmap>
-			<text use-markup="true" xalign="0.3">
-				<label>Preparing to run '$DIALOG_TITLE'</label>
-			</text>
-			<text space-expand="true" space-fill="true">
-				<label>""</label>
-			</text>
-		</hbox>
-		<hseparator></hseparator>
 	<notebook labels="User|Server">
                 <vbox visible="'"$SHOW_USER"'">
 			<text space-expand="false" space-fill="false" use-markup="true" xalign="0">

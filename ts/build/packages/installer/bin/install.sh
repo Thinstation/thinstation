@@ -1,10 +1,10 @@
 #!/bin/bash
 . /etc/ashrc
+set -x
 bootdir=/boot/boot
 
 tempdir=`mktemp -d 2>/dev/null`
 disk=$1
-buggybios=$2
 
 mounted()
 {
@@ -17,6 +17,7 @@ mounted()
 
 un_mount()
 {
+	umount /boot >/dev/null 2>&1
         for i in `mount |grep -e $disk |cut -d " " -f3`; do
                 while mounted $i; do
 			sync
@@ -32,15 +33,15 @@ do_mounts()
 {
 	sleep 1
 	while ! mounted /boot ; do
-		mount -t vfat /dev/${disk}1 /boot
+		mount -t vfat ${disk}1 /boot
 		sleep 1
 	done
 	while ! mounted /tmp-root ; do
-		mount -t ext4 /dev/${disk}2 /tmp-root
+		mount -t ext4 ${disk}2 /tmp-root
 		sleep 1
 	done
 	while ! mounted /thinstation ; do
-		mount -t ext4 /dev/${disk}4 /thinstation
+		mount -t ext4 ${disk}4 /thinstation
 		sleep 1
 	done
 }
@@ -66,9 +67,11 @@ parted -s $disk mkpart primary ext4 "12584960s -0"
 read_pt
 un_mount
 dd if=/install/mbr.bin of=$disk bs=440b count=1
-
+sleep 1
+read_pt
+sleep 1
 echo "Making filesystems"
-mkdosfs -n boot -F 32 -R 32 ${disk}1
+mkfs.vfat -n boot -F 32 -R 32 ${disk}1 ||mkfs.vfat -n boot -F 32 -R 32 ${disk}1
 sleep 1
 #progress "Made boot Filesystem" 30
 mkfs.ext4 ${disk}2

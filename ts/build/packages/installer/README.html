@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv='content-type' value='text/html;charset=utf8'>
+  <meta name='generator' value='Ronn/v0.7.3 (http://github.com/rtomayko/ronn/tree/0.7.3)'>
+  <title>DevStation</title>
+  <style type='text/css' media='all'>
+  /* style: man */
+  body#manpage {margin:0}
+  .mp {max-width:100ex;padding:0 9ex 1ex 4ex}
+  .mp p,.mp pre,.mp ul,.mp ol,.mp dl {margin:0 0 20px 0}
+  .mp h2 {margin:10px 0 0 0}
+  .mp > p,.mp > pre,.mp > ul,.mp > ol,.mp > dl {margin-left:8ex}
+  .mp h3 {margin:0 0 0 4ex}
+  .mp dt {margin:0;clear:left}
+  .mp dt.flush {float:left;width:8ex}
+  .mp dd {margin:0 0 0 9ex}
+  .mp h1,.mp h2,.mp h3,.mp h4 {clear:left}
+  .mp pre {margin-bottom:20px}
+  .mp pre+h2,.mp pre+h3 {margin-top:22px}
+  .mp h2+pre,.mp h3+pre {margin-top:5px}
+  .mp img {display:block;margin:auto}
+  .mp h1.man-title {display:none}
+  .mp,.mp code,.mp pre,.mp tt,.mp kbd,.mp samp,.mp h3,.mp h4 {font-family:monospace;font-size:14px;line-height:1.42857142857143}
+  .mp h2 {font-size:16px;line-height:1.25}
+  .mp h1 {font-size:20px;line-height:2}
+  .mp {text-align:justify;background:#fff}
+  .mp,.mp code,.mp pre,.mp pre code,.mp tt,.mp kbd,.mp samp {color:#131211}
+  .mp h1,.mp h2,.mp h3,.mp h4 {color:#030201}
+  .mp u {text-decoration:underline}
+  .mp code,.mp strong,.mp b {font-weight:bold;color:#131211}
+  .mp em,.mp var {font-style:italic;color:#232221;text-decoration:none}
+  .mp a,.mp a:link,.mp a:hover,.mp a code,.mp a pre,.mp a tt,.mp a kbd,.mp a samp {color:#0000ff}
+  .mp b.man-ref {font-weight:normal;color:#434241}
+  .mp pre {padding:0 4ex}
+  .mp pre code {font-weight:normal;color:#434241}
+  .mp h2+pre,h3+pre {padding-left:0}
+  ol.man-decor,ol.man-decor li {margin:3px 0 10px 0;padding:0;float:left;width:33%;list-style-type:none;text-transform:uppercase;color:#999;letter-spacing:1px}
+  ol.man-decor {width:100%}
+  ol.man-decor li.tl {text-align:left}
+  ol.man-decor li.tc {text-align:center;letter-spacing:4px}
+  ol.man-decor li.tr {text-align:right;float:right}
+  </style>
+</head>
+<!--
+  The following styles are deprecated and will be removed at some point:
+  div#man, div#man ol.man, div#man ol.head, div#man ol.man.
+
+  The .man-page, .man-decor, .man-head, .man-foot, .man-title, and
+  .man-navigation should be used instead.
+-->
+<body id='manpage'>
+  <div class='mp' id='man'>
+
+  <div class='man-navigation' style='display:none'>
+    <a href="#NOTE">NOTE</a>
+    <a href="#What-will-this-disc-do-">What will this disc do?</a>
+    <a href="#Do-I-really-need-this-">Do I really need this?</a>
+    <a href="#What-else-do-I-need-">What else do I need?</a>
+    <a href="#How-do-I-build-a-thinclient-">How do I build a thinclient?</a>
+    <a href="#How-do-I-change-the-kind-of-image-I-want-to-make-">How do I change the kind of image I want to make?</a>
+    <a href="#Is-there-any-more-documentation-or-help-">Is there any more documentation or help?</a>
+    <a href="#-PROXY-SUPPORT-">(PROXY SUPPORT)</a>
+  </div>
+
+  <ol class='man-decor man-head man head'>
+    <li class='tl'>README</li>
+    <li class='tc'></li>
+    <li class='tr'>README</li>
+  </ol>
+
+  <h1>DevStation</h1>
+<h2 id="NOTE">NOTE</h2>
+
+<p>You will need a network connection for this installer to work. Proxies are supported(Notes at bottom).</p>
+
+<h2 id="What-will-this-disc-do-">What will this disc do?</h2>
+
+<p>This disc is meant to install the build env, along with the dev env, into <code>/thinstation</code>. It will install a bootable TS image onto the hard drive and make this workstation a PXE boot server.</p>
+
+<h2 id="Do-I-really-need-this-">Do I really need this?</h2>
+
+<p>Strictly speaking, no. You can git clone on your favorite distro like this.<br />
+<code>git clone --depth 1 git://github.com/Thinstation/thinstation.git</code></p>
+
+<h2 id="What-else-do-I-need-">What else do I need?</h2>
+
+<p>If you want to boot clients from this workstation, you will need to assign a static IP to the MAC address of this workstation on your DHCP Server. You will also need to set the 'Next Server' for your network to that IP and set the boot file to <code>pxelinux.0</code>.</p>
+
+<h2 id="How-do-I-build-a-thinclient-">How do I build a thinclient?</h2>
+
+<p>After the installation has finished and you have rebooted, open an xterm and do the following<br />
+<code>cd /thinstation</code><br />
+<code>./setup-chroot</code><br />
+<code>cd /build</code><br />
+<code>./build</code></p>
+
+<p>This will make a thinclient that will boot on VMware workstations.</p>
+
+<h2 id="How-do-I-change-the-kind-of-image-I-want-to-make-">How do I change the kind of image I want to make?</h2>
+
+<p>nano <code>/build/build.conf</code> and <code>/build/thinstation.conf.buildtime</code>.</p>
+
+<h2 id="Is-there-any-more-documentation-or-help-">Is there any more documentation or help?</h2>
+
+<p>Yes, check<br />
+<code>/build/conf</code><br />
+and the wiki at<br />
+<code>http:/www.thinstation.org</code><br />
+or the general mailing list<br />
+<code>https://lists.sourceforge.net/mailman/listinfo/thinstation-general</code><br />
+or the developer mailing list<br />
+<code>https://lists.sourceforge.net/mailman/listinfo/thinstation-developer</code><br />
+or the irc channel<br />
+<code>#thinstation</code><br />
+on freenode</p>
+
+<h2 id="-PROXY-SUPPORT-">(PROXY SUPPORT)</h2>
+
+<p>The sourceforge.net git repo does not support http or https, only ssh and git. However, all is not lost. You can still clone via an https proxy with a little extra configuration. On the proxy server, you will need to allow the ssl 'CONNECT' command for port <code>9418</code>. As an example, for squid, you would edit the squid.conf and add port <code>9418</code> to the list of ssl ports along side <code>443</code> and <code>563</code>.<br />
+If you setup a proxy, a couple of files are created in <code>~/</code>; <code>.wgetrc</code>, <code>proxy</code>, <code>.gitconfig</code>. These files may contain the plain text of a username and password. You may want to delete them after installation.</p>
+
+
+  <ol class='man-decor man-foot man foot'>
+    <li class='tl'>ff</li>
+    <li class='tc'>March 2018</li>
+    <li class='tr'>README</li>
+  </ol>
+
+  </div>
+</body>
+</html>
