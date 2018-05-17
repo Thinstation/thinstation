@@ -1,0 +1,23 @@
+# Description:	Provide the stuff missing in List::Util in XS
+# URL:		https://metacpan.org/release/List-MoreUtils-XS
+# Maintainer:	
+# Depends on:	perl
+# Optional:	p5-config-autoconf p5-inc-latest
+
+name=p5-list-moreutils-xs
+version=0.428
+release=1
+source=(http://search.cpan.org/CPAN/authors/id/R/RE/REHSACK/List-MoreUtils-XS-${version}.tar.gz)
+
+build() {
+	cd List-MoreUtils-XS-$version
+
+	# PERL_MM_USE_DEFAULT=1 \
+	perl Makefile.PL
+	make OPTIMIZE="$CFLAGS" DESTDIR="$PKG" install
+
+	find "$PKG" -depth \
+		-type f \( -name .packlist -o -name \*.bs -o -name perllocal.pod \) -delete , \
+		-type f -name autosplit.ix \( -exec grep -q '^[[:space:]]*package' {} \; -o -delete \) , \
+		-type d -empty -exec rmdir {} +
+}

@@ -1,0 +1,22 @@
+# Description:	HTTP style message (base class)
+# URL:		https://github.com/libwww-perl/HTTP-Message
+# Maintainer:	
+# Depends on:	p5-encode-locale p5-http-date p5-io-html p5-lwp-mediatypes p5-uri
+
+name=p5-http-message
+version=6.16
+release=1
+source=(http://search.cpan.org/CPAN/authors/id/O/OA/OALDERS/HTTP-Message-${version}.tar.gz)
+
+build() {
+	cd HTTP-Message-$version
+
+	# PERL_MM_USE_DEFAULT=1 \
+	perl Makefile.PL
+	make OPTIMIZE="$CFLAGS" DESTDIR="$PKG" install
+
+	find "$PKG" -depth \
+		-type f \( -name .packlist -o -name \*.bs -o -name perllocal.pod \) -delete , \
+		-type f -name autosplit.ix \( -exec grep -q '^[[:space:]]*package' {} \; -o -delete \) , \
+		-type d -empty -exec rmdir {} +
+}

@@ -1,0 +1,23 @@
+# Description:	Roles. Like a nouvelle cuisine portion size slice of Moose.
+# URL:		http://search.cpan.org/~haarg/Role-Tiny/
+# Maintainer:	
+# Depends on:	perl
+# Optional:	p5-class-method-modifiers
+
+name=p5-role-tiny
+version=2.000006
+release=1
+source=(http://search.cpan.org/CPAN/authors/id/H/HA/HAARG/Role-Tiny-${version}.tar.gz)
+
+build() {
+	cd Role-Tiny-$version
+
+	# PERL_MM_USE_DEFAULT=1 \
+	perl Makefile.PL
+	make OPTIMIZE="$CFLAGS" DESTDIR="$PKG" install
+
+	find "$PKG" -depth \
+		-type f \( -name .packlist -o -name \*.bs -o -name perllocal.pod \) -delete , \
+		-type f -name autosplit.ix \( -exec grep -q '^[[:space:]]*package' {} \; -o -delete \) , \
+		-type d -empty -exec rmdir {} +
+}

@@ -1,0 +1,22 @@
+# Description:	XML Syndication Feed Support
+# URL:		http://search.cpan.org/~davecross/XML-Feed/
+# Maintainer:	
+# Depends on:	p5-class-errorhandler p5-datetime p5-datetime-format-mail p5-datetime-format-w3cdtf p5-feed-find p5-html-parser p5-libwww-perl p5-module-build p5-module-pluggable p5-uri p5-uri-fetch p5-xml-atom p5-xml-libxml p5-xml-rss
+
+name=p5-xml-feed
+version=0.53
+release=1
+source=(http://search.cpan.org/CPAN/authors/id/D/DA/DAVECROSS/XML-Feed-${version}.tar.gz)
+
+build() {
+	cd XML-Feed-$version
+
+	# PERL_MM_USE_DEFAULT=1 \
+	perl Makefile.PL
+	make OPTIMIZE="$CFLAGS" DESTDIR="$PKG" install
+
+	find "$PKG" -depth \
+		-type f \( -name .packlist -o -name \*.bs -o -name perllocal.pod \) -delete , \
+		-type f -name autosplit.ix \( -exec grep -q '^[[:space:]]*package' {} \; -o -delete \) , \
+		-type d -empty -exec rmdir {} +
+}

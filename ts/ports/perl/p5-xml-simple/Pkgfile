@@ -1,0 +1,22 @@
+# Description:	An API for simple XML files
+# URL:		http://search.cpan.org/~grantm/XML-Simple/
+# Maintainer:	
+# Depends on:	p5-xml-namespacesupport p5-xml-sax p5-xml-sax-expat
+
+name=p5-xml-simple
+version=2.25
+release=1
+source=(http://search.cpan.org/CPAN/authors/id/G/GR/GRANTM/XML-Simple-${version}.tar.gz)
+
+build() {
+	cd XML-Simple-$version
+
+	# PERL_MM_USE_DEFAULT=1 \
+	perl Makefile.PL
+	make OPTIMIZE="$CFLAGS" DESTDIR="$PKG" install
+
+	find "$PKG" -depth \
+		-type f \( -name .packlist -o -name \*.bs -o -name perllocal.pod \) -delete , \
+		-type f -name autosplit.ix \( -exec grep -q '^[[:space:]]*package' {} \; -o -delete \) , \
+		-type d -empty -exec rmdir {} +
+}

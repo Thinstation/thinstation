@@ -11,4 +11,6 @@ if [ -e ~/.proxy ] ; then
 	fi
 fi
 
-exec /opt/google/chrome/google-chrome $proxyline --user-data-dir "$@"
+[ "`id -u`" == "0" ] && sandbox="--no-sandbox" || unset sandbox
+
+exec /opt/google/chrome/google-chrome $sandbox $proxyline --user-data-dir "$@"

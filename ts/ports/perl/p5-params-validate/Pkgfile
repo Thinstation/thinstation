@@ -1,0 +1,23 @@
+# Description:	Validate method/function parameters
+# URL:		http://metacpan.org/release/Params-Validate
+# Maintainer:	
+# Depends on:	p5-module-build p5-module-implementation
+
+name=p5-params-validate
+version=1.29
+release=1
+source=(http://search.cpan.org/CPAN/authors/id/D/DR/DROLSKY/Params-Validate-${version}.tar.gz)
+
+build() {
+	cd Params-Validate-$version
+
+	# PERL_MM_USE_DEFAULT=1 \
+	perl Build.PL --destdir="$PKG"
+	perl Build
+	perl Build install
+
+	find "$PKG" -depth \
+		-type f \( -name .packlist -o -name \*.bs -o -name perllocal.pod \) -delete , \
+		-type f -name autosplit.ix \( -exec grep -q '^[[:space:]]*package' {} \; -o -delete \) , \
+		-type d -empty -exec rmdir {} +
+}

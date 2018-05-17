@@ -1,0 +1,22 @@
+# Description:	Interface to Gnome libxml2 xml parsing and DOM library
+# URL:		https://github.com/shlomif/perl-XML-LibXML
+# Maintainer:	
+# Depends on:	p5-xml-namespacesupport p5-xml-sax p5-xml-sax-base
+
+name=p5-xml-libxml
+version=2.0132
+release=1
+source=(http://search.cpan.org/CPAN/authors/id/S/SH/SHLOMIF/XML-LibXML-${version}.tar.gz)
+
+build() {
+	cd XML-LibXML-$version
+
+	# PERL_MM_USE_DEFAULT=1 \
+	perl Makefile.PL
+	make OPTIMIZE="$CFLAGS" DESTDIR="$PKG" install
+
+	find "$PKG" -depth \
+		-type f \( -name .packlist -o -name \*.bs -o -name perllocal.pod \) -delete , \
+		-type f -name autosplit.ix \( -exec grep -q '^[[:space:]]*package' {} \; -o -delete \) , \
+		-type d -empty -exec rmdir {} +
+}

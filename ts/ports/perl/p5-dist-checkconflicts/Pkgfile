@@ -1,0 +1,22 @@
+# Description:	Declare version conflicts for your dist
+# URL:		http://metacpan.org/release/Dist-CheckConflicts
+# Maintainer:	
+# Depends on:	p5-module-runtime
+
+name=p5-dist-checkconflicts
+version=0.11
+release=1
+source=(http://search.cpan.org/CPAN/authors/id/D/DO/DOY/Dist-CheckConflicts-${version}.tar.gz)
+
+build() {
+	cd Dist-CheckConflicts-$version
+
+	# PERL_MM_USE_DEFAULT=1 \
+	perl Makefile.PL
+	make OPTIMIZE="$CFLAGS" DESTDIR="$PKG" install
+
+	find "$PKG" -depth \
+		-type f \( -name .packlist -o -name \*.bs -o -name perllocal.pod \) -delete , \
+		-type f -name autosplit.ix \( -exec grep -q '^[[:space:]]*package' {} \; -o -delete \) , \
+		-type d -empty -exec rmdir {} +
+}

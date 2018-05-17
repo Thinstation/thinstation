@@ -3,9 +3,11 @@
 # URL: http://www.thinstation.org
 # Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 
+core_ports="filesystem acl attr libcap coreutils pkgutils glibc bash readline ncurses findutils libpcre grep sed tar xz gzip"
+
 stage1()
 {
-	echo "Chroot not previuosly setup. Doing it NOW!"
+	echo "Chroot not previously setup. Doing it NOW!"
 
 	for dir in proc sys home dev mnt downloads var/lib/pkg; do
 		if [ ! -e $dir ] ; then
@@ -24,11 +26,10 @@ stage1()
 		touch root/.parallel/ignored_vars
 	fi
 
-	for core_port in filesystem acl attr libcap coreutils pkgutils glibc bash readline ncurses findutils libpcre grep sed;
-		do
-			pkg=`find -L $ROOT/ts/ports/core/$core_port |grep -E pkg\.tar\."xz|gz" |grep -e "pkg.tar"`
-			tar -p -o -C $ROOT -xf $pkg 2> /dev/null
-		done
+	for core_port in $core_ports; do
+		pkg=`find -L $ROOT/ts/ports/core/$core_port |grep -E pkg\.tar\."xz|gz" |grep -e "pkg.tar"`
+		tar -p -o -C $ROOT -xf $pkg 2> /dev/null
+	done
 	ln -sf lib lib64
 	if [ ! -d $ROOT/var/lib/pkg ]; then
 		mkdir -p $ROOT/var/lib/pkg
@@ -44,11 +45,21 @@ stage1()
 
 stage2()
 {
+	exclude=`echo "$core_ports"|sed -e 's/ /\/\|/g'`
+	mkdir -p /var/lib/pkg
+	procs=`nproc`
+	let procs-=1
 	for Root in $ROOT/ts $XTRWRKNG; do
-		for Pkgfile in `find -L $Root/ports -name Pkgfile |grep -Ev "proprietary|binary-core|binary-opt"`;do
-			install_port
-		done
+		find -L $Root/ports -name Pkgfile | \
+		grep -Ev "proprietary|binary-core|binary-opt" | \
+		grep -Ev "$exclude" | \
+		xargs -n 1 -P $procs -I {} bash -c 'install_port "$@"' _ {}
 	done
+	for core_port in $core_ports; do
+               	Pkgfile=$ROOT/ts/ports/core/$core_port/Pkgfile
+		install_port $Pkgfile
+	done
+	add_to_db
 	printf "\rPort Installation %-40s\n" "Complete"
 	post_install
 	rm /dostage2
@@ -58,22 +69,15 @@ stage2()
 stage3()
 {
 	for Root in $TSWRKNG $XTRWRKNG; do
-		if [ $Root = $TSWRKNG ]; then Cache=/ts;
-		else Cache=$Root; fi
-		for i in `ls --color=never $Root/packages` ;
-		do
-			printf "\rPopulating Package %-40s" "$i"
-			cd $Root/packages/$i
-			if [ -e $Cache/unwind_cache/$i.turbo ]; then
-				if cat $Cache/unwind_cache/$i.turbo |grep -e "#" |cut -d "#" -f2 |md5sum -c --quiet ; then
-					. $Cache/unwind_cache/$i.turbo
-				else
-					update $i
-				fi
-			else
-				update $i
-			fi
-		done
+		if [ $Root = $TSWRKNG ]
+		then Cache=/ts
+		else Cache=$Root
+		fi
+		export Root
+		export Cache
+		procs=`nproc`
+                let procs-=1
+		ls --color=never $Root/packages |xargs -n 1 -P $procs -I {} bash -c 'unwind_package "$@"' _ {}
 	done
 	printf "\rPackage Population %-40s\n" "Complete"
 	echo "Populating tools"
@@ -87,65 +91,87 @@ stage3()
 	touch /dostage4
 }
 
+unwind_package()
+{
+	pkg=$1
+	printf "\rPopulating Package %-40s" "$pkg"
+        cd $Root/packages/$pkg
+        if [ -e $Cache/unwind_cache/$pkg.turbo ]; then
+        	if cat $Cache/unwind_cache/$pkg.turbo |grep -e "#" |cut -d "#" -f2 |md5sum -c --quiet ; then
+                	. $Cache/unwind_cache/$pkg.turbo
+                else
+                       	update $pkg
+                fi
+        else
+              	update $pkg
+        fi
+}
+
 stage4()
 {
 	rm /dostage4
 	printf "\rLooking at core binary ports\n"
-        for Pkgfile in `find -L $ROOT/ts/ports -name Pkgfile |grep -E "binary-core"`;do
-                if ! install_port; then
-                        port_name=`echo $Pkgfile |cut -d "/" -f6`
-			if ! $autodl; then
-	                        answered=false
-        	                while ! $answered; do
-                	                printf "Would you like to try and build it now? Y/N:"
-                        	        read -n 1 answer
-                                	case $answer in
-                                        	Y|y) prt-get install -fr -if -im $port_name;answered=true;;
-	                                        n|n) answered=true;;
-        	                                *) answered=false;;
-                	                esac
-                        	done
-			else
-				prt-get install -fr -if -im $port_name
-			fi
-			printf "\n"
-                fi
+	if ! $autodl; then
+		procs=1
+	else
+		procs=`nproc`
+	        let procs-=1
+	fi
+        for Root in $ROOT/ts $XTRWRKNG; do
+                find -L $Root/ports -name Pkgfile | \
+                grep -E "binary-core" | \
+                xargs -n 1 -P $procs -I {} bash -c 'install_binary_port "$@"' _ {}
         done
+	add_to_db
         printf "\rBinary Core Port Installation %-40s\n" "Complete"
 	post_install
-	printf "\rLooking at perl packages\n"
-	if ! $autodl; then
-		answered=false
-		while ! $answered; do
-			printf "Would you like to try and build it now? Y/N:"
-			read -n 1 answer
-			case $answer in
-				Y|y)	(sleep .2; echo -e "\n")|cpan App::cpanminus
-					for perl in `cat /ts/etc/perl.list`; do
-						cpanm $perl
-					done
-					answered=true;;
-				n|n) answered=true;;
-				*) answered=false;;
-			esac
-		done
-	else
-		(sleep .2; echo -e "\n")|cpan App::cpanminus
-                for perl in `cat /ts/etc/perl.list`; do
-			cpanm $perl
-		done
+}
+
+update_db()
+{
+	for db in `find /tmp/ -name \*.db`; do
+                cat $db >> /var/lib/pkg/db
+                echo "" >> /var/lib/pkg/db
+		rm $db
+        done
+}
+
+install_binary_port()
+{
+	Pkgfile=$1
+	if ! install_port $Pkgfile; then
+		port_name=`echo $Pkgfile |cut -d "/" -f6`
+		if ! $autodl; then
+			answered=false
+			while ! $answered; do
+				printf "Would you like to try and build it now? Y/N:"
+				read -n 1 answer
+				case $answer in
+					Y|y) prt-get install -fr -if -im -is $port_name;answered=true;;
+					n|n) answered=true;;
+					*) answered=false;;
+				esac
+			done
+		else
+			prt-get install -fr -if -im -is $port_name
+		fi
+		printf "\n"
 	fi
 }
 
 install_port()
 {
+	Pkgfile=$1
 	. $Pkgfile
 	port_dir=`dirname $Pkgfile`
 	port_name=`basename $port_dir`
 	pkg_name="`find -L $port_dir -type f -name ${name}#${version}-${release}.pkg.tar.\* -printf '%f'`"
 	printf "\rInstalling Port %-40s" "$port_name"
 	if [ -f $port_dir/$pkg_name ]; then
-		/usr/bin/pkgadd -f $port_dir/$pkg_name
+		echo $name > /tmp/$name.db
+		echo $version-$release >> /tmp/$name.db
+		tar -xvf $port_dir/$pkg_name -C / >> /tmp/$name.db 2>&1 |grep -v Ignore #|| rm /tmp/$name.db && echo "$pkg_name failed"
+#		/usr/bin/pkgadd -f $port_dir/$pkg_name
 		if [ -e $port_dir/pre-install ]; then
 			echo ". $port_dir/pre-install" >> $ROOT/post-install.sh
 		fi
@@ -159,6 +185,15 @@ install_port()
 	fi
 }
 
+add_to_db()
+{
+	for db in `find /tmp/ -name \*.db`; do
+                cat $db >> /var/lib/pkg/db
+                echo "" >> /var/lib/pkg/db
+		rm $db
+        done
+}
+
 post_install()
 {
 	if [ -e /post-install.sh ]; then
@@ -166,6 +201,10 @@ post_install()
 		rm /post-install.sh
 	fi
 }
+
+export -f unwind_package
+export -f install_port
+export -f install_binary_port
 
 if [ -z "$autodl" ]; then
 	autodl=false

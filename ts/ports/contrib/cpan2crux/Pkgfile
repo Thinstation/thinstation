@@ -1,0 +1,15 @@
+# Description:	Write CRUX ports for CPAN Perl modules
+# URL:		http://crux.nu/Wiki/Cpan2Crux
+# Maintainer: 	Alan Mizrahi, alan at mizrahi dot com dot ve
+# Depends on:	p5-cpan-distnameinfo
+
+name=cpan2crux
+version=1.4
+release=1
+source=(http://www.mizrahi.com.ve/crux/dist/$name-$version.pl)
+
+build () {
+	install -D -m 755 -o root -g root $SRC/$name-$version.pl $PKG/usr/bin/$name
+	install -d $PKG/usr/share/man/man1
+	pod2man -n ${name^^} -c "${name^^} Manual" $name-$version.pl $PKG/usr/share/man/man1/$name.1
+}

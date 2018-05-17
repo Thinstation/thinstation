@@ -81,7 +81,7 @@ extract_archive()
 			done
 		fi
 		if $install_port; then
-			prt-get install --install-scripts -fr -if -im $package
+			prt-get install --install-scripts -fr -if -im -is $package
 			archive="`find -L $ppath -type f -name ${name}#${version}-${release}.pkg.tar.\* -printf '%f'`"
 		fi
 	fi
@@ -250,33 +250,44 @@ from_env()
 
 reduce_libs()
 {
-    if [ -e $pkgpath/lib ]; then
-	for link in `find $pkgpath/lib -mindepth 1 -maxdepth 1 -type l \
-            | grep -E '\.so' | sort -u`; do
-
-	  # Normalize the link
-	  linkdest=`readlink $link | sed -e 's,\.\./\.\./lib/,,' -e 's,^/lib/,,'`
-	  linkdir=`dirname $link`
-	  # If the link is to another directory, leave it alone
-	  if [ `echo $linkdest | grep -E '/'` ]; then
-	      continue
-	  fi
-
-	  soname=`objdump -p $linkdir/$linkdest | grep SONAME | awk '{print $2}'`
-	  base=`basename $link`
-	  if [ -z "$soname" ]; then
-	      echo "MISSING SONAME $link"
-	      exit 1
-	  fi
-	  if [ "$base" == "$soname" ]; then
-	      rm $link
-	      cp $linkdir/$linkdest $link
-	      rm $linkdir/$linkdest
-	  else
-	      rm $link
-	  fi
-	done
-    fi
+	if [ -e $pkgpath/lib ]; then
+		for link in `find $pkgpath/lib -mindepth 1 -maxdepth 1 -type l \
+		| grep -E 'lib\/lib' \
+		| grep -E '\.so' | sort -u`; do
+			# Normalize the link
+			linkdest=`readlink $link | sed -e 's,\.\./\.\./lib/,,' -e 's,^/lib/,,'`
+			linkdir=`dirname $link`
+			# If the link is to another directory, leave it alone
+			if [ `echo $linkdest | grep -E '/'` ]; then
+				continue
+			fi
+			soname=`objdump -p $linkdir/$linkdest | grep SONAME | awk '{print $2}'`
+			base=`basename $link`
+			if [ -z "$soname" ]; then
+				echo "MISSING SONAME $link"
+				exit 1
+			fi
+			if [ "$base" == "$soname" ]; then
+				rm $link
+				cp $linkdir/$linkdest $link
+			else
+				rm $link
+			fi
+		done
+		for lib in `find $pkgpath/lib -mindepth 1 -maxdepth 1 -type f \
+		| grep -E 'lib\/lib' \
+		| grep -E '\.so' |sort -u`; do
+			soname=`objdump -p $lib | grep SONAME | awk '{print $2}'`
+			base=`basename $lib`
+			if [ -z "$soname" ]; then
+				echo "MISSING SONAME $lib"
+				exit 1
+			fi
+			if [ "$base" != "$soname" ]; then
+				rm $lib
+			fi
+		done
+	fi
 }
 
 remove_libs()

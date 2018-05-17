@@ -2,15 +2,18 @@
 set -x
 set -e
 
+procs=`nproc`
+let procs=procs/2
+
 VGA="-vga qxl -global qxl-vga.vram_size=132710400"
 SOUND="-soundhw ac97"
-CPU="-smp cores=4,threads=2,sockets=1"
-MEMORY="-m 2048"
+CPU="-smp cores=$procs,threads=1,sockets=1"
+MEMORY="-m 4096"
 #RNG="-object rng-random,id=RNG"
 MOUSE="-usbdevice tablet"
 KVM="-enable-kvm"
 EFI="-L . --bios /usr/share/edk2.git/ovmf-x64/OVMF-with-csm.fd"
-NETWORK="-net bridge,br=virbr0 -net nic,macaddr=52:54:00:12F:34f:56,model=virtio"
+#NETWORK="-net bridge,br=virbr0 -net nic,macaddr=52:54:00:12F:34f:56,model=virtio"
 
 STANDARD_MACHINE="$SOUND $RNG $VGA $CPU $MEMORY $MOUSE $KVM $NETWORK"
 

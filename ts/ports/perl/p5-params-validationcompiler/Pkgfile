@@ -1,0 +1,22 @@
+# Description:	Build an optimized subroutine parameter validator once, use it forever
+# URL:		http://metacpan.org/release/Params-ValidationCompiler
+# Maintainer:	
+# Depends on:	p5-eval-closure p5-exception-class
+
+name=p5-params-validationcompiler
+version=0.27
+release=1
+source=(http://search.cpan.org/CPAN/authors/id/D/DR/DROLSKY/Params-ValidationCompiler-${version}.tar.gz)
+
+build() {
+	cd Params-ValidationCompiler-$version
+
+	# PERL_MM_USE_DEFAULT=1 \
+	perl Makefile.PL
+	make OPTIMIZE="$CFLAGS" DESTDIR="$PKG" install
+
+	find "$PKG" -depth \
+		-type f \( -name .packlist -o -name \*.bs -o -name perllocal.pod \) -delete , \
+		-type f -name autosplit.ix \( -exec grep -q '^[[:space:]]*package' {} \; -o -delete \) , \
+		-type d -empty -exec rmdir {} +
+}

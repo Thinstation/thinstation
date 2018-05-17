@@ -1,0 +1,22 @@
+# Description:	Keep imports and functions out of your namespace
+# URL:		http://search.cpan.org/dist/namespace-clean
+# Maintainer:	
+# Depends on:	p5-b-hooks-endofscope p5-package-stash
+
+name=p5-namespace-clean
+version=0.27
+release=1
+source=(http://search.cpan.org/CPAN/authors/id/R/RI/RIBASUSHI/namespace-clean-${version}.tar.gz)
+
+build() {
+	cd namespace-clean-$version
+
+	# PERL_MM_USE_DEFAULT=1 \
+	perl Makefile.PL
+	make OPTIMIZE="$CFLAGS" DESTDIR="$PKG" install
+
+	find "$PKG" -depth \
+		-type f \( -name .packlist -o -name \*.bs -o -name perllocal.pod \) -delete , \
+		-type f -name autosplit.ix \( -exec grep -q '^[[:space:]]*package' {} \; -o -delete \) , \
+		-type d -empty -exec rmdir {} +
+}

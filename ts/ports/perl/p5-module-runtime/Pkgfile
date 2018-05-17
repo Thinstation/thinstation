@@ -1,0 +1,22 @@
+# Description:	Runtime module handling
+# URL:		http://search.cpan.org/~zefram/Module-Runtime/
+# Maintainer:	
+# Depends on:	p5-module-build
+
+name=p5-module-runtime
+version=0.016
+release=1
+source=(http://search.cpan.org/CPAN/authors/id/Z/ZE/ZEFRAM/Module-Runtime-${version}.tar.gz)
+
+build() {
+	cd Module-Runtime-$version
+
+	# PERL_MM_USE_DEFAULT=1 \
+	perl Makefile.PL
+	make OPTIMIZE="$CFLAGS" DESTDIR="$PKG" install
+
+	find "$PKG" -depth \
+		-type f \( -name .packlist -o -name \*.bs -o -name perllocal.pod \) -delete , \
+		-type f -name autosplit.ix \( -exec grep -q '^[[:space:]]*package' {} \; -o -delete \) , \
+		-type d -empty -exec rmdir {} +
+}
