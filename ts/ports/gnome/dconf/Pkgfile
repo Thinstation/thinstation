@@ -5,21 +5,13 @@
 # Depends on: gtk libsigc++
 
 name=dconf
-version=0.26.0
+version=0.28.0
 release=1
 source=(http://ftp.gnome.org/pub/GNOME/sources/$name/${version%.*}/$name-$version.tar.xz)
 
 build() {
 	cd $name-$version
-
-	./configure \
-		--prefix=/usr \
-		--mandir=/usr/man \
-		--disable-dependency-tracking \
-		--disable-gtk-doc-html \
-		
-
-	make
-	make DESTDIR=$PKG install
-	rm -rf $PKG/usr/share/gtk-doc
+        meson . build -D enable_docs=true --prefix=/usr --libdir=/usr/lib
+        ninja -C build
+        DESTDIR=$PKG ninja -C build install
 }

@@ -3,7 +3,7 @@
 
 pkgbase=ibus
 name=(ibus libibus)
-version=1.5.14
+version=1.5.18
 release=1
 
 build() {
@@ -19,16 +19,15 @@ git checkout ${version%.*}.y
     --enable-dconf \
     --enable-gtk-doc \
     --disable-memconf \
-    --enable-ui \
+    --disable-ui \
     --enable-python-library \
-    --enable-vala=yes
-
+    --with-python=python3 \
+    --disable-vala
 
   make
-  install=ibus.install
-
   make DESTDIR="${PKG}" install
   sed -ri 's:"(/desktop):"/org/freedesktop\1:' $PKG/usr/share/glib-2.0/schemas/*.xml
+
 #  make -C src DESTDIR="${PKG}" uninstall
 #  make -C bindings DESTDIR="${PKG}" uninstall
 #  rm -rf "$PKG/usr/lib/python2.7/site-packages/gi" # compiled pyc/pyo files were not cleaned

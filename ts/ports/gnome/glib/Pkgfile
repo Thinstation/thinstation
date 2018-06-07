@@ -5,7 +5,7 @@
 
 name=glib
 archname=glib2
-version=2.48.1
+version=2.56.1
 release=1
 source=(http://download.gnome.org/sources/$name/${version:0:4}/$name-$version.tar.xz \
 	gschemas.compiled)
@@ -15,7 +15,9 @@ build () {
 
     ./configure --prefix=/usr \
                 --disable-man \
-                --with-pcre=system
+                --with-pcre=system \
+		--with-python=/usr/bin/python3
+
     make
     make -j1 DESTDIR=$PKG install
 

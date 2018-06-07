@@ -4,9 +4,9 @@ diff -ur a/plugins/clock/clock-time.c b/plugins/clock/clock-time.c
 @@ -110,7 +110,7 @@
  clock_time_init (ClockTime *time)
  {
-   time->timezone_name = g_strdup (DEFAULT_TIMEZONE);
--  time->timezone = g_time_zone_new_local ();
-+  time->timezone = NULL;
+   clock_time->timezone_name = g_strdup (DEFAULT_TIMEZONE);
+-  clock_time->timezone = g_time_zone_new_local ();
++  clock_time->timezone = NULL;
  }
  
  
@@ -14,18 +14,18 @@ diff -ur a/plugins/clock/clock-time.c b/plugins/clock/clock-time.c
  
    g_free (time->timezone_name);
  
--  g_time_zone_unref (time->timezone);
-+  if (time->timezone)
-+    g_time_zone_unref (time->timezone);
+-  g_time_zone_unref (clock_time->timezone);
++  if (clock_time->timezone)
++    g_time_zone_unref (clock_time->timezone);
  
    G_OBJECT_CLASS (clock_time_parent_class)->finalize (object);
  }
 @@ -171,7 +172,7 @@
            if (str_value == NULL || g_strcmp0 (str_value, "") == 0)
              {
-               time->timezone_name = g_strdup (DEFAULT_TIMEZONE);
--              time->timezone = g_time_zone_new_local ();
-+              time->timezone = NULL;
+               clock_time->timezone_name = g_strdup (DEFAULT_TIMEZONE);
+-              clock_time->timezone = g_time_zone_new_local ();
++              clock_time->timezone = NULL;
              }
            else
              {

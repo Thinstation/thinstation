@@ -1,20 +1,21 @@
-# Description: GObject bindings for libudev
-# URL: http://gudev.sourceforge.net/
-# Maintainer: Danny Rawlins, crux at romster dot me
-# Packager: Jose V Beneyto, sepen at crux dot nu
-# Depends on: glib
-# Optional: gobject-introspection
+# $Id$
+# Maintainer: Evangelos Foutras <evangelos@foutrelis.com>
 
 name=libgudev
-version=230
+version=232
 release=1
-source=(http://ftp.gnome.org/pub/gnome/sources/$name/$version/$name-$version.tar.xz)
 
 build() {
-	cd $name-$version
-
-	./configure --prefix=/usr
-	make
-	make install DESTDIR=$PKG
-chown -R root.root $PKG
+  git clone https://git.gnome.org/browse/libgudev
+  cd $name
+  NOCONFIGURE=1 ./autogen.sh
+  ./configure \
+    --prefix=/usr \
+    --enable-gtk-doc \
+    --disable-umockdev
+  sed -i 's/ -shared / -Wl,-O1,--as-needed\0/g' -i libtool
+  make
+  make DESTDIR="$PKG" install
 }
+
+# vim:set ts=2 sw=2 et:

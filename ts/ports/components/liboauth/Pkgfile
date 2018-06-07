@@ -1,0 +1,19 @@
+# $Id$
+# Maintainer: Jan Alexander Steffens (heftig) <jan.steffens@gmail.com>
+# Contributor: Kaiting Chen <kaitocracy@gmail.com>
+# Contributor: Martin Häger <martin.haeger@gmail.com>
+
+name=liboauth
+version=1.0.3
+release=2
+
+build() {
+  git clone https://github.com/x42/liboauth
+  cd $name
+  autoreconf -fvi
+  ./configure --prefix=/usr --disable-static --enable-nss
+  sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
+  make
+  make DESTDIR="$PKG" install
+  install -Dm644 COPYING.MIT "$PKG/usr/share/licenses/$name/COPYING"
+}

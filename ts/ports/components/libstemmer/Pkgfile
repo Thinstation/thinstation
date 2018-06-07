@@ -1,0 +1,25 @@
+# $Id$
+# Maintainer: Jan Alexander Steffens (heftig) <jan.steffens@gmail.com>
+
+name=libstemmer
+version=git
+release=2
+source=dynamiclib.patch
+
+build() {
+git clone https://github.com/snowballstem/snowball
+  cd snowball
+  patch -Np1 -i ../dynamiclib.patch
+  echo "0+$(git rev-list --count HEAD)"
+  make
+  # Disabled - needs external test data
+  #make check
+  install -d "$PKG/usr/bin"
+  install -t "$PKG/usr/bin" snowball stemwords
+  install -Dm644 COPYING "$PKG/usr/share/licenses/snowball/LICENSE"
+  install -Dm644 {.,"$PKG"/usr}/include/libstemmer.h
+  install -D {.,"$PKG"/usr/lib}/libstemmer.so.0.0.0
+  ln -s libstemmer.so.0.0.0 "$PKG/usr/lib/libstemmer.so.0"
+  ln -s libstemmer.so.0 "$PKG/usr/lib/libstemmer.so"
+  install -Dm644 COPYING "$PKG/usr/share/licenses/libstemmer/LICENSE"
+}

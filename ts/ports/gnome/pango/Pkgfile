@@ -1,17 +1,21 @@
 # Description: A library for layout and rendering of text
 # URL: http://www.gtk.org/
 # Maintainer: Fredrik Rinnestam, fredrik at crux dot nu
-# Depends on: harfbuzz, glib, xorg-libsm, xorg-libxext, xorg-libxft, gobject-introspection
+# Depends on: xorg-libsm, xorg-libxft, gobject-introspection fribidi
 
 name=pango
-version=1.40.1
+version=1.42.1
 release=1
-source=(http://download.gnome.org/sources/$name/${version:0:4}/$name-$version.tar.xz)
+source=(http://download.gnome.org/sources/$name/${version:0:4}/$name-$version.tar.xz \
+        pango.modules)
 
 build () {
         cd $name-$version
         ./configure --prefix=/usr
+
         make
         make DESTDIR=$PKG install
+
+        install -D -m 644 $SRC/pango.modules $PKG/usr/etc/pango/pango.modules
         rm -r $PKG/usr/share/gtk-doc
 }

@@ -4,20 +4,16 @@
 # Depends on: e2fsprogs eudev fuse glibc gtk3 libarchive libsecret libsoup lzo samba xorg-libxdamage docbook-xsl udisks2 gcr
 
 name=gvfs
-version=1.28.3
+version=1.36.2
 release=1
 source=(http://download.gnome.org/sources/$name/${version%.*}/$name-$version.tar.xz)
 
 build() {
-    cd $name-$version
-    ./configure --prefix=/usr \
-        --libexecdir=/usr/lib/$name \
-        --disable-avahi \
-        --disable-bash-completion \
-        --disable-gphoto2 \
-        
-    make
-    make DESTDIR=$PKG install
+	cd $name-$version
+        meson . build -D enable_docs=true --prefix=/usr --libdir=/usr/lib
+        ninja -C build
+        DESTDIR=$PKG ninja -C build install
 
-    rm -r $PKG/usr/share/locale
+        mkdir -p $PKG/etc/ld.so.conf.d
+	echo "/usr/lib/gvfs" >> $PKG/etc/ld.so.conf.d/gvfs.conf
 }

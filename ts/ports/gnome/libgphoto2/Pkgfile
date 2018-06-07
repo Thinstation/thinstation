@@ -1,0 +1,39 @@
+# $Id$
+# Maintainer: Jan de Groot <jgc@archlinux.org>
+# Contributor: Tom Gundersen <teg@jklm.no>
+# Contributor: Eduardo Romero <eduardo@archlinux.org>
+# Contributor: Damir Perisa <damir.perisa@bluewin.ch>
+
+name=libgphoto2
+version=2.5.17
+release=1
+
+build() {
+  git clone https://github.com/gphoto/libgphoto2
+  cd $name
+  autoreconf -fvi
+  ./configure --prefix=/usr --disable-rpath
+  sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0 /g' -e 's/    if test "$export_dynamic" = yes && test -n "$export_dynamic_flag_spec"; then/      func_append compile_command " -Wl,-O1,--as-needed"\n      func_append finalize_command " -Wl,-O1,--as-needed"\n\0/' libtool
+  make
+  make DESTDIR="$PKG" install
+
+  # Remove unused udev helper
+#  rm -r "$PKG/usr/lib/udev"
+
+  # Remove recursive symlink
+#  rm "$PKG/usr/include/gphoto2/gphoto2"
+
+  _genudev
+}
+
+_genudev() (
+  cd "$PKG/usr/lib/libgphoto2"
+
+  export LD_LIBRARY_PATH="$PKG/usr/lib${LD_LIBRARY_PATH:+:}$LD_LIBRARY_PATH"
+  export CAMLIBS="$PWD/$version"
+
+  ./print-camera-list hwdb \
+    | install -Dm644 /dev/stdin "$PKG/usr/lib/udev/hwdb.d/20-gphoto.hwdb"
+  ./print-camera-list udev-rules version 201 \
+    | install -Dm644 /dev/stdin "$PKG/usr/lib/udev/rules.d/40-gphoto.rules"
+)

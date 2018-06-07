@@ -2,7 +2,7 @@
 # Maintainer: Ionut Biru <ibiru@archlinux.org>
 
 name=cogl
-version=1.22.0
+version=1.22.2
 release=1
 
 build() {
@@ -13,11 +13,8 @@ git clone git://git.gnome.org/cogl
   ./configure --prefix=/usr \
     --enable-gles{1,2} \
     --enable-kms-egl-platform \
-    --disable-wayland-egl-server \
-    --enable-wayland-egl-platform=no \
-     \
+    --enable-wayland-egl-server \
     --enable-debug=no \
-    
 
   # https://bugzilla.gnome.org/show_bug.cgi?id=655517
   sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool

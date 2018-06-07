@@ -1,15 +1,12 @@
 # Description: WINE - Implementation of Windows DLL's and core.
-# URL: http://www.winehq.com/
+# URL: https://www.winehq.com/
 # Maintainer: Danny Rawlins, crux at romster dot me
-# Packager: Daniel Walpole, daniel at walpole dot id dot au
-# Depends on:fontconfig-32 freeglut-32 xorg-libxcomposite-32 xorg-libxcursor-32 xorg-libxinerama-32 xorg-libxrandr-32 xorg-libxxf86dga-32 alsa-lib-32 libpng-32 libjpeg-turbo-32 prelink gnutls-32
+# Depends on: fontconfig-32 freeglut-32 gnutls-32 lcms2-32 mpg123-32 openal-32 prelink xorg-libxcomposite-32 xorg-libxcursor-32 xorg-libxinerama-32 xorg-libxrandr-32 xorg-libxxf86dga-32
 
 name=wine
-version=1.9.16
+version=3.7
 release=1
-source=(http://dl.winehq.org/wine/source/1.9/$name-$version.tar.bz2
-	http://dl.winehq.org/wine/wine-gecko/2.47/wine_gecko-2.47-x86_64.msi
-	http://dl.winehq.org/wine/wine-mono/4.6.3/wine-mono-4.6.3.msi)
+source=(https://dl.winehq.org/wine/source/3.x/$name-$version.tar.xz)
 
 build() {
 	install -d wine64
@@ -26,14 +23,6 @@ build() {
 	make depend
 	make
 	make DESTDIR=$PKG install
-
-	install -d $PKG/usr/share/wine/gecko
-	install -d $PKG/usr/share/wine/mono
-
-	install -t $PKG/usr/share/wine/gecko/ \
-		$SRC/wine_gecko-2.47-x86_64.msi
-
-	install $SRC/wine-mono-4.6.3.msi $PKG/usr/share/wine/mono/
 
 	rm -r $PKG/usr/share/man/??.UTF-8
 }

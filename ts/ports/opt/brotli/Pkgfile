@@ -1,0 +1,23 @@
+# Description: Brotli compression library
+# URL: https://github.com/google/brotli
+# Maintainer: Danny Rawlins, crux at romster dot me
+# Depends on: cmake
+
+name=brotli
+version=1.0.3
+release=1
+source=(https://github.com/google/$name/archive/v$version/$name-v$version.tar.gz)
+
+build() {
+	cd $name-$version
+
+	install -d $SRC/build
+	cd $SRC/build
+
+	cmake $SRC/$name-$version \
+		-DCMAKE_INSTALL_PREFIX="/usr" \
+		-DCMAKE_INSTALL_LIBDIR="/usr/lib"
+
+	make
+	make DESTDIR=$PKG install
+}

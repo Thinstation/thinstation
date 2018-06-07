@@ -3,7 +3,7 @@
 # Maintainer: None
 
 name=pidgin-sipe
-version=1.21.1
+version=1.23.2
 release=1
 source=(http://downloads.sourceforge.net/project/sipe/sipe/$name-$version/$name-$version.tar.bz2)
 
@@ -14,7 +14,7 @@ build() {
         NSS_LIBS="`pkg-config --libs nss` `pkg-config --libs nspr`"
         export NSS_CFLAGS NSS_LIBS
 
-	./configure --prefix=/usr 
+	./configure --prefix=/usr --disable-telepathy
 
 	make
 	make DESTDIR=$PKG install

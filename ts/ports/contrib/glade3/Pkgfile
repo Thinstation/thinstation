@@ -5,25 +5,16 @@
 
 name=glade3
 archname=glade
-version=3.20.0
+version=3.22.1
 release=1
 source=(http://ftp.gnome.org/pub/GNOME/sources/glade/${version:0:4}/glade-$version.tar.xz)
 
 build() {
    cd glade-$version
 
-   ./configure \
-      --prefix=/usr \
-      --disable-gtk-doc \
-      --with-help-formats=NONE \
-       \
-      --disable-scrollkeeper \
-      --enable-shared \
-      --disable-static \
-       \
-       
-
-   make && make DESTDIR=$PKG install
-   ln -sf /usr/bin/glade-3 $PKG/usr/bin/glade
-   rm -rf $PKG/usr/share/{locale,gnome,omf,gtk-doc}
+  ./configure --prefix=/usr --sysconfdir=/etc --localstatedir=/var \
+    --disable-static --enable-gtk-doc
+  sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
+  make
+  make DESTDIR="$PKG" install
 }

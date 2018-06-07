@@ -1,0 +1,63 @@
+# Description: Small, efficient and fast rendering engine for Web Browsers.
+# URL: https://www.webkitgtk.org/
+# Maintainer: Danny Rawlins, crux at romster dot me
+# Depends on: gst-plugins-base gtk gtk3 harfbuzz-icu hyphen libgudev libsecret libsoup libtasn1 libwebp ruby woff2 xorg-libxt
+# Optional: enchant libnotify geoclue
+
+name=webkitgtk
+version=2.20.2
+release=1
+source=(https://webkitgtk.org/releases/$name-$version.tar.xz)
+
+build() {
+JOBS=`nproc`
+
+	mkdir build
+	cd $name-$version
+
+	# setting CC and CXX breaks compilation
+	if [ -n "$(pkginfo -i | grep '^ccache ')" ]; then
+		unset CC CXX
+		export PATH="/usr/lib/ccache/:$PATH"
+	fi
+
+	local SPELLCHECK
+	if [ "$(pkginfo -i | grep '^enchant ')" ]; then
+		SPELLCHECK=''
+	else
+		SPELLCHECK='-DENABLE_SPELLCHECK=OFF'
+        fi
+
+	local NOTIFY
+        if [ "$(pkginfo -i | grep '^libnotify ')" ]; then
+                NOTIFY='-DUSE_LIBNOTIFY=ON'
+        else
+                NOTIFY='-DUSE_LIBNOTIFY=OFF'
+        fi
+
+	local GEOLOCATION
+        if [ "$(pkginfo -i | grep '^geoclue ')" ]; then
+                GEOLOCATION='-DENABLE_GEOLOCATION=ON'
+        else
+                GEOLOCATION='-DENABLE_GEOLOCATION=OFF'
+        fi
+
+	cd ../build
+
+	cmake ../$name-$version \
+		-G Ninja \
+		-DCMAKE_BUILD_TYPE=Release \
+		-DCMAKE_INSTALL_PREFIX:PATH=/usr \
+		-DCMAKE_INSTALL_LIBDIR:PATH=/usr/lib \
+		-DCMAKE_INSTALL_LIBEXECDIR:PATH=/usr/lib \
+		-DCMAKE_SKIP_RPATH:BOOL=ON \
+		-DPORT=GTK \
+		-DENABLE_MINIBROWSER=ON \
+		-DUSE_SYSTEM_MALLOC=ON \
+		-Wno-dev $GEOLOCATION $SPELLCHECK $NOTIFY
+
+	ninja -j ${JOBS-1}
+	DESTDIR=$PKG ninja install
+
+	rm -r $PKG/usr/share/locale
+}

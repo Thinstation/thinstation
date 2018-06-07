@@ -1,0 +1,25 @@
+# $Id$
+# Maintainer: Jan Alexander Steffens (heftig) <jan.steffens@gmail.com>
+# Contributor: Jan de Groot <jgc@archlinux.org>
+
+name=cheese
+version=3.28.0
+release=1
+
+build() {
+  git clone --depth 1 https://git.gnome.org/browse/cheese
+  cd $name
+  NOCONFIGURE=1 ./autogen.sh
+  ./configure --prefix=/usr \
+		--sysconfdir=/etc \
+		--localstatedir=/var \
+      		--disable-static \
+		--disable-schemas-compile \
+      		--enable-gtk-doc
+
+  # https://bugzilla.gnome.org/show_bug.cgi?id=655517
+#  sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
+
+  make
+  make DESTDIR="$PKG" install
+}

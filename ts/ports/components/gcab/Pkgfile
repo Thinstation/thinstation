@@ -1,0 +1,25 @@
+# Description:	Tools to handle cab files
+# URL:		https://live.gnome.org/gcab
+# Maintainer:	Alan Mizrahi, alan at mizrahi dot com dot ve
+# Depends on:	
+
+name=gcab
+version=0.4
+release=1
+source=(http://ftp.gnome.org/pub/GNOME/sources/$name/$version/$name-$version.tar.xz)
+
+build() {
+	cd $name-$version
+
+	# --disable-nls doesn't work
+	sed -i -e 's|USE_NLS=yes|USE_NLS=no|;s|ENABLE_NLS 1|ENABLE_NLS 0|' configure
+
+	./configure \
+		--prefix=/usr \
+		--mandir=/usr/man
+	make
+    	make DESTDIR=$PKG install
+
+	# Remove gtk-doc directory that can't be disabled via configure due to a bug reported 1000 times already
+	rm -rf $PKG/usr/share
+}

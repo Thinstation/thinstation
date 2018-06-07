@@ -1,0 +1,20 @@
+# Description: Graphviz is open source graph visualization software.
+# URL: http://www.graphviz.org/
+# Maintainer: Danny Rawlins, crux at romster dot me
+# Packager: Daryl Fonsecq-Holt, wyatt at prairieturtle dot ca
+# Depends on: libgd pango
+
+name=graphviz
+version=2.40.1
+release=1
+source=(https://www.graphviz.org/pub/$name/stable/SOURCES/$name-$version.tar.gz)
+
+build() {
+	cd $name-$version
+
+	./configure --prefix=/usr
+	make
+	make DESTDIR=$PKG install
+
+	rm $PKG/usr/share/$name/doc/{AUTHORS,COPYING,ChangeLog,NEWS}
+}

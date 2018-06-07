@@ -1,0 +1,17 @@
+# $Id$
+# Maintainer: Felix Yan <felixonmars@archlinux.org>
+
+name=cldr-emoji-annotation
+version=33.0.0
+_tag=${version}_1
+release=1
+source=(https://github.com/fujiwarat/cldr-emoji-annotation/archive/$_tag.tar.gz)
+
+build() {
+  cd cldr-emoji-annotation-$_tag
+  ./autogen.sh --prefix=/usr
+  make
+  make DESTDIR="$PKG" install
+
+  install -Dm644 unicode-license.txt "$PKG"/usr/share/licenses/$name/unicode-license.txt
+}
