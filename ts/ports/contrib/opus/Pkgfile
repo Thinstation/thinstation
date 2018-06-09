@@ -1,0 +1,26 @@
+# Description: Codec designed for interactive speech and audio transmission over the Internet.
+# URL: http://www.opus-codec.org/
+# Maintainer: Danny Rawlins, crux at romster dot me
+# Packager: Danny Rawlins, crux at romster dot me
+
+name=opus
+version=1.1.2
+release=1
+source=(http://downloads.us.xiph.org/releases/opus/opus-$version.tar.gz)
+
+build() {
+	cd opus-$version
+
+	autoreconf -i
+
+	./configure \
+		--prefix=/usr \
+		--mandir=/usr/man \
+		--enable-custom-modes \
+		--disable-nls
+
+	make
+	make DESTDIR=$PKG install
+
+	rm -rf $PKG/usr/share/doc
+}
