@@ -4,12 +4,13 @@
 # Depends on: 
 
 name=libass
-version=0.9.12
+version=0.13.2
 release=1
-source=(http://libass.googlecode.com/files/$name-$version.tar.gz)
+source=(https://github.com/${name}/${name}/archive/${version}.tar.gz)
 
 build() {
 	cd $name-$version
-	./configure --prefix=/usr
+	./autogen.sh
+	./configure --prefix=/usr --disable-static
 	make DESTDIR=$PKG install
 }

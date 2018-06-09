@@ -5,42 +5,49 @@
 # Depends on: faac imlib2 lame libsdl libtheora libxvid x264 opencore-amr speex libva
 
 name=ffmpeg
-version=3.0.2
+version=3.0.11
 release=1
 source=(http://ffmpeg.org/releases/$name-$version.tar.bz2)
 
 build() {
 	cd $name-$version
 
-	./configure \
-		--cpu=x86_64 \
-		--disable-ffserver \
-		--disable-ffplay \
-		--disable-ffprobe \
-		--enable-pic \
-		--disable-encoder=flac \
-		--disable-decoder=cavs \
-		--disable-protocols \
-		--disable-devices \
-		--disable-network \
-		--disable-hwaccels \
-		--disable-filters \
-		--enable-optimizations \
-		--enable-postproc \
-		--prefix=/usr \
-		--mandir=/usr/man \
-		--enable-runtime-cpudetect \
-		--enable-gpl \
-		--disable-nonfree \
+        ./configure \
+		--enable-avresample \
+                --disable-ffserver \
+                --disable-ffplay \
+                --disable-ffprobe \
+                --enable-pic \
+                --disable-encoder=flac \
+                --disable-decoder=cavs \
+                --disable-protocols \
+                --enable-protocol=file \
+                --enable-libass \
+                --enable-libfreetype \
+                --enable-libmp3lame \
+                --enable-libopus \
+                --enable-libtheora \
+                --enable-libvorbis \
+                --enable-libvpx \
+                --enable-libx264 \
+                --disable-devices \
+                --disable-network \
+                --disable-hwaccels \
+                --enable-optimizations \
+                --enable-postproc \
+                --prefix=/usr \
+                --mandir=/usr/man \
+                --enable-runtime-cpudetect \
+                --enable-gpl \
+                --disable-nonfree \
 		--disable-indevs \
-		--disable-outdev=oss,v4l2,fbdev \
-		--disable-muxers \
-		--disable-debug \
-		--disable-doc \
-		--enable-shared \
-		--disable-static \
-		--disable-demuxer='hls' --disable-protocol='concat,hls' # FS#47738
+                --disable-outdev=oss,v4l2,fbdev \
+                --disable-debug \
+                --disable-doc \
+                --enable-shared \
+                --disable-static \
+                --disable-demuxer='hls' --disable-muxer='hls' --disable-protocol='concat,hls' # FS#47738
 
-	make SHARED_PP='yes'
-	make DESTDIR=$PKG install install-man
+        make SHARED_PP='yes'
+        make DESTDIR=$PKG install install-man
 }

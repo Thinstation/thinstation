@@ -1,0 +1,16 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=ocsinventory
+version=1.6.4
+release=1
+source=(https://github.com/jackburton79/ocs-agent/archive/v$version.tar.gz)
+
+build() {
+	cd ocs-agent-$version
+
+	make
+	mkdir -p $PKG/bin
+	cp  ocsinventory-agent $PKG/bin/.
+}
