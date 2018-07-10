@@ -28,6 +28,11 @@ init)
 		echo_log "Continuing boot with default BIOS keymap"
 	fi
         if [ -e /lib/kbd/consolefonts/$CONSOLE_FONT ] && [ "$CONSOLE_FONT" != "" ] ; then
+		for TTY in 1 2 3
+                do
+			setfont -C /dev/tty$TTY /lib/kbd/consolefonts/$CONSOLE_FONT
+		done
+                echo "Loading console font: $CONSOLE_FONT" >> $LOGFILE
                 setfont /lib/kbd/consolefonts/$CONSOLE_FONT
                 echo "Loading console font: $CONSOLE_FONT" >> $LOGFILE
         else
