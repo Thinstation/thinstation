@@ -1,0 +1,13 @@
+--- linux-4.1.1/drivers/gpu/drm/radeon/atombios_encoders.c	2015-06-29 19:55:35.000000000 +0000
++++ work/src/linux-4.1.1/drivers/gpu/drm/radeon/atombios_encoders.c	2015-07-20 09:45:50.090107431 +0000
+@@ -697,6 +697,10 @@
+ 		connector = radeon_get_connector_for_encoder_init(encoder);
+ 	radeon_connector = to_radeon_connector(connector);
+ 
++	/* WORKAROUND if radeon_get_connector_for_encoder_init() returns 0 as well */
++	if (!connector)
++		return ATOM_ENCODER_MODE_DVI;
++
+ 	switch (connector->connector_type) {
+ 	case DRM_MODE_CONNECTOR_DVII:
+ 	case DRM_MODE_CONNECTOR_HDMIB: /* HDMI-B is basically DL-DVI; analog works fine */
