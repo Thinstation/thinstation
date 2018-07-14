@@ -42,4 +42,12 @@ if [ "`tty`" == "$CONSOLE" ]; then
 fi
 splash_exit
 trap - INT QUIT TSTP
+if tty |grep -q -e tty; then
+	if [ -e /lib/kbd/keymaps/$CONSOLE_KEYBOARD ] && [ "$CONSOLE_KEYBOARD" != "" ] ; then
+		loadkeys /lib/kbd/keymaps/$CONSOLE_KEYBOARD -q
+	fi
+	if [ -e /lib/kbd/consolefonts/$CONSOLE_FONT ] && [ "$CONSOLE_FONT" != "" ] ; then
+		setfont /lib/kbd/consolefonts/$CONSOLE_FONT
+	fi
+fi
 show_cursor
