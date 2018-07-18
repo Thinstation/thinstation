@@ -14,22 +14,20 @@ cd NVIDIA-Linux-x86_64-$version
 cd kernel
 
 for kernel in TS_64; do
-	if [ -e /etc/ssl/keys/kernel.key ]; then
-		make SYSSRC=/usr/src/kernels/${release}${kernel} \
-			module \
-			CROSS_COMPILE="/opt/cross/x-tools/x86_64-thinstation-linux-gnu/bin/x86_64-thinstation-linux-gnu-" \
-			CC="/opt/cross/x-tools/x86_64-thinstation-linux-gnu/bin/x86_64-thinstation-linux-gnu-cc" \
-			LD="/opt/cross/x-tools/x86_64-thinstation-linux-gnu/bin/x86_64-thinstation-linux-gnu-ld" \
-			module-sign \
-			MODSECKEY=/etc/ssl/keys/kernel.key \
-			MODPUBKEY=/etc/ssl/certs/kernel.crt
-	else
- 		make SYSSRC=/usr/src/kernels/${release}${kernel} \
-			module \
-			CROSS_COMPILE="/opt/cross/x-tools/x86_64-thinstation-linux-gnu/bin/x86_64-thinstation-linux-gnu-" \
-			CC="/opt/cross/x-tools/x86_64-thinstation-linux-gnu/bin/x86_64-thinstation-linux-gnu-cc" \
-			LD="/opt/cross/x-tools/x86_64-thinstation-linux-gnu/bin/x86_64-thinstation-linux-gnu-ld"
-	fi
+	make SYSSRC=/usr/src/kernels/${release}${kernel} \
+		module \
+		CROSS_COMPILE="/opt/cross/x-tools/x86_64-thinstation-linux-gnu/bin/x86_64-thinstation-linux-gnu-" \
+		CC="/opt/cross/x-tools/x86_64-thinstation-linux-gnu/bin/x86_64-thinstation-linux-gnu-cc" \
+		LD="/opt/cross/x-tools/x86_64-thinstation-linux-gnu/bin/x86_64-thinstation-linux-gnu-ld"
+
+        if [ -e /etc/ssl/keys/kernel.key ]; then
+                /usr/src/kernels/${release}${kernel}/scripts/sign-file \
+                        sha256 \
+                        /etc/ssl/keys/kernel.key \
+                        /etc/ssl/certs/kernel.crt \
+                        nvidia.ko
+        fi
+
 	mkdir -p $INSTALLDIR/lib/modules/${release}${kernel}/$KMOD
 	cp -a nvidia.ko $INSTALLDIR/lib/modules/${release}${kernel}/$KMOD
 done

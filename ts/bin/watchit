@@ -1,0 +1,25 @@
+#!/bin/bash
+
+new_file()
+{
+        if [ -n "`stat -c '%Y' $1 | grep -v \"$bday\"`" ]; then
+                return 0
+        else
+                return 1
+        fi
+}
+
+timestamp="`date +%Y%m%d`0000.00"
+for file in `find /usr` `find /lib` `find /bin` `find /sbin` `find /build/packages` `find /opt` `find /etc` `find /share` `find /var`; do
+        touch -c -h -t $timestamp $file
+done
+bday=`stat -c %Y /bin/busybox`
+
+$1
+
+for file in `find /usr` `find /lib` `find /bin` `find /sbin` `find /build/packages`; do
+	if new_file $file; then
+		echo $file
+	fi
+done
+
