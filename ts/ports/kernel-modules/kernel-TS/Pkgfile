@@ -20,14 +20,10 @@ build() {
 
 	cp $SRC/ts.config ./.config
 	make silentoldconfig
-	if [ -e /etc/ssl/keys/kernel.key ]; then
-		sed -i -e "s,MODULE_SIG_KEY=.*,MODULE_SIG_KEY=\"/etc/ssl/keys/kernel.key\"," .config
-		mkdir -p $PKG/usr/src/kernels/${kernel}/certs
-		ln -s /etc/ssl/certs/kernel.crt $PKG/usr/src/kernels/${kernel}/certs/signing_key.x509
-	fi
-	if [ -e /etc/ssl/certs/kernel-ca.crt ]; then
-		sed -i -e "s,SYSTEM_TRUSTED_KEYS=.*,SYSTEM_TRUSTED_KEYS=\"/etc/ssl/certs/kernel-ca.crt\"," .config
-	fi
+
+	touch certs/x509.genkey
+	cp /etc/ssl/keys/kernel.key certs/signing_key.pem
+	openssl x509 -inform DER -in /etc/ssl/certs/kernel.crt -outform PEM >> certs/signing_key.pem
 
 	make modules_prepare headers_install tools/objtool
 	mkdir -p $PKG/usr/src/kernels/${kernel}

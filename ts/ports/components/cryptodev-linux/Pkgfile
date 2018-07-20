@@ -5,21 +5,23 @@
 name=cryptodev-linux
 version=git
 release=1
-kernel=`cat /ts/ports/kernel-modules/VERSION`
+kver=`cat /ts/ports/kernel-modules/VERSION`
 
 build() {
 	git clone --depth 1 https://github.com/cryptodev-linux/cryptodev-linux.git
 	cd $name
 
-	REPORT_KERNEL=`cat /boot/KERNEL_VERSION`
-	export REPORT_KERNEL
+	for KERNELTYPE in TS TS+con; do
+		export REPORT_KERNEL=${kver}$KERNELTYPE
 
-	make -j1
-	install -m 644 -D crypto/cryptodev.h $PKG/usr/include/crypto/cryptodev.h
-	install -m 644 -D cryptodev.ko $PKG/lib/modules/`uname -r`/kernel/extra/cryptodev.ko
+		make -j1
+		install -m 644 -D crypto/cryptodev.h $PKG/usr/include/crypto/cryptodev.h
+		install -m 644 -D cryptodev.ko $PKG/lib/modules/`uname -r`/kernel/extra/cryptodev.ko
 
-	/usr/src/kernels/$REPORT_KERNEL/scripts/sign-file \
-	sha256 /etc/ssl/keys/kernel.key \
-	/etc/ssl/certs/kernel.crt \
-        $PKG/lib/modules/$REPORT_KERNEL/kernel/extra/cryptodev.ko
+		/usr/src/kernels/$REPORT_KERNEL/scripts/sign-file \
+		sha256 /etc/ssl/keys/kernel.key \
+		/etc/ssl/certs/kernel.crt \
+	        $PKG/lib/modules/$REPORT_KERNEL/kernel/extra/cryptodev.ko
+		make clean
+	done
 }
