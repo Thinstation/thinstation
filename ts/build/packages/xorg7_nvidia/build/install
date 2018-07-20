@@ -14,7 +14,7 @@ KMOD=kernel/drivers/video
 
 cd wget_tmp
 sh $gzname -x
-cd NVIDIA-Linux-x86-$version
+cd NVIDIA-Linux-x86_64-$version
 
 ./nvidia-installer -s -z -k ${release} --no-x-check --no-kernel-module --log-file-name=./nvidia-installer.log --utility-prefix=$INSTALLDIR --documentation-prefix=$INSTALLDIR --opengl-prefix=$INSTALLDIR --x-library-path=$INSTALLDIR/lib --x-module-path=$INSTALLDIR/lib/xorg/modules --application-profile-path=$INSTALLDIR/lib/nvidia --no-nvidia-modprobe
 
@@ -65,7 +65,7 @@ done
 
 cd kernel
 
-for kernel in TS TS_SMP; do
+for kernel in TS TS+con; do
 	make SYSSRC=/usr/src/kernels/${release}${kernel} module
 	if [ -e /etc/ssl/keys/kernel.key ]; then
 		/usr/src/kernels/${release}${kernel}/scripts/sign-file \
