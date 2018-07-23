@@ -1836,7 +1836,11 @@ for KERNVER in $KERNVEROPT; do
 	fi
 
 	# If a specific Kernel version is specified - use it
-	KERNVER_SHORT=`cat /boot/KERNEL_VERSION |sed -e 's/TS/TS_'$KERNVER'/g'`
+	if echo $KERNVER |grep -qe "^+"; then
+		KERNVER_SHORT=`cat /boot/KERNEL_VERSION |sed -e 's/TS/TS'$KERNVER'/g'`
+	else
+		KERNVER_SHORT=`cat /boot/KERNEL_VERSION |sed -e 's/TS/TS_'$KERNVER'/g'`
+	fi
 	if [ -n "$KERNVER" ]; then
 		if [ ! -e /lib/modules/$KERNVER ] && [ ! -e /lib/modules/$KERNVER_SHORT ]; then
 			echo "Kernel $KERNVER doesn't exist, ERROR!!"

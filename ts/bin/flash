@@ -1,1 +1,8 @@
-mkgptdrv -p ESP:1g:boot -p l:0:home -o /build/boot-images/iso/source/ $1
+case $1 in
+*)
+	mkmbrdrv -p d:2g:boot -p l:0:home -o /build/boot-images/syslinux /dev/sdb
+;;
+gpt)
+	mkgptdrv -p ESP:2g:boot -p l:0:home -o /build/boot-images/systemd-boot /dev/sdb
+;;
+esac
