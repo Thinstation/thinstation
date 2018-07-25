@@ -4,7 +4,7 @@
 # Depends on: elfutils libdrm libvdpau llvm xorg-dri3proto xorg-glproto xorg-libxdamage xorg-libxshmfence xorg-libxvmc xorg-presentproto xorg-libxxf86vm
 
 name=mesa3d
-version=18.0.3
+version=18.1.4
 release=1
 source=(https://mesa.freedesktop.org/archive/mesa-$version.tar.xz)
 
@@ -29,7 +29,9 @@ build() {
 		--disable-dependency-tracking \
 		--with-platforms=x11,drm \
 		--with-gallium-drivers=r300,r600,svga,swrast,radeonsi,nouveau,virgl,swr  \
-		--with-vulkan-drivers=intel,radeon
+		--with-vulkan-drivers=intel,radeon \
+		--enable-shared-glapi \
+		--disable-xvmc
 
 	make
 	make DESTDIR=$PKG install

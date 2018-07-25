@@ -1,14 +1,15 @@
 # Description: LLVM compiler backend
 # URL:         http://llvm.org/
 # Maintainer:  Thomas Penteker, tek at serverop dot de
-# Packager:    Tilman Sauerbeck, tilman at crux dot nu
-# Depends on:  python cmake
+# Depends on:  cmake libffi python
 
 name=llvm
-version=3.9.0
+version=6.0.1
 release=2
-source=(http://llvm.org/releases/$version/$name-$version.src.tar.xz \
-        llvm-config.h)
+source=(https://llvm.org/releases/$version/$name-$version.src.tar.xz
+	llvm-config.h
+	D44391-export-LLVM_DYLIB_COMPONENTS-in-LLVMConfig.cmake.patch
+	D44420-cmake-fix-a-typo-in-llvm_config-macro.patch)
 
 build() {
   export CC=gcc
@@ -16,23 +17,34 @@ build() {
 
   cd $name-$version.src
 
+  # https://reviews.llvm.org/D44391
+  patch -p1 -i $SRC/D44391-export-LLVM_DYLIB_COMPONENTS-in-LLVMConfig.cmake.patch
+
+  # https://reviews.llvm.org/D44420
+  patch -p0 -i $SRC/D44420-cmake-fix-a-typo-in-llvm_config-macro.patch
+
   mkdir build
   cd build
 
   cmake -DLLVM_ENABLE_CXX1Y=1 \
     -DLLVM_INCLUDE_EXAMPLES=0 \
     -DLLVM_INCLUDE_TESTS=0 \
+    -DLLVM_ENABLE_RTTI=1 \
+    -DLLVM_ENABLE_FFI=1 \
+    -DLLVM_ENABLE_OCAMLDOC=0 \
     -DLLVM_TARGETS_TO_BUILD='X86;AMDGPU;BPF' \
     -DLLVM_BUILD_LLVM_DYLIB=1 \
+     -DLLVM_INSTALL_UTILS=1 \
     -DCMAKE_BUILD_TYPE=Release \
-    -DCMAKE_INSTALL_PREFIX=/usr ..
+    -DCMAKE_INSTALL_PREFIX=/usr \
+    -DLLVM_APPEND_VC_REV=0 \
+    -Wno-dev ..
 
   MAKEFLAGS="$MAKEFLAGS" make
   make DESTDIR=$PKG install
 
   # multilib stub
   mv $PKG/usr/include/llvm/Config/llvm-config{,-64}.h
-
   install -m 0644 $SRC/llvm-config.h $PKG/usr/include/llvm/Config/
 
 }

@@ -1,39 +1,82 @@
-# $Id$
-# Maintainer: Felix Yan <felixonmars@archlinux.org>
+# Description: Intelligent Input Bus for Linux/unix.
+# URL:         https://github.com/ibus/ibus/wiki
+# Maintainer:  6c37 team, https://github.com/6c37/crux-ports/issues
+# Depends on:  dbus-python libnotify iso-codes gtk
 
-pkgbase=ibus
-name=(ibus libibus)
+name=ibus
 version=1.5.18
 release=1
+source=(
+	https://github.com/$name/$name/releases/download/$version/$name-$version.tar.gz
+	https://www.unicode.org/Public/emoji/11.0/emoji-data.txt
+	https://www.unicode.org/Public/emoji/11.0/emoji-sequences.txt
+	https://www.unicode.org/Public/emoji/11.0/emoji-test.txt
+	https://www.unicode.org/Public/emoji/11.0/emoji-variation-sequences.txt
+	https://www.unicode.org/Public/emoji/11.0/emoji-zwj-sequences.txt
+	https://github.com/fujiwarat/cldr-emoji-annotation/releases/download/33.0.0_1/cldr-emoji-annotation-33.0.0_1.tar.gz
+	https://www.unicode.org/Public/UNIDATA/NamesList.txt
+	https://www.unicode.org/Public/UNIDATA/Blocks.txt
+)
 
 build() {
-git clone https://github.com/ibus/ibus.git
-cd $name
-git fetch origin ${version%.*}.y
-git checkout ${version%.*}.y
-  ./autogen.sh \
-    --prefix=/usr \
-    --libexecdir=/usr/lib/ibus \
-    --sysconfdir=/etc \
-    --disable-gconf \
-    --enable-dconf \
-    --enable-gtk-doc \
-    --disable-memconf \
-    --disable-ui \
-    --enable-python-library \
-    --with-python=python3 \
-    --disable-vala
+	install -d $SRC/$name-$version/emoji
+	cp $SRC/emoji-*.txt $SRC/$name-$version/emoji
 
-  make
-  make DESTDIR="${PKG}" install
-  sed -ri 's:"(/desktop):"/org/freedesktop\1:' $PKG/usr/share/glib-2.0/schemas/*.xml
+	install -d $SRC/$name-$version/annotation
+	cd $SRC/cldr-emoji-annotation-33.0.0_1
+	./configure --prefix=$SRC/$name-$version/annotation
+	make
+	make install
 
-#  make -C src DESTDIR="${PKG}" uninstall
-#  make -C bindings DESTDIR="${PKG}" uninstall
-#  rm -rf "$PKG/usr/lib/python2.7/site-packages/gi" # compiled pyc/pyo files were not cleaned
-#  make DESTDIR="${PKG}" uninstall-pkgconfigDATA
-#  make -C src DESTDIR="${PKG}" install
-#  make -C bindings DESTDIR="${PKG}" install
-#  make DESTDIR="${PKG}" install-pkgconfigDATA
+	cp $SRC/NamesList.txt $SRC/$name-$version/annotation/share/unicode/cldr/common/annotations/
+	cp $SRC/Blocks.txt $SRC/$name-$version/annotation/share/unicode/cldr/common/annotations/
+
+	local VALA
+	if [ "$(pkginfo -i | grep '^vala ' )" ]
+	then
+		VALA='--enable-vala=yes'
+	else
+		VALA='--enable-vala=no'
+	fi
+
+	local GTK3
+	if [ "$(pkginfo -i | grep '^gtk3 ' )" ]
+	then
+		GTK3='--enable-gtk3'
+	else
+		GTK3='--disable-gtk3'
+	fi
+
+	local EMOJI
+	if [ "$(pkginfo -i | grep '^json-glib ' )" ]
+	then
+		EMOJI="--enable-emoji-dict --with-unicode-emoji-dir=$SRC/$name-$version/emoji --with-emoji-annotation-dir=$SRC/$name-$version/annotation/share/unicode/cldr/common/annotations --with-ucd-dir=$SRC/$name-$version/annotation/share/unicode/cldr/common/annotations"
+	else
+		EMOJI='--disable-emoji-dict'
+	fi
+
+	cd $SRC/$name-$version
+
+	./configure \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--libexecdir=/usr/lib/$name \
+		--disable-nls \
+		--disable-tests \
+		$VALA \
+		$GTK3 \
+		--enable-xim \
+		--enable-wayland=no \
+		--disable-gtk-doc-html \
+		--disable-gconf \
+		--enable-dconf \
+		--disable-appindicator \
+		--with-python=python2 \
+		--enable-python-library \
+		$EMOJI
+
+	make
+	make DESTDIR=$PKG install
+
+	rm -rf $PKG/usr/share/gtk-doc
 }
-

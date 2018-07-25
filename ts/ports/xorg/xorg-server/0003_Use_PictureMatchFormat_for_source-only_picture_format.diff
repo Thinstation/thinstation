@@ -1,0 +1,34 @@
+From 3ebef6ab850675e1091df2125ebdfbb147436e6c Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Michel=20D=C3=A4nzer?= <michel.daenzer@amd.com>
+Date: Fri, 1 Jun 2018 11:57:15 +0200
+Subject: exa: Use PictureMatchFormat for source-only picture format
+ description
+
+Their pFormat member is NULL, which resulted in a crash in
+miRenderColorToPixel.
+
+Fixes: 8171d4c2d67b "render: Store and use all 16bpc of precision for
+                     solid pixels (v2.1)"
+Reviewed-by: Adam Jackson <ajax@redhat.com>
+---
+ exa/exa_render.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/exa/exa_render.c b/exa/exa_render.c
+index 50a9a65..9fbfdfc 100644
+--- a/exa/exa_render.c
++++ b/exa/exa_render.c
+@@ -291,7 +291,8 @@ exaTryDriverSolidFill(PicturePtr pSrc,
+         pixel = exaGetPixmapFirstPixel(pSrcPix);
+     }
+     else
+-        miRenderColorToPixel(pSrc->pFormat,
++        miRenderColorToPixel(PictureMatchFormat(pDst->pDrawable->pScreen, 32,
++                                                pSrc->format),
+                              &pSrc->pSourcePict->solidFill.fullcolor,
+                              &pixel);
+ 
+-- 
+cgit v1.1
+
+
