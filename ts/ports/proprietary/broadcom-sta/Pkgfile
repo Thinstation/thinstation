@@ -1,9 +1,5 @@
-# Description: Gobject interface for udev
-# URL: http://gudev.sourceforge.net
-# Maintainer: Jose V Beneyto, sepen at crux dot nu
-# Packager: Jose V Beneyto, sepen at crux dot nu
-# Depends on: udev glib
-# Group: xfce4
+# Description: Proprietary Broadcom Wirelss Driver
+# URL: http://broadcom.com
 
 name=broadcom-sta
 version=6.30.223.271
@@ -32,15 +28,19 @@ build() {
 	patch -p1 -i 0024-add-support-for-Linux-4.12.patch
 	patch -p1 -i 0025-add-support-for-Linux-4.14.patch
 	for kernel in TS TS+con; do
+		# Build
 		KBUILD_NOPEDANTIC=1 make -C /usr/src/kernels/${kver}${kernel} M=`pwd`
+		# Install
 		KBUILD_NOPEDANTIC=1 make -C /usr/src/kernels/${kver}${kernel} M=`pwd` \
 			modules_install \
 			MODLIB=$PKG/lib/modules/${kver}${kernel} \
 			INSTALL_MOD_DIR=kernel/drivers/net/wireless \
 			MODSECKEY=/etc/ssl/keys/kernel.key \
 			MODPUBKEY=/etc/ssl/certs/kernel.crt
+		# Clean
 		KBUILD_NOPEDANTIC=1 make -C /usr/src/kernels/${kver}${kernel} M=`pwd` clean
 
+		# Sign
 		/usr/src/kernels/${kver}${kernel}/scripts/sign-file \
 			sha256 \
 			/etc/ssl/keys/kernel.key \
