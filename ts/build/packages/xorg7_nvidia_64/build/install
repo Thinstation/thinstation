@@ -20,14 +20,14 @@ for kernel in TS_64; do
 		CC="/opt/cross/x-tools/x86_64-thinstation-linux-gnu/bin/x86_64-thinstation-linux-gnu-cc" \
 		LD="/opt/cross/x-tools/x86_64-thinstation-linux-gnu/bin/x86_64-thinstation-linux-gnu-ld"
 
-        if [ -e /etc/ssl/keys/kernel.key ]; then
+        for module in nvidia nvidia-uvm nvidia-modeset nvidia-drm; do
                 /usr/src/kernels/${release}${kernel}/scripts/sign-file \
                         sha256 \
                         /etc/ssl/keys/kernel.key \
                         /etc/ssl/certs/kernel.crt \
-                        nvidia.ko
-        fi
-
-	mkdir -p $INSTALLDIR/lib/modules/${release}${kernel}/$KMOD
-	cp -a nvidia.ko $INSTALLDIR/lib/modules/${release}${kernel}/$KMOD
+                        $module.ko
+                mkdir -p $INSTALLDIR/lib/modules/${release}${kernel}/$KMOD
+                cp -a $module.ko $INSTALLDIR/lib/modules/${release}${kernel}/$KMOD
+        done
+	make SYSSRC=/usr/src/kernels/${release}${kernel} clean
 done

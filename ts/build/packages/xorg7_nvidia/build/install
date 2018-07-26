@@ -59,6 +59,19 @@ for link in `find $INSTALLDIR/lib -mindepth 1 -maxdepth 1 -type l | grep -E '\.s
 	fi
 done
 
+# Move potential conflicts to special files
+find $INSTALLDIR/lib/xorg/ -type l -delete
+mv $INSTALLDIR/lib/xorg/modules/extensions/libglx.so.*	$INSTALLDIR/lib/xorg/modules/extensions/libglx.so-nvidia
+
+# Delete Nvidia version of libwfb.so
+rm -f mv $INSTALLDIR/lib/xorg/modules/libnvidia-wfb.so.*
+
+# Move potential conflicts to special files without an .so name element
+mv $INSTALLDIR/lib/libGLESv1_CM.so.1	$INSTALLDIR/lib/libGLESv1_CM-nvida
+mv $INSTALLDIR/lib/libEGL.so.1		$INSTALLDIR/lib/libEGL-nvidia
+mv $INSTALLDIR/lib/libGLESv2.so.2	$INSTALLDIR/lib/libGLESv2-nvidia
+mv $INSTALLDIR/lib/libGL.so.1		$INSTALLDIR/lib/libGL-nvidia
+
 for file in $DROP_FILES; do
 	find $INSTALLDIR -name $file -delete
 done
@@ -67,15 +80,15 @@ cd kernel
 
 for kernel in TS TS_SMP; do
 	make SYSSRC=/usr/src/kernels/${release}${kernel} module
-	if [ -e /etc/ssl/keys/kernel.key ]; then
+	for module in nvidia nvidia-uvm nvidia-modeset nvidia-drm; do
 		/usr/src/kernels/${release}${kernel}/scripts/sign-file \
 			sha256 \
 			/etc/ssl/keys/kernel.key \
 			/etc/ssl/certs/kernel.crt \
-			nvidia.ko
-	fi
-	mkdir -p $INSTALLDIR/lib/modules/${release}${kernel}/$KMOD
-	cp -a nvidia.ko $INSTALLDIR/lib/modules/${release}${kernel}/$KMOD
+			$module.ko
+		mkdir -p $INSTALLDIR/lib/modules/${release}${kernel}/$KMOD
+		cp -a $module.ko $INSTALLDIR/lib/modules/${release}${kernel}/$KMOD
+	done
 	make SYSSRC=/usr/src/kernels/${release}${kernel} clean
 done
 
@@ -86,8 +99,14 @@ cp -Prfd $INSTALLDIR/build/extra/* $INSTALLDIR/.
 
 # Fix libGL, because nvidia compile completely steps on everybody.
 
-glversion=`prt-get info mesa3d |grep -e Version |cut -c15-`
-gldir=`prt-get info mesa3d |grep -e Path |cut -c15-`
-glrel=`prt-get info mesa3d |grep -e Release |cut -c15-`
+prt-get remove mesa3d
+prt-get remove glu
+prt-get remove glew
 
-pkgadd -f -u $gldir/mesa3d/mesa3d#${glversion}-${glrel}.pkg.tar.xz
+rm -rf /usr/lib/libGL*
+rm -rf /usr/lib/libEGL*
+
+#pkgadd -f -u $gldir/mesa3d/mesa3d#${glversion}-${glrel}.pkg.tar.xz
+prt-get install mesa3d -uf
+prt-get install glu -uf
+prt-get install glew -uf
