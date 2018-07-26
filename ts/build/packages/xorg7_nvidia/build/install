@@ -80,15 +80,15 @@ cd kernel
 
 for kernel in TS TS+con; do
 	make SYSSRC=/usr/src/kernels/${release}${kernel} module
-	if [ -e /etc/ssl/keys/kernel.key ]; then
+	for module in nvidia nvidia-uvm nvidia-modeset nvidia-drm; do
 		/usr/src/kernels/${release}${kernel}/scripts/sign-file \
 			sha256 \
 			/etc/ssl/keys/kernel.key \
 			/etc/ssl/certs/kernel.crt \
-			nvidia.ko
-	fi
-	mkdir -p $INSTALLDIR/lib/modules/${release}${kernel}/$KMOD
-	cp -a nvidia.ko $INSTALLDIR/lib/modules/${release}${kernel}/$KMOD
+			$module.ko
+		mkdir -p $INSTALLDIR/lib/modules/${release}${kernel}/$KMOD
+		cp -a $module.ko $INSTALLDIR/lib/modules/${release}${kernel}/$KMOD
+	done
 	make SYSSRC=/usr/src/kernels/${release}${kernel} clean
 done
 
@@ -97,14 +97,8 @@ rm -f /usr/share/kde-settings/kde-profile/default/share/applications/nvidia-sett
 
 cp -Prfd $INSTALLDIR/build/extra/* $INSTALLDIR/.
 
-
-
-
 # Fix libGL, because nvidia compile completely steps on everybody.
 
-#glversion=`prt-get info mesa3d |grep -e Version |cut -c15-`
-#gldir=`prt-get info mesa3d |grep -e Path |cut -c15-`
-#glrel=`prt-get info mesa3d |grep -e Release |cut -c15-`
 prt-get remove mesa3d
 prt-get remove glu
 prt-get remove glew
@@ -113,6 +107,6 @@ rm -rf /usr/lib/libGL*
 rm -rf /usr/lib/libEGL*
 
 #pkgadd -f -u $gldir/mesa3d/mesa3d#${glversion}-${glrel}.pkg.tar.xz
-prt-get install mesa3d
-prt-get install glu
-prt-get install glew
+prt-get install mesa3d -uf
+prt-get install glu -uf
+prt-get install glew -uf
