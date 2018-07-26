@@ -102,11 +102,17 @@ cp -Prfd $INSTALLDIR/build/extra/* $INSTALLDIR/.
 
 # Fix libGL, because nvidia compile completely steps on everybody.
 
-glversion=`prt-get info mesa3d |grep -e Version |cut -c15-`
-gldir=`prt-get info mesa3d |grep -e Path |cut -c15-`
-glrel=`prt-get info mesa3d |grep -e Release |cut -c15-`
+#glversion=`prt-get info mesa3d |grep -e Version |cut -c15-`
+#gldir=`prt-get info mesa3d |grep -e Path |cut -c15-`
+#glrel=`prt-get info mesa3d |grep -e Release |cut -c15-`
+prt-get remove mesa3d
+prt-get remove glu
+prt-get remove glew
 
 rm -rf /usr/lib/libGL*
 rm -rf /usr/lib/libEGL*
 
-pkgadd -f -u $gldir/mesa3d/mesa3d#${glversion}-${glrel}.pkg.tar.xz
+#pkgadd -f -u $gldir/mesa3d/mesa3d#${glversion}-${glrel}.pkg.tar.xz
+prt-get install mesa3d
+prt-get install glu
+prt-get install glew
