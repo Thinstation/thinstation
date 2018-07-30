@@ -2,11 +2,11 @@
 
 kernels()
 {
-	for port in kernel-{TS,TS_SMP,TS_64}; do
+	for port in kernel-{TS,TS+con}; do
 		if prt-get current $port > /dev/null; then
-			prt-get update -fr -if -im $port
+			prt-get update -fr -if -im -is $port
 		else
-			prt-get install -fr -if -im $port
+			prt-get install -fr -if -im -is $port
 		fi
 		prt-get update -uf $port
 		prt-get update -um $port
@@ -15,11 +15,11 @@ kernels()
 
 modules()
 {
-	for port in bbswitch rtl8723bs; do
+	for port in bbswitch; do
         	if prt-get current $port > /dev/null; then
-                	prt-get update -fr -if -im $port
+                	prt-get update -fr -if -im -is $port
 	        else
-        	        prt-get install -fr -if -im $port
+        	        prt-get install -fr -if -im -is $port
 	        fi
 	        prt-get update -uf $port
 	        prt-get update -um $port

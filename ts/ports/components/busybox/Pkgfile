@@ -4,15 +4,14 @@
 # Depends on:
 
 name=busybox
-version=1.26.0
-release=1
-source=(http://busybox.net/downloads/$name-$version.tar.bz2 ts.config \
-	log.patch)
+version=1.29.1
+release=2
+source=(http://busybox.net/downloads/$name-$version.tar.bz2 ts.config find_pid.patch)
 
 build() {
    cd $name-$version
-   patch -p0 -i $SRC/log.patch
    cp ../ts.config .config
+#   patch -p0 -i ../find_pid.patch
 
 	make \
 	PREFIX=/ busybox
