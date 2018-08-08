@@ -3,27 +3,24 @@
 # Contributor: Andrea Scarpino <andrea@archlinux.org>
 
 name=qt5-declarative
-_qtver=5.7.0
-version=5.7.0
-release=2
+_qtver=5.11.1
+version=${_qtver/-/}
+release=1
 groups=('qt' 'qt5')
-_pkgfqn="${name/5-/}-opensource-src-${_qtver}"
+_pkgfqn="${name/5-/}-everywhere-src-${_qtver}"
 source=("http://download.qt.io/official_releases/qt/${version%.*}/${_qtver}/submodules/${_pkgfqn}.tar.xz")
 
 build() {
   mkdir -p build
-
   cd build
 
-  export PYTHON=python2
-  qmake-qt5 ../${_pkgfqn}
+  qmake ../${_pkgfqn}
   make
   make INSTALL_ROOT="$PKG" install
 
-  # Useful symlinks
-  install -d "$PKG"/usr/bin
-  for b in "$PKG"/usr/lib/qt/bin/*; do
-    ln -s /usr/lib/qt/bin/$(basename $b) "$PKG"/usr/bin/$(basename $b)-qt5
+  # Symlinks for backwards compatibility
+  for b in "$PKG"/usr/bin/*; do
+    ln -s /usr/bin/$(basename $b) "$PKG"/usr/bin/$(basename $b)-qt5
   done
 
   # Drop QMAKE_PRL_BUILD_DIR because reference the build dir

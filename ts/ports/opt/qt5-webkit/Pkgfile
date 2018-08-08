@@ -1,28 +1,50 @@
 # $Id: PKGBUILD 240297 2015-06-03 10:22:03Z fyan $
 # Maintainer: Felix Yan <felixonmars@archlinux.org>
+# Maintainer: Antonio Rojas <arojas@archlinux.org>
 # Contributor: Andrea Scarpino <andrea@archlinux.org>
 
 name=qt5-webkit
-_qtver=5.7.0
-version=5.7.0
-release=1
-_pkgfqn="${name/5-/}-opensource-src-${version}"
-source=("http://download.qt.io/community_releases/${version%.*}/${version}/qtwebkit-opensource-src-${version}.tar.xz")
+_qtver=5.212.0-alpha2
+version=${_qtver/-/}
+release=19
+_pkgfqn="${name/5-/}-opensource-src-${_qtver}"
+source=("https://github.com/annulen/webkit/releases/download/qtwebkit-$_qtver/qtwebkit-$_qtver.tar.xz"
+        qt5-webkit-gcc7.patch
+        qt5-webkit-null-pointer-dereference.patch
+        https://github.com/annulen/webkit/commit/6faf1121.patch
+        https://github.com/annulen/webkit/commit/76420459.patch
+        https://github.com/annulen/webkit/commit/f51554bf.patch)
 
 build() {
   mkdir -p build
 
-  cd build  
+# Fix crashes with GCC7 https://bugs.webkit.org/show_bug.cgi?id=173407
+  cd qtwebkit-$_qtver
+  patch -p1 -i ../qt5-webkit-gcc7.patch
+# Fix layout issues in trojita https://github.com/annulen/webkit/issues/511
+  patch -p1 -i ../6faf1121.patch
+  patch -p1 -i ../76420459.patch
+# Fix null point dereference (Fedora) https://github.com/annulen/webkit/issues/573
+  patch -p1 -i ../qt5-webkit-null-pointer-dereference.patch
+# Fix build with cmake 3.10
+  patch -p1 -i ../f51554bf.patch
 
-  export PATH="${SRC}/bin:$PATH"
-  qmake-qt5 ../${_pkgfqn}
+  cd ../build
+
+  cmake ../qtwebkit-$_qtver \
+    -DCMAKE_INSTALL_PREFIX=/usr \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DPORT=Qt \
+    -DENABLE_TOOLS=OFF
   make
-  make INSTALL_ROOT="$PKG" install
-
-  # Drop QMAKE_PRL_BUILD_DIR because reference the build dir
-  find "$PKG/usr/lib" -type f -name '*.prl' \
-    -exec sed -i -e '/^QMAKE_PRL_BUILD_DIR/d' {} \;
+  make DESTDIR="$PKG" install
 
   install -d "$PKG"/usr/share/licenses
   ln -s /usr/share/licenses/qt5-base "$PKG"/usr/share/licenses/${name}
+
+# Fix pkgconfig files
+  sed -e 's|qt/Qt5WebKit|qt/QtWebKit|' -i "$PKG"/usr/lib/pkgconfig/Qt5WebKit.pc
+  sed -e 's|qt/Qt5WebKitWidgets|qt/QtWebKitWidgets|' -i "$PKG"/usr/lib/pkgconfig/Qt5WebKitWidgets.pc
+  sed -e '/Name/a Description: Qt WebKit module' -i "$PKG"/usr/lib/pkgconfig/Qt5WebKit.pc
+  sed -e '/Name/a Description: Qt WebKitWidgets module' -i "$PKG"/usr/lib/pkgconfig/Qt5WebKitWidgets.pc
 }

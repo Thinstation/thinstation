@@ -1,20 +1,21 @@
-# $Id: PKGBUILD 240297 2015-06-03 10:22:03Z fyan $
+# $Id$
 # Maintainer: Felix Yan <felixonmars@archlinux.org>
 # Contributor: Andrea Scarpino <andrea@archlinux.org>
 
+pkgbase=qt5-base
 name=qt5-base
-_qtver=5.7.0
-version=5.7.0
+_qtver=5.11.1
+version=${_qtver/-/}
 release=2
-_pkgfqn="${name/5-/}-opensource-src-${_qtver}"
+_pkgfqn="${pkgbase/5-/}-everywhere-src-${_qtver}"
 source=("http://download.qt.io/official_releases/qt/${version%.*}/${_qtver}/submodules/${_pkgfqn}.tar.xz"
-        "https://github.com/qtproject/qtbase/commit/e9041c7fc.patch"
-        "https://github.com/qtproject/qtbase/commit/cd25866f.patch"
-        "https://github.com/qtproject/qtbase/commit/8e889378.patch"
-        "https://github.com/qt/qtbase/commit/6f423555.patch")
+        glibc-2.28.patch)
 
 build() {
   cd ${_pkgfqn}
+
+  # Work around build failure with glibc 2.28 (patch from Fedora)
+#  patch -Np1 -i ../glibc-2.28.patch
 
   # Build qmake using Arch {C,LD}FLAGS
   # This also sets default {C,CXX,LD}FLAGS for projects built using qmake
@@ -23,28 +24,19 @@ build() {
   sed -i -e "s|^\(QMAKE_LFLAGS_RELEASE.*\)|\1 ${LDFLAGS}|" \
     mkspecs/common/g++-unix.conf
 
-  # Fix libsystemd-journal detection
-  sed -e 's|libsystemd-journal|libsystemd|' -i config.tests/unix/journald/journald.pro -i src/corelib/global/global.pri
+	export QTDIR="$PWD"
+	export LD_LIBRARY_PATH="$QTDIR/qtbase/lib:$QTDIR/qttools/lib:$LD_LIBRARY_PATH"
+	export QT_PLUGIN_PATH="$QTDIR/qtbase/plugins"
 
-  # Fix parsing of tzfile(5) POSIX rule zone names with bracket quotes
-  patch -p1 -i ../e9041c7fc.patch
-  patch -p1 -i ../cd25866f.patch
-
-  # Fix UNSIGNED values in QMYSQL
-  patch -p1 -i ../8e889378.patch
-
-  # Fix freetype engine performance
-  patch -p1 -i ../6f423555.patch
-
-  PYTHON=python ./configure -confirm-license -opensource -v \
+  ./configure -confirm-license -opensource -v \
     -prefix /usr \
-    -bindir /usr/lib/qt/bin \
     -docdir /usr/share/doc/qt \
     -headerdir /usr/include/qt \
     -archdatadir /usr/lib/qt \
     -datadir /usr/share/qt \
     -sysconfdir /etc/xdg \
     -examplesdir /usr/share/doc/qt/examples \
+    -plugin-sql-{mysql,sqlite} \
     -system-sqlite \
     -openssl-linked \
     -nomake examples \
@@ -52,6 +44,7 @@ build() {
     -optimized-qmake \
     -dbus-linked \
     -system-harfbuzz \
+    -journald \
     -no-use-gold-linker \
     -reduce-relocations
 
@@ -59,7 +52,7 @@ build() {
   make INSTALL_ROOT="${PKG}" install
 
   install -D -m644 LGPL_EXCEPTION.txt \
-    "${PKG}"/usr/share/licenses/${name}/LGPL_EXCEPTION.txt
+    "${PKG}"/usr/share/licenses/${pkgbase}/LGPL_EXCEPTION.txt
 
   # Drop QMAKE_PRL_BUILD_DIR because reference the build dir
   find "${PKG}/usr/lib" -type f -name '*.prl' \
@@ -69,9 +62,11 @@ build() {
   sed -i "s|${SRC}/${_pkgfqn}|/usr|" \
     "${PKG}"/usr/lib/qt/mkspecs/modules/qt_lib_bootstrap_private.pri
 
-  # Useful symlinks
-  install -d "${PKG}"/usr/bin
-  for b in "${PKG}"/usr/lib/qt/bin/*; do
-    ln -s /usr/lib/qt/bin/$(basename $b) "${PKG}"/usr/bin/$(basename $b)-qt5
+  # Symlinks for backwards compatibility
+  for b in "${PKG}"/usr/bin/*; do
+    ln -s /usr/bin/$(basename $b) "${PKG}"/usr/bin/$(basename $b)-qt5
   done
+
+  install -d -m755 "$PKG"/usr/include/qtxcb-private
+  cp -r src/plugins/platforms/xcb/*.h "$PKG"/usr/include/qtxcb-private/
 }
