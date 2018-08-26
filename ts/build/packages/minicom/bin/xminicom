@@ -1,0 +1,67 @@
+#!/bin/sh
+
+#
+# xminicom	Run minicom in an xterm. This script looks for
+#		color_xterm, rxvt and xterm (in that order) and
+#		starts it up with minicom inside it.
+#
+# version	$Id: xminicom,v 1.4 2008-06-09 20:48:35 al-guest Exp $
+
+findcmd()
+{
+  IFS=:
+  for i in $PATH
+  do
+	if [ -x $i\/$1 ]
+	then
+		result=$i\/$1
+		IFS=
+		return 0
+	fi
+  done
+  result=
+  IFS=
+  return 1
+}
+
+if findcmd x-terminal-emulator
+then
+  exec $result -T minicom -e "if ! minicom -m -c on $*; then echo Press ENTER to continue...; read; fi"
+  exit 1
+fi
+
+if findcmd color_xterm
+then
+  exec $result -T minicom -bg black -fg grey -n minicom -geometry 80x25 -e "if ! minicom -m -c on $*; then echo Press ENTER to continue...; read; fi"
+  exit 1
+fi
+
+if findcmd rxvt
+then
+  exec $result -bg black -fg grey -n minicom -T minicom -sl 0 -geometry 80x25 -e "if ! minicom -m -c on $*; then echo Press ENTER to continue...; read; fi"
+  exit 1
+fi
+
+if findcmd kterm
+then
+  exec $result -T minicom -n minicom -geometry 80x25 -e "if ! minicom -m -c on $*; then echo Press ENTER to continue...; read; fi"
+  exit 1
+fi
+
+if findcmd xterm
+then
+  if [ -f /etc/debian_version ]
+  then
+  exec $result -T minicom -n minicom -bg black -fg grey -geometry 80x25 -e "if ! minicom -m -c on $*; then echo Press ENTER to continue...; read; fi"
+  else
+  exec $result -T minicom -n minicom -geometry 80x25 -e "if ! minicom -m -c on $*; then echo Press ENTER to continue...; read; fi"
+  fi
+  exit 1
+fi
+
+if findcmd Terminal; then
+	exec $result -T minicom -I minicom --geometry 80x25 -x minicom -m -c on $*
+fi
+
+echo "xminicom: rxvt, color_xterm , Terminal or xterm NOT found!" 1>&2
+exit 1

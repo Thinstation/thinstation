@@ -1,0 +1,636 @@
+;; -*- scheme -*-
+; object definitions ...
+
+(define-object Canvas
+  (in-module "Gnome")
+  (parent "GtkLayout")
+  (c-name "GnomeCanvas")
+  (gtype-id "GNOME_TYPE_CANVAS")
+)
+
+(define-object CanvasItem
+  (in-module "Gnome")
+  (parent "GtkObject")
+  (c-name "GnomeCanvasItem")
+  (gtype-id "GNOME_TYPE_CANVAS_ITEM")
+)
+
+(define-object CanvasGroup
+  (in-module "Gnome")
+  (parent "GnomeCanvasItem")
+  (c-name "GnomeCanvasGroup")
+  (gtype-id "GNOME_TYPE_CANVAS_GROUP")
+  (fields
+    '("GList*" "item_list"))
+)
+
+(define-object CanvasClipgroup
+  (in-module "Gnome")
+  (parent "GnomeCanvasGroup")
+  (c-name "GnomeCanvasClipgroup")
+  (gtype-id "GNOME_TYPE_CANVAS_CLIPGROUP")
+)
+
+(define-object CanvasLine
+  (in-module "Gnome")
+  (parent "GnomeCanvasItem")
+  (c-name "GnomeCanvasLine")
+  (gtype-id "GNOME_TYPE_CANVAS_LINE")
+)
+
+(define-object CanvasPixbuf
+  (in-module "Gnome")
+  (parent "GnomeCanvasItem")
+  (c-name "GnomeCanvasPixbuf")
+  (gtype-id "GNOME_TYPE_CANVAS_PIXBUF")
+)
+
+(define-object CanvasRichText
+  (in-module "Gnome")
+  (parent "GnomeCanvasItem")
+  (c-name "GnomeCanvasRichText")
+  (gtype-id "GNOME_TYPE_CANVAS_RICH_TEXT")
+)
+
+(define-object CanvasShape
+  (in-module "Gnome")
+  (parent "GnomeCanvasItem")
+  (c-name "GnomeCanvasShape")
+  (gtype-id "GNOME_TYPE_CANVAS_SHAPE")
+)
+
+(define-object CanvasRE
+  (in-module "Gnome")
+  (parent "GnomeCanvasShape")
+  (c-name "GnomeCanvasRE")
+  (gtype-id "GNOME_TYPE_CANVAS_RE")
+)
+
+(define-object CanvasRect
+  (in-module "Gnome")
+  (parent "GnomeCanvasRE")
+  (c-name "GnomeCanvasRect")
+  (gtype-id "GNOME_TYPE_CANVAS_RECT")
+)
+
+(define-object CanvasEllipse
+  (in-module "Gnome")
+  (parent "GnomeCanvasRE")
+  (c-name "GnomeCanvasEllipse")
+  (gtype-id "GNOME_TYPE_CANVAS_ELLIPSE")
+)
+
+(define-object CanvasPolygon
+  (in-module "Gnome")
+  (parent "GnomeCanvasShape")
+  (c-name "GnomeCanvasPolygon")
+  (gtype-id "GNOME_TYPE_CANVAS_POLYGON")
+)
+
+(define-object CanvasBpath
+  (in-module "Gnome")
+  (parent "GnomeCanvasShape")
+  (c-name "GnomeCanvasBpath")
+  (gtype-id "GNOME_TYPE_CANVAS_BPATH")
+)
+
+(define-boxed CanvasPathDef
+  (in-module "Gnome")
+  (c-name "GnomeCanvasPathDef")
+  (gtype-id "GNOME_TYPE_CANVAS_PATH_DEF")
+)
+
+(define-object CanvasText
+  (in-module "Gnome")
+  (parent "GnomeCanvasItem")
+  (c-name "GnomeCanvasText")
+  (gtype-id "GNOME_TYPE_CANVAS_TEXT")
+)
+
+(define-object CanvasWidget
+  (in-module "Gnome")
+  (parent "GnomeCanvasItem")
+  (c-name "GnomeCanvasWidget")
+  (gtype-id "GNOME_TYPE_CANVAS_WIDGET")
+)
+
+(define-function gnome_canvas_item_get_type
+  (c-name "gnome_canvas_item_get_type")
+  (return-type "GtkType")
+)
+
+(define-method add
+  (of-object "GnomeCanvasGroup")
+  (c-name "gnome_canvas_item_new")
+  (return-type "GnomeCanvasItem*")
+  (parameters
+    '("GtkType" "type")
+    '("const-gchar*" "first_arg_name")
+  )
+  (varargs #t)
+)
+
+(define-method set
+  (of-object "GnomeCanvasItem")
+  (c-name "gnome_canvas_item_set")
+  (return-type "none")
+  (parameters
+    '("const-gchar*" "first_arg_name")
+  )
+  (varargs #t)
+)
+
+(define-method move
+  (of-object "GnomeCanvasItem")
+  (c-name "gnome_canvas_item_move")
+  (return-type "none")
+  (parameters
+    '("double" "dx")
+    '("double" "dy")
+  )
+)
+
+(define-method affine_relative
+  (of-object "GnomeCanvasItem")
+  (c-name "gnome_canvas_item_affine_relative")
+  (return-type "none")
+  (parameters
+    '("const-double[6]" "affine")
+  )
+)
+
+(define-method affine_absolute
+  (of-object "GnomeCanvasItem")
+  (c-name "gnome_canvas_item_affine_absolute")
+  (return-type "none")
+  (parameters
+    '("const-double[6]" "affine")
+  )
+)
+
+;; XXX not implemented in CVS libgnomecanvas
+;; (define-method scale
+;;   (of-object "GnomeCanvasItem")
+;;   (c-name "gnome_canvas_item_scale")
+;;   (return-type "none")
+;;   (parameters
+;;     '("double" "x")
+;;     '("double" "y")
+;;     '("double" "scale_x")
+;;     '("double" "scale_y")
+;;   )
+;; )
+
+;; XXX not implemented in CVS libgnomecanvas
+;; (define-method rotate
+;;   (of-object "GnomeCanvasItem")
+;;   (c-name "gnome_canvas_item_rotate")
+;;   (return-type "none")
+;;   (parameters
+;;     '("double" "x")
+;;     '("double" "y")
+;;     '("double" "angle")
+;;   )
+;; )
+
+(define-method raise
+  (of-object "GnomeCanvasItem")
+  (c-name "gnome_canvas_item_raise")
+  (return-type "none")
+  (parameters
+    '("int" "positions")
+  )
+)
+
+(define-method lower
+  (of-object "GnomeCanvasItem")
+  (c-name "gnome_canvas_item_lower")
+  (return-type "none")
+  (parameters
+    '("int" "positions")
+  )
+)
+
+(define-method raise_to_top
+  (of-object "GnomeCanvasItem")
+  (c-name "gnome_canvas_item_raise_to_top")
+  (return-type "none")
+)
+
+(define-method lower_to_bottom
+  (of-object "GnomeCanvasItem")
+  (c-name "gnome_canvas_item_lower_to_bottom")
+  (return-type "none")
+)
+
+
+(define-method show
+  (of-object "GnomeCanvasItem")
+  (c-name "gnome_canvas_item_show")
+  (return-type "none")
+)
+
+(define-method hide
+  (of-object "GnomeCanvasItem")
+  (c-name "gnome_canvas_item_hide")
+  (return-type "none")
+)
+
+(define-method w2i
+  (of-object "GnomeCanvasItem")
+  (c-name "gnome_canvas_item_w2i")
+  (return-type "none")
+  (parameters
+    '("double*" "x")
+    '("double*" "y")
+  )
+)
+
+(define-method i2w
+  (of-object "GnomeCanvasItem")
+  (c-name "gnome_canvas_item_i2w")
+  (return-type "none")
+  (parameters
+    '("double*" "x")
+    '("double*" "y")
+  )
+)
+
+(define-method i2w_affine
+  (of-object "GnomeCanvasItem")
+  (c-name "gnome_canvas_item_i2w_affine")
+  (return-type "none")
+  (parameters
+    '("double[6]" "affine")
+  )
+)
+
+(define-method i2c_affine
+  (of-object "GnomeCanvasItem")
+  (c-name "gnome_canvas_item_i2c_affine")
+  (return-type "none")
+  (parameters
+    '("double[6]" "affine")
+  )
+)
+
+(define-method reparent
+  (of-object "GnomeCanvasItem")
+  (c-name "gnome_canvas_item_reparent")
+  (return-type "none")
+  (parameters
+    '("GnomeCanvasGroup*" "new_group")
+  )
+)
+
+(define-method grab
+  (of-object "GnomeCanvasItem")
+  (c-name "gnome_canvas_item_grab")
+  (return-type "none")
+)
+
+(define-method grab_focus
+  (of-object "GnomeCanvasItem")
+  (c-name "gnome_canvas_item_grab_focus")
+  (return-type "none")
+)
+
+(define-method get_bounds
+  (of-object "GnomeCanvasItem")
+  (c-name "gnome_canvas_item_get_bounds")
+  (return-type "none")
+  (parameters
+    '("double*" "x1")
+    '("double*" "y1")
+    '("double*" "x2")
+    '("double*" "y2")
+  )
+)
+
+;; only used by item implementations
+;; (define-method request_update
+;;   (of-object "GnomeCanvasItem")
+;;   (c-name "gnome_canvas_item_request_update")
+;;   (return-type "none")
+;; )
+
+(define-function gnome_canvas_group_get_type
+  (c-name "gnome_canvas_group_get_type")
+  (return-type "GtkType")
+)
+
+(define-function gnome_canvas_get_type
+  (c-name "gnome_canvas_get_type")
+  (return-type "GtkType")
+)
+
+(define-function gnome_canvas_new
+  (is-constructor-of GnomeCanvas)
+  (c-name "gnome_canvas_new")
+  (return-type "GtkWidget*")
+)
+
+(define-function gnome_canvas_new_aa
+  (is-constructor-of GnomeCanvas)
+  (c-name "gnome_canvas_new_aa")
+  (return-type "GtkWidget*")
+)
+
+(define-method root
+  (of-object "GnomeCanvas")
+  (c-name "gnome_canvas_root")
+  (return-type "GnomeCanvasGroup*")
+)
+
+(define-method set_pixels_per_unit
+  (of-object "GnomeCanvas")
+  (c-name "gnome_canvas_set_pixels_per_unit")
+  (return-type "none")
+  (parameters
+    '("double" "n")
+  )
+)
+	      
+(define-method set_scroll_region
+  (of-object "GnomeCanvas")
+  (c-name "gnome_canvas_set_scroll_region")
+  (return-type "none")
+  (parameters
+    '("double" "x1")
+    '("double" "y1")
+    '("double" "x2")
+    '("double" "y2")
+  )
+)
+
+(define-method get_scroll_region
+  (of-object "GnomeCanvas")
+  (c-name "gnome_canvas_get_scroll_region")
+  (return-type "none")
+  (parameters
+    '("double*" "x1")
+    '("double*" "y1")
+    '("double*" "x2")
+    '("double*" "y2")
+  )
+)
+
+(define-method get_center_scroll_region
+  (of-object "GnomeCanvas")
+  (c-name "gnome_canvas_get_center_scroll_region")
+  (return-type "gboolean")
+)
+
+(define-method set_center_scroll_region
+  (of-object "GnomeCanvas")
+  (c-name "gnome_canvas_set_center_scroll_region")
+  (parameters
+    '("gboolean" "center_scroll_region")
+  )
+)
+
+(define-method scroll_to
+  (of-object "GnomeCanvas")
+  (c-name "gnome_canvas_scroll_to")
+  (return-type "none")
+  (parameters
+    '("int" "cx")
+    '("int" "cy")
+  )
+)
+
+(define-method get_scroll_offsets
+  (of-object "GnomeCanvas")
+  (c-name "gnome_canvas_get_scroll_offsets")
+  (return-type "none")
+  (parameters
+    '("int*" "cx")
+    '("int*" "cy")
+  )
+)
+
+(define-method update_now
+  (of-object "GnomeCanvas")
+  (c-name "gnome_canvas_update_now")
+  (return-type "none")
+)
+
+(define-method get_item_at
+  (of-object "GnomeCanvas")
+  (c-name "gnome_canvas_get_item_at")
+  (return-type "GnomeCanvasItem*")
+  (parameters
+    '("double" "x")
+    '("double" "y")
+  )
+)
+
+;; only used by object implementations
+;; (define-method request_redraw_uta
+;;   (of-object "GnomeCanvas")
+;;   (c-name "gnome_canvas_request_redraw_uta")
+;;   (return-type "none")
+;;   (parameters
+;;     '("ArtUta8" "uta")
+;;   )
+;; )
+ 
+;; only used by object implementations
+;; (define-method request_redraw
+;;   (of-object "GnomeCanvas")
+;;   (c-name "gnome_canvas_request_redraw")
+;;   (return-type "none")
+;;   (parameters
+;;     '("int" "x1")
+;;     '("int" "y1")
+;;     '("int" "x2")
+;;     '("int" "y2")
+;;   )
+;; )
+
+(define-method w2c_affine
+  (of-object "GnomeCanvas")
+  (c-name "gnome_canvas_w2c_affine")
+  (return-type "none")
+  (parameters
+    '("double[6]" "affine")
+  )
+)
+
+(define-method w2c
+  (of-object "GnomeCanvas")
+  (c-name "gnome_canvas_w2c")
+  (return-type "none")
+  (parameters
+    '("double" "wx")
+    '("double" "wy")
+    '("int*" "cx")
+    '("int*" "cy")
+  )
+)
+
+(define-method w2c_d
+  (of-object "GnomeCanvas")
+  (c-name "gnome_canvas_w2c_d")
+  (return-type "none")
+  (parameters
+    '("double" "wx")
+    '("double" "wy")
+    '("double*" "cx")
+    '("double*" "cy")
+  )
+)
+
+(define-method c2w
+  (of-object "GnomeCanvas")
+  (c-name "gnome_canvas_c2w")
+  (return-type "none")
+  (parameters
+    '("int" "cx")
+    '("int" "cy")
+    '("double*" "wx")
+    '("double*" "wy")
+  )
+)
+
+(define-method window_to_world
+  (of-object "GnomeCanvas")
+  (c-name "gnome_canvas_window_to_world")
+  (return-type "none")
+  (parameters
+    '("double" "winx")
+    '("double" "winy")
+    '("double*" "worldx")
+    '("double*" "worldy")
+  )
+)
+
+(define-method world_to_window
+  (of-object "GnomeCanvas")
+  (c-name "gnome_canvas_world_to_window")
+  (return-type "none")
+  (parameters
+    '("double" "worldx")
+    '("double" "worldy")
+    '("double*" "winx")
+    '("double*" "winy")
+  )
+)
+
+(define-method get_color
+  (of-object "GnomeCanvas")
+  (c-name "gnome_canvas_get_color")
+  (return-type "int")
+  (parameters
+    '("const-char*" "spec")
+    '("GdkColor*" "color")
+  )
+)
+
+(define-method get_color_pixel
+  (of-object "GnomeCanvas")
+  (c-name "gnome_canvas_get_color_pixel")
+  (return-type "gulong")
+  (parameters
+    '("guint" "rgba")
+  )
+)
+
+;; only for use by item implementations
+;; 
+;; (define-method set_stipple_origin
+;;   (of-object "GnomeCanvas")
+;;   (c-name "gnome_canvas_set_stipple_origin")
+;;   (return-type "none")
+;;   (parameters
+;;     '("GdkGC*" "gc")
+;;   )
+;; )
+
+(define-method set_dither
+  (of-object "GnomeCanvas")
+  (c-name "gnome_canvas_set_dither")
+  (return-type "none")
+  (parameters
+    '("GdkRgbDither" "dither")
+  )
+)
+
+(define-method get_dither
+  (of-object "GnomeCanvas")
+  (c-name "gnome_canvas_get_dither")
+  (return-type "GdkRgbDither")
+)
+
+(define-function path_def_new
+  (c-name "gnome_canvas_path_def_new")
+  (return-type "GnomeCanvasPathDef*")
+)
+
+; This is a fictitious method that sets the bpath property It is
+; required because the bpath property is of type pointer, thus not
+; usable from python.  See bug #136617.
+(define-method set_bpath
+  (of-object "GnomeCanvasBpath")
+  (c-name "gnome_canvas_bpath_set_bpath")
+  (parameters
+   '("GnomeCanvasPathDef*" "bpath")
+   )
+  (return-type "none")
+)
+
+;; From gnome-canvas-rich-text.h
+
+(define-method cut_clipboard
+  (of-object "GnomeCanvasRichText")
+  (c-name "gnome_canvas_rich_text_cut_clipboard")
+  (return-type "none")
+)
+
+(define-method copy_clipboard
+  (of-object "GnomeCanvasRichText")
+  (c-name "gnome_canvas_rich_text_copy_clipboard")
+  (return-type "none")
+)
+
+(define-method paste_clipboard
+  (of-object "GnomeCanvasRichText")
+  (c-name "gnome_canvas_rich_text_paste_clipboard")
+  (return-type "none")
+)
+
+(define-method set_buffer
+  (of-object "GnomeCanvasRichText")
+  (c-name "gnome_canvas_rich_text_set_buffer")
+  (return-type "none")
+  (parameters
+    '("GtkTextBuffer*" "buffer")
+  )
+)
+
+(define-method get_buffer
+  (of-object "GnomeCanvasRichText")
+  (c-name "gnome_canvas_rich_text_get_buffer")
+  (return-type "GtkTextBuffer*")
+)
+
+(define-method get_iter_location
+  (of-object "GnomeCanvasRichText")
+  (c-name "gnome_canvas_rich_text_get_iter_location")
+  (return-type "none")
+  (parameters
+    '("const-GtkTextIter*" "iter")
+    '("GdkRectangle*" "location")
+  )
+)
+
+(define-method get_iter_at_location
+  (of-object "GnomeCanvasRichText")
+  (c-name "gnome_canvas_rich_text_get_iter_at_location")
+  (return-type "none")
+  (parameters
+    '("GtkTextIter*" "iter")
+    '("gint" "x")
+    '("gint" "y")
+  )
+)

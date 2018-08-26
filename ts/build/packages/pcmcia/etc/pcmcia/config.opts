@@ -1,0 +1,38 @@
+#
+# Local PCMCIA Configuration File
+#
+#----------------------------------------------------------------------
+#
+# System resources available for PCMCIA cards
+#
+# NOTE: these settings have no effect on resources assigned to a
+# CardBus bridge device itself; this file only affects resources
+# assigned to cards.  Also, interrupt settings here will only affect
+# ISA bus interrupts assigned to 16-bit cards.  PCI interrupts
+# generally can't be reconfigured.
+#
+# With the kernel PCMCIA subsystem, these settings also have no effect
+# at all on resources used for 32-bit CardBus cards.  Those are set by
+# the PCI hotplug subsystem.
+#
+
+include port 0x100-0x3af
+include port 0x3e0-0x4ff
+include port 0x820-0x8ff
+include port 0xc00-0xcf7
+
+include memory 0xc0000-0xfffff
+include memory 0xa0000000-0xa0ffffff
+include memory 0x60000000-0x60ffffff
+
+
+# These may hurt on FSC.
+# include port 0x3c0-0x3d2
+# Exclude 0x3d3 as Radeon IGP MCE's if you touch these ports
+# include port 0x3d4-0x3df
+
+# High port numbers do not always work...
+# include port 0x1000-0x17ff
+
+# Extra port range for IBM Token Ring
+include port 0xa00-0xaff

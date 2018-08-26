@@ -1,0 +1,18 @@
+# udev rules for CCID devices
+
+# Gemplus PCMCIA Card
+#SUBSYSTEMS=="pcmcia", DRIVERS=="serial_cs", ACTION=="add", ATTRS{prod_id1}=="Gemplus", ATTRS{prod_id2}=="SerialPort", ATTRS{prod_id3}=="GemPC Card", RUN+="/usr/sbin/pcscd --hotplug" 
+
+# If not adding the device, go away
+ACTION!="add", GOTO="pcscd_ccid_rules_end"
+SUBSYSTEM!="usb", GOTO="pcscd_ccid_rules_end"
+ENV{DEVTYPE}!="usb_device", GOTO="pcscd_ccid_rules_end"
+
+# Kobil mIDentity
+ATTRS{idVendor}=="0d46", ATTRS{idProduct}=="4081", RUN+="/usr/sbin/Kobil_mIDentity_switch"
+
+# set USB power management to auto.
+ENV{ID_USB_INTERFACES}==":0b0000:", RUN+="/bin/sh -c 'echo auto > /sys/$devpath/power/control'"
+
+# All done
+LABEL="pcscd_ccid_rules_end"

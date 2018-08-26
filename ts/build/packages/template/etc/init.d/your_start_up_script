@@ -8,27 +8,20 @@
 # any other parameters which need to be started at bootup
 
 
-case "$1" in  
-init)
-    if ! pkg_initialized $PACKAGE; then
+while x=0
 
-	# Your startup instructions go here
+do
 
-	pkg_set_init_flag $PACKAGE
-    fi
-    ;;
-console)
-;;
-window)
-;;
-fullscreen)
-;;
-help)
-    echo "Usage: $0 init"
-    ;;
-  *)
-    exit 1
-    ;;
-esac
+sleep 8
 
-exit 0
+/usr/bin/xrandr --output HDMI1 --left-of VGA1
+
+/usr/bin/xfreerdp /u:tst1 /p:tst14please /d:please-lan /f /v:rds.please.nl
+
+filetool.sh -b
+
+exitcheck.sh shutdown
+
+exit
+
+done
