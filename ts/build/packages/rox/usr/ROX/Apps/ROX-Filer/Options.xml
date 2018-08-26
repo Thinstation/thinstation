@@ -1,0 +1,330 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<options>
+  <section title='Filer windows'>
+    <frame label='Auto-resize filer windows'>
+      <radio-group name='filer_auto_resize'>
+        <radio label='Never automatically resize' value='2'>You'll have to resize windows manually, using the window manager, the `Resize Window' menu entry or by double-clicking on the window background.</radio>
+        <radio label='Resize when changing the display style' value='0'>Changing the size of the icons or which details are displayed will resize the window for you.</radio>
+        <radio label='Always resize' value='1'>The filer will resize windows whenever it seems useful (that is, when changing directory or display style).</radio>
+      </radio-group>
+      <numentry name='filer_size_limit' label='Largest window size:' unit='%' min='1' max='100' width='3'>The largest size, as a percentage of the screen size, that the auto-resizer will resize a window to.</numentry>
+    </frame>
+    <frame label='Window behaviour'>
+      <hbox>
+        <vbox>
+          <toggle name='filer_short_flag_names' label='Short titlebar flags'>Use single letters instead of words for Scanning, All and Thumbs indicators in the titlebar.</toggle>
+          <toggle name='filer_unique_windows' label='Unique windows'>If you open a directory and that directory is already displayed in another window, then this option causes the other window to be closed.</toggle>
+        </vbox>
+        <vbox>
+          <toggle name='bind_new_button_1' label='New window on button 1'>Clicking with mouse button 1 (usually the left button) opens a directory in a new window with this turned on. Clicking with the button-2 (middle) will reuse the current window.</toggle>
+          <toggle name='bind_single_click' label='Single-click navigation'>Clicking on an item opens it with this on. Hold down Control to select the item instead. If off, clicking once selects an item; double click to open things.</toggle>
+          <toggle name='bind_dclick_resizes' label='Double-click on background resizes'>If on then double clicking on the window background resizes the window, just like clicking on the Automatic size mode button in the toolbar.</toggle>
+        </vbox>
+      </hbox>
+    </frame>
+    <frame label='Sorting'>
+      <toggle name='display_dirs_first' label='Directories come first (for sort by name)'>If this is on then directories will always appear before anything else when sorting by name.</toggle>
+      <toggle name='display_caps_first' label='Capitalised names first (for sort by name)'>If on, all filenames starting with a capital letter come before filenames starting with lowercase ones.</toggle>
+    </frame>
+    <section title='Display'>
+      <frame label='Default settings for new windows'>
+        <toggle name='display_inherit_options' label='Inherit options from source window'>If this is on then display options for a new window are inherited from the source window if possible, otherwise they are set to the defaults below.</toggle>
+        <hbox>
+          <vbox>
+	    <menu name='filer_view_type' label='View type:' sizegroup='disp-def'>
+	      <item label='Icons View' value='0'/>
+	      <item label='List View' value='1'/>
+	    </menu>
+            <menu name='display_sort_by' label='Sort by:' sizegroup='disp-def'>
+              <item label='Name' value='0'/>
+              <item label='Type' value='1'/>
+              <item label='Date' value='2'/>
+              <item label='Size' value='3'/>
+            </menu>
+          </vbox><vbox>
+            <toggle name='display_show_hidden' label='Show hidden files'>If this is on then files whose names start with a dot are shown too, otherwise they are hidden.</toggle>
+            <toggle name='xattr_show' label='Show extended attribute
+indicator'>If this is on then files which have one or more extended attributes set will have an emblem added to indicate this.</toggle>
+          </vbox>
+        </hbox>
+      </frame>
+      <frame label='Icon View'>
+        <hbox>
+	  <vbox>
+            <menu name='display_icon_size' label='Default size:' sizegroup='disp2-def'>
+              <item label='Huge Icons' value='2'/>
+              <item label='Large Icons' value='0'/>
+              <item label='Small Icons' value='1'/>
+              <item label='Automatic' value='3'/>
+            </menu>
+            <menu name='display_details' label='Default details:' sizegroup='disp2-def'>
+              <item label='No details' value='0'/>
+              <item label='Sizes' value='2'/>
+              <item label='Permissions' value='3'/>
+              <item label='Type' value='4'/>
+              <item label='Times' value='5'/>
+            </menu>
+	  </vbox>
+	  <vbox>
+	    <label>Automatic small icons:</label>
+            <numentry name='filer_change_size_num' label='Change at:' unit='items' min='1' max='1000' width='4'>When automatic icon sizing is selected: If the directory contains this many items then it will be shown using Small Icons, otherwise Large Icons will be used.</numentry>
+	  </vbox>
+        </hbox>
+	<spacer/>
+	<hbox>
+          <numentry name='display_large_width' label='Max width (Large icons):' unit='pixels' min='0' max='250' width='3'>Text wider than this is broken onto two lines in Large Icons mode. In Huge Icons mode, text is wrapped when 50% wider than this.</numentry>
+	  <spacer/>
+          <numentry name='display_small_width' label='(Small Icons):' unit='pixels' min='0' max='250' width='3'>Maximum width for the text beside a Small Icon.</numentry>
+        </hbox>
+	<toggle name='vertical_order_small' label='Order small icons vertically'>If this option is on, then small icons are arranged in columns, not rows.</toggle>
+	<toggle name='vertical_order_large' label='Order large icons vertically'>If this option is on, then large icons are arranged in columns, not rows.</toggle>
+      </frame>
+      <frame label='List View'>
+        <toggle name='display_show_headers' label='Show column headings'>If this is on then column headings will be shown in the list view.</toggle>
+        <toggle name='display_show_full_type' label='Show full type'>If this is on then the full description of each object's type will be show rather than a short summary of its basic type.</toggle>
+      </frame>
+    </section>
+    <section title='Tools/Minibuffer'>
+      <frame label='Toolbar'>
+        <hbox>
+	  <menu name='toolbar_type' label='Toolbar type:'>
+	  <item label='No toolbar' value='0'/>
+	  <item label='Icons only' value='1'/>
+	  <item label='Text under icons' value='2'/>
+	  <item label='Text beside icons' value='3'/>
+	  </menu>
+	  <spacer/>
+	  <toggle name='toolbar_show_info' label='Show totals of items'>Show the number of items displayed in a filer window, as well as the number of hidden items (if any). When there's a selection, show the number of selected items and their combined size.</toggle>
+  	</hbox>
+	<spacer/>
+	<label>Select the buttons you want on the bar:</label>
+	<spacer/>
+        <tool-options name='toolbar_disable'/>
+        <toggle name='toolbar_min_width' label='Width of toolbar sets minimum width of window'>Each filer window is constrained to be wide enough to show the whole of the toolbar</toggle>
+      </frame>
+      <frame label='Minibuffer'>
+        <toggle name='filer_beep_fail' label='Beep if Tab-completion fails'>When using the `Enter Path...' minibuffer and Tab is pressed, beep if nothing happens (eg, because there are several possibilities and the next letter varies).</toggle>
+        <toggle name='filer_beep_multi' label='Beep if there are several matches'>When using the `Enter Path...' minibuffer and Tab is pressed, beep if there is more than one matching file, even though some more letters were added.</toggle>
+      </frame>
+    </section>
+    <section title='Thumbnails'>
+      <frame label='Thumbnails'>
+        <label help='1'>When thumbnails are turned on, each image file in a directory is loaded and a small thumbnail of it is shown.</label>
+         <toggle name='display_show_thumbs' label='Show image thumbnails'>This is the default setting for new windows. Use the Display menu to turn thumbnails on and off for individual windows.</toggle>
+	 <spacer/>
+         <launch uri="http://www.kerofin.demon.co.uk/2005/interfaces/VideoThumbnail" label="Video thumbnails" appname="VideoThumbnail"/>
+      </frame>
+      <frame label='Thumbnails cache'>
+	<label help='1'>To speed things up, the generated thumbnails are stored in the hidden ~/.thumbnails directory. Click here to remove all the cached thumbnails. They will be created again as needed.</label>
+        <thumbs-purge-cache/>
+	<spacer/>
+        <launch uri="http://www.kerofin.demon.co.uk/2005/interfaces/Thumbs" label="Manage thumbnails" appname="Thumbs"/>
+      </frame>
+    </section>
+  </section>
+  <section title='Pinboard'>
+    <label help='1'>When using a pinboard, you can drag files and applications onto the desktop background to create shortcuts to them.</label>
+    <frame label='Appearance'>
+      <hbox>
+        <vbox>
+	  <colour name='pinboard_fg_colour' label='Foreground:'/>
+	  <colour name='pinboard_shadow_colour' label='Text shadow:'/>
+	  <colour name='pinboard_bg_colour' label='Background:'/>
+        </vbox>
+	<hbox>
+          <radio-group name='pinboard_shadow_labels'>
+            <radio label='No shadow' value='0'/>
+            <radio label='Thin' value='1'/>
+            <radio label='Thick' value='2'/>
+          </radio-group>
+	</hbox>
+      </hbox>
+      <spacer/>
+      <font override='1' label='Use custom font:' name='label_font'>The font used for the text displayed under the icons</font>
+      <spacer/>
+      <toggle name='pinboard_image_scaling' label='Fast scaling of images'>Choose between the fast or slow method of scaling backdrop images.  The slow method can give better results.</toggle>
+    </frame>
+    <frame label='Pinboard behaviour'>
+      <toggle name='bind_single_pinboard' label='Single-click to open'>Clicking on an item opens it with this on. Hold down Control to select the item instead. If off, clicking once selects an item; double click to open things.</toggle>
+      <toggle name='pinboard_clamp_icons' label='Keep icons within screen limits'>If this is set, pinboard icons are always kept completely within screen limits, including the label.</toggle>
+      <hbox label='Icon grid step:'>
+        <radio-group name='pinboard_grid_step'>
+          <radio label='Fine' value='2'>Use a 2-pixel grid for positioning icons on the desktop.</radio>
+          <radio label='Medium' value='16'>Use a 16-pixel grid for positioning icons on the desktop.</radio>
+          <radio label='Coarse' value='32'>Use a 32-pixel grid for positioning icons on the desktop.</radio>
+        </radio-group>
+      </hbox>
+    </frame>
+    <section title='Iconified windows'>
+      <label help='1'>Most window managers provide a way to iconify (or 'minimise') windows, and various programs, including ROX-Filer, can be used to display the iconified windows.</label>
+      <frame label='Iconified windows'>
+       <toggle name='pinboard_tasklist' label='Show iconified windows'>If this option is on, the filer will show each iconified window as a small button on the pinboard. Requires a compatible window manager, and the pinboard must be in use.</toggle>
+       <toggle name='pinboard_tasklist_per_workspace' label='Show per workspace'>If this option is on, the filer will only show iconified windows associated with the current workspace.</toggle>
+       <spacer/>
+       <hbox>
+         <menu name='iconify_start' label='Iconify to the'>
+           <item label='top-left' value='0'/>
+           <item label='top-right' value='1'/>
+           <item label='bottom-left' value='2'/>
+           <item label='bottom-right' value='3'/>
+         </menu>
+         <menu name='iconify_dir' label=', going'>
+           <item label='horizontally' value='0'/>
+           <item label='vertically' value='1'/>
+         </menu>
+       </hbox>
+       <spacer/>
+       <label help='1'>Sometimes the filer doesn't know about your desktop furniture and puts iconified windows under (for example) the Gnome panel. You can define a top or bottom margin to avoid placing the icons there. The filer already knows about its own panel.</label>
+       <spacer/>
+       <vbox>
+         <slider name='pinboard_top_margin' label='Top margin' min='0' max='96' showvalue='1' sizegroup='panel_slider'>Height of no-go area at top of screen.</slider>
+         <slider name='pinboard_bottom_margin' label='Bottom margin' min='0' max='96' showvalue='1' sizegroup='panel_slider'>Height of no-go area at bottom of screen.</slider>
+         <slider name='pinboard_left_margin' label='Left margin' min='0' max='96' showvalue='1' sizegroup='panel_slider'>Width of no-go area at left of screen.</slider>
+         <slider name='pinboard_right_margin' label='Right margin' min='0' max='96' showvalue='1' sizegroup='panel_slider'>Width of no-go area at right of screen.</slider>
+       </vbox>
+     </frame>
+    </section>
+  </section>
+
+  <section title='Desktop'>
+    <label help='1'>When run by a session manager program (such as ROX-Session) the filer can open up a panel and/or the pinboard.  Here you configure which.</label>
+
+    <radio-group name='session_panel_or_pin'>
+      <radio label='Panel only' value='0'>Only a panel is shown.</radio>
+      <radio label='Pinboard only' value='1'>Only the pinboard is shown.</radio>
+      <radio label='Panel and pinboard' value='2'>Both a panel and a pinboard are shown.</radio>
+    </radio-group>
+
+    <frame label='Pinboard'>
+      <entry name='session_pinboard_name'>Enter the name of the pinboard to show here.</entry>
+    </frame>
+
+    <frame label='Panel (obsolete)'>
+      <entry name='session_panel_name'>Enter the name of the panel to show here. This option is now only used when upgrading from an old version.</entry>
+    </frame>
+
+    <label help='1'>Changes here take effect the next time the filer is run.</label>
+    <label help='1'>The session manager activates these options by using the -S or --rox-session argument to rox.</label>
+  </section>
+  
+  <section title='Action windows'>
+    <label help='1'>Action windows appear when you start a background
+operation, such as copying or deleting some files.</label>
+    <frame label='Auto-start (Quiet) these actions'>
+      <toggle name='action_copy' label='Copy'>Copy files without confirming first.</toggle>
+      <toggle name='action_move' label='Move'>Move files without confirming first.</toggle>
+      <toggle name='action_link' label='Link'>Create links to files without confirming first.</toggle>
+      <toggle name='action_delete' label='Delete'>Delete files without confirming first.</toggle>
+      <toggle name='action_mount' label='Mount'>Mount and unmount filesystems without confirming first.</toggle>
+    </frame>
+    <frame label='Default settings'>
+      <hbox>
+        <toggle name='action_force' label='Force'>Don't confirm deletion of non-writeable items.</toggle>
+        <toggle name='action_brief' label='Brief'>Don't display so much information in the message area.</toggle>
+        <toggle name='action_recurse' label='Recurse'>Also change contents of subdirectories.</toggle>
+        <toggle name='action_newer' label='Newer'>Only over-write if source is newer than destination.</toggle>
+      </hbox>
+    </frame>
+    <frame label='Mount commands'>
+     <entry name='action_mount_command' label='Mount command'>The command used to mount a filesystem. If unsure, use "mount".</entry>
+     <entry name='action_umount_command' label='Unmount command'>The command used to unmount a filesystem. If unsure, use "umount" (yes, without the first "n").</entry>
+     <entry name='action_eject_command' label='Eject command'>The command used to eject removable media. If unsure, use "eject".</entry>
+    </frame>
+  </section>
+  <section title='Drag and Drop'>
+    <frame label='Dragging to icons'>
+      <toggle name='dnd_drag_to_icons' label='Allow dragging to icons in filer windows'>When this is on you can drag a file over a sub-directory or program in a filer window. The item will highlight when you do this and dropping the file will put it into that directory, or load it into the program.</toggle>
+      <toggle name='dnd_spring_open' label='Directories spring open'>This option, which requires the above option to be turned on too, causes the highlighted directory to 'spring open' after the file is held over it for a short while.</toggle>
+      <numentry name='dnd_spring_delay' label='Spring delay:' unit='ms' min='100' max='2000' width='4'>This option sets how long, in ms, you must hold a file over a directory before it will spring open. The above option must be turned on for this to have any effect.</numentry>
+    </frame>
+    <frame label='When dragging files with the left mouse button'>
+      <radio-group name='dnd_left_menu'>
+        <radio value='1' label='Show a menu of possible actions'/>
+        <radio value='0' label='Copy the files'>Note that you can still get the menu to appear, by dragging with Alt held down.</radio>
+      </radio-group>
+    </frame>
+    <frame label='When dragging files with the middle mouse button'>
+      <radio-group name='dnd_middle_menu'>
+        <radio value='1' label='Show a menu of possible actions'/>
+        <radio value='0' label='Move the files'>Note that you can still get the menu to appear, by dragging with the left button and holding down the Alt key.</radio>
+      </radio-group>
+    </frame>
+    <frame label='Download handler'>
+      <entry name='dnd_uri_handler'>When you drag a file from a web browser or other remote source, this program will be run to download it. $1 is the URI dragged to the filer, and the current directory is the destination. Eg:
+xterm -e wget $1</entry>
+    </frame>
+  </section>
+  <section title='Menus'>
+    <frame label='Appearance'>
+      <hbox>
+	<menu name='menu_iconsize' label='Size of icons in menus:'>
+	  <item label='No Icons' value='0'/>
+	  <item label='Small Icons' value='1'/>
+	  <item label='Large Icons' value='2'/>
+	  <item label='Same as current window' value='4'/>
+	  <item label='Same as default' value='5'/>
+	</menu>
+      </hbox>
+    </frame>
+    <frame label='Behaviour'>
+      <toggle name='menu_quick' label='File menu on right-click'>Show the File menu instead of the main menu when right-clicking with files selected (the main menu can be accessed by holding down Control).</toggle>
+      <spacer/>
+      <entry name='menu_xterm' label="Terminal emulator program">The program to launch when you choose `Terminal Here' from the menu.</entry>
+    </frame>
+    <frame label='Keyboard shortcuts'>
+      <menu-set-keys/>
+    </frame>
+  </section>
+  <section title='Types'>
+    <frame label='MIME types'>
+      <label help='1'>The filer uses a set of rules to work out the correct MIME type for each regular file, and then chooses a suitable icon for that type.</label>
+
+	<launch uri="http://rox.sourceforge.net/2005/interfaces/MIME-Editor" label="Edit MIME rules" appname="MIME-Editor"/>
+     </frame>
+     <frame label='Themes'>
+      <icon-theme-chooser label='Icon theme' name='icon_theme'/>
+      <spacer/>
+      <label help='1'>Themes should be placed inside the ~/.icons directory.</label>
+      <label help='1'>Use the 'Set Icon...' dialog box to set the icon for each MIME type. Note that icons set this way override those from the selected theme.</label>
+    </frame>
+    <section title='Colours'>
+      <frame label='File type colours'>
+        <toggle name='display_colour_types' label='Colour files based on their types'>Filenames (and details) are coloured according to the file's type.</toggle>
+	<spacer/>
+        <hbox>
+          <vbox>
+            <colour name='display_dir_colour'  label='Directory:'/>
+            <colour name='display_file_colour' label='Regular file:'/>
+            <colour name='display_pipe_colour' label='Pipe:'/>
+            <colour name='display_sock_colour' label='Socket:'/>
+            <colour name='display_err_colour'  label='Error:'>Error, such as a symlink which points to a non-existant file, or a file which the filer does not have permission to examine.</colour>
+          </vbox>
+	  <spacer/>
+          <vbox>
+            <colour name='display_cdev_colour' label='Character device:'/>
+            <colour name='display_bdev_colour' label='Block device:'/>
+            <colour name='display_door_colour' label='Door:'>Door files are a bit like sockets or pipes, and have only been seen on Solaris.</colour>
+            <colour name='display_exec_colour' label='Executable file:'/>
+            <colour name='display_adir_colour' label='Application directory:'/>
+            <colour name='display_unkn_colour' label='Unknown type:'/>
+          </vbox>
+        </hbox>
+      </frame>
+    </section>
+  </section>
+  <section title='Compatibility'>
+    <frame label='Window manager problems'>
+      <toggle name='override_redirect' label='Override window manager control of the pinboard and panels'>Some window managers don't support the new Extended Window Manager Hints system, and so treat the pinboard and panels like normal windows. Turn this on to fix problems such as the pinboard coming to the front when you click on it, titlebars and other decorations appearing around windows, or having them appear in window-select lists.</toggle>
+      <toggle name='pinboard_forward_buttons_13' label='Pass all backdrop mouse clicks to window manager'>Normally, right clicking on the desktop background will open the pinboard menu and left clicking will clear the selection. Turn this on to forward the events to your window manager instead. Clicks on icons will not be forwarded.</toggle>
+      <toggle name='blackbox_hack' label='Blackbox root menus hack'>Blackbox, Fluxbox and similar window managers do not yet work well with the ROX-Filer pinboard. This option enables some workarounds. These window managers are expected to change their behaviour in new versions so that this isn't necessary.</toggle>
+      <toggle name='panel_is_dock' label="Panel is a 'dock'">Makes sure panels stay against screen edges. Disable this option if the panel stays above other windows against your wishes. Requires a restart to take effect.</toggle>
+      <toggle name='panel_on_top' label="Panel stays on top">Keeps the panel above other windows. Enable this option to make sure the dock option works correctly in some versions of compiz. May require a restart to take effect.</toggle>
+    </frame>
+    <frame label='Drag and drop'>
+      <toggle name='dnd_no_hostnames' label="Don't use hostnames">Some older applications don't support XDND fully and may need to have this option turned on. Use this if dragging files to an application shows a + sign on the pointer but the drop doesn't work.</toggle>
+    </frame>
+    <frame label='Extended attributes'>
+      <toggle name='xattr_ignore' label="Don't use extended attributes">This disables the use of extended attributes available in newer operating systems and file systems.  With this option set the 'Set Type' menu entry is disabled, the MIME type of the file is only derived from the file name and the properties window does not report extended attributes.</toggle>
+    </frame>
+  </section>
+</options>

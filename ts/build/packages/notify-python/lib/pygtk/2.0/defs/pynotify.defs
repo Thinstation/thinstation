@@ -1,0 +1,237 @@
+;; -*- scheme -*-
+; object definitions ...
+(define-object Notification
+  (in-module "Notify")
+  (parent "GObject")
+  (c-name "NotifyNotification")
+  (gtype-id "NOTIFY_TYPE_NOTIFICATION")
+)
+
+;; Enumerations and flags ...
+
+(define-enum Urgency
+  (in-module "Notify")
+  (c-name "NotifyUrgency")
+  (gtype-id "NOTIFY_TYPE_URGENCY")
+  (values
+    '("low" "NOTIFY_URGENCY_LOW")
+    '("normal" "NOTIFY_URGENCY_NORMAL")
+    '("critical" "NOTIFY_URGENCY_CRITICAL")
+  )
+)
+
+
+;; From /usr/include/libnotify/notification.h
+
+(define-function notify_notification_get_type
+  (c-name "notify_notification_get_type")
+  (return-type "GType")
+  (parameters
+  )
+)
+
+(define-function notify_notification_new
+  (c-name "notify_notification_new")
+  (is-constructor-of "NotifyNotification")
+  (return-type "NotifyNotification*")
+  (parameters
+    '("const-gchar*" "summary")
+    '("const-gchar*" "message" (null-ok) (default "NULL"))
+    '("const-gchar*" "icon" (null-ok) (default "NULL"))
+  )
+)
+
+(define-method update
+  (of-object "NotifyNotification")
+  (c-name "notify_notification_update")
+  (return-type "gboolean")
+  (parameters
+    '("const-gchar*" "summary")
+    '("const-gchar*" "message" (null-ok) (default "NULL"))
+    '("const-gchar*" "icon" (null-ok) (default "NULL"))
+  )
+)
+
+(define-method show
+  (of-object "NotifyNotification")
+  (c-name "notify_notification_show")
+  (return-type "gboolean")
+  (parameters
+    '("GError**" "error")
+  )
+)
+
+(define-method set_timeout
+  (of-object "NotifyNotification")
+  (c-name "notify_notification_set_timeout")
+  (return-type "none")
+  (parameters
+    '("gint" "timeout")
+  )
+)
+
+(define-method set_category
+  (of-object "NotifyNotification")
+  (c-name "notify_notification_set_category")
+  (return-type "none")
+  (parameters
+    '("const-char*" "category")
+  )
+)
+
+(define-method set_urgency
+  (of-object "NotifyNotification")
+  (c-name "notify_notification_set_urgency")
+  (return-type "none")
+  (parameters
+    '("NotifyUrgency" "l")
+  )
+)
+
+(define-method set_icon_from_pixbuf
+  (of-object "NotifyNotification")
+  (c-name "notify_notification_set_icon_from_pixbuf")
+  (return-type "none")
+  (parameters
+    '("GdkPixbuf*" "icon")
+  )
+)
+
+(define-method set_hint_int32
+  (of-object "NotifyNotification")
+  (c-name "notify_notification_set_hint_int32")
+  (return-type "none")
+  (parameters
+    '("const-gchar*" "key")
+    '("gint" "value")
+  )
+)
+
+(define-method set_hint_double
+  (of-object "NotifyNotification")
+  (c-name "notify_notification_set_hint_double")
+  (return-type "none")
+  (parameters
+    '("const-gchar*" "key")
+    '("gdouble" "value")
+  )
+)
+
+(define-method set_hint_string
+  (of-object "NotifyNotification")
+  (c-name "notify_notification_set_hint_string")
+  (return-type "none")
+  (parameters
+    '("const-gchar*" "key")
+    '("const-gchar*" "value")
+  )
+)
+
+(define-method set_hint_byte
+  (of-object "NotifyNotification")
+  (c-name "notify_notification_set_hint_byte")
+  (return-type "none")
+  (parameters
+    '("const-gchar*" "key")
+    '("guchar" "value")
+  )
+)
+
+(define-method set_hint_byte_array
+  (of-object "NotifyNotification")
+  (c-name "notify_notification_set_hint_byte_array")
+  (return-type "none")
+  (parameters
+    '("const-gchar*" "key")
+    '("const-guchar*" "value")
+    '("gsize" "len")
+  )
+)
+
+(define-method clear_hints
+  (of-object "NotifyNotification")
+  (c-name "notify_notification_clear_hints")
+  (return-type "none")
+)
+
+(define-method add_action
+  (of-object "NotifyNotification")
+  (c-name "notify_notification_add_action")
+  (return-type "none")
+  (parameters
+    '("const-char*" "action")
+    '("const-char*" "label")
+    '("NotifyActionCallback" "callback")
+    '("gpointer" "user_data")
+    '("GFreeFunc" "free_func")
+  )
+)
+
+(define-method clear_actions
+  (of-object "NotifyNotification")
+  (c-name "notify_notification_clear_actions")
+  (return-type "none")
+)
+
+(define-method close
+  (of-object "NotifyNotification")
+  (c-name "notify_notification_close")
+  (return-type "gboolean")
+  (parameters
+    '("GError**" "error")
+  )
+)
+
+
+
+;; From /usr/include/libnotify/notify-enum-types.h
+
+(define-function notify_urgency_get_type
+  (c-name "notify_urgency_get_type")
+  (return-type "GType")
+)
+
+
+
+;; From /usr/include/libnotify/notify.h
+
+(define-function init
+  (c-name "notify_init")
+  (return-type "gboolean")
+  (parameters
+    '("const-char*" "app_name")
+  )
+)
+
+(define-function uninit
+  (c-name "notify_uninit")
+  (return-type "none")
+)
+
+(define-function is_initted
+  (c-name "notify_is_initted")
+  (return-type "gboolean")
+)
+
+(define-function get_app_name
+  (c-name "notify_get_app_name")
+  (return-type "const-gchar*")
+)
+
+(define-function get_server_caps
+  (c-name "notify_get_server_caps")
+  (return-type "GList*")
+)
+
+(define-function get_server_info
+  (c-name "notify_get_server_info")
+  (return-type "gboolean")
+  (parameters
+    '("char**" "ret_name")
+    '("char**" "ret_vendor")
+    '("char**" "ret_version")
+    '("char**" "ret_spec_version")
+  )
+)
+
+

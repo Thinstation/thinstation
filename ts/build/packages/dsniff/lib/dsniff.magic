@@ -1,0 +1,110 @@
+# $Id: dsniff.magic,v 1.8 2000/07/19 03:22:02 dugsong Exp $
+#
+# Network protocol magic(5) for dsniff.
+#
+
+0	string		FLAPON		aim
+
+0	string		BEGIN\ 		cvs
+
+0	string		SYST		ftp
+0	string		USER\ ftp	ftp
+0	string		USER\ anonymous	ftp
+
+0	string		HELO\ 		smtp
+0	string		EHLO\ 		smtp
+
+0	string		GET\ /		http
+0	string		POST\ /		http
+0	string		CONNECT\ 	http
+
+1	string		\ LOGIN\ 	imap
+2	string		\ LOGIN\ 	imap
+3	string		\ LOGIN\ 	imap
+4	string		\ LOGIN\ 	imap
+5	string		\ LOGIN\ 	imap
+
+0	string		NICK\ 		irc
+
+0	string		USER\ 		pop
+0	string		AUTH\ 		pop
+
+12	string		MIT-MAGIC	x11
+
+0	string		LIST		nntp
+0	string		GROUP		nntp
+0	string		NEW		nntp
+0	string		ARTICLE		nntp
+
+0	belong		0x7f7f4943
+>4	beshort		0x4100		citrix
+
+0	belong		0x0200e803	icq
+
+8	belong		0x0135012c
+>12	belong		0x0c010800
+>>16	belong		0x7fff7f08
+>>>20	belong		0x00000001	oracle
+
+0	belong		0x0
+>4	byte		0x8d		pcanywhere
+>5	byte		0x6		pcanywhere
+
+132	belong		0x0301060a
+>242	belong		0		tds
+32	belong		0xe0031000
+>36	belong		0x2c010000	tds
+
+12	belong		100000
+>4	belong		0
+>>8	belong		2		portmap
+12	belong		100005
+>4	belong		0
+>>8	belong		2		mountd
+12	belong		100009
+>4	belong		0
+>>8	belong		2		yppasswd
+
+16	belong		100000
+>8	belong		0
+>>12	belong		2		portmap
+16	belong		100005
+>8	belong		0
+>>12	belong		2		mountd
+16	belong		100009
+>8	belong		0
+>>12	belong		2		yppasswd
+
+0	belong		296
+>4	belong		0x20000		postgresql
+
+0	belong		0x81000048
+>33	string		CACA	 	smb
+
+0	beshort		>0xfff9
+>2	byte		<40
+>>3	beshort		>0xfff9
+>>>5	byte		<40		telnet
+
+2	leshort		2
+>(0.b+6)	leshort	208		napster
+>(0.b+6)	leshort	2		napster
+
+0	byte		0x38
+>8	belong		0x00002455	mmxp
+
+0	byte		5
+>6	leshort		260
+>>32	byte		0		sniffer
+>6	leshort		261
+>>32	lelong		-1		sniffer
+>1	belong		0
+>>5	byte		0		icq
+>(1.b+1)	byte	1		socks
+
+0	byte&0x1f	16
+>2	byte&0x1f	2
+>>5	byte		0x60		ldap
+>4	byte&0x1f	2
+>>5	beshort&0xfffc	0x0100
+>>>7	byte&0x1f	4		snmp

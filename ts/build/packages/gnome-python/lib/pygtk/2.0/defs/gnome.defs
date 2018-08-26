@@ -1,0 +1,980 @@
+;; -*- scheme -*-
+
+(include "gnome-types.defs")
+
+; object definitions ...
+(define-object Program
+  (in-module "Gnome")
+  (parent "GObject")
+  (c-name "GnomeProgram")
+  (gtype-id "GNOME_TYPE_PROGRAM")
+)
+
+;; Enumerations and flags ...
+
+(define-enum HelpError
+  (in-module "Gnome")
+  (c-name "GnomeHelpError")
+  (gtype-id "GNOME_TYPE_HELP_ERROR")
+  (values
+    '("internal" "GNOME_HELP_ERROR_INTERNAL")
+    '("not-found" "GNOME_HELP_ERROR_NOT_FOUND")
+  )
+)
+
+(define-enum FileDomain
+  (in-module "Gnome")
+  (c-name "GnomeFileDomain")
+  (gtype-id "GNOME_TYPE_FILE_DOMAIN")
+  (values
+    '("unknown" "GNOME_FILE_DOMAIN_UNKNOWN")
+    '("libdir" "GNOME_FILE_DOMAIN_LIBDIR")
+    '("datadir" "GNOME_FILE_DOMAIN_DATADIR")
+    '("sound" "GNOME_FILE_DOMAIN_SOUND")
+    '("pixmap" "GNOME_FILE_DOMAIN_PIXMAP")
+    '("config" "GNOME_FILE_DOMAIN_CONFIG")
+    '("help" "GNOME_FILE_DOMAIN_HELP")
+    '("app-libdir" "GNOME_FILE_DOMAIN_APP_LIBDIR")
+    '("app-datadir" "GNOME_FILE_DOMAIN_APP_DATADIR")
+    '("app-sound" "GNOME_FILE_DOMAIN_APP_SOUND")
+    '("app-pixmap" "GNOME_FILE_DOMAIN_APP_PIXMAP")
+    '("app-config" "GNOME_FILE_DOMAIN_APP_CONFIG")
+    '("app-help" "GNOME_FILE_DOMAIN_APP_HELP")
+  )
+)
+
+(define-enum TriggerType
+  (in-module "Gnome")
+  (c-name "GnomeTriggerType")
+  (gtype-id "GNOME_TYPE_TRIGGER_TYPE")
+  (values
+    '("none" "GTRIG_NONE")
+    '("function" "GTRIG_FUNCTION")
+    '("command" "GTRIG_COMMAND")
+    '("mediaplay" "GTRIG_MEDIAPLAY")
+  )
+)
+
+(define-enum URLError
+  (in-module "Gnome")
+  (c-name "GnomeURLError")
+  (gtype-id "GNOME_TYPE_URL_ERROR")
+  (values
+    '("parse" "GNOME_URL_ERROR_PARSE")
+    '("launch" "GNOME_URL_ERROR_LAUNCH")
+    '("url" "GNOME_URL_ERROR_URL")
+    '("no-default" "GNOME_URL_ERROR_NO_DEFAULT")
+    '("not-supported" "GNOME_URL_ERROR_NOT_SUPPORTED")
+    '("vfs" "GNOME_URL_ERROR_VFS")
+  )
+)
+
+
+;; From /usr/include/libgnome-2.0/libgnome/gnome-config.h
+
+(define-function config_get_string_with_default_
+  (c-name "gnome_config_get_string_with_default_")
+  (return-type "char*")
+  (parameters
+    '("const-char*" "path")
+    '("gboolean*" "def")
+    '("gboolean" "priv")
+  )
+)
+
+(define-function config_get_translated_string_with_default_
+  (c-name "gnome_config_get_translated_string_with_default_")
+  (return-type "char*")
+  (parameters
+    '("const-char*" "path")
+    '("gboolean*" "def")
+    '("gboolean" "priv")
+  )
+)
+
+(define-function config_get_int_with_default_
+  (c-name "gnome_config_get_int_with_default_")
+  (return-type "gint")
+  (parameters
+    '("const-char*" "path")
+    '("gboolean*" "def")
+    '("gboolean" "priv")
+  )
+)
+
+(define-function config_get_float_with_default_
+  (c-name "gnome_config_get_float_with_default_")
+  (return-type "gdouble")
+  (parameters
+    '("const-char*" "path")
+    '("gboolean*" "def")
+    '("gboolean" "priv")
+  )
+)
+
+(define-function config_get_bool_with_default_
+  (c-name "gnome_config_get_bool_with_default_")
+  (return-type "gboolean")
+  (parameters
+    '("const-char*" "path")
+    '("gboolean*" "def")
+    '("gboolean" "priv")
+  )
+)
+
+(define-function config_get_vector_with_default_
+  (c-name "gnome_config_get_vector_with_default_")
+  (return-type "none")
+  (parameters
+    '("const-char*" "path")
+    '("gint*" "argcp")
+    '("char***" "argvp")
+    '("gboolean*" "def")
+    '("gboolean" "priv")
+  )
+)
+
+(define-function config_set_string_
+  (c-name "gnome_config_set_string_")
+  (return-type "none")
+  (parameters
+    '("const-char*" "path")
+    '("const-char*" "value")
+    '("gboolean" "priv")
+  )
+)
+
+(define-function config_set_translated_string_
+  (c-name "gnome_config_set_translated_string_")
+  (return-type "none")
+  (parameters
+    '("const-char*" "path")
+    '("const-char*" "value")
+    '("gboolean" "priv")
+  )
+)
+
+(define-function config_set_int_
+  (c-name "gnome_config_set_int_")
+  (return-type "none")
+  (parameters
+    '("const-char*" "path")
+    '("int" "value")
+    '("gboolean" "priv")
+  )
+)
+
+(define-function config_set_float_
+  (c-name "gnome_config_set_float_")
+  (return-type "none")
+  (parameters
+    '("const-char*" "path")
+    '("gdouble" "value")
+    '("gboolean" "priv")
+  )
+)
+
+(define-function config_set_bool_
+  (c-name "gnome_config_set_bool_")
+  (return-type "none")
+  (parameters
+    '("const-char*" "path")
+    '("gboolean" "value")
+    '("gboolean" "priv")
+  )
+)
+
+(define-function config_set_vector_
+  (c-name "gnome_config_set_vector_")
+  (return-type "none")
+  (parameters
+    '("const-char*" "path")
+    '("int" "argc")
+    '("const-char*-const[]" "argv")
+    '("gboolean" "priv")
+  )
+)
+
+(define-function config_has_section_
+  (c-name "gnome_config_has_section_")
+  (return-type "gboolean")
+  (parameters
+    '("const-char*" "path")
+    '("gboolean" "priv")
+  )
+)
+
+(define-function config_init_iterator_
+  (c-name "gnome_config_init_iterator_")
+  (return-type "void*")
+  (parameters
+    '("const-char*" "path")
+    '("gboolean" "priv")
+  )
+)
+
+(define-function config_init_iterator_sections_
+  (c-name "gnome_config_init_iterator_sections_")
+  (return-type "void*")
+  (parameters
+    '("const-char*" "path")
+    '("gboolean" "priv")
+  )
+)
+
+(define-function config_iterator_next
+  (c-name "gnome_config_iterator_next")
+  (return-type "void*")
+  (parameters
+    '("void*" "iterator_handle")
+    '("char**" "key")
+    '("char**" "value")
+  )
+)
+
+(define-function config_drop_all
+  (c-name "gnome_config_drop_all")
+  (return-type "none")
+)
+
+(define-function config_sync
+  (c-name "gnome_config_sync")
+  (return-type "gboolean")
+)
+
+(define-function config_sync_file_
+  (c-name "gnome_config_sync_file_")
+  (return-type "gboolean")
+  (parameters
+    '("char*" "path")
+    '("gboolean" "priv")
+  )
+)
+
+(define-function config_drop_file_
+  (c-name "gnome_config_drop_file_")
+  (return-type "none")
+  (parameters
+    '("const-char*" "path")
+    '("gboolean" "priv")
+  )
+)
+
+(define-function config_clean_file_
+  (c-name "gnome_config_clean_file_")
+  (return-type "none")
+  (parameters
+    '("const-char*" "path")
+    '("gboolean" "priv")
+  )
+)
+
+(define-function config_clean_section_
+  (c-name "gnome_config_clean_section_")
+  (return-type "none")
+  (parameters
+    '("const-char*" "path")
+    '("gboolean" "priv")
+  )
+)
+
+(define-function config_clean_key_
+  (c-name "gnome_config_clean_key_")
+  (return-type "none")
+  (parameters
+    '("const-char*" "path")
+    '("gboolean" "priv")
+  )
+)
+
+(define-function config_push_prefix
+  (c-name "gnome_config_push_prefix")
+  (return-type "none")
+  (parameters
+    '("const-char*" "path")
+  )
+)
+
+(define-function config_pop_prefix
+  (c-name "gnome_config_pop_prefix")
+  (return-type "none")
+)
+
+(define-function config_make_vector
+  (c-name "gnome_config_make_vector")
+  (return-type "none")
+  (parameters
+    '("const-char*" "string")
+    '("int*" "argcp")
+    '("char***" "argvp")
+  )
+)
+
+(define-function config_assemble_vector
+  (c-name "gnome_config_assemble_vector")
+  (return-type "char*")
+  (parameters
+    '("int" "argc")
+    '("const-char*-const-argv" "[]")
+  )
+)
+
+(define-function config_set_set_handler
+  (c-name "gnome_config_set_set_handler")
+  (return-type "none")
+  (parameters
+    '("void-(*" "func")
+  )
+)
+
+(define-function config_set_sync_handler
+  (c-name "gnome_config_set_sync_handler")
+  (return-type "none")
+  (parameters
+    '("void-(*" "func")
+  )
+)
+
+
+
+;; From /usr/include/libgnome-2.0/libgnome/gnome-exec.h
+
+(define-function execute_async
+  (c-name "gnome_execute_async")
+  (return-type "int")
+  (parameters
+    '("const-char*" "dir")
+    '("int" "argc")
+    '("char*-const[]" "argv")
+  )
+)
+
+(define-function execute_async_fds
+  (c-name "gnome_execute_async_fds")
+  (return-type "int")
+  (parameters
+    '("const-char*" "dir")
+    '("int" "argc")
+    '("char*-const[]" "argv")
+    '("gboolean" "close_fds")
+  )
+)
+
+(define-function execute_async_with_env
+  (c-name "gnome_execute_async_with_env")
+  (return-type "int")
+  (parameters
+    '("const-char*" "dir")
+    '("int" "argc")
+    '("char*-const[]" "argv")
+    '("int" "envc")
+    '("char*-const[]" "envv")
+  )
+)
+
+(define-function execute_async_with_env_fds
+  (c-name "gnome_execute_async_with_env_fds")
+  (return-type "int")
+  (parameters
+    '("const-char*" "dir")
+    '("int" "argc")
+    '("char*-const[]" "argv")
+    '("int" "envc")
+    '("char*-const[]" "envv")
+    '("gboolean" "close_fds")
+  )
+)
+
+(define-function execute_shell
+  (c-name "gnome_execute_shell")
+  (return-type "int")
+  (parameters
+    '("const-char*" "dir")
+    '("const-char*" "commandline")
+  )
+)
+
+(define-function execute_shell_fds
+  (c-name "gnome_execute_shell_fds")
+  (return-type "int")
+  (parameters
+    '("const-char*" "dir")
+    '("const-char*" "commandline")
+    '("gboolean" "close_fds")
+  )
+)
+
+(define-function prepend_terminal_to_vector
+  (c-name "gnome_prepend_terminal_to_vector")
+  (return-type "none")
+  (parameters
+    '("int*" "argc")
+    '("char***" "argv")
+  )
+)
+
+(define-function execute_terminal_shell
+  (c-name "gnome_execute_terminal_shell")
+  (return-type "int")
+  (parameters
+    '("const-char*" "dir")
+    '("const-char*" "commandline")
+  )
+)
+
+(define-function execute_terminal_shell_fds
+  (c-name "gnome_execute_terminal_shell_fds")
+  (return-type "int")
+  (parameters
+    '("const-char*" "dir")
+    '("const-char*" "commandline")
+    '("gboolean" "close_fds")
+  )
+)
+
+
+
+;; From /usr/include/libgnome-2.0/libgnome/gnome-gconf.h
+
+(define-function gconf_get_gnome_libs_settings_relative
+  (c-name "gnome_gconf_get_gnome_libs_settings_relative")
+  (return-type "gchar*")
+  (parameters
+    '("const-gchar*" "subkey")
+  )
+)
+
+(define-function gconf_get_app_settings_relative
+  (c-name "gnome_gconf_get_app_settings_relative")
+  (return-type "gchar*")
+  (parameters
+    '("GnomeProgram*" "program")
+    '("const-gchar*" "subkey")
+  )
+)
+
+
+
+;; From /usr/include/libgnome-2.0/libgnome/gnome-help.h
+
+(define-function help_error_quark
+  (c-name "gnome_help_error_quark")
+  (return-type "GQuark")
+)
+
+(define-function help_display
+  (c-name "gnome_help_display")
+  (return-type "gboolean")
+  (parameters
+    '("const-char*" "file_name")
+    '("const-char*" "link_id")
+    '("GError**" "error")
+  )
+)
+
+(define-function help_display_with_doc_id
+  (c-name "gnome_help_display_with_doc_id")
+  (return-type "gboolean")
+  (parameters
+    '("GnomeProgram*" "program")
+    '("const-char*" "doc_id")
+    '("const-char*" "file_name")
+    '("const-char*" "link_id")
+    '("GError**" "error")
+  )
+)
+
+(define-function help_display_desktop
+  (c-name "gnome_help_display_desktop")
+  (return-type "gboolean")
+  (parameters
+    '("GnomeProgram*" "program")
+    '("const-char*" "doc_id")
+    '("const-char*" "file_name")
+    '("const-char*" "link_id")
+    '("GError**" "error")
+  )
+)
+
+(define-function help_display_uri
+  (c-name "gnome_help_display_uri")
+  (return-type "gboolean")
+  (parameters
+    '("const-char*" "help_uri")
+    '("GError**" "error")
+  )
+)
+
+(define-function help_display_uri_with_env
+  (c-name "gnome_help_display_uri_with_env")
+  (return-type "gboolean")
+  (parameters
+    '("const-char*" "help_uri")
+    '("char**" "envp")
+    '("GError**" "error")
+  )
+)
+
+(define-function help_display_with_doc_id_and_env
+  (c-name "gnome_help_display_with_doc_id_and_env")
+  (return-type "gboolean")
+  (parameters
+    '("GnomeProgram*" "program")
+    '("const-char*" "doc_id")
+    '("const-char*" "file_name")
+    '("const-char*" "link_id")
+    '("char**" "envp")
+    '("GError**" "error")
+  )
+)
+
+(define-function help_display_desktop_with_env
+  (c-name "gnome_help_display_desktop_with_env")
+  (return-type "gboolean")
+  (parameters
+    '("GnomeProgram*" "program")
+    '("const-char*" "doc_id")
+    '("const-char*" "file_name")
+    '("const-char*" "link_id")
+    '("char**" "envp")
+    '("GError**" "error")
+  )
+)
+
+
+
+;; From /usr/include/libgnome-2.0/libgnome/gnome-i18n.h
+
+(define-function i18n_get_language_list
+  (c-name "gnome_i18n_get_language_list")
+  (return-type "const-GList*")
+  (parameters
+    '("const-gchar*" "category_name")
+  )
+)
+
+(define-function i18n_push_c_numeric_locale
+  (c-name "gnome_i18n_push_c_numeric_locale")
+  (return-type "none")
+)
+
+(define-function i18n_pop_c_numeric_locale
+  (c-name "gnome_i18n_pop_c_numeric_locale")
+  (return-type "none")
+)
+
+
+
+;; From /usr/include/libgnome-2.0/libgnome/gnome-init.h
+
+(define-function libgnome_module_info_get
+  (c-name "libgnome_module_info_get")
+  (return-type "const-GnomeModuleInfo*")
+)
+
+(define-function bonobo_module_info_get
+  (c-name "gnome_bonobo_module_info_get")
+  (return-type "const-GnomeModuleInfo*")
+)
+
+(define-function user_dir_get
+  (c-name "gnome_user_dir_get")
+  (return-type "const-char*")
+)
+
+(define-function user_private_dir_get
+  (c-name "gnome_user_private_dir_get")
+  (return-type "const-char*")
+)
+
+(define-function user_accels_dir_get
+  (c-name "gnome_user_accels_dir_get")
+  (return-type "const-char*")
+)
+
+
+
+;; From /usr/include/libgnome-2.0/libgnome/gnome-macros.h
+
+
+
+;; From /usr/include/libgnome-2.0/libgnome/gnome-program.h
+
+(define-function program_get_type
+  (c-name "gnome_program_get_type")
+  (return-type "GType")
+)
+
+(define-function program_get
+  (c-name "gnome_program_get")
+  (return-type "GnomeProgram*")
+)
+
+(define-method get_human_readable_name
+  (of-object "GnomeProgram")
+  (c-name "gnome_program_get_human_readable_name")
+  (return-type "const-char*")
+)
+
+(define-method get_app_id
+  (of-object "GnomeProgram")
+  (c-name "gnome_program_get_app_id")
+  (return-type "const-char*")
+)
+
+(define-method get_app_version
+  (of-object "GnomeProgram")
+  (c-name "gnome_program_get_app_version")
+  (return-type "const-char*")
+)
+
+(define-method locate_file
+  (of-object "GnomeProgram")
+  (c-name "gnome_program_locate_file")
+  (return-type "gchar*")
+  (parameters
+    '("GnomeFileDomain" "domain")
+    '("const-gchar*" "file_name")
+    '("gboolean" "only_if_exists")
+    '("GSList**" "ret_locations")
+  )
+)
+
+(define-function module_info_get_type
+  (c-name "gnome_module_info_get_type")
+  (return-type "GType")
+)
+
+(define-function program_module_register
+  (c-name "gnome_program_module_register")
+  (return-type "none")
+  (parameters
+    '("const-GnomeModuleInfo*" "module_info")
+  )
+)
+
+(define-function program_module_registered
+  (c-name "gnome_program_module_registered")
+  (return-type "gboolean")
+  (parameters
+    '("const-GnomeModuleInfo*" "module_info")
+  )
+)
+
+(define-function program_module_load
+  (c-name "gnome_program_module_load")
+  (return-type "const-GnomeModuleInfo*")
+  (parameters
+    '("const-char*" "mod_name")
+  )
+)
+
+(define-function program_install_property
+  (c-name "gnome_program_install_property")
+  (return-type "guint")
+  (parameters
+    '("GnomeProgramClass*" "pclass")
+    '("GObjectGetPropertyFunc" "get_fn")
+    '("GObjectSetPropertyFunc" "set_fn")
+    '("GParamSpec*" "pspec")
+  )
+)
+
+(define-method preinit
+  (of-object "GnomeProgram")
+  (c-name "gnome_program_preinit")
+  (return-type "poptContext")
+  (parameters
+    '("const-char*" "app_id")
+    '("const-char*" "app_version")
+    '("int" "argc")
+    '("char**" "argv")
+  )
+)
+
+(define-method parse_args
+  (of-object "GnomeProgram")
+  (c-name "gnome_program_parse_args")
+  (return-type "none")
+)
+
+(define-method postinit
+  (of-object "GnomeProgram")
+  (c-name "gnome_program_postinit")
+  (return-type "none")
+)
+
+(define-function program_init
+  (c-name "gnome_program_init")
+  (return-type "GnomeProgram*")
+  (parameters
+    '("const-char*" "app_id")
+    '("const-char*" "app_version")
+    '("const-GnomeModuleInfo*" "module_info")
+    '("int" "argc")
+    '("char**" "argv")
+    '("const-char*" "first_property_name")
+  )
+  (varargs #t)
+)
+
+(define-function program_initv
+  (c-name "gnome_program_initv")
+  (return-type "GnomeProgram*")
+  (parameters
+    '("GType" "type")
+    '("const-char*" "app_id")
+    '("const-char*" "app_version")
+    '("const-GnomeModuleInfo*" "module_info")
+    '("int" "argc")
+    '("char**" "argv")
+    '("const-char*" "first_property_name")
+    '("va_list" "args")
+  )
+)
+
+(define-function program_init_paramv
+  (c-name "gnome_program_init_paramv")
+  (return-type "GnomeProgram*")
+  (parameters
+    '("GType" "type")
+    '("const-char*" "app_id")
+    '("const-char*" "app_version")
+    '("const-GnomeModuleInfo*" "module_info")
+    '("int" "argc")
+    '("char**" "argv")
+    '("guint" "nparams")
+    '("GParameter*" "params")
+  )
+)
+
+
+
+;; From /usr/include/libgnome-2.0/libgnome/gnome-score.h
+
+(define-function score_init
+  (c-name "gnome_score_init")
+  (return-type "gint")
+  (parameters
+    '("const-gchar*" "gamename")
+  )
+)
+
+(define-function score_log
+  (c-name "gnome_score_log")
+  (return-type "gint")
+  (parameters
+    '("gfloat" "score")
+    '("const-gchar*" "level")
+    '("gboolean" "higher_to_lower_score_order")
+  )
+)
+
+(define-function score_get_notable
+  (c-name "gnome_score_get_notable")
+  (return-type "gint")
+  (parameters
+    '("const-gchar*" "gamename")
+    '("const-gchar*" "level")
+    '("gchar***" "names")
+    '("gfloat**" "scores")
+    '("time_t**" "scoretimes")
+  )
+)
+
+
+
+;; From /usr/include/libgnome-2.0/libgnome/gnome-sound.h
+
+(define-function sound_connection_get
+  (c-name "gnome_sound_connection_get")
+  (return-type "int")
+)
+
+(define-function sound_init
+  (c-name "gnome_sound_init")
+  (return-type "none")
+  (parameters
+    '("const-char*" "hostname")
+  )
+)
+
+(define-function sound_shutdown
+  (c-name "gnome_sound_shutdown")
+  (return-type "none")
+)
+
+(define-function sound_sample_load
+  (c-name "gnome_sound_sample_load")
+  (return-type "int")
+  (parameters
+    '("const-char*" "sample_name")
+    '("const-char*" "filename")
+  )
+)
+
+(define-function sound_play
+  (c-name "gnome_sound_play")
+  (return-type "none")
+  (parameters
+    '("const-char*" "filename")
+  )
+)
+
+
+
+;; From /usr/include/libgnome-2.0/libgnome/gnome-triggers.h
+
+(define-method s_add_trigger
+  (of-object "GnomeTrigger")
+  (c-name "gnome_triggers_add_trigger")
+  (return-type "none")
+  (parameters
+  )
+  (varargs #t)
+)
+
+(define-method s_vadd_trigger
+  (of-object "GnomeTrigger")
+  (c-name "gnome_triggers_vadd_trigger")
+  (return-type "none")
+  (parameters
+    '("char*[]" "supinfo")
+  )
+)
+
+(define-function triggers_do
+  (c-name "gnome_triggers_do")
+  (return-type "none")
+  (parameters
+    '("const-char*" "msg")
+    '("const-char*" "level")
+  )
+  (varargs #t)
+)
+
+(define-function triggers_vdo
+  (c-name "gnome_triggers_vdo")
+  (return-type "none")
+  (parameters
+    '("const-char*" "msg")
+    '("const-char*" "level")
+    '("const-char*[]" "supinfo")
+  )
+)
+
+
+
+;; From /usr/include/libgnome-2.0/libgnome/gnome-url.h
+
+(define-function url_error_quark
+  (c-name "gnome_url_error_quark")
+  (return-type "GQuark")
+)
+
+(define-function url_show
+  (c-name "gnome_url_show")
+  (return-type "gboolean")
+  (parameters
+    '("const-char*" "url")
+    '("GError**" "error")
+  )
+)
+
+(define-function url_show_with_env
+  (c-name "gnome_url_show_with_env")
+  (return-type "gboolean")
+  (parameters
+    '("const-char*" "url")
+    '("char**" "envp")
+    '("GError**" "error")
+  )
+)
+
+
+
+;; From /usr/include/libgnome-2.0/libgnome/gnome-util.h
+
+(define-function g_extension_pointer
+  (c-name "g_extension_pointer")
+  (return-type "const-char*")
+  (parameters
+    '("const-char*" "path")
+  )
+)
+
+(define-function util_user_shell
+  (c-name "gnome_util_user_shell")
+  (return-type "char*")
+)
+
+(define-function setenv
+  (c-name "gnome_setenv")
+  (return-type "int")
+  (parameters
+    '("const-char*" "name")
+    '("const-char*" "value")
+    '("gboolean" "overwrite")
+  )
+)
+
+(define-function unsetenv
+  (c-name "gnome_unsetenv")
+  (return-type "none")
+  (parameters
+    '("const-char*" "name")
+  )
+)
+
+(define-function clearenv
+  (c-name "gnome_clearenv")
+  (return-type "none")
+)
+
+
+
+;; From /usr/include/libgnome-2.0/libgnome/libgnome.h
+
+
+
+;; From /usr/include/libgnome-2.0/libgnome/libgnometypebuiltins.h
+
+(define-function trigger_type_get_type
+  (c-name "gnome_trigger_type_get_type")
+  (return-type "GType")
+)
+
+(define-function file_domain_get_type
+  (c-name "gnome_file_domain_get_type")
+  (return-type "GType")
+)
+
+(define-function help_error_get_type
+  (c-name "gnome_help_error_get_type")
+  (return-type "GType")
+)
+
+(define-function url_error_get_type
+  (c-name "gnome_url_error_get_type")
+  (return-type "GType")
+)
+
+
+;; This method doesn't exist in libgnome
+(define-method get_popt_args
+  (of-object "GnomeProgram")
+  (c-name "gnome_get_popt_args")
+  (return-type "none")
+)
+
+;; This function doesn't exist in libgnome
+(define-function popt_parse
+  (c-name "gnome_popt_parse")
+  (parameters
+    '("PyObject*" "argv")
+    '("PyObject*" "table")
+    '("int"       "flags" (default "0"))
+  )
+  (return-type "none")
+)
+

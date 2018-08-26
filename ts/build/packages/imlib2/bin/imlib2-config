@@ -1,0 +1,59 @@
+#!/bin/sh
+
+prefix=/usr
+exec_prefix=${prefix}
+exec_prefix_set=no
+
+usage="\
+Usage: imlib2-config [--prefix[=DIR]] [--exec-prefix[=DIR]] [--version] [--libs] [--cflags]"
+
+if test $# -eq 0; then
+      echo "${usage}" 1>&2
+      exit 1
+fi
+
+while test $# -gt 0; do
+  case "$1" in
+  -*=*) optarg=`echo "$1" | sed 's/[-_a-zA-Z0-9]*=//'` ;;
+  *) optarg= ;;
+  esac
+
+  case $1 in
+    --prefix=*)
+      prefix=$optarg
+      if test $exec_prefix_set = no ; then
+        exec_prefix=$optarg
+      fi
+      ;;
+    --prefix)
+      echo $prefix
+      ;;
+    --exec-prefix=*)
+      exec_prefix=$optarg
+      exec_prefix_set=yes
+      ;;
+    --exec-prefix)
+      echo $exec_prefix
+      ;;
+    --version)
+      echo 1.4.4
+      ;;
+    --cflags)
+      if test /usr/include != /usr/include ; then
+        includes="-I/usr/include"
+      fi
+      echo $includes
+      ;;
+    --libs)
+      libdirs=-L${exec_prefix}/lib
+      echo $libdirs -lImlib2 -lfreetype -lz -L/usr/X11R6/lib -lX11 -lXext -ldl -lm
+      ;;
+    *)
+      echo "${usage}" 1>&2
+      exit 1
+      ;;
+  esac
+  shift
+done
+
+exit 0

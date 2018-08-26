@@ -1,0 +1,213 @@
+//
+// X keyboard maps for Finland
+//
+// SFS 5966 / Kotoistus keymap created by Troy Korjuslommi
+// Classic keymap based on traditional by Marko Myllynen
+// Eliminate deadkeys alternative sent by Linus Torvalds
+//
+
+default  partial alphanumeric_keys
+xkb_symbols "kotoistus" {
+
+    // Official keymap for Finland based on SFS 5966 standard
+    //
+    // This keymap implements all the functionality of Annex 1
+    // of the standard and additionally defines the following to
+    // allow entering these characters with keyboards without LSGT.
+    //
+    // AE08+4, U+003C : LESS-THAN SIGN     (less)
+    // AE09+4, U+003E : GREATER-THAN SIGN  (greater)
+    // AD08+4, U+007C : VERTICAL LINE      (bar)
+    //
+    // Annex 3 of the standard is implemented in fi_FI.UTF-8/Compose
+
+    name[Group1]="Finnish";
+
+    key <TLDE> { [  section,         onehalf,          dead_stroke,           NoSymbol              ] };
+    key <AE01> { [  1,               exclam,           NoSymbol,              exclamdown            ] };
+    key <AE02> { [  2,               quotedbl,         at,                    rightdoublequotemark  ] };
+    key <AE03> { [  3,               numbersign,       sterling,              guillemotright        ] };
+    key <AE04> { [  4,               currency,         dollar,                guillemotleft         ] };
+    key <AE05> { [  5,               percent,          permille,              leftdoublequotemark   ] };
+    key <AE06> { [  6,               ampersand,        singlelowquotemark,    doublelowquotemark    ] };
+    key <AE07> { [  7,               slash,            braceleft,             NoSymbol              ] };
+    key <AE08> { [  8,               parenleft,        bracketleft,           less                  ] };
+    key <AE09> { [  9,               parenright,       bracketright,          greater               ] };
+    key <AE10> { [  0,               equal,            braceright,            degree                ] };
+    key <AE11> { [  plus,            question,         backslash,             questiondown          ] };
+    key <AE12> { [  dead_acute,      dead_grave,       dead_cedilla,          dead_ogonek           ] };
+
+    key <AD01> { [  q,               Q,                q,                     Q                     ] };
+    key <AD02> { [  w,               W,                w,                     W                     ] };
+    key <AD03> { [  e,               E,                EuroSign,              NoSymbol              ] };
+    key <AD04> { [  r,               R,                r,                     R                     ] };
+    key <AD05> { [  t,               T,                thorn,                 THORN                 ] };
+    key <AD06> { [  y,               Y,                y,                     Y                     ] };
+    key <AD07> { [  u,               U,                u,                     U                     ] };
+    key <AD08> { [  i,               I,                idotless,              bar                   ] };
+    key <AD09> { [  o,               O,                oe,                    OE                    ] };
+    key <AD10> { [  p,               P,                dead_horn,             dead_hook             ] };
+    key <AD11> { [  aring,           Aring,            dead_doubleacute,      dead_abovering        ] };
+    key <AD12> { [  dead_diaeresis,  dead_circumflex,  dead_tilde,            dead_macron           ] };
+
+    key <AC01> { [  a,               A,                schwa,                 SCHWA                 ] };
+    key <AC02> { [  s,               S,                ssharp,                NoSymbol              ] };
+    key <AC03> { [  d,               D,                eth,                   ETH                   ] };
+    key <AC04> { [  f,               F,                f,                     F                     ] };
+    key <AC05> { [  g,               G,                g,                     G                     ] };
+    key <AC06> { [  h,               H,                h,                     H                     ] };
+    key <AC07> { [  j,               J,                j,                     J                     ] };
+    key <AC08> { [  k,               K,                kra,                   NoSymbol              ] };
+    key <AC09> { [  l,               L,                dead_stroke,           NoSymbol              ] };
+    key <AC10> { [  odiaeresis,      Odiaeresis,       oslash,                Oslash                ] };
+    key <AC11> { [  adiaeresis,      Adiaeresis,       ae,                    AE                    ] };
+    key <BKSL> { [  apostrophe,      asterisk,         dead_caron,            dead_breve            ] };
+
+    key <LSGT> { [  less,            greater,          bar,                   NoSymbol              ] };
+    key <AB01> { [  z,               Z,                ezh,                   EZH                   ] };
+    key <AB02> { [  x,               X,                multiply,              periodcentered        ] };
+    key <AB03> { [  c,               C,                c,                     C                     ] };
+    key <AB04> { [  v,               V,                v,                     V                     ] };
+    key <AB05> { [  b,               B,                b,                     B                     ] };
+    key <AB06> { [  n,               N,                eng,                   ENG                   ] };
+    key <AB07> { [  m,               M,                mu,                    emdash                ] };
+    key <AB08> { [  comma,           semicolon,        rightsinglequotemark,  leftsinglequotemark   ] };
+    key <AB09> { [  period,          colon,            dead_belowdot,         dead_abovedot         ] };
+    key <AB10> { [  minus,           underscore,       endash,                dead_belowcomma       ] };
+
+    include "nbsp(level4)"
+    include "nbsp(level3)"
+    include "kpdl(comma)"
+    include "level3(ralt_switch)"
+    include "compose(rwin)"
+};
+
+partial alphanumeric_keys
+xkb_symbols "winkeys" {
+
+    include "fi(kotoistus)"
+    name[Group1]="Finnish (Winkeys)";
+    include "eurosign(5)"
+};
+
+partial alphanumeric_keys
+xkb_symbols "classic" {
+
+    include "fi(fi)"
+
+    name[Group1]="Finnish (classic)";
+};
+
+partial alphanumeric_keys hidden
+xkb_symbols "fi" {
+
+    // Classic Finnish keyboard layout with dead keys
+
+    key <TLDE> { [  section,         onehalf,          onequarter,            threequarters         ] };
+    key <AE01> { [  1,               exclam,           exclamdown,            onesuperior           ] };
+    key <AE02> { [  2,               quotedbl,         at,                    twosuperior           ] };
+    key <AE03> { [  3,               numbersign,       sterling,              threesuperior         ] };
+    key <AE04> { [  4,               currency,         dollar,                cent                  ] };
+    key <AE05> { [  5,               percent,          EuroSign,              masculine             ] };
+    key <AE06> { [  6,               ampersand,        yen,                   ordfeminine           ] };
+    key <AE07> { [  7,               slash,            braceleft,             plusminus             ] };
+    key <AE08> { [  8,               parenleft,        bracketleft,           less                  ] };
+    key <AE09> { [  9,               parenright,       bracketright,          greater               ] };
+    key <AE10> { [  0,               equal,            braceright,            degree                ] };
+    key <AE11> { [  plus,            question,         backslash,             questiondown          ] };
+    key <AE12> { [  dead_acute,      dead_grave,       dead_cedilla,          dead_ogonek           ] };
+
+    key <AD01> { [  q,               Q,                q,                     Q                     ] };
+    key <AD02> { [  w,               W,                w,                     W                     ] };
+    key <AD03> { [  e,               E,                EuroSign,              cent                  ] };
+    key <AD04> { [  r,               R,                registered,            NoSymbol              ] };
+    key <AD05> { [  t,               T,                thorn,                 THORN                 ] };
+    key <AD06> { [  y,               Y,                y,                     Y                     ] };
+    key <AD07> { [  u,               U,                u,                     U                     ] };
+    key <AD08> { [  i,               I,                idotless,              bar                   ] };
+    key <AD09> { [  o,               O,                o,                     O                     ] };
+    key <AD10> { [  p,               P,                paragraph,             NoSymbol              ] };
+    key <AD11> { [  aring,           Aring,            oe,                    OE                    ] };
+    key <AD12> { [  dead_diaeresis,  dead_circumflex,  dead_tilde,            dead_caron            ] };
+
+    key <AC01> { [  a,               A,                schwa,                 SCHWA                 ] };
+    key <AC02> { [  s,               S,                scaron,                Scaron                ] };
+    key <AC03> { [  d,               D,                eth,                   ETH                   ] };
+    key <AC04> { [  f,               F,                f,                     F                     ] };
+    key <AC05> { [  g,               G,                eng,                   ENG                   ] };
+    key <AC06> { [  h,               H,                h,                     H                     ] };
+    key <AC07> { [  j,               J,                j,                     J                     ] };
+    key <AC08> { [  k,               K,                kra,                   NoSymbol              ] };
+    key <AC09> { [  l,               L,                dead_stroke,           NoSymbol              ] };
+    key <AC10> { [  odiaeresis,      Odiaeresis,       oslash,                Oslash                ] };
+    key <AC11> { [  adiaeresis,      Adiaeresis,       ae,                    AE                    ] };
+    key <BKSL> { [  apostrophe,      asterisk,         dead_caron,            dead_breve            ] };
+
+    key <LSGT> { [  less,            greater,          bar,                   brokenbar             ] };
+    key <AB01> { [  z,               Z,                zcaron,                Zcaron                ] };
+    key <AB02> { [  x,               X,                multiply,              division              ] };
+    key <AB03> { [  c,               C,                copyright,             cent                  ] };
+    key <AB04> { [  v,               V,                v,                     V                     ] };
+    key <AB05> { [  b,               B,                ssharp,                NoSymbol              ] };
+    key <AB06> { [  n,               N,                ntilde,                Ntilde                ] };
+    key <AB07> { [  m,               M,                mu,                    NoSymbol              ] };
+    key <AB08> { [  comma,           semicolon,        dead_cedilla,          dead_ogonek           ] };
+    key <AB09> { [  period,          colon,            periodcentered,        notsign               ] };
+    key <AB10> { [  minus,           underscore,       hyphen,                dead_macron           ] };
+
+    include "nbsp(level4)"
+    include "kpdl(comma)"
+    include "level3(ralt_switch)"
+    include "compose(rwin)"
+};
+
+partial alphanumeric_keys
+xkb_symbols "nodeadkeys" {
+
+    // Classic Finnish keyboard layout without dead keys
+
+    include "fi(fi)"
+
+    name[Group1]="Finnish (classic, eliminate dead keys)";
+
+    key <AE12> { [  acute,           grave,            cedilla,               ogonek                ] };
+    key <AD12> { [  diaeresis,       asciicircum,      asciitilde,            caron                 ] };
+    key <AC09> { [  l,               L,                l,                     L                     ] };
+    key <BKSL> { [  apostrophe,      asterisk,         caron,                 breve                 ] };
+    key <AB08> { [  comma,           semicolon,        cedilla,               ogonek                ] };
+    key <AB10> { [  minus,           underscore,       hyphen,                macron                ] };
+};
+
+partial alphanumeric_keys
+xkb_symbols "smi" {
+
+    // Describes the differences between a Norwegian Northern Sami
+    // (keyboard with dead key support) and a Swedish/Finnish Sami
+    // keyboard according to the specs at:
+    // http://www.hum.uit.no/a/trond/se-lat9-sefi-keys.html
+
+    include "no(smi)"
+
+    name[Group1]="Northern Saami (Finland)";
+
+    key <AC10> { [  odiaeresis,      Odiaeresis,       oslash,                Oslash                ] };
+    key <AC11> { [  adiaeresis,      Adiaeresis,       ae,                    AE                    ] };
+};
+
+partial alphanumeric_keys
+xkb_symbols "mac" {
+
+    // Macintosh keyboard for Finland based on Swedish(Macintosh) keyboard
+
+    include "se(mac)"
+
+    name[Group1]="Finnish (Macintosh)";
+};
+
+partial alphanumeric_keys
+xkb_symbols "sun_type6" {
+
+    // Sun Type 6/7 keyboard for Finland
+
+    include "sun_vndr/fi(sun_type6)"
+};
