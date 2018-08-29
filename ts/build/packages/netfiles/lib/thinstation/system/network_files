@@ -31,7 +31,7 @@ get_global_file()
 
 echo_log "Getting global configuration from $SERVER_NAME ($SERVER_IP)" -n $debug
 if `transport $BASEPATH/"$CONFNET"network /tmp/"$CONFNET"network $SERVER_IP` ; then
-    catv /tmp/"$CONFNET"network |sed -e 's/\^M//g' >> $TS_NETWORK 2> /dev/null
+    cat -v /tmp/"$CONFNET"network |sed -e 's/\^M//g' >> $TS_NETWORK 2> /dev/null
     # Fixes any lines which haven't a CR/LF at end
     echo >> $TS_NETWORK
     echo_log "Ok" $debug
@@ -56,7 +56,7 @@ get_hosts_file()
 HOSTFILE="$CONFHOSTS"hosts
 
 if `transport $BASEPATH/$HOSTFILE /tmp/$HOSTFILE $SERVER_IP` ; then
-  catv /tmp/$HOSTFILE |sed -e 's/\
+  cat -v /tmp/$HOSTFILE |sed -e 's/\
 //g' > /tmp/$HOSTFILE.tmp
   cat /tmp/$HOSTFILE.tmp |sed "s/[[:blank:]][[:blank:]]*/ /g" | grep "^#" -v > $TS_HOSTS
   rm /tmp/$HOSTFILE
@@ -85,7 +85,7 @@ get_ssh_known_hosts()
 	if [ ! -d $HOME/.ssh ] ; then
 		mkdir $HOME/.ssh
 	fi
-	catv /tmp/ssh_known_hosts |sed -e 's/\^M//g' > $HOME/.ssh/known_hosts
+	cat -v /tmp/ssh_known_hosts |sed -e 's/\^M//g' > $HOME/.ssh/known_hosts
 	rm /tmp/ssh_known_hosts
   fi
 }
@@ -113,7 +113,7 @@ if [ -e $TS_HOSTS ] ; then
   for thingroup in $thingrouplist
   do
    if `transport $BASEPATH/$CONFGROUP$thingroup /tmp/$CONFGROUP$thingroup $SERVER_IP` > /dev/null 2>&1; then
-	  catv /tmp/$CONFGROUP$thingroup |sed -e 's/\^M//g' >> $TS_NETWORK 2> /dev/null
+	  cat -v /tmp/$CONFGROUP$thingroup |sed -e 's/\^M//g' >> $TS_NETWORK 2> /dev/null
 	  # Fixes any lines which haven't a CR/LF at end
 	  echo >> $TS_NETWORK
 	  echo_log "\nAdding group parameters for $thingroup" -n $debug
@@ -134,7 +134,7 @@ fi
 
 echo_log  "\nGetting configuration for hostname $CLIENT_NAME..." -n $debug
 if `transport $BASEPATH/$CONFFILE$CLIENT_NAME /tmp/$CONFFILE$CLIENT_NAME $SERVER_IP` ; then
- catv /tmp/$CONFFILE$CLIENT_NAME |sed -e 's/\^M//g' >> $TS_NETWORK 2> /dev/null
+ cat -v /tmp/$CONFFILE$CLIENT_NAME |sed -e 's/\^M//g' >> $TS_NETWORK 2> /dev/null
  # Fixes any lines which haven't a CR/LF at end
  echo >> $TS_NETWORK
  echo_log "Ok\n" $debug
@@ -146,7 +146,7 @@ else
  echo_log "Not Found\n" $debug
  echo_log "Getting configuration for IP address $CLIENT_IP..." -n $debug
  if `transport $BASEPATH/$CONFFILE$CLIENT_IP /tmp/$CONFFILE$CLIENT_IP $SERVER_IP` ; then
-   catv /tmp/$CONFFILE$CLIENT_IP |sed -e 's/\^M//g' >> $TS_NETWORK 2> /dev/null
+   cat -v /tmp/$CONFFILE$CLIENT_IP |sed -e 's/\^M//g' >> $TS_NETWORK 2> /dev/null
    # Fixes any lines which haven't a CR/LF at end
    echo >> $TS_NETWORK
    echo_log "Ok\n" $debug
@@ -158,7 +158,7 @@ else
    echo_log "Not Found\n" $debug
    echo_log "Getting configuration for MAC address $CLIENT_MAC..." -n $debug
    if `transport $BASEPATH/$CONFFILE$CLIENT_MAC /tmp/$CONFFILE$CLIENT_MAC $SERVER_IP` ; then
-      catv /tmp/$CONFFILE$CLIENT_MAC |sed -e 's/\^M//g' >> $TS_NETWORK 2> /dev/null
+      cat -v /tmp/$CONFFILE$CLIENT_MAC |sed -e 's/\^M//g' >> $TS_NETWORK 2> /dev/null
       # Fixes any lines which haven't a CR/LF at end
       echo >> $TS_NETWORK
       rm /tmp/$CONFFILE$CLIENT_MAC

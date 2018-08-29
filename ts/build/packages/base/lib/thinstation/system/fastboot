@@ -90,7 +90,7 @@ pxelinux()
 		if [ "`readlink /bin/wget`" == "/bin/busybox" ]; then
 			while [ "$WPROGRESS" != "100" ] && [ ! -z "`pidof wget`" ]; do
 				sleep .5
-				WPROGRESS=`catv /var/log/wget_progress |sed -e 's/\^M/\n/g'|tail -n 1 |cut -c 22-24`
+				WPROGRESS=`cat -v /var/log/wget_progress |sed -e 's/\^M/\n/g'|tail -n 1 |cut -c 22-24`
 				if [ -z "$WPROGRESS" ]; then WPROGRESS=0 ; fi
 				let progress=WPROGRESS+OLDPROGRESS
 				splash_progress
@@ -98,7 +98,7 @@ pxelinux()
 		else
 			while [ "$WPROGRESS" != "100" ] && [ ! -z "`pidof wget`" ]; do
 				sleep .5
-				WPROGRESS=`catv /var/log/wget_progress |grep -e "%" |tail -n 1 |cut -c 63-65`
+				WPROGRESS=`cat -v /var/log/wget_progress |grep -e "%" |tail -n 1 |cut -c 63-65`
 				if [ -z "$WPROGRESS" ]; then WPROGRESS=0 ; fi
 				let progress=WPROGRESS+OLDPROGRESS
 				splash_progress
@@ -118,7 +118,7 @@ pxelinux()
 		OLDPROGRESS=$progress
 		while [ "$TPROGRESS" != "100" ] && [ ! -z "`pidof tftp`" ]; do
 			sleep .5
-			TPROGRESS=`catv /var/log/tftp_progress |sed -e 's/\^M/\n/g'|tail -n 1 |cut -c 22-24`
+			TPROGRESS=`cat -v /var/log/tftp_progress |sed -e 's/\^M/\n/g'|tail -n 1 |cut -c 22-24`
 			if [ -z "$TPROGRESS" ]; then TPROGRESS=0 ; fi
 			let progress=TPROGRESS+OLDPROGRESS
 			splash_progress
@@ -177,7 +177,7 @@ mount_squash()
 		OLDPROGRESS=$progress
 		while [ "$DPROGRESS" != "100" ] && [ ! -z "`pidof unsquashfs`" ] ; do
 			sleep .5
-			DPROGRESS=`catv /var/log/expand_progress |grep -e "=" |sed -e 's/\^M/\n/g' |tail -n 1 |cut -c 76-78`
+			DPROGRESS=`cat -v /var/log/expand_progress |grep -e "=" |sed -e 's/\^M/\n/g' |tail -n 1 |cut -c 76-78`
 			if [ -z "$DPROGRESS" ]; then DPROGRESS=0 ; fi
 			let progress=DPROGRESS+OLDPROGRESS
 			splash_progress
