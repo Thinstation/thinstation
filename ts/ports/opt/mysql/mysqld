@@ -1,0 +1,31 @@
+#!/bin/sh
+#
+# /etc/rc.d/mysqld: start/stop mysqld daemon
+#
+
+MYSQL_CFG=/etc/my.cnf
+
+MYSQL_PID=`sed -n 's/^pid-file[ \t]*=[ \t]*//p' $MYSQL_CFG`
+MYSQL_USR=`sed -n 's/^user[ \t]*=[ \t]*//p' $MYSQL_CFG`
+
+case $1 in
+start)
+	touch $MYSQL_PID
+	chown $MYSQL_USR $MYSQL_PID
+	/usr/sbin/mysqld &
+	;;
+stop)
+	killall -q /usr/sbin/mysqld 
+	rm $MYSQL_PID
+	;;
+restart)
+	$0 stop
+	sleep 2
+	$0 start
+	;;
+*)
+	echo "usage: $0 [start|stop|restart]"
+	;;
+esac
+
+# End of file

@@ -1,31 +1,51 @@
 # Description: NFS utilities 
 # URL:         http://nfs.sourceforge.net/
 # Maintainer:  Juergen Daubert, jue at crux dot nu
-# Depends on:  util-linux-ng tcp_wrappers libcap rpcbind libnfsidmap libevent keyutils
+# Depends on:  util-linux eudev libcap rpcbind libnfsidmap libevent keyutils sqlite3
 
 name=nfs-utils
-version=1.2.5
+version=1.3.3
 release=1
-source=(http://downloads.sourceforge.net/project/nfs/$name/$version/$name-$version.tar.bz2 \
-        exports idmapd.conf nfs nfsserver)
+source=(http://downloads.sourceforge.net/project/nfs/$name/$version/$name-$version.tar.bz2
+        exports \
+	idmapd.conf \
+        nfs \
+	nfsclient \
+	nfsserver \
+	rpc.idmapd \
+	rpc.statd \
+	rpc.mountd \
+	rpc.nfsd \
+        nfssvc_setfds.patch)
 
 build () {
     cd $name-$version
+
+    # http://thread.gmane.org/gmane.linux.nfs/72767
+    patch -p1 -i $SRC/nfssvc_setfds.patch
 
     ./configure --prefix=/usr \
                 --mandir=/usr/man \
                 --sysconfdir=/etc \
                 --with-statedir=/var/lib/nfs \
+                --without-tcp-wrappers \
                 --disable-gss \
-                --with-tcp-wrappers
+                --enable-libmount-mount 
     make
     make DESTDIR=$PKG install
 
-    install -D -m 755 $SRC/nfs $PKG/etc/rc.d/nfs
-    install -D -m 755 $SRC/nfsserver $PKG/etc/rc.d/nfsserver
-    install -D -m 644 $SRC/exports $PKG/etc/exports
-    install -D -m 644 $SRC/idmapd.conf $PKG/etc/idmapd.conf
+    install -d $PKG/etc/rc.d
 
-    install -d $PKG/var/lib/nfs/{rpc_pipefs,v4recovery}
+    install -m 755 $SRC/nfs{,client,server} $PKG/etc/rc.d/
+    install -m 755 $SRC/rpc.* $PKG/etc/rc.d/
+    install -m 644 $SRC/{exports,idmapd.conf} $PKG/etc/
+
+    install -m 644 utils/mount/nfsmount.conf $PKG/etc/
+    sed -i '/Defaultvers=/s/^# *//' $PKG/etc/nfsmount.conf
+
+    install -d $PKG/var/lib/nfs/{rpc_pipefs,v4recovery,nfsdcltrack}
     install -d $PKG/etc/exports.d
+
+    # force rpc.statd to run as user nobody
+    chown nobody $PKG/var/lib/nfs
 }

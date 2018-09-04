@@ -4,35 +4,31 @@
 #
 
 NFSD=/proc/fs/nfsd
-PIPEFS=/var/lib/nfs/rpc_pipefs
 
 case $1 in
 start)
 	/bin/mount -t nfsd nfsd $NFSD
-	/bin/mount -t rpc_pipefs rpc_pipefs $PIPEFS
-	/usr/sbin/rpc.idmapd
 	/usr/sbin/exportfs -a
-	/usr/sbin/rpc.mountd
-	/usr/sbin/rpc.statd --no-notify
-	/usr/sbin/rpc.nfsd --syslog 8
+	/etc/rc.d/rpc.mountd start
+	/etc/rc.d/rpc.nfsd start
 	/usr/sbin/sm-notify
 	;;
 stop)
-	killall -q -2 nfsd
-	killall -q /usr/sbin/rpc.statd
-	killall -q /usr/sbin/rpc.mountd
+	/etc/rc.d/rpc.nfsd stop
+	/etc/rc.d/rpc.mountd stop
 	/usr/sbin/exportfs -au
-	killall -q /usr/sbin/rpc.idmapd
-	/bin/umount $PIPEFS
 	/bin/umount $NFSD
 	;;
 restart)
 	$0 stop
-	sleep 2
 	$0 start
 	;;
+status)
+	/etc/rc.d/rpc.mountd status
+	/etc/rc.d/rpc.nfsd status
+	;;
 *)
-	echo "usage: $0 [start|stop|restart]"
+	echo "usage: $0 [start|stop|restart|status]"
 	;;
 esac
 

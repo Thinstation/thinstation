@@ -1,0 +1,35 @@
+#!/bin/sh
+#
+# /etc/rc.d/rpc.nfsd: start/stop nfs daemons
+#
+
+SSD=/sbin/start-stop-daemon
+PROG=/usr/sbin/rpc.nfsd
+NAME="nfsd"
+OPTS="--syslog"
+
+case $1 in
+start)
+	$SSD --start --exec $PROG -- $OPTS 8
+	;;
+stop)
+	$SSD --start --exec $PROG -- $OPTS 0
+	;;
+restart)
+	$0 stop
+	$0 start
+	;;
+status)
+	$SSD --status --name $NAME
+	case $? in
+	0) echo "$PROG is running with pid $(pgrep -o -x nfsd[4]?)" ;;
+	3) echo "$PROG is not running" ;;
+	4) echo "Unable to determine the program status" ;;
+	esac
+	;;
+*)
+	echo "usage: $0 [start|stop|restart|status]"
+	;;
+esac
+
+# End of file
