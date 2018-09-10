@@ -56,8 +56,7 @@ get_hosts_file()
 HOSTFILE="$CONFHOSTS"hosts
 
 if `transport $BASEPATH/$HOSTFILE /tmp/$HOSTFILE $SERVER_IP` ; then
-  cat -v /tmp/$HOSTFILE |sed -e 's/\
-//g' > /tmp/$HOSTFILE.tmp
+  cat -v /tmp/$HOSTFILE |sed -e 's/\^M//g' > /tmp/$HOSTFILE.tmp
   cat /tmp/$HOSTFILE.tmp |sed "s/[[:blank:]][[:blank:]]*/ /g" | grep "^#" -v > $TS_HOSTS
   rm /tmp/$HOSTFILE
   rm /tmp/$HOSTFILE.tmp
