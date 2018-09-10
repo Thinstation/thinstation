@@ -36,7 +36,7 @@ done
 #fi
 if [ -e /var/log/Xorg.0.log ]; then
 	xdriver=`grep /var/log/Xorg.0.log -e "driver 0" |cut -d\) -f2 |cut -d " " -f3`
-	for available in radeon intel geode vmware sis openchrome nv ati radeon nouveau; do
+	for available in radeon intel geode vmware sis openchrome nv ati nouveau; do
 		if [ "$xdriver" == "$available" ]; then
 			echo package xorg7-$xdriver >> /package.list
 		fi
