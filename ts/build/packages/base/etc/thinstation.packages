@@ -4,6 +4,7 @@
 . /etc/ashrc
 PID=$$
 DISPLAY_NUMBER=0
+LOGOUT_CODE=0
 if [ -e /etc/dialog.functions ]; then . /etc/dialog.functions; fi
 if [ -e /etc/$PACKAGE.functions ] ; then . /etc/$PACKAGE.functions ; fi
 if [ ! -e /etc/cmd/$PACKAGE.wm ] ; then if [ -n "$WMNAME" ] ; then . /etc/$WMNAME.functions ;fi ;fi
@@ -76,6 +77,9 @@ order_command()
 	fi
 	if [ -n "$PASSWORD" ]; then
 		PASSWORD="'$PASSWORD'"
+	fi
+	if [ -n "$REMUSER" ]; then
+		REMUSER="'$REMUSER'"
 	fi
 	if is_enabled $REVERSE_ORDER ; then
 		ORDERED_COMMAND="${SERVER_ARG}$SERVER $OPTIONS ${USER_ARG}$REMUSER ${PASSWORD_ARG}$PASSWORD $MISC_OPTIONS"
