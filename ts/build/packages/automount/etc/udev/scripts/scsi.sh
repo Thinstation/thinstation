@@ -11,6 +11,9 @@
 . /etc/thinstation.env
 . $TS_GLOBAL
 
+exec </dev/null >>/var/log/scsi.log  2>&1
+set -x
+
 #echo "1 $DEVPATH" >> /var/log/scsi
 #echo "2 $ACTION" >> /var/log/scsi
 #echo "3 $ID_BUS" >> /var/log/scsi
@@ -81,7 +84,7 @@ fi
 
 cmount()
 {
-	if [ "`mountpoint -n $1`" == "/dev/$devpath $1" ] \
+	if [ "`busybox mountpoint -n $1`" == "/dev/$devpath $1" ] \
 	&& [ -n "`ls -A $1`" ]; then
 		return 0
 	fi

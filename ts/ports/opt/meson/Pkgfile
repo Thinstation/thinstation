@@ -7,7 +7,8 @@
 name=meson
 version=0.46.0
 release=1
-source=(https://github.com/mesonbuild/meson/releases/download/$version/$name-$version.tar.gz)
+source=(https://github.com/mesonbuild/meson/releases/download/$version/$name-$version.tar.gz \
+	ts-meson)
 
 build() {
 	cd $name-$version
@@ -21,4 +22,6 @@ build() {
 	# with python3-setuptools
 	find $PKG/usr/lib/python*/site-packages/ -maxdepth 1 -type f \
 		-name "meson-$version-py*.egg-info" -delete
+
+	install -D ../ts-meson -t "${PKG}/usr/bin"
 }
