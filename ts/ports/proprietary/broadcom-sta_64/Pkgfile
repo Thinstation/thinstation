@@ -11,13 +11,31 @@ release=1
 pversion=`echo "$version" |sed 's|\.|_|g'`
 kver=`cat /ts/ports/kernel-modules/VERSION`
 source=(https://docs.broadcom.com/docs-and-downloads/docs/linux_sta/hybrid-v35_64-nodebug-pcoem-$pversion.tar.gz \
+    001-null-pointer-fix.patch \
+    002-rdtscl.patch \
+    003-linux47.patch \
+    004-linux48.patch \
+    0010-change-the-network-interface-name-from-eth-to-wlan.patch \
+    0023-add-support-for-Linux-4.11.patch \
+    0024-add-support-for-Linux-4.12.patch \
+    0025-add-support-for-Linux-4.14.patch \
 	license.patch)
 
 build() {
-	patch -p1 -i license.patch
+        patch -p1 -i 001-null-pointer-fix.patch
+        patch -p1 -i 002-rdtscl.patch
+        patch -p1 -i 003-linux47.patch
+        patch -p1 -i 004-linux48.patch
+        patch -p1 -i 0010-change-the-network-interface-name-from-eth-to-wlan.patch
+        patch -p1 -i license.patch
+        patch -p1 -i 0023-add-support-for-Linux-4.11.patch
+        patch -p1 -i 0024-add-support-for-Linux-4.12.patch
+        patch -p1 -i 0025-add-support-for-Linux-4.14.patch
 
 	for kernel in TS_64; do
+		# Build
 		KBUILD_NOPEDANTIC=1 make -C /usr/src/kernels/${kver}${kernel} M=`pwd`
+		# Install
 		KBUILD_NOPEDANTIC=1 make -C /usr/src/kernels/${kver}${kernel} M=`pwd` \
 			modules_install \
 			MODLIB=$PKG/lib/modules/${kver}${kernel} \
@@ -25,6 +43,15 @@ build() {
 			MODSECKEY=/etc/ssl/keys/kernel.key \
 			MODPUBKEY=/etc/ssl/certs/kernel.crt \
 			CROSS_COMPILE="/opt/cross/x-tools/x86_64-thinstation-linux-gnu/bin/x86_64-thinstation-linux-gnu-"
+
+		# Clean
 		KBUILD_NOPEDANTIC=1 make -C /usr/src/kernels/${kver}${kernel} M=`pwd` clean
+
+		# Sign
+                /usr/src/kernels/${kver}${kernel}/scripts/sign-file \
+                        sha256 \
+                        /etc/ssl/keys/kernel.key \
+                        /etc/ssl/certs/kernel.crt \
+                        $PKG/lib/modules/${kver}${kernel}/kernel/drivers/net/wireless/wl.ko
 	done
 }

@@ -4,6 +4,8 @@ set -e
 
 ISO=build/boot-images/iso/thinstation.iso
 HD=thinstation.img
+procs=`nproc`
+let procs=procs/2
 
 confirm_iso()
 {
@@ -22,23 +24,24 @@ confirm_hd()
 
 #VGA="-vga qxl -global qxl-vga.vram_size=132710400"
 #VGA="-vga virtio"
-VGA="-vga vmware"
+VGA="-vga qxl"
 SOUND="-soundhw ac97"
-CPU="-smp cores=2,threads=1,sockets=1"
-MEMORY="-m 2047"
+CPU="-smp cores=$procs,threads=1,sockets=1"
+MEMORY="-m 4096"
 #RNG="-object rng-random,id=RNG"
 MOUSE="-usbdevice tablet"
 KVM="-enable-kvm"
 EFI="-L . --bios /usr/share/edk2.git/ovmf-x64/OVMF-with-csm.fd"
-#NETWORK="-net bridge,br=virbr0 -net nic,macaddr=52:54:00:12F:34f:56,model=virtio"
+#NETWORK="-net bridge,br=br0 -net nic,macaddr=52:54:00:12F:34f:56"
 #NETWORK="-net nic,model=virtio"
-#QEMU=qemu-system-i386
-QEMU=qemu-system-x86_64
+QEMU=qemu-system-i386
+#QEMU=qemu-system-x86_64
 
 STANDARD_MACHINE="$SOUND $RNG $VGA $CPU $MEMORY $MOUSE $KVM $NETWORK"
 
 case $1 in
 	cd)	confirm_iso && confirm_hd && $QEMU $STANDARD_MACHINE -cdrom $ISO -hda $HD --boot d;;
+	hd)	confirm_hd && $QEMU $STANDARD_MACHINE -hda $HD;;
 	bios)	$QEMU $STANDARD_MACHINE -hda build/bios.boot;;
 	image)  confirm_iso && confirm_hd && $QEMU $STANDARD_MACHINE -cdrom $ISO -hda $HD;;
 	*)	confirm_iso && $QEMU $STANDARD_MACHINE -cdrom $ISO $EFI;;
