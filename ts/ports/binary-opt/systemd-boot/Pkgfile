@@ -3,14 +3,12 @@
 # Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 
 name=systemd-boot
-version=239.2
+version=231
 release=1
-source=(http://mirror.rit.edu/archlinux/core/os/x86_64/systemd-${version}-$release-x86_64.pkg.tar.xz)
+source=(https://raw.githubusercontent.com/Thinstation/thinstation/6.1-Stable/ts/ports/components/systemd/systemd%23$version-$release.pkg.tar.xz)
+
 build() {
 	cd $SRC
-	find . -type f |grep -v efi |xargs rm
-	find . -type l -delete
-	find . -empty -delete
-
-	mv usr $PKG/.
+	mkdir -p $PKG/usr/lib/systemd/boot
+	mv usr/lib/systemd/boot/efi $PKG/usr/lib/systemd/boot/.
 }
