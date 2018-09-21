@@ -1241,6 +1241,8 @@ if [ -e $PACDIR/tsuser.param ]; then
     echo "$ts_tsuser:!:1000:" >> ./tmp-tree/etc/group
     sed -i -e "s/tsuser/$ts_tsuser/g" ./tmp-tree/etc/group
     sed -i -e "s/\-a root/\-a $ts_tsuser/g" ./tmp-tree/etc/inittab
+    rm ./tmp-tree/thinstation.user
+    ln -sf /home/$ts_tsuser/thinstation.conf.user ./tmp-tree/etc/thinstation.user
     if [ -e ./tmp-tree/etc/pam.d/login ]; then
       sed -i -e "s/user = root/user = $ts_tsuser/g" ./tmp-tree/etc/pam.d/login
     fi
