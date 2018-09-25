@@ -5,10 +5,19 @@
 name=autoconf
 version=2.69
 release=2
-source=(ftp://ftp.gnu.org/gnu/$name/$name-$version.tar.xz)
+source=(ftp://ftp.gnu.org/gnu/$name/$name-$version.tar.xz
+	autoconf-2.69-perl-5.22-autoscan.patch
+        autoconf-2.69-libtool-compatibility.patch)
 
 build () {
     cd $name-$version
+
+  # fix incompatibility with recent perl
+  patch -p1 -i $SRC/autoconf-2.69-perl-5.22-autoscan.patch
+
+  # fix tesetsuite failures with recent libtool
+  patch -p1 -i $SRC/autoconf-2.69-libtool-compatibility.patch
+
     ./configure --prefix=/usr
     make
     make prefix=$PKG/usr install

@@ -3,12 +3,14 @@
 # Maintainer:  CRUX System Team, core-ports at crux dot nu
 
 name=libtool
-version=2.4.6
+version=git
 release=2
-source=(http://ftp.gnu.org/gnu/$name/$name-$version.tar.xz)
+#source=(http://ftp.gnu.org/gnu/$name/$name-$version.tar.xz)
 
 build() {
-    cd $name-$version
+    git clone https://git.savannah.gnu.org/git/libtool.git
+    cd $name
+    ./bootstrap
     ./configure --prefix=/usr
     make
     make DESTDIR=$PKG install
