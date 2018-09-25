@@ -22,11 +22,11 @@ case "${1}" in
 		echo_log "Mounting vmblock device filesystem"
                 modprobe fuse
                 mkdir -m 1777 /tmp/VMwareDnD
-                mkdir -p /var/run/vmblock-fuse
-                vmware-vmblock-fuse -o subtype=vmware-vmblock,default_permissions,allow_other /var/run/vmblock-fuse
+                mkdir -p /run/vmblock-fuse
+                vmware-vmblock-fuse -o subtype=vmware-vmblock,default_permissions,allow_other /run/vmblock-fuse
 
 		echo_log "Starting open-vm guest daemon - vmware-guestd"
-		vmtoolsd --background /var/run/vmtoolsd.pid
+		vmtoolsd --background /run/vmtoolsd.pid
 
 		echo_log "Mounting VM Shares"
 		OLDIFS=$IFS

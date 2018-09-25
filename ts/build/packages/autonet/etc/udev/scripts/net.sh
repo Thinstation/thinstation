@@ -19,12 +19,12 @@ last_config()
 
 release_dhcp()
 {
-	if [ -e /var/run/udhcpc-$INTERFACE.pid ]; then
+	if [ -e /run/udhcpc-$INTERFACE.pid ]; then
 		echo_log "Found a previous udhcpc session for $INTERFACE"
-		UPID=`cat /var/run/udhcpc-$INTERFACE.pid`
+		UPID=`cat /run/udhcpc-$INTERFACE.pid`
 		kill -SIGUSR2 $UPID
 		kill -SIGHUP $UPID
-		rm /var/run/udhcpc-$INTERFACE.pid
+		rm /run/udhcpc-$INTERFACE.pid
 		if [ "$ACTION" == "remove" ]; then
 			echo_log "Removal request for $INTERFACE"
 			ifconfig $INTERFACE down
@@ -244,7 +244,7 @@ _eth()
 	                return 0
 	        else
 			cat <<EOF > /etc/wpa_supplicant.conf
-ctrl_interface=/var/run/wpa_supplicant
+ctrl_interface=/run/wpa_supplicant
 ctrl_interface_group=0
 eapol_version=2
 ap_scan=0
@@ -270,7 +270,7 @@ configure_ip()
 		echo_log "Booting with manually configured network..." $debug
 		manual_config
 	else
-		udhcpc -R -b -t $NET_DHCP_TIMEOUT -x hostname:$CLIENT_NAME -T 1 -i $INTERFACE -C -s /etc/udev/scripts/lease_dhcp -p /var/run/udhcpc-$INTERFACE.pid
+		udhcpc -R -b -t $NET_DHCP_TIMEOUT -x hostname:$CLIENT_NAME -T 1 -i $INTERFACE -C -s /etc/udev/scripts/lease_dhcp -p /run/udhcpc-$INTERFACE.pid
 	fi
 }
 

@@ -4,8 +4,8 @@ name=mjpg_streamer
 
 case $1 in
 stop)
-	start-stop-daemon -p /var/run/$name.pid -K -s HUP
-	rm /var/run/$name.pid
+	start-stop-daemon -p /run/$name.pid -K -s HUP
+	rm /run/$name.pid
 	;;
 start|init)
         unset video_timeout
@@ -24,7 +24,7 @@ start|init)
 	if [ -z $MJPG_OUTPUT_OPTIONS ] && [ "$MJPG_OUTPUT" == "http" ]; then
 		MJPG_OUTPUT_OPTIONS="-w /www -p 1234"
 	fi
-	start-stop-daemon -S -p /var/run/$name.pid -m -b -x \
+	start-stop-daemon -S -p /run/$name.pid -m -b -x \
 		 /bin/$name -- -i "/lib/input_$MJPG_INPUT.so $MJPG_INPUT_OPTIONS" -o "/lib/output_$MJPG_OUTPUT.so $MJPG_OUTPUT_OPTIONS" 2>/dev/null > $LOGFILE
 	;;
 restart)

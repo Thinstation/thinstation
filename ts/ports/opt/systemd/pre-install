@@ -1,0 +1,8 @@
+getent group systemd-journal || /usr/sbin/groupadd -g 190 systemd-journal
+getent group systemd-coredump || /usr/sbin/groupadd -g 996 systemd-coredump
+getent group systemd-network || /usr/sbin/groupadd -g 192 systemd-network
+getent group systemd-resolve || /usr/sbin/groupadd -g 193 systemd-resolve
+getent passwd systemd-coredump || /usr/sbin/useradd -g systemd-coredump -u 999 -d / -s /sbin/nologin -c "systemd Core Dumper" systemd-coredump
+getent passwd systemd-network || /usr/sbin/useradd -g systemd-network -u 192 -d / -s /sbin/nologin -c "systemd Network Management" systemd-network
+getent passwd systemd-resolve || /usr/sbin/useradd -g systemd-resolve -u 193 -d / -s /sbin/nologin -c "systemd Resolver" systemd-resolve
+

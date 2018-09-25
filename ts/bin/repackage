@@ -138,6 +138,14 @@ redirect_shared()
 	done
 }
 
+move_run()
+{
+	if [ -e $pkgpath/var/run ]; then
+		cp -a $pkgpath/var/run $pkgpath/.
+		rm -rf $pkgpath/var/run
+	fi
+}
+
 extra_dirs()
 {
 	extra_dirs="man pkgconfig aclocal gtk-doc help vala gir-1.0 girepository-1.0 locale bash-completion cmake omf"
@@ -304,6 +312,7 @@ main()
 	preserve_empty_working
 	shallow_usr
 	redirect_shared
+	move_run
 	extra_dirs
 	extra_files
 	remove_empty

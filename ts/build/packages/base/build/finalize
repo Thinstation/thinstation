@@ -5,9 +5,11 @@ for i in /*; do
     chmod -R g-w,o-w $i
   fi
 done
-mkdir -p /var/run/applications
-chmod -R g+w,o+w /var/run/applications
-chmod +t /var/run/applications
+mkdir -p /var/log/applications
+chmod -R g+w,o+w /var/log/applications
+chmod -R o-r /var/log/applications
+chmod +t /var/log/applications
+ln -sf /run /var/run
 if [ "`readlink /bin/su`" == "/bin/busybox" ]; then
 	chmod u+s /bin/busybox
 else

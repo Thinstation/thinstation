@@ -25,10 +25,10 @@ if [ "`tty`" == "$CONSOLE" ]; then
 		exec $WKDIR/consoleapps
 	elif [ -e /bin/xinit ] && [ -e $WKDIR/windowapps ]; then
 		if check_last_session; then
-			cd /var/run
+			cd /run
 			#clear
 			splash_exit
-			exec /bin/xinit /etc/xinitrc -- /etc/xserverrc > /var/run/applications/session.$$ 2>&1
+			exec /bin/xinit /etc/xinitrc -- /etc/xserverrc > /var/log/applications/session.$$ 2>&1
 		elif ! is_enabled $HALTONERROR; then
 			chvt 1
 			echo "The system was not able to go graphical. This could indicate a problem with missing kernel modules or Xorg drivers."

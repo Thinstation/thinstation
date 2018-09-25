@@ -15,7 +15,7 @@ then
 echo "#### lspci ### " >>/tmp/logfiles.date
 lspci >>/tmp/logfiles.date
 fi
-for name in "/etc/thinstation.network" "/var/log/*" "/var/log/net/*" "/etc/thinstation.defaults" "/var/run/applications/*"
+for name in "/etc/thinstation.network" "/var/log/*" "/var/log/net/*" "/etc/thinstation.defaults" "/var/log/applications/*"
 do
 #ls -l $name
 echo "###### FILE ### $name #####" >>/tmp/logfiles.date

@@ -1,0 +1,79 @@
+#! /bin/sh
+
+. `dirname $0`/common
+
+if [ "$TSUSER" != "root" ]; then
+	HOME=/home/$TSUSER
+else
+	HOME=/root
+fi
+if [ -n "$STORAGE_PREFIX" ] ; then
+	STORAGE_PREFIX=`make_caps $STORAGE_PREFIX`
+	if [ "$STORAGE_PREFIX" == "M" ] ; then
+		PREFIX=$CLIENT_MAC
+	elif [ "$STORAGE_PREFIX" == "H" ] ; then
+		if [ "`hostname`" == "(none)" ] ; then
+			PREFIX="profile"
+		else
+			PREFIX=`hostname`
+		fi
+	else
+		PREFIX=`hostname -i`
+	fi
+else
+		PREFIX="profile"
+fi
+echo "PREFIX=$PREFIX" >> $TS_RUNTIME
+
+
+
+if [ -n "$STORAGE_PATH" ] ; then
+	if [ -e $STORAGE_PATH ] ; then
+		if [ ! -e $STORAGE_PATH/thinstation.$PREFIX ] ; then
+			if ! mkdir $STORAGE_PATH/thinstation.$PREFIX ; then
+				echo_log "Error setting up profile!"
+				echo_log "Make sure the path to your profile directory"
+				echo_log "$STORAGE_PATH/thinstation.$PREFIX folder is writable and exists."
+				echo_log "Aborting Bootup and starting shell."
+				ash
+			fi
+		fi
+		ln -s $STORAGE_PATH/thinstation.$PREFIX $HOME
+	fi
+fi
+
+if [ ! -d $HOME ]; then
+	mkdir -p $HOME
+fi
+if [ "$TSUSER" != "root" ]; then
+	chown -R $TSUSER.$TSUSER $HOME
+fi
+
+for config in "$STORAGE_CONFIG1" "$STORAGE_CONFIG2" "$STORAGE_CONFIG3" "$STORAGE_CONFIG4" "$STORAGE_CONFIG5" "$STORAGE_CONFIG6" "$STORAGE_CONFIG7" "$STORAGE_CONFIG8"
+do
+	if [ -n "$config" ] ; then
+		echo_log "Trying to read thinstation.conf.user from $config"
+		# Try to wait for slow USB devices:
+		case "$config" in
+		*/sd*)
+			retry=0
+			while [ ! -e $config/thinstation.$PREFIX/thinstation.conf.user ] && [ $retry -lt 8 ] ; do
+				sleep 1
+				let retry=retry+1
+			done
+			echo_log "Retries: $retry for SD device $config"
+		;;
+		esac
+
+		filename=$config/thinstation.$PREFIX/thinstation.conf.user
+		if [ -e "$filename" ] ; then
+			cat -v $filename |sed -e 's/\^M//g' >> $TS_USER 2> /dev/null
+			# Fixes any lines which haven't a CR/LF at end
+			echo >> $TS_USER
+			cleanup
+			echo_log "Configuration read from $config"
+		else
+			echo_log "Cound not find configuration file $filename"
+		fi
+	fi
+done
