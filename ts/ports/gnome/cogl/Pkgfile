@@ -6,9 +6,10 @@ version=1.22.2
 release=1
 
 build() {
-git clone git://git.gnome.org/cogl
+git clone https://gitlab.gnome.org/GNOME/cogl.git
   cd $name
   git checkout $version
+	sed -i -e 's/1.15 1.14/1.16 1.15 1.14/g' autogen.sh
   NOCONFIGURE=1 ./autogen.sh
   ./configure --prefix=/usr \
     --enable-gles{1,2} \
