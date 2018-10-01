@@ -1,5 +1,7 @@
 #!/bin/bash
+exec </dev/null >/var/log/installer.log 2>&1
 set -x
+
 tempdir=`mktemp -d 2>/dev/null`
 bootdir=/boot/boot
 GTKDIALOG="gtkdialog -c --space-expand=false --space-fill=false --program=MAIN_DIALOG"
@@ -330,7 +332,7 @@ disk_select()
 
 install_it()
 {
-	$XTERM_CMD -T "Installing" $ARG script -c "/bin/install.sh $disk" -e ~/Desktop/install.log
+	$XTERM_CMD -T "Installing" $ARG script -c "/bin/install.sh $disk" -e /var/log//install.log
 }
 
 proxy_check()
@@ -345,15 +347,15 @@ proxy_check()
 
 user_conf()
 {
-	for object in `ls -A /root`; do
-        	cp -Prfd /root/$object /tmp-root/.
-        done
         cat $bootdir/syslinux/syslinux.tpl |sed -e "s/\$RES/$res/g" > $bootdir/syslinux/syslinux.cfg
-
-	echo "LOCALE=$LOCALE" > /root/thinstation.conf.user
-	echo "TIME_ZONE=$TIME_ZONE" >> /root/thinstation.conf.user
-	echo "SCREEN_RESOLUTION=$SCREEN_RESOLUTION" >> /root/thinstation.conf.user
-	echo -e '#AUDIO_LEVEL=90
+	USERDIR=/tmp-home/tsuser
+	CONF=$USERDIR/thinstation.conf.user
+	mkdir -p $USERDIR
+	echo "LOCALE=$LOCALE" > $CONF
+	echo "TIME_ZONE=$TIME_ZONE" >> $CONF
+	echo "SCREEN_RESOLUTION=$SCREEN_RESOLUTION" >> $CONF
+cat <<'EOF'>> $CONF
+AUDIO_LEVEL=90
 #MIC_LEVEL=80
 #X_DPI=100
 #USE_XRANDR=FALSE
@@ -372,7 +374,8 @@ user_conf()
 #NET_IPV4_DNS2=8.8.8.8
 #NET_IPV4_DNS_SEARCH=thinstation.local
 NET_HOSTNAME=DevStation_*
-#NET_TELNETD_ENABLED=OFF' >> /root/thinstation.conf.user
+#NET_TELNETD_ENABLED=OFF
+EOF
 }
 
 install_check()
@@ -402,6 +405,12 @@ x_warn "Warning" "All data on the disk <span color='red' weight='bold'>$disk</sp
 install_it
 user_conf
 install_check
+
+cp /var/log/installer.log /tmp-home/tsuser/.
+cp /var/log/install.log /tmp-home/tsuser/.
+chmod -R 750 /tmp-home/tsuser
+chown -R 1000:1000 /tmp-home/tsuser
+
 
 x_echo "Almost Done" "You can now make your first image by going to  <b>/thinstation</b> and running <b>./setup-chroot</b>. From there, <b>cd /build</b> and run <b>./build</b>"
 x_echo  "PXE Booting" "This DevStation is a <b>PXE boot server</b>. You can set it's IP address as the <b>Next boot server</b> in your DHCP server client config. Also set the boot file to <b>boot/pxelinux.0</b>. This will let clients boot directly from images created in the build env of this workstation."

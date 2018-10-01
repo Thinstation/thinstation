@@ -139,7 +139,8 @@ package xorg7-vmware
 package xorg7-ati
 package xorg7-nouveau           #New opensource nvidia driver
 #package xorg7_nvidia
-package xorg7-openchrome
+#package xorg7_nvidia_64         # Additional 64bit module
+#package xorg7-openchrome
 package xorg7-intel
 package xorg7-sis
 package xorg7-qxl
@@ -199,8 +200,7 @@ package ssh 			# Secure Shell client
 package open-vm-tools
 #package medit			# Notepad
 #package mplayer		# DVD and video player
-#package vmview                 # VMware Open-View Client, no PCoIP
-#package vmviewpcoip            # VMware Open-View Client, PCOIP
+#package vmview            # VMware Open-View Client, PCOIP
 #package xbmc			# XBMC Media Center for X
 #package xpdf			# X PDF Viewer
 
@@ -254,20 +254,24 @@ package thunar                  # File Manager for xfwm4 -- Pulls in xfwm4
 
 
 #!!Miscellaneous
-package gtk-2.0			# Full gtk-2.0 plus clearlooks theme
-package icons-cursor		# Anti Aliased Mouse Cursor Theme
+package gtk-2.0                 # Full gtk-2.0 plus clearlooks theme
+package gtk-3.0
+package gtk-theme-adwaita
+package icons-cursor            # Anti Aliased Mouse Cursor Theme
 package icons-hicolor           # Hi-Color icons for some applications and themes. Does not really contain any icons.
-package icons-gnome             # gnome Hi-Color icons theme. Needed by most other icon themes.
+#package icons-gnome             # gnome Hi-Color icons theme. Needed by most other icon themes.
+package icons-adwaita
 #package icons-tango             # tango Hi-Color icons theme
 #package icons-neu               # neu Hi-Color icons theme
 #package fonts-misc
-#package fonts-jis-misc		# Japanese Industrial
+#package fonts-jis-misc         # Japanese Industrial
 #package fonts-util
 #package fonts-cyrillic
-package fonts-Speedo-Bitstream
-package fonts-TTF-BH		# This one works nicely most of the time and is small.
+#package fonts-Speedo-Bitstream
+package fonts-TTF-BH            # This one works nicely most of the time and is small.
 package fonts-TTF-vera
-#package fonts-TTF-liberation
+package fonts-TTF-liberation
+package fonts-noto              # Google NoTofoo Fonts
 #package fonts-75dpi-Adobe
 #package fonts-75dpi-Adobe-Utopia
 #package fonts-75dpi-BH
@@ -341,7 +345,7 @@ param desktop file:./backgrounds/Installer.svg       # Custom image to load as d
 param defaultconfig  thinstation.conf.buildtime  	# The file with default setup.  No other config file is found
                                                  	#  during boot.
 param basename       thinstation     			# Used for all config/tftp/scp file names
-param basepath       ts6.1               		# Used to determine path to tftp/scp files
+param basepath       ts5.6               		# Used to determine path to tftp/scp files
 param baseurl        http://www.doncuppjr.net		# Used to determine url to wget files
 #param keyfile        ./id_rsa       			# Path for private key file used for ssh/scp
 #param knownhosts     ./known_hosts  			# Path for ssh known_hosts file for ssh/scp
@@ -369,7 +373,7 @@ param bootverbosity   3          			# Increased vebosity when booting TS
 #!!Advanced
 # Leave this alone unless you can t download (wget required on your Linux box):
 param downloads         /downloads
-param bootimages        "iso pxe"
+param bootimages        "iso"
 param syslinuxtheme     "installer"
 param bootoverlay	"hw"
 #param httpproxy	http://192.168.1.2:8080
@@ -379,6 +383,7 @@ param bootoverlay	"hw"
 param livecd		true		# Adds a multi-resolution boot menu to cd images.
 package alltimezone
 param allres		true		# Includes a lot of resolution splash images for live-cd s
-param allfirmware	true		# Includes a lot of firmwares for live-cd s
+#param allfirmware	true		# Includes a lot of firmwares for live-cd s - rebuild allfirmware machine list
+#machine allfirmware
 #param mesa_3d		disable
 param blacklist snd-pcsp.ko
