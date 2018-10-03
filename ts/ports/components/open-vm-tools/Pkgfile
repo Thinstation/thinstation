@@ -3,14 +3,16 @@
 # Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 
 name=open-vm-tools
-version=10.0.7
+version=10.3.0
 kver=`cat /ts/ports/kernel-modules/VERSION`
 release=1
 source=(https://github.com/vmware/open-vm-tools/archive/stable-${version/_/-}.tar.gz \
 	network-script
 	tools.conf
 	vmware-guestd
-	xautostart.conf)
+	xautostart.conf
+	vmware-vmblock-fuse.service
+	vmtoolsd.service)
 
 build() {
 	cd $name-stable-$version/$name
@@ -36,4 +38,6 @@ build() {
 	install -Dm0644 "$SRC"/tools.conf	"$PKG"/etc/vmware-tools/tools.conf
 	install -Dm0644 "$SRC"/xautostart.conf	"$PKG"/etc/vmware-tools/xautostart.conf
 	install -Dm0644 "$SRC"/vmware-guestd	"$PKG"/etc/pam.d/vmware-guestd
+	install -Dm0644 "$SRC"/vmtoolsd.service "$PKG"/usr/lib/systemd/system/vmtoolsd.service
+	install -Dm0644 "$SRC"/vmware-vmblock-fuse.service "$PKG"/usr/lib/systemd/system/vmware-vmblock-fuse.service
 }
