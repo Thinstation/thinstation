@@ -1,10 +1,8 @@
 #! /bin/sh
 
-. $TS_GLOBAL
+. `dirname $0`/common
 HOME=/etc/skel
 
-case "$1" in
-init)
  if ! pkg_initialized $PACKAGE; then
 	pkg_set_init_flag $PACKAGE
 	if [ ! -e $HOME/.config ] ; then
@@ -34,7 +32,3 @@ init)
 	    sed -e 's|http://www.thinstation.org|'$CHROME_HOMEPAGE'|g' /etc/chrome/Default/Preferences.tpl >> $CHROMEPREFS
 	fi
  fi
-;;
-esac
-
-exit 0
