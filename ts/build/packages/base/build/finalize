@@ -20,20 +20,34 @@ chmod 1777 /var/tmp
 ssl=-1
 crypto=-1
 for i in 2 1 0; do
-if [ -e /lib/libssl.so.1.0.$i ]; then
-	if [ $ssl != -1 ]; then
-		rm /lib/libssl.so.1.0.$i;
-		ln -s /lib/libssl.so.1.0.$ssl /lib/libssl.so.1.0.$i
-	else
-		ssl=$i
+	if [ -e /lib/libssl.so.1.0.$i ]; then
+		if [ $ssl != -1 ]; then
+			rm /lib/libssl.so.1.0.$i;
+			ln -s /lib/libssl.so.1.0.$ssl /lib/libssl.so.1.0.$i
+		else
+			ssl=$i
+		fi
 	fi
-fi
-if [ -e /lib/libcrypto.so.1.0.$i ]; then
-	if [ $crypto != -1 ]; then
-		rm /lib/libcrypto.so.1.0.$i;
-		ln -s /lib/libcrypto.so.1.0.$crypto /lib/libcrypto.so.1.0.$i
-	else
-		crypto=$i
+	if [ -e /lib/libcrypto.so.1.0.$i ]; then
+		if [ $crypto != -1 ]; then
+			rm /lib/libcrypto.so.1.0.$i;
+			ln -s /lib/libcrypto.so.1.0.$crypto /lib/libcrypto.so.1.0.$i
+		else
+			crypto=$i
+		fi
 	fi
-fi
 done
+
+let x=0
+while [ -n "`eval echo '$MOUNT_'$x`" ]; do
+        mount=`eval echo '$MOUNT_'$x`
+        echo -e "`echo \"$mount\" |sed -e 's/[ ]\+/\t/g'`" >> /etc/fstab
+        let x=x+1
+done
+#/lib/systemd/system-generators/systemd-fstab-generator /tmp '' ''
+#mv /tmp/local-fs.target.requires /tmp/local-fs.target.wants
+#mv /tmp/swap.target.requires /tmp/swap.target.wants
+#cp -a /tmp/* /etc/systemd/system/.
+#rm -rf /tmp/*
+#rm /etc/fstab
+

@@ -3,11 +3,11 @@
 # Maintainer: Dave Reisner <dreisner@archlinux.org>
 # Maintainer: Tom Gundersen <teg@jklm.no>
 
-pkgbase=systemd
-name=('systemd' 'libsystemd' 'systemd-resolvconf' 'systemd-sysvcompat')
+name=systemd
 version=239
 release=2
 source=(https://github.com/systemd/systemd/archive/v239.tar.gz
+	fstab-generator.patch
         '0001-Use-Arch-Linux-device-access-groups.patch'
         'initcpio-hook-udev'
         'initcpio-install-systemd'
@@ -28,6 +28,10 @@ source=(https://github.com/systemd/systemd/archive/v239.tar.gz
         'systemd-update.hook')
 
 build() {
+
+  cd $SRC/systemd-$version
+  patch -p0 -i $SRC/fstab-generator.patch
+  cd $SRC
 
   local _timeservers=({0..3}.us.pool.ntp.org)
   local _nameservers=(
@@ -61,7 +65,7 @@ build() {
     -Dima=true
     -Dselinux=false
     -Dselinux=false
-    -Dfirstboot=false
+    -Dfirstboot=true
     -Dmicrohttpd=false
     -Dsplit-usr=false
     -Dsplit-bin=false
@@ -76,7 +80,7 @@ build() {
     -Dsystem-uid-max=999
     -Dsystem-gid-max=999
     -Ddbuspolicydir=/etc/dbus-1/system.d
-    -Dtimesyncd=false
+    -Dtimesyncd=true
     -Dsysvinit-path=
     -Dsysvrcnd-path=
     -Drfkill=false
