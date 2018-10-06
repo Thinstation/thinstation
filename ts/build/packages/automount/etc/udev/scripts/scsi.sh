@@ -59,7 +59,7 @@ _unmount()
 	else
 		while mounted /dev/$devpath ; do
 			mtdpath=`cat /proc/mounts |grep -e /dev/$devpath |tail -n 1 |cut -d ' ' -f 2`
-			umount -n -f $mtdpath
+			systmed-mount -u --no-block $mtdpath
 			while [ -n "$mtdpath" ] && [ -z "`ls -A $mtdpath`" ] ; do
 				rmdir $mtdpath
 				mtdpath="`dirname $mtdpath`"
