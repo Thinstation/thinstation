@@ -60,7 +60,7 @@
 #machine NT-535				# Foxconn Intel D525 Barebone
 #machine Dell-FX170			# Dell FX170 D525 Atom Machine
 machine VMWare				# A good set of modules for a VmWare Virtual Machine
-#machine Virtualbox-4.1			# A good set of modules for a Virtualbox Virtual Machine
+machine Virtualbox-4.1			# A good set of modules for a Virtualbox Virtual Machine
 machine qemu
 #machine VIA-Epia-CLE266		# VIA Epia/Eden based on the the CLE266 chip. Rather common in thin clients a few years old
 #machine classic_generic		# Big list of modules that you can choose by unremarking them
@@ -113,13 +113,13 @@ module ext4			# Ext4 file system support
 # --- Packages to include in boot image
 # --- Packages below may be "package" or "pkg"
 #!!Miscellaneous
-package netfiles
-package overlayfs			# This is needed in order for squashfs compression mode to work.
+#package overlayfs			# This is needed in order for squashfs compression mode to work.
 #package ts-classic              # The classic ts logic for network/netfiles/hostname/mounting/telnetd/telnet/playcd
 #package automount
 #package netfiles			# Adds only this package instead of the whole ts-classic. netfiles lets you get thinstation.conf.xxx files
 							# from the TFTP-server
-package udisks
+#package udisks
+package automount
 package networkmanager
 #package udisks-glue
 package ntp			# Utility to obtain date & time from network
@@ -145,39 +145,39 @@ package cpufreq
 #!!X related
 # --- XOrg 7.7
 #package xorg7-v4l
-package xorg7-vesa		#A fallback driver that works with almost everything. Does allow resolution changes
+#package xorg7-vesa		#A fallback driver that works with almost everything. Does allow resolution changes
 package xorg7-vmware
-package xorg7-qxl
-package xorg7-ati		#ATI video driver for most modern ATI chipsets. Usually requires several firmwares
-package xorg7-nouveau		#New opensource nvidia driver
+#package xorg7-qxl
+#package xorg7-ati		#ATI video driver for most modern ATI chipsets. Usually requires several firmwares
+#package xorg7-nouveau		#New opensource nvidia driver
 #package xorg7_nvidia		#Proprietary nvidia driver
-package xorg7-openchrome	#Via Video Chipsets driver
-package xorg7-intel		#Intel video driver for most modern chipsets except the GMA3500/3600
+#package xorg7-openchrome	#Via Video Chipsets driver
+#package xorg7-intel		#Intel video driver for most modern chipsets except the GMA3500/3600
 #package xorg7-sis
 
 #!!Locale or localization files for keyboard and fonts.  (Language/Country)
-package locale-cs_CZ  # Czech
-package locale-da_DK  # Danish
-package locale-de_DE  # German
-package locale-en_GB  # English-Great Britain
+#package locale-cs_CZ  # Czech
+#package locale-da_DK  # Danish
+#package locale-de_DE  # German
+#package locale-en_GB  # English-Great Britain
 package locale-en_US  # English-US
-package locale-es_ES  # Spanish
-package locale-fi_FI  # Finnish
-package locale-fr_BE  # French Belgium
-package locale-fr_CA  # French Canadian
-package locale-fr_CH  # French Switzerland
-package locale-fr_FR  # French
-package locale-hr_HR  # Croation
-package locale-hu_HU  # Hungarian
-package locale-it_IT  # Italian
-package locale-ja_JP  # Japanese
-package locale-nb_NO  # Norwegian (bokmål)
-package locale-pl_PL  # Polish
-package locale-pt_PT  # Portuguese
-package locale-pt_BR  # Portuguese-Brazil
-package locale-ru_RU  # Russian
-package locale-sv_SE  # Swedish
-package locale-tr_TR  # Turkish
+#package locale-es_ES  # Spanish
+#package locale-fi_FI  # Finnish
+#package locale-fr_BE  # French Belgium
+#package locale-fr_CA  # French Canadian
+#package locale-fr_CH  # French Switzerland
+#package locale-fr_FR  # French
+#package locale-hr_HR  # Croation
+#package locale-hu_HU  # Hungarian
+#package locale-it_IT  # Italian
+#package locale-ja_JP  # Japanese
+#package locale-nb_NO  # Norwegian (bokmål)
+#package locale-pl_PL  # Polish
+#package locale-pt_PT  # Portuguese
+#package locale-pt_BR  # Portuguese-Brazil
+#package locale-ru_RU  # Russian
+#package locale-sv_SE  # Swedish
+#package locale-tr_TR  # Turkish
 
 #!Applications
 #!!Connection Package types.  Choose *at least* one!
@@ -198,7 +198,7 @@ package locale-tr_TR  # Turkish
 #package 2x			# 2X client
 #package java			# Java runtime
 #package firefox		# Firefox current Web Browser
-package chrome			# Google Chrome Web Browser
+#package chrome			# Google Chrome Web Browser
 #package chromium		# Chromium Web Browser
 #package kiosk			# Rkiosk Plugin for Firefox
 #package flash			# Flash Current
@@ -305,7 +305,7 @@ package fonts-TTF-noto
 #package rox				# Basic File Manager
 #package debug				# metapackage to include other debugging packages and stop during bootup to check things.
 #package extensions			# Adds various shell commands, will increase image size.
-#package extensions-x		# Adds various utility s for the X Environment !!!! INCLUDES hwlister.sh !!!!
+package extensions-x		# Adds various utility s for the X Environment !!!! INCLUDES hwlister.sh !!!!
 #package eGalax				# eGalax TouchKit Drivers/Utility for serial and usb touchscreens by EETI.
 #package installer			# Wipes a drive, makes partitions and downloads thinstation from a pxe server
 #package devstation			# Starts a tftp server that hosts files from the boot-images/pxe folder
@@ -377,8 +377,8 @@ param defaultconfig  thinstation.conf.buildtime  	# The file with default setup.
                                                  	#  during boot.
 param basename       thinstation     			# Used for all config/tftp/scp file names
 param basepath       ts6.1               		# Used to determine path to tftp/scp files
-#param baseurl        http://www.doncuppjr.net		# Used to determine url to wget files
-param baseurl        http://192.168.21.133		# Used to determine url to wget/http files - your local web server
+param baseurl        http://www.doncuppjr.net		# Used to determine url to wget files
+#param baseurl        http://192.168.78.17		# Used to determine url to wget/http files - your local web server
 #param baseurl        'http://${SERVER_IP}'		# Used to determine url to wget/http files - if you wan't to use a web server on the same server as the TFTP server
 #param keyfile        ./id_rsa       			# Path for private key file used for ssh/scp
 #param knownhosts     ./known_hosts  			# Path for ssh known_hosts file for ssh/scp
@@ -388,7 +388,7 @@ param baseurl        http://192.168.21.133		# Used to determine url to wget/http
 param haltonerror    false				# Will halt on error, default is true
 param hardlinkfs     true
 param sametimestmp   true                               # When enabled, the timestamps for all files and folders will be set to 00:00 of todays date in your timezone
-param initrdcmd	     "squashfs"				# Compression mode and level of initrd file. none, gzip -9, lzma -9 ,bzip2 -9
+param initrdcmd	     "gzip"				# Compression mode and level of initrd file. none, gzip -9, lzma -9 ,bzip2 -9
 param bootverbosity   3          			# Increased vebosity when booting TS
                                 			#   0 no verbose messages
                                 			#   1 boot

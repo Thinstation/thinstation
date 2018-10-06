@@ -1,4 +1,4 @@
-#! /bin/sh
+#!/bin/bash
 #
 # Mount Hotplug Device
 #
@@ -97,11 +97,11 @@ do_mounts()
 		_unmount
 		mkdir -p $mtpath
 		if [ -n "$mount_opts" ] ; then
-			MT_CMD="mount -t $ID_FS_TYPE -o $mount_opts /dev/$devpath $mtpath"
+			MT_CMD="systemd-mount --no-block --fsck=no -o $mount_opts /dev/$devpath $mtpath"
 		else
-			MT_CMD="mount -t $ID_FS_TYPE /dev/$devpath $mtpath"
+			MT_CMD="systemd-mount --no-block --fsck=no /dev/$devpath $mtpath"
 		fi
-		#	echo "5 $MT_CMD" >> /var/log/scsi
+		echo "$MT_CMD" >> /var/log/scsi
 		$MT_CMD 2>> /var/log/scsi
 	fi
 	local index=0
@@ -114,7 +114,7 @@ do_mounts()
 			if [ ! -e $MT_PATH ] \
 			|| ! cmount $MT_PATH; then #because that's how mountpoint will look at it.
 				mkdir -p $MT_PATH
-				mount --bind $mtpath $MT_PATH
+				systemd-mount --no-block --bind $mtpath $MT_PATH
 				# echo "6 $mtpath $MT_PATH" >> /var/log/scsi
 			fi
 		fi

@@ -13,7 +13,7 @@ fi
 if check_module supermount ; then
   case $ACTION in
   add)
-  	mount -t supermount -o fs=auto,dev=$DEVNAME /mnt/floppy /mnt/floppy
+  	systemd-mount --no-block -o fs=auto,dev=$DEVNAME /mnt/floppy /mnt/floppy
   ;;
   esac
 fi
