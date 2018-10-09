@@ -1,10 +1,14 @@
 #!/bin/bash
 # Fastboot by Donald A. Cupp Jr. don cupp jr at yahoo dot com
+#set -x
 LANG=C
 INITDIR=$1
 HARDLINK=$3
 FB_COMP_EXTRA=$4
 echo FASTBOOT=$2 >> etc/thinstation.env
+#cp --remove-destination /lib/libmount.so.1 lib/.
+cp --remove-destination /bin/mount bin/.
+
 if [ "$2" == "true" ] ; then
 	mv bin lib/.
 	mv sbin lib/.
@@ -86,6 +90,11 @@ if [ "$2" == "lotsofmem" ]; then
 	mkdir -p ../fastboot-tmp/lib
 	mkdir -p ../fastboot-tmp/etc
 	mkdir -p ../fastboot-tmp/usr
+	cp --remove-destination /usr/lib/libz.so.1 lib/.
+	cp --remove-destination /usr/lib/liblzma.so.5 lib/.
+        cp --remove-destination /bin/cp bin/.
+        cp --remove-destination /bin/mv bin/.
+
 	for i in opt jre ; do
 		if [ -e $i ] ; then
 			mv $i ../fastboot-tmp/.
@@ -114,18 +123,15 @@ if [ "$2" == "lotsofmem" ]; then
 			mv sbin/$i ../fastboot-tmp/sbin/.
 		fi
 	done
-	cp --remove-destination /bin/cp bin/.
-	cp --remove-destination /bin/mv bin/.
-#	cp --remove-destination /lib/libacl.so.1 lib
-#	cp --remove-destination /lib/libattr.so.1 lib
 	if [ "$HARDLINK" == "true" ]; then
 		hardlink -t -m ../fastboot-tmp
 	fi
 	echo -e "\tMaking lib.squash"
 	mksquashfs ../fastboot-tmp/. ../$INITDIR/lib.squash -always-use-fragments -no-recovery -no-xattrs -noappend $FB_COMP_EXTRA
 	cp `which unsquashfs` bin/.
-#	cp /usr/lib/liblzma.so.5 lib
 fi
+
 cd ..
 chmod 755 $INITDIR/lib.squash
 cd tmp-tree
+#set +x

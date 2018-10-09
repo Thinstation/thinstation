@@ -2,9 +2,6 @@
 
 . `dirname $0`/common
 
-#sleep 20
-#/bin/used > /var/log/used
-
 search()
 {
 	if [ -e $1 ]; then
@@ -135,6 +132,11 @@ pxelinux()
 isolinux()
 {
 	FILE=/mnt/cdrom0/"$squash_location"lib.squash
+	timeout=10
+	while ! mountpoint /mnt/cdrom0 && [ $timeout -ne 0 ]; do
+		sleep .5
+		let timeout-=1
+	done
 	if [ ! -e $FILE ]; then
 		if [ -z $squash_location ]; then
 			filename=lib.squash
