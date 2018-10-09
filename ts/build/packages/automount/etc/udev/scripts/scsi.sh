@@ -11,8 +11,8 @@
 . /etc/thinstation.env
 . $TS_GLOBAL
 
-exec </dev/null >>/var/log/scsi.log  2>&1
-set -x
+#exec </dev/null >>/var/log/scsi.log  2>&1
+#set -x
 
 #echo "1 $DEVPATH" >> /var/log/scsi
 #echo "2 $ACTION" >> /var/log/scsi
@@ -101,8 +101,8 @@ do_mounts()
 		else
 			MT_CMD="systemd-mount --no-block --fsck=no /dev/$devpath $mtpath"
 		fi
-		echo "$MT_CMD" >> /var/log/scsi
-		$MT_CMD 2>> /var/log/scsi
+#		echo "$MT_CMD" >> /var/log/scsi
+		$MT_CMD #2>> /var/log/scsi
 	fi
 	local index=0
 	local MOUNT FS_LABEL MT_PATH

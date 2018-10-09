@@ -34,5 +34,9 @@ mkdir -p /var/log/journal/
 chgrp systemd-journal /var/log/journal/
 chmod g+s /var/log/journal/
 
-systemd-machine-id-setup
+if [ "$SESSION_0_TYPE" == "sh" ]; then
+	rm /lib/systemd/system/default.target
+	ln -sf multi-user.target /lib/systemd/system/default.target
+fi
 
+systemd-machine-id-setup

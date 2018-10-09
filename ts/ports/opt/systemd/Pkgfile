@@ -29,9 +29,9 @@ source=(https://github.com/systemd/systemd/archive/v239.tar.gz
 
 build() {
 
-  cd $SRC/systemd-$version
-  patch -p0 -i $SRC/fstab-generator.patch
-  cd $SRC
+#  cd $SRC/systemd-$version
+#  patch -p0 -i $SRC/fstab-generator.patch
+#  cd $SRC
 
   local _timeservers=({0..3}.us.pool.ntp.org)
   local _nameservers=(
@@ -50,8 +50,6 @@ build() {
 
   local _meson_options=(
     -Dgnuefi=true
-    -Dlz4=true
-
     -Ddbuspolicydir=/usr/share/dbus-1/system.d
     # TODO(dreisner): consider changing this to unified
     -Ddefault-hierarchy=hybrid
@@ -61,11 +59,8 @@ build() {
     -Ddns-servers="${_nameservers[*]}"
     -Drpmmacrosdir=no
     -Dportabled=false
-    -Daudit=true
-    -Dima=true
     -Dselinux=false
-    -Dselinux=false
-    -Dfirstboot=true
+    -Dfirstboot=false
     -Dmicrohttpd=false
     -Dsplit-usr=false
     -Dsplit-bin=false
@@ -80,10 +75,35 @@ build() {
     -Dsystem-uid-max=999
     -Dsystem-gid-max=999
     -Ddbuspolicydir=/etc/dbus-1/system.d
-    -Dtimesyncd=true
+    -Dtimesyncd=false
     -Dsysvinit-path=
     -Dsysvrcnd-path=
     -Drfkill=false
+    -Dima=false
+    -Dseccomp=false
+    -Dsmack=false
+    -Dzlib=false
+    -Dxz=false
+    -Dlz4=false
+    -Dbzip2=false
+    -Dlibcurl=false
+    -Dnss-systemd=false
+    -Delfutils=false
+    -Drandomseed=false
+    -Dbacklight=false
+    -Dmachined=false
+    -Dimportd=false
+    -Dhostnamed=false
+    -Dtimedated=false
+    -Dlocaled=false
+    -Dnetworkd=false
+    -Dresolve=false
+    -Dxkbcommon=false
+    -Dmyhostname=false
+    -Ddns-over-tls=false
+    -Dtmpfiles=false
+    -Dlibcryptsetup=false
+    -Dutmp=false
   )
 
   ts-meson "$name-$version" build "${_meson_options[@]}"
@@ -140,9 +160,9 @@ build() {
   install -d -o root -g 102 -m 0750 "$PKG"/usr/share/polkit-1/rules.d
 
   # add example bootctl configuration
-  install -D -m0644 thinstation.conf "$PKG"/usr/share/systemd/bootctl/thinstation.conf
-  install -D -m0644 loader.conf "$PKG"/usr/share/systemd/bootctl/loader.conf
-  install -D -m0644 splash-thinstation.bmp "$PKG"/usr/share/systemd/bootctl/splash-thinstation.bmp
+#  install -D -m0644 thinstation.conf "$PKG"/usr/share/systemd/bootctl/thinstation.conf
+#  install -D -m0644 loader.conf "$PKG"/usr/share/systemd/bootctl/loader.conf
+#  install -D -m0644 splash-thinstation.bmp "$PKG"/usr/share/systemd/bootctl/splash-thinstation.bmp
 
   # pacman hooks
 #  install -D -m0755 systemd-hook "$PKG"/usr/share/libalpm/scripts/systemd-hook
@@ -160,8 +180,8 @@ build() {
 #  install -d -m0755 "$PKG"/usr/share/man/man1
 #  ln -s resolvectl.1.gz "$PKG"/usr/share/man/man1/resolvconf.1.gz
 
-  install -D -m0644 -t "$PKG"/usr/share/man/man8 \
-    build/man/{telinit,halt,reboot,poweroff,runlevel,shutdown}.8
+#  install -D -m0644 -t "$PKG"/usr/share/man/man8 \
+#    build/man/{telinit,halt,reboot,poweroff,shutdown}.8
 
 #  install -d -m0755 "$PKG"/usr/bin
 #  ln -s ../lib/systemd/systemd "$PKG"/usr/bin/init
