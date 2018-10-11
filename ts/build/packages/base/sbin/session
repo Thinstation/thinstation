@@ -1,4 +1,5 @@
 #!/bin/sh
+set +m
 trap "" INT QUIT TSTP
 . /etc/thinstation.global
 hide_cursor
@@ -22,16 +23,16 @@ stale_tasks()
 
 if [ "$1" == "open" ]; then
 	umask 027
-	if is_enabled $DESTRUCTIVE_RELOAD; then
-		mkdir -p $HOME
-                for file in `ls -A /etc/skel`; do
-                        cp -a /etc/skel/$file $HOME/. 2>/dev/null
-                done
-		chown -R "$TSUSER.`id -gn $TSUSER`" $HOME
-	fi
+	mkdir -p $HOME
+	for file in `ls -A /etc/skel`; do
+		if ! [ -e $HOME/$file ]; then
+			cp -a /etc/skel/$file $HOME/. 2>/dev/null
+		fi
+	done
+	chown -R "$TSUSER.`id -gn $TSUSER`" $HOME
 fi
 
-if [ "$1" == "close" ] && [ -z "`pidof shutdown`" ]; then
+if [ "$1" == "close" ] && [ -z "`pidof shutdown`" ] && [ -z "`pidof reboot`" ]; then
 	timeout=0
 	while stale_tasks && [ "$timeout" -lt "30" ]; do
 		for task in $tasklist; do
