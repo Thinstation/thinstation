@@ -25,6 +25,7 @@ drwxr-xr-x	root/root	etc/systemd/system/multi-user.target.wants/
 lrwxrwxrwx	root/root	etc/systemd/system/multi-user.target.wants/remote-fs.target -> ../../../../usr/lib/systemd/system/remote-fs.target
 -rw-rw-r--	root/root	etc/systemd/user.conf
 drwxr-xr-x	root/root	etc/systemd/user/
+drwxr-xr-x	root/root	etc/tmpfiles.d/
 drwxr-xr-x	root/root	etc/udev/
 drwxr-xr-x	root/root	etc/udev/hwdb.d/
 drwxr-xr-x	root/root	etc/udev/rules.d/
@@ -64,6 +65,7 @@ lrwxrwxrwx	root/root	usr/bin/shutdown -> systemctl
 -rwxr-xr-x	root/root	usr/bin/systemd-run
 -rwxr-xr-x	root/root	usr/bin/systemd-socket-activate
 -rwxr-xr-x	root/root	usr/bin/systemd-stdio-bridge
+-rwxr-xr-x	root/root	usr/bin/systemd-tmpfiles
 -rwxr-xr-x	root/root	usr/bin/systemd-tty-ask-password-agent
 lrwxrwxrwx	root/root	usr/bin/systemd-umount -> systemd-mount
 lrwxrwxrwx	root/root	usr/bin/telinit -> systemctl
@@ -164,6 +166,7 @@ lrwxrwxrwx	root/root	usr/lib/systemd/system/default.target -> graphical.target
 -rw-r--r--	root/root	usr/lib/systemd/system/initrd-udevadm-cleanup-db.service
 -rw-rw-r--	root/root	usr/lib/systemd/system/initrd.target
 -rw-rw-r--	root/root	usr/lib/systemd/system/kexec.target
+-rw-r--r--	root/root	usr/lib/systemd/system/kmod-static-nodes.service
 -rw-rw-r--	root/root	usr/lib/systemd/system/local-fs-pre.target
 -rw-rw-r--	root/root	usr/lib/systemd/system/local-fs.target
 drwxr-xr-x	root/root	usr/lib/systemd/system/local-fs.target.wants/
@@ -220,6 +223,7 @@ lrwxrwxrwx	root/root	usr/lib/systemd/system/sockets.target.wants/systemd-udevd-k
 drwxr-xr-x	root/root	usr/lib/systemd/system/sysinit.target.wants/
 lrwxrwxrwx	root/root	usr/lib/systemd/system/sysinit.target.wants/dev-hugepages.mount -> ../dev-hugepages.mount
 lrwxrwxrwx	root/root	usr/lib/systemd/system/sysinit.target.wants/dev-mqueue.mount -> ../dev-mqueue.mount
+lrwxrwxrwx	root/root	usr/lib/systemd/system/sysinit.target.wants/kmod-static-nodes.service -> ../kmod-static-nodes.service
 lrwxrwxrwx	root/root	usr/lib/systemd/system/sysinit.target.wants/sys-fs-fuse-connections.mount -> ../sys-fs-fuse-connections.mount
 lrwxrwxrwx	root/root	usr/lib/systemd/system/sysinit.target.wants/sys-kernel-config.mount -> ../sys-kernel-config.mount
 lrwxrwxrwx	root/root	usr/lib/systemd/system/sysinit.target.wants/sys-kernel-debug.mount -> ../sys-kernel-debug.mount
@@ -231,6 +235,8 @@ lrwxrwxrwx	root/root	usr/lib/systemd/system/sysinit.target.wants/systemd-journal
 lrwxrwxrwx	root/root	usr/lib/systemd/system/sysinit.target.wants/systemd-machine-id-commit.service -> ../systemd-machine-id-commit.service
 lrwxrwxrwx	root/root	usr/lib/systemd/system/sysinit.target.wants/systemd-modules-load.service -> ../systemd-modules-load.service
 lrwxrwxrwx	root/root	usr/lib/systemd/system/sysinit.target.wants/systemd-sysctl.service -> ../systemd-sysctl.service
+lrwxrwxrwx	root/root	usr/lib/systemd/system/sysinit.target.wants/systemd-tmpfiles-setup-dev.service -> ../systemd-tmpfiles-setup-dev.service
+lrwxrwxrwx	root/root	usr/lib/systemd/system/sysinit.target.wants/systemd-tmpfiles-setup.service -> ../systemd-tmpfiles-setup.service
 lrwxrwxrwx	root/root	usr/lib/systemd/system/sysinit.target.wants/systemd-udev-trigger.service -> ../systemd-udev-trigger.service
 lrwxrwxrwx	root/root	usr/lib/systemd/system/sysinit.target.wants/systemd-udevd.service -> ../systemd-udevd.service
 lrwxrwxrwx	root/root	usr/lib/systemd/system/sysinit.target.wants/systemd-update-done.service -> ../systemd-update-done.service
@@ -265,7 +271,10 @@ lrwxrwxrwx	root/root	usr/lib/systemd/system/sysinit.target.wants/systemd-update-
 -rw-r--r--	root/root	usr/lib/systemd/system/systemd-remount-fs.service
 -rw-r--r--	root/root	usr/lib/systemd/system/systemd-suspend.service
 -rw-r--r--	root/root	usr/lib/systemd/system/systemd-sysctl.service
+-rw-r--r--	root/root	usr/lib/systemd/system/systemd-tmpfiles-clean.service
 -rw-rw-r--	root/root	usr/lib/systemd/system/systemd-tmpfiles-clean.timer
+-rw-r--r--	root/root	usr/lib/systemd/system/systemd-tmpfiles-setup-dev.service
+-rw-r--r--	root/root	usr/lib/systemd/system/systemd-tmpfiles-setup.service
 -rw-r--r--	root/root	usr/lib/systemd/system/systemd-udev-settle.service
 -rw-r--r--	root/root	usr/lib/systemd/system/systemd-udev-trigger.service
 -rw-rw-r--	root/root	usr/lib/systemd/system/systemd-udevd-control.socket
@@ -332,6 +341,15 @@ drwxr-xr-x	root/root	usr/lib/systemd/user/
 -rw-rw-r--	root/root	usr/lib/systemd/user/systemd-tmpfiles-clean.timer
 -rw-rw-r--	root/root	usr/lib/systemd/user/systemd-tmpfiles-setup.service
 -rw-rw-r--	root/root	usr/lib/systemd/user/timers.target
+drwxr-xr-x	root/root	usr/lib/tmpfiles.d/
+-rw-r--r--	root/root	usr/lib/tmpfiles.d/etc.conf
+-rw-rw-r--	root/root	usr/lib/tmpfiles.d/home.conf
+-rw-rw-r--	root/root	usr/lib/tmpfiles.d/journal-nocow.conf
+-rw-rw-r--	root/root	usr/lib/tmpfiles.d/systemd-nologin.conf
+-rw-r--r--	root/root	usr/lib/tmpfiles.d/systemd.conf
+-rw-rw-r--	root/root	usr/lib/tmpfiles.d/tmp.conf
+-rw-r--r--	root/root	usr/lib/tmpfiles.d/var.conf
+-rw-rw-r--	root/root	usr/lib/tmpfiles.d/x11.conf
 drwxr-xr-x	root/root	usr/lib/udev/
 -rwxr-xr-x	root/root	usr/lib/udev/ata_id
 -rwxr-xr-x	root/root	usr/lib/udev/cdrom_id
@@ -1190,6 +1208,7 @@ drwxr-xr-x	root/root	usr/share/zsh/site-functions/
 -rw-rw-r--	root/root	usr/share/zsh/site-functions/_systemd-inhibit
 -rw-rw-r--	root/root	usr/share/zsh/site-functions/_systemd-nspawn
 -rw-rw-r--	root/root	usr/share/zsh/site-functions/_systemd-run
+-rw-rw-r--	root/root	usr/share/zsh/site-functions/_systemd-tmpfiles
 -rw-rw-r--	root/root	usr/share/zsh/site-functions/_udevadm
 drwxr-xr-x	root/root	var/
 drwxr-xr-x	root/root	var/lib/
