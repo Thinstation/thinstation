@@ -28,6 +28,7 @@ help()
 	-e : Execute a command after entering chroot. Must
 	     be the last option, as anything after it will be
 	     executed in the chroot, including arguments.
+	-k : Try and import ssh keys.
 
 	"
 }
@@ -44,6 +45,7 @@ get_opts()
 		-c|--clean)	unset build exec_cmd; shift $# ; export clean=true ;;
 		-e|--exec)	shift ; export exec_cmd=$@ ; shift $# ;;
 		-u|--user)	shift ; export chuser=$1 ;;
+		-k|--keys)	shift ; export keys=true;;
 		*)		echo "Invalid Argument: $1" ; help ; exit 255 ;;
 		esac
 		shift
@@ -130,9 +132,11 @@ do_mounts()
 copy_host_essential()
 {
 	cp -f /etc/resolv.conf etc/resolv.conf
-	if [ -e ~/.ssh ]; then
-		mkdir -p root
-		cp -Prfd ~/.ssh	root/.
+	if `${keys:=false}`; then
+		if [ -e ~/.ssh ]; then
+			mkdir -p root
+			cp -Prfd ~/.ssh	root/.
+		fi
 	fi
 }
 
@@ -154,11 +158,20 @@ launch_chroot()
 	$chroot_cmd $PWD /ts/TS_ENV
 	howdiditgo=$?
 	if first_or_last ; then
+		kill_ssh_agent
 		do_unmounts
 		secure_keys
 		if [ -e cleanstage2 ] ; then
                 	ts/bin/clean_chroot
         	fi
+	fi
+}
+
+kill_ssh_agent()
+{
+	if [ -f root/.agent.env ] ; then
+		. root/.agent.env > /dev/null
+		kill -9 $SSH_AGENT_PID > /dev/null 2>&1
 	fi
 }
 

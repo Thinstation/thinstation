@@ -1,0 +1,41 @@
+# Maintainer: Benjamin Bukowski <benjamin.bukowski@gmail.com>
+# Contributor: Johannes Löthberg <demizide@gmail.com>
+
+name=atftp
+version=0.7.1
+release=5
+source=("https://downloads.sf.net/sourceforge/atftp/atftp-$version.tar.gz"
+        'atftp-0.7-cflags.patch'
+        'atftpd.service'
+        'atftpd.conf'
+        'sysusers.conf'
+        'tmpfiles.conf')
+
+build() {
+  cd atftp-$version
+
+  # Respect our CFLAGS; needed below for building with -std=gnu89
+  patch -Np1 -i ../atftp-0.7-cflags.patch
+
+  autoreconf -vi
+
+  CFLAGS+=' -std=gnu89'
+
+  ./configure \
+    --prefix=/usr \
+    --mandir=/usr/share/man \
+    --sbindir=/usr/sbin \
+    --enable-libreadline \
+    --disable-libwrap
+  make
+  make DESTDIR="$PKG" install
+
+  install -D -m0644 ../atftpd.service "$PKG"/usr/lib/systemd/system/atftpd.service
+  install -D -m0644 ../atftpd.conf "$PKG"/etc/conf.d/atftpd
+  install -D -m0644 ../sysusers.conf "$PKG"/usr/lib/sysusers.d/atftp.conf
+  install -D -m0644 ../tmpfiles.conf "$PKG"/usr/lib/tmpfiles.d/atftp.conf
+
+  # remove in.tftpd link as it conflicts with extra/tftp-hpa
+  rm "${PKG}/usr/share/man/man8/in.tftpd.8"
+  rm "${PKG}/usr/sbin/in.tftpd"
+}
