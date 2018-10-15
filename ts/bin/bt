@@ -22,6 +22,13 @@ confirm_hd()
 	fi
 }
 
+bridge()
+{
+	if `ifconfig |grep -e br0`; then
+		echo "-net bridge,br=br0 -net nic,macaddr=52:54:00:12F:34f:56"
+	fi
+}
+
 #VGA="-vga qxl -global qxl-vga.vram_size=132710400"
 #VGA="-vga virtio"
 VGA="-vga qxl"
@@ -32,8 +39,7 @@ MEMORY="-m 4096"
 MOUSE="-usbdevice tablet"
 KVM="-enable-kvm"
 EFI="-L . --bios /usr/share/edk2.git/ovmf-x64/OVMF-with-csm.fd"
-NETWORK="-net bridge,br=br0 -net nic,macaddr=52:54:00:12F:34f:56"
-#NETWORK="-net nic,model=virtio"
+NETWORK=`bridge`
 #QEMU=qemu-system-i386
 QEMU=qemu-system-x86_64
 
