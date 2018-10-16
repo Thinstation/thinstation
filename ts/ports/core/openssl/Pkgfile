@@ -3,7 +3,7 @@
 # Maintainer:  CRUX System Team, core-ports at crux dot nu
 
 name=openssl
-version=1.0.2h
+version=1.0.2p
 release=2
 source=(http://www.openssl.org/source/$name-$version.tar.gz \
         mksslcert.sh)
@@ -15,15 +15,15 @@ build() {
 
     ./config --prefix=/usr \
              --openssldir=/etc/ssl \
+	     --with-fipsdir=/usr/lib/openssl-1.0 \
              shared \
-             enable-ec_nistp_64_gcc_128
-
-    sed -i "s|-O3|$CFLAGS|" Makefile
+             enable-ec_nistp_64_gcc_128 \
+	     fips
 
     make depend
     make INSTALL_PREFIX=$PKG LIBDIR=lib MANDIR=/usr/share/man MANSUFFIX=ssl install
 
-    find $PKG -name "*fips*" -delete
-    chmod -R +w $PKG
     install -D -m 755 $SRC/mksslcert.sh $PKG/usr/bin/mksslcert
+    ln -sf libssl.so.1.0.0 $PKG/usr/lib/libssl.so.1.0.2
+    ln -sf libcrypto.so.1.0.0 $PKG/usr/lib/libcrypto.so.1.0.2
 }
