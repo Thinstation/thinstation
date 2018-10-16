@@ -120,26 +120,26 @@ cp -a $dir/bin/conf $INSTALLDIR/etc/cups
 mkdir -p $INSTALLDIR/etc/init.d
 cp -a $dir/bin/init.d/linux/* $INSTALLDIR/etc/init.d
 chmod a+x $INSTALLDIR/etc/init.d/*
-cp -a $dir/bin/x86_64-linux-vmAppLd $INSTALLDIR/lib/thnuclnt
-rm $INSTALLDIR/lib/thnuclnt/{thnuchk.so,thnuconf.so,build.spec}
-ln -s thnuclnt.so $INSTALLDIR/lib/thnuclnt/thnuchk.so
-ln -s thnuclnt.so $INSTALLDIR/lib/thnuclnt/thnuconf.so
+#cp -a $dir/bin/x86_64-linux-vmAppLd $INSTALLDIR/lib/thnuclnt
+#rm $INSTALLDIR/lib/thnuclnt/{thnuchk.so,thnuconf.so,build.spec}
+#ln -s thnuclnt.so $INSTALLDIR/lib/thnuclnt/thnuchk.so
+#ln -s thnuclnt.so $INSTALLDIR/lib/thnuclnt/thnuconf.so
 cp -a $dir/lib/* $INSTALLDIR/lib/vmware/rdpvcbridge
 chmod a+x $INSTALLDIR/lib/vmware/rdpvcbridge/*
 chmod 4755 $INSTALLDIR/lib/thnuclnt/vmappld
 ln -s /lib/vmware/rdpvcbridge/tprdp.so $INSTALLDIR/lib/freerdp/libtprdp-client.so
 
-for i in thnuclnt thnuclntd thnuconf thnuchk thnucups thnurdp .thnumod; do
-  j=bin
-  if [ "$i" = "thnucups" ]; then j=lib/cups/filter;
-  elif [ "$i" = ".thnumod" ]; then j=etc/thnuclnt;
-  elif [ "$i" = "thnuclntd" ]; then j=sbin; fi
-  cat > $INSTALLDIR/$j/$i <<EOF
-#! /bin/sh
-exec /usr/lib/thnuclnt/vmappld /usr/lib/thnuclnt/$i.so -0 \$0 "\$@"
-EOF
-  chmod a+x $INSTALLDIR/$j/$i
-done
+#for i in thnuclnt thnuclntd thnuconf thnuchk thnucups thnurdp .thnumod; do
+#  j=bin
+#  if [ "$i" = "thnucups" ]; then j=lib/cups/filter;
+#  elif [ "$i" = ".thnumod" ]; then j=etc/thnuclnt;
+#  elif [ "$i" = "thnuclntd" ]; then j=sbin; fi
+#  cat > $INSTALLDIR/$j/$i <<EOF
+##! /bin/sh
+#exec /usr/lib/thnuclnt/vmappld /usr/lib/thnuclnt/$i.so -0 \$0 "\$@"
+#EOF
+#  chmod a+x $INSTALLDIR/$j/$i
+#done
 
 ;;
 esac
@@ -183,8 +183,8 @@ fi
 
 cp -Prfd $INSTALLDIR/build/extra/* $INSTALLDIR/.
 
-if [ ! -x $INSTALLDIR/lib/vmware/view/usb/vmware-view-usbd ]; then
-  rm $INSTALLDIR/lib/systemd/system/{,multi-user.target.wants}/vmware.view.usbd.service
-fi
+#if [ ! -x $INSTALLDIR/lib/vmware/view/usb/vmware-view-usbd ]; then
+#  rm $INSTALLDIR/lib/systemd/system/{,multi-user.target.wants}/vmware.view.usbd.service
+#fi
 
 exit $returnval
