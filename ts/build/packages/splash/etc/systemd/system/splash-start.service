@@ -1,0 +1,13 @@
+[Unit]
+Description=Start Splash
+DefaultDependencies=no
+After=systemd-udev-settle.service
+Before=fastboot.service sysinit.target
+
+[Service]
+EnvironmentFile=/etc/thinstation.env
+ExecStart=/etc/init.d/splash start
+SyslogIdentifier=thinstation
+Type=forking
+KillMode=none
+SendSIGKILL=no

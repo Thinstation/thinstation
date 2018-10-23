@@ -5,6 +5,7 @@ drwxr-xr-x	root/root	etc/X11/xinit/xinitrc.d/
 -rwxrwxr-x	root/root	etc/X11/xinit/xinitrc.d/50-systemd-user.sh
 drwxr-xr-x	root/root	etc/dbus-1/
 drwxr-xr-x	root/root	etc/dbus-1/system.d/
+-rw-rw-r--	root/root	etc/dbus-1/system.d/org.freedesktop.hostname1.conf
 -rw-rw-r--	root/root	etc/dbus-1/system.d/org.freedesktop.login1.conf
 -rw-rw-r--	root/root	etc/dbus-1/system.d/org.freedesktop.systemd1.conf
 drwxr-xr-x	root/root	etc/kernel/
@@ -38,6 +39,7 @@ drwxr-xr-x	root/root	usr/bin/
 -rwxr-xr-x	root/root	usr/bin/bootctl
 -rwxr-xr-x	root/root	usr/bin/busctl
 lrwxrwxrwx	root/root	usr/bin/halt -> systemctl
+-rwxr-xr-x	root/root	usr/bin/hostnamectl
 lrwxrwxrwx	root/root	usr/bin/init -> ../lib/systemd/systemd
 -rwxr-xr-x	root/root	usr/bin/journalctl
 -rwxr-xr-x	root/root	usr/bin/kernel-install
@@ -142,6 +144,7 @@ lrwxrwxrwx	root/root	usr/lib/systemd/system/autovt@.service -> getty@.service
 -rw-r--r--	root/root	usr/lib/systemd/system/console-getty.service
 -rw-r--r--	root/root	usr/lib/systemd/system/container-getty@.service
 lrwxrwxrwx	root/root	usr/lib/systemd/system/ctrl-alt-del.target -> reboot.target
+lrwxrwxrwx	root/root	usr/lib/systemd/system/dbus-org.freedesktop.hostname1.service -> systemd-hostnamed.service
 lrwxrwxrwx	root/root	usr/lib/systemd/system/dbus-org.freedesktop.login1.service -> systemd-logind.service
 -rw-r--r--	root/root	usr/lib/systemd/system/debug-shell.service
 lrwxrwxrwx	root/root	usr/lib/systemd/system/default.target -> graphical.target
@@ -234,6 +237,7 @@ lrwxrwxrwx	root/root	usr/lib/systemd/system/sysinit.target.wants/systemd-journal
 lrwxrwxrwx	root/root	usr/lib/systemd/system/sysinit.target.wants/systemd-journald.service -> ../systemd-journald.service
 lrwxrwxrwx	root/root	usr/lib/systemd/system/sysinit.target.wants/systemd-machine-id-commit.service -> ../systemd-machine-id-commit.service
 lrwxrwxrwx	root/root	usr/lib/systemd/system/sysinit.target.wants/systemd-modules-load.service -> ../systemd-modules-load.service
+lrwxrwxrwx	root/root	usr/lib/systemd/system/sysinit.target.wants/systemd-random-seed.service -> ../systemd-random-seed.service
 lrwxrwxrwx	root/root	usr/lib/systemd/system/sysinit.target.wants/systemd-sysctl.service -> ../systemd-sysctl.service
 lrwxrwxrwx	root/root	usr/lib/systemd/system/sysinit.target.wants/systemd-tmpfiles-setup-dev.service -> ../systemd-tmpfiles-setup-dev.service
 lrwxrwxrwx	root/root	usr/lib/systemd/system/sysinit.target.wants/systemd-tmpfiles-setup.service -> ../systemd-tmpfiles-setup.service
@@ -252,6 +256,7 @@ lrwxrwxrwx	root/root	usr/lib/systemd/system/sysinit.target.wants/systemd-update-
 -rw-r--r--	root/root	usr/lib/systemd/system/systemd-fsck-root.service
 -rw-r--r--	root/root	usr/lib/systemd/system/systemd-fsck@.service
 -rw-r--r--	root/root	usr/lib/systemd/system/systemd-halt.service
+-rw-r--r--	root/root	usr/lib/systemd/system/systemd-hostnamed.service
 -rw-r--r--	root/root	usr/lib/systemd/system/systemd-hwdb-update.service
 -rw-r--r--	root/root	usr/lib/systemd/system/systemd-initctl.service
 -rw-rw-r--	root/root	usr/lib/systemd/system/systemd-initctl.socket
@@ -267,6 +272,7 @@ lrwxrwxrwx	root/root	usr/lib/systemd/system/sysinit.target.wants/systemd-update-
 -rw-r--r--	root/root	usr/lib/systemd/system/systemd-modules-load.service
 -rw-r--r--	root/root	usr/lib/systemd/system/systemd-nspawn@.service
 -rw-r--r--	root/root	usr/lib/systemd/system/systemd-poweroff.service
+-rw-r--r--	root/root	usr/lib/systemd/system/systemd-random-seed.service
 -rw-r--r--	root/root	usr/lib/systemd/system/systemd-reboot.service
 -rw-r--r--	root/root	usr/lib/systemd/system/systemd-remount-fs.service
 -rw-r--r--	root/root	usr/lib/systemd/system/systemd-suspend.service
@@ -301,11 +307,13 @@ drwxr-xr-x	root/root	usr/lib/systemd/system/user-.slice.d/
 -rwxr-xr-x	root/root	usr/lib/systemd/systemd-dissect
 -rwxr-xr-x	root/root	usr/lib/systemd/systemd-fsck
 -rwxr-xr-x	root/root	usr/lib/systemd/systemd-growfs
+-rwxr-xr-x	root/root	usr/lib/systemd/systemd-hostnamed
 -rwxr-xr-x	root/root	usr/lib/systemd/systemd-initctl
 -rwxr-xr-x	root/root	usr/lib/systemd/systemd-journald
 -rwxr-xr-x	root/root	usr/lib/systemd/systemd-logind
 -rwxr-xr-x	root/root	usr/lib/systemd/systemd-makefs
 -rwxr-xr-x	root/root	usr/lib/systemd/systemd-modules-load
+-rwxr-xr-x	root/root	usr/lib/systemd/systemd-random-seed
 -rwxr-xr-x	root/root	usr/lib/systemd/systemd-remount-fs
 -rwxr-xr-x	root/root	usr/lib/systemd/systemd-reply-password
 -rwxr-xr-x	root/root	usr/lib/systemd/systemd-shutdown
@@ -410,6 +418,7 @@ drwxr-xr-x	root/root	usr/share/bash-completion/
 drwxr-xr-x	root/root	usr/share/bash-completion/completions/
 -rw-rw-r--	root/root	usr/share/bash-completion/completions/bootctl
 -rw-rw-r--	root/root	usr/share/bash-completion/completions/busctl
+-rw-rw-r--	root/root	usr/share/bash-completion/completions/hostnamectl
 -rw-rw-r--	root/root	usr/share/bash-completion/completions/journalctl
 -rw-rw-r--	root/root	usr/share/bash-completion/completions/kernel-install
 -rw-rw-r--	root/root	usr/share/bash-completion/completions/loginctl
@@ -428,6 +437,7 @@ drwxr-xr-x	root/root	usr/share/dbus-1/
 drwxr-xr-x	root/root	usr/share/dbus-1/services/
 lrwxrwxrwx	root/root	usr/share/dbus-1/services/org.freedesktop.systemd1.service -> ../system-services/org.freedesktop.systemd1.service
 drwxr-xr-x	root/root	usr/share/dbus-1/system-services/
+-rw-rw-r--	root/root	usr/share/dbus-1/system-services/org.freedesktop.hostname1.service
 -rw-rw-r--	root/root	usr/share/dbus-1/system-services/org.freedesktop.login1.service
 -rw-rw-r--	root/root	usr/share/dbus-1/system-services/org.freedesktop.systemd1.service
 drwxr-xr-x	root/root	usr/share/doc/
@@ -539,6 +549,7 @@ drwxr-xr-x	root/root	usr/share/man/
 drwxr-xr-x	root/root	usr/share/man/man1/
 -rw-r--r--	root/root	usr/share/man/man1/bootctl.1.gz
 -rw-r--r--	root/root	usr/share/man/man1/busctl.1.gz
+-rw-r--r--	root/root	usr/share/man/man1/hostnamectl.1.gz
 -rw-r--r--	root/root	usr/share/man/man1/init.1.gz
 -rw-r--r--	root/root	usr/share/man/man1/journalctl.1.gz
 -rw-r--r--	root/root	usr/share/man/man1/loginctl.1.gz
@@ -1129,6 +1140,8 @@ drwxr-xr-x	root/root	usr/share/man/man8/
 -rw-r--r--	root/root	usr/share/man/man8/systemd-growfs@.service.8.gz
 -rw-r--r--	root/root	usr/share/man/man8/systemd-halt.service.8.gz
 -rw-r--r--	root/root	usr/share/man/man8/systemd-hibernate.service.8.gz
+-rw-r--r--	root/root	usr/share/man/man8/systemd-hostnamed.8.gz
+-rw-r--r--	root/root	usr/share/man/man8/systemd-hostnamed.service.8.gz
 -rw-r--r--	root/root	usr/share/man/man8/systemd-hwdb.8.gz
 -rw-r--r--	root/root	usr/share/man/man8/systemd-hybrid-sleep.service.8.gz
 -rw-r--r--	root/root	usr/share/man/man8/systemd-initctl.8.gz
@@ -1149,6 +1162,8 @@ drwxr-xr-x	root/root	usr/share/man/man8/
 -rw-r--r--	root/root	usr/share/man/man8/systemd-modules-load.8.gz
 -rw-r--r--	root/root	usr/share/man/man8/systemd-modules-load.service.8.gz
 -rw-r--r--	root/root	usr/share/man/man8/systemd-poweroff.service.8.gz
+-rw-r--r--	root/root	usr/share/man/man8/systemd-random-seed.8.gz
+-rw-r--r--	root/root	usr/share/man/man8/systemd-random-seed.service.8.gz
 -rw-r--r--	root/root	usr/share/man/man8/systemd-rc-local-generator.8.gz
 -rw-r--r--	root/root	usr/share/man/man8/systemd-reboot.service.8.gz
 -rw-r--r--	root/root	usr/share/man/man8/systemd-remount-fs.8.gz
@@ -1187,6 +1202,7 @@ drwxr-xr-x	root/root	usr/share/pkgconfig/
 -rw-rw-r--	root/root	usr/share/pkgconfig/udev.pc
 drwxr-xr-x	root/root	usr/share/polkit-1/
 drwxr-xr-x	root/root	usr/share/polkit-1/actions/
+-rw-rw-r--	root/root	usr/share/polkit-1/actions/org.freedesktop.hostname1.policy
 -rw-rw-r--	root/root	usr/share/polkit-1/actions/org.freedesktop.login1.policy
 -rw-rw-r--	root/root	usr/share/polkit-1/actions/org.freedesktop.systemd1.policy
 drwxr-x---	root/102	usr/share/polkit-1/rules.d/
@@ -1194,6 +1210,7 @@ drwxr-xr-x	root/root	usr/share/zsh/
 drwxr-xr-x	root/root	usr/share/zsh/site-functions/
 -rw-rw-r--	root/root	usr/share/zsh/site-functions/_bootctl
 -rw-rw-r--	root/root	usr/share/zsh/site-functions/_busctl
+-rw-rw-r--	root/root	usr/share/zsh/site-functions/_hostnamectl
 -rw-rw-r--	root/root	usr/share/zsh/site-functions/_journalctl
 -rw-rw-r--	root/root	usr/share/zsh/site-functions/_kernel-install
 -rw-rw-r--	root/root	usr/share/zsh/site-functions/_loginctl
