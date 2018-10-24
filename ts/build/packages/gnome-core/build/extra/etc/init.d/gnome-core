@@ -1,0 +1,87 @@
+#! /bin/sh
+
+. `dirname $0`/common
+HOME=/etc/skel
+
+if ! pkg_initialized $PACKAGE; then
+	pkg_set_init_flag $PACKAGE
+
+	if [ ! -e $HOME/.gconf ] && [ -e /etc/gconf/Default ]; then
+		mkdir -p $HOME/.gconf
+		cp -rf /etc/gconf/Default/* $HOME/.gconf/.
+	fi
+
+	mode=none
+		if [ -n "$PROXY_HOST$PROXY_PORT$PROXY_SECURE_HOST$PROXY_SECURE_PORT$PROXY_USE_SAME$PROXY_FTP_HOST$PROXY_FTP_PORT$PROXY_SOCKS_HOST$PROXY_SOCKS_PORT$PROXY_USER$PROXY_PASSWORD$PROXY_IGNORE$PROXY_AUTOCONFIG" ]; then
+		if [ -n "$PROXY_MODE" ]; then
+			mode=$PROXY_MODE
+		else
+			if [ -n "$PROXY_AUTOCONFIG" ]; then
+				mode=auto
+			else
+				mode=manual
+			fi
+		fi
+
+		if is_enabled $PROXY_MANDATORY; then
+			gconft="gconftool-2 --direct --config-source xml:readwrite:/etc/gconf/gconf.xml.mandatory"
+		else
+			gconft="gconftool-2 --direct --config-source xml:readwrite:/etc/gconf/gconf.xml.defaults"
+		fi
+
+		$gconft --type string -s /system/proxy/mode $mode
+
+		if [ -n "$PROXY_IGNORE" ]; then
+			$gconft --type list --list-type string -s /system/http_proxy/ignore_hosts "[$PROXY_IGNORE]"
+		else
+			$gconft --type list --list-type string -s /system/http_proxy/ignore_hosts "[localhost,127.0.0.1/8]"
+		fi
+
+		if [ -n "$PROXY_HOST" ] && [ -n "$PROXY_PORT" ] ; then
+			if [ $mode == "none" ]; then
+				$gconft --type bool -s /system/http_proxy/use_http_proxy false
+			else
+				$gconft --type bool -s /system/http_proxy/use_http_proxy true
+			fi
+			$gconft --type string -s /system/http_proxy/host $PROXY_HOST
+			$gconft --type int -s /system/http_proxy/port $PROXY_PORT
+
+			if [ -z "$PROXY_USE_SAME$PROXY_SECURE_HOST$PROXY_SOCKS_HOST$PROXY_FTP_HOST" ]; then
+				PROXY_USE_SAME=true
+			fi
+
+			if is_enabled $PROXY_USE_SAME; then
+				$gconft --type bool -s /system/http_proxy/use_same_proxy true
+				PROXY_SECURE_HOST=$PROXY_HOST
+				PROXY_SECURE_PORT=$PROXY_PORT
+				PROXY_SOCKS_HOST=$PROXY_HOST
+				PROXY_SOCKS_PORT=$PROXY_PORT
+				PROXY_FTP_HOST=$PROXY_HOST
+				PROXY_FTP_PORT=$PROXY_PORT
+			fi
+
+			if [ -n "$PROXY_USER" ]; then
+				$gconft --type bool -s /system/http_proxy/use_authentication true
+				$gconft --type string -s /system/http_proxy/authentication_user $PROXY_USER
+				if [ -n "$PROXY_PASSWORD" ]; then
+					$gconft --type string -s /system/http_proxy/authentication_password $PROXY_PASSWORD
+				fi
+			fi
+		fi
+		if [ -n "$PROXY_SECURE_HOST" ] && [ -n "$PROXY_SECURE_PORT" ]; then
+			$gconft --type string -s /system/proxy/secure_host $PROXY_SECURE_HOST
+			$gconft --type int -s /system/proxy/secure_port $PROXY_SECURE_PORT
+		fi
+		if [ -n "$PROXY_SOCKS_HOST" ] && [ -n "$PROXY_SOCKS_PORT" ]; then
+			$gconft --type string -s /system/proxy/socks_host $PROXY_SOCKS_HOST
+			$gconft --type int -s /system/proxy/socks_port $PROXY_SOCKS_PORT
+		fi
+		if [ -n "$PROXY_FTP_HOST" ] && [ -n "$PROXY_FTP_PORT" ]; then
+			$gconft --type string -s /system/proxy/ftp_host $PROXY_FTP_HOST
+			$gconft --type int -s /system/proxy/ftp_port $PROXY_FTP_PORT
+		fi
+		if [ -n "$PROXY_AUTOCONFIG" ]; then
+			$gconft --type string -s /system/proxy/autoconfig_url $PROXY_AUTOCONFIG
+		fi
+	fi
+fi
