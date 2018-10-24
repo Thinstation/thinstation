@@ -1,10 +1,9 @@
 [Unit]
 Description=Hardware RNG Entropy Gatherer Daemon
-Conflicts=shutdown.target
-After=systemd-random-seed.service
+Requires=systemd-udev-settle.service
 
 [Service]
-Type=forking
-ExecStart=/sbin/rngd -W 5% -f
+ExecStart=/sbin/rngd -W 50% -f
 ExecStopPost=/bin/systemctl start rngd-backup
 SuccessExitStatus=66
+SyslogIdentifier=thinstation
