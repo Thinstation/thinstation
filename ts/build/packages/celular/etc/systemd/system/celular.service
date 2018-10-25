@@ -1,0 +1,15 @@
+[Unit]
+Description=Celular Setup
+Before=shutdown.target
+ConditionPathIsReadWrite=/etc
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+EnvironmentFile=/etc/thinstation.env
+ExecStart=/etc/init.d/celular
+SyslogIdentifier=thinstation
+
+[Install]
+WantedBy=multi-user.target
+

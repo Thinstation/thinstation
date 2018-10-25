@@ -5,8 +5,7 @@ service telnet
 	socket_type	= stream        
 	wait		= no
 	user		= root
-	server		= /sbin/telnetd
-	server_args	= -i
+	server		= /sbin/in.telnetd
 	log_type	= FILE /var/log/telnet
 	log_on_failure	+= USERID
 	only_from	= localhost $NET_REMOTE_ACCESS_FROM

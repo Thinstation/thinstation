@@ -1,14 +1,12 @@
 #! /bin/sh
 
-. $TS_GLOBAL
+. `dirname $0`/common
 
-case "$1" in
-init)
-    if ! pkg_initialized $PACKAGE; then
+if ! pkg_initialized $PACKAGE; then
 	pkg_set_init_flag $PACKAGE
 
 	if [ -n "$DEBUG_NETWORK" ] ; then
-		        debug="-d"
+		debug="-d"
 	fi
 
 	modprobe ppp_generic
@@ -58,14 +56,6 @@ init)
 	;;
 	esac
 
-    fi
-;;
-help)
-    echo "Usage: $0 init|console"
-    ;;
-  *)
-    exit 1
-    ;;
-esac
+fi
 
 exit 0

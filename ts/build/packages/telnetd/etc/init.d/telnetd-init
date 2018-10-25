@@ -1,0 +1,22 @@
+#! /bin/sh
+
+. `dirname $0`/common
+
+if ! pkg_initialized $PACKAGE; then
+	pkg_set_init_flag $PACKAGE
+	if is_enabled $NET_TELNETD_ENABLED; then
+		(
+		if [ -n "$NET_REMOTE_ACCESS_FROM" ] ; then
+			echo s%.NET_REMOTE_ACCESS_FROM%$NET_REMOTE_ACCESS_FROM%
+		elif [ -n "$NETMASK_SIZE" ]; then
+			echo s%.NET_REMOTE_ACCESS_FROM%$CLIENT_IP/$NETMASK_SIZE%
+		else
+			echo s%^..*NET_REMOTE_ACCESS_FROM.*$%%
+		fi
+		) >>/tmp/script
+		cat /etc/telnet.tpl | sed -f /tmp/script > /etc/xinetd.d/telnet
+		rm /tmp/script
+	fi
+fi
+
+exit 0
