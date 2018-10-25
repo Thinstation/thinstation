@@ -20,13 +20,15 @@ status ()
 
 start ()
 {
-	if ! pkg_initialized $PACKAGE ; then
-		exit 1
+	if ! pkg_initialized $PACKAGE; then
+		pkg_set_init_flag $PACKAGE
+		if [ -n "$NET_TIME_SERVER" ]; then
+			echo "server $NET_TIME_SERVER" >> /etc/ntp.conf
+			if [ -n "$NET_TIME_SERVER_BACKUP" ]; then
+				echo "server $NET_TIME_SERVER_BACKUP" >> /etc/ntp.conf
+			fi
+		fi
 	fi
-	if [ "`make_caps $NETWORKUP`" != "TRUE" ]; then
-		exit 1
-	fi
-
 	if ! status ; then
 		tickers=`awk '$1=="peer"||$1=="server"{print $2}' /etc/ntp.conf`
 		if [ -n "$tickers" ]; then
@@ -56,21 +58,6 @@ stop ()
 }
 
 case "$1" in
-init)
-	# So we actually need to run through this script twice, as it needs the network, and the network might need it.
-	if ! pkg_initialized $PACKAGE; then
-		pkg_set_init_flag $PACKAGE
-		if [ -n "$NET_TIME_SERVER" ]; then
-			echo "server $NET_TIME_SERVER" >> /etc/ntp.conf
-			if [ -n "$NET_TIME_SERVER_BACKUP" ]; then
-				echo "server $NET_TIME_SERVER_BACKUP" >> /etc/ntp.conf
-			fi
-		fi
-	else
-		# The second time, this is run as the package is already initialized
-		start
-	fi
-	;;
 restart)
 	update
 	;;

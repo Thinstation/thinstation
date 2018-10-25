@@ -54,3 +54,10 @@ else
 fi
 
 echo "NET_DEVICE=$device" >> $TS_RUNTIME
+
+. $TS_GLOBAL
+if is_enabled $NETWORKUP; then
+	if [ -e /etc/init.d/ntpd ]; then
+		/etc/init.d/ntpd start
+	fi
+fi

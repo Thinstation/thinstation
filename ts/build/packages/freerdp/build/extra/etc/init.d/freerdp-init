@@ -30,4 +30,16 @@ if ! pkg_initialized $PACKAGE; then
 		sed -i -e "s,xfreerdp,xfreerdp$FRDPOPTIONS," /etc/cmd/freerdp.global
 		sed -i -e "s,xfreerdp,xfreerdp$FRDPOPTIONS," /etc/cmd/freerdp.window
 	fi
+	HOME=/etc/skel
+	if [ ! -d "$HOME/.config/freerdp/certs" ]; then
+                mkdir -p $HOME/.config/freerdp/certs
+        fi
+	if [ ! -d "$HOME/.config/freerdp/server" ]; then
+		mkdir -p $HOME/.config/freerdp/server
+	fi
+	CNT=0
+	while [ -n "`eval echo '$FREERDP_KNOWN_HOST_'$CNT`" ]; do
+		echo "`eval echo '$FREERDP_KNOWN_HOST_'$CNT`" >> $HOME/.config/freerdp/known_hosts
+		let CNT=CNT+1
+	done
 fi
