@@ -11,7 +11,7 @@ if [ -e etc/init.d ]; then
 	cat <<EOF> etc/systemd/system/$init.service
 [Unit]
 Description=Thistation $init
-After=profile-setup.service
+After=profile-setup.service pkg.service
 Before=network-pre.target
 ConditionPathIsReadWrite=/etc
 
@@ -34,7 +34,7 @@ elif [ -e build/extra/etc/init.d ]; then
         cat <<EOF> build/extra/etc/systemd/system/$init.service
 [Unit]
 Description=Thistation $init
-After=profile-setup.service
+After=profile-setup.service pkg.service
 Before=network-pre.target
 ConditionPathIsReadWrite=/etc
 
