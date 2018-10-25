@@ -1,0 +1,53 @@
+#!/bin/bash
+
+PKG=$1
+
+cd /build/packages/$PKG
+
+if [ -e etc/init.d ]; then
+	mkdir -p etc/systemd/system/multi-user.target.wants
+	for init in `ls -1 etc/init.d`; do
+	sed -i -e 's|. $TS_GLOBAL|. `dirname $0`/common|g' etc/init.d/$init
+	cat <<EOF> etc/systemd/system/$init.service
+[Unit]
+Description=Thistation $init
+After=profile-setup.service
+Before=network-pre.target
+ConditionPathIsReadWrite=/etc
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+EnvironmentFile=/etc/thinstation.env
+ExecStart=/etc/init.d/$init init
+SyslogIdentifier=thinstation
+
+[Install]
+WantedBy=multi-user.target
+EOF
+	ln -sf ../$init.service etc/systemd/system/multi-user.target.wants/$init.service
+	done
+elif [ -e build/extra/etc/init.d ]; then
+	mkdir -p build/extra/etc/systemd/system/multi-user.target.wants
+	for init in `ls -1 build/extra/etc/init.d`; do
+	sed -i -e 's|. $TS_GLOBAL|. `dirname $0`/common|g' build/extra/etc/init.d/$init
+        cat <<EOF> build/extra/etc/systemd/system/$init.service
+[Unit]
+Description=Thistation $init
+After=profile-setup.service
+Before=network-pre.target
+ConditionPathIsReadWrite=/etc
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+EnvironmentFile=/etc/thinstation.env
+ExecStart=/etc/init.d/$init init
+SyslogIdentifier=thinstation
+
+[Install]
+WantedBy=multi-user.target
+EOF
+	ln -sf ../$init.service build/extra/etc/systemd/system/multi-user.target.wants/$init.service
+	done
+fi
