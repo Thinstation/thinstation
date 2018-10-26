@@ -1,0 +1,31 @@
+#! /bin/sh
+
+. `dirname $0`/common
+
+case "$1" in  
+init)
+    if ! pkg_initialized $PACKAGE; then
+	pkg_set_init_flag $PACKAGE
+	(set | grep "ICEWM_PREF_" ) |
+	while read pref; do
+	  value=`echo $pref | cut -f2 -d=`
+          key=`echo $pref | cut -f1 -d= | cut -f3 -d_`
+	  if [ -z "`grep $key /etc/icewm/preferences`" ]; then
+	    echo "$key = $value" >> /etc/icewm/preferences
+	  else
+	    sed -i -e "s/.*$key *=.*/$key = $value/" /etc/icewm/preferences
+	  fi
+	done
+	icewmtheme="xp"
+	if [ ! -z "$ICEWM_THEME" ] ; then 
+	    icewmtheme=$ICEWM_THEME
+	fi
+	echo "Theme=$icewmtheme/default.theme" > /etc/icewm/theme
+    fi
+    ;;
+  *)
+    exit 1
+    ;;
+esac
+
+exit 0

@@ -1,0 +1,21 @@
+#! /bin/sh
+
+. `dirname $0`/common
+
+case "$1" in
+init)
+  if ! pkg_initialized $PACKAGE; then
+        chown -R $TSUSER.$TSUSER /opt/tor/Data
+	pkg_set_init_flag $PACKAGE
+
+  fi
+  ;;
+help)
+    echo "Usage: $0 init"
+    ;;
+*)
+    exit 1
+    ;;
+esac
+
+exit 0
