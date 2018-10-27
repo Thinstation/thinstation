@@ -1,7 +1,7 @@
 #gtk-engines 42
 if [ "$GTK_THEME" != "ALL" ]; then
 	if [ -z "$GTK_THEME" ]; then
-		GTK_THEME=Clearlooks
+		GTK_THEME=Adwaita
 	fi
 	if [ -e /lib/themes/$GTK_THEME/gtk-2.0/gtkrc ]; then
 		engine="`grep /lib/themes/$GTK_THEME/gtk-2.0/gtkrc -e engine |grep -v \"#\" |grep -v pixmap|tail -n1 |cut -d '\"' -f2`"
@@ -14,7 +14,7 @@ if [ "$GTK_THEME" != "ALL" ]; then
 		for del_engine in `find /lib/gtk-2.0/2.10.0/engines -type f |grep -v pixmap |grep -v $engine`; do
 			rm $del_engine
 		done
-		sed -i -e "s/gtk-theme-name = \"Clearlooks\"/gtk-theme-name = \"$GTK_THEME\"/g" /etc/gtk-2.0/gtkrc
+		sed -i -e "s/gtk-theme-name = \"Adwaita\"/gtk-theme-name = \"$GTK_THEME\"/g" /etc/gtk-2.0/gtkrc
 	else
 		echo -e "\tGtk-2 Theme $GTK_THEME not found!"
 	fi
