@@ -407,21 +407,6 @@ trailer ()
 
 # Verify's Web Password
 
-getpasswd ()
-{
-	local LOGIN=$1
-
-	set +x
-
-	if [ -z "$LOGIN" ]
-	then
-		echo "ERROR: Invalid login" >&2
-		return
-	fi
-
-	sed -n "s/^$LOGIN:\\([^:]*\\):.*/\\1/p" < /etc/passwd
-}
-
 verify_password ()
 {
 	local LOGIN=$1 PASSWD=$2 p s e
@@ -438,11 +423,11 @@ verify_password ()
 		return 1
 	fi
 
-	p=$(getpasswd $LOGIN)
-	s=$(echo "$p" | cut -f1-3 -d\$)
-	e=$(/bin/checkpass $PASSWD $s)
+	salt=`grep /etc/shadow -e $LOGIN |cut -d "$" -f3`
+	password=`grep /etc/shadow -e $LOGIN |cut -d ":" -f2 |cut -d "$" -f4`
+	encypted=`mkpasswd -1 $SALT $PASSWD`
 
-	if [ "$p" = "$e" ]
+	if [ "$password" = "$encypted" ]
 	then
 		return 0
 	else

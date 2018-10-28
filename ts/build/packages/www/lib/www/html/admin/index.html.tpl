@@ -12,17 +12,17 @@
     <tbody>
       <tr>
         
-      <td> <a href="index.html"><img src="images/ts_logo.jpg" width="650" height="153" border="0" alt="Thinstation logo"></a> 
+      <td> <a href="index.html"><img src="images/ts_logo.jpg" width="650" height="153" border="0" alt="ThinStation logo"></a> 
       </td>
       </tr>
     </tbody>
   </table>
 
   
-<h2>Thinstation ${TS_VERSION} on ${CLIENT_NAME} :: Main page</h2>
+<h2>ThinStation ${TS_VERSION} on ${CLIENT_NAME} :: Main page</h2>
 <p> This is the web administration main console; choose what you want to supervise:</p>
 <a href="/cgi-bin/SysInfo.cgi">System information</a><br>
-<a href="/cgi-bin/TSVariables.cgi">Thinstation variables</a><br>
+<a href="/cgi-bin/TSVariables.cgi">ThinStation variables</a><br>
 <a href="/cgi-bin/BootMessages.cgi">Boot messages</a><br>
 <a href="/cgi-bin/SysLog.cgi">Syslog messages</a><br>
 ${XORG}
