@@ -1,0 +1,52 @@
+# Description: The Tcl scripting language.
+# URL: http://www.tcl.tk/
+# Maintainer: Danny Rawlins, crux at romster dot me
+# Packager: Sven Dahl, dahl at c64 dot org
+
+name=tcl
+version=8.6.6
+release=1
+source=(http://downloads.sourceforge.net/project/$name/Tcl/$version/$name$version-src.tar.gz)
+
+build() {
+	cd $name$version/unix
+
+	./configure \
+		--prefix=/usr \
+		--mandir=/usr/share/man \
+		--without-tzdata \
+		--enable-64bit
+
+	make
+	make INSTALL_ROOT=$PKG install install-private-headers
+
+	install -d $PKG/usr/include/tcl/{generic,unix,compat}
+	cp ../generic/*.h $PKG/usr/include/tcl/generic
+	cp ../unix/*.h $PKG/usr/include/tcl/unix
+	cp ../compat/*.h $PKG/usr/include/tcl/compat
+
+	ln -s tclsh${version%.*} $PKG/usr/bin/tclsh
+	ln -s libtcl${version%.*}.so $PKG/usr/lib/libtcl.so
+	ln -s libtclstub${version%.*}.a $PKG/usr/lib/libtclstub.a
+
+	# remove $SRC traces
+	sed \
+		-e "s|$SRC/tcl$version/unix|/usr/lib|g" \
+		-e "s|$SRC/tcl$version|/usr/include|g" \
+		-i $PKG/usr/lib/tclConfig.sh
+
+	local tdbcver=tdbc1.0.4
+	sed \
+		-e "s|$SRC/tcl$version/unix/pkgs/$tdbcver|/usr/lib/$tdbcver|g" \
+		-e "s|$SRC/tcl$version/pkgs/$tdbcver/generic|/usr/include|g" \
+		-e "s|$SRC/tcl$version/pkgs/$tdbcver/library|/usr/lib/tcl${version%.*}|g" \
+		-e "s|$SRC/tcl$version/pkgs/$tdbcver|/usr/include|g" \
+		-i $PKG/usr/lib/$tdbcver/tdbcConfig.sh
+
+	local itclver=itcl4.0.5
+	sed \
+		-e "s|$SRC/tcl$version/unix/pkgs/$itclver|/usr/lib/$itclver|g" \
+		-e "s|$SRC/tcl$version/pkgs/$itclver/generic|/usr/include|g" \
+		-e "s|$SRC/tcl$version/pkgs/$itclver|/usr/include|g" \
+		-i $PKG/usr/lib/$itclver/itclConfig.sh
+}

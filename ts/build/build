@@ -1283,6 +1283,21 @@ echo "TSUSER=$ts_tsuser" >> ./tmp-tree/etc/thinstation.env
 
 echo -e "Setting Passwords"
 
+if [  -e $PACDIR/tsadminpasswd.param ]; then
+    if [ "$ts_tsadminpasswd" == "!!" ]; then
+        GETPASSWD="!!"
+    elif is_enabled $ts_sha512passwd; then
+        GETPASSWD=`python -c "import crypt; import string; import random; print crypt.crypt('$ts_tsadminpasswd', '\\\$6\\\$'+''.join(random.SystemRandom().choice(string.ascii_letters + string.digits + '/.') for _ in range(16)))"`
+    else
+        GETPASSWD=`mkpasswd -m md5 $ts_tsadminpasswd`
+    fi
+    cp ./tmp-tree/etc/passwd ./tmp-tree/etc/passwd.tmp
+    echo "tsadmin:$GETPASSWD:42:42:tsadmin:/home/tsadmin:/bin/sh" >./tmp-tree/etc/passwd
+    cat ./tmp-tree/etc/passwd.tmp | grep -v "tsadmin" >> ./tmp-tree/etc/passwd
+    rm ./tmp-tree/etc/passwd.tmp
+    echo "tsadmin:!:42:" >> ./tmp-tree/etc/group
+fi
+
 if [  -e $PACDIR/rootpasswd.param ]; then
     if [ "$ts_rootpasswd" == "!!" ]; then
         GETPASSWD="!!"
