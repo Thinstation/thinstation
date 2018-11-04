@@ -1,10 +1,10 @@
-# Thinstation
+# ThinStation
 
 README - Displaying of this file can be disabled by touching `/ts/etc/READ`
 
-This env was created for you by Donald A. Cupp Jr. from Crux and Thinstation
+This env was created for you by Donald A. Cupp Jr. from Crux and ThinStation
 
-Thinstation itself has many many many contributors, but much thanx goes out to
+ThinStation itself has many many many contributors, but much thanx goes out to
 Mike Eriksen, Trevor Batley, Miles Roper and Marcos Amorim
 
 Work To Do / Work in Progress: mail to developer List if you can help
@@ -27,7 +27,7 @@ Just run `./setup_chroot`. The first time this is run, it will expand all binary
 You will need to make sure you are in the chroot **Development Environment** by running `./setup-chroot`. You should then be able to `cd /build` and run `./build` to start making images. Edit build.conf and thinstation.conf.buildtime to make changes
 
 ## Compiling
-First off, this is a very advanced and not required at all to use thinstation.
+First off, this is a very advanced and not required at all to use ThinStation.
 
 The **CFLAGS** and **CXXFLAGS** can be changed by editing `/ts/etc/pkgmk.conf` and then exiting and re-entering the chroot. If you change the flags, you might want to rebuild all installed packages with `rebuild-all` command.
 You can make a single package like this `prt-get depinst [Package Name]` or update it with `prt-get update [Package name]`.
