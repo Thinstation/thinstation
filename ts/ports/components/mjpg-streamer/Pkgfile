@@ -3,15 +3,19 @@
 # Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 
 name=mjpg-streamer
-version=svn
+version=git
 release=1
 source=()
 
 build() {
-svn checkout svn://svn.code.sf.net/p/mjpg-streamer/code/ mjpg-streamer
-	cd $name/$name
+git clone https://github.com/jacksonliam/mjpg-streamer.git
+	cd $name/$name-*
 	mkdir -p $PKG/{lib,bin}
 	make
 	make DESTDIR=$PKG install
 	cp start.sh $PKG/bin/start-mjpg.sh
+	mv $PKG/usr/local/share/mjpg-streamer/www $PKG
+	mv $PKG/usr/local/bin/* $PKG/bin/.
+	mv $PKG/usr/local/lib/mjpg-streamer/* $PKG/lib/.
+	rm -rf $PKG/usr
 }

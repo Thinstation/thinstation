@@ -1,8 +1,11 @@
+#!/bin/bash
+set -x
 case $1 in
-*)
-	mkmbrdrv -p d:2g:boot -p l:0:home -o /build/boot-images/syslinux /dev/sdb
-;;
 gpt)
 	mkgptdrv -p ESP:2g:boot -p l:0:home -o /build/boot-images/systemd-boot /dev/sdb
 ;;
+*)
+	mkmbrdrv -p d:2g:boot -p l:0:home -o /build/boot-images/syslinux /dev/sdb
+;;
+
 esac

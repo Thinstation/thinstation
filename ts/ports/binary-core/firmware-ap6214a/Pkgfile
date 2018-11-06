@@ -1,0 +1,16 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=firmware-ap6214a
+version=20170626
+release=1
+source=(https://ubilinux.org/ubilinux/pool/main/f/firmware-ampak-ap6214a/firmware-ampak-ap6214a_$version.tar.xz)
+
+build() {
+ cd $SRC
+ rm -rf */debian
+ mv */* $PKG
+ mkdir $PKG/etc/init.d
+ echo "/usr/bin/hciattach -n -t 10 /dev/ttyS2 bcm43xx 115200" > $PKG/etc/init.d/ap6214a
+}
