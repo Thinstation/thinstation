@@ -29,6 +29,11 @@ HOME=/etc/skel
 	    if [ -n "$CHROMEHP" ] ; then
 		CHROME_HOMEPAGE=$CHROMEHP
 	    fi
-	    sed -e 's|http://www.thinstation.org|'$CHROME_HOMEPAGE'|g' /etc/chrome/Default/Preferences.tpl >> $CHROMEPREFS
+	    cat /etc/chrome/Default/Preferences.tpl |jq ".homepage = \"$CHROMEHP\"" |jq ".session.startup_urls = [ \"$CHROMEHP\" ]">> $CHROMEPREFS
+	    if [ -n "$CHROME_ZOOM" ]; then
+		cat $CHROMEPREFS |jq ".partition.per_host_zoom_levels.x.localhost.zoom_level = $CHROME_ZOOM" > $CHROMEPREFS.tmp
+		rm $CHROMEPREFS
+		mv $CHROMEPREFS.tmp $CHROMEPREFS
+	    fi
 	fi
  fi

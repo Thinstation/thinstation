@@ -1,0 +1,20 @@
+# Maintainer: Massimiliano Torromeo <massimiliano.torromeo@gmail.com>
+# Contributor: Andreas Wagner <Andreas dot Wagner at em dot uni-frankfurt dot de>
+
+name=oniguruma
+version=6.9.0
+release=1
+source=("https://github.com/kkos/oniguruma/releases/download/v$version/onig-$version.tar.gz")
+
+build() {
+	cd "$SRC"/onig-$version
+	./configure --prefix=/usr
+	make
+	make DESTDIR="$PKG" install
+	install -dm755 "$PKG"/usr/share/doc
+	cp -r doc "$PKG"/usr/share/doc/$name
+	for licfile in COPYING INSTALL; do
+		install -Dm644 $licfile "$PKG"/usr/share/licenses/$name/$licfile
+	done
+}
+

@@ -13,4 +13,14 @@ fi
 
 [ "`id -u`" == "0" ] && sandbox="--no-sandbox" || unset sandbox
 
+if [ -n "`echo $@ |grep -e '--kiosk'`" ] && [ -z "`pgrep /opt/google/chrome/chrome`" ]; then
+	cp -a /etc/skel/.config/google-chrome ~/.config/.
+	chown -R `id` ~/.config/google-chrome
+	if [ -n "$KIOSK_DELAY" ]; then
+		# We just killed crash detection, so now sleep incase were in a flapping state, also gives
+		# local web servers enough time to get started
+		sleep $KIOSK_DELAY
+	fi
+fi
+
 exec /opt/google/chrome/google-chrome $sandbox $proxyline --user-data-dir "$@"
