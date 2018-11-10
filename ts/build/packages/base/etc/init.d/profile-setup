@@ -7,6 +7,10 @@ if [ "$TSUSER" != "root" ]; then
 else
 	HOME=/root
 fi
+
+rm -f /etc/thinstation.user
+ln -sf $HOME/thinstation.conf.user /etc/thinstation.user
+
 if [ -n "$STORAGE_PREFIX" ] ; then
 	STORAGE_PREFIX=`make_caps $STORAGE_PREFIX`
 	if [ "$STORAGE_PREFIX" == "M" ] ; then
