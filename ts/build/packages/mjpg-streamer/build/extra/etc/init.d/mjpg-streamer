@@ -43,7 +43,10 @@ start|init)
 				MJPG_OUTPUT_OPTIONS="-w /www -p 123$vid"
 			fi
 			start-stop-daemon -S -p /run/mjpg-streamer$vid.pid -m -b -x \
-			 /bin/mjpg_streamer -- -i "/lib/input_$MJPG_INPUT.so $MJPG_INPUT_OPTIONS" -o "/lib/output_$MJPG_OUTPUT.so $MJPG_OUTPUT_OPTIONS" 2>/dev/null > $LOGFILE
+			  /bin/mjpg_streamer --	-i "/lib/input_$MJPG_INPUT.so $MJPG_INPUT_OPTIONS" \
+						-o "/lib/output_$MJPG_OUTPUT.so $MJPG_OUTPUT_OPTIONS" \
+						2>/dev/null > $LOGFILE
+			sleep 1
 			if [ -n "`eval echo '$'VCAM_FOCUS_$vid`" ]; then
 				v4l2-ctl -d $vdev --set-ctrl=focus_auto=0
 				v4l2-ctl -d $vdev --set-ctrl=focus_absolute="`eval echo '$'VCAM_FOCUS_$vid`"
