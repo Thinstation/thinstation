@@ -359,7 +359,7 @@ module_package_dependencies()
 							fi
 						;;
 						firmware)
-							if is_enabled $ts_allfirmware; then
+							if ! is_enabled $ALLMODULES; then
 								if [ -z "`find ./tmp-tree/lib/firmware -name ${name}`" ]; then
 									if ! is_enabled $DISPLAYED; then
 										echo "Adding module dependencies for $module"
@@ -839,13 +839,35 @@ locales()
 allfirm()
 {
 	if is_enabled $ts_allfirmware; then
-		unset firmlist
-		module=`find /lib/modules/$KERNVER -name $1`
-		firmlist=`modinfo -F firmware $module`
+		local fmodule=`find /lib/modules/$KERNVER -name $1`
+		local module=`basename $fmodule`
+		if [ -e /ts/firmware_notfound/$module.oops ]; then
+			WRITE_CACHE=false
+		fi
+		if [ -e /ts/firmware_cache/$module.turbo ]; then
+			if [ -e /ts/firmware_notfound/$module.oops ]; then
+				firmlist=`cat /ts/firmware_cache/$module.turbo |grep -v -f /ts/firmware_notfound/$module.oops`
+			else
+				firmlist=`cat /ts/firmware_cache/$module.turbo`
+			fi
+			WRITE_CACHE=false
+		else
+			firmlist=`modinfo -F firmware $fmodule`
+			WRITE_CACHE=true
+			mkdir -p /ts/firmware_cache
+			mkdir -p /ts/firmware_notfound
+			touch /ts/firmware_cache/$module.turbo
+		fi
 		if [ -n "$firmlist" ]; then
-			echo "Adding extra module firmware for `basename $module`"
+			echo "Adding extra module firmware for $module"
 			for firmware in $firmlist; do
 				copy_firmware `basename $firmware`
+				result=$?
+				if [ "$result" == "0" ] && $WRITE_CACHE; then
+					echo "$firmware" >> /ts/firmware_cache/$module.turbo
+				elif [ "$result" == "2" ] && $WRITE_CACHE; then
+					echo "$firmware" >> /ts/firmware_notfound/$module.oops
+				fi
 			done
 		fi
 	fi
@@ -853,7 +875,6 @@ allfirm()
 
 keymaps()
 {
-#
     for filename in `find $PACDIR -maxdepth 1 -name "keymaps-*"`
     do
 	package=`basename $filename`
@@ -928,12 +949,14 @@ copy_firmware()
 				if [ ! -d ${firmpath%/*} ] ;then
 					mkdir -p ${firmpath%/*}
 				fi
-				cp $firmfile ${firmpath%/*}/.
+				ln $firmfile ${firmpath%/*}/.
+				return 0
 			fi
 		done
 	else
 		echo -e "\tNotice, Firmware $1 not found"
 #		echo "$1" >> /missing
+		return 2
 	fi
 }
 
@@ -1098,6 +1121,16 @@ install_non_distributable()
 	done
 }
 
+pre_copy()
+{
+	local module=$1
+	if grep -qe $module /tmp/blacklist.modules; then
+		echo "Skipping $module"
+	elif copy_module $module $KERNVER ./tmp-tree; then
+		allfirm $module
+	fi
+}
+
 # Main TS build script
 main()
 {
@@ -1177,13 +1210,12 @@ for KERNVER in $KERNVERS; do
 				find $gdir -name \*.ko -printf '%f ' >> /tmp/blacklist.modules
 			done
 		done
-		for module in `find /lib/modules/$KERNVER -name \*.ko -printf '%f '`; do
-			if grep -qe $module /tmp/blacklist.modules; then
-				echo "Skipping $module"
-			elif copy_module $module $KERNVER ./tmp-tree; then
-				allfirm $module
-			fi
-		done
+		procs=`nproc`
+		let procs=(procs * 8 )
+		export -f pre_copy copy_module allfirm make_caps copy_firmware
+		export ts_allfirmware KERNVER
+		find /lib/modules/$KERNVER -name \*.ko -printf '%f\n' | \
+		xargs -n 1 -P $procs -I {} bash -c 'pre_copy "$@"' _ {}
 		rm /tmp/blacklist.modules
 	fi
 done
@@ -1195,7 +1227,9 @@ for KERNVER in $KERNVERS; do
 		if ! is_enabled $ALLMODULES || [ -n "$ts_blacklist$ts_blacklist_grp" ]; then
 			# Adding dependent modules via modinfo
 			echo -e "\nBuilding dependencies for $KERNVER Modules..."
-			module_dependencies
+			if ! is_enabled $ts_allfirmware; then
+				module_dependencies
+			fi
 		fi
 
 		# Adding additional packages and modules which are dependencies of modules
@@ -1208,8 +1242,9 @@ for KERNVER in $KERNVERS; do
 		package_dependencies pkg
 
 		# Adding modules that are dependencies of packages
-		package_module_dependencies
-
+		if ! is_enabled $ts_allfirmware; then
+			package_module_dependencies
+		fi
 		# Did we add anything?
 		if [ -e /tmp/dirty ]; then
 			echo -e "\nDependencies are dirty. Restarting!"
