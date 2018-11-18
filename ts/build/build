@@ -232,8 +232,10 @@ lib_dependencies()
 		|cut -d: -f1 > liblist.final 2>/dev/null
 		rm filelist
 		while [ -s liblist.final ]; do
-			parallel --record-env
-			cat liblist.final |sort -u|sort -R |parallel --env _ --will-cite calculate_lib_dependencies
+			procs=`nproc`
+			let procs=( procs * 2 )
+			cat liblist.final |sort -u|sort -R | \
+			xargs -n 1 -P $procs -I {} bash -c 'calculate_lib_dependencies "$@"' _ {}
 			rm liblist.final
 			if [ -e liblist.added ]; then
 				mv liblist.added liblist.final
