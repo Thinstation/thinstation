@@ -1308,13 +1308,6 @@ if [ -e $PACDIR/tsuser.param ]; then
 else
 	ts_tsuser=root
 fi
-sed -i -e "s/tsuser/$ts_tsuser/g" ./tmp-tree/etc/group
-sed -i -e "s/\-a tsuser/\-a $ts_tsuser/g" ./tmp-tree/etc/inittab
-sed -i -e "s/\-a tsuser/\-a $ts_tsuser/g" ./tmp-tree/etc/systemd/system/display-manager.service
-sed -i -e "s/\-a tsuser/\-a $ts_tsuser/g" ./tmp-tree/etc/systemd/system/getty\@tty1.service.d/override.conf
-if [ -e ./tmp-tree/etc/pam.d/login ]; then
-	sed -i -e "s/user = root/user = $ts_tsuser/g" ./tmp-tree/etc/pam.d/login
-fi
 echo "TSUSER=$ts_tsuser" >> ./tmp-tree/etc/thinstation.env
 
 echo -e "Setting Passwords"
@@ -1524,13 +1517,14 @@ if [ -e $PACDIR/www.* ]; then
 	if [ ! -d $WEBDIR ] ; then 
 		mkdir -p $WEBDIR
 	fi
-  cat ./thinstation.conf.sample |grep "\-\-\-" |cut -d" " -f3- |sed -e s/Options//g  |sed -e s/\
-//g >$WEBDIR/headings
-  (cat $WEBDIR/headings) |
-  while read heading
-  do
-	awk "/--- $heading/,/##/" ./thinstation.conf.sample  > "$WEBDIR/$heading.sample"
-  done
+  cat -v ./thinstation.conf.sample | \
+	grep "\-\-\-" | \
+	cut -d" " -f3- | \
+	sed -e s/Options//g  | \
+	busybox dos2unix | \
+  	while read heading; do
+		awk "/--- $heading/,/##/" ./thinstation.conf.sample  > "$WEBDIR/$heading.sample"
+	done
 fi
 
 

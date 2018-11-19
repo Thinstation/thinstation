@@ -5,6 +5,31 @@ for i in /*; do
     chmod -R g-w,o-w $i
   fi
 done
+
+if [ "$SESSION_0_TYPE" == "sh" ]; then
+        rm /lib/systemd/system/default.target
+        ln -sf multi-user.target /lib/systemd/system/default.target
+        if is_enabled $SESSION_0_AUTOSTART; then
+                cat <<EOF> /etc/systemd/system/getty@tty1.service.d/override.conf
+[Service]
+ExecStart=
+ExecStart=-/sbin/agetty -c --noclear --nohints --noissue --nohostname -a tsuser tty1 115200 linux
+EOF
+        fi
+else
+        rm -rf /etc/systemd/system/getty.target.wants
+fi
+
+sed -i -e "s/tsuser/$TSUSER/g" /etc/group
+sed -i -e "s/\-a tsuser/\-a $TSUSER/g" /etc/inittab
+sed -i -e "s/\-a tsuser/\-a $TSUSER/g" /etc/systemd/system/display-manager.service
+if [ -e /etc/systemd/system/getty\@tty1.service.d/override.conf ]; then
+	sed -i -e "s/\-a tsuser/\-a $TSUSER/g" /etc/systemd/system/getty\@tty1.service.d/override.conf
+fi
+if [ -e /etc/pam.d/login ]; then
+        sed -i -e "s/user = root/user = $TSUSER/g" /etc/pam.d/login
+fi
+
 mkdir -p /var/log/applications
 chmod -R g+w,o+w /var/log/applications
 chmod -R o-r /var/log/applications
