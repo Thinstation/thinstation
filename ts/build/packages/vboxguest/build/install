@@ -23,24 +23,18 @@ sleep 1
 umount wget_tmp/iso
 let returnval=returnval+$?
 
-# Extract the 32-bit files
+# Extract the 64-bit files
 mkdir -p wget_tmp/vbox
 tar -C wget_tmp/vbox -xf wget_tmp/additions/VBoxGuestAdditions-amd64.tar.bz2 
 let returnval=returnval+$?
 
-# Install the Xorg driver and mount script we need and remove the rest
+# Install mount script we need and remove the rest
 # Not sure what the PAM module is for, and the init scripts are duplicates
-mkdir -p $INSTALLDIR/lib/xorg/modules/drivers
-cp wget_tmp/vbox/lib/VBoxGuestAdditions/vboxvideo_drv_$xserver.so $INSTALLDIR/lib/xorg/modules/drivers/vboxvideo_drv.so
-#let returnval=returnval+$?
+
 mkdir -p $INSTALLDIR/sbin
 mkdir -p $INSTALLDIR/bin
-mv wget_tmp/vbox/lib/VBoxGuestAdditions/mount.vboxsf $INSTALLDIR/sbin
-mv wget_tmp/vbox/lib/VBoxGuestAdditions/98vboxadd-xclient $INSTALLDIR/bin/VBoxClient-all
-rm -f wget_tmp/vbox/lib/VBoxGuestAdditions/vbox{mouse,video}*
-rm -f wget_tmp/vbox/lib/VBoxGuestAdditions/pam_vbox.so
-mkdir -p wget_tmp/vbox/lib/dri
-ln -s /lib/VBoxOGL.so wget_tmp/vbox/lib/dri/vboxvideo_dri.so
+mv wget_tmp/vbox/other/mount.vboxsf $INSTALLDIR/sbin
+mv wget_tmp/vbox/other/98vboxadd-xclient $INSTALLDIR/bin/VBoxClient-all
 
 # Removing the greeter for now (autologon)
 # If put back, other pieces are needed to integrate with lightdm
@@ -50,53 +44,13 @@ rm -f wget_tmp/vbox/sbin/vbox-greeter
 cp -a wget_tmp/vbox/{bin,lib,sbin} $INSTALLDIR
 let returnval=returnval+$?
 
+mkdir -p $INSTALLDIR/etc/init.d
+cp -a wget_tmp/vbox/init/vboxadd-service $INSTALLDIR/etc/init.d/.
+
 # For share, Install the client application autostart
 # We don't need the selinux modules or the ids needed for Ubuntu
 mkdir -p $INSTALLDIR/etc/xdg/autostart
-cp wget_tmp/vbox/share/VBoxGuestAdditions/vboxclient.desktop $INSTALLDIR/etc/xdg/autostart
-
-# For init, only the service one looks needed
-# We've basically done the x11 init script above, and relying on autoconfig
-# We're installing the modules ourselves, so skip the vboxadd script
-# Function is a modified version from additions/routines.sh
-systemd_wrap_init_script()
-{
-    name=$1
-    unit_path=$INSTALLDIR/lib/systemd/system
-    mkdir -p $unit_path/multi-user.target.wants
-    ln -s ../$name.service $unit_path/multi-user.target.wants
-    script=wget_tmp/vbox/lib/VBoxGuestAdditions/$name
-    description=`sed -n 's/# *Short-Description: *\(.*\)/\1/p' "${script}"`
-    required=`sed -n 's/# *Required-Start: *\(.*\)/\1/p' "${script}" | sed 's/\$[a-z]*//'`
-    runlevels=`sed -n 's/# *Default-Start: *\(.*\)/\1/p' "${script}"`
-    before=`for i in ${runlevels}; do printf "runlevel${i}.target "; done`
-    after=`for i in ${required}; do printf "${i}.service "; done`
-    script=/lib/VBoxGuestAdditions/$name
-    cat > "${unit_path}/${name}.service" << EOF
-[Unit]
-SourcePath=${script}
-Description=${description}
-Before=${before}shutdown.target
-After=${after}
-Conflicts=shutdown.target
-
-[Service]
-Type=forking
-Restart=no
-TimeoutSec=5min
-IgnoreSIGPIPE=no
-KillMode=process
-GuessMainPID=no
-RemainAfterExit=yes
-ExecStart=${script} start
-ExecStop=${script} stop
-
-[Install]
-WantedBy=multi-user.target
-EOF
-}
-systemd_wrap_init_script vboxadd-service
-let returnval=returnval+$?
+cp wget_tmp/vbox/other/vboxclient.desktop $INSTALLDIR/etc/xdg/autostart
 
 do_module() {
   pushd wget_tmp/$3/src/vboxguest-*/$2
@@ -110,16 +64,11 @@ do_module() {
 }
 
 # Install the modules
-for kernel in ${release}TS; do
+for kernel in ${release}TS ${release}TS+con; do
   mkdir -p $INSTALLDIR/lib/modules/$kernel/misc
-  vbox=vbox
-  do_module $kernel vboxguest $vbox
-#  do_module $kernel vboxvideo $vbox
-  do_module $kernel vboxsf $vbox
+  do_module $kernel vboxguest vbox
+  do_module $kernel vboxsf vbox
 done
-
-# Don't wine so much when were not in a VBox VM
-#sed -i -E 's/notify-send[ ":a-zA-Z.]+/exit/g' $INSTALLDIR/bin/VBoxClient-all
 
 cp -a $INSTALLDIR/build/extra/* $INSTALLDIR
 let returnval=returnval+$?
