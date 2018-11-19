@@ -122,6 +122,12 @@ stage4()
                 grep -E "binary-core" | \
                 xargs -n 1 -P $procs -I {} bash -c 'install_binary_port "$@"' _ {}
         done
+        # Fix for db access violations
+        if [ -e /var/log/pkgbuild ]; then
+                for prt in `ls /var/log/pkgbuild -1`; do
+                        prt-get install `basename $prt .log` -if -im > /dev/null 2>&1
+                done
+        fi
 	add_to_db
         printf "\rBinary Core Port Installation %-40s\n" "Complete"
 	post_install
