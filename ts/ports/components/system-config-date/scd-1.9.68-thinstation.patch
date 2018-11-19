@@ -1,0 +1,204 @@
+diff -urp a/src/scdate/core/dateBackend.py b/src/scdate/core/dateBackend.py
+--- a/src/scdate/core/dateBackend.py	2012-09-11 07:48:08.000000000 -0500
++++ b/src/scdate/core/dateBackend.py	2012-11-07 15:19:16.992808441 -0600
+@@ -31,8 +31,6 @@ import sys
+ import time
+ import shlex
+ 
+-from slip.util.files import overwrite_safely
+-
+ import servicesBackend
+ 
+ class NTPProvider(object):
+@@ -74,7 +72,7 @@ class dateBackend(object):
+ 
+         #--cal.get_date starts counting months at 0 for Jan.  We need to start counting at 1
+         month = month + 1
+-        cmd = '/bin/date -s %d/%d/%d\ %s:%s:%s' % (year, month, day, hour, min, sec)
++        cmd = '/bin/date -s %d-%d-%d\ %s:%s:%s' % (year, month, day, hour, min, sec)
+         fd = os.popen(cmd, 'r')
+         fd.readlines()
+         return not fd.close()
+@@ -85,7 +83,7 @@ class dateBackend(object):
+         # was run).
+         if os.access("/sbin/hwclock", os.F_OK) == 1:
+             #The S390 has no hwclock binary, so don't try to run it if it isn't there
+-            return not os.system("/sbin/hwclock --systohc")
++            return not os.system("/sbin/hwclock --hctosys")
+         return True
+ 
+     def writeNtpConfig (self, ntpServers, ntpBroadcastClient, ntpLocalTimeSource, ntpIburst):
+@@ -171,7 +169,9 @@ class dateBackend(object):
+ 
+         #Now that we've got the list of data, open the file and write it out
+         try:
+-            overwrite_safely(self.ntpProvider.config_file, "".join(ntpFileList))
++            f = open(self.ntpProvider.config_file, "w")
++            f.write("".join(ntpFileList))
++            f.close()
+         except Exception, e:
+             print >>sys.stderr, e
+             return
+@@ -214,7 +214,9 @@ class dateBackend(object):
+             lines_new.append("NTPSERVERARGS=iburst\n")
+ 
+         try:
+-            overwrite_safely("/etc/sysconfig/network", "".join(lines_new))
++            f = open("/etc/sysconfig/network", "w")
++            f.write("".join(lines_new))
++            f.close()
+         except Exception, e:
+             print e
+             return
+diff -urp a/src/scdate/core/servicesBackend.py b/src/scdate/core/servicesBackend.py
+--- a/src/scdate/core/servicesBackend.py	2012-09-11 07:48:08.000000000 -0500
++++ b/src/scdate/core/servicesBackend.py	2012-11-07 15:17:18.371291414 -0600
+@@ -75,6 +75,53 @@ class AbstractServices(object):
+         raise NotImplementedError()
+ 
+ 
++
++class BSDServices(AbstractServices):
++
++    @classmethod
++    def check_flavor(cls):
++        return True
++
++    @classmethod
++    def service_exists(cls, service):
++        if (not os.access("/etc/init.d/%s" % (service), os.X_OK)):
++	    return False
++        return True
++
++    @classmethod
++    def service_is_enabled(cls, service):
++	if (os.access("/var/packages/%s" % (service), os.X_OK)):
++		return True
++	return False
++	
++    @classmethod
++    def service_enable(cls, service):
++	return cls.call("/etc/init.d/%s" % (service), "init")
++
++    @classmethod	
++    def service_disable(cls, service):
++	if (os.access("/var/packages/%s" % (service), os.X_OK)):
++		return os.unlink("/var/packages/%s" % (service))
++	return 0
++
++    @classmethod
++    def service_is_active(cls, service):
++        return cls.call("/etc/init.d/%s" % (service), "status") == 0
++
++    @classmethod
++    def service_start(cls, service):
++        return cls.call("/etc/init.d/%s" % (service), "start")
++
++    @classmethod
++    def service_restart(cls, service):
++        return cls.call("/etc/init.d/%s" % (service), "restart")
++
++    @classmethod
++    def service_stop(cls, service):
++        return cls.call("/etc/init.d/%s" % (service), "stop")
++
++
++
+ class SysVServices(AbstractServices):
+ 
+     chkconfig = "/sbin/chkconfig"
+@@ -184,7 +231,7 @@ __services = None
+ def Services():
+     global __services
+     if __services is None:
+-        for candidate in SystemDServices, SysVServices:
++        for candidate in SystemDServices, SysVServices, BSDServices:
+             if candidate.check_flavor():
+                 __services = candidate
+                 break
+diff -urp a/src/scdate/core/timezoneBackend.py b/src/scdate/core/timezoneBackend.py
+--- a/src/scdate/core/timezoneBackend.py	2012-09-11 07:48:08.000000000 -0500
++++ b/src/scdate/core/timezoneBackend.py	2012-11-07 15:17:18.378291326 -0600
+@@ -26,7 +26,7 @@
+ # Nils Philippsen <nils@redhat.com>
+ 
+ import os
+-from slip.util.files import linkorcopyfile
++import shutil
+ 
+ def bool(val):
+     if val: return "true"
+@@ -42,12 +42,13 @@ class timezoneBackend(object):
+         else:
+             utc = "true"
+ 
+-        linkorcopyfile (fromFile, "/etc/localtime")
++        os.remove("/etc/localtime")
++        os.symlink (fromFile, "/etc/localtime")
+ 
+         #Check to see if /var/spool/postfix/etc/localtime exists
+         if os.access("/var/spool/postfix/etc/localtime", os.F_OK) == 1:
+             #If it does, copy the new time zone file into the chroot jail
+-            linkorcopyfile (fromFile, "/var/spool/postfix/etc/localtime")
++            shutil.copyfile (fromFile, "/var/spool/postfix/etc/localtime")
+ 
+         #Write info to the /etc/sysconfig/clock file
+         f = open("/etc/sysconfig/clock", "w")
+diff -urp a/src/scdMainWindow.py b/src/scdMainWindow.py
+--- a/src/scdMainWindow.py	2012-09-11 07:48:08.000000000 -0500
++++ b/src/scdMainWindow.py	2012-11-08 13:29:45.387816169 -0600
+@@ -78,24 +78,37 @@ class scdMainWindow(object):
+         sysDate = self.datePage.getDate ()
+         sysTime = self.datePage.getTime ()
+         ntpEnabled = self.datePage.getNtpEnabled ()
++        
++        timezone, utc = self.timezoneBackend.getTimezoneInfo ()
++        tzchanged = False
++        if utc == 'true':
++            utc = True
++        elif utc == 'false':
++            utc = False
+ 
+         # Get the time zone info from the time zone page
+         if "timezone" in self.showPages:
+-            timezone, utc = self.timezonePage.getTimezoneInfo ()
+-        else:
+-            timezone, utc = self.timezoneBackend.getTimezoneInfo ()
++            newtimezone, newutc = self.timezonePage.getTimezoneInfo ()
++            if newtimezone != timezone:
++                tzchanged = newutc
++            if utc != newutc:
++                tzchanged = True
++            timezone = newtimezone
++            utc = newutc
+ 
+         self.timezoneBackend.writeConfig (timezone, utc)
+ 
+         if ntpEnabled == False:
+             # We're not using ntp, so stop the service
+             self.dateBackend.stopNtpService ()
+-            # set the time on the system according to what the user set it to
+-            if not self.dateBackend.writeDateConfig (sysDate, sysTime):
+-                self.showErrorDialog (_("Failed to set time and date."))
+-                return
+-            if not self.dateBackend.syncHardwareClock ():
+-                self.showDialog (gtk.MESSAGE_WARNING, _("Failed to synchronize hardware clock. This may be because there is no hardware clock accessible, e.g. when running in a virtualized environment."))
++            if tzchanged:
++                if not self.dateBackend.syncHardwareClock ():
++                    self.showDialog (gtk.MESSAGE_WARNING, _("Failed to synchronize hardware clock. This may be because there is no hardware clock accessible, e.g. when running in a virtualized environment."))
++            else:
++                # set the time on the system according to what the user set it to
++                if not self.dateBackend.writeDateConfig (sysDate, sysTime):
++                    self.showErrorDialog (_("Failed to set time and date."))
++                    return
+             self.closeParent = True
+             self.dateBackend.chkconfigOff ()
+ 
+@@ -138,7 +151,6 @@ class scdMainWindow(object):
+                         gtk.main_quit ()
+                     else:
+                         gtk.mainquit ()
+-                    self.dateBackend.syncHardwareClock ()
+ 
+                 self.childHandled = True
+                 return

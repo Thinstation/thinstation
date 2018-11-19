@@ -1,0 +1,71 @@
+diff -Nru wvdial-1.61.orig/Makefile.in wvdial-1.61/Makefile.in
+--- wvdial-1.61.orig/Makefile.in	2009-09-30 09:28:10.000000000 +0200
++++ wvdial-1.61/Makefile.in	2009-09-30 09:31:22.000000000 +0200
+@@ -3,27 +3,19 @@
+ WVPACKAGE_TARNAME=@PACKAGE_TARNAME@
+ WVPACKAGE_VERSION=@PACKAGE_VERSION@
+ 
+-prefix=/usr/local
+-WVSTREAMS_INC=
+-WVSTREAMS_LIB=
++prefix=$(DESTDIR)/usr
++WVSTREAMS_INC=$(WVS)/include
++WVSTREAMS_LIB=$(WVS)
+ WVSTREAMS_BIN=$(prefix)/bin
+ WVSTREAMS_SRC=.
+ 
+-PC_CFLAGS=$(shell pkg-config --cflags libwvstreams)
+-ifeq ($(PC_CFLAGS),)
+- $(error WvStreams does not appear to be installed)
+-endif
+-CPPFLAGS+=$(PC_CFLAGS)
+-
+-PC_LIBS=$(shell pkg-config --libs libwvstreams)
+-ifeq ($(PC_LIBS),)
+- $(error WvStreams does not appear to be installed)
+-endif
+-LIBS+=$(PC_LIBS)
++LIBS = $(WVS)/libwvstatic.a -lstdc++ -lcrypto -lssl
+ 
+ BINDIR=${prefix}/bin
+-MANDIR=${prefix}/share/man
+-PPPDIR=/etc/ppp/peers
++MANDIR=${prefix}/man
++PPPDIR=$(DESTDIR)/etc/ppp/peers
++
++VERBOSE=1
+ 
+ include wvrules.mk
+ 
+@@ -33,9 +25,6 @@
+ wvdial.a: wvdialer.o wvmodemscan.o wvpapchap.o wvdialbrain.o \
+ 	wvdialmon.o
+ 
+-wvdial wvdialconf papchaptest pppmon: \
+-  LDFLAGS+=-luniconf -lwvstreams -lwvutils -lwvbase
+-
+ wvdial wvdialconf papchaptest pppmon: wvdial.a
+ 
+ install-bin: all
+diff -Nru wvdial-1.61.orig/config.defaults.mk wvdial-1.61/config.defaults.mk
+--- wvdial-1.61.orig/config.defaults.mk	2009-09-30 09:28:10.000000000 +0200
++++ wvdial-1.61/config.defaults.mk	2009-09-30 10:06:24.000000000 +0200
+@@ -13,7 +13,6 @@
+ LIBS_PAM=-lpam
+ LIBS_TCL=
+ 
+-prefix=/usr/local
+ datadir=${prefix}/share
+ includedir=${prefix}/include
+ infodir=${prefix}/share/info
+@@ -28,8 +27,8 @@
+ libexecdir=${exec_prefix}/libexec
+ sbindir=${exec_prefix}/sbin
+ 
+-enable_debug=yes
+-enable_optimization=no
++enable_debug=no
++enable_optimization=yes
+ enable_resolver_fork=
+ enable_warnings=
+ enable_testgui=

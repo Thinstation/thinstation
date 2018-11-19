@@ -1,0 +1,18 @@
+# Description: Configure system time, tim zone, and NTP servers
+# URL: https://fedoraproject.org/wiki/SystemConfig/date
+# Maintainer: None
+# Depends on: 
+
+name=system-config-date
+version=1.9.68
+release=1
+source=(https://fedorahosted.org/released/$name/$name-$version.tar.bz2
+	scd-$version-thinstation.patch)
+
+build() {
+    cd $name-$version
+    patch -Np1 -i $SRC/scd-$version-thinstation.patch
+
+    make
+    make install DESTDIR=$PKG SUBDIRS=man
+}
