@@ -1,0 +1,24 @@
+# Description: Web Open Font Format 2 reference implementation
+# URL: https://github.com/google/woff2
+# Maintainer: Danny Rawlins, crux at romster dot me
+# Depends on: brotli ninja
+
+name=woff2
+version=1.0.2
+release=1
+source=(https://github.com/google/$name/archive/v$version/$name-v$version.tar.gz)
+
+build() {
+	cd $name-$version
+
+	install -d $SRC/build
+	cd $SRC/build
+
+	cmake $SRC/$name-$version \
+		-G Ninja \
+		-DCMAKE_INSTALL_PREFIX="/usr" \
+		-DCMAKE_INSTALL_LIBDIR="/usr/lib"
+
+	ninja -j ${JOBS-1}
+	DESTDIR="$PKG" ninja install
+}

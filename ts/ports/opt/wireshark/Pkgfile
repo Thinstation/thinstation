@@ -5,20 +5,23 @@
 # Depends on: gtk libpcap libpcre
 
 name=wireshark
-version=1.12.3
+version=2.0.5
 release=1
 source=(http://www.wireshark.org/download/src/all-versions/$name-$version.tar.bz2)
 
 build() {
 	cd $name-$version
 
+        CPPFLAGS+=" -std=c++11"
+	./autogen.sh
 	./configure --prefix=/usr \
 	            --mandir=/usr/man \
 	            --with-plugins=/usr/lib/$name/plugins \
-	            --disable-nls \
+	             \
 	            --enable-snmp \
-	            --with-gtk2=yes \
-                    --with-gtk3=no \
+	            --with-gtk2=no \
+                    --with-gtk3=yes \
+                    --with-qt=5 \
 	            --disable-gcry \
 
 	make

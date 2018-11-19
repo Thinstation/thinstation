@@ -61,12 +61,11 @@
 #machine Dell-FX170			# Dell FX170 D525 Atom Machine
 machine VMWare				# A good set of modules for a VmWare Virtual Machine
 machine Virtualbox-4.1			# A good set of modules for a Virtualbox Virtual Machine
-machine qemu				# A good set of modules for qemu
+machine qemu
 #machine VIA-Epia-CLE266		# VIA Epia/Eden based on the the CLE266 chip. Rather common in thin clients a few years old
 #machine classic_generic		# Big list of modules that you can choose by unremarking them
 #machine IGEL-M300C                     # Igel CX700 Via
 #machine HP-t5135                       # HP CX700 Via
-#machine HP-t620						#HP t620 Thin Client
 #machine foxconn-nT-330i		# Foxconn nT 330i Barebone
 #machine foxconn-nT-435			# Foxconn nT 435 Barebone
 #machine foxconn-nT-535			# Foxconn nT 535 Barebone
@@ -127,14 +126,14 @@ package ntp			# Utility to obtain date & time from network
 #package sound-nasd		#  sound on your thin client from another computer or
                         	#  your remote session.
 package alsa
-#package pulseaudio		#Enable Pulse Audio Server. Required for Skype Virtualisation Pack in Horizon View Client 4.5+
-package gnome-media
+#package gnome-media
 #package gnome-network-properties
-package gnome-core
+#package gnome-core
+package gnome-control-center
 package volumeicon
 #package kismet
-package gst-plugins-base
-package gst-plugins-good
+#package gst-plugins-base
+#package gst-plugins-good
 #package crystalhd
 #package libva
 #package iptables		# IP Tables support
@@ -147,13 +146,12 @@ package cpufreq
 #package xorg7-v4l
 package xorg7-vesa		#A fallback driver that works with almost everything. Does allow resolution changes
 package xorg7-vmware
+package xorg7-qxl
 package xorg7-ati		#ATI video driver for most modern ATI chipsets. Usually requires several firmwares
 package xorg7-nouveau		#New opensource nvidia driver
 #package xorg7_nvidia		#Proprietary nvidia driver
-#package xorg7_nvidia_64         # Additional 64bit module
 package xorg7-openchrome	#Via Video Chipsets driver
 package xorg7-intel		#Intel video driver for most modern chipsets except the GMA3500/3600
-package xorg7-qxl		#QEMU video driver
 #package xorg7-sis
 
 #!!Locale or localization files for keyboard and fonts.  (Language/Country)
@@ -179,7 +177,6 @@ package locale-pt_BR  # Portuguese-Brazil
 package locale-ru_RU  # Russian
 package locale-sv_SE  # Swedish
 package locale-tr_TR  # Turkish
-package locale-uk_UA  # Ukrainian
 
 #!Applications
 #!!Connection Package types.  Choose *at least* one!
@@ -199,12 +196,10 @@ package freerdp		# X RDP Client - fork of rdesktop
 #package nx              	# No Machine NX client
 #package 2x			# 2X client
 #package java			# Java runtime
-#package firefox_lowmem		# Firefox 3 for low resource machines
-package firefox		# Firefox current Web Browser
-#package chrome			# Google Chrome Web Browser
+#package firefox		# Firefox current Web Browser
+package chrome			# Google Chrome Web Browser
 #package chromium		# Chromium Web Browser
 #package kiosk			# Rkiosk Plugin for Firefox
-#package flash_lowmem		# Flash 9 browser plugin for firefox and low resource machines
 #package flash			# Flash Current
 #package filezilla		# FileZilla FTP Client for X
 #package git			# GIT Version Control System
@@ -213,16 +208,14 @@ package open-vm-tools
 package vboxguest
 #package medit			# Notepad
 #package mplayer		# DVD and video player
-#package vmview                 # VMware Open-View Client, no PCoIP
-#package vmviewpcoip            # VMware Open-View Client, PCOIP
-#package vmhorizonclient				# VMware Horizon Client 4.x
+#package vmview            # VMware Open-View Client, PCOIP
 #package xbmc			# XBMC Media Center for X
 #package evince			# X PDF Viewer
 
 #!!Window Managers. Choose no more than 1 window manager.
 # Not needed if you don t want to manage windows.
 #package openbox		# A spartin clean/fast window manager.
-#package xdesktop-kiosk		# A locked down desktop kiosk using the openbox wm (See packages/xdesktop-kiosk/build/conf for
+#package xdesktop-kiosk		# A locked down desktop kiosk using the openbox wm (See packages/xdesktop-kiosk/build/conf for 
 				# more help.
 #package icewm			# "ICEWM" window manager.  Makes TS a light workstation.
 #package icewm-theme-xp
@@ -243,7 +236,7 @@ package thunar			# File Manager for xfwm4 -- Pulls in xfwm4
 #package idesk
 
 #!!Other services
-#package www 			# Web access to client.  From a browser: "http://<IP number>"
+package www 			# Web access to client.  From a browser: "http://<IP number>"
                         	#  The standard page is for general user settings, administrative access
                         	#  is on port 6800.
 #package lp_server		# Remote printing daemon (JetDirect compatible)
@@ -271,9 +264,12 @@ package samba-client		# Samba smbclient, gives a shell like environment to acces
 
 #!!Miscellaneous
 package gtk-2.0			# Full gtk-2.0 plus clearlooks theme
+package gtk-3.0
+package gtk-theme-adwaita
 package icons-cursor		# Anti Aliased Mouse Cursor Theme
 package icons-hicolor           # Hi-Color icons for some applications and themes. Does not really contain any icons.
-package icons-gnome             # gnome Hi-Color icons theme. Needed by most other icon themes.
+#package icons-gnome             # gnome Hi-Color icons theme. Needed by most other icon themes.
+package icons-adwaita
 #package icons-tango             # tango Hi-Color icons theme
 #package icons-neu               # neu Hi-Color icons theme
 #package fonts-misc
@@ -286,6 +282,7 @@ package fonts-TTF-vera
 #package fonts-TTF-MS		# Fonts for rendering documents developed on the MS Platform.
                             # Might want to talk to a lawyer before using these.
 package fonts-TTF-liberation
+package fonts-TTF-noto
 #package fonts-75dpi-Adobe
 #package fonts-75dpi-Adobe-Utopia
 #package fonts-75dpi-BH
@@ -340,6 +337,7 @@ package set-resolution		# Allows the user to change the resolution via the start
 
 param rootpasswd     pleasechangeme			# Do Change!  Console/telnet password for root
                                         		# If this is enabled, Telnetd will be enabled.
+param tsadminpasswd  pleasechangeme			# Admin password of web interface
 param xorgvncpasswd  pleasechangeme			# VNC Access Password
 param storagepasswd  pleasechangeme			# Password for storage server
 param dialuppasswd   pleasechangeme			# Password for dialin account
@@ -377,7 +375,7 @@ param desktop file:./backgrounds/Hive_Lite.jpg		# Custom image to load as deskto
 param defaultconfig  thinstation.conf.buildtime  	# The file with default setup.  No other config file is found
                                                  	#  during boot.
 param basename       thinstation     			# Used for all config/tftp/scp file names
-param basepath       ts5.6               		# Used to determine path to tftp/scp files
+param basepath       ts6.1               		# Used to determine path to tftp/scp files
 param baseurl        http://www.doncuppjr.net		# Used to determine url to wget files
 #param baseurl        http://192.168.78.17		# Used to determine url to wget/http files - your local web server
 #param baseurl        'http://${SERVER_IP}'		# Used to determine url to wget/http files - if you wan't to use a web server on the same server as the TFTP server

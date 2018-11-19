@@ -1,34 +1,20 @@
-# Description: Thinstation essential package
-# URL: http://www.thinstation.org
-# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+# $Id$
+# Maintainer: Tobias Powalowski <tpowa@archlinux.org>
+# Contributor: Mirco Tischler <mt-ml at gmx dot de>
+# Contributor: Keshav Amburay <(the ddoott ridikulus ddoott rat) (aatt) (gemmaeiil) (ddoott) (ccoomm)>
 
-name=efitools
+name="efitools"
 version=git
 release=1
-source=(Make.patch)
 
 build() {
-	export CFLAGS="-O2 -march=x86-64 -m64 -pipe"
-#	export REPORT_ARCH=ia32
-	export REPORT_ARCH=x86_64
+unset CPPFLAGS
+git clone https://git.kernel.org/pub/scm/linux/kernel/git/jejb/$name.git
 
-	git clone git://git.kernel.org/pub/scm/linux/kernel/git/jejb/efitools.git
-	cd $name
-	patch -p0 -i $SRC/Make.patch
-	sed -i -e "/^OBJCOPY/d" Make.rules
-	sed -i -e "s|) noPK.auth|)|g" Makefile
-	ln /usr/lib/elf_ia32_efi.lds elf_ia32_efi.lds
+        cd "${name}"
 
-export	CROSS_COMPILE="/opt/cross/x-tools/x86_64-thinstation-linux-gnu/bin/x86_64-thinstation-linux-gnu-"
-	CC="${CROSS_COMPILE}cc" \
-	CCC="${CROSS_COMPILE}cc" \
-	LD="${CROSS_COMPILE}ld" \
-	AR="${CROSS_COMPILE}ar" \
-	RANLIB="${CROSS_COMPILE}ranlib" \
-	NM="${CROSS_COMPILE}nm" \
-	OBJCOPY="${CROSS_COMPILE}objcopy" make
+	git clean -x -d -f
 
-
-#	CCC="${CROSS_COMPILE}cc" OBJCOPY="${CROSS_COMPILE}objcopy" RANLIB=ranlib make
-	make DESTDIR=$PKG install
+	make -j1
+	make DESTDIR="${PKG}" install
 }

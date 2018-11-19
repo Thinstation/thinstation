@@ -5,7 +5,7 @@
 # Depends on: bc fortune libglade libungif netpbm xorg-libxmu mesa3d
 
 name=xscreensaver
-version=5.29
+version=5.39
 release=1
 source=(http://www.jwz.org/$name/$name-$version.tar.gz
 	screensaver-properties.desktop)
@@ -14,10 +14,6 @@ build() {
 	cd $name-$version
 	cp ../screensaver-properties.desktop driver
 	
-	sed -i configure \
-	-e 's/USE_NLS=yes/USE_NLS=no/' \
-	-e 's/ENABLE_NLS 1/ENABLE_NLS 0/'
-
 	LIBS=-lpthread ./configure \
 		--prefix=/usr \
 		--sysconfdir=/etc \

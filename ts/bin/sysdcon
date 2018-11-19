@@ -1,0 +1,71 @@
+#!/bin/bash
+
+PKG=$1
+set -x
+
+cd /build/packages/$PKG
+
+if [ -e etc/init.d ]; then
+	for init in `ls -1 etc/init.d`; do
+		if [ "`readlink etc/init.d/$init`" != "/etc/thinstation.packages" ]; then
+			if echo $init |grep -e ".init"; then
+				nlink=`echo $init |sed -e 's/.init/-init/g'`
+				mv etc/init.d/$init etc/init.d/$nlink
+				init=$nlink
+			fi
+			mkdir -p etc/systemd/system/multi-user.target.wants
+			sed -i -e 's|. $TS_GLOBAL|. `dirname $0`/common|g' etc/init.d/$init
+			cat <<EOF> etc/systemd/system/$init.service
+[Unit]
+Description=Thistation $init
+After=profile-setup.service pkg.service
+Before=network-pre.target
+ConditionPathIsReadWrite=/etc
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+EnvironmentFile=/etc/thinstation.env
+ExecStart=/etc/init.d/$init init
+SyslogIdentifier=thinstation
+
+[Install]
+WantedBy=multi-user.target
+EOF
+			ln -sf ../$init.service etc/systemd/system/multi-user.target.wants/$init.service
+		fi
+	done
+elif [ -e build/extra/etc/init.d ]; then
+	for init in `ls -1 build/extra/etc/init.d`; do
+		if [ "`readlink build/extra/etc/init.d/$init`" != "/etc/thinstation.packages" ]; then
+			if echo $init |grep -e ".init"; then
+                                nlink=`echo $init |sed -e 's/.init/-init/g'`
+                                mv build/extra/etc/init.d/$init build/extra/etc/init.d/$nlink
+                                init=$nlink
+                        fi
+			mkdir -p build/extra/etc/systemd/system/multi-user.target.wants
+			sed -i -e 's|. $TS_GLOBAL|. `dirname $0`/common|g' build/extra/etc/init.d/$init
+		        cat <<EOF> build/extra/etc/systemd/system/$init.service
+[Unit]
+Description=Thistation $init
+After=profile-setup.service pkg.service
+Before=network-pre.target
+ConditionPathIsReadWrite=/etc
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+EnvironmentFile=/etc/thinstation.env
+ExecStart=/etc/init.d/$init init
+SyslogIdentifier=thinstation
+
+[Install]
+WantedBy=multi-user.target
+EOF
+			ln -sf ../$init.service build/extra/etc/systemd/system/multi-user.target.wants/$init.service
+		fi
+	done
+fi
+if [ -e etc/rc5.d ]; then ls -al etc/rc5.d; fi
+if [ -e build/extra/etc/rc5.d ]; then ls -al build/extra/etc/rc5.d; fi
+

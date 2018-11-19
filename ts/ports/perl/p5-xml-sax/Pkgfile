@@ -1,0 +1,22 @@
+# Description:	XML::SAX
+# URL:		http://search.cpan.org/~grantm/XML-SAX/
+# Maintainer:	
+# Depends on:	p5-xml-namespacesupport p5-xml-sax-base
+
+name=p5-xml-sax
+version=1.00
+release=1
+source=(http://search.cpan.org/CPAN/authors/id/G/GR/GRANTM/XML-SAX-${version}.tar.gz)
+
+build() {
+	cd XML-SAX-$version
+
+	# PERL_MM_USE_DEFAULT=1 \
+	perl Makefile.PL
+	make OPTIMIZE="$CFLAGS" DESTDIR="$PKG" install
+
+	find "$PKG" -depth \
+		-type f \( -name .packlist -o -name \*.bs -o -name perllocal.pod \) -delete , \
+		-type f -name autosplit.ix \( -exec grep -q '^[[:space:]]*package' {} \; -o -delete \) , \
+		-type d -empty -exec rmdir {} +
+}

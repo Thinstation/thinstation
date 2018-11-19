@@ -1,0 +1,16 @@
+[Unit]
+Description=Thistation Local Install Mount
+After=profile-setup.service
+Before=network-pre.target
+ConditionPathIsReadWrite=/etc
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+EnvironmentFile=/etc/thinstation.env
+ExecStart=/etc/init.d/local-install-mount
+SyslogIdentifier=thinstation
+
+[Install]
+WantedBy=multi-user.target
+

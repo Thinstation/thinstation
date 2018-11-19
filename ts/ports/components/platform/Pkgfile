@@ -1,0 +1,19 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=platform
+version=git
+release=1
+source=()
+
+build() {
+git clone --depth 1 git://github.com/Pulse-Eight/platform.git
+	mkdir platform/build
+	cd platform/build
+	cmake ..
+	make -j4
+	make DESTDIR=$PKG install
+	mkdir $PKG/usr/lib
+	mv $PKG/usr/local/lib/pkgconfig $PKG/usr/lib/.
+}

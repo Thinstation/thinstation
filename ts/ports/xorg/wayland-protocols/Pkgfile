@@ -1,0 +1,25 @@
+# Description:	Wayland protocols support
+# URL:	http://wayland.freedesktop.org/
+# Maintainer:	Simon THOBY, simonthoby at live dot fr
+# Depends on:	git
+
+name=wayland-protocols
+version=git
+release=1
+source=()
+
+build() {
+	cd $PKGMK_SOURCE_DIR
+	if [ ! -d $name ]; then
+		git clone git://anongit.freedesktop.org/wayland/$name $name
+	else
+		cd $name && git pull
+	fi
+	cp -r $PKGMK_SOURCE_DIR/$name $SRC
+	
+	cd $SRC/$name
+
+	./autogen.sh --prefix=/usr 
+	make
+	make DESTDIR=$PKG install
+}

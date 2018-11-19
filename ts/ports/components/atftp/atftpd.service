@@ -1,0 +1,16 @@
+[Unit]
+Description=Advanced TFTP Daemon
+After=network.target
+
+[Service]
+EnvironmentFile=/etc/conf.d/atftpd
+ExecStart=/usr/sbin/atftpd --user=atftp.atftp --daemon --no-fork $ATFTPD_ARGS
+User=atftp
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+ProtectSystem=full
+ProtectHome=on
+PrivateDevices=on
+NoNewPrivileges=on
+
+[Install]
+WantedBy=multi-user.target

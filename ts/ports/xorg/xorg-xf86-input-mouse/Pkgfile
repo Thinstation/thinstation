@@ -4,13 +4,17 @@
 # Depends on: xorg-server
 
 name=xorg-xf86-input-mouse
-version=1.9.2
+archname=${name#xorg-}
+version=1.9.3
 release=1
-source=(http://xorg.freedesktop.org/releases/individual/driver/xf86-input-mouse-$version.tar.bz2)
+#source=(http://xorg.freedesktop.org/releases/individual/driver/xf86-input-mouse-$version.tar.bz2)
 
 build() {
-	cd xf86-input-mouse-$version
+	git clone --depth 1 git://anongit.freedesktop.org/xorg/driver/xf86-input-mouse
+	cd xf86-input-mouse
+#	cd xf86-input-mouse-$version
 
+	./autogen.sh NOCONFIGURE=true
 	./configure --prefix=/usr --mandir=/usr/man
 
 	make

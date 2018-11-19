@@ -4,8 +4,12 @@ name=mjpg_streamer
 
 case $1 in
 stop)
-	start-stop-daemon -p /var/run/$name.pid -K -s HUP
-	rm /var/run/$name.pid
+	for vid in `seq 0 9`; do
+		if [ -e /run/mjpg_streamer$vid.pid ]; then
+			start-stop-daemon -p /run/mjpg_streamer$vid.pid -K -s HUP
+			rm /run/mjpg_streamer$vid.pid
+		fi
+	done
 	;;
 start|init)
         unset video_timeout
@@ -14,18 +18,46 @@ start|init)
 		sleep .1
 		let video_timeout=video_timeout+1
 	done
-	. $TS_GLOBAL
-	if [ -z $MJPG_INPUT ] ;then
-		MJPG_INPUT=uvc
-	fi
-	if [ -z $MJPG_OUTPUT ]; then
-		MJPG_OUTPUT=http
-	fi
-	if [ -z $MJPG_OUTPUT_OPTIONS ] && [ "$MJPG_OUTPUT" == "http" ]; then
-		MJPG_OUTPUT_OPTIONS="-w /www -p 1234"
-	fi
-	start-stop-daemon -S -p /var/run/$name.pid -m -b -x \
-		 /bin/$name -- -i "/lib/input_$MJPG_INPUT.so $MJPG_INPUT_OPTIONS" -o "/lib/output_$MJPG_OUTPUT.so $MJPG_OUTPUT_OPTIONS" 2>/dev/null > $LOGFILE
+	. `dirname $0`/common
+	for vid in `seq 0 9`; do
+		vdev=/dev/video$vid
+		if [ -e $vdev ]; then
+			if [ -n "`eval echo '$'MJPG_INPUT$vid`" ]; then
+				MJPG_INPUT="`eval echo '$'MJPG_INPUT$vid`"
+			else
+				MJPG_INPUT=uvc
+			fi
+			if [ -n "`eval echo '$'MJPG_OUTPUT$vid`" ]; then
+				MJPG_OUTPUT="`eval echo '$'MJPG_OUTPUT$vid`"
+			else
+				MJPG_OUTPUT=http
+			fi
+			if [ -n "`eval echo '$'MJPG_INPUT_OPTIONS$vid`" ]; then
+				MJPG_INPUT_OPTIONS="-d $vdev `eval echo '$'MJPG_INPUT_OPTIONS$vid`"
+			else
+				MJPG_INPUT_OPTIONS="-d $vdev"
+			fi
+			if [ -n "`eval echo '$'MJPG_OUTPUT_OPTIONS$vid`" ]; then
+				MJPG_OUTPUT_OPTIONS="`eval echo '$'MJPG_OUTPUT_OPTIONS$vid`"
+			elif [ "$MJPG_OUTPUT" == "http" ]; then
+				MJPG_OUTPUT_OPTIONS="-w /www -p 123$vid"
+			fi
+			start-stop-daemon -S -p /run/mjpg-streamer$vid.pid -m -b -x \
+			  /bin/mjpg_streamer --	-i "/lib/input_$MJPG_INPUT.so $MJPG_INPUT_OPTIONS" \
+						-o "/lib/output_$MJPG_OUTPUT.so $MJPG_OUTPUT_OPTIONS" \
+						2>/dev/null > $LOGFILE
+			sleep 1
+			if [ -n "`eval echo '$'VCAM_FOCUS_$vid`" ]; then
+				v4l2-ctl -d $vdev --set-ctrl=focus_auto=0
+				v4l2-ctl -d $vdev --set-ctrl=focus_absolute="`eval echo '$'VCAM_FOCUS_$vid`"
+			fi
+			if [ -n "`eval echo '$'VCAM_EXPOSURE_$vid`" ]; then
+				v4l2-ctl -d $vdev --set-ctrl=exposure_auto_priority=1
+				v4l2-ctl -d $vdev --set-ctrl=exposure_auto=1
+				v4l2-ctl -d $vdev --set-ctrl=exposure_absolute="`eval echo '$'VCAM_EXPOSURE_$vid`"
+			fi
+		fi
+	done
 	;;
 restart)
 	$0 stop

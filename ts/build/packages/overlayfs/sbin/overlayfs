@@ -1,0 +1,10 @@
+#!/bin/sh
+modprobe overlay
+mount -t tmpfs tmpfs /mnt/dynamic
+mkdir /mnt/dynamic/work
+mkdir /mnt/dynamic/upper
+mount -t overlay overlay -olowerdir=/,upperdir=/mnt/dynamic/upper,workdir=/mnt/dynamic/work /mnt/union
+cd /mnt/union
+mkdir oldroot
+pivot_root . /mnt/union/oldroot
+exec /lib/systemd/systemd

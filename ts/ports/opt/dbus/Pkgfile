@@ -5,13 +5,14 @@
 # Depends on: expat
 
 name=dbus
-version=1.8.16
+version=1.12.10
 release=1
 source=(http://dbus.freedesktop.org/releases/dbus/$name-$version.tar.gz \
 rc.dbus 30-dbus.launch)
 
 build() {
    cd $name-$version
+   sed -i -e 's/\(ExecStart=@\)EXPANDED_BINDIR/\1DBUS_DAEMONDIR/' bus/dbus.service.in
    ./configure --prefix=/usr \
                --sysconfdir=/etc \
                --with-dbus-daemondir=/usr/sbin \
@@ -19,7 +20,7 @@ build() {
                --mandir=/usr/man \
                --disable-static \
                --with-dbus-user=messagebus \
-               --with-system-pid-file=/var/run/$name/$name.pid
+               --with-system-pid-file=/run/$name/$name.pid
       make
       make DESTDIR=$PKG install
       install -D -m 0755 $SRC/rc.dbus $PKG/etc/rc.d/dbus

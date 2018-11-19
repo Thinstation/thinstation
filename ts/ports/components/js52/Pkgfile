@@ -1,0 +1,52 @@
+# $Id$
+# Contributor: Ionut Biru <ibiru@archlinux.org>
+
+name=js52
+version=52.8.0
+release=2
+_ffver=${version%%.*}
+_repo=https://hg.mozilla.org/mozilla-unified
+source=(https://hg.mozilla.org/mozilla-unified/archive/FIREFOX_52_8_0esr_RELEASE.tar.bz2
+        mozjs52-copy-headers.patch
+        mozjs52-disable-mozglue.patch
+        mozjs52-fix-soname.patch
+        mozjs52-include-configure-script.patch)
+
+build() {
+  cd mozilla-unified-FIREFOX*
+
+  # https://anonscm.debian.org/git/pkg-gnome/mozjs52.git/tree/debian/patches
+  patch -Np1 -i ../mozjs52-fix-soname.patch
+  patch -Np1 -i ../mozjs52-copy-headers.patch
+  patch -Np1 -i ../mozjs52-disable-mozglue.patch
+  patch -Np1 -i ../mozjs52-include-configure-script.patch
+
+  unset CPPFLAGS
+  CFLAGS+=' -fno-delete-null-pointer-checks -fno-strict-aliasing -fno-tree-vrp -flto=3'
+  CXXFLAGS+=' -fno-delete-null-pointer-checks -fno-strict-aliasing -fno-tree-vrp -flto=3'
+  export CC=gcc CXX=g++ PYTHON=/usr/bin/python2
+
+  cd js/src
+  sh configure \
+    --prefix=/usr \
+    --disable-debug \
+    --disable-debug-symbols \
+    --disable-strip \
+    --enable-gold \
+    --enable-optimize="-O2" \
+    --enable-pie \
+    --enable-posix-nspr-emulation \
+    --enable-readline \
+    --enable-release \
+    --enable-shared-js \
+    --enable-tests \
+    --with-intl-api \
+    --with-system-zlib \
+    --without-system-icu
+  make
+  python2 tests/jstests.py -d -s -t 300 --no-progress ../../js/src/js/src/shell/js
+  python2 jit-test/jit_test.py -s -t 300 --no-progress ../../js/src/js/src/shell/js basic
+  make DESTDIR="$PKG" install
+  rm "$PKG"/usr/lib/*.ajs
+  find "$PKG"/usr/{lib/pkgconfig,include} -type f -exec chmod -c a-x {} +
+}

@@ -1,22 +1,19 @@
 # Description: Filesystem utilities for btrfs
 # URL:         http://btrfs.wiki.kernel.org
-# Maintainer:  CRUX System Team, core-ports at crux dot nu
-# Depends on:  util-linux-ng
+# Maintainer:  Fredrik Rinnestam, fredrik at crux dot nu
+# Depends on:  util-linux e2fsprogs lzo zlib
 
 name=btrfs-progs
-version=075587c
-release=3
-source=(http://crux.nu/files/distfiles/$name-unstable-$version.tar.gz
-        $name.diff)
+version=4.7
+release=1
+source=(https://www.kernel.org/pub/linux/kernel/people/kdave/btrfs-progs/btrfs-progs-v$version.tar.xz \
+        $name-man-v$version.tar.xz)
 
 build() {
-    cd $name-unstable-$version
-
-    # Fix the build with glibc 2.12:
-    patch -p1 -i $SRC/$name.diff
-
+    cd $name-v$version
+    ./configure --prefix=/usr --bindir=/sbin
     make
+    make DESTDIR=$PKG install
 
-    install -d -m 755 $PKG/usr/man/man8
-    make prefix=/ bindir=/sbin mandir=/usr/man DESTDIR=$PKG install
+    rm $PKG/usr/lib/libbtrfs.a
 }

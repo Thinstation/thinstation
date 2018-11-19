@@ -10,13 +10,12 @@ source=()
 build() {
 	git clone git://github.com/ueno/eekboard.git
 	cd $name
-	#git checkout eekboard-$version
+	git checkout eekboard-$version
 
-	./autogen.sh --prefix=/usr \
+	./autogen.sh	--prefix=/usr \
 			--sysconfdir=/etc \
-			--mandir=/usr/man \
-			--disable-extras \
-			--with-gtk=3.0 \
+			--disable-static \
+			--enable-atspi \
 			--enable-vala=no
 
 	make

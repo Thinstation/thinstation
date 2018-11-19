@@ -1,0 +1,8 @@
+#haveged 55
+
+if [ -e /lib/systemd/system/multi-user.target.wants/rngd.service ]; then
+  rm /lib/systemd/system/rngd-backup.service
+  ln -s haveged.service /lib/systemd/system/rngd-backup.service
+else
+  ln -s ../haveged.service /lib/systemd/system/multi-user.target.wants
+fi

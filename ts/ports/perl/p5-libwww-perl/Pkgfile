@@ -1,0 +1,23 @@
+# Description:	The World-Wide Web library for Perl
+# URL:		https://github.com/libwww-perl/libwww-perl
+# Maintainer:	
+# Depends on:	p5-encode-locale p5-file-listing p5-html-parser p5-http-cookies p5-http-daemon p5-http-date p5-http-message p5-http-negotiate p5-lwp-mediatypes p5-net-http p5-try-tiny p5-uri p5-www-robotrules
+# Optional:	p5-lwp-protocol-https p5-ntlm
+
+name=p5-libwww-perl
+version=6.33
+release=1
+source=(http://search.cpan.org/CPAN/authors/id/O/OA/OALDERS/libwww-perl-${version}.tar.gz)
+
+build() {
+	cd libwww-perl-$version
+
+	# PERL_MM_USE_DEFAULT=1 \
+	perl Makefile.PL
+	make OPTIMIZE="$CFLAGS" DESTDIR="$PKG" install
+
+	find "$PKG" -depth \
+		-type f \( -name .packlist -o -name \*.bs -o -name perllocal.pod \) -delete , \
+		-type f -name autosplit.ix \( -exec grep -q '^[[:space:]]*package' {} \; -o -delete \) , \
+		-type d -empty -exec rmdir {} +
+}

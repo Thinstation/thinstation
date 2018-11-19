@@ -7,56 +7,88 @@ release=${release%TS}
 
 
 INSTALLDIR="/build/packages/xorg7_nvidia"
-DROP_FILES="nvidia-bug-report.sh nvidia-cuda-mps-control nvidia-cuda-mps-server nvidia-debugdump nvidia-installer nvidia-persistenced nvidia-smi nvidia-uninstall \
-libEGL.so.1 libGLESv1_CM.so.$version libOpenCL.so.1.0.0 libnvidia-cfg.so.1 libnvidia-encode.so.$version libnvidia-ifr.so.1 libnvidia-opencl.so.$version \
-libEGL.so.$version libGLESv2.so.2 libcuda.so.1 libnvidia-cfg.so.$version libnvidia-fbc.so.1 libnvidia-ifr.so.$version libGLESv2.so.$version libcuda.so.$version \
-libnvidia-compiler.so.$version libnvidia-fbc.so.$version libOpenCL.so.1 libnvidia-eglcore.so.$version libGLESv1_CM.so.1 libOpenCL.so.1.0 libnvidia-encode.so.1 \
-libnvidia-opencl.so.1 libglx.so libGL.so.1 libnvcuvid.so.$version libnvidia-glsi.so.$version libnvidia-ml.so.$version libnvcuvid.so.1 libnvidia-ml.so.1 libGL.la \
-libnvidia-wfb.so.1 libnvidia-wfb.so.$version libnvidia-gtk3.so.$version libEGL_nvidia.so.$version libEGL_nvidia.so.0 libnvidia-egl-wayland.so.$version"
+
+DROP_FILES="libGL.la libnvidia-egl-wayland.so.1.0.2"
 
 KMOD=kernel/drivers/video
 
 cd wget_tmp
 sh $gzname -x
-cd NVIDIA-Linux-x86-$version
+cd NVIDIA-Linux-x86_64-$version
 
-./nvidia-installer -s -z -k ${release} --no-x-check --no-runlevel-check --no-kernel-module --log-file-name=./nvidia-installer.log --utility-prefix=$INSTALLDIR --documentation-prefix=$INSTALLDIR --opengl-prefix=$INSTALLDIR --x-library-path=$INSTALLDIR/lib --x-module-path=$INSTALLDIR/lib/xorg/modules --application-profile-path=$INSTALLDIR/lib/nvidia --no-nvidia-modprobe
+./nvidia-installer -s -z -k ${release} --no-x-check --no-kernel-module --log-file-name=./nvidia-installer.log --utility-prefix=$INSTALLDIR --documentation-prefix=$INSTALLDIR --opengl-prefix=$INSTALLDIR --x-library-path=$INSTALLDIR/lib --x-module-path=$INSTALLDIR/lib/xorg/modules --application-profile-path=$INSTALLDIR/lib/nvidia --no-nvidia-modprobe
 
 mkdir -p $INSTALLDIR/lib/licenses/nvidia
-mv $INSTALLDIR/share/doc/NVIDIA_GLX-1.0/LICENSE $INSTALLDIR/lib/licenses/nvidia/.
+  mv $INSTALLDIR/share/doc/NVIDIA_GLX-1.0/LICENSE $INSTALLDIR/lib/licenses/nvidia/.
 mkdir -p $INSTALLDIR/lib/icons/hicolor/48x48/apps
-mv $INSTALLDIR/share/doc/NVIDIA_GLX-1.0/nvidia-settings.png $INSTALLDIR/lib/icons/hicolor/48x48/apps/.
+  mv $INSTALLDIR/share/doc/NVIDIA_GLX-1.0/nvidia-settings.png $INSTALLDIR/lib/icons/hicolor/48x48/apps/.
+rm -rf $INSTALLDIR/share
 
 mkdir -p $INSTALLDIR/lib/applications
-if [ -e /usr/local/share/applications/nvidia-settings.desktop ]; then
-  mv /usr/local/share/applications/nvidia-settings.desktop $INSTALLDIR/lib/applications
-elif [ -e $INSTALLDIR/share/applications ]; then
-  mv $INSTALLDIR/share/applications/* $INSTALLDIR/lib/applications
-fi
+  mv /usr/local/share/applications/nvidia-settings.desktop		$INSTALLDIR/lib/applications
+mkdir -p $INSTALLDIR/etc/X11
+  mv /usr/share/X11/xorg.conf.d/nvidia-drm-outputclass.conf		$INSTALLDIR/etc/X11
+mkdir -p $INSTALLDIR/lib/glvnd/egl_vendor.d
+  mv /usr/share/glvnd/egl_vendor.d/10_nvidia.json			$INSTALLDIR/lib/glvnd/egl_vendor.d
+mkdir -p $INSTALLDIR/lib/egl/egl_external_platform.d
+  mv /usr/share/egl/egl_external_platform.d/10_nvidia_wayland.json	$INSTALLDIR/lib/egl/egl_external_platform.d
 
-mv /usr/share/nvidia/* $INSTALLDIR/lib/nvidia
+for link in `find $INSTALLDIR/lib -mindepth 1 -maxdepth 1 -type l | grep -E '\.so' | sort -u`; do
+	# Normalize the link
+	if [ -h $link ]; then
+		linkdest=`readlink $link | sed -e 's,\.\./\.\./lib/,,' -e 's,^/lib/,,'`
+		linkdir=`dirname $link`
+		# If the link is to another directory, leave it alone
+		if [ `echo $linkdest | grep -E '/'` ]; then
+			continue
+		fi
 
-rm -rf $INSTALLDIR/share
+		soname=`objdump -p $linkdir/$linkdest | grep SONAME | awk '{print $2}'`
+		base=`basename $link`
+		if [ -z "$soname" ]; then
+			echo "MISSING SONAME $link"
+			exit 1
+		fi
+		if [ "$base" == "$soname" ]; then
+			rm $link
+			cp $linkdir/$linkdest $link
+			rm $linkdir/$linkdest
+		else
+			rm $link
+		fi
+	fi
+done
+
+# Move potential conflicts to special files
+find $INSTALLDIR/lib/xorg/ -type l -delete
+mv $INSTALLDIR/lib/xorg/modules/extensions/libglx.so.*	$INSTALLDIR/lib/xorg/modules/extensions/libglx.so-nvidia
+
+# Delete Nvidia version of libwfb.so
+rm -f mv $INSTALLDIR/lib/xorg/modules/libnvidia-wfb.so.*
+
+# Move potential conflicts to special files without an .so name element
+mv $INSTALLDIR/lib/libGLESv1_CM.so.1	$INSTALLDIR/lib/libGLESv1_CM-nvida
+mv $INSTALLDIR/lib/libEGL.so.1		$INSTALLDIR/lib/libEGL-nvidia
+mv $INSTALLDIR/lib/libGLESv2.so.2	$INSTALLDIR/lib/libGLESv2-nvidia
+mv $INSTALLDIR/lib/libGL.so.1		$INSTALLDIR/lib/libGL-nvidia
+
 for file in $DROP_FILES; do
 	find $INSTALLDIR -name $file -delete
 done
-find $INSTALLDIR -type l -name \*.so -delete
 
 cd kernel
 
-for kernel in TS TS_SMP; do
-	if [ -e /etc/ssl/keys/kernel.key ]; then
-		make SYSSRC=/usr/src/kernels/${release}${kernel} \
-			module \
-			module-sign \
-			MODSECKEY=/etc/ssl/keys/kernel.key \
-			MODPUBKEY=/etc/ssl/certs/kernel.crt
-	else
- 		make SYSSRC=/usr/src/kernels/${release}${kernel} \
-			module
-	fi
-	mkdir -p $INSTALLDIR/lib/modules/${release}${kernel}/$KMOD
-	cp -a nvidia.ko $INSTALLDIR/lib/modules/${release}${kernel}/$KMOD
+for kernel in TS TS+con; do
+	make SYSSRC=/usr/src/kernels/${release}${kernel} module
+	for module in nvidia nvidia-uvm nvidia-modeset nvidia-drm; do
+		/usr/src/kernels/${release}${kernel}/scripts/sign-file \
+			sha256 \
+			/etc/ssl/keys/kernel.key \
+			/etc/ssl/certs/kernel.crt \
+			$module.ko
+		mkdir -p $INSTALLDIR/lib/modules/${release}${kernel}/$KMOD
+		cp -a $module.ko $INSTALLDIR/lib/modules/${release}${kernel}/$KMOD
+	done
 	make SYSSRC=/usr/src/kernels/${release}${kernel} clean
 done
 
@@ -65,10 +97,16 @@ rm -f /usr/share/kde-settings/kde-profile/default/share/applications/nvidia-sett
 
 cp -Prfd $INSTALLDIR/build/extra/* $INSTALLDIR/.
 
-#Fix libGL, because nvidia compile completely steps on everybody.
+# Fix libGL, because nvidia compile completely steps on everybody.
 
-glversion=`prt-get info mesa3d |grep -e Version |cut -c15-`
-gldir=`prt-get info mesa3d |grep -e Path |cut -c15-`
-glrel=`prt-get info mesa3d |grep -e Release |cut -c15-`
+prt-get remove mesa3d
+prt-get remove glu
+prt-get remove glew
 
-pkgadd -f -u $gldir/mesa3d/mesa3d#${glversion}-${glrel}.pkg.tar.xz
+rm -rf /usr/lib/libGL*
+rm -rf /usr/lib/libEGL*
+
+#pkgadd -f -u $gldir/mesa3d/mesa3d#${glversion}-${glrel}.pkg.tar.xz
+prt-get install mesa3d -uf
+prt-get install glu -uf
+prt-get install glew -uf

@@ -1,0 +1,26 @@
+# Description: An implementation of the standard Unix documentation system accessed using the man command
+# URL: http://man-db.nongnu.org/
+# Maintainer: CRUX System Team, core-ports at crux dot nu
+# Depends on: zlib gdbm libpipeline
+
+name=man-db
+version=2.7.5
+release=1
+source=(http://download.savannah.gnu.org/releases/$name/$name-$version.tar.xz \
+        mandb.cron)
+
+build() {
+    cd $name-$version
+    ./configure --prefix=/usr \
+        --libexecdir=/usr/lib/$name \
+        --disable-setuid \
+        
+    make
+    make DESTDIR=$PKG install
+
+    #rm -r $PKG/usr/share
+    rm -r $PKG/usr/lib/tmpfiles.d
+
+    install -d $PKG/var/cache/man
+    install -D -o root -g root -m 0755 $SRC/mandb.cron $PKG/etc/cron/daily/mandb
+}

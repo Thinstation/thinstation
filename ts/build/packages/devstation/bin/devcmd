@@ -35,14 +35,14 @@ do_update()
 	esac
 }
 
-toggle_smp()
+toggle_con()
 {
-	if [ ! -e /thinstation/build/SMP ]; then
-		touch /thinstation/build/SMP
-		x_echo "Toggle SMP" "SMP kernel enabled for Builds"
+	if [ ! -e /thinstation/build/CON ]; then
+		touch /thinstation/build/CON
+		x_echo "Toggle Console" "Console kernel enabled for Builds"
 	else
-		rm /thinstation/build/SMP
-		x_echo "Toggle SMP" "SMP disabled - UP kernel will be used for Builds"
+		rm /thinstation/build/CON
+		x_echo "Toggle Console" "Console disabled"
 	fi
 }
 
@@ -71,7 +71,8 @@ toggle_pxe()
 do_build()
 {
 	cd /thinstation
-	$XTERM_CMD -T Build $ARG ./setup-chroot -b -o --autodl --license ACCEPT 
+	$XTERM_CMD -T Build $ARG script -c "./setup-chroot -b -o --autodl --license ACCEPT" -e /home/$TSUSER/Desktop/build.log
+	chown $TSUSER /home/$TSUSER/Desktop/build.log
 }
 
 make_machine()
@@ -132,8 +133,8 @@ terminal_arg()
 terminal_arg
 
 case $1 in
-	toggle-smp)
-		toggle_smp
+	toggle-con)
+		toggle_con
 		;;
 	toggle-modules)
 		toggle_allmodules

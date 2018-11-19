@@ -1,0 +1,22 @@
+# Description:	Only use Sub::Exporter if you need it
+# URL:		https://github.com/frioux/Sub-Exporter-Progressive
+# Maintainer:	
+# Depends on:	perl
+
+name=p5-sub-exporter-progressive
+version=0.001013
+release=1
+source=(http://search.cpan.org/CPAN/authors/id/F/FR/FREW/Sub-Exporter-Progressive-${version}.tar.gz)
+
+build() {
+	cd Sub-Exporter-Progressive-$version
+
+	# PERL_MM_USE_DEFAULT=1 \
+	perl Makefile.PL
+	make OPTIMIZE="$CFLAGS" DESTDIR="$PKG" install
+
+	find "$PKG" -depth \
+		-type f \( -name .packlist -o -name \*.bs -o -name perllocal.pod \) -delete , \
+		-type f -name autosplit.ix \( -exec grep -q '^[[:space:]]*package' {} \; -o -delete \) , \
+		-type d -empty -exec rmdir {} +
+}

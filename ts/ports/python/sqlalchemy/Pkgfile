@@ -1,8 +1,6 @@
-# Description: A language that lets writing C extensions for the Python language.
-# URL: http://www.cython.org/
-# Maintainer: Danny Rawlins, monster dot romster at gmail dot com
-# Packager: Victor Martinez, pitillo at ono dot com
-# Depends on: setuptools
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 
 name=sqlalchemy
 pname=SQLAlchemy
@@ -11,10 +9,11 @@ release=1
 source=()
 
 build() {
-        pip download $name --no-binary :all:
+        pip install $name --download=$SRC --no-binary :all:
         mkdir -p $SRC/$name
-        tar -xvf $SRC/$pname-*.* -C $SRC/$name || unzip -d $SRC/$name $pname-*.zip
+        tar -xvf $SRC/$pname*.tar.* -C $SRC/$name || unzip -d $SRC/$name $pname-*.zip
         cd $SRC/$name/*
 
         python ./setup.py install --root $PKG
 }
+

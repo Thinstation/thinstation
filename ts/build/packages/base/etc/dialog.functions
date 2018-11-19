@@ -3,19 +3,19 @@
 x_check_status()
 {
 	if is_enabled $SHOW_ERROR_REPORT; then
-		if [ $STATUS != 0 ] && [ ! -e /etc/console/$PACKAGE ]; then
+		if [ $STATUS != 0 ] && [ $STATUS != $USER_DISCONNECT_CODE ] && [ $STATUS != $USER_LOGOUT_CODE ] && [ ! -e /etc/console/$PACKAGE ]; then
 			Xdialog --title $PACKAGE \
-					--ok-label "View Log" \
-					--cancel-label "OK" \
-					--icon /lib/pixmaps/${PACKAGE}_32x32.xpm \
-					--yesno "Application $PACKAGE failed with an error ($STATUS)\nWould you like to review the command output log?" 10 80
+				--ok-label "View Log" \
+				--cancel-label "OK" \
+				--icon /lib/pixmaps/${PACKAGE}_32x32.xpm \
+				--yesno "Application $PACKAGE failed with an error ($STATUS)\nWould you like to review the command output log?" 10 80
 
-					if [ $? == 0 ]; then
-						Xdialog --title $PACKAGE \
-						--ok-label "Done" \
-						--no-cancel \
-						--logbox $APPLOG 40 100
-					fi
+			if [ $? == 0 ]; then
+				Xdialog --title $PACKAGE \
+				--ok-label "Done" \
+				--no-cancel \
+				--logbox $APPLOG 40 100
+			fi
 		fi
 	fi
 }
@@ -23,85 +23,84 @@ x_check_status()
 check_reconnect()
 {
 	if [ -e /tmp/.X11-unix/X$DISPLAY_NUMBER ] ; then
-                prompt=$(make_caps $RECONNECT_PROMPT | cut -c1-4)
-                NO_SESSION=$(make_lower $NO_SESSION)
-                if [ "$prompt" = "MENU" ] ; then
-                        prompt_time=$(make_caps $RECONNECT_PROMPT | cut -c5-)
-                        if [ -n "$prompt_time" ] ; then
-                                kill_time=$(date +%M)
-                                let kill_time=kill_time+prompt_time+1
-                                if [ $kill_time -gt 59 ] ; then
-                                        let kill_time=kill_time-60
-                                fi
-                                echo "$kill_time  * * * * $NO_SESSION" >> /tmp/shutdown
-                                crontab /tmp/shutdown
-                        fi
-                        unset choice_error
-                        while [ "$choice_error" != "0" ] ; do
-                                choice=$(Xdialog        --stdout \
-                                                        --title "Reconnect/Shutdown?" \
-                                                        --clear \
-                                                        --no-cancel \
-                                                        --combobox "Choose option then OK to continue." 10 60 Reconnect Shutdown)
-                                choice_error=$?
-                        done
-                        if [ "$choice" = "Shutdown" ] ; then
-                                shutdown
-                        elif [ -e /tmp/shutdown ] ; then
-                                crontab /tmp/crontab
-                                rm /tmp/shutdown
-                                reconnect=0
-                        fi
-                elif [ "$prompt" = "AUTO" ] ; then
-                      prompt_time=$(make_caps $RECONNECT_PROMPT | cut -c5-)
-                        if [ -z "$prompt_time" ] ; then
-                                prompt_time=10
-                        fi
-                        Xdialog --title "No Server Response" \
-                                --clear \
-                                --timeout $prompt_time \
-                                --msgbox "Server not responding - waiting $prompt_time seconds" 10 60
-                        reconnect=0
-                elif [ "$prompt" == "FORC" ]; then
-                        reconnect=0
-                elif [ "$prompt" != "OFF" ] ; then
-                        Xdialog --title "Reconnect?" \
-                                --clear \
-                                --yesno "Click yes to reconnect." 10 60
-                        reconnect=$?
-                else
-                        reconnect=1
-                fi
-        fi
-#       echo $reconnect
+		prompt=$(make_caps $RECONNECT_PROMPT | cut -c1-4)
+		NO_SESSION=$(make_lower $NO_SESSION)
+		if [ "$prompt" = "MENU" ] ; then
+			prompt_time=$(make_caps $RECONNECT_PROMPT | cut -c5-)
+			if [ -n "$prompt_time" ] ; then
+				kill_time=$(date +%M)
+				let kill_time=kill_time+prompt_time+1
+				if [ $kill_time -gt 59 ] ; then
+					let kill_time=kill_time-60
+				fi
+				echo "$kill_time  * * * * $NO_SESSION" >> /tmp/shutdown
+				crontab /tmp/shutdown
+			fi
+			unset choice_error
+			while [ "$choice_error" != "0" ] ; do
+				choice=$(Xdialog	--stdout \
+							--title "Reconnect/Shutdown?" \
+							--clear \
+							--no-cancel \
+							--combobox "Choose option then OK to continue." 10 60 Reconnect Shutdown)
+				choice_error=$?
+			done
+			if [ "$choice" = "Shutdown" ] ; then
+				shutdown
+			elif [ -e /tmp/shutdown ] ; then
+				crontab /tmp/crontab
+				rm /tmp/shutdown
+				reconnect=0
+			fi
+		elif [ "$prompt" = "AUTO" ] ; then
+			prompt_time=$(make_caps $RECONNECT_PROMPT | cut -c5-)
+			if [ -z "$prompt_time" ] ; then
+				prompt_time=10
+			fi
+			Xdialog --title "No Server Response" \
+				--clear \
+				--timeout $prompt_time \
+				--msgbox "Server not responding - waiting $prompt_time seconds" 10 60
+			reconnect=0
+		elif [ "$prompt" == "FORC" ]; then
+			reconnect=0
+		elif [ "$prompt" != "OFF" ] ; then
+			Xdialog --title "Reconnect?" \
+				--clear \
+				--yesno "Click yes to reconnect." 10 60
+			reconnect=$?
+		else
+			reconnect=1
+		fi
+	fi
 }
 
 confirm_exit()
 {
-        Xdialog --title "Logout" --clear --yesno "Click yes to Confirm Exit?" 10 60
+	Xdialog --title "Logout" --clear --yesno "Click yes to Confirm Exit?" 10 60
 }
 
 dialog_no_value()
 {
-        Xdialog --title "$1 Client" \
-                --clear \
-                --msgbox "You must enter value, aborted" 10 60 10000
+	Xdialog --title "$1 Client" \
+		--clear \
+		--msgbox "You must enter value, aborted" 10 60 10000
 }
 
 dialog_get_value()
 {
-        Xdialog --title "$1 Client" \
-                --clear \
-                --inputbox "Enter $2:" 10 60 2>&1 1>/dev/null \
-                |grep -Ev '&|;|\(|`'
+	Xdialog --title "$1 Client" \
+		--clear \
+		--inputbox "Enter $2:" 10 60 2>&1 1>/dev/null \
+	|grep -Ev '&|;|\(|`'
 }
 
 read_options()
 {
 	if $GET_USER; then
 		if [ -n "$REMUSER" ]; then
-        	        echo "$REMUSER" > /tmp/.dialog_${client}_user
-	        fi
+			echo "$REMUSER" > /tmp/.dialog_${client}_user
+		fi
 
 		if [ -z "$REMUSER" ] || $GET_PASSWORD; then
 			SHOW_USER=true
@@ -115,14 +114,14 @@ read_options()
 		fi
 
 		if is_enabled $ALWAYS_ENTER_SERVER; then
-                	ALLOW_SERVER_EDITS=true
+			ALLOW_SERVER_EDITS=true
 		fi
 
 		if [ -n "$OPTIONS" ]; then
 			echo "$OPTIONS" > /tmp/.dialog_${client}_options
 		fi
 	fi
-	if [ -e /tmp/.dialog_${client}_user ] && is_enabled $REMEMBER_USER; then
+	if [ -e /tmp/.dialog_${client}_user ]; then
 		DIALOG_USER=$(cat /tmp/.dialog_${client}_user)
 	fi
 	if [ -e /tmp/.dialog_${client}_server ]; then
@@ -173,9 +172,9 @@ set_default()
 choose_pixmap()
 {
 	if [ -e /lib/icons/hicolor/32x32/apps/$client.png ]; then
-		echo "<input file>/lib/icons/hicolor/32x32/apps/$client.png</input>"
+		echo "/lib/icons/hicolor/32x32/apps/$client.png"
 	else
-		echo "<input file>/lib/pixmaps/${client}_32x32.xpm</input>"
+		echo "/lib/pixmaps/${client}_32x32.xpm"
 	fi
 }
 
@@ -189,39 +188,25 @@ dialog_no_value()
 create_dialog()
 {
 	MAIN_DIALOG='
-<window title="'"$DIALOG_TITLE"'" decorated="true" width-request="325" height-request="235" allow-grow="false" allow-shrink="false" skip_taskbar_hint="true">
+<window title="'"$DIALOG_TITLE"'" decorated="true" width-request="325" height-request="205" allow-grow="false" allow-shrink="false" skip_taskbar_hint="true" image-name="'$(choose_pixmap)'">
 	<vbox>
-		<hbox>
-			<pixmap>
-				<height>32</height>
-				<width>32</width>
-				'$(choose_pixmap)'
-			</pixmap>
-			<text use-markup="true" xalign="0.3">
-				<label>Preparing to run '$DIALOG_TITLE'</label>
-			</text>
-			<text space-expand="true" space-fill="true">
-				<label>""</label>
-			</text>
-		</hbox>
-		<hseparator></hseparator>
 	<notebook labels="User|Server">
-                <vbox visible="'"$SHOW_USER"'">
+		<vbox visible="'"$SHOW_USER"'">
 			<text space-expand="false" space-fill="false" use-markup="true" xalign="0">
-                        	<label>Username</label>
-                	</text>
-                	<entry activates_default="true" has-focus="'$USER_FOCUS'">
-                        	'$(set_default $DIALOG_USER)'
-                        	<variable>DIALOG_USER</variable>
-                                <input>echo "$DIALOG_USER" |sed -e "s|[\&\;\`\(\)\|]||g"</input>
-                                <action signal="focus-out-event">refresh:DIALOG_USER</action>
-                	</entry>
+				<label>Username</label>
+			</text>
+			<entry activates_default="true" has-focus="'$USER_FOCUS'">
+				'$(set_default $DIALOG_USER)'
+				<variable>DIALOG_USER</variable>
+				<input>echo "$DIALOG_USER" |sed -e "s|[\&\;\`\(\)\|]||g"</input>
+				<action signal="focus-out-event">refresh:DIALOG_USER</action>
+			</entry>
 			<text visible="'"$GET_PASSWORD"'" space-expand="false" space-fill="false" use-markup="true" xalign="0">
-                        	<label>Password</label>
-                	</text>
-                	<entry visible="'"$GET_PASSWORD"'" visibility="false" caps-lock-warning="true" has-focus="'$PASS_FOCUS'" activates_default="true">
-                        	<variable>DIALOG_PASSWORD</variable>
-                	</entry>
+				<label>Password</label>
+			</text>
+			<entry visible="'"$GET_PASSWORD"'" visibility="false" caps-lock-warning="true" has-focus="'$PASS_FOCUS'" activates_default="true">
+				<variable>DIALOG_PASSWORD</variable>
+			</entry>
 		</vbox>
 		<vbox visible="'"$ALLOW_SERVER_EDITS"'">
 			<text space-expand="false" space-fill="false" use-markup="true" xalign="0">
@@ -230,8 +215,8 @@ create_dialog()
 			<entry activates_default="true" editable="'"$ALLOW_SERVER_EDITS"'" has-focus="true">
 				'$(set_default $DIALOG_SERVER)'
 				<variable>DIALOG_SERVER</variable>
-                                <input>echo "$DIALOG_SERVER" |sed -e "s|[\&\;\`\(\)\|]||g"</input>
-                                <action signal="focus-out-event">refresh:DIALOG_SERVER</action>
+				<input>echo "$DIALOG_SERVER" |sed -e "s|[\&\;\`\(\)\|]||g"</input>
+				<action signal="focus-out-event">refresh:DIALOG_SERVER</action>
 			</entry>
 			<text space-expand="false" space-fill="false" use-markup="true" xalign="0">
 				<label>Options</label>
@@ -239,28 +224,28 @@ create_dialog()
 			<entry activates_default="true" editable="'"$ALLOW_SERVER_EDITS"'">
 				'$(set_default $DIALOG_OPTIONS)'
 				<variable>DIALOG_OPTIONS</variable>
-                                <input>echo "$DIALOG_OPTIONS" |sed -e "s|[\&\;\`\(\)\|]||g"</input>
-                                <action signal="focus-out-event">refresh:DIALOG_OPTIONS</action>
+				<input>echo "$DIALOG_OPTIONS" |sed -e "s|[\&\;\`\(\)\|]||g"</input>
+				<action signal="focus-out-event">refresh:DIALOG_OPTIONS</action>
 			</entry>
 		</vbox>
 	</notebook>
 	<vseparator height-request="5"></vseparator>
 		<hbox>
-		<checkbox visible="'"$WINDOWED_SELECTABLE"'">
-			<label>Windowed</label>
-			<variable>windowed</variable>
-			<default>'$windowed_default'</default>
-		</checkbox>
-		<hbox>
-			<button>
-				<label>"Exit"</label>
-				<action>EXIT:abort</action>
-			</button>
-			<button can-default="true" has-default="true">
-				<label>"Connect"</label>
-				<action>EXIT:ok</action>
-			</button>
-		</hbox>
+			<checkbox visible="'"$WINDOWED_SELECTABLE"'">
+				<label>Windowed</label>
+				<variable>windowed</variable>
+				<default>'$windowed_default'</default>
+			</checkbox>
+			<hbox>
+				<button>
+					<label>"Exit"</label>
+					<action>EXIT:abort</action>
+				</button>
+				<button can-default="true" has-default="true">
+					<label>"Connect"</label>
+					<action>EXIT:ok</action>
+				</button>
+			</hbox>
 		</hbox>
 	</vbox>
 </window>
@@ -285,10 +270,10 @@ parse_results()
 		echo "$DIALOG_OPTIONS" > /tmp/.dialog_${client}_options
 		if [ "$DIALOG_SERVER" != "type server name here" ]; then
 			REMUSER="$DIALOG_USER"
-                       	PASSWORD="$DIALOG_PASSWORD"
-                       	SERVER="$DIALOG_SERVER"
-                        OPTIONS="$DIALOG_OPTIONS"
-               	fi
+			PASSWORD="$DIALOG_PASSWORD"
+			SERVER="$DIALOG_SERVER"
+			OPTIONS="$DIALOG_OPTIONS"
+		fi
 		if $WINDOWED_SELECTABLE && $windowed; then
 			MODE=WINDOW
 		fi

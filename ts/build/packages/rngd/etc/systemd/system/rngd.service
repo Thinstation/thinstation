@@ -1,0 +1,10 @@
+[Unit]
+Description=Hardware RNG Entropy Gatherer Daemon
+Requires=systemd-udev-settle.service
+After=pkg.service
+
+[Service]
+ExecStart=/sbin/rngd -W 50% -f
+ExecStopPost=/bin/systemctl start rngd-backup
+SuccessExitStatus=66
+SyslogIdentifier=thinstation

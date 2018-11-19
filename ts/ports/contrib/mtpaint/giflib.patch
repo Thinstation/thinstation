@@ -1,0 +1,29 @@
+--- src/png.c	2014-05-28 12:02:50.000000000 +0200
++++ src2/png.c	2014-05-28 12:02:43.569815883 +0200
+@@ -1608,7 +1608,7 @@
+ 	}
+ 	res = 1;
+ fail:	mem_free_chanlist(w_set.img);
+-	DGifCloseFile(giffy);
++	DGifCloseFile(giffy, NULL);
+ 	return (res);
+ }
+ 
+@@ -1659,7 +1659,7 @@
+ 		}
+ 	}
+ 	res = 1;
+-fail:	DGifCloseFile(giffy);
++fail:	DGifCloseFile(giffy, NULL);
+ 	return (res);
+ }
+ 
+@@ -1725,7 +1725,7 @@
+ 	if (!settings->silent) progress_end();
+ 	msg = 0;
+ 
+-fail:	EGifCloseFile(giffy);
++fail:	EGifCloseFile(giffy, NULL);
+ #ifndef WIN32
+ 	/* giflib creates files with 0600 permissions, which is nasty - WJ */
+ 	mode = umask(0022);

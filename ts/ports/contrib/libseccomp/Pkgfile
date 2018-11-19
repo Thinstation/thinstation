@@ -1,0 +1,20 @@
+# Description: library for Linux' syscall filtering mechanism seccomp
+# URL:		     http://sourceforge.net/projects/libseccomp
+# Maintainer:  Thomas Penteker, tek at serverop dot de 
+
+name=libseccomp
+version=2.3.1
+release=1
+source=(https://github.com/seccomp/libseccomp/releases/download/v$version/libseccomp-$version.tar.gz)
+
+build() {
+	cd $name-$version
+
+  ./configure --prefix=/usr
+
+  make
+	make DESTDIR=$PKG install
+
+  mv $PKG/usr/share/man $PKG/usr
+  rm -r $PKG/usr/share
+}

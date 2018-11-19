@@ -1,0 +1,13 @@
+[Unit]
+Description=Configure VGA and Disable Specific Modules by Filters
+DefaultDependencies=no
+After=systemd-sysusers.service
+Before=systemd-udevd.service sysinit.target
+ConditionPathIsReadWrite=/sys
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+EnvironmentFile=/etc/thinstation.env
+ExecStart=/etc/init.d/pre-udev
+SyslogIdentifier=thinstation

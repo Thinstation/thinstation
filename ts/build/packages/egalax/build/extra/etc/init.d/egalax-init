@@ -1,0 +1,34 @@
+#!/bin/bash
+
+. `dirname $0`/common
+
+case "$1" in
+init)
+    if ! pkg_initialized $PACKAGE; then
+        pkg_set_init_flag $PACKAGE
+	if [ ! -z $EGALAX_DEVICE ]; then
+		echo blah > /dev/null
+#		echo 'Section "ServerLayout"' >> /etc/X11/xorg.conf.d/00-egalax.conf
+#		echo '        Identifier "EETI Layout Options"' >> /etc/X11/xorg.conf.d/00-egalax.conf
+#		echo '        InputDevice "EETI" "SendCoreEvents"' >> /etc/X11/xorg.conf.d/00-egalax.conf
+#		echo 'EndSection' >> /etc/X11/xorg.conf.d/00-egalax.conf
+#		echo 'Section "InputDevice"' >> /etc/X11/xorg.conf.d/00-egalax.conf
+#		echo '        Identifier "EETI"' >> /etc/X11/xorg.conf.d/00-egalax.conf
+#		echo '        Driver "egalax"' >> /etc/X11/xorg.conf.d/00-egalax.conf
+#		echo '        Option "ScreenNo" "0"' >> /etc/X11/xorg.conf.d/00-egalax.conf
+#		echo "        Option \"Device\" \"$EGALAX_DEVICE\"" >> /etc/X11/xorg.conf.d/00-egalax.conf
+#		if [ ! -z $EGALAX_PARAMFILE ]; then
+#			echo "        Option \"Parameters\" \"$EGALAX_PARAMFILE\"" >> /etc/X11/xorg.conf.d/00-egalax.conf
+#		fi
+#		echo 'EndSection' >> /etc/X11/xorg.conf.d/00-egalax.conf
+	fi
+    modprobe uinput
+    /usr/bin/eGTouchD
+    fi
+    ;;
+  *)
+    exit 1
+    ;;
+esac
+
+exit 0

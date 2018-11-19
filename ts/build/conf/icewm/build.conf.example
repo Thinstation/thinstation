@@ -59,12 +59,13 @@
 #machine NT-A3500			# Foxconn AMD E-350 Barebone
 #machine NT-535				# Foxconn Intel D525 Barebone
 #machine Dell-FX170			# Dell FX170 D525 Atom Machine
-machine VMWare				# A good set of modules for a VmWare Virtual Machine
+#machine VMWare				# A good set of modules for a VmWare Virtual Machine
 #machine Virtualbox-4.1			# A good set of modules for a Virtualbox Virtual Machine
 #machine VIA-Epia-CLE266		# VIA Epia/Eden based on the the CLE266 chip. Rather common in thin clients a few years old
 #machine classic_generic		# Big list of modules that you can choose by unremarking them
 #machine IGEL-M300C                     # Igel CX700 Via
 #machine HP-t5135                       # HP CX700 Via
+machine qemu
 #machine foxconn-nT-330i		# Foxconn nT 330i Barebone
 #machine foxconn-nT-435			# Foxconn nT 435 Barebone
 #machine foxconn-nT-535			# Foxconn nT 535 Barebone
@@ -83,7 +84,7 @@ machine VMWare				# A good set of modules for a VmWare Virtual Machine
 # Every mounted device needs a filesystem, so choose which ones you need.
 #module usb-storage
 #module autofs4          	# Automount and autofs support
-#module isofs            	# ISO9960 file system support for CDRoms
+module isofs            	# ISO9960 file system support for CDRoms
 #module udf			# CDRom UDF file system support
 #module vfat             	# Fat and VFat file system support
 #module ntfs             	# NTFS file system support
@@ -136,15 +137,15 @@ package automount
 #!!X related
 # --- XOrg 7.7
 #package xorg7-v4l
-#package xorg7-vesa		#A fallback driver that works with almost everything. Does allow resolution changes
-#package xorg7-vmware
+package xorg7-vesa		#A fallback driver that works with almost everything. Does allow resolution changes
+package xorg7-vmware
 #package xorg7-ati		#ATI video driver for most modern ATI chipsets. Usually requires several firmwares
 #package xorg7-nouveau		#New opensource nvidia driver
 #package xorg7_nvidia		#Proprietary nvidia driver
-#package xorg7_nvidia_64         # Additional 64bit module
 #package xorg7-openchrome	#Via Video Chipsets driver
 #package xorg7-intel		#Intel video driver for most modern chipsets except the GMA3500/3600
 #package xorg7-sis
+package xorg7-qxl
 
 #!!Locale or localization files for keyboard and fonts.  (Language/Country)
 #package locale-cs_CZ  # Czech
@@ -189,7 +190,7 @@ package xterm           	# Xterm Client (vt220)
 #package 2x			# 2X client
 #package java			# Java runtime
 #package firefox_lowmem		# Firefox 3 for low resource machines
-#package firefox		# Firefox current Web Browser
+package firefox		# Firefox current Web Browser
 #package chrome			# Google Chrome Web Browser
 #package kiosk			# Rkiosk Plugin for Firefox
 #package flash_lowmem		# Flash 9 browser plugin for firefox and low resource machines
@@ -200,8 +201,7 @@ package xterm           	# Xterm Client (vt220)
 #package open-vm-tools
 #package medit			# Notepad
 #package mplayer		# DVD and video player
-#package vmview                 # VMware Open-View Client, no PCoIP
-#package vmviewpcoip            # VMware Open-View Client, PCOIP
+#package vmview            # VMware Open-View Client, PCOIP
 #package xbmc			# XBMC Media Center for X
 #package evince			# X PDF Viewer
 
@@ -289,7 +289,7 @@ package fonts-TTF-BH		# This one works nicely most of the time and is small.
 #package rox			# Basic File Manager
 #package debug			# metapackage to include other debugging packages and stop during bootup to check things.
 #package extensions		# Adds various shell commands, will increase image size.
-#package extensions-x		# Adds various utility s for the X Environment !!!! INCLUDES hwlister.sh !!!!
+package extensions-x		# Adds various utility s for the X Environment !!!! INCLUDES hwlister.sh !!!!
 #package eGalax                 # eGalax TouchKit Drivers/Utility for serial and usb touchscreens by EETI.
 #package installer		# Wipes a drive, makes partitions and downloads thinstation from a pxe server
 #package devstation		# Starts a tftp server that hosts files from the boot-images/pxe folder
@@ -344,7 +344,7 @@ param desktop file:./backgrounds/Hive_Lite.jpg		# Custom image to load as deskto
 param defaultconfig  thinstation.conf.buildtime  	# The file with default setup.  No other config file is found
                                                  	#  during boot.
 param basename       thinstation     			# Used for all config/tftp/scp file names
-param basepath       ts5.6               		# Used to determine path to tftp/scp files
+param basepath       ts6.1               		# Used to determine path to tftp/scp files
 param baseurl        http://www.doncuppjr.net		# Used to determine url to wget files
 #param keyfile        ./id_rsa       			# Path for private key file used for ssh/scp
 #param knownhosts     ./known_hosts  			# Path for ssh known_hosts file for ssh/scp
@@ -381,5 +381,5 @@ param syslinuxtheme     "default"
 #package alltimezone
 #param allres		true		# Includes a lot of resolution splash images for live-cd s
 #param allfirmware	true		# Includes a lot of firmwares for live-cd s
-param mesa_3d disable
+#param mesa_3d disable
 param blacklist snd-pcsp.ko

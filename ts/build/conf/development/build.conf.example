@@ -1,6 +1,3 @@
-#package foo2zjs
-package extensions
-
 ################################################
 ### ---     Thinstation Build Config     --- ###
 ################################################
@@ -62,14 +59,13 @@ package extensions
 #machine NT-A3500			# Foxconn AMD E-350 Barebone
 #machine NT-535				# Foxconn Intel D525 Barebone
 #machine Dell-FX170			# Dell FX170 D525 Atom Machine
-#machine VMWare				# A good set of modules for a VmWare Virtual Machine
+machine VMWare				# A good set of modules for a VmWare Virtual Machine
 #machine Virtualbox-4.1			# A good set of modules for a Virtualbox Virtual Machine
-machine qemu				# A good set of modules for qemu
+machine qemu
 #machine VIA-Epia-CLE266		# VIA Epia/Eden based on the the CLE266 chip. Rather common in thin clients a few years old
 #machine classic_generic		# Big list of modules that you can choose by unremarking them
 #machine IGEL-M300C                     # Igel CX700 Via
 #machine HP-t5135                       # HP CX700 Via
-#machine HP-t620						#HP t620 Thin Client
 #machine foxconn-nT-330i		# Foxconn nT 330i Barebone
 #machine foxconn-nT-435			# Foxconn nT 435 Barebone
 #machine foxconn-nT-535			# Foxconn nT 535 Barebone
@@ -117,27 +113,29 @@ module ext4			# Ext4 file system support
 # --- Packages to include in boot image
 # --- Packages below may be "package" or "pkg"
 #!!Miscellaneous
-package overlayfs			# This is needed in order for squashfs compression mode to work.
+#package overlayfs			# This is needed in order for squashfs compression mode to work.
 #package ts-classic              # The classic ts logic for network/netfiles/hostname/mounting/telnetd/telnet/playcd
 #package automount
 #package netfiles			# Adds only this package instead of the whole ts-classic. netfiles lets you get thinstation.conf.xxx files
 							# from the TFTP-server
-package udisks
-package networkmanager
+#package udisks
+package automount
+#package networkmanager
+package autonet
 #package udisks-glue
 package ntp			# Utility to obtain date & time from network
 #package sound-esd		# Enable sound-esd or sound-nasd if you want to be able to control
 #package sound-nasd		#  sound on your thin client from another computer or
                         	#  your remote session.
-package alsa
-#package pulseaudio		#Enable Pulse Audio Server. Required for Skype Virtualisation Pack in Horizon View Client 4.5+
+#package alsa
 #package gnome-media
 #package gnome-network-properties
-package gnome-core
-package volumeicon
+#package gnome-core
+#package gnome-control-center
+#package volumeicon
 #package kismet
-package gst-plugins-base
-package gst-plugins-good
+#package gst-plugins-base
+#package gst-plugins-good
 #package crystalhd
 #package libva
 #package iptables		# IP Tables support
@@ -150,13 +148,12 @@ package gst-plugins-good
 #package xorg7-v4l
 #package xorg7-vesa		#A fallback driver that works with almost everything. Does allow resolution changes
 #package xorg7-vmware
+#package xorg7-qxl
 #package xorg7-ati		#ATI video driver for most modern ATI chipsets. Usually requires several firmwares
 #package xorg7-nouveau		#New opensource nvidia driver
 #package xorg7_nvidia		#Proprietary nvidia driver
-#package xorg7_nvidia_64         # Additional 64bit module
 #package xorg7-openchrome	#Via Video Chipsets driver
 #package xorg7-intel		#Intel video driver for most modern chipsets except the GMA3500/3600
-package xorg7-qxl		#Qemu video driver
 #package xorg7-sis
 
 #!!Locale or localization files for keyboard and fonts.  (Language/Country)
@@ -182,7 +179,6 @@ package locale-en_US  # English-US
 #package locale-ru_RU  # Russian
 #package locale-sv_SE  # Swedish
 #package locale-tr_TR  # Turkish
-#package locale-uk_UA  # Ukrainian
 
 #!Applications
 #!!Connection Package types.  Choose *at least* one!
@@ -202,12 +198,10 @@ package locale-en_US  # English-US
 #package nx              	# No Machine NX client
 #package 2x			# 2X client
 #package java			# Java runtime
-#package firefox_lowmem		# Firefox 3 for low resource machines
 #package firefox		# Firefox current Web Browser
 #package chrome			# Google Chrome Web Browser
 #package chromium		# Chromium Web Browser
 #package kiosk			# Rkiosk Plugin for Firefox
-#package flash_lowmem		# Flash 9 browser plugin for firefox and low resource machines
 #package flash			# Flash Current
 #package filezilla		# FileZilla FTP Client for X
 #package git			# GIT Version Control System
@@ -216,16 +210,14 @@ package locale-en_US  # English-US
 #package vboxguest
 #package medit			# Notepad
 #package mplayer		# DVD and video player
-#package vmview                 # VMware Open-View Client, no PCoIP
-#package vmviewpcoip            # VMware Open-View Client, PCOIP
-#package vmhorizonclient				# VMware Horizon Client 4.x
+#package vmview            # VMware Open-View Client, PCOIP
 #package xbmc			# XBMC Media Center for X
 #package evince			# X PDF Viewer
 
 #!!Window Managers. Choose no more than 1 window manager.
 # Not needed if you don t want to manage windows.
 #package openbox		# A spartin clean/fast window manager.
-#package xdesktop-kiosk		# A locked down desktop kiosk using the openbox wm (See packages/xdesktop-kiosk/build/conf for
+#package xdesktop-kiosk		# A locked down desktop kiosk using the openbox wm (See packages/xdesktop-kiosk/build/conf for 
 				# more help.
 #package icewm			# "ICEWM" window manager.  Makes TS a light workstation.
 #package icewm-theme-xp
@@ -234,11 +226,11 @@ package locale-en_US  # English-US
 #package icewm-theme-bluecrux
 #package icewm-theme-liquid
 
-package xfwm4
+#package xfwm4
 #package xfwm4-extra
-package xfce4-power-manager
-package terminal		# Terminal emulator for xfwm4 -- Pulls in xfwm4
-package thunar			# File Manager for xfwm4 -- Pulls in xfwm4
+#package xfce4-power-manager
+#package terminal		# Terminal emulator for xfwm4 -- Pulls in xfwm4
+#package thunar			# File Manager for xfwm4 -- Pulls in xfwm4
 
 #!!Window Manager Utils
 #package idle-shutdown		# Package that lets you specify automatic shutdown settings and logic.
@@ -273,11 +265,13 @@ package thunar			# File Manager for xfwm4 -- Pulls in xfwm4
 
 
 #!!Miscellaneous
-package gtk-2.0			# Full gtk-2.0 plus clearlooks theme
-package gtk-3.0
-package icons-cursor		# Anti Aliased Mouse Cursor Theme
-package icons-hicolor           # Hi-Color icons for some applications and themes. Does not really contain any icons.
-package icons-gnome             # gnome Hi-Color icons theme. Needed by most other icon themes.
+#package gtk-2.0			# Full gtk-2.0 plus clearlooks theme
+#package gtk-3.0
+#package gtk-theme-adwaita
+#package icons-cursor		# Anti Aliased Mouse Cursor Theme
+#package icons-hicolor           # Hi-Color icons for some applications and themes. Does not really contain any icons.
+#package icons-gnome             # gnome Hi-Color icons theme. Needed by most other icon themes.
+#package icons-adwaita
 #package icons-tango             # tango Hi-Color icons theme
 #package icons-neu               # neu Hi-Color icons theme
 #package fonts-misc
@@ -285,11 +279,12 @@ package icons-gnome             # gnome Hi-Color icons theme. Needed by most oth
 #package fonts-util
 #package fonts-cyrillic
 #package fonts-Speedo-Bitstream
-package fonts-TTF-BH		# This one works nicely most of the time and is small.
-package fonts-TTF-vera
+#package fonts-TTF-BH		# This one works nicely most of the time and is small.
+#package fonts-TTF-vera
 #package fonts-TTF-MS		# Fonts for rendering documents developed on the MS Platform.
                             # Might want to talk to a lawyer before using these.
-package fonts-TTF-liberation
+#package fonts-TTF-liberation
+#package fonts-TTF-noto
 #package fonts-75dpi-Adobe
 #package fonts-75dpi-Adobe-Utopia
 #package fonts-75dpi-BH
@@ -336,12 +331,12 @@ package fonts-TTF-liberation
 ########################################
 #!!Basic
 
-param fastboot       true				# Mangles the filesystem a special way as to improve boot spead and reduce
+#param fastboot       true				# Mangles the filesystem a special way as to improve boot spead and reduce
 							# memory utilization. Cool/Dangerous . Harder to dubug other packages. (Finishing Touch)
 							# Set to 'true' to enable or 'lotsofmem' for slightly slower booting but no squash lag on app launch.
-param tsuser         tsuser                            # Name of the user that thinstation will run as. Needs userauto package.
-param tsuserpasswd   pleasechangeme			# Do Change! Console/telnet password for non-root
-package switchuser
+#param tsuser         tsuser                            # Name of the user that thinstation will run as. Needs userauto package.
+#param tsuserpasswd   pleasechangeme			# Do Change! Console/telnet password for non-root
+
 param rootpasswd     pleasechangeme			# Do Change!  Console/telnet password for root
                                         		# If this is enabled, Telnetd will be enabled.
 param xorgvncpasswd  pleasechangeme			# VNC Access Password
@@ -349,6 +344,7 @@ param storagepasswd  pleasechangeme			# Password for storage server
 param dialuppasswd   pleasechangeme			# Password for dialin account
 param sambapasswd    pleasechangeme  			# Password for samba shares when using user mode security
 #param kernelcmdline "radeon.modeset=0"                 # Add additional kernel command lines. e.g. disable radeon framebuffer
+#param kernelcmdline "systemd.log_level=debug"
 #param stripelf       yes				# Strip extraneous information from elf binaries (Maybe not Safe)
 #param acpisupport    disable				# Tells the kernel not to load acpi modules. (Breaks some Intel Chipsets if disabled)
 #param uvesafb        disable				# Disable uvesafb (legacy option like modesetfb)
@@ -368,12 +364,12 @@ param fbsm           ywrap                              # Window scrolling metho
 #param bootresolution 1024x600-32                       # Resolution used during Thinstation boot.
 #param bootresolution 1024x768-32                        # You can wright your own resolution mode here, if you know it.
 #param bootresolution 1152x864-32
-#param bootresolution 1280x768-32
+param bootresolution 1280x768-32
 #param bootresolution 1366x768-32                       # Otherwise, you may want to refer to the vbe_modes.list you created with hwlister.sh
 #param bootresolution 1280x1024-32                      # for modes that your card supports.
 #param bootresolution 1400x900-32                       # It is also used by xrandr if no xrandr options are specified.
 #param bootresolution 1680x1050-32
-param bootresolution 1920x1080-32
+#param bootresolution 1920x1080-32
 #param bootresolution 1400x1050-32
 #param bootresolution 1920x1200-32
 
@@ -381,7 +377,7 @@ param desktop file:./backgrounds/Hive_Lite.jpg		# Custom image to load as deskto
 param defaultconfig  thinstation.conf.buildtime  	# The file with default setup.  No other config file is found
                                                  	#  during boot.
 param basename       thinstation     			# Used for all config/tftp/scp file names
-param basepath       ts5.5               		# Used to determine path to tftp/scp files
+param basepath       ts6.1               		# Used to determine path to tftp/scp files
 param baseurl        http://www.doncuppjr.net		# Used to determine url to wget files
 #param baseurl        http://192.168.78.17		# Used to determine url to wget/http files - your local web server
 #param baseurl        'http://${SERVER_IP}'		# Used to determine url to wget/http files - if you wan't to use a web server on the same server as the TFTP server
@@ -393,7 +389,7 @@ param baseurl        http://www.doncuppjr.net		# Used to determine url to wget f
 param haltonerror    false				# Will halt on error, default is true
 param hardlinkfs     true
 param sametimestmp   true                               # When enabled, the timestamps for all files and folders will be set to 00:00 of todays date in your timezone
-param initrdcmd	     "squashfs"				# Compression mode and level of initrd file. none, gzip -9, lzma -9 ,bzip2 -9
+param initrdcmd	     "gzip"				# Compression mode and level of initrd file. none, gzip -9, lzma -9 ,bzip2 -9
 param bootverbosity   3          			# Increased vebosity when booting TS
                                 			#   0 no verbose messages
                                 			#   1 boot
@@ -421,7 +417,9 @@ param syslinuxtheme     "default"
 
 #param bootfssize     50%                               # Modify the size of the tmpfs filesystem
 
-package alltimezone
-param allres		true		# Includes a lot of resolution splash images for live-cd s
-param allfirmware	true		# Includes a lot of firmwares for live-cd s
+#package alltimezone
+#param allres		true		# Includes a lot of resolution splash images for live-cd s
+#param allfirmware	true		# Includes a lot of firmwares for live-cd s
+param earlymicrocode	false		# Builds microcode initramfs for early loading
+					# by kernel. Needs kernel with MICROCODE_EARLY=y.
 param blacklist snd-pcsp.ko

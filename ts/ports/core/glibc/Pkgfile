@@ -3,55 +3,53 @@
 # Maintainer:  CRUX System Team, core-ports at crux dot nu
 
 name=glibc
-version=2.23
-release=2
-source=(http://ftp.gnu.org/gnu/glibc/glibc-$version.tar.xz
-        hosts resolv.conf nsswitch.conf host.conf ld.so.conf)
+version=2.24
+release=1
+source=(http://ftp.gnu.org/gnu/glibc/glibc-$version.tar.xz \
+	http://crux.nu/files/distfiles/kernel-headers-4.1.tar.xz \
+	$name-2.20-multilib-dirs.patch \
+	hosts resolv.conf nsswitch.conf host.conf ld.so.conf)
 
 build() {
+unset CPPFLAGS
+CFLAGS="`echo $CFLAGS |sed -e 's/ -fstack-protector-strong//g'`"
+CXXFLAGS=$CFLAGS
+	# install kernel headers
+	install -d $PKG/usr/
+	cp -r $SRC/kernel-headers-4.1/include $PKG/usr
+	chown root:root $PKG/usr
 
-    cd $SRC
 
-export CFLAGS="${CFLAGS} -mno-tls-direct-seg-refs"
-export CFLAGS=${CFLAGS/-fstack-protector-strong/}
-export CPPFLAGS=${CPPFLAGS/-D_FORTIFY_SOURCE=2/}
+        patch -p1 -d $SRC/$name-$version -i $SRC/$name-2.20-multilib-dirs.patch
 
-    mkdir build
-    cd build
-    ../$name-$version/configure --prefix=/usr \
-                                --libexecdir=/usr/lib \
-                                --with-headers=/usr/src/kernels/`cat /boot/KERNEL_VERSION`/usr/include \
-				--enable-add-ons \
-				--enable-obsolete-rpc \
-				--enable-kernel=2.6.32 \
-				--enable-bind-now --disable-profile \
-				--enable-stackguard-randomization \
-				--enable-lock-elision \
-				--enable-multi-arch \
-				--disable-werror \
+	mkdir $SRC/build
+	cd $SRC/build
+	../$name-$version/configure --prefix=/usr \
+		--libexecdir=/usr/lib \
+		--with-headers=$PKG/usr/include \
+		--enable-kernel=3.12 \
+		--enable-add-ons \
+		--enable-static-nss \
+		--disable-profile \
+		--disable-werror \
+		--without-gd \
+		--enable-obsolete-rpc \
+		--enable-multi-arch
 
-	# build libraries with hardening disabled
-	echo "build-programs=no" >> configparms
 	make
-
-	# re-enable hardening for programs
-	sed -i "/build-programs=/s#no#yes#" configparms
-	echo "CC += -fstack-protector-strong -D_FORTIFY_SOURCE=2" >> configparms
-	echo "CXX += -fstack-protector-strong -D_FORTIFY_SOURCE=2" >> configparms
-	make
-
-	# remove harding in preparation to run test-suite
-	sed -i '5,7d' configparms
-
+	#make check
 	make install_root=$PKG install
 
-    cp $SRC/{hosts,resolv.conf,nsswitch.conf,host.conf,ld.so.conf} $PKG/etc
-    ln -sf ../usr/share/zoneinfo/UTC $PKG/etc/localtime
-    mkdir -p $PKG/etc/ld.so.conf.d $PKG/usr/lib/locale
-    touch $PKG/etc/ld.so.cache
+	install -m 0644 $SRC/$name-$version/nscd/nscd.conf $PKG/etc 
+	install -d $PKG/var/{db,run}/nscd
 
-    rm -rf $PKG/usr/share/{info,locale}
-    rm $PKG/usr/sbin/{zic,zdump}
-    rm $PKG/usr/bin/tzselect
+	install -m 0644 $SRC/{hosts,resolv.conf,nsswitch.conf,host.conf,ld.so.conf} $PKG/etc
+
+	ln -sf ../usr/share/zoneinfo/UTC $PKG/etc/localtime
+	install -d $PKG/etc/ld.so.conf.d $PKG/usr/lib/locale
+	touch $PKG/etc/ld.so.cache
+
+	rm -rf $PKG/usr/share/{info,locale} \
+		$PKG/usr/bin/tzselect \
+		$PKG/usr/sbin/z{dump,ic}
 }
-

@@ -1,14 +1,15 @@
 # Description: Portable Foreign Function Interface Library
+# Moritz Wilhelmy <moritz plus crux at wzff dot de>
 # URL:         http://sourceware.org/libffi/
-# Maintainer:  Fredrik Rinnestam, fredrik at crux dot nu
+# Depends On: 
 
 name=libffi
 version=3.2.1
-release=3
-source=(https://sourceware.org/pub/$name/$name-$version.tar.gz)
+release=1
+source=(ftp://sourceware.org/pub/$name/$name-$version.tar.gz)
 
 build() {
-    cd $name-$version
+  cd $SRC/$name-$version
 
     sed -e '/^includesdir/ s/$(libdir).*$/$(includedir)/' \
         -i include/Makefile.in
@@ -18,8 +19,12 @@ build() {
         -e 's/^Cflags: -I${includedir}/Cflags:/' \
         -i libffi.pc.in
 
-    ./configure --prefix=/usr
-    make
-    make DESTDIR=$PKG install
-    rm -r $PKG/usr/share/info
+  ./configure --prefix=/usr \
+		--mandir=/usr/man \
+		--disable-static \
+		--enable-shared
+
+  make
+  make install DESTDIR=$PKG
+  rm -rf $PKG/usr/share
 }

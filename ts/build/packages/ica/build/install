@@ -19,15 +19,15 @@ bins="attr awk basename bash cat chgrp chmod chown cp cut date dd df \
 	dirname echo ed egrep expr false find gawk grep head id init \
 	install ip ln locale ls mkdir mktemp more mount mv pidof ping \
 	ps red rm rmdir sed sh sleep sort ss tar tc telinit touch tr \
-	true uname vi wc which whoami"
+	true uname vi wc which whoami ldd gst-play-1.0"
 dirs="proc etc/udev/rules.d etc/init.d bin lib tmp dev/bus/usb usr/local \
         lib/applications lib/netscape/plugins \
-        lib/gstreamer-0.10 lib/firefox/plugins \
+        lib/gstreamer-1.0 lib/firefox/plugins \
         lib/chrome/plugins"
-clean_dirs="setupwfc linuxx86 dev PkgId tmp proc \
+clean_dirs="setupwfc linuxx64 dev PkgId tmp proc \
         lib/firefox/plugins lib/chrome/plugins lib/plugins lib/mailcap \
-        lib/mime.types lib/gstreamer-0.10"
-libs="/lib/libnss_files.so.2"
+        lib/mime.types"
+libs="/lib/libnss_files.so.2 /usr/lib/libgstapp-1.0.so.0"
 
 # Create all the directories that we are going to need
 for mdir in $dirs; do
@@ -38,7 +38,7 @@ done
 for cbin in $bins ; do
         cp `which $cbin` $INSTALLDIR/bin/.
 	if [ -n "`file $INSTALLDIR/bin/$cbin |grep -oe ELF`" ]; then
-		libs="$libs \n`ldd $INSTALLDIR/bin/$cbin |grep -v 'linux-gate' |cut -d '>' -f2 |cut -d '(' -f1 |sed -E s/[[:space:]]//g`"
+		libs="$libs \n`ldd $INSTALLDIR/bin/$cbin |grep -v 'linux-vdso' |cut -d '>' -f2 |cut -d '(' -f1 |sed -E s/[[:space:]]//g`"
 	fi
 done
 if [ -e /bin/uname-auto ] ; then
@@ -72,6 +72,8 @@ ln -sf /bin $INSTALLDIR/usr/sbin
 ln -sf /bin $INSTALLDIR/usr/bin
 ln -sf /lib $INSTALLDIR/usr/lib
 ln -sf /lib $INSTALLDIR/usr/share
+ln -sf /lib $INSTALLDIR/lib64
+ln -sf /lib $INSTALLDIR/usr/lib64
 
 # Now extract the installer
 tar -C $INSTALLDIR -zxvf ./wget_tmp/$gzname
@@ -82,7 +84,7 @@ timestamp="`date +%Y%m%d`0000.00"
 for file in `find $INSTALLDIR`; do
 	touch -c -h -t $timestamp $file
 done
-bday=`stat -c %Y $INSTALLDIR/linuxx86/linuxx86.psf`
+bday=`stat -c %Y $INSTALLDIR/linuxx64/linuxx64.psf`
 
 # Start the installer in a chroot session.
 mount -t proc proc $INSTALLDIR/proc
@@ -113,6 +115,11 @@ done
 for dir in $clean_dirs ; do
 	rm -rf $INSTALLDIR/$dir
 done
+rm $INSTALLDIR/lib64
+
+# Remove library versions that we don't have the dependencies for
+rm $INSTALLDIR/opt/Citrix/ICAClient/lib/{libkcph.so,ctxjpeg_fb.so}
+rm $INSTALLDIR/opt/Citrix/ICAClient/VDHSSPI.DLL
 
 # A little bit of shifing about for "our" filesystem layout.
 mv $INSTALLDIR/lib/netscape $INSTALLDIR/lib/mozilla
@@ -126,6 +133,9 @@ find $INSTALLDIR -group sys |cut -d '/' -f4- > $INSTALLDIR/etc/ICA-Perms
 # Merge static files and folders
 mkdir -p $INSTALLDIR/lib/pcsc/drivers
 cp -Prf $INSTALLDIR/build/extra/* $INSTALLDIR/.
+
+# Remove sysv init files
+rm -rf $INSTALLDIR/etc/init.d/ctxusbd
 
 # Remove any now empty folders
 find $INSTALLDIR -type d -empty -delete

@@ -3,16 +3,15 @@
 # Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 
 name=pcmanfm
-version=git
+version=1.2.4
 release=1
-source=()
+source=(http://downloads.sourceforge.net/$name/$name-$version.tar.xz)
 
 build() {
-git clone --depth 1 git://pcmanfm.git.sourceforge.net/gitroot/pcmanfm/pcmanfm
-	cd $name
-	./autogen.sh
+	cd $name*
 	./configure --prefix=/usr \
-			--disable-nls
+			 \
+			--with-gtk=3
 
 	make
 	make DESTDIR=$PKG install

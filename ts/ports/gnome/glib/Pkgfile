@@ -4,19 +4,21 @@
 # Depends on:  libpcre libffi python
 
 name=glib
-version=2.54.3
+archname=glib2
+version=2.58.1
 release=1
 source=(http://download.gnome.org/sources/$name/${version:0:4}/$name-$version.tar.xz \
-	gschemas.compiled \
-        0001-Fix-trashing-on-overlayfs.patch)
+	gschemas.compiled)
 
 build () {
     cd $name-$version
-    patch -Np1 < ../0001-Fix-trashing-on-overlayfs.patch
 
+    ./autogen.sh
     ./configure --prefix=/usr \
                 --disable-man \
-                --with-pcre=system
+                --with-pcre=system \
+		--with-python=/usr/bin/python3
+
     make
     make -j1 DESTDIR=$PKG install
 
@@ -26,4 +28,5 @@ build () {
     install -m 0644 $SRC/gschemas.compiled $PKG/usr/share/glib-2.0/schemas/gschemas.compiled
     rm -rf $PKG/usr/share/{gtk-doc,locale}
     rm -r $PKG/usr/share/bash-completion
+chown -R root.root $PKG
 }

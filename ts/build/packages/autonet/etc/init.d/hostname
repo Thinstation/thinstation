@@ -1,5 +1,7 @@
 #!/bin/sh
 
+#. `dirname $0`/common
+
 for adapter in `ls /var/log/net`; do
         . /var/log/net/$adapter
         echo "$CLIENT_IP $CLIENT_NAME" >> /etc/hosts
@@ -16,4 +18,3 @@ if [ -n $NET_DEVICE ] ; then
 	. /var/log/net/$NET_DEVICE
 	hostname $CLIENT_NAME
 fi
-

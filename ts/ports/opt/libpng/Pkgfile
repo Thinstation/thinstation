@@ -1,17 +1,18 @@
-# Description: Library of PNG support functions.
+# Description: Library of PNG support functions with APNG support.
 # URL:         http://www.libpng.org
-# Maintainer:  Tilman Sauerbeck, tilman at crux dot nu
+# Maintainer:  Fredrik Rinnestam, fredrik at crux dot nu
 # Depends on:  zlib
 
 name=libpng
-version=1.4.8
+version=1.6.24
 release=1
-source=(http://download.sourceforge.net/$name/$name-$version.tar.xz)
+source=(http://download.sourceforge.net/$name/$name-$version.tar.xz \
+        http://downloads.sourceforge.net/project/libpng-apng/libpng16/1.6.24/libpng-1.6.24-apng.patch.gz)
 
 build() {
     cd $name-$version
-
-    ./configure --prefix=/usr --mandir=/usr/man
+    zcat $SRC/$name-$version-apng.patch.gz | patch -p1
+    ./configure --prefix=/usr --mandir=/usr/man --disable-static
 
     make
     make DESTDIR=$PKG install

@@ -11,8 +11,11 @@ source=(http://downloads.sourceforge.net/project/$name/$name-$version.tar.gz)
 
 build() {
 	cd $name-$version
-	./configure --prefix=/usr --disable-static
+	./configure --prefix=/usr --disable-static \
+			--enable-init=service.fedora
 	make
 	make install DESTDIR=$PKG
-	#rmdir $PKG/usr/bin
+
+	mkdir -p $PKG/usr/lib/systemd/system
+	mv /usr/lib/systemd/system/haveged.service $PKG/usr/lib/systemd/system
 }

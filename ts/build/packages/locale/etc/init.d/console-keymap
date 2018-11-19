@@ -1,10 +1,8 @@
 #! /bin/sh
 
-. $TS_GLOBAL
+. `dirname $0`/common
 
-case "$1" in  
-init)
-    if ! pkg_initialized $PACKAGE; then
+if ! pkg_initialized $PACKAGE; then
 	pkg_set_init_flag $PACKAGE
         if [ -d /lib/locale ] ; then
 		if [ -z "$LOCALE" ]; then
@@ -34,18 +32,8 @@ init)
                 echo_log "\nNotice!, no console font found"
                 echo_log "Continuing boot with default kernel font"
         fi
-	if [ "`readlink /etc/localtime`" != "/usr/share/zoneinfo/$TIME_ZONE" ] ; then
+	if [ "`readlink /etc/localtime`" != "/lib/zoneinfo/$TIME_ZONE" ] ; then
 		rm /etc/localtime
-		ln -sf /usr/share/zoneinfo/$TIME_ZONE /etc/localtime
+		ln -sf /lib/zoneinfo/$TIME_ZONE /etc/localtime
 	fi
-    fi
-    ;;
-help)
-    echo "Usage: $0 init"
-    ;;
-  *)
-    exit 1
-    ;;
-esac
-
-exit 0
+fi

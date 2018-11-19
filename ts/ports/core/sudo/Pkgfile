@@ -4,7 +4,7 @@
 # Depends on:  zlib
 
 name=sudo
-version=1.8.3
+version=1.8.17p1
 release=1
 source=(http://www.sudo.ws/$name/dist/$name-$version.tar.gz)
 
@@ -13,17 +13,13 @@ build() {
 
     ./configure --prefix=/usr \
                 --libexecdir=/usr/lib \
-                --mandir=/usr/man \
                 --with-logfac=auth \
-                --with-timedir=/var/lib/sudo \
-                --without-pam \
-                --disable-nls
+                --with-vardir=/var/lib/sudo \
+                --with-rundir=/var/run/sudo \
+		--with-pam
 
     make
     make DESTDIR=$PKG install
 
-    chmod 0755 $PKG/{var,var/lib}
-    rm -r $PKG/usr/share
-    ln -sf sudo $PKG/usr/bin/sudoedit
-    ln -sf sudo.8.gz $PKG/usr/man/man8/sudoedit.8
+    rm -r $PKG/usr/share/doc
 }

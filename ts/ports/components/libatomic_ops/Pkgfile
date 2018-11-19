@@ -5,17 +5,17 @@
 # Contributor: Rémy Oudompheng <remy@archlinux.org>
 
 name=libatomic_ops
-version=7.4.6
+version=7.4.4
+_tag=$name-${version//./_}
 release=1
-source=(https://github.com/ivmai/libatomic_ops/releases/download/v$version/${name}-${version}.tar.gz)
+source=(https://github.com/ivmai/libatomic_ops/archive/$_tag.zip)
 
 build() {
-  cd $name-$version
+  cd $name-$_tag
   ./autogen.sh
   ./configure --prefix=/usr --disable-static --enable-shared
   make
-  make check
   make DESTDIR="$PKG" install
-  install -Dm644 doc/LICENSING.txt "$PKG/usr/share/licenses/$name/LICENSE"
-  rm -rf "$PKG/usr/share/doc/"
+  install -D -m644 doc/LICENSING.txt "$PKG/usr/share/licenses/$name/LICENSE"
+  rm -r "$PKG/usr/share/libatomic_ops"
 }

@@ -1,17 +1,20 @@
-# Description: Utility for viewing/manipulating the MAC address of network interfaces
-# URL: http://www.alobbs.com/macchanger/
-# Maintainer: Jose V Beneyto, sepen at users dot sourceforge dot net
-# Packager: Antonio Bonifati, ant at venus dot deis dot unical dot it
+# $Id$
+# Maintainer: Kyle Keen <keenerd@gmail.com>
+# Contributor: Daniel J Griffiths <ghost1227@archlinux.us>
 
 name=macchanger
-version=1.5.0
-release=1
-source=(ftp://ftp.gnu.org/gnu/macchanger/$name-$version.tar.gz)
+version=1.7.0
+release=2
+source=("https://github.com/alobbs/macchanger/archive/$version.tar.gz")
 
-build () {
-  cd $name-$version
-  ./configure --prefix=/usr
+build() {
+  cd "${SRC}/${name}-${version}"
+  ./autogen.sh
+  ./configure --prefix=/usr \
+              --mandir=/usr/share/man \
+              --infodir=/usr/share/info
   make
-  make DESTDIR=$PKG install
-  rm -rf $PKG/usr/info
+  make DESTDIR="${PKG}" install
+
+  rm -rf $PKG/usr/share/info
 }

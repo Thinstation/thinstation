@@ -86,8 +86,8 @@ downloadImage()
     fi
     
     # Count how many directories we need to ignore. -4 comes for 1 (by defaul so to speak), 2 for '//' in http:// and 1 for the last '/' after 'refind/'
-    # e.g. http://myserver/ts5.5/local-install/refind/' will result in 3 and thereby we will only get the directories inside the final path.
-    # Otherwise we would end up having the ts5.5/local-install/refind directory structure as well...
+    # e.g. http://myserver/ts6.1/local-install/refind/' will result in 3 and thereby we will only get the directories inside the final path.
+    # Otherwise we would end up having the ts6.1/local-install/refind directory structure as well...
     cutDirsCount=$((`echo $LOCAL_INSTALL_URL | sed 's/[^/]//g' | wc -m` -3))
 
     mkdir -p ${TMP_DIR}/image

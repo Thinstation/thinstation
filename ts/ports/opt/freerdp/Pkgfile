@@ -4,37 +4,46 @@
 # Depends on: xorg-libx11
 
 name=freerdp
-version=latest
+version=2.0-dev
 release=master
-source=()
+source=(freerdp-2.0.0-tprdp.patch)
 
 build() {
 	git clone git://github.com/FreeRDP/FreeRDP.git -b ${release}
 	cd FreeRDP
-
+	patch -Np1 < ../freerdp-2.0.0-tprdp.patch
 	cmake .	-DCMAKE_INSTALL_PREFIX=/usr \
 		-DCMAKE_INSTALL_LIBDIR=lib \
 		-DDOCBOOKXSL_DIR=/usr/share/sgml/docbook/xsl-ns-stylesheets \
 		-DCMAKE_BUILD_TYPE=Release \
 		-DWITH_PCSC=ON \
-		-DWITH_LIBSYSTEMD=OFF \
-		-DWITH_WAYLAND=OFF \
+		-DBUILD_SHARED_LIBS=ON \
 		-DWITH_CHANNELS=ON \
+		-DWITH_CHANNELS_PRINT=ON \
 		-DWITH_SERVER=OFF \
 		-DWITH_CLIENT=ON \
-		-DWITH_GSTREAMER_0_10=OFF \
-		-DWITH_GSTREAMER_1_0=ON \
 		-DWITH_PULSE=ON \
 		-DWITH_ALSA=ON \
 		-DWITH_CUPS=ON \
 		-DWITH_FFMPEG=ON \
+		-DWITH_MBEDTLS=OFF \
+		-DWITH_OPENSLES=OFF \
 		-DCHANNEL_URBDRC_CLIENT=ON \
+		-DWITH_GSTREAMER_1_0=ON \
+		-DWITH_GSTREAMER_0_10=OFF \
 		-DWITH_DIRECTFB=OFF \
 		-DWITH_XINERAMA=ON \
+		-DWITH_CUNIT=OFF \
 		-DWITH_JPEG=ON \
 		-DWITH_IPP=OFF \
+		-DWITH_NPP=OFF \
 		-DWITH_MANPAGES=ON \
-		-DWITH_SAMPLE=ON
+		-DWITH_SAMPLE=ON \
+		-DWITH_x264=ON \
+		-DWITH_GSSAPI=ON \
+		-DWITH_FAAC=ON \
+		-DWITH_LIBSYSTEMD=ON \
+		-DWITH_WAYLAND=ON
 
 	make
 	make DESTDIR=$PKG install

@@ -1,36 +1,12 @@
 #! /bin/sh
 
-. /etc/thinstation.global
+. `dirname $0`/common
 
-# note you can replace this package with a symlink to /etc/thinstation.packages
-# for GUI apps, or /etc/thinstation.console for console apps
-# if you do then you will need to create a seperate initilization script for
-# any other parameters which need to be started at bootup
-
-
-case "$1" in
-init)
-    if ! pkg_initialized $PACKAGE; then
-
+if ! pkg_initialized $PACKAGE; then
 	if [ -n "$ETHTOOL_DEV" ] && [ -n "$ETHTOOL_OPTS" ]; then
 		ethtool -s $ETHTOOL_DEV $ETHTOOL_OPTS
 	fi
-
 	pkg_set_init_flag $PACKAGE
-    fi
-    ;;
-console)
-;;
-window)
-;;
-fullscreen)
-;;
-help)
-    echo "Usage: $0 init"
-    ;;
-  *)
-    exit 1
-    ;;
-esac
+fi
 
 exit 0

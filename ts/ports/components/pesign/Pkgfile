@@ -3,23 +3,17 @@
 # Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 
 name=pesign
-version=0.110
+version=git
 release=1
-#source=(https://github.com/vathpela/pesign/releases/download/${version}/pesign-${version}.tar.bz2)
 
 build() {
-#	cd pesign-$version
 	git clone --depth 1 https://github.com/vathpela/pesign.git
 	cd pesign
 
-	sed -e 's|include|include -I/usr/include/nspr|g' -i Make.defaults
-	sed -i Makefile -e 's/popt uuid efivar/popt uuid efivar plc4 nspr4/g' -e 's/-Werror//g' src/Makefile
 
 	make PREFIX="/usr/" LIBDIR="/usr/lib/"
 	make INSTALLROOT="${PKG}/" PREFIX="/usr/" LIBDIR="/usr/lib/" install
 	make INSTALLROOT="${PKG}/" PREFIX="/usr/" LIBDIR="/usr/lib/" install_sysvinit
-
-#	chmod 0644 "${PKG}/usr/lib/libdpe.a"
 
 	rm -rf "${PKG}/etc/rpm/"
 }

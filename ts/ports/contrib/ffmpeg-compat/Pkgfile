@@ -1,42 +1,65 @@
-# $Id$
-# Maintainer: Sergej Pupykin <pupykin.s+arch@gmail.com>
-# Contributor: Ionut Biru <ibiru@archlinux.org>
-# Contributor: Tom Newsom <Jeepster@gmx.co.uk>
-# Contributor: Paul Mattal <paul@archlinux.org>
+# Description: Complete solution to record, convert and stream audio and video.
+# URL: http://ffmpeg.org/
+# Maintainer: Danny Rawlins, crux at romster dot me
+# Packager: Danny Rawlins, crux at romster dot me
+# Depends on: gnutls lame libass libbluray libgmp libmodplug libsdl libtheora libva libvpx libxvid opencore-amr openjpeg opus rtmpdump schroedinger speex x264 x265
 
 name=ffmpeg-compat
-version=20120509
-release=4
-source=(ftp://ftp.archlinux.org/other/ffmpeg/ffmpeg-$version.tar.xz)
+version=2.8.7
+release=1
+source=(http://ffmpeg.org/releases/ffmpeg-$version.tar.bz2)
 
 build() {
-  cd "ffmpeg"
+	cd ffmpeg-$version
 
-  export CFLAGS="$CFLAGS -I/usr/include/openjpeg-1.5"
-  ./configure \
-    --prefix=/usr \
-    --incdir=/usr/include/ffmpeg-compat \
-    --libdir=/usr/lib/ffmpeg-compat \
-    --shlibdir=/usr/lib/ffmpeg-compat \
-    --enable-libmp3lame \
-    --enable-libvorbis \
-    --enable-libxvid \
-    --enable-libx264 \
-    --enable-libtheora \
-    --enable-libspeex \
-    --enable-postproc \
-    --enable-shared \
-    --enable-x11grab \
-    --enable-libopencore_amrnb \
-    --enable-libopencore_amrwb \
-    --enable-gpl \
-    --enable-version3 \
-    --enable-runtime-cpudetect \
-    --disable-nonfree \
-    --disable-debug \
-    --disable-static
+	./configure \
+		--prefix=/usr \
+		--incdir='/usr/include/ffmpegs-compat' \
+		--libdir='/usr/lib/ffmpeg-compat' \
+		--shlibdir='/usr/lib/ffmpeg-compat' \
+		--disable-debug \
+		--disable-doc \
+		--enable-avfilter \
+		--enable-avresample \
+		--enable-dxva2 \
+		--enable-fontconfig \
+		--enable-gnutls \
+		--enable-gpl \
+		--enable-libass \
+		--enable-libbluray \
+		--enable-libfreetype \
+		--enable-libmodplug \
+		--enable-libmp3lame \
+		--enable-libopencore_amrnb \
+		--enable-libopencore_amrwb \
+		--enable-libopenjpeg \
+		--enable-libopus \
+		--enable-librtmp \
+		--enable-libschroedinger \
+		--enable-libspeex \
+		--enable-libtheora \
+		--enable-libvorbis \
+		--enable-libx264 \
+		--enable-libx265 \
+		--enable-libvpx \
+		--enable-libxvid \
+		--enable-pic \
+		--enable-postproc \
+		--enable-pthreads \
+		--enable-shared \
+		--enable-swresample \
+		--enable-vaapi \
+		--enable-vdpau \
+		--enable-version3 \
+		--enable-x11grab
 
-  make
-  make DESTDIR="$PKG" install
-  rm -rf $PKG/usr/{bin,share}
+	[ "$CC" ] || CC=gcc
+	make CC="$CC" SHARED_PP='yes' $MAKEFLAGS
+	make DESTDIR=$PKG install
+
+	install -d $PKG/etc/ld.so.conf.d
+	echo -e '/usr/lib/\n/usr/lib/ffmpeg-compat/' > \
+		$PKG/etc/ld.so.conf.d/ffmpeg-compat.conf
+
+	rm -r $PKG/usr/{bin,share/ffmpeg}
 }

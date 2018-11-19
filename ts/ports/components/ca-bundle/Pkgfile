@@ -19,8 +19,8 @@ build() {
 	wget --output-document certdata.txt.1 $url
 	wget --output-document certdata.log $log
 
-	version=`xmllint --xpath "/*[local-name()='feed']/*[local-name()='entry'][1]/*[local-name()='updated']/text()" certdata.log | cut -dT -f1 | sed -e 's/-//g'`
-	echo "#CVS_ID @# \$ RCSfile: certdata.txt \$ \$Revision: $version \$ \$Date: \$" > certdata.txt
+	bversion=`xmllint --xpath "/*[local-name()='feed']/*[local-name()='entry'][1]/*[local-name()='updated']/text()" certdata.log | cut -dT -f1 | sed -e 's/-//g'`
+	echo "#CVS_ID @# \$ RCSfile: certdata.txt \$ \$Revision: $bversion \$ \$Date: \$" > certdata.txt
 	cat certdata.txt.1 >> certdata.txt
 	rm certdata.txt.1 certdata.log
 

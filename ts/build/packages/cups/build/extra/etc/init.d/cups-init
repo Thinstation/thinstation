@@ -1,0 +1,26 @@
+#! /bin/sh
+
+. `dirname $0`/common
+
+
+if ! pkg_initialized $PACKAGE; then
+        pkg_set_init_flag $PACKAGE
+
+        # Requirement for cups printing to /dev/usb/lp0 and /dev/lp0 (filedevices)
+        echo "FileDevice yes" >> /etc/cups/cups-files.conf
+
+        #  cups printers
+        let x=0
+        CUPS_PRINTER_X_NAME=$CUPS_PRINTER_0_NAME
+
+        while [ -n "$CUPS_PRINTER_X_NAME" ] ; do
+
+          CUPS_PRINTER_X_DEVICEURI=`eval echo '$CUPS_PRINTER_'$x'_DEVICEURI'`
+          CUPS_PRINTER_X_DRIVER=`eval echo '$CUPS_PRINTER_'$x'_DRIVER'`
+
+          lpadmin -p $CUPS_PRINTER_X_NAME -v $CUPS_PRINTER_X_DEVICEURI -m $CUPS_PRINTER_X_DRIVER -E
+
+          let x=x+1
+          CUPS_PRINTER_X_NAME=`eval echo '\$CUPS_PRINTER_'$x'_NAME'`
+        done
+fi

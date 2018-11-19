@@ -1,0 +1,16 @@
+[Unit]
+Description=ThinStation Session Configure
+Conflicts=shutdown.target
+After=session.service
+Before=shutdown.target
+ConditionPathIsReadWrite=/etc
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+EnvironmentFile=/etc/thinstation.env
+ExecStart=/etc/init.d/session-setup
+SyslogIdentifier=thinstation
+
+[Install]
+WantedBy=multi-user.target

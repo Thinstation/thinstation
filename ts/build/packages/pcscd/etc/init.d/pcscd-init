@@ -1,0 +1,17 @@
+#! /bin/sh
+
+. $TS_GLOBAL
+
+if ! pkg_initialized $PACKAGE; then
+    pkg_set_init_flag $PACKAGE
+    if [ -z "$PCSCD_CARDREADER_PORT" ]; then
+        PCSCD_CARDREADER_PORT="/dev/ttyS0" # Serial port was not specified, using default
+    fi
+    if [ "`make_caps $PCSCD_CARDREADER_TYPE`" = "SERIAL" ]; then
+	if [ -e /etc/reader.conf.tpl ] ; then
+        	cat /etc/reader.conf.tpl | sed -e s%.PCSCD_CARDREADER_PORT%$PCSCD_CARDREADER_PORT% > /etc/reader.conf
+	fi
+    elif [ "`make_caps $PCSCD_CARDREADER_TYPE`" = "USB" ]; then
+	echo "# USB is enabled!" >/etc/reader.conf
+    fi
+fi

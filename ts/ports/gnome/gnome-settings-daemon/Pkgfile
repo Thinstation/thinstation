@@ -4,23 +4,14 @@
 # Depends on: nss polkit libgnomekbd fontconfig libnotify gconf dbus-glib
 
 name=gnome-settings-daemon
-version=3.20.1
+version=3.28.1
 release=1
 source=(ftp://ftp.gnome.org/pub/gnome/sources/$name/${version%.*}/$name-$version.tar.xz \
 	notify7.patch)
 
 build() {
 	cd $name-$version
-        # GSD is assuming that NSPR is a requirement of NSS
-        #  this is not the case in CRUX and probably not in general
-        NSS_CFLAGS="`pkg-config --cflags nss` `pkg-config --cflags nspr`"
-        NSS_LIBS="`pkg-config --libs nss` `pkg-config --libs nspr`"
-        export NSS_CFLAGS NSS_LIBS
-
-	./configure --prefix=/usr \
-		--sysconfdir=/etc \
-		--enable-shared \
-		--disable-static
-	make
-	make install DESTDIR=$PKG
+        meson . build -D enable_docs=true --prefix=/usr --libdir=/usr/lib
+        ninja -C build
+        DESTDIR=$PKG ninja -C build install
 }

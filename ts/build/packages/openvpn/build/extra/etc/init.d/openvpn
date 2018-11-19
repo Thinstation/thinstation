@@ -1,8 +1,8 @@
 #!/bin/sh
 
-. $TS_GLOBAL
+. `dirname $0`/common
 
-case "$1" in
+case "$1" in  
 init)
     if ! pkg_initialized $PACKAGE; then
 	pkg_set_init_flag $PACKAGE
@@ -27,10 +27,10 @@ init)
 		cat client.tpl | sed -f /tmp/script  > client.conf
 		rm /tmp/script
 		if  [ ! -z "$OPENVPN_PROXY" ] && [ ! -z "$OPENVPN_PROXY_PORT" ]; then
-		    echo ${OPENVPN_PROXY_TYPE}-proxy $OPENVPN_PROXY $OPENVPN_PROXY_PORT >> client.conf
-		    echo ${OPENVPN_PROXY_TYPE}-proxy-retry >> client.conf
+		    echo ${OPENVPN_PROXY_TYPE}-proxy $OPENVPN_PROXY $OPENVPN_PROXY_PORT >> /etc/client.conf
+		    echo ${OPENVPN_PROXY_TYPE}-proxy-retry >> /etc/client.conf
 		fi
-		/sbin/openvpn --daemon --config client.conf --cd /etc/openvpn
+		/bin/openvpn --daemon --config /etc/openvpn/client.conf --cd /etc/openvpn
 	    fi
 	fi
     fi

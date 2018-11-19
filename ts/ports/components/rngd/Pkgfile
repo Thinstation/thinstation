@@ -3,17 +3,25 @@
 # Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 
 name=rngd
-version=2-unofficial-mt.14-1
+archname=rng-tools
+version=5
 release=1
-source=(http://ftp.de.debian.org/debian/pool/main/r/rng-tools/rng-tools_2-unofficial-mt.14.orig.tar.bz2 )
+source=(http://downloads.sourceforge.net/sourceforge/gkernel/rng-tools-$version.tar.gz \
+	rngd-test-signal-in-loop.patch \
+	rngd-exit-code.patch
+	0001-If-device-is-not-found-exit-immediately.patch)
 
 build() {
-	cd rng-tools-2-unofficial-mt.14
+	cd rng-tools-5
+	patch -p1 -i $SRC/rngd-test-signal-in-loop.patch
+	patch -p1 -i $SRC/0001-If-device-is-not-found-exit-immediately.patch
+	patch -p1 -i $SRC/rngd-exit-code.patch
 	./autogen.sh
 	./configure	--prefix=/usr \
 			--disable-dependency-tracking \
 			--disable-extras \
-			--mandir=/usr/man
+			--mandir=/usr/man \
+			--without-libgcrypt
 
 	make
 	make DESTDIR=$PKG install

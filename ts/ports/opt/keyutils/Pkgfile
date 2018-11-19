@@ -9,6 +9,7 @@ source=(http://people.redhat.com/~dhowells/$name/$name-$version.tar.bz2)
 
 build () {
     cd $name-$version
-    sed -i "/^MANDIR/s|share/||;/^CFLAGS/s/-g/$CFLAGS/;s|/lib64|/lib|" Makefile
-    make -j1 NO_ARLIB=1 DESTDIR=$PKG install
+    sed -i "/^MAN[1-9]/s|share/||;/^CFLAGS/s/-g/$CFLAGS/;s|/lib64|/lib|" Makefile
+    make -j1
+    make DESTDIR=$PKG install
 }

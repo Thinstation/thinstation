@@ -3,14 +3,62 @@
 # Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 
 name=qscintilla
-version=2.6.2
+version=2.9.2
 release=1
-source=(http://sourceforge.net/projects/pyqt/files/QScintilla2/QScintilla-$version/QScintilla-gpl-$version.tar.gz)
+source=(http://downloads.sourceforge.net/pyqt/QScintilla_gpl-${version}.tar.gz \
+	configure.py-objdir-support.diff \
+	QScintilla_gpl-2.9.2-qt5.patch)
 
 build() {
-	cd QScintilla-gpl-$version/Qt4Qt5
-	QMAKESPEC=linux-g++ qmake qscintilla.pro
+	cd QScintilla_gpl-$version
+	patch -p1 -i $SRC/configure.py-objdir-support.diff
+	cd ..
+	cp -a QScintilla_gpl-${version}{,-qt4}
+	cd QScintilla_gpl-${version}
+	patch -p1 -i "${SRC}"/QScintilla_gpl-2.9.2-qt5.patch
+
+	cd $SRC/QScintilla_gpl-${version}-qt4/Qt4Qt5
+	QMAKESPEC=linux-g++ qmake-qt5 qscintilla.pro
 
 	make
 	make INSTALL_ROOT=$PKG install
+
+	cd ../designer-Qt4Qt5
+	QMAKEFEATURES=../Qt4Qt5/features qmake-qt5 designer.pro INCLUDEPATH+=../Qt4Qt5 QMAKE_LIBDIR+=../Qt4Qt5
+	make
+	make INSTALL_ROOT=$PKG install
+
+#	cd ../
+#	cp -rf Python Python2
+#	cd Python
+#	QMAKEFEATURES=../Qt4Qt5/features python configure.py --pyqt=PyQt5 -n ../Qt4Qt5/ -o ../Qt4Qt5/ -c --qmake /usr/bin/qmake-qt5
+#	make
+#	make INSTALL_ROOT=$PKG install
+#
+#	cd ../Python2
+#	QMAKEFEATURES=../Qt4Qt5/features python2 configure.py --pyqt=PyQt5 -n ../Qt4Qt5/ -o ../Qt4Qt5/ -c --qmake /usr/bin/qmake-qt5
+#	make
+#	make INSTALL_ROOT=$PKG install
+
+	cd "$SRC"/QScintilla_gpl-${version}-qt4/Qt4Qt5
+	qmake-qt4 qscintilla.pro
+	make
+        make INSTALL_ROOT=$PKG install
+
+	cd ../designer-Qt4Qt5
+	QMAKEFEATURES=../Qt4Qt5/features qmake-qt4 designer.pro INCLUDEPATH+=../Qt4Qt5 QMAKE_LIBDIR+=../Qt4Qt5
+	make
+	make INSTALL_ROOT=$PKG install
+
+#	cd ../
+#	cp -rf Python Python2
+#	cd Python
+#	QMAKEFEATURES=../Qt4Qt5/features python configure.py -n ../Qt4Qt5/ -o ../Qt4Qt5/ -c --qmake /usr/bin/qmake-qt4
+#	make
+#	make INSTALL_ROOT=$PKG install
+
+#	cd ../Python2
+#	QMAKEFEATURES=../Qt4Qt5/features python2 configure.py -n ../Qt4Qt5/ -o ../Qt4Qt5/ -c --qmake /usr/bin/qmake-qt4
+#	make
+#       make INSTALL_ROOT=$PKG install
 }

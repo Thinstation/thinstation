@@ -5,14 +5,13 @@
 
 name=yasm
 version=1.3.0
-release=2
+release=1
 source=(http://www.tortall.net/projects/yasm/releases/$name-$version.tar.gz)
 
 build () {
 	cd $name-$version
-
-	./configure --prefix=/usr
-
+	./configure --prefix=/usr \
+		--mandir=/usr/man
 	make
 	make DESTDIR=$PKG install
 }

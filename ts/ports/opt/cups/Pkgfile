@@ -1,46 +1,47 @@
 # Description: CUPS - Common UNIX Printing System
 # URL:         http://www.cups.org
 # Maintainer:  Juergen Daubert, jue at crux dot nu
-# Depends on:  acl tcp_wrappers libusb-compat libpng libtiff openssl poppler
+# Depends on:  acl libusb zlib
 
 name=cups
-version=2.2.6
+version=2.1.4
 release=1
-source=(https://github.com/apple/cups/releases/download/v$version/$name-$version-source.tar.gz
-        cups-config.patch cups)
+source=(https://github.com/apple/cups/releases/download/release-$version/$name-$version-source.tar.gz
+        cups)
 
 build () {
     cd $name-$version
 
-    patch -p1 -i $SRC/cups-config.patch
-    sed -i 's:555:755:g;s:444:644:g' Makedefs.in
-
+    CC=cc CXX=c++ \
     ./configure --prefix=/usr \
                 --sysconfdir=/etc \
                 --libdir=/usr/lib \
-                --mandir=/usr/man \
                 --localstatedir=/var \
                 --with-docdir=/usr/share/cups/doc \
                 --with-logdir=/var/log/cups \
                 --with-cups-user=daemon \
                 --with-cups-group=lp \
                 --with-languages="" \
-                --without-{java,perl,php,python} \
-                --without-rcdir \
                 --with-optim="$CFLAGS" \
-		--disable-systemd \
-                --enable-{ssl,gnutls} \
-                --enable-tcp-wrappers \
+                --disable-tcp-wrappers \
                 --enable-acl \
                 --disable-pam
 
     make
     make BUILDROOT=$PKG install
 
-    install -d $PKG/etc/ssl/{certs,keys}
-    touch $PKG/etc/ssl/certs/cups.crt
-    touch $PKG/etc/ssl/keys/cups.key
-    chmod 0600 $PKG/etc/ssl/{keys/cups.key,certs/cups.crt}
+    # conflict with cups-filters
+    rm -r $PKG/usr/share/cups/{banners,data}
+    
+    # cleanup
+#    rm -rf $PKG/usr/share/{applications,icons}
+    chmod 0755 $PKG/var/{cache,spool}   
+    chmod -R +w $PKG
 
+    # start script
     install -D -m 755 $SRC/cups $PKG/etc/rc.d/cups
+
+    # blacklist usblp kernel module
+    install -d $PKG/etc/modprobe.d
+    echo 'blacklist usblp' > $PKG/etc/modprobe.d/cups.conf
 }

@@ -1,0 +1,15 @@
+[Unit]
+Description=Thistation samba-print
+After=profile-setup.service pkg.service
+Before=display-manager.service
+ConditionPathIsReadWrite=/etc
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+EnvironmentFile=/etc/thinstation.env
+ExecStart=/etc/init.d/samba-print init
+SyslogIdentifier=thinstation
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,20 @@
+# Description: library for iscsi clients
+# URL:         https://github.com/sahlberg/libiscsi
+# Maintainer:  Thomas Penteker, tek at serverop dot de 
+
+name=libiscsi
+version=1.17.0
+release=1
+source=(https://github.com/sahlberg/libiscsi/archive/$version.tar.gz)
+
+build() {
+
+  cd $name-$version
+
+  ./autogen.sh
+  ./configure --prefix=/usr --mandir=/usr/man
+
+  make
+  make DESTDIR=$PKG install
+
+}

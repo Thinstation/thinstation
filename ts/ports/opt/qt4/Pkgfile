@@ -6,9 +6,8 @@
 
 name=qt4
 version=4.8.7
-release=2
-source=(http://download.qt-project.org/official_releases/qt/${version%.*}/$version/qt-everywhere-opensource-src-$version.tar.gz \
-	qt-everywhere-opensource-src-4.8.7-gcc6.patch)
+release=1
+source=(http://download.qt-project.org/official_releases/qt/${version%.*}/$version/qt-everywhere-opensource-src-$version.tar.gz)
 
 build () {
     cd qt-everywhere-opensource-src-$version
@@ -18,9 +17,6 @@ build () {
     sed -i "s|-O2|$CXXFLAGS|" mkspecs/common/g++-unix.conf
     sed -i "s|INSTALLS += translations||" projects.pro
     sed -i 's|"$COMPILER" -c|$COMPILER -c|' config.tests/unix/fvisibility.test
-
-    patch -p1 -i $SRC/qt-everywhere-opensource-src-4.8.7-gcc6.patch
-    export CXXFLAGS="$CXXFLAGS -std=gnu++98 -Wno-deprecated"
 
     ./configure -prefix /usr/share/qt4 \
                 -bindir /usr/share/qt4/bin \
@@ -33,12 +29,9 @@ build () {
                 -no-{cups,fast,nas-sound,phonon} \
                 -x{cursor,inerama,kb,randr,render} \
                 -nomake demos -nomake examples -nomake docs \
-                -no-separate-debug-info -opensource -confirm-license \
-		-I /usr/local/include/openssl \
-		-L /usr/local/lib
+                -no-separate-debug-info -opensource -confirm-license
 
-
-    LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$PWD/lib" make -j11
+    LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$PWD/lib" make
     make INSTALL_ROOT=$PKG install
 
     rm -rf `find $PKG/usr/share/qt4/mkspecs/* | \

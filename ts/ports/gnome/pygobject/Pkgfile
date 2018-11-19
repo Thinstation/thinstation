@@ -5,16 +5,15 @@
 # Depends on: gtk python
 
 name=pygobject
-version=2.28.6
+pname=PyGObject
+version=3.29.2
 release=1
-source=(http://ftp.gnome.org/pub/GNOME/sources/$name/${version::4}/$name-$version.tar.xz)
 
 build() {
-	cd $name-$version
+        python2 -m pip download --no-binary --no-deps $name
+        mkdir -p $SRC/$name
+        tar -xvf $SRC/$pname*.tar.* -C $SRC/$name
+        cd $SRC/$name/*
 
-	./configure --prefix=/usr --disable-introspection
-	make
-	make DESTDIR=$PKG install
-
-	rm -rf $PKG/usr/share/gtk-doc
+        python2 ./setup.py install --root $PKG
 }

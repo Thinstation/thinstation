@@ -1,0 +1,22 @@
+# Description:	Determine the locale encoding
+# URL:		http://search.cpan.org/~gaas/Encode-Locale/
+# Maintainer:	
+# Depends on:	perl
+
+name=p5-encode-locale
+version=1.05
+release=1
+source=(http://search.cpan.org/CPAN/authors/id/G/GA/GAAS/Encode-Locale-${version}.tar.gz)
+
+build() {
+	cd Encode-Locale-$version
+
+	# PERL_MM_USE_DEFAULT=1 \
+	perl Makefile.PL
+	make OPTIMIZE="$CFLAGS" DESTDIR="$PKG" install
+
+	find "$PKG" -depth \
+		-type f \( -name .packlist -o -name \*.bs -o -name perllocal.pod \) -delete , \
+		-type f -name autosplit.ix \( -exec grep -q '^[[:space:]]*package' {} \; -o -delete \) , \
+		-type d -empty -exec rmdir {} +
+}

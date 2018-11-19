@@ -61,7 +61,7 @@ if (-e "$destination/.checkouts")
 print "Updating file list from " . $host . "::$collection\n";
 
 # get the remote file list (new .checkouts)
-open(PIPE, 'rsync -crz ' . $host . '::' . $collection . '|') or error("Couldn't open pipe to rsync");
+open(PIPE, 'rsync -crz --no-human-readable ' . $host . '::' . $collection . '|') or error("Couldn't open pipe to rsync");
 while (<PIPE>)
 {
 	chomp;
@@ -78,7 +78,7 @@ error("Running rsync failed") unless $? == 0;
 print "Updating collection " . basename($destination) . "\n";
 
 # now really run rsync
-open(PIPE, 'rsync -crz --log-format "%o %n" ' . $host . "::$collection $destination|") or error("Couldn't open pipe to rsync");
+open(PIPE, 'rsync -crz --no-human-readable --log-format "%o %n" ' . $host . "::$collection $destination|") or error("Couldn't open pipe to rsync");
 while (<PIPE>)
 {
 	chomp;

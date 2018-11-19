@@ -1,22 +1,22 @@
-# Description: A data compression library suitable for data de-/compression in real-time.
-# URL: http://www.oberhumer.com/opensource/lzo/
-# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+# Description: A portable lossless data compression library
+# URL:         http://www.oberhumer.com/opensource/lzo/
+# Maintainer:  CRUX System Team, core-ports at crux dot nu
 
 name=lzo
-version=2.04
+version=2.09
 release=1
-source=(http://www.oberhumer.com/opensource/lzo/download/lzo-$version.tar.gz)
+source=(http://www.oberhumer.com/opensource/lzo/download/$name-$version.tar.gz)
 
 build() {
-	cd lzo-$version
+    cd $name-$version
 
-	./configure \
-		--prefix=/usr \
-		--enable-shared
+    ./configure --prefix=/usr --enable-shared
+    make
+    make DESTDIR=$PKG install
 
-	make
-	make prefix=$PKG/usr install
-	ln -s liblzo2.so.2.0.0 $PKG/usr/lib/liblzo.so
-	chmod a-x $PKG/usr/lib/*.so
+    install -d $PKG/lib
+    mv $PKG/usr/lib/liblzo2.so.* $PKG/lib
+    ln -sf ../../lib/$(readlink $PKG/lib/liblzo2.so.2) $PKG/usr/lib/liblzo2.so
+
+    rm -r $PKG/usr/share
 }
-

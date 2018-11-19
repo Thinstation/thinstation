@@ -1,0 +1,22 @@
+# Description:	A wrapper for perl's configuration
+# URL:		http://search.cpan.org/~leont/ExtUtils-Config/
+# Maintainer:	
+# Depends on:	perl
+
+name=p5-extutils-config
+version=0.008
+release=1
+source=(http://search.cpan.org/CPAN/authors/id/L/LE/LEONT/ExtUtils-Config-${version}.tar.gz)
+
+build() {
+	cd ExtUtils-Config-$version
+
+	# PERL_MM_USE_DEFAULT=1 \
+	perl Makefile.PL
+	make OPTIMIZE="$CFLAGS" DESTDIR="$PKG" install
+
+	find "$PKG" -depth \
+		-type f \( -name .packlist -o -name \*.bs -o -name perllocal.pod \) -delete , \
+		-type f -name autosplit.ix \( -exec grep -q '^[[:space:]]*package' {} \; -o -delete \) , \
+		-type d -empty -exec rmdir {} +
+}

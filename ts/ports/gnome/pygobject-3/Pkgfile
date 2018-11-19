@@ -1,0 +1,19 @@
+# Description: Python bindings for GObject
+# URL: http://www.pygtk.org
+# Maintainer: Jose V Beneyto, sepen at crux dot nu
+# Packager: Simone Rota, sip at varlock dot com
+# Depends on: gtk python
+
+name=pygobject-3
+pname=PyGObject
+version=3.29.2
+release=1
+
+build() {
+        python3 -m pip download --no-binary --no-deps $pname
+        mkdir -p $SRC/$pname
+        tar -xvf $SRC/$pname*.tar.* -C $SRC/$pname
+        cd $SRC/$pname/*
+
+        python3 ./setup.py install --root $PKG
+}

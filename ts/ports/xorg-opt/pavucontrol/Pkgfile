@@ -9,13 +9,12 @@ source=(http://freedesktop.org/software/pulseaudio/$name/$name-$version.tar.xz)
 
 build() {
 	cd $name-$version
-	CXXFLAGS="$CXXFLAGS -std=c++11"
+	export CXXFLAGS="-std=c++11 $CXXFLAGS"
 
-  CXXFLAGS+=' -std=c++11'
 	./configure --prefix=/usr \
 			--sysconfdir=/etc \
 			--mandir=/usr/man \
-			--disable-nls
+			 \
 
 	make
 	make DESTDIR=$PKG install

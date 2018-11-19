@@ -1,33 +1,29 @@
 # Description: Gstreamer is a library that allows the construction of graphs of media-handling components.
-# URL: http://gstreamer.freedesktop.org/
-# Maintainer: Jose V Beneyto, sepen at crux dot nu
-# Packager: Matt Housh, jaeger at morpheus dot net
-# Depends on: glib libxml2 python
+# URL: https://gstreamer.freedesktop.org/
+# Maintainer: Danny Rawlins, crux at romster dot me
+# Depends on: gobject-introspection libcap
 
 name=gstreamer
-version=1.12.1
+version=1.14.0
 release=1
-source=(http://gstreamer.freedesktop.org/src/$name/$name-$version.tar.xz)
+source=(https://gstreamer.freedesktop.org/src/$name/$name-$version.tar.xz)
 
 build() {
-  cd $name-$version
-  
-  ./configure --prefix=/usr \
-              --mandir=/usr/man \
-              --libexecdir=/usr/libexec \
-	      --disable-rpath \
-	      --disable-tests \
-              --enable-debug \
-               \
-              --disable-dependency-tracking \
-              --disable-valgrind \
-              --disable-examples \
-	       \
-	      --disable-static \
-	      --enable-shared
+	cd $name-$version
 
+	./configure \
+		--prefix=/usr \
+		--libexecdir=/usr/lib \
+		--disable-debug \
+		--disable-dependency-tracking \
+		--disable-valgrind \
+		--disable-examples
+
+	# fight unused direct deps
+	sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
   
-  make
-  make DESTDIR=$PKG install
-  rm -r $PKG/usr/share/gtk-doc
+	make
+	make DESTDIR=$PKG install
+
+	rm -r $PKG/usr/share/gtk-doc
 }

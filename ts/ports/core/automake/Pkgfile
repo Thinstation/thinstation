@@ -4,12 +4,16 @@
 # Depends on:  gawk, perl, autoconf
 
 name=automake
-version=1.15
+version=1.16.1
 release=2
-source=(http://ftp.gnu.org/gnu/$name/$name-$version.tar.xz)
+source=(http://ftp.gnu.org/gnu/$name/$name-$version.tar.xz \
+	automake-1.15-dejagnu-testcase.patch)
 
 build () {
     cd $name-$version
+
+    # fix testsuite issue with resent dejagnu
+    patch -p1 -i $SRC/automake-1.15-dejagnu-testcase.patch
 
     ./configure --prefix=/usr
 

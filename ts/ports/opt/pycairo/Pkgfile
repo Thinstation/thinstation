@@ -5,13 +5,13 @@
 # Depends on: cairo python
 
 name=pycairo
-version=1.10.0
+archname=python-cairo
+version=1.17.0
 release=1
-source=(http://cairographics.org/releases/py2cairo-$version.tar.bz2)
+source=(https://github.com/pygobject/pycairo/releases/download/v$version/pycairo-$version.tar.gz)
 
 build() {
-    cd py2cairo-$version
-    ./waf configure --prefix=/usr
-    ./waf build
-    ./waf install --destdir=$PKG
+	cd $name-$version
+	python ./setup.py install --root $PKG
+	python3 ./setup.py install --root $PKG
 }

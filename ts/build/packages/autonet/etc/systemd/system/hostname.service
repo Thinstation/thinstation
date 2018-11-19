@@ -1,0 +1,16 @@
+[Unit]
+Description=Thinstation Hostname Configuration
+After=profile-setup.service
+Conflicts=shutdown.service
+Before=session-setup.service shutdown.service
+ConditionPathIsReadWrite=/etc
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+EnvironmentFile=/etc/thinstation.env
+ExecStart=/etc/init.d/hostname
+SyslogIdentifier=thinstation
+
+[Install]
+WantedBy=multi-user.target

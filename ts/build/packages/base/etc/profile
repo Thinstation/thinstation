@@ -4,42 +4,35 @@ trap "" INT QUIT TSTP
 . /etc/thinstation.global
 . /etc/splash.functions
 
+#mkdir -p /mnt/downloads
+#vmhgfs-fuse .host:/Downloads /mnt/downloads
+#mkdir -p /mnt/downloads/debug
+#openvt bash
+
+#journalctl -b > /var/log/journal.log
+#cp -a /var/log/* /mnt/downloads/debug/.
+
 umask 022
 if [ "`tty`" == "$CONSOLE" ]; then
-	if [ "$TSUSER" != "root" ]; then
-		HOME=/home/`id -nu`
-	else
-		HOME=/root
-	fi
-	if ! is_enabled $DESTRUCTIVE_RELOAD; then
-		mkdir -p $HOME
-		rm -rf $HOME/.{config,local,gconf,gconfd,gnome2,xinitrc}
-		for file in `ls -A /etc/skel`; do
-			cp -a /etc/skel/$file $HOME/. 2>/dev/null
-		done
-		chown -R "`id -un`.`id -gn`" $HOME
-	fi
 	if [ -e $WKDIR/consoleapps ]; then
-		splash_exit
 		show_cursor
+		splash_exit
 		exec $WKDIR/consoleapps
 	elif [ -e /bin/xinit ] && [ -e $WKDIR/windowapps ]; then
 		if check_last_session; then
-			cd /var/run
+			cd /run
 			clear
 			splash_exit
-			exec /bin/xinit /etc/xinitrc -- /etc/xserverrc > /var/run/applications/session.$$ 2>&1
+			exec /bin/xinit /etc/xinitrc -- /etc/xserverrc > $APPLOGDIR/session.$$ 2>&1
 		elif ! is_enabled $HALTONERROR; then
 			chvt 1
 			echo "The system was not able to go graphical. This could indicate a problem with missing kernel modules or Xorg drivers."
 			echo ""
 		else
-                        splash_exit
                         show_cursor
                         exec $NO_XORG_CMD
 		fi
 	fi
 fi
-splash_exit
 trap - INT QUIT TSTP
 show_cursor

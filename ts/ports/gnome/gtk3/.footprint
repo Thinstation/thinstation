@@ -1,5 +1,6 @@
 drwxr-xr-x	root/root	usr/
 drwxr-xr-x	root/root	usr/bin/
+-rwxr-xr-x	root/root	usr/bin/broadwayd
 -rwxr-xr-x	root/root	usr/bin/gtk-builder-tool
 -rwxr-xr-x	root/root	usr/bin/gtk-encode-symbolic-svg
 -rwxr-xr-x	root/root	usr/bin/gtk-launch
@@ -20,11 +21,18 @@ drwxr-xr-x	root/root	usr/include/gail-3.0/libgail-util/
 -rw-r--r--	root/root	usr/include/gail-3.0/libgail-util/gailtextutil.h
 drwxr-xr-x	root/root	usr/include/gtk-3.0/
 drwxr-xr-x	root/root	usr/include/gtk-3.0/gdk/
+drwxr-xr-x	root/root	usr/include/gtk-3.0/gdk/broadway/
+-rw-r--r--	root/root	usr/include/gtk-3.0/gdk/broadway/gdkbroadwaycursor.h
+-rw-r--r--	root/root	usr/include/gtk-3.0/gdk/broadway/gdkbroadwaydisplay.h
+-rw-r--r--	root/root	usr/include/gtk-3.0/gdk/broadway/gdkbroadwaymonitor.h
+-rw-r--r--	root/root	usr/include/gtk-3.0/gdk/broadway/gdkbroadwayvisual.h
+-rw-r--r--	root/root	usr/include/gtk-3.0/gdk/broadway/gdkbroadwaywindow.h
 drwxr-xr-x	root/root	usr/include/gtk-3.0/gdk/deprecated/
 -rw-r--r--	root/root	usr/include/gtk-3.0/gdk/deprecated/gdkcolor.h
 -rw-r--r--	root/root	usr/include/gtk-3.0/gdk/gdk-autocleanup.h
 -rw-r--r--	root/root	usr/include/gtk-3.0/gdk/gdk.h
 -rw-r--r--	root/root	usr/include/gtk-3.0/gdk/gdkapplaunchcontext.h
+-rw-r--r--	root/root	usr/include/gtk-3.0/gdk/gdkbroadway.h
 -rw-r--r--	root/root	usr/include/gtk-3.0/gdk/gdkcairo.h
 -rw-r--r--	root/root	usr/include/gtk-3.0/gdk/gdkconfig.h
 -rw-r--r--	root/root	usr/include/gtk-3.0/gdk/gdkcursor.h
@@ -60,8 +68,16 @@ drwxr-xr-x	root/root	usr/include/gtk-3.0/gdk/deprecated/
 -rw-r--r--	root/root	usr/include/gtk-3.0/gdk/gdktypes.h
 -rw-r--r--	root/root	usr/include/gtk-3.0/gdk/gdkversionmacros.h
 -rw-r--r--	root/root	usr/include/gtk-3.0/gdk/gdkvisual.h
+-rw-r--r--	root/root	usr/include/gtk-3.0/gdk/gdkwayland.h
 -rw-r--r--	root/root	usr/include/gtk-3.0/gdk/gdkwindow.h
 -rw-r--r--	root/root	usr/include/gtk-3.0/gdk/gdkx.h
+drwxr-xr-x	root/root	usr/include/gtk-3.0/gdk/wayland/
+-rw-r--r--	root/root	usr/include/gtk-3.0/gdk/wayland/gdkwaylanddevice.h
+-rw-r--r--	root/root	usr/include/gtk-3.0/gdk/wayland/gdkwaylanddisplay.h
+-rw-r--r--	root/root	usr/include/gtk-3.0/gdk/wayland/gdkwaylandglcontext.h
+-rw-r--r--	root/root	usr/include/gtk-3.0/gdk/wayland/gdkwaylandmonitor.h
+-rw-r--r--	root/root	usr/include/gtk-3.0/gdk/wayland/gdkwaylandselection.h
+-rw-r--r--	root/root	usr/include/gtk-3.0/gdk/wayland/gdkwaylandwindow.h
 drwxr-xr-x	root/root	usr/include/gtk-3.0/gdk/x11/
 -rw-r--r--	root/root	usr/include/gtk-3.0/gdk/x11/gdkx-autocleanups.h
 -rw-r--r--	root/root	usr/include/gtk-3.0/gdk/x11/gdkx11applaunchcontext.h
@@ -421,6 +437,8 @@ drwxr-xr-x	root/root	usr/lib/gtk-3.0/3.0.0/
 drwxr-xr-x	root/root	usr/lib/gtk-3.0/3.0.0/immodules/
 -rwxr-xr-x	root/root	usr/lib/gtk-3.0/3.0.0/immodules/im-am-et.la
 -rwxr-xr-x	root/root	usr/lib/gtk-3.0/3.0.0/immodules/im-am-et.so
+-rwxr-xr-x	root/root	usr/lib/gtk-3.0/3.0.0/immodules/im-broadway.la
+-rwxr-xr-x	root/root	usr/lib/gtk-3.0/3.0.0/immodules/im-broadway.so
 -rwxr-xr-x	root/root	usr/lib/gtk-3.0/3.0.0/immodules/im-cedilla.la
 -rwxr-xr-x	root/root	usr/lib/gtk-3.0/3.0.0/immodules/im-cedilla.so
 -rwxr-xr-x	root/root	usr/lib/gtk-3.0/3.0.0/immodules/im-cyrillic-translit.la
@@ -439,6 +457,8 @@ drwxr-xr-x	root/root	usr/lib/gtk-3.0/3.0.0/immodules/
 -rwxr-xr-x	root/root	usr/lib/gtk-3.0/3.0.0/immodules/im-ti-et.so
 -rwxr-xr-x	root/root	usr/lib/gtk-3.0/3.0.0/immodules/im-viqr.la
 -rwxr-xr-x	root/root	usr/lib/gtk-3.0/3.0.0/immodules/im-viqr.so
+-rwxr-xr-x	root/root	usr/lib/gtk-3.0/3.0.0/immodules/im-wayland.la
+-rwxr-xr-x	root/root	usr/lib/gtk-3.0/3.0.0/immodules/im-wayland.so
 -rwxr-xr-x	root/root	usr/lib/gtk-3.0/3.0.0/immodules/im-xim.la
 -rwxr-xr-x	root/root	usr/lib/gtk-3.0/3.0.0/immodules/im-xim.so
 drwxr-xr-x	root/root	usr/lib/gtk-3.0/3.0.0/printbackends/
@@ -455,19 +475,23 @@ lrwxrwxrwx	root/root	usr/lib/libgailutil-3.so -> libgailutil-3.so.0.0.0
 lrwxrwxrwx	root/root	usr/lib/libgailutil-3.so.0 -> libgailutil-3.so.0.0.0
 -rwxr-xr-x	root/root	usr/lib/libgailutil-3.so.0.0.0
 -rw-r--r--	root/root	usr/lib/libgdk-3.la
-lrwxrwxrwx	root/root	usr/lib/libgdk-3.so -> libgdk-3.so.0.2200.28
-lrwxrwxrwx	root/root	usr/lib/libgdk-3.so.0 -> libgdk-3.so.0.2200.28
--rwxr-xr-x	root/root	usr/lib/libgdk-3.so.0.2200.28
+lrwxrwxrwx	root/root	usr/lib/libgdk-3.so -> libgdk-3.so.0.2200.30
+lrwxrwxrwx	root/root	usr/lib/libgdk-3.so.0 -> libgdk-3.so.0.2200.30
+-rwxr-xr-x	root/root	usr/lib/libgdk-3.so.0.2200.30
 -rw-r--r--	root/root	usr/lib/libgtk-3.la
-lrwxrwxrwx	root/root	usr/lib/libgtk-3.so -> libgtk-3.so.0.2200.28
-lrwxrwxrwx	root/root	usr/lib/libgtk-3.so.0 -> libgtk-3.so.0.2200.28
--rwxr-xr-x	root/root	usr/lib/libgtk-3.so.0.2200.28
+lrwxrwxrwx	root/root	usr/lib/libgtk-3.so -> libgtk-3.so.0.2200.30
+lrwxrwxrwx	root/root	usr/lib/libgtk-3.so.0 -> libgtk-3.so.0.2200.30
+-rwxr-xr-x	root/root	usr/lib/libgtk-3.so.0.2200.30
 drwxr-xr-x	root/root	usr/lib/pkgconfig/
 -rw-r--r--	root/root	usr/lib/pkgconfig/gail-3.0.pc
 -rw-r--r--	root/root	usr/lib/pkgconfig/gdk-3.0.pc
+-rw-r--r--	root/root	usr/lib/pkgconfig/gdk-broadway-3.0.pc
+-rw-r--r--	root/root	usr/lib/pkgconfig/gdk-wayland-3.0.pc
 -rw-r--r--	root/root	usr/lib/pkgconfig/gdk-x11-3.0.pc
 -rw-r--r--	root/root	usr/lib/pkgconfig/gtk+-3.0.pc
+-rw-r--r--	root/root	usr/lib/pkgconfig/gtk+-broadway-3.0.pc
 -rw-r--r--	root/root	usr/lib/pkgconfig/gtk+-unix-print-3.0.pc
+-rw-r--r--	root/root	usr/lib/pkgconfig/gtk+-wayland-3.0.pc
 -rw-r--r--	root/root	usr/lib/pkgconfig/gtk+-x11-3.0.pc
 drwxr-xr-x	root/root	usr/share/
 drwxr-xr-x	root/root	usr/share/aclocal/

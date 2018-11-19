@@ -1,0 +1,21 @@
+[Unit]
+SourcePath=/lib/VBoxGuestAdditions/vboxadd-service
+Description=
+Before=shutdown.target
+After=
+Conflicts=shutdown.target
+ConditionVirtualization=oracle
+
+[Service]
+Type=forking
+Restart=no
+TimeoutSec=5min
+IgnoreSIGPIPE=no
+KillMode=process
+GuessMainPID=no
+RemainAfterExit=yes
+ExecStart=/lib/VBoxGuestAdditions/vboxadd-service start
+ExecStop=/lib/VBoxGuestAdditions/vboxadd-service stop
+
+[Install]
+WantedBy=multi-user.target

@@ -5,15 +5,23 @@
 # Depends on:  ncurses
 
 name=nano
-version=2.2.6
+version=2.7.1
 release=1
-source=(http://www.nano-editor.org/dist/v2.2/$name-$version.tar.gz)
+source=(http://www.nano-editor.org/dist/v${version%.*}/$name-$version.tar.gz \
+	ts.patch)
 
 build(){
     cd $name-$version
-    ./configure --prefix=/usr --disable-nls --mandir=/usr/man
+    patch -p0 -i $SRC/ts.patch
+    ./configure --prefix=/usr  --mandir=/usr/man
     make
     make DESTDIR=$PKG install
-    rm -r $PKG/usr/share
+    rm -r $PKG/usr/share/info
     rm $PKG/usr/bin/rnano $PKG/usr/man/man1/rnano.1
+
+    cd $PKG
+    mkdir -p usr/etc
+    for file in `find . -name \*.nanorc |cut -d "." -f2-`; do
+	echo "include $file" >> usr/etc/nanorc
+    done
 }

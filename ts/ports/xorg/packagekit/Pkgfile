@@ -1,0 +1,32 @@
+# $Id$
+# Maintainer: Christian Hesse <mail@eworm.de>
+# Contributor: Jonathan Conder <jonno.conder@gmail.com>
+
+name='packagekit'
+version=1.1.10
+release=1
+source=("https://www.freedesktop.org/software/PackageKit/releases/PackageKit-${version}.tar.xz")
+
+build() {
+	cd "${SRC}/PackageKit-${version}"
+
+#	./autogen.sh --prefix=/usr \
+	./configure --prefix=/usr \
+		--sysconfdir=/etc \
+		--localstatedir=/var \
+		--libexecdir=/usr/lib/PackageKit \
+		--with-dbus-sys=/usr/share/dbus-1/system.d \
+		--disable-static \
+		--disable-gtk-doc \
+		--disable-local \
+		--disable-command-not-found \
+
+	make
+
+	# install directory with root owner, polkit group and
+	# correct permission
+	install -d -o root -g 102 -m 750 "${PKG}/usr/share/polkit-1/rules.d"
+
+	make DESTDIR="${PKG}" install
+}
+

@@ -1,47 +1,242 @@
-# Description: The GNU Compiler Collection
-# URL:         http://gcc.gnu.org
-# Maintainer:  CRUX System Team, core-ports at crux dot nu
-# Depends on:  zlib libmpc
+# $Id$
+# Maintainer: Allan McRae <allan@archlinux.org>
 
-name=gcc
-version=5.3.0
+# toolchain build order: linux-api-headers->glibc->binutils->gcc->binutils->glibc
+# NOTE: libtool requires rebuilt with each new gcc version
+
+name=('gcc' 'gcc-libs' 'gcc-fortran' 'gcc-objc' 'gcc-ada' 'gcc-go')
+version=6.2.0
+_version=6
+_islver=0.16.1
 release=1
-source=(ftp://gcc.gnu.org/pub/gcc/releases/$name-$version/$name-$version.tar.bz2 \
-	$name-nocheck-fixincludes.patch)
+_commit=c2103c17
+checkdepends=('dejagnu' 'inetutils')
+options=('!emptydirs')
+source=(http://isl.gforge.inria.fr/isl-${_islver}.tar.bz2 \
+	ftp://mirrors.kernel.org/gnu/gcc/gcc-$version/gcc-$version.tar.bz2)
 
+# gcc-6.0 forces a changed triplet - need to address in pacman/devtools
+CARCH=x86_64
+CHOST=x86_64-pc-linux-gnu
+
+_libdir="usr/lib/gcc/$CHOST/$version"
 
 build() {
-    patch -d $name-$version -p1 -i $SRC/$name-nocheck-fixincludes.patch
+#git clone --depth 1 --branch gcc-6-branch git://gcc.gnu.org/git/gcc.git
+#cd gcc
+#git checkout ${_commit}
+  mv gcc-$version gcc
+  cd ${SRC}/gcc
 
-    mkdir build
-    cd build
-    ../$name-$version/configure --prefix=/usr \
-                                --mandir=/usr/man \
-                                --libexecdir=/usr/lib \
-                                --enable-languages=c,c++,objc \
-                                --enable-threads=posix \
-                                --enable-__cxa_atexit \
-                                --enable-clocale=gnu \
-                                --enable-shared \
-                                --disable-nls \
-                                --with-x=no \
-                                --with-system-zlib \
-                                --enable-multilib \
-                                --with-pkgversion="Thinstation"
-    make -j5 bootstrap
-    make DESTDIR=$PKG install
+  # link isl for in-tree build
+  ln -s ../isl-${_islver} isl
 
-    mkdir $PKG/lib
-    ln -sf ../usr/bin/cpp $PKG/lib/cpp
-    ln -sf gcc $PKG/usr/bin/cc
-    ln -sf g++ $PKG/usr/bin/c++
+  # Do not run fixincludes
+  sed -i 's@\./fixinc\.sh@-c true@' gcc/Makefile.in
 
-    mv $PKG/usr/lib/gcc/*/$version/include-fixed/{limits.h,syslimits.h} $PKG/usr/lib/gcc/*/$version/include/
+  # Arch Linux installs x86_64 libraries /lib
+  [[ $CARCH == "x86_64" ]] && sed -i '/m64=/s/lib64/lib/' gcc/config/i386/t-linux64
 
-    rm -f $PKG/usr/lib/{libiberty.a,libstdc++.so.6.0.19-gdb.py}
-    rm -r $PKG/usr/share 
-    rm -r $PKG/usr/bin/*-linux-gnu-*
-    rm -r $PKG/usr/lib/gcc/*/$version/{install-tools,include-fixed} 
+  # hack! - some configure tests for header files using "$CPP $CPPFLAGS"
+  sed -i "/ac_cpp=/s/\$CPPFLAGS/\$CPPFLAGS -O2/" {libiberty,gcc}/configure
 
-    sed -i "s|-L$SRC[^ ]* ||g" $PKG/usr/lib/{libstdc++.la,libsupc++.la}
+  mkdir ${SRC}/gcc-build
+  cd ${SRC}/gcc-build
+
+  # using -pipe causes spurious test-suite failures
+  # http://gcc.gnu.org/bugzilla/show_bug.cgi?id=48565
+  CFLAGS=${CFLAGS/-pipe/}
+  CXXFLAGS=${CXXFLAGS/-pipe/}
+
+  ${SRC}/gcc/configure --prefix=/usr \
+      --libdir=/usr/lib --libexecdir=/usr/lib \
+      --mandir=/usr/share/man --infodir=/usr/share/info \
+      --with-bugurl=https://bugs.archlinux.org/ \
+      --enable-languages=c,c++,fortran,go,lto,objc,obj-c++ \
+      --enable-shared --enable-threads=posix --enable-libmpx \
+      --with-system-zlib --with-isl --enable-__cxa_atexit \
+      --disable-libunwind-exceptions --enable-clocale=gnu \
+      --disable-libstdcxx-pch --disable-libssp \
+      --enable-gnu-unique-object --enable-linker-build-id \
+      --enable-lto --enable-plugin --enable-install-libiberty \
+      --with-linker-hash-style=gnu --enable-gnu-indirect-function \
+      --disable-multilib --disable-werror \
+      --enable-checking=release \
+      -with-pkgversion="ThinStation-x86_64"
+
+  make
+  make DESTDIR=$PKG install
+
+  # increase stack size to prevent test failures
+  # http://gcc.gnu.org/bugzilla/show_bug.cgi?id=31827
+  ulimit -s 32768
+
+  # do not abort on error as some are "expected"
+  make -k check || true
+  ${SRC}/gcc/contrib/test_summary
+  pkgdesc="Runtime libraries shipped by GCC"
+  groups=('base')
+  depends=('glibc>=2.24')
+  options=('!emptydirs' '!strip')
+
+
+  make -C $CHOST/libgcc DESTDIR=${PKG} install
+#  rm -f ${PKG}/${_libdir}/libgcc_eh.a
+#  rm -f ${PKG}/usr/lib/libmpx.spec
+
+  # Install Runtime Library Exception
+  install -Dm644 ${SRC}/gcc/COPYING.RUNTIME \
+    ${PKG}/usr/share/licenses/gcc-libs/RUNTIME.LIBRARY.EXCEPTION
+
+  mkdir -p $PKG/usr/bin
+  install -m755 -t $PKG/usr/bin/ gcc/gcov{,-tool}
+  install -m755 -t $PKG/${_libdir}/ gcc/{cc1,cc1plus,collect2,lto1}
+
+  make -C $CHOST/libgcc DESTDIR=${PKG} install
+#  rm -f ${PKG}/usr/lib/libgcc_s.so*
+
+  make -C $CHOST/libstdc++-v3/src DESTDIR=${PKG} install
+  make -C $CHOST/libstdc++-v3/include DESTDIR=${PKG} install
+  make -C $CHOST/libstdc++-v3/libsupc++ DESTDIR=${PKG} install
+  make -C $CHOST/libstdc++-v3/python DESTDIR=${PKG} install
+
+  make DESTDIR=${PKG} install-libcc1
+  install -d $PKG/usr/share/gdb/auto-load/usr/lib
+  mv $PKG/usr/lib/libstdc++.so.6.*-gdb.py \
+    $PKG/usr/share/gdb/auto-load/usr/lib/
+#  rm -f ${PKG}/usr/lib/libstdc++.so*
+
+  make DESTDIR=${PKG} install-fixincludes
+  make -C gcc DESTDIR=${PKG} install-mkheaders
+
+  make -C lto-plugin DESTDIR=${PKG} install
+  install -dm755 ${PKG}/usr/lib/bfd-plugins/
+  ln -s /usr/lib/gcc/$CHOST/${version}/liblto_plugin.so \
+    ${PKG}/usr/lib/bfd-plugins/
+
+  make -C $CHOST/libcilkrts DESTDIR=${PKG} install-nodist_toolexeclibHEADERS \
+    install-nodist_cilkincludeHEADERS
+  make -C $CHOST/libgomp DESTDIR=${PKG} install-nodist_toolexeclibHEADERS \
+    install-nodist_libsubincludeHEADERS
+  make -C $CHOST/libitm DESTDIR=${PKG} install-nodist_toolexeclibHEADERS
+  make -C $CHOST/libquadmath DESTDIR=${PKG} install-nodist_libsubincludeHEADERS
+  make -C $CHOST/libsanitizer DESTDIR=${PKG} install-nodist_{saninclude,toolexeclib}HEADERS
+  make -C $CHOST/libsanitizer/asan DESTDIR=${PKG} install-nodist_toolexeclibHEADERS
+  make -C $CHOST/libmpx DESTDIR=${PKG} install-nodist_toolexeclibHEADERS
+
+  make -C libiberty DESTDIR=${PKG} install
+  # install PIC version of libiberty
+  install -m644 ${SRC}/gcc-build/libiberty/pic/libiberty.a ${PKG}/usr/lib
+
+#  make -C gcc DESTDIR=${PKG} install-man install-info
+#  rm ${PKG}/usr/share/man/man1/{gccgo,gfortran}.1
+#  rm ${PKG}/usr/share/info/{gccgo,gfortran,gnat-style,gnat_rm,gnat_ugn}.info
+
+  make -C libcpp DESTDIR=${PKG} install
+#  make -C gcc DESTDIR=${PKG} install-po
+
+  # many packages expect this symlink
+  ln -s gcc ${PKG}/usr/bin/cc
+
+  # POSIX conformance launcher scripts for c89 and c99
+  cat > $PKG/usr/bin/c89 <<"EOF"
+#!/bin/sh
+fl="-std=c89"
+for opt; do
+  case "$opt" in
+    -ansi|-std=c89|-std=iso9899:1990) fl="";;
+    -std=*) echo "`basename $0` called with non ANSI/ISO C option $opt" >&2
+	    exit 1;;
+  esac
+done
+exec gcc $fl ${1+"$@"}
+EOF
+
+  cat > $PKG/usr/bin/c99 <<"EOF"
+#!/bin/sh
+fl="-std=c99"
+for opt; do
+  case "$opt" in
+    -std=c99|-std=iso9899:1999) fl="";;
+    -std=*) echo "`basename $0` called with non ISO C99 option $opt" >&2
+	    exit 1;;
+  esac
+done
+exec gcc $fl ${1+"$@"}
+EOF
+
+  chmod 755 $PKG/usr/bin/c{8,9}9
+
+  # install the libstdc++ man pages
+#  make -C $CHOST/libstdc++-v3/doc DESTDIR=$PKG doc-install-man
+
+  # Install Runtime Library Exception
+  install -d ${PKG}/usr/share/licenses/gcc/
+  ln -s ../gcc-libs/RUNTIME.LIBRARY.EXCEPTION ${PKG}/usr/share/licenses/gcc/
+
+  pkgdesc="Fortran front-end for GCC"
+  depends=("gcc=$version-$release")
+  options=('!emptydirs')
+
+  cd ${SRC}/gcc-build
+  make -C $CHOST/libgfortran DESTDIR=$PKG install-cafexeclibLTLIBRARIES \
+    install-{toolexeclibDATA,nodist_fincludeHEADERS}
+  make -C $CHOST/libgomp DESTDIR=$PKG install-nodist_fincludeHEADERS
+  make -C gcc DESTDIR=$PKG fortran.install-{common,man,info}
+  install -Dm755 gcc/f951 $PKG/${_libdir}/f951
+
+  ln -s gfortran ${PKG}/usr/bin/f95
+
+  # Install Runtime Library Exception
+  install -d ${PKG}/usr/share/licenses/gcc-fortran/
+  ln -s ../gcc-libs/RUNTIME.LIBRARY.EXCEPTION ${PKG}/usr/share/licenses/gcc-fortran/
+
+  pkgdesc="Objective-C front-end for GCC"
+  depends=("gcc=$version-$release")
+
+  cd ${SRC}/gcc-build
+  make DESTDIR=$PKG -C $CHOST/libobjc install-headers
+  install -dm755 $PKG/${_libdir}
+  install -m755 gcc/cc1obj{,plus} $PKG/${_libdir}/
+
+  # Install Runtime Library Exception
+  install -d ${PKG}/usr/share/licenses/gcc-objc/
+  ln -s ../gcc-libs/RUNTIME.LIBRARY.EXCEPTION ${PKG}/usr/share/licenses/gcc-objc/
+
+#  pkgdesc="Ada front-end for GCC (GNAT)"
+#  depends=("gcc=$version-$release")
+#  options=('staticlibs' '!emptydirs')
+#
+#  cd ${SRC}/gcc-build/gcc
+#  make DESTDIR=$PKG ada.install-{common,info}
+#  install -m755 gnat1 $PKG/${_libdir}
+
+#  ln -s gcc ${PKG}/usr/bin/gnatgcc
+
+  # insist on dynamic linking, but keep static libraries because gnatmake complains
+#  mv ${PKG}/${_libdir}/adalib/libgna{rl,t}-${_version}.so ${PKG}/usr/lib
+#  ln -s libgnarl-${_version}.so ${PKG}/usr/lib/libgnarl.so
+#  ln -s libgnat-${_version}.so ${PKG}/usr/lib/libgnat.so
+#  rm ${PKG}/${_libdir}/adalib/libgna{rl,t}.so
+
+  # Install Runtime Library Exception
+#  install -d ${PKG}/usr/share/licenses/gcc-ada/
+#  ln -s ../gcc-libs/RUNTIME.LIBRARY.EXCEPTION ${PKG}/usr/share/licenses/gcc-ada/
+
+  pkgdesc="Go front-end for GCC"
+  depends=("gcc=$version-$release")
+  conflicts=('go')
+  options=('!emptydirs')
+
+  cd ${SRC}/gcc-build
+  make -C $CHOST/libgo DESTDIR=$PKG install-exec-am
+#  rm -f ${PKG}/usr/lib/libgo.so*
+  make -C gcc DESTDIR=$PKG go.install-{common,man}
+  install -Dm755 gcc/go1 $PKG/${_libdir}/go1
+
+  make DESTDIR=${PKG} install-gotools
+
+  # Install Runtime Library Exception
+  install -d ${PKG}/usr/share/licenses/gcc-go/
+  ln -s ../gcc-libs/RUNTIME.LIBRARY.EXCEPTION ${PKG}/usr/share/licenses/gcc-go/
 }

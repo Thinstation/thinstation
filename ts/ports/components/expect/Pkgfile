@@ -1,0 +1,21 @@
+# Description: expect
+# URL: http://expect.sourceforge.net
+# Packager: Joe M, joe9mail at gmail dot com
+# Maintainer: Ryan Mullen, rmmullen at gmail dot com
+# Depends on: tcl
+
+name=expect
+version=5.45
+release=1
+source=(http://downloads.sourceforge.net/project/$name/Expect/$version/$name$version.tar.gz)
+
+build() {
+   cd ${name}${version}
+
+   ./configure --prefix=/usr --mandir=/usr/man --enable-gcc
+   make
+   make install DESTDIR=$PKG
+
+  find $PKG -name mkpasswd\* -delete
+}
+

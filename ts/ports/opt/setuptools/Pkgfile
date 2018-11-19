@@ -1,0 +1,21 @@
+# Description: A collection of enhancements to the Python distutils.
+# URL: http://peak.telecommunity.com/DevCenter/setuptools
+# Maintainer: Danny Rawlins, monster dot romster at gmail dot com
+# Packager: James Mills, prologic at shortcircuit dot net dot au
+# Depends on: python
+
+name=setuptools
+pname=setuptools
+version=pip
+release=1
+source=()
+
+build() {
+        pip install $name --download=$SRC --no-binary :all:
+        mkdir -p $SRC/$name
+        tar -xvf $SRC/$pname*.tar.* -C $SRC/$name || unzip -d $SRC/$name $pname-*.zip
+        cd $SRC/$name/*
+
+        python ./setup.py install --root $PKG
+}
+

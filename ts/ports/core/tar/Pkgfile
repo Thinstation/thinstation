@@ -3,21 +3,21 @@
 # Maintainer:  CRUX System Team, core-ports at crux dot nu
 
 name=tar
-version=1.26
-release=1
-source=(http://ftp.gnu.org/gnu/$name/$name-$version.tar.xz \
-        $name-rootp.patch tar.1 rmt.8)
+version=1.29
+release=3
+source=(http://ftp.gnu.org/gnu/$name/$name-$version.tar.xz)
 
 build() {
     cd $name-$version
-    patch -p1 -i $SRC/$name-rootp.patch
+
     ./configure --prefix= \
                 --libexec=/usr/lib/tar \
-                --disable-nls \
+                --mandir=/usr/share/man \
+                 \
                 FORCE_UNSAFE_CONFIGURE=1
+
     make
     make DESTDIR=$PKG install
-    rm -rf $PKG/{sbin,share}
-    install -D -m 644 $SRC/tar.1 $PKG/usr/man/man1/tar.1
-    install -D -m 644 $SRC/rmt.8 $PKG/usr/man/man8/rmt.8
+
+    rm -r $PKG/share
 }

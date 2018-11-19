@@ -1,0 +1,29 @@
+# Description: A set of plugins for gstreamer that may pose distribution problems.
+# URL: https://gstreamer.freedesktop.org/modules/gst-plugins-ugly.html
+# Maintainer: Danny Rawlins, crux at romster dot me
+# Depends on: gst-plugins-base liba52 libcdio libdvdread libmpeg2 opencore-amr x264
+
+name=gst-plugins-ugly
+version=1.14.0
+release=1
+source=(https://gstreamer.freedesktop.org/src/$name/$name-$version.tar.xz)
+
+build() {
+	cd $name-$version
+
+	./configure \
+		--prefix=/usr \
+		--disable-debug \
+		--disable-nls \
+		--disable-dependency-tracking \
+		--disable-valgrind \
+		--disable-examples
+
+	# fight unused direct deps
+	sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
+
+	make
+	make DESTDIR=$PKG install
+
+	rm -r $PKG/usr/share/gtk-doc
+}

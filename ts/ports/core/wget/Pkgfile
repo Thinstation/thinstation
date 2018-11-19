@@ -4,9 +4,9 @@
 # Depends on:  openssl
 
 name=wget
-version=1.19.1
-release=1
-source=(http://ftp.gnu.org/gnu/$name/$name-$version.tar.xz \
+version=1.19.5
+release=2
+source=(http://ftp.gnu.org/gnu/$name/$name-$version.tar.lz \
         wgetrc)
 
 build() {
@@ -14,14 +14,13 @@ build() {
 
     ./configure --prefix=/usr \
                 --sysconfdir=/etc \
-                --mandir=/usr/man \
                 --disable-debug \
-                --disable-nls \
+                 \
                 --with-ssl=openssl
 
     make
     make DESTDIR=$PKG install 
     install -D -m 644 $SRC/wgetrc $PKG/etc/wgetrc
 
-    rm -r $PKG/usr/share
+    rm -r $PKG/usr/share/info
 }

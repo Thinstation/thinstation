@@ -1,0 +1,12 @@
+[Unit]
+Description=Mount Fastboot Data
+DefaultDependencies=no
+After=systemd-udev-settle.service
+Before=sysinit.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+EnvironmentFile=/etc/thinstation.env
+ExecStart=/etc/init.d/fastboot
+SyslogIdentifier=thinstation

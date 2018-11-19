@@ -1,0 +1,10 @@
+[Unit]
+Description=Command Scheduler
+After=auditd.service nss-user-lookup.target systemd-user-sessions.service time-sync.target ypbind.service
+
+[Service]
+ExecStart=/usr/sbin/crond -f
+KillMode=process
+
+[Install]
+WantedBy=multi-user.target

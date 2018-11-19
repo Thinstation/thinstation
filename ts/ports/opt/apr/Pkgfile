@@ -1,29 +1,31 @@
 # Description: Apache Portable Runtime library
 # Maintainer:  Juergen Daubert, jue at crux dot nu
 # URL:         http://apr.apache.org/
-# Depends on:  util-linux-ng, expat, db, gdbm
+# Depends on:  util-linux, expat, db, gdbm
 
 name=apr
-version=1.4.5
+version=1.5.2
 release=1
 source=(http://www.apache.org/dist/$name/$name-$version.tar.bz2 \
-        http://www.apache.org/dist/$name/$name-util-1.3.12.tar.bz2)
+        http://www.apache.org/dist/$name/$name-util-1.5.4.tar.bz2)
 
 build(){
     cd $name-$version
     ./configure --prefix=/usr \
-                --with-installbuilddir=/usr/share/apr-1 
+                --with-installbuilddir=/usr/share/apr-1 \
+		--disable-static
     make 
-    make DESTDIR=$PKG install
+    make -j1 DESTDIR=$PKG install
 
-    cd $SRC/$name-util-1.3.12
+    cd $SRC/$name-util-1.5.4
     ./configure --prefix=/usr \
                 --with-apr=$SRC/$name-$version \
                 --with-expat=/usr \
                 --with-berkeley-db=/usr \
                 --with-gdbm=/usr \
                 --without-sqlite3 \
-                --disable-util-dso
+                --disable-util-dso \
+		--disable-static
     make
     make DESTDIR=$PKG install
 

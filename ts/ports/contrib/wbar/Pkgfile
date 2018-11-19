@@ -6,10 +6,14 @@
 name=wbar
 version=2.3.4
 release=1
-source=(http://$name.googlecode.com/files/$name-$version.tgz)
+source=(https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/wbar/wbar-$version.tgz \
+	spaces-fix.patch)
 
 build() {
+CXXFLAGS=' -std=gnu++11'
   cd $name-$version
+  ./autogen.sh NOCONFIGURE=1
+  patch -p1 -i $SRC/spaces-fix.patch
   ./configure --prefix=/usr --sysconfdir=/etc --mandir=/usr/man
   make
   make install DESTDIR=$PKG

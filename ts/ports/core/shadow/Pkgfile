@@ -12,6 +12,7 @@ source=(http://pkg-shadow.alioth.debian.org/releases/$name-$version.tar.xz
 build() {
     cd $name-$version
     sed -e 's/yes/no/g' -i etc/useradd
+    sed -e 's/1000/100/g' -i etc/useradd
     sed -i -e "/pam_selinux/d" etc/pam.d/su
     sed -i -e "/pam_selinux/d" etc/pam.d/login
 
@@ -19,7 +20,10 @@ build() {
                 --sysconfdir=/etc \
                 --disable-shared \
 		--with-group-name-max-length=32 \
-		--without-selinux
+		--without-selinux \
+		--without-nscd \
+                --with-libpam \
+		--with-sha-crypt
 
     make
     make DESTDIR=$PKG install
@@ -29,9 +33,6 @@ build() {
     install -m 755 $SRC/pwck $PKG/etc/cron/daily
     mv $PKG/bin/{su,groups} $PKG/usr/bin
     touch $PKG/var/log/{lastlog,faillog}
-
-    sed -i 's/yes/no/' $PKG/etc/default/useradd
-    sed -i '/GROUP/d' $PKG/etc/default/useradd
 
 #    rm -r $PKG/usr/bin/gpasswd \
 #          $PKG/usr/share/man/man1/gpasswd.1 \

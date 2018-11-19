@@ -9,6 +9,7 @@ echo "
   Usage:	-h --help	Show this help message
 		-l --local	Copy from the local build env
 		-s --server	Download from the dhcp assigned tftp server
+		-sh --server-h	Download from the dhcp assigned tftp server over http
 		-w --web	Download the default image from the web
 		-p --path	Copy from a user specified path
 "
@@ -26,6 +27,7 @@ LPATH=""
 			-h|--help)	show_help ;;
 			-w|--web)	METHOD=WEB ;;
 			-s|--server)	METHOD=SERVER ;;
+			-sh|--server-h)	METHOD=SH ;;
 			*)		echo "Invalid Option: $1" ; exit 255 ;;
                 esac
 		shift $#
@@ -67,6 +69,25 @@ case $METHOD in
 			echo "Everything is Up to Date"
 			exit 1
 		fi
+	;;
+        SH)
+                cd $bootdir
+                wget http://$SERVER_IP/boot/image.md5
+                if ! md5sum -c check.md5 ; then
+                        if [ -e initrd ]; then
+                                rm -f initrd
+                                rm -f vmlinuz
+                        fi
+                        wget http://$SERVER_IP/boot/initrd
+                        wget http://$SERVER_IP/boot/vmlinuz
+                        wget http://$SERVER_IP/boot/lib.squash
+                        echo "Update Complete"
+                        exit 0
+                else
+                        echo "Everything is Up to Date"
+                        exit 1
+                fi
+
 	;;
 	WEB)
 		cd /tmp

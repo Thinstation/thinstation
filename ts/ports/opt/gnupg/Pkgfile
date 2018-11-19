@@ -5,7 +5,7 @@
 # Depends on:  libgcrypt, libassuan, libksba, pinentry, libpth
 
 name=gnupg
-version=2.0.26
+version=2.2.8
 release=1
 source=(ftp://ftp.gnupg.org/gcrypt/$name/$name-$version.tar.bz2)
         
@@ -17,14 +17,17 @@ build () {
     --prefix=/usr \
     --libexecdir=/usr/lib \
     --mandir=/usr/man \
-    --disable-nls \
+     \
     --disable-ldap
 
     make
     make DESTDIR=$PKG install
 
-    chmod u+s $PKG/usr/bin/gpg2
-    ln -s /usr/bin/gpg2 $PKG/usr/bin/gpg
+    ln -s /usr/bin/gpg $PKG/usr/bin/gpg2
+    ln -s /usr/bin/gpgv $PKG/usr/bin/gpgv2
+
+#    chmod u+s $PKG/usr/bin/gpg2
+#    ln -s /usr/bin/gpg2 $PKG/usr/bin/gpg
     ln -s /usr/man/man1/gpg2.1.gz $PKG/usr/man/man1/gpg.1.gz
 
     rm -rf $PKG/usr/share/{info,doc}

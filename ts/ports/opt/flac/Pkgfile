@@ -1,23 +1,21 @@
-# Description: Free Lossless Audio Codec
-# URL: http://flac.sourceforge.net/
-# Maintainer: Tilman Sauerbeck, tilman at crux dot nu
+# Description: Free Lossless Audio Codec.
+# URL: http://xiph.org/flac/
+# Maintainer: Danny Rawlins, crux at romster dot me
 # Packager: Matt Housh, jaeger at morpheus dot net
 # Depends on: libogg
 
 name=flac
-version=1.2.1
-release=2
-source=(http://download.sourceforge.net/$name/$name-$version.tar.gz
-        $name.diff)
+version=1.3.1
+release=1
+source=(http://downloads.xiph.org/releases/flac/$name-$version.tar.xz)
 
 build() {
 	cd $name-$version
 
-	# fix compilation with gcc 4.3
-	patch -Np1 -i $SRC/$name.diff
-
 	./configure --prefix=/usr
+
 	make
 	make DESTDIR=$PKG install
-	rm -rf $PKG/usr/share/doc
+
+	rm -r $PKG/usr/share/doc
 }

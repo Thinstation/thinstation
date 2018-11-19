@@ -1,0 +1,38 @@
+# $Id$
+# Maintainer: Daniel Micay <danielmicay@gmail.com>
+# Contributor: <kang@insecure.ws>
+# Contributor: Massimiliano Torromeo <massimiliano.torromeo@gmail.com>
+# Contributor: Connor Behan <connor.behan@gmail.com>
+# Contributor: henning mueller <henning@orgizm.net>
+
+name=audit
+version=2.6.6
+release=1
+source=("https://people.redhat.com/sgrubb/audit/$name-$version.tar.gz")
+
+build() {
+  cd $name-$version
+#  export PYTHON=/usr/bin/python3
+  ./configure \
+    --prefix=/usr \
+    --sbindir=/usr/bin \
+    --sysconfdir=/etc \
+    --libexecdir=/usr/lib/audit \
+    --with-python=yes \
+    --enable-gssapi-krb5=yes \
+    --enable-systemd=yes \
+    --with-libcap-ng=yes
+  make
+  make DESTDIR="$PKG" install
+
+  cd "$PKG"
+  install -d var/log/audit
+  rm -rf etc/rc.d etc/sysconfig usr/lib/audit
+
+  sed -ri 's|/sbin|/usr/bin|' \
+    etc/audit/*.conf \
+    etc/audisp/plugins.d/*.conf \
+    usr/lib/systemd/system/auditd.service
+
+  chmod 644 usr/lib/systemd/system/auditd.service
+}

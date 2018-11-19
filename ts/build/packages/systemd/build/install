@@ -2,26 +2,31 @@
 
 export PACKAGE=systemd
 export PORTS="$PACKAGE"
-export DROP_DIRS="lib/systemd/system"
-export DROP_FILES="	99-systemd.rules \
-			libgudev-1.0.so \
-			libgudev-1.0.so.0 \
-			libgudev-1.0.so.0.2.0 \
-			libudev.so \
-			accelerometer"
-repackage -e
+export DROP_FILES="	etc.conf \
+			systemd-growfs \
+			systemd-makefs \
+			systemd-fsck"
 
-for file in `find packages/systemd/{etc,bin,lib,var} -type f |grep -v udev`; do
-	rm $file
+export DROP_DIRS="	lib/zsh \
+			lib/systemd/boot/efi \
+			lib/doc \
+			lib/factory \
+			lib/systemd/system-generators"
+
+repackage -e
+returnval=$?
+
+mkdir -p ./packages/$PACKAGE/sbin
+for i in runlevel reboot poweroff halt telinit; do
+	ln -sf ../bin/systemctl ./packages/$PACKAGE/sbin/$i
+	let returnval=returnval+$?
 done
-for link in `find packages/systemd/{etc,bin,lib,var} -type l |grep -v udev`; do
-	rm $link
+for i in init linuxrc sbin/init ; do
+	ln -sf /lib/systemd/systemd ./packages/$PACKAGE/$i
+	let returnval=returnval+$?
 done
-find packages/systemd -type d -empty -delete
 
 ln -sf libudev.so.1 packages/systemd/lib/libudev.so.0
-#ln -sf /lib/systemd/systemd packages/systemd/init
-
-returnval=$?
+let returnval=returnval+$?
 
 exit $returnval

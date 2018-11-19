@@ -1,0 +1,69 @@
+# $Id$
+# Maintainer: Tom Gundersen <teg@jklm.no>
+# Contributor: Andrea Scarpino <andrea@archlinux.org>
+# Contributor: Geoffroy Carrier <geoffroy@archlinux.org>
+
+name=bluez
+version=5.43
+release=2
+source=(http://www.kernel.org/pub/linux/bluetooth/${name}-${version}.tar.xz
+        bluetooth.modprobe)
+
+build() {
+  cd ${name}-${version}
+  ./configure \
+          --prefix=/usr \
+          --mandir=/usr/share/man \
+          --sysconfdir=/etc \
+          --localstatedir=/var \
+          --libexecdir=/usr/lib \
+          --enable-sixaxis \
+          --enable-experimental \
+          --enable-library # this is deprecated
+  make
+  make DESTDIR=${PKG} \
+       install-libexecPROGRAMS \
+       install-dbussessionbusDATA \
+       install-systemdsystemunitDATA \
+       install-systemduserunitDATA \
+       install-dbussystembusDATA \
+       install-dbusDATA \
+       install-man8 \
+       install-binPROGRAMS \
+       install-man1 \
+       install-includeHEADERS \
+       install-libLTLIBRARIES \
+       install-pkgconfigDATA \
+       install-cupsPROGRAMS \
+       install-udevPROGRAMS \
+       install-rulesDATA \
+       install-pluginLTLIBRARIES
+
+  # ship upstream main config file
+  install -dm755 ${PKG}/etc/bluetooth
+  install -Dm644 ${SRC}/${name}-${version}/src/main.conf ${PKG}/etc/bluetooth/main.conf
+
+  # add basic documention
+  install -dm755 ${PKG}/usr/share/doc/${name}/dbus-apis
+  cp -a doc/*.txt ${PKG}/usr/share/doc/${name}/dbus-apis/
+  # fix module loading errors
+  install -dm755 ${PKG}/usr/lib/modprobe.d
+  install -Dm644 ${SRC}/bluetooth.modprobe ${PKG}/usr/lib/modprobe.d/bluetooth-usb.conf
+
+  # fix obex file transfer - https://bugs.archlinux.org/task/45816
+  ln -fs /usr/lib/systemd/user/obex.service ${PKG}/usr/lib/systemd/user/dbus-org.bluez.obex.service
+
+  # add missing tools FS#41132, FS#41687, FS#42716
+  for files in `find tools/ -type f -perm -755`; do
+    filename=$(basename $files)
+    install -Dm755 ${SRC}/${name}-${version}/tools/$filename ${PKG}/usr/bin/$filename
+  done
+  # add gatttool usefulbdaddr with Bluetooth 4.0LE
+  install -Dm755 ${SRC}/${name}-${version}/attrib/gatttool ${PKG}/usr/bin/gatttool
+
+  # move the hid2hci man page out
+  mv ${PKG}/usr/share/man/man1/hid2hci.1 ${SRC}/
+
+  install -dm755 ${PKG}/usr/share/man/man1
+  mv ${SRC}/hid2hci.1 ${PKG}/usr/share/man/man1/hid2hci.1
+}

@@ -1,0 +1,191 @@
+# $Id$
+# Maintainer: Christian Hesse <mail@eworm.de>
+# Maintainer: Dave Reisner <dreisner@archlinux.org>
+# Maintainer: Tom Gundersen <teg@jklm.no>
+
+name=systemd
+version=239
+release=2
+source=(https://github.com/systemd/systemd/archive/v239.tar.gz
+	fstab-generator.patch
+        '0001-Use-Arch-Linux-device-access-groups.patch'
+        'initcpio-hook-udev'
+        'initcpio-install-systemd'
+        'initcpio-install-udev'
+        'thinstation.conf'
+        'loader.conf'
+        'splash-thinstation.bmp'
+        'systemd-user.pam'
+        'systemd-hook'
+        'systemd-binfmt.hook'
+        'systemd-catalog.hook'
+        'systemd-daemon-reload.hook'
+        'systemd-hwdb.hook'
+        'systemd-sysctl.hook'
+        'systemd-sysusers.hook'
+        'systemd-tmpfiles.hook'
+        'systemd-udev-reload.hook'
+        'systemd-update.hook')
+
+build() {
+
+#  cd $SRC/systemd-$version
+#  patch -p0 -i $SRC/fstab-generator.patch
+#  cd $SRC
+
+  local _timeservers=({0..3}.us.pool.ntp.org)
+  local _nameservers=(
+    # We use these public name services, ordered by their
+    # privacy policy (hopefully):
+    #  * Cloudflare (https://1.1.1.1/)
+    #  * Quad9 without filtering (https://www.quad9.net/)
+    #  * Google (https://developers.google.com/speed/public-dns/)
+    1.1.1.1
+    9.9.9.10
+    8.8.8.8
+    2606:4700:4700::1111
+    2620:fe::10
+    2001:4860:4860::8888
+  )
+
+  local _meson_options=(
+    -Dgnuefi=true
+    -Ddbuspolicydir=/usr/share/dbus-1/system.d
+    # TODO(dreisner): consider changing this to unified
+    -Ddefault-hierarchy=hybrid
+    -Ddefault-kill-user-processes=false
+    -Dfallback-hostname='thinstation-linux'
+    -Dntp-servers="${_timeservers[*]}"
+    -Ddns-servers="${_nameservers[*]}"
+    -Drpmmacrosdir=no
+    -Dportabled=false
+    -Dselinux=false
+    -Dfirstboot=false
+    -Dmicrohttpd=false
+    -Dsplit-usr=false
+    -Dsplit-bin=false
+    -Dldconfig=false
+    -Dhibernate=false
+    -Denvironment-d=false
+    -Dtpm=false
+    -Dbinfmt=false
+    -Dcoredump=false
+    -Dsysusers=false
+    -Dquotacheck=false
+    -Dsystem-uid-max=999
+    -Dsystem-gid-max=999
+    -Ddbuspolicydir=/etc/dbus-1/system.d
+    -Dtimesyncd=false
+    -Dsysvinit-path=
+    -Dsysvrcnd-path=
+    -Drfkill=false
+    -Dima=false
+    -Dseccomp=false
+    -Dsmack=false
+    -Dzlib=false
+    -Dxz=false
+    -Dlz4=false
+    -Dbzip2=false
+    -Dlibcurl=false
+    -Dnss-systemd=false
+    -Delfutils=false
+    -Drandomseed=false
+    -Dbacklight=false
+    -Dmachined=false
+    -Dimportd=false
+    -Dhostnamed=true
+    -Dtimedated=false
+    -Dlocaled=false
+    -Dnetworkd=false
+    -Dresolve=false
+    -Dxkbcommon=false
+    -Dmyhostname=false
+    -Ddns-over-tls=false
+    -Dtmpfiles=true
+    -Dlibcryptsetup=false
+    -Dutmp=false
+  )
+
+  ts-meson "$name-$version" build "${_meson_options[@]}"
+
+  ninja -C build
+#  meson test
+#  install=systemd.install
+
+  DESTDIR="$PKG" ninja -C build install
+
+  # don't write units to /etc by default. some of these will be re-enabled on
+  # post_install.
+#  rm -rv "$PKG"/etc/systemd/system/*
+
+  # we'll create this on installation
+#  rmdir "$PKG"/var/log/journal/remote
+
+  # runtime libraries shipped with libsystemd
+#  install -d -m0755 $PKG/libsystemd
+#  mv "$PKG"/usr/lib/lib{nss,systemd,udev}*.so* $PKG/libsystemd
+
+  # manpages shipped with systemd-sysvcompat
+#  rm "$PKG"/usr/share/man/man8/{halt,poweroff,reboot,runlevel,shutdown,telinit}.8
+
+  # executable (symlinks) shipped with systemd-sysvcompat
+#  rm "$PKG"/usr/bin/{halt,init,poweroff,reboot,runlevel,shutdown,telinit}
+
+  # files shipped with systemd-resolvconf
+#  rm "$PKG"/usr/{bin/resolvconf,share/man/man1/resolvconf.1}
+
+  # avoid a potential conflict with [core]/filesystem
+#  rm "$PKG"/usr/share/factory/etc/nsswitch.conf
+#  sed -i '/^C \/etc\/nsswitch\.conf/d' "$PKG"/usr/lib/tmpfiles.d/etc.conf
+
+  # add back tmpfiles.d/legacy.conf, normally omitted without sysv-compat
+#  install -m0644 $name-$version/tmpfiles.d/legacy.conf "$PKG"/usr/lib/tmpfiles.d
+
+  # ship default policy to leave services disabled
+#   install -d -m0755 "$PKG"/usr/lib/systemd/system-preset/
+#  echo 'disable *' >"$PKG"/usr/lib/systemd/system-preset/99-default.preset
+
+  # add mkinitcpio hooks
+#  install -D -m0644 initcpio-install-systemd "$PKG"/usr/lib/initcpio/install/systemd
+#  install -D -m0644 initcpio-install-udev "$PKG"/usr/lib/initcpio/install/udev
+#  install -D -m0644 initcpio-hook-udev "$PKG"/usr/lib/initcpio/hooks/udev
+
+  # ensure proper permissions for /var/log/journal
+  # The permissions are stored with named group by tar, so this works with
+  # users and groups populated by systemd-sysusers. This is only to prevent a
+  # warning from pacman as permissions are set by systemd-tmpfiles anyway.
+  install -d -o root -g systemd-journal -m 2755 "$PKG"/var/log/journal
+
+  # match directory owner/group and mode from [extra]/polkit
+  install -d -o root -g 102 -m 0750 "$PKG"/usr/share/polkit-1/rules.d
+
+  # add example bootctl configuration
+#  install -D -m0644 thinstation.conf "$PKG"/usr/share/systemd/bootctl/thinstation.conf
+#  install -D -m0644 loader.conf "$PKG"/usr/share/systemd/bootctl/loader.conf
+#  install -D -m0644 splash-thinstation.bmp "$PKG"/usr/share/systemd/bootctl/splash-thinstation.bmp
+
+  # pacman hooks
+#  install -D -m0755 systemd-hook "$PKG"/usr/share/libalpm/scripts/systemd-hook
+#  install -D -m0644 -t "$PKG"/usr/share/libalpm/hooks *.hook
+
+  # overwrite the systemd-user PAM configuration with our own
+#  install -D -m0644 systemd-user.pam "$PKG"/etc/pam.d/systemd-user
+
+#  install -d -m0755 "$PKG"/usr
+#  mv $PKG/libsystemd "$PKG"/usr/lib
+
+#  install -d -m0755 "$PKG"/usr/bin
+#  ln -s resolvectl "$PKG"/usr/bin/resolvconf
+
+#  install -d -m0755 "$PKG"/usr/share/man/man1
+#  ln -s resolvectl.1.gz "$PKG"/usr/share/man/man1/resolvconf.1.gz
+
+#  install -D -m0644 -t "$PKG"/usr/share/man/man8 \
+#    build/man/{telinit,halt,reboot,poweroff,shutdown}.8
+
+#  install -d -m0755 "$PKG"/usr/bin
+#  ln -s ../lib/systemd/systemd "$PKG"/usr/bin/init
+#  for tool in runlevel reboot shutdown poweroff halt telinit; do
+#    ln -s systemctl "$PKG"/usr/bin/$tool
+#  done
+}

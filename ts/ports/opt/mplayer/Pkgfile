@@ -6,9 +6,9 @@
 # Nice to have: libsdl, libjpeg-turbo, libpng, lame, zlib, libogg, libvorbis, cdparanoia, win32-essential-codecs, faac, x264, libdvdnav, libdca
 
 name=mplayer
-version=2017-04-29
+version=2016-02-17
 release=1
-source=(http://distfiles.serverop.de/mplayer-$version.tar.xz
+source=(http://crux.nu/~tek/mplayer-$version.tar.xz
   http://www1.mplayerhq.hu/MPlayer/releases/fonts/font-arial-iso-8859-1.tar.bz2 mplayer.conf)
 
 build() {
@@ -20,9 +20,11 @@ build() {
   rm -f ffmpeg/mp_auto_pull
 
   ./configure --prefix=/usr \
+      --enable-xvmc \
       --mandir=/usr/man \
       --codecsdir=/usr/share/codecs \
-      --confdir=/etc/mplayer
+      --confdir=/etc/mplayer \
+      --extra-cflags=-I/usr/include/openjpeg-1.5
   make
   make DESTDIR=$PKG install
 

@@ -1,0 +1,22 @@
+# Description:	Build.PL install path logic made easy
+# URL:		http://search.cpan.org/~leont/ExtUtils-InstallPaths/
+# Maintainer:	
+# Depends on:	p5-extutils-config
+
+name=p5-extutils-installpaths
+version=0.012
+release=1
+source=(http://search.cpan.org/CPAN/authors/id/L/LE/LEONT/ExtUtils-InstallPaths-${version}.tar.gz)
+
+build() {
+	cd ExtUtils-InstallPaths-$version
+
+	# PERL_MM_USE_DEFAULT=1 \
+	perl Makefile.PL
+	make OPTIMIZE="$CFLAGS" DESTDIR="$PKG" install
+
+	find "$PKG" -depth \
+		-type f \( -name .packlist -o -name \*.bs -o -name perllocal.pod \) -delete , \
+		-type f -name autosplit.ix \( -exec grep -q '^[[:space:]]*package' {} \; -o -delete \) , \
+		-type d -empty -exec rmdir {} +
+}

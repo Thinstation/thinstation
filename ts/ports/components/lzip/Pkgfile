@@ -1,0 +1,21 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=lzip
+version=1.18
+release=1
+source=(http://download.savannah.gnu.org/releases/lzip/lzip-$version.tar.gz)
+build() {
+	cd $name-$version
+
+	./configure --prefix=/usr \
+			--exec-prefix=/ \
+			--sysconfdir=/etc \
+			--mandir=/usr/man \
+			--disable-extras
+
+	make
+	make DESTDIR=$PKG install
+	rm -rf $PKG/usr/share/info
+}

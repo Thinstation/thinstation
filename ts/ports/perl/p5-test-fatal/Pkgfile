@@ -1,0 +1,22 @@
+# Description:	Incredibly simple helpers for testing code with exceptions
+# URL:		https://github.com/rjbs/Test-Fatal
+# Maintainer:	
+# Depends on:	p5-try-tiny
+
+name=p5-test-fatal
+version=0.014
+release=1
+source=(http://search.cpan.org/CPAN/authors/id/R/RJ/RJBS/Test-Fatal-${version}.tar.gz)
+
+build() {
+	cd Test-Fatal-$version
+
+	# PERL_MM_USE_DEFAULT=1 \
+	perl Makefile.PL
+	make OPTIMIZE="$CFLAGS" DESTDIR="$PKG" install
+
+	find "$PKG" -depth \
+		-type f \( -name .packlist -o -name \*.bs -o -name perllocal.pod \) -delete , \
+		-type f -name autosplit.ix \( -exec grep -q '^[[:space:]]*package' {} \; -o -delete \) , \
+		-type d -empty -exec rmdir {} +
+}

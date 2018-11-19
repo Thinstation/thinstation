@@ -5,16 +5,17 @@
 
 name=bc
 version=1.06
-release=3
+release=4
 source=(http://ftp.gnu.org/gnu/$name/$name-$version.tar.gz \
         $name-$version-compile_fixes.patch $name-$version-fixes-1.patch)
 
 build() { 
+unset CPPFLAGS
     cd $name-$version
     patch -p1 < ../$name-$version-compile_fixes.patch
     patch -p1 < ../$name-$version-fixes-1.patch
     
-    ./configure --prefix=/usr --with-readline
+    ./configure --prefix=/usr --with-readline --mandir=/usr/share/man
     make
     make DESTDIR=$PKG install
     rm -rf $PKG/usr/info

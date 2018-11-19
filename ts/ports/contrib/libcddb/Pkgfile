@@ -1,0 +1,18 @@
+# Description: Library to access and submit data on a CDDB server.
+# URL: http://libcddb.sourceforge.net/
+# Maintainer: Danny Rawlins, crux at romster dot me
+# Packager: Han Boetes, han at mijncomputer dot nl
+
+name=libcddb
+version=1.3.2
+release=2
+source=(http://download.sourceforge.net/$name/$name-$version.tar.bz2)
+
+build() {
+	cd $name-$version
+
+	./configure --prefix=/usr --disable-static
+
+	make
+	make DESTDIR=$PKG install
+}

@@ -3,8 +3,8 @@
 # Maintainer:  CRUX System Team, core-ports at crux dot nu
 
 name=kmod
-version=18
-release=1
+version=25
+release=2
 source=(https://www.kernel.org/pub/linux/utils/kernel/$name/$name-$version.tar.xz)
 
 build() {
@@ -21,10 +21,10 @@ build() {
 
     install -d $PKG/etc/{modprobe,depmod}.d
     install -d $PKG/bin
-    install -d $PKG/usr/man/{man5,man8}
+    install -d $PKG/usr/share/man/{man5,man8}
 
-    install -m 0644 man/*.5 $PKG/usr/man/man5
-    install -m 0644 man/*.8 $PKG/usr/man/man8
+    install -m 0644 man/*.5 $PKG/usr/share/man/man5
+    install -m 0644 man/*.8 $PKG/usr/share/man/man8
 
     ln -s kmod $PKG/sbin/modinfo
     ln -s kmod $PKG/sbin/depmod
@@ -33,5 +33,7 @@ build() {
     ln -s kmod $PKG/sbin/rmmod
     ln -s kmod $PKG/sbin/modprobe
     ln -s ../sbin/kmod $PKG/bin/lsmod
-    rm -rf $PKG/usr/share/bash-completion
+
+    # remove bash-completion stuff
+    rm -r $PKG/usr/share/bash-completion
 }

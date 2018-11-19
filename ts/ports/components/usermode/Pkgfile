@@ -4,14 +4,16 @@
 # Depends on: 
 
 name=usermode
-version=1.111
+version=1.112
 release=1
-source=(https://fedorahosted.org/released/$name/$name-$version.tar.xz)
+source=(https://releases.pagure.org/usermode/$name-$version.tar.xz)
 
 build() {
     cd $name-$version
-
-    ./configure --prefix=/usr --disable-nls
+sed -e '411 s/"$/\\n"/' \
+	    -i po/tr.po
+    ./autogen.sh
+    ./configure --prefix=/usr 
 
     make
     make install DESTDIR=$PKG

@@ -1,12 +1,12 @@
 # Description: POSIX.1e capabilities library
-# URL:         http://www.kernel.org/pub/linux/libs/security/linux-privs/libcap2/README
+# URL:         http://sites.google.com/site/fullycapable/
 # Maintainer:  CRUX System Team, core-ports at crux dot nu
 # Depends on:  attr
 
 name=libcap
 version=2.25
-release=1
-source=(https://kernel.org/pub/linux/libs/security/linux-privs/libcap2/libcap-$version.tar.xz)
+release=2
+source=(https://www.kernel.org/pub/linux/libs/security/linux-privs/libcap2/$name-$version.tar.xz)
 
 build () {
     cd libcap-$version
@@ -14,9 +14,13 @@ build () {
     sed -i "/^CFLAGS/s/-O2/$CFLAGS/" Make.Rules 
 
     make
-    make RAISE_SETFCAP=no DESTDIR=$PKG man_prefix=/usr install
+    make RAISE_SETFCAP=no DESTDIR=$PKG man_prefix=/usr/share install
 
     install -d $PKG/usr/lib
+    mv $PKG/usr/lib64/* $PKG/usr/lib
+    rmdir $PKG/usr/lib64
+    mv $PKG/lib64 $PKG/lib
+
     mv $PKG/lib/libcap.a $PKG/usr/lib
     rm $PKG/lib/libcap.so
     ln -s ../../lib/libcap.so.$version $PKG/usr/lib/libcap.so

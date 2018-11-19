@@ -7,8 +7,7 @@
 name=cyrus-sasl
 version=2.1.26
 release=2
-source=(ftp://ftp.cyrusimap.org/cyrus-sasl/cyrus-sasl-$version.tar.gz \
-	cyrus-sasl-2.1.27-openssl-1.1.0.patch \
+source=(ftp://ftp.cyrusimap.org/cyrus-sasl/cyrus-sasl-$version.tar.gz
         saslauthd fix-CVE-2013-4122.diff)
 
 build(){
@@ -16,7 +15,6 @@ build(){
   cd $name-$version
 
   patch -i ../fix-CVE-2013-4122.diff -p1
-  patch -p1 -i $SRC/cyrus-sasl-2.1.27-openssl-1.1.0.patch
   sed -i '228i\#include <sys/types.h>' include/sasl.h
 
   ./configure \
@@ -45,4 +43,10 @@ build(){
 
   install -m 755 $SRC/saslauthd $PKG/etc/rc.d
 
+	cd $PKG
+	echo 'prefix=/usr' > usr/lib/pkgconfig/libsasl2.pc.new
+	echo 'exec_prefix=${prefix}' >> usr/lib/pkgconfig/libsasl2.pc.new
+	cat usr/lib/pkgconfig/libsasl2.pc >> usr/lib/pkgconfig/libsasl2.pc.new
+	rm usr/lib/pkgconfig/libsasl2.pc
+	mv usr/lib/pkgconfig/libsasl2.pc.new usr/lib/pkgconfig/libsasl2.pc
 }

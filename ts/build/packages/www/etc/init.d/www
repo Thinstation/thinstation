@@ -1,6 +1,6 @@
 #! /bin/sh
 
-. $TS_GLOBAL
+. `dirname $0`/common
 
 case "$1" in  
 init)
@@ -35,6 +35,20 @@ init)
 	cat $WEB/general/index.html.tpl |sed -f /tmp/script >$WEB/general/index.html
 
 	rm /tmp/script
+
+	for remote in $NET_REMOTE_ACCESS_FROM; do
+		if [ "$remote" == "0.0.0.0" ]; then
+			unset remote
+		fi
+        	REMOTEIPS="$REMOTEIPS|$remote"
+	done
+	REMOTEIPS=`echo $REMOTEIPS|cut -c 2-`
+
+	if [ -n "$REMOTEIPS" ]; then
+		REMOTE="\t\$HTTP[\"remoteip\"] !~ \"$REMOTEIPS\" {\n\t\turl.access-deny = ( \"\" )\n\t}"
+	fi
+
+	sed -i -e "s/REMOTE/$REMOTE/g" /etc/lighttpd/lighttpd.conf
 
 	pkg_set_init_flag $PACKAGE
   fi

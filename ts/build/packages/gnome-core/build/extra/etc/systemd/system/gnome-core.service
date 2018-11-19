@@ -1,0 +1,16 @@
+[Unit]
+Description=Thinstation Gnome Core
+Conflicts=shutdown.target
+After=session.service pkg.service
+Before=shutdown.target
+ConditionPathIsReadWrite=/etc
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+EnvironmentFile=/etc/thinstation.env
+ExecStart=/etc/init.d/gnome-core
+SyslogIdentifier=thinstation
+
+[Install]
+WantedBy=multi-user.target

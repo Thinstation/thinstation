@@ -3,20 +3,33 @@
 # /etc/rc.d/rsyncd: start/stop rsyncd daemon
 #
 
+SSD=/sbin/start-stop-daemon
+PROG=/usr/bin/rsync
+PID=/var/run/rsyncd.pid
+OPTS="--daemon"
+
 case $1 in
 start)
-	/usr/bin/rsync --daemon
+	$SSD --start --pidfile $PID --exec $PROG -- $OPTS
 	;;
 stop)
-	kill `cat /var/run/rsyncd.pid`
+	$SSD --stop --retry 10 --pidfile $PID
 	;;
 restart)
 	$0 stop
-	sleep 2
 	$0 start
 	;;
+status)
+	$SSD --status --pidfile $PID
+	case $? in
+	0) echo "$PROG is running with pid $(cat $PID)" ;;
+	1) echo "$PROG is not running but the pid file $PID exists" ;;
+	3) echo "$PROG is not running" ;;
+	4) echo "Unable to determine the program status" ;;
+	esac
+	;;
 *)
-	echo "usage: $0 [start|stop|restart]"
+	echo "usage: $0 [start|stop|restart|status]"
 	;;
 esac
 

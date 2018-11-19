@@ -5,23 +5,13 @@
 # Depends on: gtk libsigc++
 
 name=gnome-disk-utility
-version=3.20.2
+version=3.28.2
 release=1
 source=(http://ftp.gnome.org/pub/GNOME/sources/$name/${version%.*}/$name-$version.tar.xz)
 
 build() {
 	cd $name-$version
-
-	./configure \
-		--prefix=/usr \
-		--disable-dependency-tracking \
-		--enable-shared \
-		--disable-static \
-		--disable-gtk-doc-html \
-		--disable-gtk-doc \
-		--disable-scrollkeeper
-
-	make
-	make DESTDIR=$PKG install
-	rm -rf $PKG/usr/share/gtk-doc $PKG/usr/share/gnome/help $PKG/usr/share/omf
+        meson . build -D enable_docs=true --prefix=/usr --libdir=/usr/lib
+        ninja -C build
+        DESTDIR=$PKG ninja -C build install
 }

@@ -4,7 +4,7 @@
 # Depends on:  eudev
 
 name=pciutils
-version=3.4.1
+version=3.5.1
 release=1
 source=(ftp://atrey.karlin.mff.cuni.cz/pub/linux/pci/$name-$version.tar.gz)
 
@@ -13,7 +13,7 @@ build() {
 
     local CONF="ZLIB=no DESTDIR=$PKG PREFIX=/usr"
 
-    make -j1 $CONF OPT="$CFLAGS" SHARED=yes install install-lib
+    make -j1 $CONF OPT="$CFLAGS" SHARED=no install install-lib
     make clean
-    make -j1 $CONF OPT="$CFLAGS" SHARED=no  install install-lib
+    make -j1 $CONF OPT="$CFLAGS" SHARED=yes  install install-lib
 }

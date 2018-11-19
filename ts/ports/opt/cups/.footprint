@@ -4,6 +4,7 @@ drwxr-xr-x	root/lp	etc/cups/
 -rw-r-----	root/lp	etc/cups/cups-files.conf.default
 -rw-r-----	root/lp	etc/cups/cupsd.conf
 -rw-r-----	root/lp	etc/cups/cupsd.conf.default
+drwxr-xr-x	root/lp	etc/cups/interfaces/
 drwxr-xr-x	root/lp	etc/cups/ppd/
 -rw-r-----	root/lp	etc/cups/snmp.conf
 -rw-r-----	root/lp	etc/cups/snmp.conf.default
@@ -11,13 +12,10 @@ drwx------	root/lp	etc/cups/ssl/
 drwxr-xr-x	root/root	etc/dbus-1/
 drwxr-xr-x	root/root	etc/dbus-1/system.d/
 -rw-r--r--	root/root	etc/dbus-1/system.d/cups.conf
+drwxr-xr-x	root/root	etc/modprobe.d/
+-rw-r--r--	root/root	etc/modprobe.d/cups.conf
 drwxr-xr-x	root/root	etc/rc.d/
 -rwxr-xr-x	root/root	etc/rc.d/cups
-drwxr-xr-x	root/root	etc/ssl/
-drwxr-xr-x	root/root	etc/ssl/certs/
--rw-------	root/root	etc/ssl/certs/cups.crt (EMPTY)
-drwxr-xr-x	root/root	etc/ssl/keys/
--rw-------	root/root	etc/ssl/keys/cups.key (EMPTY)
 drwxr-xr-x	root/root	usr/
 drwxr-xr-x	root/root	usr/bin/
 -rwxr-xr-x	root/root	usr/bin/cancel
@@ -42,13 +40,17 @@ drwxr-xr-x	root/root	usr/include/cups/
 -rw-r--r--	root/root	usr/include/cups/adminutil.h
 -rw-r--r--	root/root	usr/include/cups/array.h
 -rw-r--r--	root/root	usr/include/cups/backend.h
+-rw-r--r--	root/root	usr/include/cups/cgi.h
 -rw-r--r--	root/root	usr/include/cups/cups.h
 -rw-r--r--	root/root	usr/include/cups/dir.h
 -rw-r--r--	root/root	usr/include/cups/file.h
+-rw-r--r--	root/root	usr/include/cups/help-index.h
 -rw-r--r--	root/root	usr/include/cups/http.h
 -rw-r--r--	root/root	usr/include/cups/ipp.h
 -rw-r--r--	root/root	usr/include/cups/language.h
+-rw-r--r--	root/root	usr/include/cups/mime.h
 -rw-r--r--	root/root	usr/include/cups/ppd.h
+-rw-r--r--	root/root	usr/include/cups/ppdc.h
 -rw-r--r--	root/root	usr/include/cups/pwg.h
 -rw-r--r--	root/root	usr/include/cups/raster.h
 -rw-r--r--	root/root	usr/include/cups/sidechannel.h
@@ -104,65 +106,13 @@ lrwxrwxrwx	root/root	usr/lib/libcupsmime.so -> libcupsmime.so.1
 -rwxr-xr-x	root/root	usr/lib/libcupsmime.so.1
 lrwxrwxrwx	root/root	usr/lib/libcupsppdc.so -> libcupsppdc.so.1
 -rwxr-xr-x	root/root	usr/lib/libcupsppdc.so.1
-drwxr-xr-x	root/root	usr/man/
-drwxr-xr-x	root/root	usr/man/man1/
--rw-r--r--	root/root	usr/man/man1/cancel.1.gz
--rw-r--r--	root/root	usr/man/man1/cups-config.1.gz
--rw-r--r--	root/root	usr/man/man1/cups.1.gz
--rw-r--r--	root/root	usr/man/man1/cupstestdsc.1.gz
--rw-r--r--	root/root	usr/man/man1/cupstestppd.1.gz
--rw-r--r--	root/root	usr/man/man1/ippfind.1.gz
--rw-r--r--	root/root	usr/man/man1/ipptool.1.gz
--rw-r--r--	root/root	usr/man/man1/lp.1.gz
--rw-r--r--	root/root	usr/man/man1/lpoptions.1.gz
--rw-r--r--	root/root	usr/man/man1/lpq.1.gz
--rw-r--r--	root/root	usr/man/man1/lpr.1.gz
--rw-r--r--	root/root	usr/man/man1/lprm.1.gz
--rw-r--r--	root/root	usr/man/man1/lpstat.1.gz
--rw-r--r--	root/root	usr/man/man1/ppdc.1.gz
--rw-r--r--	root/root	usr/man/man1/ppdhtml.1.gz
--rw-r--r--	root/root	usr/man/man1/ppdi.1.gz
--rw-r--r--	root/root	usr/man/man1/ppdmerge.1.gz
--rw-r--r--	root/root	usr/man/man1/ppdpo.1.gz
-drwxr-xr-x	root/root	usr/man/man5/
--rw-r--r--	root/root	usr/man/man5/classes.conf.5.gz
--rw-r--r--	root/root	usr/man/man5/client.conf.5.gz
--rw-r--r--	root/root	usr/man/man5/cups-files.conf.5.gz
--rw-r--r--	root/root	usr/man/man5/cups-snmp.conf.5.gz
--rw-r--r--	root/root	usr/man/man5/cupsd-logs.5.gz
--rw-r--r--	root/root	usr/man/man5/cupsd.conf.5.gz
--rw-r--r--	root/root	usr/man/man5/ipptoolfile.5.gz
--rw-r--r--	root/root	usr/man/man5/mailto.conf.5.gz
--rw-r--r--	root/root	usr/man/man5/mime.convs.5.gz
--rw-r--r--	root/root	usr/man/man5/mime.types.5.gz
--rw-r--r--	root/root	usr/man/man5/ppdcfile.5.gz
--rw-r--r--	root/root	usr/man/man5/printers.conf.5.gz
--rw-r--r--	root/root	usr/man/man5/subscriptions.conf.5.gz
-drwxr-xr-x	root/root	usr/man/man7/
--rw-r--r--	root/root	usr/man/man7/backend.7.gz
--rw-r--r--	root/root	usr/man/man7/filter.7.gz
--rw-r--r--	root/root	usr/man/man7/notifier.7.gz
-drwxr-xr-x	root/root	usr/man/man8/
-lrwxrwxrwx	root/root	usr/man/man8/accept.8.gz -> cupsaccept.8.gz
-lrwxrwxrwx	root/root	usr/man/man8/cups-deviced.8.gz -> cupsd-helper.8.gz
-lrwxrwxrwx	root/root	usr/man/man8/cups-driverd.8.gz -> cupsd-helper.8.gz
-lrwxrwxrwx	root/root	usr/man/man8/cups-exec.8.gz -> cupsd-helper.8.gz
--rw-r--r--	root/root	usr/man/man8/cups-lpd.8.gz
--rw-r--r--	root/root	usr/man/man8/cups-snmp.8.gz
--rw-r--r--	root/root	usr/man/man8/cupsaccept.8.gz
--rw-r--r--	root/root	usr/man/man8/cupsaddsmb.8.gz
--rw-r--r--	root/root	usr/man/man8/cupsctl.8.gz
--rw-r--r--	root/root	usr/man/man8/cupsd-helper.8.gz
--rw-r--r--	root/root	usr/man/man8/cupsd.8.gz
-lrwxrwxrwx	root/root	usr/man/man8/cupsdisable.8.gz -> cupsenable.8.gz
--rw-r--r--	root/root	usr/man/man8/cupsenable.8.gz
--rw-r--r--	root/root	usr/man/man8/cupsfilter.8.gz
-lrwxrwxrwx	root/root	usr/man/man8/cupsreject.8.gz -> cupsaccept.8.gz
--rw-r--r--	root/root	usr/man/man8/lpadmin.8.gz
--rw-r--r--	root/root	usr/man/man8/lpc.8.gz
--rw-r--r--	root/root	usr/man/man8/lpinfo.8.gz
--rw-r--r--	root/root	usr/man/man8/lpmove.8.gz
-lrwxrwxrwx	root/root	usr/man/man8/reject.8.gz -> cupsaccept.8.gz
+drwxr-xr-x	root/root	usr/lib/systemd/
+drwxr-xr-x	root/root	usr/lib/systemd/system/
+-rw-r--r--	root/root	usr/lib/systemd/system/org.cups.cups-lpd.socket
+-rw-r--r--	root/root	usr/lib/systemd/system/org.cups.cups-lpd@.service
+-rw-r--r--	root/root	usr/lib/systemd/system/org.cups.cupsd.path
+-rw-r--r--	root/root	usr/lib/systemd/system/org.cups.cupsd.service
+-rw-r--r--	root/root	usr/lib/systemd/system/org.cups.cupsd.socket
 drwxr-xr-x	root/root	usr/sbin/
 lrwxrwxrwx	root/root	usr/sbin/accept -> cupsaccept
 -rwxr-xr-x	root/root	usr/sbin/cupsaccept
@@ -182,21 +132,25 @@ drwxr-xr-x	root/root	usr/share/
 drwxr-xr-x	root/root	usr/share/applications/
 -rw-r--r--	root/root	usr/share/applications/cups.desktop
 drwxr-xr-x	root/root	usr/share/cups/
-drwxr-xr-x	root/root	usr/share/cups/banners/
-drwxr-xr-x	root/root	usr/share/cups/data/
 drwxr-xr-x	root/root	usr/share/cups/doc/
 -rw-r--r--	root/root	usr/share/cups/doc/apple-touch-icon.png
 -rw-r--r--	root/root	usr/share/cups/doc/cups-printable.css
 -rw-r--r--	root/root	usr/share/cups/doc/cups.css
 drwxr-xr-x	root/root	usr/share/cups/doc/help/
 -rw-r--r--	root/root	usr/share/cups/doc/help/accounting.html
--rw-r--r--	root/root	usr/share/cups/doc/help/api-admin.html
+-rw-r--r--	root/root	usr/share/cups/doc/help/api-array.html
+-rw-r--r--	root/root	usr/share/cups/doc/help/api-cgi.html
+-rw-r--r--	root/root	usr/share/cups/doc/help/api-cups.html
+-rw-r--r--	root/root	usr/share/cups/doc/help/api-driver.html
+-rw-r--r--	root/root	usr/share/cups/doc/help/api-filedir.html
 -rw-r--r--	root/root	usr/share/cups/doc/help/api-filter.html
+-rw-r--r--	root/root	usr/share/cups/doc/help/api-httpipp.html
+-rw-r--r--	root/root	usr/share/cups/doc/help/api-mime.html
+-rw-r--r--	root/root	usr/share/cups/doc/help/api-overview.html
 -rw-r--r--	root/root	usr/share/cups/doc/help/api-ppd.html
+-rw-r--r--	root/root	usr/share/cups/doc/help/api-ppdc.html
 -rw-r--r--	root/root	usr/share/cups/doc/help/api-raster.html
 -rw-r--r--	root/root	usr/share/cups/doc/help/cgi.html
--rw-r--r--	root/root	usr/share/cups/doc/help/cupspm.html
--rw-r--r--	root/root	usr/share/cups/doc/help/encryption.html
 -rw-r--r--	root/root	usr/share/cups/doc/help/glossary.html
 -rw-r--r--	root/root	usr/share/cups/doc/help/kerberos.html
 -rw-r--r--	root/root	usr/share/cups/doc/help/license.html
@@ -252,6 +206,7 @@ drwxr-xr-x	root/root	usr/share/cups/doc/help/
 -rw-r--r--	root/root	usr/share/cups/doc/help/security.html
 -rw-r--r--	root/root	usr/share/cups/doc/help/sharing.html
 -rw-r--r--	root/root	usr/share/cups/doc/help/spec-banner.html
+-rw-r--r--	root/root	usr/share/cups/doc/help/spec-cmp.html
 -rw-r--r--	root/root	usr/share/cups/doc/help/spec-command.html
 -rw-r--r--	root/root	usr/share/cups/doc/help/spec-design.html
 -rw-r--r--	root/root	usr/share/cups/doc/help/spec-ipp.html
@@ -425,6 +380,65 @@ drwxr-xr-x	root/root	usr/share/icons/hicolor/32x32/apps/
 drwxr-xr-x	root/root	usr/share/icons/hicolor/64x64/
 drwxr-xr-x	root/root	usr/share/icons/hicolor/64x64/apps/
 -rw-r--r--	root/root	usr/share/icons/hicolor/64x64/apps/cups.png
+drwxr-xr-x	root/root	usr/share/man/
+drwxr-xr-x	root/root	usr/share/man/man1/
+-rw-r--r--	root/root	usr/share/man/man1/cancel.1.gz
+-rw-r--r--	root/root	usr/share/man/man1/cups-config.1.gz
+-rw-r--r--	root/root	usr/share/man/man1/cups.1.gz
+-rw-r--r--	root/root	usr/share/man/man1/cupstestdsc.1.gz
+-rw-r--r--	root/root	usr/share/man/man1/cupstestppd.1.gz
+-rw-r--r--	root/root	usr/share/man/man1/ippfind.1.gz
+-rw-r--r--	root/root	usr/share/man/man1/ipptool.1.gz
+-rw-r--r--	root/root	usr/share/man/man1/lp.1.gz
+-rw-r--r--	root/root	usr/share/man/man1/lpoptions.1.gz
+-rw-r--r--	root/root	usr/share/man/man1/lpq.1.gz
+-rw-r--r--	root/root	usr/share/man/man1/lpr.1.gz
+-rw-r--r--	root/root	usr/share/man/man1/lprm.1.gz
+-rw-r--r--	root/root	usr/share/man/man1/lpstat.1.gz
+-rw-r--r--	root/root	usr/share/man/man1/ppdc.1.gz
+-rw-r--r--	root/root	usr/share/man/man1/ppdhtml.1.gz
+-rw-r--r--	root/root	usr/share/man/man1/ppdi.1.gz
+-rw-r--r--	root/root	usr/share/man/man1/ppdmerge.1.gz
+-rw-r--r--	root/root	usr/share/man/man1/ppdpo.1.gz
+drwxr-xr-x	root/root	usr/share/man/man5/
+-rw-r--r--	root/root	usr/share/man/man5/classes.conf.5.gz
+-rw-r--r--	root/root	usr/share/man/man5/client.conf.5.gz
+-rw-r--r--	root/root	usr/share/man/man5/cups-files.conf.5.gz
+-rw-r--r--	root/root	usr/share/man/man5/cups-snmp.conf.5.gz
+-rw-r--r--	root/root	usr/share/man/man5/cupsd-logs.5.gz
+-rw-r--r--	root/root	usr/share/man/man5/cupsd.conf.5.gz
+-rw-r--r--	root/root	usr/share/man/man5/ipptoolfile.5.gz
+-rw-r--r--	root/root	usr/share/man/man5/mailto.conf.5.gz
+-rw-r--r--	root/root	usr/share/man/man5/mime.convs.5.gz
+-rw-r--r--	root/root	usr/share/man/man5/mime.types.5.gz
+-rw-r--r--	root/root	usr/share/man/man5/ppdcfile.5.gz
+-rw-r--r--	root/root	usr/share/man/man5/printers.conf.5.gz
+-rw-r--r--	root/root	usr/share/man/man5/subscriptions.conf.5.gz
+drwxr-xr-x	root/root	usr/share/man/man7/
+-rw-r--r--	root/root	usr/share/man/man7/backend.7.gz
+-rw-r--r--	root/root	usr/share/man/man7/filter.7.gz
+-rw-r--r--	root/root	usr/share/man/man7/notifier.7.gz
+drwxr-xr-x	root/root	usr/share/man/man8/
+lrwxrwxrwx	root/root	usr/share/man/man8/accept.8.gz -> cupsaccept.8.gz
+lrwxrwxrwx	root/root	usr/share/man/man8/cups-deviced.8.gz -> cupsd-helper.8.gz
+lrwxrwxrwx	root/root	usr/share/man/man8/cups-driverd.8.gz -> cupsd-helper.8.gz
+lrwxrwxrwx	root/root	usr/share/man/man8/cups-exec.8.gz -> cupsd-helper.8.gz
+-rw-r--r--	root/root	usr/share/man/man8/cups-lpd.8.gz
+-rw-r--r--	root/root	usr/share/man/man8/cups-snmp.8.gz
+-rw-r--r--	root/root	usr/share/man/man8/cupsaccept.8.gz
+-rw-r--r--	root/root	usr/share/man/man8/cupsaddsmb.8.gz
+-rw-r--r--	root/root	usr/share/man/man8/cupsctl.8.gz
+-rw-r--r--	root/root	usr/share/man/man8/cupsd-helper.8.gz
+-rw-r--r--	root/root	usr/share/man/man8/cupsd.8.gz
+lrwxrwxrwx	root/root	usr/share/man/man8/cupsdisable.8.gz -> cupsenable.8.gz
+-rw-r--r--	root/root	usr/share/man/man8/cupsenable.8.gz
+-rw-r--r--	root/root	usr/share/man/man8/cupsfilter.8.gz
+lrwxrwxrwx	root/root	usr/share/man/man8/cupsreject.8.gz -> cupsaccept.8.gz
+-rw-r--r--	root/root	usr/share/man/man8/lpadmin.8.gz
+-rw-r--r--	root/root	usr/share/man/man8/lpc.8.gz
+-rw-r--r--	root/root	usr/share/man/man8/lpinfo.8.gz
+-rw-r--r--	root/root	usr/share/man/man8/lpmove.8.gz
+lrwxrwxrwx	root/root	usr/share/man/man8/reject.8.gz -> cupsaccept.8.gz
 drwxr-xr-x	root/root	var/
 drwxr-xr-x	root/root	var/cache/
 drwxrwx---	root/lp	var/cache/cups/
@@ -433,7 +447,7 @@ drwxr-xr-x	root/root	var/log/
 drwxr-xr-x	root/root	var/log/cups/
 drwxr-xr-x	root/root	var/run/
 drwxr-xr-x	root/root	var/run/cups/
-dr-x--x--x	daemon/sys	var/run/cups/certs/
+drwx--x--x	daemon/sys	var/run/cups/certs/
 drwxr-xr-x	root/root	var/spool/
 drwx--x---	root/lp	var/spool/cups/
 drwxrwx--T	root/lp	var/spool/cups/tmp/

@@ -2,6 +2,10 @@ drwxr-xr-x	root/root	etc/
 drwxr-xr-x	root/root	etc/fonts/
 drwxr-xr-x	root/root	etc/fonts/conf.avail/
 -rw-r--r--	root/root	etc/fonts/conf.avail/10-autohint.conf
+-rw-r--r--	root/root	etc/fonts/conf.avail/10-hinting-full.conf
+-rw-r--r--	root/root	etc/fonts/conf.avail/10-hinting-medium.conf
+-rw-r--r--	root/root	etc/fonts/conf.avail/10-hinting-none.conf
+-rw-r--r--	root/root	etc/fonts/conf.avail/10-hinting-slight.conf
 -rw-r--r--	root/root	etc/fonts/conf.avail/10-no-sub-pixel.conf
 -rw-r--r--	root/root	etc/fonts/conf.avail/10-scale-bitmap-fonts.conf
 -rw-r--r--	root/root	etc/fonts/conf.avail/10-sub-pixel-bgr.conf
@@ -15,12 +19,13 @@ drwxr-xr-x	root/root	etc/fonts/conf.avail/
 -rw-r--r--	root/root	etc/fonts/conf.avail/20-unhint-small-vera.conf
 -rw-r--r--	root/root	etc/fonts/conf.avail/25-unhint-nonlatin.conf
 -rw-r--r--	root/root	etc/fonts/conf.avail/30-metric-aliases.conf
--rw-r--r--	root/root	etc/fonts/conf.avail/30-urw-aliases.conf
 -rw-r--r--	root/root	etc/fonts/conf.avail/40-nonlatin.conf
+-rw-r--r--	root/root	etc/fonts/conf.avail/45-generic.conf
 -rw-r--r--	root/root	etc/fonts/conf.avail/45-latin.conf
 -rw-r--r--	root/root	etc/fonts/conf.avail/49-sansserif.conf
 -rw-r--r--	root/root	etc/fonts/conf.avail/50-user.conf
 -rw-r--r--	root/root	etc/fonts/conf.avail/51-local.conf
+-rw-r--r--	root/root	etc/fonts/conf.avail/60-generic.conf
 -rw-r--r--	root/root	etc/fonts/conf.avail/60-latin.conf
 -rw-r--r--	root/root	etc/fonts/conf.avail/65-fonts-persian.conf
 -rw-r--r--	root/root	etc/fonts/conf.avail/65-khmer.conf
@@ -32,15 +37,17 @@ drwxr-xr-x	root/root	etc/fonts/conf.avail/
 -rw-r--r--	root/root	etc/fonts/conf.avail/90-synthetic.conf
 drwxr-xr-x	root/root	etc/fonts/conf.d/
 lrwxrwxrwx	root/root	etc/fonts/conf.d/10-autohint.conf -> /etc/fonts/conf.avail/10-autohint.conf
+lrwxrwxrwx	root/root	etc/fonts/conf.d/10-hinting-slight.conf -> /etc/fonts/conf.avail/10-hinting-slight.conf
 lrwxrwxrwx	root/root	etc/fonts/conf.d/10-scale-bitmap-fonts.conf -> /etc/fonts/conf.avail/10-scale-bitmap-fonts.conf
 lrwxrwxrwx	root/root	etc/fonts/conf.d/20-unhint-small-vera.conf -> /etc/fonts/conf.avail/20-unhint-small-vera.conf
 lrwxrwxrwx	root/root	etc/fonts/conf.d/30-metric-aliases.conf -> /etc/fonts/conf.avail/30-metric-aliases.conf
-lrwxrwxrwx	root/root	etc/fonts/conf.d/30-urw-aliases.conf -> /etc/fonts/conf.avail/30-urw-aliases.conf
 lrwxrwxrwx	root/root	etc/fonts/conf.d/40-nonlatin.conf -> /etc/fonts/conf.avail/40-nonlatin.conf
+lrwxrwxrwx	root/root	etc/fonts/conf.d/45-generic.conf -> /etc/fonts/conf.avail/45-generic.conf
 lrwxrwxrwx	root/root	etc/fonts/conf.d/45-latin.conf -> /etc/fonts/conf.avail/45-latin.conf
 lrwxrwxrwx	root/root	etc/fonts/conf.d/49-sansserif.conf -> /etc/fonts/conf.avail/49-sansserif.conf
 lrwxrwxrwx	root/root	etc/fonts/conf.d/50-user.conf -> /etc/fonts/conf.avail/50-user.conf
 lrwxrwxrwx	root/root	etc/fonts/conf.d/51-local.conf -> /etc/fonts/conf.avail/51-local.conf
+lrwxrwxrwx	root/root	etc/fonts/conf.d/60-generic.conf -> /etc/fonts/conf.avail/60-generic.conf
 lrwxrwxrwx	root/root	etc/fonts/conf.d/60-latin.conf -> /etc/fonts/conf.avail/60-latin.conf
 lrwxrwxrwx	root/root	etc/fonts/conf.d/65-fonts-persian.conf -> /etc/fonts/conf.avail/65-fonts-persian.conf
 lrwxrwxrwx	root/root	etc/fonts/conf.d/65-nonlatin.conf -> /etc/fonts/conf.avail/65-nonlatin.conf
@@ -53,6 +60,7 @@ drwxr-xr-x	root/root	usr/
 drwxr-xr-x	root/root	usr/bin/
 -rwxr-xr-x	root/root	usr/bin/fc-cache
 -rwxr-xr-x	root/root	usr/bin/fc-cat
+-rwxr-xr-x	root/root	usr/bin/fc-conflist
 -rwxr-xr-x	root/root	usr/bin/fc-list
 -rwxr-xr-x	root/root	usr/bin/fc-match
 -rwxr-xr-x	root/root	usr/bin/fc-pattern
@@ -66,15 +74,16 @@ drwxr-xr-x	root/root	usr/include/fontconfig/
 -rw-r--r--	root/root	usr/include/fontconfig/fontconfig.h
 drwxr-xr-x	root/root	usr/lib/
 -rwxr-xr-x	root/root	usr/lib/libfontconfig.la
-lrwxrwxrwx	root/root	usr/lib/libfontconfig.so -> libfontconfig.so.1.8.0
-lrwxrwxrwx	root/root	usr/lib/libfontconfig.so.1 -> libfontconfig.so.1.8.0
--rwxr-xr-x	root/root	usr/lib/libfontconfig.so.1.8.0
+lrwxrwxrwx	root/root	usr/lib/libfontconfig.so -> libfontconfig.so.1.11.1
+lrwxrwxrwx	root/root	usr/lib/libfontconfig.so.1 -> libfontconfig.so.1.11.1
+-rwxr-xr-x	root/root	usr/lib/libfontconfig.so.1.11.1
 drwxr-xr-x	root/root	usr/lib/pkgconfig/
 -rw-r--r--	root/root	usr/lib/pkgconfig/fontconfig.pc
 drwxr-xr-x	root/root	usr/man/
 drwxr-xr-x	root/root	usr/man/man1/
 -rw-r--r--	root/root	usr/man/man1/fc-cache.1.gz
 -rw-r--r--	root/root	usr/man/man1/fc-cat.1.gz
+-rw-r--r--	root/root	usr/man/man1/fc-conflist.1.gz
 -rw-r--r--	root/root	usr/man/man1/fc-list.1.gz
 -rw-r--r--	root/root	usr/man/man1/fc-match.1.gz
 -rw-r--r--	root/root	usr/man/man1/fc-pattern.1.gz
@@ -126,6 +135,9 @@ drwxr-xr-x	root/root	usr/man/man3/
 -rw-r--r--	root/root	usr/man/man3/FcConfigCreate.3.gz
 -rw-r--r--	root/root	usr/man/man3/FcConfigDestroy.3.gz
 -rw-r--r--	root/root	usr/man/man3/FcConfigEnableHome.3.gz
+-rw-r--r--	root/root	usr/man/man3/FcConfigFileInfoIterGet.3.gz
+-rw-r--r--	root/root	usr/man/man3/FcConfigFileInfoIterInit.3.gz
+-rw-r--r--	root/root	usr/man/man3/FcConfigFileInfoIterNext.3.gz
 -rw-r--r--	root/root	usr/man/man3/FcConfigFilename.3.gz
 -rw-r--r--	root/root	usr/man/man3/FcConfigGetBlanks.3.gz
 -rw-r--r--	root/root	usr/man/man3/FcConfigGetCache.3.gz
@@ -139,6 +151,7 @@ drwxr-xr-x	root/root	usr/man/man3/
 -rw-r--r--	root/root	usr/man/man3/FcConfigGetSysRoot.3.gz
 -rw-r--r--	root/root	usr/man/man3/FcConfigHome.3.gz
 -rw-r--r--	root/root	usr/man/man3/FcConfigParseAndLoad.3.gz
+-rw-r--r--	root/root	usr/man/man3/FcConfigParseAndLoadFromMemory.3.gz
 -rw-r--r--	root/root	usr/man/man3/FcConfigReference.3.gz
 -rw-r--r--	root/root	usr/man/man3/FcConfigSetCurrent.3.gz
 -rw-r--r--	root/root	usr/man/man3/FcConfigSetRescanInterval.3.gz
@@ -148,6 +161,7 @@ drwxr-xr-x	root/root	usr/man/man3/
 -rw-r--r--	root/root	usr/man/man3/FcConfigUptoDate.3.gz
 -rw-r--r--	root/root	usr/man/man3/FcDefaultSubstitute.3.gz
 -rw-r--r--	root/root	usr/man/man3/FcDirCacheClean.3.gz
+-rw-r--r--	root/root	usr/man/man3/FcDirCacheCreateUUID.3.gz
 -rw-r--r--	root/root	usr/man/man3/FcDirCacheLoad.3.gz
 -rw-r--r--	root/root	usr/man/man3/FcDirCacheLoadFile.3.gz
 -rw-r--r--	root/root	usr/man/man3/FcDirCacheRead.3.gz
@@ -176,6 +190,7 @@ drwxr-xr-x	root/root	usr/man/man3/
 -rw-r--r--	root/root	usr/man/man3/FcFreeTypeCharSet.3.gz
 -rw-r--r--	root/root	usr/man/man3/FcFreeTypeCharSetAndSpacing.3.gz
 -rw-r--r--	root/root	usr/man/man3/FcFreeTypeQuery.3.gz
+-rw-r--r--	root/root	usr/man/man3/FcFreeTypeQueryAll.3.gz
 -rw-r--r--	root/root	usr/man/man3/FcFreeTypeQueryFace.3.gz
 -rw-r--r--	root/root	usr/man/man3/FcGetDefaultLangs.3.gz
 -rw-r--r--	root/root	usr/man/man3/FcGetLangs.3.gz
@@ -236,10 +251,16 @@ drwxr-xr-x	root/root	usr/man/man3/
 -rw-r--r--	root/root	usr/man/man3/FcPatternFormat.3.gz
 -rw-r--r--	root/root	usr/man/man3/FcPatternGet-Type.3.gz
 -rw-r--r--	root/root	usr/man/man3/FcPatternGet.3.gz
+-rw-r--r--	root/root	usr/man/man3/FcPatternGetWithBinding.3.gz
 -rw-r--r--	root/root	usr/man/man3/FcPatternHash.3.gz
 -rw-r--r--	root/root	usr/man/man3/FcPatternPrint.3.gz
 -rw-r--r--	root/root	usr/man/man3/FcPatternReference.3.gz
 -rw-r--r--	root/root	usr/man/man3/FcPatternRemove.3.gz
+-rw-r--r--	root/root	usr/man/man3/FcRangeCopy.3.gz
+-rw-r--r--	root/root	usr/man/man3/FcRangeCreateDouble.3.gz
+-rw-r--r--	root/root	usr/man/man3/FcRangeCreateInteger.3.gz
+-rw-r--r--	root/root	usr/man/man3/FcRangeDestroy.3.gz
+-rw-r--r--	root/root	usr/man/man3/FcRangeGetDouble.3.gz
 -rw-r--r--	root/root	usr/man/man3/FcStrBasename.3.gz
 -rw-r--r--	root/root	usr/man/man3/FcStrCmp.3.gz
 -rw-r--r--	root/root	usr/man/man3/FcStrCmpIgnoreCase.3.gz
@@ -272,6 +293,10 @@ drwxr-xr-x	root/root	usr/man/man3/
 -rw-r--r--	root/root	usr/man/man3/FcValueEqual.3.gz
 -rw-r--r--	root/root	usr/man/man3/FcValuePrint.3.gz
 -rw-r--r--	root/root	usr/man/man3/FcValueSave.3.gz
+-rw-r--r--	root/root	usr/man/man3/FcWeightFromOpenType.3.gz
+-rw-r--r--	root/root	usr/man/man3/FcWeightFromOpenTypeDouble.3.gz
+-rw-r--r--	root/root	usr/man/man3/FcWeightToOpenType.3.gz
+-rw-r--r--	root/root	usr/man/man3/FcWeightToOpenTypeDouble.3.gz
 drwxr-xr-x	root/root	usr/man/man5/
 -rw-r--r--	root/root	usr/man/man5/fonts-conf.5.gz
 drwxr-xr-x	root/root	var/

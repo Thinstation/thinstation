@@ -2,18 +2,31 @@
 # URL: http://www.cmake.org/
 # Maintainer: Jose V Beneyto, sepen at crux dot nu
 # Packager: Mark Rosenstand, mark at borkware dot net
-# Depends on: ncurses
+# Depends on: curl libarchive expat ncurses
 
 name=cmake
-version=3.8.2
+version=3.6.1
 release=1
-source=(http://www.cmake.org/files/v${version%.*}/cmake-$version.tar.gz)
+source=(http://www.cmake.org/files/v${version%.*}/$name-$version.tar.gz)
 
 build() {
-	cd cmake-$version
-	./bootstrap --prefix=/usr --system-curl --system-libs
+	cd $name-$version
+
+        # fix installation path
+        sed -i Source/CMakeInstallDestinations.cmake \
+            -e 's|share/cmake-${CMake_VERSION_MAJOR}.${CMake_VERSION_MINOR}|share/cmake|'
+
+	./bootstrap \
+		--prefix=/usr \
+		--system-libs \
+		--system-libarchive \
+                --no-system-jsoncpp \
+		--parallel=$(sed -e 's/.*-j *\([0-9]\+\).*/\1/' <<< $MAKEFLAGS)
+
 	make
 	make DESTDIR=$PKG install
 	rm -r $PKG/usr/doc
-}
 
+	# keep versioned dir for compatibility
+	ln -sf $name $PKG/usr/share/$name-${version%.*}
+}

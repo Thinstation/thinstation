@@ -1,23 +1,24 @@
 # Description: An implementation of DSSSL -- Document Style Semantics and Specification Language.
 # URL: http://openjade.sourceforge.net/
-# Maintainer: Danny Rawlins, monster dot romster at gmail dot com
+# Maintainer: Danny Rawlins, crux at romster dot me
 # Packager: Diederick de Vries, diederick at diederickdevries.net
 # Depends on: opensp
 
 name=openjade
-version=1.3.2
-release=1
-source=(http://downloads.sourceforge.net/project/$name/$name/${version}/$name-$version.tar.gz
-	iostream.patch)
+version=1.3.3-pre1
+release=2
+source=(http://downloads.sourceforge.net/project/$name/$name/1.3.3/$name-$version.tar.gz
+	iostream.patch msggen.pl.patch)
 
 build() {
 	cd $name-$version
 
-#	patch -p 1 -i $SRC/iostream.patch
+	patch -p 1 -i $SRC/iostream.patch
+	patch -p 1 -i $SRC/msggen.pl.patch
 
 	./configure \
 		--prefix=/usr \
-		--disable-nls
+		
 
 	make
 	make DESTDIR=$PKG install

@@ -3,11 +3,12 @@
 # Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 
 name=cdrtools
-version=3.01a24
+version=3.02a06
 release=1
 source=(http://downloads.sourceforge.net/cdrtools/cdrtools-$version.tar.bz2)
 
 build() {
+export MAKEFLAGS="-j1"
 	cd $name-${version%%a*}
 	sed -i 's|/opt/schily|/usr|g' DEFAULTS/Defaults.linux
 	sed -i 's|DEFINSGRP=.*|DEFINSGRP=root|' DEFAULTS/Defaults.linux

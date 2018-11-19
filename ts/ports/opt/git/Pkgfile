@@ -6,9 +6,10 @@
 # Nice to have: tk
 
 name=git
-version=2.12.2
+version=2.9.3
 release=1
-source=(https://www.kernel.org/pub/software/scm/git/$name-{,manpages-}$version.tar.gz)
+source=(https://www.kernel.org/pub/software/scm/git/git-{,manpages-}$version.tar.xz
+				git)
 
 build() {
 	cd $name-$version
@@ -30,4 +31,9 @@ build() {
 	find $PKG \( -name perllocal.pod -o -name .packlist \) -delete
 	rm -rf $PKG/usr/share/{locale,gitk}
 
+	# install the git ports driver
+	install -m 755 -d $PKG/etc/ports/drivers
+	install -m 755 $SRC/git $PKG/etc/ports/drivers/git
+
+chown -R root.root $PKG
 }

@@ -1,0 +1,63 @@
+#! /bin/sh
+. `dirname $0`/common
+
+# Choose Preferred Network for extra files.
+if [ -n "$DEBUG_INIT" ] ; then
+        echo_log "Choosing Network"
+fi
+#PICK ADAPTER
+
+network_break()
+{
+	if [ -n "$1" ]; then
+		if [ "`cat /sys/class/net/$1/carrier`" != "1" ]; then
+	        	echo_log "No cable for $1,"
+			echo_log "or you don't have the firmware loaded."
+		else
+		        echo_log "DHCP server not found for $1! Network not initialized."
+		        echo_log "This error has probably occured because you haven't got the corrrect"
+	        	echo_log "module loaded for you network card."
+		fi
+	fi
+	echo_log "Error, Network not initialized!"
+	if pkg_initialized debug || is_disabled $HALTONERROR ; then
+		echo_log "Debug enabled...continuing boot."
+	else
+		echo_log "Debug not enabled, boot halted."
+		force_splash_exit
+		halt
+	fi
+}
+
+devicelist=`grep -e NETWORKUP=TRUE /var/log/net/* |cut -d : -f1`
+devicecount=`echo $devicelist |wc -l`
+if [ -z "$devicelist" ]; then
+	network_break
+elif [ "$devicecount" -gt "1" ]; then
+	for interface in "$devicelist" ; do
+		. $interface
+		case $DEVTYPE in
+			eth)	lan=`basename $i`;;
+			wlan)	wlan=`basename $i`;;
+		esac
+	done
+	if [ -n "$lan" ] && [ -n "$wlan" ]; then
+		device=$lan
+		if [ "$NET_USE" != "BOTH" ] || [ "$NET_USE" != "WLAN" ]; then
+			ifconfig $wlan down
+		fi
+	elif [ -z "$lan" ] && [ -n "$wlan" ]; then
+		device=$wlan
+	fi
+else
+	device=`basename $devicelist`
+fi
+
+echo "NET_DEVICE=$device" >> $TS_RUNTIME
+
+. $TS_GLOBAL
+if is_enabled $NETWORKUP; then
+	if [ -e /etc/init.d/ntpd ]; then
+		/etc/init.d/ntpd start
+	fi
+fi

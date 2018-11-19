@@ -1,0 +1,38 @@
+README for mysql 5.x.xx
+
+REQUIREMENTS
+
+PRE-INSTALL
+   Run the included pre-install script to create a new
+   user/group mysql.
+
+POST-INSTALL
+1. Fix user/group of your mysql databases and the log file
+   if you are upgrading mysql from 5.0.x:
+   chown -R mysql:mysql /var/lib/mysql
+   chown mysql:mysql /var/log/mysqld.log
+2. run 'mysql_install_db' to build the system database
+   in /var/lib/mysql
+3. run 'mysql_upgrade' to add new privileges and features 
+   to the MySQL privilege tables if you have databases
+   created with older versions of mysql
+4. Set a password for the mysql root user:
+   mysqladmin -u root password <mysql_root_password>
+
+PRECAUTION 
+1. With the default configuration networking support for 
+   mysql is disabled, meaning the mysql daemon is accessable 
+   from localhost only. 
+   To add networking support comment out the 'skip-networking' 
+   line in /etc/my.cnf. 
+2. If you upgrade from mysql 4.0.x you must recompile the 
+   other packages on your system that are linked against the 
+   mysql client libraries (libmysqlclient). 
+   To obtain such a list of packages for your system, you 
+   may use the command 'prt-get dependent mysql' or use yapo 
+   to list the packages.
+
+INNODB
+  InnoDB table type support is compiled in but disabled by
+  default. Comment out the skip-innodb line in /etc/my.cnf
+  to fully enable InnoDB support.

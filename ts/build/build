@@ -124,7 +124,7 @@ remove_files()
 remove_old_boot_files()
 {
         if [ -e boot-images/initrd/added.files ]; then
-                cat boot-images/initrd/added.files | while read file; do
+                cat boot-images/initrd/added.files |sort -u | while read file; do
                         rm "$file"
                         rmdir --ignore-fail-on-non-empty -p `dirname "$file"`
                 done
@@ -232,8 +232,10 @@ lib_dependencies()
 		|cut -d: -f1 > liblist.final 2>/dev/null
 		rm filelist
 		while [ -s liblist.final ]; do
-			parallel --record-env
-			cat liblist.final |sort -u|sort -R |parallel --env _ --will-cite calculate_lib_dependencies
+			procs=`nproc`
+			let procs=( procs * 2 )
+			cat liblist.final |sort -u|sort -R | \
+			xargs -n 1 -P $procs -I {} bash -c 'calculate_lib_dependencies "$@"' _ {}
 			rm liblist.final
 			if [ -e liblist.added ]; then
 				mv liblist.added liblist.final
@@ -319,6 +321,21 @@ for pkgname in `list_all_packages`; do
 done
 }
 
+find_package()
+{
+	pkgtype=packages
+	if [ -n "$2" ]; then pkgtype=$2; fi
+
+	for pkgroot in $TSWRKNG $XTRWRKNG; do
+		if [ -d $pkgroot/$pkgtype/$1 ]; then
+			pkgpath=$pkgroot/$pkgtype/$1
+			return 0
+		fi
+	done
+
+	return 1
+}
+
 module_package_dependencies()
 {
 	# Adding additional modules and packages which are dependencies of other modules
@@ -344,7 +361,7 @@ module_package_dependencies()
 							fi
 						;;
 						firmware)
-							if is_enabled $ts_allfirmware; then
+							if ! is_enabled $ALLMODULES; then
 								if [ -z "`find ./tmp-tree/lib/firmware -name ${name}`" ]; then
 									if ! is_enabled $DISPLAYED; then
 										echo "Adding module dependencies for $module"
@@ -357,12 +374,12 @@ module_package_dependencies()
 						package)
 							if [ ! -e $PACDIR/$name.package ] && \
 							   [ ! -e $PACDIR/$name.pkg ]; then
-								if [ -d ./packages/$name ]; then
+								if find_package $name ; then
 									if ! is_enabled $DISPLAYED; then
 										echo "Adding module dependencies for $module"
 										DISPLAYED=true
 									fi
-									echo "cp -Rp --remove-destination ./packages/$name/* ./tmp-tree > /dev/null 2>&1">>\
+									echo "cp -Rp --remove-destination $pkgpath/* ./tmp-tree > /dev/null 2>&1">>\
 										$PACDIR/$name.package
 									touch /tmp/dirty
 									echo -e "\t\t\t\tPackage : $name"
@@ -372,9 +389,9 @@ module_package_dependencies()
 							elif [ -z "`find ./tmp-tree/lib/modules -name ${module}.ko`" ] && \
 								 [ -n "`find $pkgname/lib/modules/$KERNVER -name ${module}.ko`" ] && \
 								 [ ! -e $PACDIR/$name.pkg ]; then
-								if [ -d  ./packages/$name ]; then
+								if find_package $name ; then
 									echo "building-pkg $name"
-									echo -e "cp -Rp ./packages/$name $PKGDIR" >> $PACDIR/$name.pkg
+									echo -e "cp -Rp $pkgpath/$name $PKGDIR" >> $PACDIR/$name.pkg
 									touch /tmp/dirty
 								else
 									echo "Not Found $name!!"
@@ -433,6 +450,7 @@ make_initrd()
 	ln -sf / usr/X11R7
 	ln -sf /lib/icons usr/icons
 	ln -sf / usr/local
+	ln -sf /lib usr/lib64
 
 	if [ "$ts_hardlinkfs" == "true" ]; then
 		hardlink -t -m .
@@ -471,10 +489,16 @@ package_dependencies ()
 		(cat packages.list ) |
 		while read filename; do
 			package=`basename $filename .$1`
-			if [ -s packages/$package/dependencies ] ; then
-				(cat packages/$package/dependencies |grep -v ^#) |
+			if find_package $package && [ -s $pkgpath/dependencies ] ; then
+				(cat $pkgpath/dependencies |grep -v ^#) |
 				while read name cross; do
-					if	[ "$1" = "package" ] || \
+					if ! find_package $name; then
+						if ! is_enabled $DISPLAYED; then
+							echo "Adding dependent packages of $package:"
+							DISPLAYED=TRUE
+						fi
+						echo "                              Not found: $name"
+					elif	[ "$1" = "package" ] || \
 						[ "$name" = "base" ]; then
 						if	[ ! -e $PACDIR/$name.package ] && \
 							[ ! -e $PACDIR/$name.pkg ]; then
@@ -486,7 +510,7 @@ package_dependencies ()
 									DISPLAYED=TRUE
 								fi
 								echo "                              package $name"
-								echo "cp -Rp --remove-destination ./packages/$name/* ./tmp-tree > /dev/null 2>&1">>\
+								echo "cp -Rp --remove-destination $pkgpath/* ./tmp-tree > /dev/null 2>&1">>\
 									$PACDIR/$name.package
 								echo $name.package >> packages.added
 								touch /tmp/dirty
@@ -503,7 +527,7 @@ package_dependencies ()
 									DISPLAYED=TRUE
 								fi
 								echo "                         pkg $name"
-								echo -e "cp -Rp --remove-destination ./packages/$name $PKGDIR" >>\
+								echo -e "cp -Rp --remove-destination $pkgpath $PKGDIR" >>\
 									$PACDIR/$name.pkg
 								echo $name.pkg >> packages.added
 								touch /tmp/dirty
@@ -512,7 +536,7 @@ package_dependencies ()
 					fi
 				done
 				unset DISPLAYED
-			elif [ ! -e packages/$package/dependencies ]; then
+			elif [ ! -e $pkgpath/dependencies ]; then
 				echo "Not Found $package dependency!!"
 			fi
 		done
@@ -627,7 +651,7 @@ web_package ()
     package=$2
     filename=`make_caps $2`
 
-    if [ -e ./packages/$package ] ; then
+    if find_package $package ; then
       if [ -e $PACDIR/httpproxy.param ] ; then
         . $PACDIR/httpproxy.param
       fi
@@ -645,8 +669,8 @@ web_package ()
       if [ "$CHOICE" = "Y" ] ; then
  	mkdir ./wget_tmp
 	get_file $URL ./wget_tmp
-	if ./packages/$package/build/install $URL ; then
-	  touch ./packages/$package/build/installed
+	if $pkgpath/build/install $URL ; then
+	  touch $pkgpath/build/installed
 	  echo -e "$package: Setup Complete"
 	else
 	  echo -e "\nError has occured while installing package $package"
@@ -817,13 +841,35 @@ locales()
 allfirm()
 {
 	if is_enabled $ts_allfirmware; then
-		unset firmlist
-		module=`find /lib/modules/$KERNVER -name $1`
-		firmlist=`modinfo -F firmware $module`
+		local fmodule=`find /lib/modules/$KERNVER -name $1`
+		local module=`basename $fmodule`
+		if [ -e /ts/firmware_notfound/$module.oops ]; then
+			WRITE_CACHE=false
+		fi
+		if [ -e /ts/firmware_cache/$module.turbo ]; then
+			if [ -e /ts/firmware_notfound/$module.oops ]; then
+				firmlist=`cat /ts/firmware_cache/$module.turbo |grep -v -f /ts/firmware_notfound/$module.oops`
+			else
+				firmlist=`cat /ts/firmware_cache/$module.turbo`
+			fi
+			WRITE_CACHE=false
+		else
+			firmlist=`modinfo -F firmware $fmodule`
+			WRITE_CACHE=true
+			mkdir -p /ts/firmware_cache
+			mkdir -p /ts/firmware_notfound
+			touch /ts/firmware_cache/$module.turbo
+		fi
 		if [ -n "$firmlist" ]; then
-			echo "Adding extra module firmware for `basename $module`"
+			echo "Adding extra module firmware for $module"
 			for firmware in $firmlist; do
 				copy_firmware `basename $firmware`
+				result=$?
+				if [ "$result" == "0" ] && $WRITE_CACHE; then
+					echo "$firmware" >> /ts/firmware_cache/$module.turbo
+				elif [ "$result" == "2" ] && $WRITE_CACHE; then
+					echo "$firmware" >> /ts/firmware_notfound/$module.oops
+				fi
 			done
 		fi
 	fi
@@ -831,7 +877,6 @@ allfirm()
 
 keymaps()
 {
-#
     for filename in `find $PACDIR -maxdepth 1 -name "keymaps-*"`
     do
 	package=`basename $filename`
@@ -906,12 +951,14 @@ copy_firmware()
 				if [ ! -d ${firmpath%/*} ] ;then
 					mkdir -p ${firmpath%/*}
 				fi
-				cp $firmfile ${firmpath%/*}/.
+				ln $firmfile ${firmpath%/*}/. 2>/dev/null
+				return 0
 			fi
 		done
 	else
 		echo -e "\tNotice, Firmware $1 not found"
 #		echo "$1" >> /missing
+		return 2
 	fi
 }
 
@@ -924,9 +971,9 @@ fi
 (cat $CONF_FILE; echo) | # make sure there is a LF at the end
 while read type name args
 do
-    type=`echo $type | sed -e 's/\^M//g' | sed -e 's/\&/\\\&/g'`
-    name=`echo $name | sed -e 's/\^M//g' | sed -e 's/\&/\\\&/g'`
-    args=`echo $args | sed -e 's/\^M//g' | sed -e 's/\&/\\\&/g'`
+    type=`echo $type | sed -e s///g | sed -e 's/\&/\\\&/g'`
+    name=`echo $name | sed -e s///g | sed -e 's/\&/\\\&/g'`
+    args=`echo $args | sed -e s///g | sed -e 's/\&/\\\&/g'`
     case $type in
     \#*|"") continue
 	    ;;
@@ -936,26 +983,32 @@ do
 	;;
     package)
 	echo "Package: $name"
-	if [ -d ./packages/$name ]; then
-	   echo "cp -Rp --remove-destination ./packages/$name/* ./tmp-tree > /dev/null 2>&1">>\
+	if find_package $name ; then
+	   echo "cp -Rp --remove-destination $pkgpath/* ./tmp-tree > /dev/null 2>&1">>\
 	     $PACDIR/$name.package
 	else
 	   echo "Not Found $name!!"
 	fi
 	;;
     machine)
-	read_conf ./machine/$name/module.list
-	if [ -e ./machine/$name/firmware.list ]; then
-		read_conf ./machine/$name/firmware.list
-	fi
-	if [ -e ./machine/$name/param.list ]; then
-		read_conf ./machine/$name/param.list
-	fi
-	if [ -e ./machine/$name/package.list ]; then
-		read_conf ./machine/$name/package.list
-	fi
-	if [ -e ./machine/$name/etc ]; then
-		cp -rf ./machine/$name/etc ./tmp-tree/.
+
+	echo "Machine: $name"
+	if find_package $name machine ; then
+	    read_conf $pkgpath/module.list
+	    if [ -e $pkgpath/firmware.list ]; then
+		read_conf $pkgpath/firmware.list
+	    fi
+	    if [ -e $pkgpath/param.list ]; then
+		read_conf $pkgpath/param.list
+	    fi
+	    if [ -e $pkgpath/package.list ]; then
+		read_conf $pkgpath/package.list
+	    fi
+	    if [ -e $pkgpath/etc ]; then
+		cp -rf $pkgpath/etc ./tmp-tree/.
+	    fi
+	else
+	   echo "Not Found $name!!"
 	fi
 	;;
     module)
@@ -973,7 +1026,7 @@ do
 		done
 	fi
 	if [ `make_caps X$args` == "XFORCE" ]; then
-		echo $name >> ./tmp-tree/etc/modules
+		echo $name `echo $args | cut -f1 -d#` >> ./tmp-tree/etc/modules
 	fi
 	;;
     module_pkg)
@@ -998,7 +1051,11 @@ do
 	;;
     pkg)
         echo "building-pkg $name"
-	echo -e "cp -Rp --remove-destination ./packages/$name $PKGDIR" >> $PACDIR/$name.pkg
+	if find_package $name ; then
+	    echo -e "cp -Rp --remove-destination $pkgpath $PKGDIR" >> $PACDIR/$name.pkg
+	else
+	   echo "Not Found $name!!"
+	fi
 	;;
     *)
 	echo "Unknown config line: $type $name $args"
@@ -1017,7 +1074,7 @@ install_non_distributable()
 		if [ -e $PACDIR/fulllocales.param ]; then
                                 . $PACDIR/fulllocales.param
 		fi
-		if [ ! -e ./packages/$package/build/installed ] && [ -e ./packages/$package/build/install ] ; then
+		if find_package $package && [ ! -e $pkgpath/build/installed ] && [ -e $pkgpath/build/install ] ; then
 			if [ -e $PACDIR/"$package"url.param ]; then
 				. $PACDIR/"$package"url.param
 				URL=`eval echo '$ts_'$package'url'`
@@ -1029,9 +1086,9 @@ install_non_distributable()
 					remove_files
 					exit 1
 				fi
-			elif [ "`cat ./packages/$package/build/install |grep -c -e repackage`" -gt "0" ]; then
-				if ./packages/$package/build/install ; then
-					touch ./packages/$package/build/installed
+			elif [ "`cat $pkgpath/build/install |grep -c -e repackage`" -gt "0" ]; then
+				if $pkgpath/build/install ; then
+					touch $pkgpath/build/installed
 					echo -e "$package: Setup complete"
 				else
 					echo -e "\nError has occured while installing package"
@@ -1041,11 +1098,11 @@ install_non_distributable()
 				fi
 			fi
 		fi
-		if [ -e ./packages/$package/build/license ] ; then
+		if find_package $package && [ -e $pkgpath/build/license ] ; then
 			if [ "`make_caps $LICENSE`" = "DECLINE" ] ; then
 				CHOICE=NO
 			elif [ "`make_caps $LICENSE`" != "ACCEPT" ] ; then
-				cat ./packages/$package/build/license | more
+				cat $pkgpath/build/license | more
 				echo "Do you agree to this notice (YES/NO)"
 				read CHOICE
 				CHOICE=`make_caps $CHOICE`
@@ -1064,6 +1121,16 @@ install_non_distributable()
 			fi
 		fi
 	done
+}
+
+pre_copy()
+{
+	local module=$1
+	if grep -qe $module /tmp/blacklist.modules; then
+		echo "Skipping $module"
+	elif copy_module $module $KERNVER ./tmp-tree; then
+		allfirm $module
+	fi
 }
 
 # Main TS build script
@@ -1145,13 +1212,12 @@ for KERNVER in $KERNVERS; do
 				find $gdir -name \*.ko -printf '%f ' >> /tmp/blacklist.modules
 			done
 		done
-		for module in `find /lib/modules/$KERNVER -name \*.ko -printf '%f '`; do
-			if grep -qe $module /tmp/blacklist.modules; then
-				echo "Skipping $module"
-			elif copy_module $module $KERNVER ./tmp-tree; then
-				allfirm $module
-			fi
-		done
+		procs=`nproc`
+		let procs=(procs * 8 )
+		export -f pre_copy copy_module allfirm make_caps copy_firmware
+		export ts_allfirmware KERNVER
+		find /lib/modules/$KERNVER -name \*.ko -printf '%f\n' | \
+		xargs -n 1 -P $procs -I {} bash -c 'pre_copy "$@"' _ {}
 		rm /tmp/blacklist.modules
 	fi
 done
@@ -1163,7 +1229,9 @@ for KERNVER in $KERNVERS; do
 		if ! is_enabled $ALLMODULES || [ -n "$ts_blacklist$ts_blacklist_grp" ]; then
 			# Adding dependent modules via modinfo
 			echo -e "\nBuilding dependencies for $KERNVER Modules..."
-			module_dependencies
+			if ! is_enabled $ts_allfirmware; then
+				module_dependencies
+			fi
 		fi
 
 		# Adding additional packages and modules which are dependencies of modules
@@ -1176,8 +1244,9 @@ for KERNVER in $KERNVERS; do
 		package_dependencies pkg
 
 		# Adding modules that are dependencies of packages
-		package_module_dependencies
-
+		if ! is_enabled $ts_allfirmware; then
+			package_module_dependencies
+		fi
 		# Did we add anything?
 		if [ -e /tmp/dirty ]; then
 			echo -e "\nDependencies are dirty. Restarting!"
@@ -1226,8 +1295,6 @@ rm ./filelist
 # Set Additional Params
 
 if [ -e $PACDIR/tsuser.param ]; then
-    echo "TSUSER=$ts_tsuser" >> ./tmp-tree/etc/thinstation.defaults
-#    echo "HOME=/home/$ts_tsuser" >> ./tmp-tree/etc/thinstation.env
 	if [  -e $PACDIR/tsuserpasswd.param ]; then
 		if [ "$ts_tsuserpasswd" == "!!" ]; then
 			GETPASSWD="!!"
@@ -1239,17 +1306,34 @@ if [ -e $PACDIR/tsuser.param ]; then
 	fi
     echo "$ts_tsuser:$GETPASSWD:1000:1000:$ts_tsuser:/home/$ts_tsuser:/bin/sh" >> ./tmp-tree/etc/passwd
     echo "$ts_tsuser:!:1000:" >> ./tmp-tree/etc/group
-    sed -i -e "s/tsuser/$ts_tsuser/g" ./tmp-tree/etc/group
-    sed -i -e "s/\-a root/\-a $ts_tsuser/g" ./tmp-tree/etc/inittab
-    if [ -e ./tmp-tree/etc/pam.d/login ]; then
-      sed -i -e "s/user = root/user = $ts_tsuser/g" ./tmp-tree/etc/pam.d/login
-    fi
 else
-#    echo "HOME=/root" >> ./tmp-tree/etc/thinstation.env
-    echo "TSUSER=root" >> ./tmp-tree/etc/thinstation.env
+	ts_tsuser=root
 fi
+sed -i -e "s/tsuser/$ts_tsuser/g" ./tmp-tree/etc/group
+sed -i -e "s/\-a tsuser/\-a $ts_tsuser/g" ./tmp-tree/etc/inittab
+sed -i -e "s/\-a tsuser/\-a $ts_tsuser/g" ./tmp-tree/etc/systemd/system/display-manager.service
+sed -i -e "s/\-a tsuser/\-a $ts_tsuser/g" ./tmp-tree/etc/systemd/system/getty\@tty1.service.d/override.conf
+if [ -e ./tmp-tree/etc/pam.d/login ]; then
+	sed -i -e "s/user = root/user = $ts_tsuser/g" ./tmp-tree/etc/pam.d/login
+fi
+echo "TSUSER=$ts_tsuser" >> ./tmp-tree/etc/thinstation.env
 
 echo -e "Setting Passwords"
+
+if [  -e $PACDIR/tsadminpasswd.param ]; then
+    if [ "$ts_tsadminpasswd" == "!!" ]; then
+        GETPASSWD="!!"
+    elif is_enabled $ts_sha512passwd; then
+        GETPASSWD=`python -c "import crypt; import string; import random; print crypt.crypt('$ts_tsadminpasswd', '\\\$6\\\$'+''.join(random.SystemRandom().choice(string.ascii_letters + string.digits + '/.') for _ in range(16)))"`
+    else
+        GETPASSWD=`mkpasswd -m md5 $ts_tsadminpasswd`
+    fi
+    cp ./tmp-tree/etc/passwd ./tmp-tree/etc/passwd.tmp
+    echo "tsadmin:$GETPASSWD:42:42:tsadmin:/home/tsadmin:/bin/sh" >./tmp-tree/etc/passwd
+    cat ./tmp-tree/etc/passwd.tmp | grep -v "tsadmin" >> ./tmp-tree/etc/passwd
+    rm ./tmp-tree/etc/passwd.tmp
+    echo "tsadmin:!:42:" >> ./tmp-tree/etc/group
+fi
 
 if [  -e $PACDIR/rootpasswd.param ]; then
     if [ "$ts_rootpasswd" == "!!" ]; then
@@ -1388,7 +1472,7 @@ else
 fi
 
 if [ -z "$DEBUG_KERNEL" ] ; then
-  	DEBUGCONSOLE="console=tty1 vt.global_cursor_default=0 quiet loglevel=3"
+  	DEBUGCONSOLE="console=tty1 vt.global_cursor_default=0 quiet loglevel=3 "
 fi
 
 # Should we delete the dri folder?
@@ -1422,18 +1506,18 @@ if [ -e ./$ts_defaultconfig ] && [ ! -z "$ts_defaultconfig" ] ; then
 fi
 
 # Set up zoneinfo file
-if [ "$TIME_ZONE" == "" ] ;
-	then
-		TIME_ZONE=UTC
+if [ "$TIME_ZONE" == "" ]; then
+	TIME_ZONE=UTC
 fi
 echo -e "\nSetting Zone Info File to $TIME_ZONE"
 tzpath=./tmp-tree/lib/zoneinfo/$TIME_ZONE
-if [ ! -d ${tzpath%/*} ] ;
-	then
-		mkdir -p ${tzpath%/*}
+if [ ! -d ${tzpath%/*} ]; then
+	mkdir -p ${tzpath%/*}
 fi
-cp /usr/share/zoneinfo/$TIME_ZONE ${tzpath%/*}/.
-ln -sf /usr/share/zoneinfo/$TIME_ZONE ./tmp-tree/etc/localtime
+if [ ! -e $tzpath ]; then
+	ln /usr/local/etc/zoneinfo/$TIME_ZONE ${tzpath%/*}/
+fi
+ln -sf /lib/zoneinfo/$TIME_ZONE ./tmp-tree/etc/localtime
 
 # Copy across sample file for www administration interface
 if [ -e $PACDIR/www.* ]; then
@@ -1462,12 +1546,12 @@ fi
 
 for package in `ls $PACDIR | grep "\.package" | sed -e "s/\.package//"`
 do
-  if [ -e "./packages/$package/build/finalize" ]; then
+  if find_package $package && [ -e "$pkgpath/build/finalize" ]; then
     mkdir -p ./tmp-tree/finalize
-    cp ./packages/$package/build/finalize ./tmp-tree/finalize/`head -n 1 ./packages/$package/build/finalize | cut -d' ' -f 2`$package
+    cp $pkgpath/build/finalize ./tmp-tree/finalize/`head -n 1 $pkgpath/build/finalize | cut -d' ' -f 2`$package
   fi
-  if [ -e "./packages/$package/build/image" ]; then
-    cat ./packages/$package/build/image >> build.image
+  if find_package $package && [ -e "$pkgpath/build/image" ]; then
+    cat $pkgpath/build/image >> build.image
   fi
 done
 
@@ -1513,7 +1597,7 @@ for filename in `ls -1 $PKGDIR/` ; do
 		rm -Rf build
 	fi
 	echo "Building $filename.pkg"
-	tar -cJf ../$filename.pkg *
+	tar -cz * > ../$filename.pkg
 	cd ../../..
 	rm -Rf $PKGDIR/$filename
 	if [ -n "$PKGFILES" ] ; then
@@ -1565,29 +1649,6 @@ filesystem_fixups()
 	fi
 	echo "CDVOLNAME=$ts_cdvolname" >> ./tmp-tree/etc/thinstation.env
 	echo "TS_VERSION=$TSVER" >> ./tmp-tree/etc/thinstation.env
-	cat <<EOF> ./tmp-tree/etc/os-release
-NAME=ThinStation
-VERSION="$TSVER"
-ID=thinstation
-VERSION_ID=$TSVER
-PRETTY_NAME="ThinStation $TSVER $CODENAME"
-ANSI_COLOR="0;34"
-CPE_NAME="cpe:/o:thinstation:thinstation:$TSVER"
-HOME_URL="https://thinstation.org/"
-SUPPORT_URL="https://thinstation.org/wiki/Communicating_and_getting_help"
-BUG_REPORT_URL="https://www.github.com/thinstation"
-PRIVACY_POLICY_URL=https://thinstation.org/wiki/Legal:PrivacyPolicy
-EOF
-	cat <<EOF> ./tmp-tree/etc/thinstation-release
-ThinStation release $TSVER $CODENAME
-EOF
-	cat <<'EOF'> ./tmp-tree/etc/issue
-\S
-Kernel \r on an \m (\l)
-EOF
-	for link in release system-release system-release-cpe; do
-		ln -sf thinstation-release ./tmp-tree/etc/$link
-	done
 	if [ -e ./tmp-tree/etc/icewm/toolbar ]; then
 		echo -e "\tFixing IceWM toolbar"
 		sed -i "s/\$XTERM_CMD/$XTERM_CMD/g" ./tmp-tree/etc/icewm/toolbar
@@ -1598,13 +1659,13 @@ EOF
 		for i in `ls ./tmp-tree/lib/gconv --color=never |cut -d . -f1`; do
 			cat /usr/lib/gconv/gconv-modules|grep -e "$i" >>./tmp-tree/lib/gconv/gconv-modules
 		done
-		cp -H `which iconvconfig` ./tmp-tree/bin/.
-		chroot ./tmp-tree /bin/iconvconfig
-		rm ./tmp-tree/bin/iconvconfig
-	fi
+        cp -H `which iconvconfig` ./tmp-tree/bin/.
+        chroot ./tmp-tree /bin/iconvconfig
+        rm ./tmp-tree/bin/iconvconfig
+        fi
 	echo -e "\tRemoving Extra Files"
 	find ./tmp-tree -name .gitignore -delete
-	if [ ! -e ./tmp-tree/etc/init.d/audio ]; then
+	if [ ! -e ./tmp-tree/etc/systemd/system/audio ]; then
 		for sound in `find ./tmp-tree/lib/modules -type d -name sound`; do
 			rm -rf $sound
 		done
@@ -1652,6 +1713,16 @@ EOF
 					>>./tmp-tree/lib/gdk-pixbuf-2.0/$lver/loaders.cache
 			done
 		fi
+#		if [ -d ./tmp-tree/lib/pango ] ;then
+#			echo -e "\tCaching pango modules"
+#			for module in `find ./tmp-tree/lib/pango -type f -printf "%f "`; do
+#				module=`find /usr/lib/pango -name $module`
+#				pver=`echo $module |cut -d "/" -f5`
+#				pango-querymodules $module | \
+#					grep -v "#" \
+#					>> ./tmp-tree/lib/pango/$pver/modules.cache
+#			done
+#		fi
 		if [ -d ./tmp-tree/lib/gtk-2.0 ]; then
 			echo -e "\tCaching gtk-2.0 immodules"
 			gver=`find ./tmp-tree/lib/gtk-2.0 -type d -name immodules | cut -d "/" -f5`
@@ -1668,7 +1739,7 @@ EOF
 			echo -e "\tCompiling Schemas"
 			cp -H `which glib-compile-schemas` ./tmp-tree/bin/.
 			chroot ./tmp-tree /bin/glib-compile-schemas /lib/glib-2.0/schemas 2>/dev/null
-			rm ./tmp-tree/bin/glib-compile-schemas
+#			rm ./tmp-tree/bin/glib-compile-schemas
 			gio-querymodules ./tmp-tree/lib/gio/modules
 		fi
 	fi
@@ -1693,52 +1764,6 @@ EOF
 		for KERNVER in $KERNVERS; do
 			depmod -b ./tmp-tree $KERNVER 2>/dev/null
 		done
-	fi
-
-	# Certify
-	echo -e "\tRehashing Certificates\n"
-	dest=./tmp-tree/etc/firefox
-	if [ -e $dest ]; then
-		IFS=$'\n'
-		for cert in `ls ./Certs/Public-CA`; do
-			NICK=`echo "$cert" |sed -e 's/\.pem//g'`
-			certutil -d $dest -A -i ./Certs/Public-CA/"$cert" -n "$NICK" -t",,"
-		done
-		for cert in `ls ./Certs/Private-CA`; do
-			NICK=`echo "$cert" |sed -e 's/\.pem//g'`
-			certutil -d $dest -A -i ./Certs/Private-CA/"$cert" -n "$NICK" -t"CT,C,C"
-		done
-		for cert in `ls ./Certs/Peer`; do
-			NICK=`echo "$cert" |sed -e 's/\.pem//g'`
-			certutil -d $dest -A -i ./Certs/Peer/"$cert" -n "$NICK" -t"P,,"
-		done
-		unset IFS
-	fi
-	dest=./tmp-tree/etc/ssl
-	if [ -e $dest/cert.pem ]; then
-		rm -f $dest/cert.pem
-		rm -f $dest/certs/ca-bundle.crt
-		rm -f $dest/certs/ca-certificates.crt
-		IFS=$'\n'
-		for cert in `ls ./Certs/Public-CA`; do
-			cp ./Certs/Public-CA/"$cert" $dest/certs/`echo "$cert" |sed -e 's/ /_/g'`
-		done
-		for cert in `ls ./Certs/Private-CA`; do
-			cp ./Certs/Private-CA/"$cert" $dest/certs/`echo "$cert" |sed -e 's/ /_/g'`
-		done
-		for cert in `ls ./Certs/Peer`; do
-			cp ./Certs/Peer/"$cert" $dest/certs/`echo "$cert" |sed -e 's/ /_/g'`
-		done
-		unset IFS
-		c_rehash $dest/certs
-		for cert in `ls -1 $dest/certs |grep -E '[A-Za-z0-9]\.0'`; do
-			cat $dest/certs/$cert >> $dest/cert.pem
-		done
-		ln $dest/cert.pem $dest/certs/ca-bundle.crt
-		ln $dest/cert.pem $dest/certs/ca-certificates.crt
-	fi
-	if [ -e $dest ]; then
-		hardlink $dest > /dev/null
 	fi
 }
 
@@ -1848,10 +1873,8 @@ else
 fi
 
 if [ -z "$KERNVEROPT" ]; then
-	if [ -e ./SMP ]; then
-		KERNVEROPT=SMP
-	elif [ -e ./64 ]; then
-                KERNVEROPT=64
+	if [ -e ./CON ]; then
+		KERNVEROPT=+con
 	else
 		KERNVEROPT=`cat /boot/KERNEL_VERSION`
 	fi
@@ -1863,7 +1886,11 @@ for KERNVER in $KERNVEROPT; do
 	fi
 
 	# If a specific Kernel version is specified - use it
-	KERNVER_SHORT=`cat /boot/KERNEL_VERSION |sed -e 's/TS/TS_'$KERNVER'/g'`
+	if echo $KERNVER |grep -qe "^+"; then
+		KERNVER_SHORT=`cat /boot/KERNEL_VERSION |sed -e 's/TS/TS'$KERNVER'/g'`
+	else
+		KERNVER_SHORT=`cat /boot/KERNEL_VERSION |sed -e 's/TS/TS_'$KERNVER'/g'`
+	fi
 	if [ -n "$KERNVER" ]; then
 		if [ ! -e /lib/modules/$KERNVER ] && [ ! -e /lib/modules/$KERNVER_SHORT ]; then
 			echo "Kernel $KERNVER doesn't exist, ERROR!!"
@@ -1882,10 +1909,12 @@ done
 if [ -n "$REMOVEALL" ]; then
 	remove_files
 	remove_old_boot_files
-	for package in `ls ./packages`;	do
-		if [ -e ./packages/$package/build/remove ] && [ -e ./packages/$package/build/installed ] ; then
-			./packages/$package/build/remove
+	for pkgroot in $TSWRKNG $XTRWRKNG; do
+	for package in `ls $pkgroot/packages`;	do
+		if [ -e $pkgroot/packages/$package/build/remove ] && [ -e $pkgroot/packages/$package/build/installed ] ; then
+			$pkgroot/packages/$package/build/remove
 		fi
+	done
 	done
 	echo "All commerical binaries removed, quitting."
 	exit 0
@@ -1907,10 +1936,12 @@ fi
 
 # Run update for all packages with update script
 if [ -n "$UPDATE" ]; then
-	for package in `ls ./packages`;	do
-		if [ -e ./packages/$package/build/update ]; then
-			./packages/$package/build/update
+	for pkgroot in $TSWRKNG $XTRWRKNG; do
+	for package in `ls $pkgroot/packages`;	do
+		if [ -e $pkgroot/packages/$package/build/update ]; then
+			$pkgroot/packages/$package/build/update
 		fi
+	done
 	done
 	echo "All packages updated."
 fi
@@ -1993,9 +2024,10 @@ fi
 for KERNVER in $KERNVERS; do
 	ln /boot/vmlinuz-$KERNVER ./vmlinuz$k
 	md5sum vmlinuz$k >> image.md5
-	if [ -n "`echo $KERNVER |grep -e 'TS_64'`" ]; then
+	# Remove the 'if' test, as all kernels should now be 64
+#	if [ -n "`echo $KERNVER |grep -e 'TS_64'`" ]; then
 		KERN64=vmlinuz$k
-	fi
+#	fi
 	let k=k+1
 done
 
@@ -2035,16 +2067,16 @@ fi
 add_image()
 {
 	if [ "$1" == "efi" ]; then
-		if [ -n "$KERN64" ]; then
+#		if [ -n "$KERN64" ]; then
 			# What we will actually boot with
 			sys_copy $INITDIR/$KERN64 $ESP/boot/$KERN64
 			# Because HashTool.efi is dumb and cant deal with a folder named boot on CD.
 			# Also makes it easier for the user to enroll the kernel hash.
 			sys_copy $INITDIR/$KERN64 $ESP/EFI/BOOT/enroll-$KERN64
-		else
-			sys_copy $INITDIR/vmlinuz $ESP/boot/vmlinuz
-			sys_copy $INITDIR/vmlinuz $ESP/EFI/BOOT/enroll-vmlinuz
-		fi
+#		else
+#			sys_copy $INITDIR/vmlinuz $ESP/boot/vmlinuz
+#			sys_copy $INITDIR/vmlinuz $ESP/EFI/BOOT/enroll-vmlinuz
+#		fi
 	else
 		for kernel in `find $INITDIR -maxdepth 1 -type f -name vmlinuz\* -printf '%f '`; do
 			sys_copy $INITDIR/$kernel $ESP/boot/$kernel
@@ -2063,14 +2095,12 @@ add_image()
 
 add_overlay()
 {
-#	set -x
 	if [ -n "$ts_bootoverlay" ]; then
 		OVERLAYDIR="boot-images/$ts_bootoverlay/"
 		find $OVERLAYDIR -type f |sed "s|$OVERLAYDIR||g"|while read file; do
 			sys_link hard "$OVERLAYDIR/$file" "$ESP/$file"
 		done
 	fi
-#	set +x
 }
 
 syslinux_scan_config()
@@ -2167,36 +2197,37 @@ syslinux_copy_files_bios()
 
 syslinux_copy_files_efi()
 {
-	efi32dir=/usr/share/syslinux/efi32
+	# Comment out all 32bit, cause were 64 bit only now.
+#	efi32dir=/usr/share/syslinux/efi32
 	efi64dir=/usr/share/syslinux/efi64
 
 	for file in `find $configdir -type f |sed -e "s|$configdir||g"`; do
-		sys_copy ${configdir}${file} "$EFI32DIR/$file"
+#		sys_copy ${configdir}${file} "$EFI32DIR/$file"
 		sys_copy ${configdir}${file} "$EFI64DIR/$file"
 	done
 	find $ESP -name syslinux.cfg.tpl -delete
 
 	if [ "$LOADER" == "lpxelinux.0" ]; then
-		sys_copy $BIOSDIR/$CONFIGFILE "$EFI32DIR/$CONFIGFILE"
+#		sys_copy $BIOSDIR/$CONFIGFILE "$EFI32DIR/$CONFIGFILE"
 		sys_copy $BIOSDIR/$CONFIGFILE "$EFI64DIR/$CONFIGFILE"
 	else
-		sys_copy $BIOSDIR/$CONFIGFILE "$EFI32DIR/syslinux.cfg"
+#		sys_copy $BIOSDIR/$CONFIGFILE "$EFI32DIR/syslinux.cfg"
 		sys_copy $BIOSDIR/$CONFIGFILE "$EFI64DIR/syslinux.cfg"
 	fi
 
 	for com in `cat /tmp/syslinux-com32`; do
-		sys_copy $efi32dir/$com "$EFI32DIR/$com"
+#		sys_copy $efi32dir/$com "$EFI32DIR/$com"
 		sys_copy $efi64dir/$com "$EFI64DIR/$com"
 		if [ "$com" == "hdt.c32" ]; then
-			sys_copy /usr/share/pci.ids $EFI32DIR/pci.ids
-			sys_copy `prt-get fsearch modules.alias |grep -v Found |head -n1` $EFI32DIR/modules.alias
+#			sys_copy /usr/share/pci.ids $EFI32DIR/pci.ids
+#			sys_copy `prt-get fsearch modules.alias |grep -v Found |head -n1` $EFI32DIR/modules.alias
 			sys_copy /usr/share/pci.ids $EFI64DIR/pci.ids
 			sys_copy `prt-get fsearch modules.alias |grep -v Found |head -n1` $EFI64DIR/modules.alias
 		fi
 	done
 
-	sys_copy $efi32dir/syslinux.efi "$EFI32DIR/syslinux.efi"
-	sys_copy $efi32dir/ldlinux.e32  "$EFI32DIR/ldlinux.e32"
+#	sys_copy $efi32dir/syslinux.efi "$EFI32DIR/syslinux.efi"
+#	sys_copy $efi32dir/ldlinux.e32  "$EFI32DIR/ldlinux.e32"
 
 	sys_copy $efi64dir/syslinux.efi "$EFI64DIR/bootx64.efi"
 	sys_copy $efi64dir/ldlinux.e64  "$EFI64DIR/ldlinux.e64"
@@ -2213,7 +2244,7 @@ refind_copy_files()
 		sys_copy $refdir/$file $EFIDIR/$file
 	done
 
-	sys_copy $refdir/refind_ia32.efi $EFIDIR/bootia32.efi
+#	sys_copy $refdir/refind_ia32.efi $EFIDIR/bootia32.efi
 	sys_copy $refdir/refind_x64.efi $EFIDIR/bootx64.efi
 
 	for file in `find $configdir -type f |sed -e "s|$configdir||g"`; do
@@ -2264,7 +2295,7 @@ if [ -z "$NOIMAGES" ]; then
 		case $image in
 			syslinux)
 				ESP=boot-images/syslinux
-				EFI32DIR=$ESP/EFI/syslinux/efi32
+#				EFI32DIR=$ESP/EFI/syslinux/efi32
 				EFI64DIR=$ESP/EFI/syslinux/efi64
 				BDIR=/syslinux
 				CONFIGFILE=syslinux.cfg
@@ -2278,7 +2309,7 @@ if [ -z "$NOIMAGES" ]; then
 			;;
 			pxe)
 				ESP=boot-images/pxe
-				EFI32DIR=$ESP/boot/efi32
+#				EFI32DIR=$ESP/boot/efi32
 				EFI64DIR=$ESP/boot/efi64
 				CONFIGFILE=pxelinux.cfg/default
 
@@ -2297,11 +2328,11 @@ if [ -z "$NOIMAGES" ]; then
 
 				add_image
 				add_overlay
-				sys_copy `prt-get fsearch index.cgi |grep -v Found |cut -d " " -f3` $ESP/cgi-bin/index.cgi
+#				sys_copy `prt-get fsearch index.cgi |grep -v Found |cut -d " " -f3` $ESP/cgi-bin/index.cgi
 			;;
 			iso)
 				ESP=boot-images/iso/source
-				EFI32DIR=$ESP/EFI/syslinux/efi32
+#				EFI32DIR=$ESP/EFI/syslinux/efi32
 				EFI64DIR=$ESP/EFI/syslinux/efi64
 				BDIR=/syslinux
 				CONFIGFILE=isolinux.cfg
@@ -2387,27 +2418,25 @@ if [ -z "$NOIMAGES" ]; then
 			systemd-boot)
 				if ! prt-get isinst preloader > /dev/null; then
 					echo "Port binary-opt/preloader not installed - Skipping"
-				elif ! prt-get isinst systemd-boot > /dev/null; then
-					echo "Port binary-opt/systemd-boot not installed - Skipping"
 				else
 				ESP=boot-images/systemd-boot
 				EFIOVERLAY="$ESP/EFI $ESP/loader"
-                                LM=2
+                                LM=4
 				configdir=boot-images/templates/systemd-boot/$ts_gummitheme
 				sys_copy /usr/lib/prebootloader/PreLoader.efi $ESP/EFI/BOOT/bootx64.efi
-				sys_copy /usr/lib/systemd/boot/efi/systemd-bootia32.efi $ESP/EFI/BOOT/bootia32.efi
+#				sys_copy /usr/lib/systemd/boot/efi/systemd-bootia32.efi $ESP/EFI/BOOT/bootia32.efi
 				sys_copy /usr/lib/prebootloader/HashTool.efi $ESP/EFI/BOOT/HashTool.efi
 				sys_copy /usr/lib/systemd/boot/efi/systemd-bootx64.efi $ESP/EFI/BOOT/loader.efi
-				if [ -n "$KERN64" ]; then
+#				if [ -n "$KERN64" ]; then
 					sys_copy /usr/lib/prebootloader/PreLoader.efi $ESP/EFI/Microsoft/Boot/bootmgr.efi
-				else
-					sys_copy /usr/lib/systemd/boot/efi/systemd-bootia32.efi $ESP/EFI/Microsoft/Boot/bootmgr.efi
-				fi
+#				else
+#					sys_copy /usr/lib/systemd/boot/efi/systemd-bootia32.efi $ESP/EFI/Microsoft/Boot/bootmgr.efi
+#				fi
 				for file in `find $configdir -type f |sed -e "s|$configdir||g"`; do
 					sys_copy ${configdir}${file} $ESP/$file
-					if [ -n "$KERN64" ]; then
+#					if [ -n "$KERN64" ]; then
 						sed -i -e "s|/boot/vmlinuz|/boot/$KERN64|g" $ESP/$file
-					fi
+#					fi
 					sed -i -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS LM=$LM/g" $ESP/$file
 				done
 				add_image efi

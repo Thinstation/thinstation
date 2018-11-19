@@ -4,24 +4,13 @@
 # Depends on: gnome-menus gnome-settings-daemon metacity libgnomekbd
 
 name=gnome-control-center
-version=3.20.1
+version=3.28.1
 release=1
 source=(ftp://ftp.gnome.org/pub/gnome/sources/$name/${version%.*}/$name-$version.tar.xz)
 
 build() {
 	cd $name-$version
-	export LINGUAS=en
-
-        ./configure --prefix=/usr \
-		 \
-		--disable-scrollkeeper \
-		--with-help-formats=none \
-		--disable-schemas-install \
-		--disable-update-mimedb \
-		--enable-shared \
-		--disable-static
-
-	make
-	make install DESTDIR=$PKG
-	rm -rf $PKG/usr/share/omf
+        meson . build -D enable_docs=true --prefix=/usr --libdir=/usr/lib
+        ninja -C build
+        DESTDIR=$PKG ninja -C build install
 }

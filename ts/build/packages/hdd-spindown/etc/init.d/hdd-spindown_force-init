@@ -1,0 +1,39 @@
+#! /bin/sh
+#
+# Created in 2015 by Marcus Eyre (marcus@eyre.se)
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation, version 2.
+#
+
+. `dirname $0`/common
+. /etc/thinstation.functions
+
+LOGGERTAG="hdd-spindown_force.init"
+
+case "$1" in  
+init)
+	# Check the device
+	if [ -z ${SPINDOWN_DEVICE} ]; then
+		# Default to /dev/sd? to include all hard drives
+		SPINDOWN_DEVICE="/dev/sd?"
+		logger --stderr --tag $LOGGERTAG "SPINDOWN_DEVICE is not set, setting it to /dev/sd?"
+	fi
+
+	# Check if we also shall force spindown of the device(s)
+	if [ -e ${SPINDOWN_DEVICE} ] && is_enabled $SPINDOWN_FORCE_AT_BOOT; then
+		hdparm -y ${SPINDOWN_DEVICE}
+		logger --stderr --tag $LOGGERTAG "SPINDOWN_FORCE_AT_BOOT was enabled, hdd-spindown has executed the command: hdparm -y ${SPINDOWN_DEVICE}"
+	fi
+
+    ;;
+help)
+	echo "Usage: $0 init"
+	;;
+*)
+	exit 1
+	;;
+esac
+
+exit 0

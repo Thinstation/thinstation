@@ -1,29 +1,28 @@
 # Description: WINE - Implementation of Windows DLL's and core.
-# URL: http://www.winehq.com/
-# Maintainer: Danny Rawlins, monster dot romster at gmail dot com
-# Packager: Daniel Walpole, daniel at walpole dot id dot au
-# Depends on: fontconfig fontforge freeglut gnutls lcms mpg123 openal xorg-libxcomposite xorg-libxcursor xorg-libxinerama xorg-libxrandr xorg-libxxf86dga
+# URL: https://www.winehq.com/
+# Maintainer: Danny Rawlins, crux at romster dot me
+# Depends on: fontconfig-32 freeglut-32 gnutls-32 lcms2-32 mpg123-32 openal-32 prelink xorg-libxcomposite-32 xorg-libxcursor-32 xorg-libxinerama-32 xorg-libxrandr-32 xorg-libxxf86dga-32
 
 name=wine
-version=1.5.12
-release=2
-source=(http://ibiblio.org/pub/linux/system/emulators/wine/wine-$version.tar.bz2
-	http://downloads.sourceforge.net/project/wine/Wine%20Gecko/1.7/wine_gecko-1.7-x86.msi
-	http://downloads.sourceforge.net/wine/wine-mono-0.0.4.msi)
+version=3.7
+release=1
+source=(https://dl.winehq.org/wine/source/3.x/$name-$version.tar.xz)
 
 build() {
-	cd $name-$version
-	./configure \
+	install -d wine64
+
+	export CPPFLAGS="${CPPFLAGS/-D_FORTIFY_SOURCE=2/} -D_FORTIFY_SOURCE=0"
+
+	cd wine64
+
+	../$name-$version/configure \
 		--prefix=/usr \
-		--mandir=$PKG/usr/man \
-		--verbose \
-		--disable-tests
+		--libdir=/usr/lib \
+		--enable-win64
 
 	make depend
 	make
-	make prefix=$PKG/usr install
-	install -D $SRC/wine_gecko-1.7-x86.msi $PKG/usr/share/wine/gecko/wine_gecko-1.7-x86.msi
-	install -D $SRC/wine-mono-0.0.4.msi $PKG/usr/share/wine/mono/wine-mono-0.0.4.msi
-	rm -r $PKG/usr/man/??.UTF-8
-}
+	make DESTDIR=$PKG install
 
+	rm -r $PKG/usr/share/man/??.UTF-8
+}

@@ -5,18 +5,15 @@
 # Optional:	ppp
 
 name=networkmanager
-version=1.2.2
+version=1.15.1
 release=1
-source=(
-http://ftp.gnome.org/pub/GNOME/sources/NetworkManager/1.2/NetworkManager-$version.tar.xz
+source=(http://ftp.gnome.org/pub/GNOME/sources/NetworkManager/${version%.*}/NetworkManager-$version.tar.xz
 networkmanager.rc
 NetworkManager.conf
-nm-glib32.patch
 )
 
 build() {
 	cd NetworkManager-$version
-#	patch -Np1 < ../nm-glib32.patch
 
         # Network Manager is assuming that NSPR is a requirement of NSS
         #  this is not the case in CRUX and probably not in general
@@ -32,18 +29,23 @@ build() {
 		--mandir=/usr/man \
 		--disable-static \
 		--enable-polkit \
+		--enable-polkit-agent \
 		--disable-wimax \
 		--enable-ppp \
 		--enable-gtk-doc=no \
 		--enable-gtk-doc-html=no \
 		--with-crypto=nss \
 		--enable-more-warnings=no \
-		--with-session-tracking=ck \
+		--with-session-tracking=systemd \
 		--with-resolvconf=/usr/sbin/resolvconf \
-		--with-distro=slackware \
+		--with-distro=ThinStation \
 		--with-pppd-plugin-dir=/usr/lib/pppd/2.4.7 \
-		--with-modem-manager-1
+		--with-modem-manager-1 \
+		--with-consolekit=no \
+		--with-systemd-logind=yes \
+		--enable-introspection
 
+	sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
 	make
 	make DESTDIR=$PKG install
 

@@ -4,8 +4,8 @@
 # Depends on:  acl
 
 name=rsync
-version=3.0.9
-release=1
+version=3.1.2
+release=3
 source=(http://rsync.samba.org/ftp/$name/src/$name-$version.tar.gz \
         rsyncd.conf rsyncd rsync.driver)
 
@@ -13,9 +13,9 @@ build () {
     cd $name-$version
 
     ./configure --prefix=/usr \
-                --mandir=/usr/man \
                 --with-rsh=ssh \
-                --with-included-popt
+                --with-included-popt \
+                --with-included-zlib
 
     make
     make DESTDIR=$PKG install

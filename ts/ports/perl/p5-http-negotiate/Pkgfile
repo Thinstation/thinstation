@@ -1,0 +1,22 @@
+# Description:	Choose a variant to serve
+# URL:		http://search.cpan.org/~gaas/HTTP-Negotiate/
+# Maintainer:	
+# Depends on:	p5-http-message
+
+name=p5-http-negotiate
+version=6.01
+release=1
+source=(http://search.cpan.org/CPAN/authors/id/G/GA/GAAS/HTTP-Negotiate-${version}.tar.gz)
+
+build() {
+	cd HTTP-Negotiate-$version
+
+	# PERL_MM_USE_DEFAULT=1 \
+	perl Makefile.PL
+	make OPTIMIZE="$CFLAGS" DESTDIR="$PKG" install
+
+	find "$PKG" -depth \
+		-type f \( -name .packlist -o -name \*.bs -o -name perllocal.pod \) -delete , \
+		-type f -name autosplit.ix \( -exec grep -q '^[[:space:]]*package' {} \; -o -delete \) , \
+		-type d -empty -exec rmdir {} +
+}

@@ -4,16 +4,17 @@
 # Depends on:  libpcre
 
 name=grep
-version=2.9
+version=2.25
 release=1
 source=(http://ftp.gnu.org/gnu/$name/$name-$version.tar.xz)
 
 build() {
     cd $name-$version
+
     ./configure --prefix=/usr \
-                --disable-nls \
-                --mandir=/usr/man
+                
     make
     make DESTDIR=$PKG install
-    rm -r $PKG/usr/share
+
+    rm -r $PKG/usr/share/info
 }

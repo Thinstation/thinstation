@@ -9,9 +9,6 @@ release=1
 source=(http://spice-space.org/download/releases/spice-$version.tar.bz2)
 
 build() {
-export LDFLAGS="-I/usr/local/include/openssl -L/usr/local/libs"
-export SSL_CFLAGS="-I/usr/local/include/openssl -L/usr/local/libs"
-export LT_SYS_LIBRARY_PATH="/usr/local/lib:/usr/lib:/lib"
 
   cd $name-$version
 
@@ -20,7 +17,7 @@ export LT_SYS_LIBRARY_PATH="/usr/local/lib:/usr/lib:/lib"
               --enable-opengl=yes \
               --enable-smartcard=yes \
               --with-sasl=yes
-
   make
   make DESTDIR=$PKG install
+
 }

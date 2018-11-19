@@ -1,0 +1,40 @@
+diff -rupN glibc-2.20-orig/sysdeps/unix/sysv/linux/x86_64/64/configure glibc-2.20/sysdeps/unix/sysv/linux/x86_64/64/configure
+--- glibc-2.20-orig/sysdeps/unix/sysv/linux/x86_64/64/configure	2014-09-07 22:22:21.455309835 +0200
++++ glibc-2.20/sysdeps/unix/sysv/linux/x86_64/64/configure	2014-09-07 22:39:12.718456952 +0200
+@@ -4,10 +4,10 @@
+ test -n "$libc_cv_slibdir" ||
+ case "$prefix" in
+ /usr | /usr/)
+-  libc_cv_slibdir=/lib64
+-  libc_cv_rtlddir=/lib64
++  libc_cv_slibdir=/lib
++  libc_cv_rtlddir=/lib
+   if test "$libdir" = '${exec_prefix}/lib'; then
+-    libdir='${exec_prefix}/lib64';
++    libdir='${exec_prefix}/lib';
+     # Locale data can be shared between 32-bit and 64-bit libraries.
+     libc_cv_localedir='${exec_prefix}/lib/locale'
+   fi
+diff -rupN glibc-2.20-orig/sysdeps/unix/sysv/linux/x86_64/ldconfig.h glibc-2.20/sysdeps/unix/sysv/linux/x86_64/ldconfig.h
+--- glibc-2.20-orig/sysdeps/unix/sysv/linux/x86_64/ldconfig.h	2014-09-07 22:22:21.456309870 +0200
++++ glibc-2.20/sysdeps/unix/sysv/linux/x86_64/ldconfig.h	2014-09-07 22:38:43.949456973 +0200
+@@ -18,9 +18,9 @@
+ #include <sysdeps/generic/ldconfig.h>
+ 
+ #define SYSDEP_KNOWN_INTERPRETER_NAMES \
+-  { "/lib/ld-linux.so.2", FLAG_ELF_LIBC6 }, \
++  { "/lib32/ld-linux.so.2", FLAG_ELF_LIBC6 }, \
+   { "/libx32/ld-linux-x32.so.2", FLAG_ELF_LIBC6 }, \
+-  { "/lib64/ld-linux-x86-64.so.2", FLAG_ELF_LIBC6 },
++  { "/lib/ld-linux-x86-64.so.2", FLAG_ELF_LIBC6 },
+ #define SYSDEP_KNOWN_LIBRARY_NAMES \
+   { "libc.so.6", FLAG_ELF_LIBC6 },	\
+   { "libm.so.6", FLAG_ELF_LIBC6 },
+diff -rupN glibc-2.20-orig/sysdeps/unix/sysv/linux/x86_64/ldd-rewrite.sed glibc-2.20/sysdeps/unix/sysv/linux/x86_64/ldd-rewrite.sed
+--- glibc-2.20-orig/sysdeps/unix/sysv/linux/x86_64/ldd-rewrite.sed	2014-09-07 22:22:21.456309870 +0200
++++ glibc-2.20/sysdeps/unix/sysv/linux/x86_64/ldd-rewrite.sed	2014-09-07 22:38:43.949456973 +0200
+@@ -1,3 +1,3 @@
+ /LD_TRACE_LOADED_OBJECTS=1/a\
+ add_env="$add_env LD_LIBRARY_VERSION=\\$verify_out"
+-s_^\(RTLDLIST=\)\(.*lib\)\(\|64\|x32\)\(/[^/]*\)\(-x86-64\|-x32\)\(\.so\.[0-9.]*\)[ 	]*$_\1"\2\4\6 \264\4-x86-64\6 \2x32\4-x32\6"_
++s_^\(RTLDLIST=\)\(.*lib\)\(\|64\|x32\)\(/[^/]*\)\(-x86-64\|-x32\)\(\.so\.[0-9.]*\)[ 	]*$_\1"\232\4\6 \2\4-x86-64\6 \2x32\4-x32\6"_

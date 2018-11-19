@@ -4,18 +4,21 @@
 # Depends on: gdk-pixbuf, pango, at-spi2-atk, libepoxy
 
 name=gtk3
-version=3.22.28
+version=3.22.30
 release=1
 source=(http://download.gnome.org/sources/gtk+/${version:0:4}/gtk+-$version.tar.xz)
 
 build () {
-	cd gtk+-$version
+    cd gtk+-$version
 
-	./configure --prefix=/usr
+    ./configure --prefix=/usr \
+        --enable-x11-backend \
+        --enable-broadway-backend \
+	--enable-wayland-backend
 
-	make
-	make DESTDIR=$PKG install
-
-	rm -r $PKG/usr/share/{gtk-doc,locale,gtk-3.0}
-	rm $PKG/usr/bin/gtk-update-icon-cache
+    make
+    make DESTDIR=$PKG install
+    rm -r $PKG/usr/share/{gtk-doc,locale,gtk-3.0}
+    rm $PKG/usr/bin/gtk-update-icon-cache
+chown -R root.root $PKG
 }

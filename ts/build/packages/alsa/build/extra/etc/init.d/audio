@@ -1,6 +1,6 @@
 #!/bin/sh
 
-. $TS_GLOBAL
+. `dirname $0`/common
 
 have_control()
 {
@@ -11,46 +11,37 @@ have_control()
 	fi
 }
 
-case "$1" in
-init)
-	if ! pkg_initialized $PACKAGE; then
-		alsactl init
-		for card in `grep -e ":" /proc/asound/cards |cut -c2`; do
-			if [ -n "$AUDIO_LEVEL" ]; then
-				for control in Master PCM CD Video; do
-					if have_control $control; then
-						amixer sset -c $card $control $AUDIO_LEVEL% unmute
-#						amixer sset -c $card $control unmute
-					fi
-				done
-			fi
-			if [ -n "$MIC_LEVEL" ] && [ "$MIC_LEVEL" -gt "0" ]; then
-				if [ -z "$MIC_DEVICE" ]; then MIC_DEVICE=Mic; fi
-				if have_control $MIC_DEVICE; then
-					if have_control Capture; then
-						amixer sset Capture $MIC_LEVEL% unmute
-					fi
-					amixer sset $MIC_DEVICE playback mute
-					amixer sset $MIC_DEVICE $MIC_LEVEL% cap
-				elif have_control Capture; then
-					amixer sset Capture 0%
-				fi
-			fi
-			for control in $UNMUTE; do
+if ! pkg_initialized $PACKAGE; then
+	for card in `grep -e ":" /proc/asound/cards |cut -c2`; do
+		if [ -n "$AUDIO_LEVEL" ]; then
+			for control in Master PCM CD Video; do
 				if have_control $control; then
-					amixer sset -c $card $control unmute
+					amixer sset -c $card $control $AUDIO_LEVEL% unmute
 				fi
 			done
-			for control in $MUTE; do
-				if have_control $control; then
-					amixer sset -c $card $control mute
+		fi
+		if [ -n "$MIC_LEVEL" ] && [ "$MIC_LEVEL" -gt "0" ]; then
+			if [ -z "$MIC_DEVICE" ]; then MIC_DEVICE=Mic; fi
+			if have_control $MIC_DEVICE; then
+				if have_control Capture; then
+					amixer sset Capture $MIC_LEVEL% unmute
 				fi
-			done
+				amixer sset $MIC_DEVICE playback mute
+				amixer sset $MIC_DEVICE $MIC_LEVEL% cap
+			elif have_control Capture; then
+				amixer sset Capture 0%
+			fi
+		fi
+		for control in $UNMUTE; do
+			if have_control $control; then
+				amixer sset -c $card $control unmute
+			fi
 		done
-		pkg_set_init_flag $PACKAGE
-	fi
-	;;
-*)
-	echo "Usage: $0 init"
-	;;
-esac
+		for control in $MUTE; do
+			if have_control $control; then
+				amixer sset -c $card $control mute
+			fi
+		done
+	done
+	pkg_set_init_flag $PACKAGE
+fi

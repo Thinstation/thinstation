@@ -1,0 +1,21 @@
+# Description:	Client library for accessing NFS shares
+# URL:		https://github.com/sahlberg/libnfs
+# Maintainer:	Alan Mizrahi, alan at mizrahi dot com dot ve
+# Depends on:
+
+name=libnfs
+version=1.11.0
+release=1
+source=(https://github.com/sahlberg/$name/archive/$name-$version.zip)
+
+build() {
+	cd $name-$name-$version
+
+	autoreconf -ivf
+	./configure \
+		--prefix=/usr \
+		--mandir=/usr/man
+	make
+	make DESTDIR=$PKG install
+
+}

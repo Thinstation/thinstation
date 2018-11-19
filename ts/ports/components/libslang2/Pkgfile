@@ -7,15 +7,16 @@
 
 name=libslang2
 tarname=slang
-version=2.2.4
+archname=slang
+version=2.3.0
 release=1
-source=(ftp://space.mit.edu/pub/davis/$tarname/v2.2/$tarname-$version.tar.bz2)
+source=(http://www.jedsoft.org/releases/slang/$tarname-$version.tar.bz2)
 
 build () {
+export MAKEFLAGS="-j1"
     cd $tarname-$version
     ./configure --prefix=/usr --mandir=/usr/man
-    make all -j1
-    make DESTDIR=$PKG install-all -j1
+    make DESTDIR=$PKG install
     rm -rf $PKG/usr/share/doc
     chmod 755 $PKG/usr/lib/libslang.so.$version \
               $PKG/usr/lib/slang/v2/modules/*.so

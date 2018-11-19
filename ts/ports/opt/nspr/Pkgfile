@@ -3,22 +3,25 @@
 # Maintainer:  Fredrik Rinnestam, fredrik at rinnestam dot se
 
 name=nspr
-version=4.18
+version=4.12
 release=1
-source=(https://ftp.mozilla.org/pub/nspr/releases/v$version/src/$name-$version.tar.gz
+source=(http://ftp.mozilla.org/pub/mozilla.org/nspr/releases/v$version/src/$name-$version.tar.gz
         $name.pc.in)
 
 build() {
     local NSPR_LIBS NSPR_CFLAGS NSPR_VERSION
 
     cd $name-$version/nspr
+    sed -ri 's#^(RELEASE_BINS =).*#\1#' pr/src/misc/Makefile.in
+    sed -i 's#$(LIBRARY) ##' config/rules.mk
 
     ./configure \
         --prefix=/usr \
         --libdir=/usr/lib \
         --includedir=/usr/include/nspr \
         --enable-optimize="$CFLAGS" \
-        --enable-64bit \
+	--with-mozilla \
+	--enable-64bit \
         --disable-debug
 
     make
@@ -40,6 +43,5 @@ build() {
         -e "s,@FULL_NSPR_CFLAGS@,$NSPR_CFLAGS," > \
         $PKG/usr/lib/pkgconfig/nspr.pc
 
-    rm $PKG/usr/bin/{compile-et.pl,prerr.properties}
     rm -r $PKG/usr/include/nspr/md
 }

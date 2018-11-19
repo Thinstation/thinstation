@@ -3,9 +3,12 @@
 # Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 
 name=js
+archname=js185
 version=1.8.5
 release=1
 source=(http://ftp.mozilla.org/pub/mozilla.org/js/js185-1.0.0.tar.gz
+	js-1.8.5-64bit-big-endian.patch
+	js-1.8.5-c++11.patch
 	js-1.8.5-537701.patch
 	js-1.8.5-secondary-jit.patch
 	js185-destdir.patch
@@ -14,6 +17,8 @@ source=(http://ftp.mozilla.org/pub/mozilla.org/js/js185-1.0.0.tar.gz
 build() {
 	cd js-$version
 
+	patch -p2 -i $SRC/js-1.8.5-64bit-big-endian.patch
+	patch -p1 -i $SRC/js-1.8.5-c++11.patch
 	patch -p1 -i $SRC/js-1.8.5-537701.patch
 	patch -p2 -i $SRC/js-1.8.5-secondary-jit.patch
         patch -p0 -i $SRC/js185-destdir.patch
@@ -21,10 +26,11 @@ build() {
 
 	cd js/src
 
-	./configure --prefix=/usr \
-			--with-system-nspr \
-			--enable-threadsafe \
-			--enable-readline
+	# _FORTIFY_SOURCE causes configure error
+	unset CPPFLAGS
+
+	./configure --prefix=/usr --with-system-nspr \
+	--enable-threadsafe
 
 	make
 	make DESTDIR=$PKG install

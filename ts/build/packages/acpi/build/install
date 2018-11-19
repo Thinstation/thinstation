@@ -1,0 +1,13 @@
+#!/bin/sh
+
+export PACKAGE=acpi
+export PORTS=acpid
+repackage -e
+
+returnval=$?
+
+mkdir -p packages/$PACKAGE/lib/systemd/system/multi-user.target.wants
+ln -s ../acpid.service packages/$PACKAGE/lib/systemd/system/multi-user.target.wants
+let returnval=returnval+$?
+
+exit $returnval

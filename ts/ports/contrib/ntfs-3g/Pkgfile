@@ -1,0 +1,36 @@
+# $Id$
+# Maintainer: Gaetan Bisson <bisson@archlinux.org>
+# Contributor: Tom Gundersen <teg@jklm.no>
+# Contributor: Ronald van Haren <ronald.archlinux.org>
+# Contributor: Thomas B�chler <thomas.archlinux.org>
+
+name=ntfs-3g
+_name=ntfs-3g_ntfsprogs
+version=2016.2.22
+release=1
+source=("http://tuxera.com/opensource/${_name}-${version}.tgz")
+sha1sums=('382df40c366711003cf24d2342033c23e2580b42')
+
+conflicts=('ntfsprogs')
+provides=('ntfsprogs')
+replaces=('ntfsprogs')
+
+build() {
+	cd "${SRC}/${_name}-${version}"
+	sed 's|$(DESTDIR)/sbin|$(DESTDIR)/usr/bin|' -i {ntfsprogs,src}/Makefile.in
+
+	./configure \
+		--prefix=/usr \
+		--sbin=/usr/bin \
+		--mandir=/usr/share/man \
+		--disable-ldconfig \
+		--disable-static \
+		--with-fuse=external \
+		--enable-posix-acls \
+		--enable-extras \
+
+	make
+	make DESTDIR="${PKG}" rootbindir=/usr/bin rootsbindir=/usr/bin rootlibdir=/usr/lib install
+	ln -s /usr/bin/ntfs-3g "${PKG}/usr/bin/mount.ntfs"
+}
+

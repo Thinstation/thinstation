@@ -4,7 +4,7 @@
 # Depends on:  cups ghostscript poppler qpdf
 
 name=cups-filters
-version=1.17.2
+version=1.11.1
 release=1
 source=(http://www.openprinting.org/download/$name/$name-$version.tar.xz
         cups-browsed)
@@ -14,17 +14,13 @@ build () {
 
     ./configure --prefix=/usr \
                 --sysconfdir=/etc \
-                --without-php \
-                --disable-dbus \
-                --disable-braille \
-		--disable-mutool \
-                --without-rcdir \
-                --with-browseremoteprotocols=cups 
+                --with-browseremoteprotocols=cups,DNSSD
 
     make
     make DESTDIR=$PKG install
     
     install -D -m 0755 $SRC/cups-browsed $PKG/etc/rc.d/cups-browsed
+    install -D -m 644 utils/cups-browsed.service $PKG/usr/lib/systemd/system/cups-browsed.service
 
     rm -r $PKG/usr/share/doc
 }

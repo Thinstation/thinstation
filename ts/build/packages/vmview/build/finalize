@@ -1,0 +1,15 @@
+#vmview 70
+
+if [ -x /bin/thnuclnt ]; then
+	echo 'sed -i -e "s,:HOME:,$HOME,g" $HOME/.thnuclnt/thnuclnt.conf' >> /etc/skel/.xinitrc
+	if [ ! -d /lib/vmware/view/bin ]; then
+		echo "/bin/thnuclnt -fg &" >> /etc/skel/.xinitrc
+		echo "TPCLIENTADDR=\$HOME/.thnuclnt/svc" >> /etc/thinstation.env
+		echo "THNURDPIMG=/usr/bin/thnurdp" >> /etc/thinstation.env
+		echo "TPCLIENTADDR" >> /etc/thinstation.exports
+		echo "THNURDPIMG" >> /etc/thinstation.exports
+	fi
+else
+	rm -rf /etc/skel/.thnuclnt
+fi
+

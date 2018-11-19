@@ -5,9 +5,11 @@ for i in /*; do
     chmod -R g-w,o-w $i
   fi
 done
-mkdir -p /var/run/applications
-chmod -R g+w,o+w /var/run/applications
-chmod +t /var/run/applications
+mkdir -p /var/log/applications
+chmod -R g+w,o+w /var/log/applications
+chmod -R o-r /var/log/applications
+chmod +t /var/log/applications
+ln -sf /run /var/run
 if [ "`readlink /bin/su`" == "/bin/busybox" ]; then
 	chmod u+s /bin/busybox
 else
@@ -18,20 +20,20 @@ chmod 1777 /var/tmp
 ssl=-1
 crypto=-1
 for i in 2 1 0; do
-if [ -e /lib/libssl.so.1.0.$i ]; then
-	if [ $ssl != -1 ]; then
-		rm /lib/libssl.so.1.0.$i;
-		ln -s /lib/libssl.so.1.0.$ssl /lib/libssl.so.1.0.$i
-	else
-		ssl=$i
+	if [ -e /lib/libssl.so.1.0.$i ]; then
+		if [ $ssl != -1 ]; then
+			rm /lib/libssl.so.1.0.$i;
+			ln -s /lib/libssl.so.1.0.$ssl /lib/libssl.so.1.0.$i
+		else
+			ssl=$i
+		fi
 	fi
-fi
-if [ -e /lib/libcrypto.so.1.0.$i ]; then
-	if [ $crypto != -1 ]; then
-		rm /lib/libcrypto.so.1.0.$i;
-		ln -s /lib/libcrypto.so.1.0.$crypto /lib/libcrypto.so.1.0.$i
-	else
-		crypto=$i
+	if [ -e /lib/libcrypto.so.1.0.$i ]; then
+		if [ $crypto != -1 ]; then
+			rm /lib/libcrypto.so.1.0.$i;
+			ln -s /lib/libcrypto.so.1.0.$crypto /lib/libcrypto.so.1.0.$i
+		else
+			crypto=$i
+		fi
 	fi
-fi
 done

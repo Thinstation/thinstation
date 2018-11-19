@@ -1,6 +1,6 @@
 #! /bin/sh
 #
-# Thinstation init script
+# ThinStation init script
 #
 # Start setting up the environment
 
@@ -21,6 +21,8 @@ hide_cursor
 
 init_packages()
 {
+	# Make /root directory, because some daemons need it.
+	mkdir -p /root
 	(cat $INITLIST | sort) |
 	while read package ; do
 		let progress=progress+1

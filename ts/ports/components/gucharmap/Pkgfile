@@ -1,0 +1,29 @@
+# $Id$
+# Maintainer: Jan Alexander Steffens (heftig) <jan.steffens@gmail.com>
+# Contributor: Jan De Groot <jgc@archlinux.org>
+
+name=gucharmap
+version=10.0.4
+release=1
+pkgdesc="Gnome Unicode Charmap"
+source=(https://download.gnome.org/sources/$name/${version%.*}/$name-$version.tar.xz)
+
+build() {
+  cd $name-$version
+	./configure \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--localstatedir=/var \
+		--disable-static \
+		--disable-schemas-compile \
+		 \
+		--disable-gtk-doc-html \
+		 \
+		--with-unicode-data=/usr/share/unicode
+
+  make
+  make DESTDIR="$PKG" install
+
+  rm -rf $PKG/usr/share/{locale,help}
+}
+

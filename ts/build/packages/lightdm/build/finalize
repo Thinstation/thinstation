@@ -1,0 +1,26 @@
+#lightdm 29
+
+cat << EOF >> /etc/passwd
+lightdm:x:620:620:Light Display Manager:/var/lib/lightdm:/usr/bin/nologin
+EOF
+
+cat << EOF >> /etc/group
+lightdm:x:620:
+EOF
+
+
+chmod 755 /var/cache/lightdm
+chmod 770 /var/lib/lightdm
+chmod 770 /var/lib/lightdm-data
+chmod 711 /var/log/lightdm
+chmod +t /var/cache/lightdm
+chmod +t /var/lib/lightdm
+chmod +t /var/lib/lightdm-data
+chown 620:620 -R /var/lib/lightdm
+chown 620:620 -R /var/lib/lightdm-data
+chgrp 620 /var/log/lightdm
+
+#systemctl set-default -f multi-user.target
+
+#USER=root
+#/usr/lib/lightdm/lightdm-set-defaults --autologin "$USER"

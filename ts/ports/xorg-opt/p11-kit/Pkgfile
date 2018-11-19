@@ -3,22 +3,24 @@
 # Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 
 name=p11-kit
-version=0.23.2
+version=0.23.14
 release=1
-source=(https://github.com/p11-glue/p11-kit/archive/$version.tar.gz)
+source=(https://github.com/p11-glue/p11-kit/releases/download/$version/p11-kit-$version.tar.gz)
 
 build() {
 	cd $name-$version
 
-#	./configure --prefix=/usr \
-	./autogen.sh --prefix=/usr \
+	./configure --prefix=/usr \
+			--sysconfdir=/etc \
 			--enable-shared \
 			--disable-rpath \
-			--disable-nls \
-			--disable-static
+			 \
+			--disable-static \
+			--with-trust-paths=/etc/ssl/certs/ca-bundle.crt
 
 	make
 	make DESTDIR=$PKG install
 	rm $PKG/usr/lib/p11-kit-proxy.so
 	ln -s libp11-kit.so.0 $PKG/usr/lib/p11-kit-proxy.so
+	rm -rf $PKG/usr/share/gtk-doc
 }

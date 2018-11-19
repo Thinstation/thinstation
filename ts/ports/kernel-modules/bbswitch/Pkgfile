@@ -16,8 +16,7 @@ build() {
     patch -Np1 -i $SRC/makefile.patch
     patch -Np1 -i $SRC/uaccess.patch
 
-    for KERNELTYPE in TS TS_SMP TS_64
-    do
+    for KERNELTYPE in TS TS+con; do
        export REPORT_KERNEL=${kver}$KERNELTYPE
 
        cd $SRC
@@ -30,10 +29,16 @@ build() {
        MODDIR=kernel/drivers/video
 
        make KVERSION=$KVERSION
+
+	/usr/src/kernels/$KVERSION/scripts/sign-file \
+		sha256 \
+		/etc/ssl/keys/kernel.key \
+		/etc/ssl/certs/kernel.crt \
+		bbswitch.ko
+
        make install KVERSION=$KVERSION \
 	MODLIB=$MODLIB \
-	MODDIR=$MODDIR \
-	CROSS_COMPILE="/opt/cross/x-tools/x86_64-thinstation-linux-gnu/bin/x86_64-thinstation-linux-gnu-"
+	MODDIR=$MODDIR
     done
 }
 

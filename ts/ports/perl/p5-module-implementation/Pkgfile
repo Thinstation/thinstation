@@ -1,0 +1,22 @@
+# Description:	Loads one of several alternate underlying implementations for a module
+# URL:		http://metacpan.org/release/Module-Implementation
+# Maintainer:	
+# Depends on:	p5-module-runtime p5-try-tiny
+
+name=p5-module-implementation
+version=0.09
+release=1
+source=(http://search.cpan.org/CPAN/authors/id/D/DR/DROLSKY/Module-Implementation-${version}.tar.gz)
+
+build() {
+	cd Module-Implementation-$version
+
+	# PERL_MM_USE_DEFAULT=1 \
+	perl Makefile.PL
+	make OPTIMIZE="$CFLAGS" DESTDIR="$PKG" install
+
+	find "$PKG" -depth \
+		-type f \( -name .packlist -o -name \*.bs -o -name perllocal.pod \) -delete , \
+		-type f -name autosplit.ix \( -exec grep -q '^[[:space:]]*package' {} \; -o -delete \) , \
+		-type d -empty -exec rmdir {} +
+}

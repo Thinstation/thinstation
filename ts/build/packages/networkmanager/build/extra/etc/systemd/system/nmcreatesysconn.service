@@ -1,0 +1,15 @@
+[Unit]
+Description=Network Manager System Connection Creator
+After=profile-setup.service
+Before=NetworkManager.service
+ConditionPathIsReadWrite=/etc
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+EnvironmentFile=/etc/thinstation.env
+ExecStart=/etc/init.d/nmcreatesysconn
+SyslogIdentifier=thinstation
+
+[Install]
+WantedBy=multi-user.target

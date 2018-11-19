@@ -5,22 +5,24 @@
 
 create_wind()
 {
-	printf "\n\tCreating fast clean cache for $i"
-	echo "#`md5sum .dna`" > /ts/wind_cache/$i.turbo
-        update -c -d $i >> /ts/wind_cache/$i.turbo
-        . /ts/wind_cache/$i.turbo
+	pkg=$1
+	printf "\n\tCreating fast clean cache for $pkg"
+	echo "#`md5sum .dna`" > $cache/wind_cache/$pkg.turbo
+        update -c -d $pkg >> $cache/wind_cache/$pkg.turbo
+        . $cache/wind_cache/$pkg.turbo
 	errata=true
 }
 
 create_unwind()
 {
-	printf "\n\tCreating fast install cache for $i"
-        echo "#`md5sum .dna`" > /ts/unwind_cache/$i.turbo
-        update -d $i |
+	pkg=$1
+	printf "\n\tCreating fast install cache for $pkg"
+        echo "#`md5sum .dna`" > $cache/unwind_cache/$pkg.turbo
+        update -d $pkg |
         sed -e 's/^mkdir \-/2:/g' -e 's/^ln \-/4:/g' -e 's/^touch /5:/g' -e 's/^ln \//3:/g' |
         sort |
         uniq |
-        sed -e 's/^2:/mkdir \-/g' -e 's/^3:/ln \//g' -e 's/^4:/ln \-/g' -e 's/^5:/touch /g' >> /ts/unwind_cache/$i.turbo
+        sed -e 's/^2:/mkdir \-/g' -e 's/^3:/ln \//g' -e 's/^4:/ln \-/g' -e 's/^5:/touch /g' >> $cache/unwind_cache/$pkg.turbo
 	errata=true
 }
 
@@ -31,6 +33,7 @@ list_folders()
 
 save_archive()
 {
+	port_archive=$1
 	mv $port_archive tempfile
 	pkgmk -c
 	find -L . -type f -name \*.pkg.tar.\* -delete
@@ -62,79 +65,118 @@ stage1()
 		fi
 	done
 
-	# Remove any empty folders
-	find -L $TSWRKNG -type d -empty -delete
+	for working in $TSWRKNG $XTRWRKNG; do
+		if [ $working = $TSWRKNG ]
+		then cache=/ts
+		else cache=$working
+		fi
 
-	for i in `ls --color=never $TSWRKNG/packages`; do
-		errata=false
-		if [ -e $TSWRKNG/packages/$i/.dna ]; then
-			cd $TSWRKNG/packages/$i
-			printf "\rCleaning package %-40s" "$i"
-			if [ -e /ts/wind_cache/$i.turbo ]; then
-				if cat /ts/wind_cache/$i.turbo |grep -e "#" |cut -d "#" -f2 |md5sum -c --quiet; then
-					. /ts/wind_cache/$i.turbo
-				else
-					create_wind
-				fi
-			else
-				create_wind
-			fi
-			if [ -e /ts/unwind_cache/$i.turbo ]; then
-				if cat /ts/unwind_cache/$i.turbo|grep -e "#" |cut -d "#" -f2 |md5sum -c --quiet; then
-					echo "Allready made" >> /dev/null
-				else
-					create_unwind
-				fi
-			else
-				create_unwind
-			fi
-		fi
-		if $errata; then
-			printf "\n"
-		fi
+		# Remove any empty folders
+		find -L $working -type d -empty -delete
+
+		export cache
+		export working
+		export -f create_wind
+		export -f create_unwind
+		export -f wind_package
+	        procs=`nproc`
+	        let procs-=1
+	        ls --color=never $working/packages |xargs -n 1 -P $procs -I {} bash -c 'wind_package "$@"' _ {}
+
 	done
 	printf "\rPackages are %-40s\n" "Clean"
 	echo -e "Cleaning tools"
 	update -c -t
 	echo "Checking Ports Directories for Downloaded Files"
-	for distro in ts; do cd /$distro/ports
-	for port_type in `list_folders`; do cd $port_type
-	for port in `list_folders`; do cd $port
-		printf "\rCleaning %-59s" "$port"
-		. Pkgfile
-		whole_version=$version-$release
-		port_archive=`find -L . -maxdepth 1 -type f -name ${port}#$whole_version.pkg.tar.\*`
-		if [ -n "$port_archive" ]; then
-			case $port_type in
-				proprietary|binary-core|binary-opt)
-					if $super; then
-						pkgmk -c
-					else
-						save_archive
-					fi
-					echo $port_archive |cut -d "." -f2- > .gitignore
-					;;
-				*) save_archive;;
-			esac
-		else
-			printf "\rCould not find pkg file for %-40s\n" "$port"
-			pkgmk -c
-		fi
-		rm -rf work *.partial
-		cd ..
-	done
-	cd ..
-	done
+	for distro in /ts $XTRWRKNG; do
+		cd $distro/ports
+		for port_type in `list_folders`; do
+			cd $port_type
+			export distro
+			export port_type
+			export super
+			export -f save_archive
+			export -f clean_port
+
+			list_folders |xargs -n 1 -P $procs -I {} bash -c 'clean_port "$@"' _ {}
+
+			cd ..
+		done
 	done
 	touch /cleanstage2
+	sync
 	if [ -z "$clean" ]; then
 		printf "\rPlease Type \"exit\" to Finish the Cleaning Process\t\t\t"
 	fi
 }
 
+clean_port()
+{
+	port=$1
+	cd $port
+        printf "\rCleaning %-59s" "$port"
+        . Pkgfile
+        whole_version=$version-$release
+        port_archive=`find -L . -maxdepth 1 -type f -name ${port}#$whole_version.pkg.tar.\*`
+        if [ -n "$port_archive" ]; then
+        	case $port_type in
+                	proprietary|binary-core|binary-opt)
+                        	if $super; then
+                                	pkgmk -c
+                                else
+                                        save_archive $port_archive
+                                fi
+                                echo $port_archive |cut -d "." -f2- > .gitignore
+                        ;;
+                        *) save_archive $port_archive;;
+                esac
+         else
+         	printf "\rCould not find pkg file for %-40s\n" "$port"
+         	pkgmk -c
+         fi
+         rm -rf work *.partial
+         cd ..
+}
+
+wind_package()
+{
+	pkg=$1
+	errata=false
+        if [ -e $working/packages/$pkg/.dna ]; then
+        	cd $working/packages/$pkg
+                printf "\rCleaning package %-40s" "$pkg"
+                if [ -e $cache/wind_cache/$pkg.turbo ]; then
+                	if cat $cache/wind_cache/$pkg.turbo |grep -e "#" |cut -d "#" -f2 |md5sum -c --quiet; then
+                        	. $cache/wind_cache/$pkg.turbo
+                        else
+                               	create_wind $pkg
+                        fi
+                else
+                      	create_wind $pkg
+                fi
+                if [ -e $cache/unwind_cache/$pkg.turbo ]; then
+                	if cat $cache/unwind_cache/$pkg.turbo|grep -e "#" |cut -d "#" -f2 |md5sum -c --quiet; then
+                        	echo "Already made" >> /dev/null
+                        else
+                             	create_unwind $pkg
+                        fi
+                else
+                      	create_unwind $pkg
+                fi
+	fi
+        if $errata; then
+        	printf "\n"
+	fi
+}
+
 stage2()
 {
-	for trash in BUILD.* autodl usr lib64 run www share home man bin boot dev etc lib mnt opt proc root sbin sys tmp var ts/components; do
+	for mount in dev/pts dev proc sys mnt tmp; do
+		while mountpoint $mount > /dev/null 2>&1; do
+			umount $mount
+		done
+	done
+	for trash in BUILD.* autodl usr lib64 run www share home man bin boot dev etc lib mnt opt proc root sbin sys tmp var label ts/components; do
 		if [ -e $trash ] || [ -h $trash ]; then
 			rm -rf $ROOT/$trash
 		fi

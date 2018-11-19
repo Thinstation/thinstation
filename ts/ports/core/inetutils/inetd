@@ -3,21 +3,33 @@
 # /etc/rc.d/inetd: start/stop inet daemon
 #
 
+SSD=/sbin/start-stop-daemon
+PROG=/usr/sbin/inetd
+OPTS=""
+
 case $1 in
 start)
-	/usr/sbin/inetd
-	;;
+        $SSD --start --exec $PROG -- $OPTS
+        ;;
 stop)
-	killall -q /usr/sbin/inetd
-	;;
+        $SSD --stop --retry 10 --exec $PROG
+        ;;
 restart)
-	$0 stop
-	sleep 2
-	$0 start
-	;;
+        $0 stop
+        $0 start
+        ;;
+status)
+        $SSD --status --exec $PROG
+        case $? in
+        0) echo "$PROG is running with pid $(pidof $PROG)" ;;
+        1) echo "$PROG is not running but the pid file $PID exists" ;;
+        3) echo "$PROG is not running" ;;
+        4) echo "Unable to determine the program status" ;;
+        esac
+        ;;
 *)
-	echo "usage: $0 [start|stop|restart]"
-	;;
+        echo "usage: $0 [start|stop|restart|status]"
+        ;;
 esac
 
 # End of file

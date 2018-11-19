@@ -1,0 +1,18 @@
+[Unit]
+Description=Configure Audio Settings
+DefaultDependencies=no
+Conflicts=shutdown.target
+After=profile-setup.service net.profile-setup.service pkg.service
+After=alsa-restore.service
+Before=session-setup.service
+ConditionPathIsReadWrite=/etc
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+EnvironmentFile=/etc/thinstation.env
+ExecStart=/etc/init.d/audio
+SyslogIdentifier=thinstation
+
+[Install]
+WantedBy=multi-user.target

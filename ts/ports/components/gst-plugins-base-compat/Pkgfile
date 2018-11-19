@@ -1,28 +1,31 @@
 # Description: An essential exemplary set of plugins for gstreamer.
 # URL: http://gstreamer.freedesktop.org/modules/gst-plugins-base.html
-# Maintainer: Daryl Fonseca-Holt, wyatt at prairieturtle dot ca
+# Maintainer: Jose V Beneyto, sepen at crux dot nu
 # Packager: Matt Housh, jaeger at morpheus dot net
-# Depends on: alsa-lib cdparanoia gstreamer-compat libtheora libvisual orc pango util-linux xorg-libxv
+# Depends on: alsa-lib e2fsprogs glibc gstreamer liboil libvorbis pango xorg-libxv xorg-libxcomposite
 
 name=gst-plugins-base-compat
 version=0.10.36
-release=2
-source=(http://gstreamer.freedesktop.org/src/gst-plugins-base/gst-plugins-base-$version.tar.xz)
+release=1
+source=(http://gstreamer.freedesktop.org/src/${name%-compat}/${name%-compat}-$version.tar.xz)
 
 build() {
-	cd gst-plugins-base-$version
-	export CFLAGS="$CFLAGS -msse2"
+  cd ${name%-compat}-$version
 
-	./configure \
-		--prefix=/usr \
-		--enable-orc \
-		--disable-debug \
-		--disable-nls \
-		--disable-dependency-tracking \
-		--disable-valgrind \
-		--disable-examples
+  ./configure --prefix=/usr \
+              --mandir=/usr/man \
+              --disable-debug \
+              --disable-nls \
+              --disable-dependency-tracking \
+              --disable-valgrind \
+              --disable-examples \
+	      --enable-experimental \
+	      --enable-introspection=no \
+	      --enable-shared \
+	      --disable-static
 
-	make
-	make DESTDIR=$PKG install
-	rm -r $PKG/usr/share/gtk-doc
+  make
+  make DESTDIR=$PKG install
+  rm -r $PKG/usr/share/gtk-doc
+  rm -rf $PKG/usr/man
 }

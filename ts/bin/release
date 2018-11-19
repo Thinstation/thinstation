@@ -1,13 +1,48 @@
 #!/bin/bash
+set -e
+set -x
 
-rm -rf /tmp/{thindev,thindev-default.tar.xz,image.md5}
-mkdir /tmp/thindev
-cp /build/boot-images/initrd/{initrd,vmlinuz,lib.squash} /tmp/thindev/.
-cp /build/boot-images/initrd/image.md5 /tmp/image-$TSVER.md5
-cd /tmp/thindev
-mv lib.squash lib.update
-tar -c * |xz -9 > ../thindev-default-$TSVER.tar.xz
-cd ..
-scp image-*.md5 ${1}@frs.sourceforge.net:/home/frs/project/thinstation/DevStation-Source/
-scp thindev-default-*.tar.xz ${1}@frs.sourceforge.net:/home/frs/project/thinstation/DevStation-Source/
+user=$2
+ver=$1
 
+mk_devstat()
+{
+	# Make DevStation
+	cd /build
+	cp conf/devstation/* .
+	stb --allmodules
+
+	rm -rf /tmp/{thindev,thindev-default.tar.xz,image.md5}
+	mkdir /tmp/thindev
+	cp /build/boot-images/initrd/{initrd,vmlinuz,lib.squash} /tmp/thindev/.
+	cp /build/boot-images/initrd/image.md5 /tmp/image-$TSVER.md5
+	cd /tmp/thindev
+	mv lib.squash lib.update
+	tar -c * |xz -9 > ../thindev-default-$TSVER.tar.xz
+	cd ..
+	scp image-*.md5 ${user}@frs.sourceforge.net:/home/frs/project/thinstation/DevStation-Source/
+	scp thindev-default-*.tar.xz ${user}@frs.sourceforge.net:/home/frs/project/thinstation/DevStation-Source/
+}
+
+mk_installer()
+{
+	# Make HW lister
+	cd /build
+	cp conf/hwlister/* .
+	stb --allmodules --kernel +con
+	mkdir -p /build/boot-images/hw/boot/hwlister/
+	cp /build/boot-images/initrd/{vmlinuz,initrd} /build/boot-images/hw/boot/hwlister/.
+
+	# Make Installer
+	name=TS-${ver}-Installer-`date +%m%d`.iso
+	cp conf/installer/* .
+	stb --allmodules
+	cp /build/boot-images/iso/thinstation.iso /tmp/$name
+	scp /tmp/$name ${user}@frs.sourceforge.net:/home/frs/project/thinstation/thinstation/thinstation-6/.
+}
+
+case $3 in
+	-d) mk_devstat;;
+	-i) mk_installer;;
+	*) mk_devstat; mk_installer;;
+esac

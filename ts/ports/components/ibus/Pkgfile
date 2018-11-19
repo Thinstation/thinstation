@@ -1,11 +1,11 @@
 # Description: Intelligent Input Bus for Linux/unix.
 # URL:         https://github.com/ibus/ibus/wiki
 # Maintainer:  6c37 team, https://github.com/6c37/crux-ports/issues
-# Depends on:  dbus-python libnotify iso-codes
+# Depends on:  dbus-python libnotify iso-codes gtk
 
 name=ibus
-version=1.5.17
-release=3
+version=1.5.19
+release=1
 source=(
 	https://github.com/$name/$name/releases/download/$version/$name-$version.tar.gz
 	https://www.unicode.org/Public/emoji/11.0/emoji-data.txt
@@ -13,7 +13,9 @@ source=(
 	https://www.unicode.org/Public/emoji/11.0/emoji-test.txt
 	https://www.unicode.org/Public/emoji/11.0/emoji-variation-sequences.txt
 	https://www.unicode.org/Public/emoji/11.0/emoji-zwj-sequences.txt
-	https://github.com/fujiwarat/cldr-emoji-annotation/releases/download/32.0.0_1/cldr-emoji-annotation-32.0.0_1.tar.gz
+	https://github.com/fujiwarat/cldr-emoji-annotation/releases/download/33.0.0_1/cldr-emoji-annotation-33.0.0_1.tar.gz
+	https://www.unicode.org/Public/UNIDATA/NamesList.txt
+	https://www.unicode.org/Public/UNIDATA/Blocks.txt
 )
 
 build() {
@@ -21,15 +23,37 @@ build() {
 	cp $SRC/emoji-*.txt $SRC/$name-$version/emoji
 
 	install -d $SRC/$name-$version/annotation
-	cd $SRC/cldr-emoji-annotation-32.0.0_1
+	cd $SRC/cldr-emoji-annotation-33.0.0_1
 	./configure --prefix=$SRC/$name-$version/annotation
 	make
 	make install
 
-	VALA='--enable-vala=no'
-	GTK3='--enable-gtk3'
-	GCONF='--enable-gconf'
-	EMOJI="--enable-emoji-dict --with-unicode-emoji-dir=$SRC/$name-$version/emoji --with-emoji-annotation-dir=$SRC/$name-$version/annotation/share/unicode/cldr/common/annotations"
+	cp $SRC/NamesList.txt $SRC/$name-$version/annotation/share/unicode/cldr/common/annotations/
+	cp $SRC/Blocks.txt $SRC/$name-$version/annotation/share/unicode/cldr/common/annotations/
+
+	local VALA
+	if [ "$(pkginfo -i | grep '^vala ' )" ]
+	then
+		VALA='--enable-vala=yes'
+	else
+		VALA='--enable-vala=no'
+	fi
+
+	local GTK3
+	if [ "$(pkginfo -i | grep '^gtk3 ' )" ]
+	then
+		GTK3='--enable-gtk3'
+	else
+		GTK3='--disable-gtk3'
+	fi
+
+	local EMOJI
+	if [ "$(pkginfo -i | grep '^json-glib ' )" ]
+	then
+		EMOJI="--enable-emoji-dict --with-unicode-emoji-dir=$SRC/$name-$version/emoji --with-emoji-annotation-dir=$SRC/$name-$version/annotation/share/unicode/cldr/common/annotations --with-ucd-dir=$SRC/$name-$version/annotation/share/unicode/cldr/common/annotations"
+	else
+		EMOJI='--disable-emoji-dict'
+	fi
 
 	cd $SRC/$name-$version
 
@@ -44,8 +68,8 @@ build() {
 		--enable-xim \
 		--enable-wayland=no \
 		--disable-gtk-doc-html \
-		$GCONF \
-		--disable-dconf \
+		--disable-gconf \
+		--enable-dconf \
 		--disable-appindicator \
 		--with-python=python2 \
 		--enable-python-library \

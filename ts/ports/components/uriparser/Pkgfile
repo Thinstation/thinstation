@@ -3,9 +3,9 @@
 # Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 
 name=uriparser
-version=0.7.5
+version=0.8.4
 release=1
-source=(http://downloads.sourceforge.net/project/$name/Sources/$version/$name-$version.tar.gz)
+source=(http://pilotfiber.dl.sourceforge.net/project/uriparser/Sources/$version/uriparser-$version.tar.bz2)
 
 build() {
 	cd $name-$version
@@ -16,9 +16,12 @@ build() {
 			--libexecdir=/lib \
 			--mandir=/usr/man \
 			--includedir=/usr/include \
+			--disable-static \
 			--disable-extras \
 			--disable-test \
 			--disable-doc
 	make
 	make DESTDIR=$PKG install
+	mkdir $PKG/usr/lib
+	mv $PKG/lib/pkgconfig $PKG/usr/lib/.
 }

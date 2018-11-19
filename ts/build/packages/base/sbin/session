@@ -1,0 +1,62 @@
+#!/bin/sh
+trap "" INT QUIT TSTP
+. /etc/thinstation.global
+hide_cursor
+
+if [ "$TSUSER" != "root" ]; then
+	HOME=/home/$TSUSER
+else
+	HOME=/root
+fi
+
+stale_tasks()
+{
+	tasklist=`ps x |grep -e '/usr/sbin/console-kit-daemon --no-daemon' -A 10000 |grep -E -v 'pam-foreground|ps x|/usr/sbin/console-kit-daemon --no-daemon|login|/sbin/session|grep|cut$|echo$'`
+	tasklist=`echo "$tasklist" |cut -d ' ' -f2`
+	if [ -n "$tasklist" ]; then
+		return 0
+	else
+		return 1
+	fi
+}
+
+if [ "$1" == "open" ]; then
+	umask 027
+	mkdir -p $HOME
+	for file in `ls -A /etc/skel`; do
+		if ! [ -e $HOME/$file ]; then
+			cp -a /etc/skel/$file $HOME/. 2>/dev/null
+		fi
+	done
+	chown -R "$TSUSER.`id -gn $TSUSER`" $HOME
+fi
+
+if [ "$1" == "close" ] && [ -z "`pidof shutdown`" ] && [ -z "`pidof reboot`" ]; then
+	timeout=0
+	while stale_tasks && [ "$timeout" -lt "30" ]; do
+		for task in $tasklist; do
+			kill -HUP $task > /dev/null 2>&1 &
+		done
+		wait
+		let timeout=timeout+1
+	done
+	timeout=0
+	while stale_tasks && [ "$timeout" -lt "30" ]; do
+		for task in $tasklist; do
+			kill -KILL $task > /dev/null 2>&1 &
+		done
+		wait
+		let timeout=timeout+1
+	done
+	if is_enabled $DESTRUCTIVE_RELOAD; then
+		fuser -k $HOME
+		rm -rf $HOME
+	fi
+	IFS=$'\n'
+	if [ -d /media ]; then
+		for mount in `ls -1 /media`; do
+			fuser -k /media/$mount
+			umount /media/$mount
+		done
+	fi
+fi

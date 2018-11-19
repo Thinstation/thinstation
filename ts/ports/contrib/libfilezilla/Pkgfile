@@ -1,22 +1,16 @@
-# Description: ftp client (common library)
-# URL:         http://filezilla-project.org
-# Maintainer:  Thomas Penteker, tek at serverop dot de
-# Packager:    Bartlomiej Palmowski, rotwang at crux dot org dot pl
-# Depends on:  wxgtk libidn gnutls xdg-utils tinyxml
+# Maintainer: Florian Pritz <bluewind@xinu.at>
+# Contributor: Martchus <martchus@gmx.net>
 
 name=libfilezilla
-version=0.5.3
+version=0.6.1
 release=1
-source=(http://downloads.sourceforge.net/project/filezilla/$name/$version/${name}-${version}.tar.bz2)
+source=("http://downloads.sourceforge.net/project/filezilla/libfilezilla/${version}/libfilezilla-${version}.tar.bz2")
 
 build() {
-    cd $name-$version
-    ./configure \
-        --prefix=/usr \
-        --mandir=/usr/man \
-        --disable-static \
-        --disable-dependency-tracking
-    make
-    make DESTDIR=$PKG install
-    rm -rf $PKG/usr/share/locale
+  cd "${SRC}/$name-$version"
+  ./configure \
+    --prefix=/usr \
+    --disable-static
+  make
+  make DESTDIR="${PKG}" install
 }

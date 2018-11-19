@@ -1,26 +1,20 @@
 # Description: GTK Interface Builder.
 # URL:         http://glade.gnome.org/
 # Maintainer:  Thomas Penteker, tek at serverop dot de
-# Depends on:  libglade, p5-xml-parser
+# Depends on:  p5-xml-parser
 
 name=glade3
-version=3.8.2
+archname=glade
+version=3.22.1
 release=1
-source=(http://ftp.gnome.org/pub/GNOME/sources/$name/3.8/$name-$version.tar.xz)
+source=(http://ftp.gnome.org/pub/GNOME/sources/glade/${version:0:4}/glade-$version.tar.xz)
 
 build() {
-   cd $name-$version
+   cd glade-$version
 
-   ./configure \
-      --prefix=/usr \
-      --disable-gtk-doc \
-      --with-help-formats=NONE \
-      --disable-nls \
-      --disable-scrollkeeper \
-      --enable-shared \
-      --disable-static
-
-   make && make DESTDIR=$PKG install
-   ln -sf /usr/bin/glade-3 $PKG/usr/bin/glade
-   rm -rf $PKG/usr/share/{locale,gnome,omf,gtk-doc}
+  ./configure --prefix=/usr --sysconfdir=/etc --localstatedir=/var \
+    --disable-static --enable-gtk-doc
+  sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
+  make
+  make DESTDIR="$PKG" install
 }

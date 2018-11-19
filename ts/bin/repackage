@@ -3,7 +3,6 @@
 # URL: http://www.thinstation.org
 # Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 
-
 show_help()
 {
 echo "
@@ -38,8 +37,16 @@ package_path()
 {
 	if [ "$temp_folder" != "" ] ; then
 		pkgpath="$temp_folder/$package"
+		return 0
 	else
 		pkgpath="$TSWRKNG/packages/$package"
+		for work in $TSWRKNG $XTRWRKNG; do
+			if [ -d "$work/packages/$package" ]; then
+				pkgpath="$work/packages/$package"
+				return 0
+			fi
+		done
+		return 1
 	fi
 }
 
@@ -73,7 +80,7 @@ extract_archive()
 			done
 		fi
 		if $install_port; then
-			prt-get install --install-scripts -fr -if -im $package
+			prt-get install --install-scripts -fr -if -im -is $package
 			archive="`find -L $ppath -type f -name ${name}#${version}-${release}.pkg.tar.\* -printf '%f'`"
 		fi
 	fi
@@ -130,9 +137,17 @@ redirect_shared()
 	done
 }
 
+move_run()
+{
+	if [ -e $pkgpath/var/run ]; then
+		cp -a $pkgpath/var/run $pkgpath/.
+		rm -rf $pkgpath/var/run
+	fi
+}
+
 extra_dirs()
 {
-	extra_dirs="man pkgconfig aclocal gtk-doc help vala gir-1.0 locale bash-completion cmake omf"
+	extra_dirs="man pkgconfig aclocal gtk-doc help vala gir-1.0 girepository-1.0 locale bash-completion cmake omf"
 	if [ "$package" != "python" ] ; then
 		extra_dirs="$extra_dirs include"
 	fi
@@ -172,11 +187,12 @@ remove_empty()
 
 clean()
 {
-	if [ -n "$PACKAGE" ] && [ -e ./packages/$PACKAGE ]; then
-		for object in `ls -A --color=never ./packages/$PACKAGE |grep -E -v 'build|.dna|.gitignore|dependencies'`; do
-			rm -rf ./packages/$PACKAGE/$object
+	package=$PACKAGE
+	if [ -n "$PACKAGE" ] && package_path; then
+		for object in `ls -A --color=never $pkgpath |grep -E -v 'build|.dna|.gitignore|dependencies'`; do
+			rm -rf $pkgpath/$object
 		done
-		rm -f ./packages/$PACKAGE/build/installed
+		rm -f $pkgpath/build/installed
 	else
 		echo "$PACKAGE does not exist"
 		exit 1
@@ -206,11 +222,11 @@ create_empty()
 merge_trunk()
 {
 	if [ -e $INSTALLDIR/build/extra ]; then
-		for dir in `find $INSTALLDIR/build/extra -type d |cut -d '/' -f6-`; do
+		for dir in `find $INSTALLDIR/build/extra -type d -printf "%P\n"`; do
 			mkdir -p $INSTALLDIR/$dir
 		done
 		IFS=$'\n\t'
-		for file in `find $INSTALLDIR/build/extra ! -type d |cut -d '/' -f6-`; do
+		for file in `find $INSTALLDIR/build/extra ! -type d -printf "%P\n"`; do
 			if [ -e $INSTALLDIR/"$file" ]; then
 				rm $INSTALLDIR/"$file"
 			fi
@@ -222,7 +238,11 @@ merge_trunk()
 
 from_env()
 {
-	INSTALLDIR=./packages/$PACKAGE
+	for i in $TSWRKNG $XTRWRKNG; do
+		if [ -d $i/packages/$PACKAGE ]; then
+			INSTALLDIR=$i/packages/$PACKAGE
+		fi
+	done
 	temp_folder=./build-$PACKAGE
 	for package in $PORTS; do
 		main
@@ -237,33 +257,52 @@ from_env()
 
 reduce_libs()
 {
-    if [ -e $pkgpath/lib ]; then
-	for link in `find $pkgpath/lib -mindepth 1 -maxdepth 1 -type l \
-            | grep -E '\.so' | sort -u`; do
-
-	  # Normalize the link
-	  linkdest=`readlink $link | sed -e 's,\.\./\.\./lib/,,' -e 's,^/lib/,,'`
-	  linkdir=`dirname $link`
-	  # If the link is to another directory, leave it alone
-	  if [ `echo $linkdest | grep -E '/'` ]; then
-	      continue
-	  fi
-
-	  soname=`objdump -p $linkdir/$linkdest | grep SONAME | awk '{print $2}'`
-	  base=`basename $link`
-	  if [ -z "$soname" ]; then
-	      echo "MISSING SONAME $link"
-	      exit 1
-	  fi
-	  if [ "$base" == "$soname" ]; then
-	      rm $link
-	      cp $linkdir/$linkdest $link
-	      rm $linkdir/$linkdest
-	  else
-	      rm $link
-	  fi
-	done
-    fi
+	if [ -e $pkgpath/lib ]; then
+		for link in `find $pkgpath/lib -mindepth 1 -maxdepth 1 -type l \
+		| grep -E 'lib\/lib' \
+		| grep -E '\.so' | sort -u`; do
+			# Normalize the link
+			linkdest=`readlink $link | sed -e 's,\.\./\.\./lib/,,' -e 's,^/lib/,,'`
+			linkdir=`dirname $link`
+			# If the link is to another directory, leave it alone
+			if [ `echo $linkdest | grep -E '/'` ]; then
+				continue
+			fi
+			# Ignore TCL, it doesn't ever declare an SONAME
+			if [ `basename $link` == "libtcl.so" ]; then
+				continue
+			fi
+			soname=`objdump -p $linkdir/$linkdest | grep SONAME | awk '{print $2}'`
+			base=`basename $link`
+			if [ -z "$soname" ]; then
+				echo "MISSING SONAME $link"
+				exit 1
+			fi
+			if [ "$base" == "$soname" ]; then
+				rm $link
+				cp $linkdir/$linkdest $link
+			else
+				rm $link
+			fi
+		done
+		for lib in `find $pkgpath/lib -mindepth 1 -maxdepth 1 -type f \
+		| grep -E 'lib\/lib' \
+		| grep -E '\.so' |sort -u`; do
+			# Ignore TCL, it doesn't ever declare an SONAME
+			if [ `basename $lib` == "libtcl8.6.so" ]; then
+				continue
+			fi
+			soname=`objdump -p $lib | grep SONAME | awk '{print $2}'`
+			base=`basename $lib`
+			if [ -z "$soname" ]; then
+				echo "MISSING SONAME $lib"
+				exit 1
+			fi
+			if [ "$base" != "$soname" ]; then
+				rm $lib
+			fi
+		done
+	fi
 }
 
 remove_libs()
@@ -280,6 +319,7 @@ main()
 	preserve_empty_working
 	shallow_usr
 	redirect_shared
+	move_run
 	extra_dirs
 	extra_files
 	remove_empty

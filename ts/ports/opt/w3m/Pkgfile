@@ -1,0 +1,50 @@
+# Description: Pager that can also be used as a text-based web browser
+# URL:         http://w3m.sourceforge.net/
+# Maintainer:  Thomas Penteker, tek at serverop dot de
+# Packager:    Han Boetes, han at mijncomputer dot dl
+# Depends on:  boehm-gc
+
+name=w3m
+version=0.5.3
+release=2
+source=(http://downloads.sourceforge.net/project/$name/$name/$name-$version/$name-$version.tar.gz)
+
+build() {
+    cd $name-$version
+
+    sed -i s/showaudio/mplayer/ config.h.in
+    sed -i '836d' main.c # function type is void
+    sed -i 's/file_handle/file_foo/' istream.{c,h}
+
+    ./configure \
+        --prefix=/usr \
+        --libexecdir=/usr/libexec \
+        --disable-image \
+        --disable-gopher \
+        --disable-nntp \
+        --disable-unicode \
+        --disable-xface \
+        --enable-alarm \
+        --enable-ansi-color \
+        --enable-bgcolor \
+        --enable-color \
+        --enable-cookie \
+        --enable-dict \
+        --enable-digest-auth \
+        --enable-external-uri-loader \
+        --enable-help-cgi \
+        --enable-history \
+        --enable-ipv6 \
+        --enable-keymap=w3m \
+        --enable-menu \
+        --enable-mouse \
+        --enable-sslverify \
+        --disable-w3mmailer \
+        --with-gc
+
+    make
+    make DESTDIR=$PKG install 
+
+    rm -rf $PKG/usr/share/man/ja*
+    rm -rf $PKG/usr/share/locale/
+}

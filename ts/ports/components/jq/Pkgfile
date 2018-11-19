@@ -1,0 +1,17 @@
+# Maintainer: Evgeniy Alekseev <arcanis at archlinux dot org>
+# Contributor: Alex Chamberlain <alex at alexchamberlain dot co dot uk>
+# Contributor: Kars Wang <jaklsy at gmail dot com>
+
+name=jq
+version=1.6
+release=1
+source=("https://github.com/stedolan/jq/releases/download/${name}-${version}/${name}-${version}.tar.gz")
+
+build() {
+    cd "${name}-${version}"
+    ./configure --prefix=/usr
+    make
+    make DESTDIR="${PKG}" prefix=/usr install
+    install -Dm644 COPYING "${PKG}/usr/share/licenses/${name}/COPYING"
+}
+

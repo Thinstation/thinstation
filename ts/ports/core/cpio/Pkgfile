@@ -3,17 +3,16 @@
 # Maintainer:  CRUX System Team, core-ports at crux dot nu
 
 name=cpio
-version=2.11
+version=2.12
 release=1
 source=(http://ftp.gnu.org/gnu/$name/$name-$version.tar.bz2)
 
 build() {
     cd $name-$version
     ./configure --prefix=/usr \
-                --mandir=/usr/man \
-                --disable-nls
+                
     make
     make DESTDIR=$PKG install
-    rm -r $PKG/usr/{share,libexec}
-    rm $PKG/usr/man/man1/mt.1
+    rm -r $PKG/usr/{libexec,share/info}
+    rm -r $PKG/usr/share/man/man8
 }

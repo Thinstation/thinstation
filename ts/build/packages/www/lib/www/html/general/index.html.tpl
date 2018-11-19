@@ -12,14 +12,14 @@
     <tbody>
       <tr>
         
-      <td> <a href="index.html"><img src="images/ts_logo.jpg" width="650" height="153" border="0" alt="Thinstation logo"></a> 
+      <td> <a href="index.html"><img src="images/ts_logo.jpg" width="650" height="153" border="0" alt="ThinStation logo"></a> 
       </td>
       </tr>
     </tbody>
   </table>
 
   
-<h2>Thinstation ${TS_VERSION} on ${CLIENT_NAME} :: Main page</h2>
+<h2>ThinStation ${TS_VERSION} on ${CLIENT_NAME} :: Main page</h2>
 <p> This is the general web interface choose option below:</p>
 <a href="/cgi-bin/CdControl.cgi">Control CD Player</a><br>
 <a href="/cgi-bin/VolControl.cgi">Volume Control</a><br>

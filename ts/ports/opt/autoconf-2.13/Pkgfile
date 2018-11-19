@@ -1,0 +1,19 @@
+# Description: A package of M4 macros to produce scripts to automatically configure sourcecode. (2.13 version)
+# URL:         http://www.gnu.org/software/autoconf
+# Maintainer:  Fredrik Rinnestam, fredrik at rinnestam dot se
+# Depends on:  
+
+name=autoconf-2.13
+version=2.13
+release=1
+source=(ftp://ftp.gnu.org/gnu/autoconf/autoconf-$version.tar.gz)
+
+build () {
+	cd autoconf-$version
+
+	./configure --prefix=/usr --program-suffix=-2.13
+	make
+	make prefix=$PKG/usr install
+
+	rm -r $PKG/usr/info
+}

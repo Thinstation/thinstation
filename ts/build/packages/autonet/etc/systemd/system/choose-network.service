@@ -1,0 +1,12 @@
+[Unit]
+Description=Select Best Available Network Connection
+DefaultDependencies=no
+After=systemd-udev-settle.service autonet.service
+Before=sysinit.target fastboot.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+EnvironmentFile=/etc/thinstation.env
+ExecStart=/etc/init.d/choose-network
+SyslogIdentifier=thinstation

@@ -1,0 +1,43 @@
+# $Id$
+# Maintainer: Felix Yan <felixonmars@archlinux.org>
+
+name=npm
+version=3.10.5
+release=1
+
+build() {
+git clone https://github.com/npm/npm.git
+cd npm
+git fetch origin release-$version
+git checkout release-$version
+  make
+  make NPMOPTS="--prefix=\"$PKG/usr\"" install
+
+  # Why 777? :/
+  chmod -R u=rwX,go=rX "$PKG"
+  
+  # Fix files owned by nobody:
+  chown -R root "$PKG/usr/lib/node_modules" 
+
+  # Fix wrong symlinks
+  for _dir in man1 man5 man7; do
+    rm -f "$PKG"/usr/share/man/$_dir/*
+    cd "$PKG"/usr/lib/node_modules/npm/man/$_dir
+    for _file in *; do
+      ln -s /usr/lib/node_modules/npm/man/$_dir/$_file "$PKG"/usr/share/man/$_dir/
+    done
+  done
+  
+  # Provide node-gyp executable
+  cp "$PKG"/usr/lib/node_modules/npm/bin/node-gyp-bin/node-gyp "$PKG"/usr/bin/node-gyp
+  sed -i 's|"`dirname "$0"`/../../|"`dirname "$0"`/../lib/node_modules/npm/|' "$PKG"/usr/bin/node-gyp
+
+  # Experimental dedup
+#  cd "$PKG"/usr/lib/node_modules/$name/node_modules
+#  for dep in semver; do
+#    rm -r $dep;
+#    node "$SRC"/npm/cli.js link $dep;
+#  done
+  
+  install -Dm644 "$SRC/npm/LICENSE" "$PKG/usr/share/licenses/$name/LICENSE"
+}

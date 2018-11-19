@@ -3,15 +3,15 @@
 # Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 
 name=libproxy
-version=0.4.10
+version=0.4.15
 release=1
-source=(http://libproxy.googlecode.com/files/$name-$version.tar.gz
+source=(https://github.com/libproxy/libproxy/archive/${version}.tar.gz \
 	libproxy-0.4.10-mozjs.patch)
 
 build() {
 
   cd $name-$version
-  patch -p1 < ../libproxy-0.4.10-mozjs.patch
+#  patch -p1 -i $SRC/libproxy-0.4.10-mozjs.patch
   cd ..
 
   mkdir build
@@ -20,12 +20,16 @@ build() {
     -DCMAKE_INSTALL_PREFIX=/usr \
     -DLIBEXEC_INSTALL_DIR=/usr/lib/libproxy \
     -DCMAKE_SKIP_RPATH=ON \
+    -DPERL_VENDORINSTALL=yes \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DBIPR=OFF \
     -DWITH_PERL=OFF \
     -DWITH_WEBKIT3=ON \
-    -DWITH_GNOME3=OFF \
+    -DWITH_GNOME3=ON \
     -DWITH_MOZJS=ON \
     -DCMAKE_CXX_FLAGS="${CXXFLAGS}" \
     -DCMAKE_C_FLAGS="${CFLAGS}"
+
   make
   make DESTDIR=$PKG install
 }

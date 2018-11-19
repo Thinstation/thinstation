@@ -1,0 +1,51 @@
+# Description: Python interpreter, version 3.
+# URL: https://www.python.org/
+# Maintainer: Danny Rawlins, crux at romster dot me
+# Depends on: bzip2 expat gdbm libffi libtirpc mpdecimal sqlite3 xz zlib
+
+name=python3
+version=3.6.5
+release=1
+source=(https://www.python.org/ftp/python/$version/Python-$version.tar.xz)
+
+build() {
+    cd Python-$version
+
+    # Ensure that we are using the system copy of various libraries
+    rm -r Modules/expat
+    rm -r Modules/zlib
+    rm -r Modules/_ctypes/{darwin,libffi}*
+    rm -r Modules/_decimal/libmpdec
+
+    # set OPT to the python default without -O3 or -g
+    # our CFLAGS are used as well
+    OPT="-Wall -Wstrict-prototypes -Wno-unused-result -Wsign-compare -fwrapv" \
+    ./configure --prefix=/usr \
+		--enable-shared \
+                --enable-ipv6 \
+		--enable-loadable-sqlite-extensions \
+		--with-threads \
+		--with-lto \
+		--with-system-expat \
+		--with-system-ffi \
+		--with-system-libmpdec \
+		--without-ensurepip
+
+    make 
+    make -j1 DESTDIR=$PKG altinstall maninstall
+
+    ln -s python${version%.*}        $PKG/usr/bin/python3
+    ln -s python${version%.*}m-config $PKG/usr/bin/python3-config
+    ln -s idle${version%.*}          $PKG/usr/bin/idle3
+    ln -s pydoc${version%.*}         $PKG/usr/bin/pydoc3
+    ln -s python${version%.*}        $PKG/usr/lib/$name
+
+    rm $PKG/usr/lib/python${version%.*}/ctypes/macholib/README.ctypes
+    rm $PKG/usr/lib/python${version%.*}/distutils/README
+    rm $PKG/usr/lib/python${version%.*}/idlelib/{ChangeLog,NEWS.txt,NEWS2x.txt}
+    rm $PKG/usr/lib/python${version%.*}/idlelib/{README.txt,TODO.txt,idle_test/README.txt}
+    rm $PKG/usr/lib/python${version%.*}/lib2to3/tests/data/README
+    rm $PKG/usr/lib/python${version%.*}/site-packages/README.txt
+    rm $PKG/usr/lib/python${version%.*}/test/{data/README,sndhdrdata/README}
+    rm $PKG/usr/lib/python${version%.*}/tkinter/test/README
+}

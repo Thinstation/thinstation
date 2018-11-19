@@ -1,0 +1,30 @@
+--- isolinux.asm.orig	2014-10-06 16:27:44.000000000 +0000
++++ isolinux.asm	2015-04-15 21:07:46.688491286 +0000
+@@ -248,16 +248,6 @@
+ 		mov eax,[si]
+ 		mov [GetlinsecPtr],eax
+ 
+-		; Show signs of life
+-		mov si,syslinux_banner
+-		call writestr_early
+-%ifdef DEBUG_MESSAGES
+-		mov si,copyright_str
+-%else
+-		mov si,[BIOSName]
+-%endif
+-		call writestr_early
+-
+ 		;
+ 		; Before modifying any memory, get the checksum of bytes
+ 		; 64-2048
+@@ -1119,10 +1109,6 @@
+ %include "init.inc"
+ 
+ ; Tell the user we got this far...
+-%ifndef DEBUG_MESSAGES			; Gets messy with debugging on
+-		mov si,copyright_str
+-		pm_call pm_writestr
+-%endif
+ 
+ ;
+ ; Now we're all set to start with our *real* business.	First load the

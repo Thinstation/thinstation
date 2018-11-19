@@ -36,8 +36,8 @@ do_mounts()
 		mount -t vfat ${disk}1 /boot
 		sleep 1
 	done
-	while ! mounted /tmp-root ; do
-		mount -t ext4 ${disk}2 /tmp-root
+	while ! mounted /tmp-home ; do
+		mount -t ext4 ${disk}2 /tmp-home
 		sleep 1
 	done
 	while ! mounted /thinstation ; do
@@ -71,16 +71,16 @@ sleep 1
 read_pt
 sleep 1
 echo "Making filesystems"
-mkfs.vfat -n boot -F 32 -R 32 ${disk}1 ||mkfs.vfat -n boot -F 32 -R 32 ${disk}1
+mkfs.vfat -n boot -F 32 -R 32 ${disk}1 ||mkfs.vfat -n boot -F -F 32 -R 32 ${disk}1
 sleep 1
 #progress "Made boot Filesystem" 30
-mkfs.ext4 ${disk}2
+mkfs.ext4 -F -F ${disk}2
 sleep 1
 #progress "Made home Filesystem" 35
-mkfs.ext4 ${disk}4
+mkfs.ext4 -F -F ${disk}4
 sleep 1
 #progress "Made Dev Filesystem" 40
-mkswap -L swap ${disk}3
+mkswap -f -L swap ${disk}3
 sleep 1
 #progress "Made swap Fileystem" 45
 read_pt

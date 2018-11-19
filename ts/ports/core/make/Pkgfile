@@ -3,15 +3,14 @@
 # Maintainer:  CRUX System Team, core-ports at crux dot nu
 
 name=make
-version=4.1
-release=1
+version=4.2.1
+release=2
 source=(ftp://ftp.gnu.org/gnu/$name/$name-$version.tar.bz2)
 
 build() {
     cd $name-$version
-    ./configure --prefix=/usr --mandir=/usr/man --disable-nls
+    ./configure --prefix=/usr 
     make
     make DESTDIR=$PKG install
-    rm -r $PKG/usr/share
+    rm -r $PKG/usr/share/info
 }
-

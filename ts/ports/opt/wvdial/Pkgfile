@@ -1,0 +1,41 @@
+# Description: Weave Dial - PPP dialer
+# URL:         https://code.google.com/archive/p/wvstreams/
+# Maintainer:  Juergen Daubert, jue at crux dot nu
+# Depends on:  ppp
+
+name=wvdial
+version=1.61
+release=6
+source=(https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/wvstreams/$name-$version.tar.gz \
+        https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/wvstreams/wvstreams-4.6.1.tar.gz \
+        $name-$version.patch \
+        wvstreams-4.6.1-openssl.patch \
+        wvstreams-4.6.1-include_stat.patch \
+        wvstreams-4.6.1-gcc47.patch \
+        wvstreams-4.6.1-use-explicit-cast.patch)
+
+build() {
+
+    sed -i 's/-D_BSD_SOURCE/-D_DEFAULT_SOURCE/' */wvrules.mk
+
+    cd wvstreams-4.6.1
+
+    patch -p1 -i $SRC/wvstreams-4.6.1-use-explicit-cast.patch
+    patch -p1 -i $SRC/wvstreams-4.6.1-openssl.patch
+    patch -p1 -i $SRC/wvstreams-4.6.1-include_stat.patch
+    patch -p1 -i $SRC/wvstreams-4.6.1-gcc47.patch
+
+    ./configure --prefix=/usr --without-{pam,tcl,qt,dbus}
+
+    CXXOPTS='-fno-tree-dce -fno-optimize-sibling-calls -fPIC -DPIC -w' \
+    COPTS='-O2 -fPIC -DPIC' \
+    make -j1
+
+    cd $SRC/$name-$version
+
+    patch -p1 -i $SRC/$name-$version.patch
+
+    ./configure
+    make -j1 WVS=$SRC/wvstreams-4.6.1
+    make DESTDIR=$PKG install
+}

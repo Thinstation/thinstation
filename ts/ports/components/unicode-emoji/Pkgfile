@@ -1,0 +1,20 @@
+# $Id$
+# Maintainer: Felix Yan <felixonmars@archlinux.org>
+
+name=unicode-emoji
+version=11.0
+release=1
+source=("http://www.unicode.org/Public/emoji/$version/emoji-data.txt"
+        "http://www.unicode.org/Public/emoji/$version/emoji-sequences.txt"
+        "http://www.unicode.org/Public/emoji/$version/emoji-test.txt"
+        "http://www.unicode.org/Public/emoji/$version/emoji-variation-sequences.txt"
+        "http://www.unicode.org/Public/emoji/$version/emoji-zwj-sequences.txt"
+        LICENSE)
+
+build() {
+  for _f in data sequences test variation-sequences zwj-sequences; do
+    install -Dm644 emoji-$_f.txt "$PKG/usr/share/unicode/emoji/emoji-$_f.txt"
+  done
+
+  install -Dm644 LICENSE "$PKG/usr/share/licenses/$name/LICENSE"
+}

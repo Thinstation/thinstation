@@ -4,15 +4,22 @@
 # Depends on:  zlib
 
 name=freetype
-version=2.4.4
+archname=freetype2
+version=2.9.1
 release=1
 source=(http://download.savannah.gnu.org/releases/$name/$name-$version.tar.bz2)
 
 build() {
     cd freetype-$version
+sed -ri "s:.*(AUX_MODULES.*valid):\1:" modules.cfg &&
+
+sed -r "s:.*(#.*SUBPIXEL_RENDERING) .*:\1:" \
+    -i include/freetype/config/ftoption.h  &&
+
     ./configure --prefix=/usr \
-		--with-zlib \
-		--disable-nls
+	--enable-freetype-config \
+	--disable-static
+
     make
     make DESTDIR=$PKG install
 }

@@ -4,7 +4,7 @@
 # Depends on:
 
 name=busybox
-version=1.23.1
+version=1.29.1
 release=2
 source=(http://busybox.net/downloads/$name-$version.tar.bz2 ts.config find_pid.patch)
 
@@ -26,7 +26,7 @@ build() {
 		-Os -fno-builtin-strlen -finline-limit=0 -fomit-frame-pointer \
 		-ffunction-sections -fdata-sections -fno-guess-branch-probability \
 		-funsigned-char -falign-functions=1 -falign-jumps=1 -falign-labels=1 \
-		-falign-loops=1 -march=i386 -mpreferred-stack-boundary=2 -Wl,-Map \
+		-falign-loops=1 -march=x86-64 -mpreferred-stack-boundary=4 -Wl,-Map \
 		-Wl,link.map -Wl,--warn-common -Wl,--sort-common -Wl,--gc-sections \
 		httpd_indexcgi.c -o index.cgi
 

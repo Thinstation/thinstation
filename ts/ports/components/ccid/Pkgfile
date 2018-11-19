@@ -4,12 +4,14 @@
 # depends on: pcsc-lite-TS
 
 name=ccid
-version=1.4.27
+version=1.4.26
 release=1
-source=(https://alioth.debian.org/frs/download.php/file/4218/$name-$version.tar.bz2)
+source=(https://alioth.debian.org/frs/download.php/file/4169/$name-$version.tar.bz2 $name-$version-omnikey-3121.patch)
 
 build() {
 	cd $name-$version
+
+	patch -Np1 < ../$name-$version-omnikey-3121.patch
 
 	./configure --prefix=/usr \
 			--sysconfdir=/etc \

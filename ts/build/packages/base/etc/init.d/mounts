@@ -1,0 +1,29 @@
+#!/bin/sh
+
+. `dirname $0`/common
+
+if [ -n "$DEBUG_INIT" ] ; then
+        echo_log "Doing Mounts"
+fi
+
+if is_enabled $MEMORY_CONSTRAINED ; then
+	echo 100 > /proc/sys/vm/swappiness
+else
+	echo 0 > /proc/sys/vm/swappiness
+fi
+
+let x=0
+while [ -n "`eval echo '$MOUNT_'$x`" ]; do
+	mount=`eval echo '$MOUNT_'$x`
+	echo -e "`echo \"$mount\" |sed -e 's/[ ]\+/\t/g'`" >> /etc/fstab
+	let x=x+1
+done
+if ! is_disabled $FASTBOOT && [ "$LM" == "4" ]; then
+	echo -e "`echo \"LABEL=$CDVOLNAME /mnt/cdrom0 auto x-mount.mkdir,defaults 0 0\" |sed -e 's/[ ]\+/\t/g'`" >> /etc/fstab
+fi
+
+mount -a
+mkdir /run/applications
+chmod 777 /run/applications
+exit 0
+

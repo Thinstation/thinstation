@@ -1,0 +1,10 @@
+--- src/mod_dirlisting.c.orig	2018-10-13 20:36:19.964269667 +0000
++++ src/mod_dirlisting.c	2018-10-13 20:36:58.435461552 +0000
+@@ -762,6 +762,7 @@
+ 		buffer_append_string_len(out, CONST_STR_LEN("<title>Index of "));
+ 		buffer_append_string_encoded(out, CONST_BUF_LEN(con->uri.path), ENCODING_MINIMAL_XML);
+ 		buffer_append_string_len(out, CONST_STR_LEN("</title>\n"));
++		buffer_append_string_len(out, CONST_STR_LEN("<link rel=\"shortcut icon\" href=\"/favicon.ico\" />\n"));
+ 
+ 		if (!buffer_string_is_empty(p->conf.external_css)) {
+ 			buffer_append_string_len(out, CONST_STR_LEN("<meta name=\"viewport\" content=\"initial-scale=1\">"));

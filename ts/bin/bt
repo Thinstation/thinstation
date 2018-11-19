@@ -4,6 +4,8 @@ set -e
 
 ISO=build/boot-images/iso/thinstation.iso
 HD=thinstation.img
+procs=`nproc`
+let procs=procs/2
 
 confirm_iso()
 {
@@ -20,18 +22,24 @@ confirm_hd()
 	fi
 }
 
+bridge()
+{
+	if `ifconfig |grep -e br0`; then
+		echo "-net bridge,br=br0 -net nic,macaddr=52:54:00:12F:34f:56"
+	fi
+}
+
 #VGA="-vga qxl -global qxl-vga.vram_size=132710400"
 #VGA="-vga virtio"
-VGA="-vga vmware"
+VGA="-vga qxl"
 SOUND="-soundhw ac97"
-CPU="-smp cores=2,threads=1,sockets=1"
-MEMORY="-m 2047"
+CPU="-smp cores=$procs,threads=1,sockets=1"
+MEMORY="-m 4096"
 #RNG="-object rng-random,id=RNG"
 MOUSE="-usbdevice tablet"
 KVM="-enable-kvm"
 EFI="-L . --bios /usr/share/edk2.git/ovmf-x64/OVMF-with-csm.fd"
-#NETWORK="-net bridge,br=virbr0 -net nic,macaddr=52:54:00:12F:34f:56,model=virtio"
-#NETWORK="-net nic,model=virtio"
+NETWORK=`bridge`
 #QEMU=qemu-system-i386
 QEMU=qemu-system-x86_64
 

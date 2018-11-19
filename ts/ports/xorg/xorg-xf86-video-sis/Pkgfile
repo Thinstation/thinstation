@@ -6,18 +6,12 @@
 name=xorg-xf86-video-sis
 version=0.10.9
 release=1
-source=(http://xorg.freedesktop.org/releases/individual/driver/xf86-video-sis-$version.tar.bz2 \
-	0001-Disable-UploadToScreen-and-DownloadFromScreen.patch \
-	Xi.patch \
-	git-fixes.patch)
 
 build() {
-	cd xf86-video-sis-$version
+	git clone --depth 1 git://anongit.freedesktop.org/xorg/driver/xf86-video-sis
+	cd xf86-video-sis
 
-#	patch -p1 -i $SRC/0001-Disable-UploadToScreen-and-DownloadFromScreen.patch
-#	patch -p1 -i $SRC/Xi.patch
-#	patch -p1 -i $SRC/git-fixes.patch
-
+	./autogen.sh NOCONFIGURE=true
 	./configure --prefix=/usr --mandir=/usr/man
 
 	make

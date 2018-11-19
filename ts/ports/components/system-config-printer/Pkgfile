@@ -3,16 +3,14 @@
 # Maintainer: None
 
 name=system-config-printer
-version=1.4.8
+version=1.4.3
 release=1
-source=(https://github.com/zdohnal/$name/releases/download/v$version/$name-$version.tar.gz)
-source=(https://github.com/zdohnal/$name/archive/$version.tar.gz)
+source=(http://cyberelk.net/tim/data/$name/1.4/$name-$version.tar.xz)
 
 build() {
 	cd $name-$version
 
-	./bootstrap
-	./configure --sysconfdir=/etc --prefix=/usr --with-udev-rules --disable-nls
+	./configure --sysconfdir=/etc --prefix=/usr --with-udev-rules 
 
 	make man_MANS=
 	make DESTDIR=$PKG install man_MANS=

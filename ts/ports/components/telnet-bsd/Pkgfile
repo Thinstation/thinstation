@@ -1,0 +1,40 @@
+# Maintainer: Phillip Smith <fukawi2@NO-SPAM.gmail.com>
+# http://github.com/fukawi2/aur-packages
+# Contributor: Baptiste Daroussin <baptiste.daroussin@gmail.com>
+
+### I AM ONLY THE PACKAGER, NOT THE DEVELOPER
+### Please ask support questions about this software in one of:
+###   1) The AUR comments; OR
+###   2) Upstream forums/maillist etc; OR
+###   3) The ArchLinux forums
+### I do not always know enough about the software itself, or don't have the
+### time to promptly respond to direct emails.
+### If you have found a problem with the package/PKGBUILD (as opposed to
+### the software) then please do email me or post an AUR comment.
+
+name=telnet-bsd
+version=1.2
+release=2
+source=("http://ftp.isr.ist.utl.pt/pub/MIRRORS/ftp.suse.com/people/kukuk/ipv6/$name-$version.tar.bz2"
+        'telnet.xinetd'
+        'telnet.socket'
+        'telnet@.service')
+
+build() {
+  cd "$SRC"/$name-$version
+
+  ./configure --prefix=/usr
+
+  make
+  make DESTDIR="$PKG" install
+
+  install -Dm644 "$SRC"/telnet.xinetd "$PKG"/etc/xinetd.d/telnet
+
+  install -Dm644 "$SRC"/telnet.socket "$PKG"/usr/lib/systemd/system/telnet.socket
+  install -Dm644 "$SRC"/telnet@.service "$PKG"/usr/lib/systemd/system/telnet@.service
+
+  chown -R root:root "$PKG/"
+  rm $PKG/usr/bin/telnet
+  rm $PKG/usr/share/man/man1/telnet.1
+}
+

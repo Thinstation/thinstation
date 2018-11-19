@@ -1,0 +1,20 @@
+# Description: Protocol for the X Resize and Rotate Extension
+# URL: http://xorg.freedesktop.org
+# Maintainer: CRUX Xorg Team, xorg-ports at crux dot nu
+
+name=xorg-xorgproto
+archname=${name#xorg-}
+version=git
+release=1
+#source=(http://xorg.freedesktop.org/releases/individual/proto/randrproto-$version.tar.bz2)
+
+build() {
+	git clone git://anongit.freedesktop.org/git/xorg/proto/xorgproto
+	cd xorgproto
+
+	./autogen.sh NOCONFIGURE=true
+	./configure --prefix=/usr
+
+	make
+	make DESTDIR=$PKG install
+}

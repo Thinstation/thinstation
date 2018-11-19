@@ -1,30 +1,63 @@
-# Description: Secure SHell server and client tools
-# URL:         http://www.openssh.org/
-# Maintainer:  CRUX System Team, core-ports at crux dot nu
-# Depends on:  openssl zlib tcp_wrappers
+# $Id$
+# Maintainer: Gaetan Bisson <bisson@archlinux.org>
+# Contributor: Aaron Griffin <aaron@archlinux.org>
+# Contributor: judd <jvinet@zeroflux.org>
 
 name=openssh
-version=7.5p1
+version=7.4p1
 release=1
-source=(https://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable/${name}-${version}.tar.gz sshd \
-	openssl-1.1.0.patch)
+source=("https://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable/${name}-${version}.tar.gz"
+        'sshdgenkeys.service'
+        'sshd@.service'
+        'sshd.service'
+        'sshd.socket'
+        'sshd.conf'
+        'sshd.pam'
+	'sshd.rc')
 
 build() {
-    cd $name-$version
-    patch -p1 -i $SRC/openssl-1.1.0.patch
-    ./configure --prefix=/usr \
-                --libexecdir=/usr/lib/ssh \
-                --sysconfdir=/etc/ssh \
-                --with-mantype=man \
-                --mandir=/usr/man \
-                --with-tcp-wrappers \
-		--with-kerberos5 \
-                --with-md5-passwords \
-                --with-privsep-user=nobody \
-                --with-privsep-path=/var/empty \
-                --with-xauth=/usr/bin/xauth
-    make
-    make DESTDIR=$PKG install
-    install -D -m 755 $SRC/sshd $PKG/etc/rc.d/sshd
-    rm -rf $PKG/usr/share $PKG/var
+	cd "${SRC}/${name}-${version}"
+
+	./configure \
+		--prefix=/usr \
+		--sbindir=/usr/bin \
+		--libexecdir=/usr/lib/ssh \
+		--sysconfdir=/etc/ssh \
+		--with-ldns \
+		--with-libedit \
+		--with-ssl-engine \
+		--with-pam \
+		--with-privsep-user=nobody \
+		--with-kerberos5=/usr \
+		--with-xauth=/usr/bin/xauth \
+		--with-md5-passwords \
+		--with-pid-dir=/run \
+
+	make
+
+	# Connectivity tests will fail with makechrootpkg since
+	# it runs as nobody which has /bin/false as login shell.
+
+	make DESTDIR="${PKG}" install
+
+	ln -sf ssh.1.gz "${PKG}"/usr/share/man/man1/slogin.1.gz
+	install -Dm644 LICENCE "${PKG}/usr/share/licenses/${name}/LICENCE"
+
+	install -Dm644 ../sshdgenkeys.service "${PKG}"/usr/lib/systemd/system/sshdgenkeys.service
+	install -Dm644 ../sshd@.service "${PKG}"/usr/lib/systemd/system/sshd@.service
+	install -Dm644 ../sshd.service "${PKG}"/usr/lib/systemd/system/sshd.service
+	install -Dm644 ../sshd.socket "${PKG}"/usr/lib/systemd/system/sshd.socket
+	install -Dm644 ../sshd.conf "${PKG}"/usr/lib/tmpfiles.d/sshd.conf
+	install -Dm644 ../sshd.pam "${PKG}"/etc/pam.d/sshd
+	install -Dm644 ../sshd.rc "${PKG}"/etc/rc.d/sshd
+
+	install -Dm755 contrib/findssl.sh "${PKG}"/usr/bin/findssl.sh
+	install -Dm755 contrib/ssh-copy-id "${PKG}"/usr/bin/ssh-copy-id
+	install -Dm644 contrib/ssh-copy-id.1 "${PKG}"/usr/share/man/man1/ssh-copy-id.1
+
+	sed \
+		-e '/^#ChallengeResponseAuthentication yes$/c ChallengeResponseAuthentication no' \
+		-e '/^#PrintMotd yes$/c PrintMotd no # pam does that' \
+		-e '/^#UsePAM no$/c UsePAM yes' \
+		-i "${PKG}"/etc/ssh/sshd_config
 }

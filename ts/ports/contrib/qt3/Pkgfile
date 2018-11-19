@@ -1,105 +1,89 @@
-# Description: Qt Free Edition
-# URL:         http://www.trolltech.com
-# Packager:    Daniel Mueller, daniel at danm dot de
-# Maintainer:  Alan Mizrahi, alan at mizrahi dot com dot ve
-# Depends on:  freeglut, xorg-libxcursor, xorg-xrandr, xorg-libxft, xorg-libxinerama, xorg-libxi, xorg-libice, libpng, libmng
+# Submbitter: Eric Bélanger <eric@archlinux.org>
+# Maintainer: McNoggins <gagnon88 (at) gmail (dot) com>
 
 name=qt3
-version=3.3.8
-release=2
-source=(
-	ftp://ftp.trolltech.com/qt/source/qt-x11-free-$version.tar.bz2
-	$name-$version-gcc4.patch 
-	qt-x11-free-3.3.5-no-rpath.patch
-	qt3-libpng14.patch
-)
+version=3.3.8b
+release=9
+CARCH=x86_64
+source=(http://download.qt.io/archive/qt/3/qt-x11-free-${version}.tar.gz
+        qt3-png15.patch qt-copy-kde-patches.tar.bz2 qt-patches.tar.bz2
+        eastern_asian_languagues.diff qt-odbc.patch gcc-4.6.patch
+        qt-x11-free-3.3.5-makelibshared.patch)
 
 build() {
-    cd qt-x11-free-$version
+  cd qt-x11-free-${version}
+  # apply qt patches from kde.org
+  for i in ../qt-copy-kde-patches/*; do
+    patch -p0 -i $i 
+  done
+  # apply other qt patches and one security fix from debian/gentoo
+  for i in ../qt-patches/*; do
+    patch -p1 -i $i 
+  done
+  # fix CJK font/chars select error (FS#11245)
+  patch -p1 -i "${SRC}"/eastern_asian_languagues.diff 
+  # fix build problem against new unixODBC
+  patch -p1 -i "${SRC}"/qt-odbc.patch 
+  # fix build with gcc 4.6.0
+  patch -p1 -i "${SRC}"/gcc-4.6.patch
+  patch -p0 -i "${SRC}"/qt3-png15.patch 
 
-    # KDE patches (http://websvn.kde.org/branches/qt/3.3/qt-copy/patches/?rev=784432)
-    for i in $(ls $SRC/$name-patches/* | sort); do
-        patch -p0 -i $i
-    done
+  patch -p1 -i "${SRC}"/qt-x11-free-3.3.5-makelibshared.patch
 
-    # gcc4 + 64bit issue
-    patch -p1 -i $SRC/$name-$version-gcc4.patch
-    patch -p0 -i $SRC/qt-x11-free-3.3.5-no-rpath.patch
+  sed -i "s|-O2|$CXXFLAGS|" mkspecs/linux-g++{,-32,-64}/qmake.conf
+  sed -i "s|-I. |$CXXFLAGS -I. |" qmake/Makefile.unix
+  sed -i "s|read acceptance|acceptance=yes|" configure
 
-    # libpng-1.4 structure changes
-    patch -p1 -i $SRC/qt3-libpng14.patch
+  export QTDIR="${SRC}"/qt-x11-free-${version}
+  export PATH=${QTDIR}/bin:${PATH}
+  export LD_LIBRARY_PATH=${QTDIR}/lib:${LD_LIBRARY_PATH}
+  export QMAKESPEC=$QTDIR/mkspecs/linux-g++
+
+  if [ "$CARCH" = "x86_64" ]; then
+      export ARCH="-64"	
+    else unset ARCH
+  fi
 
     local SQL
     if [ "`pkginfo -i | grep mysql`" ];then
         SQL="-qt-sql-mysql -I/usr/include/mysql -L/usr/lib/mysql"
     fi
 
-    if [ -d /usr/include/nvidia ]; then
-        export CFLAGS="$CFLAGS -I/usr/include/nvidia"
-        export CXXFLAGS="$CXXFLAGS -I/usr/include/nvidia"
-    fi
+  ./configure \
+    -prefix /usr/share/qt3 \
+    -bindir /usr/share/qt3/bin \
+    -headerdir /usr/include/qt3 \
+    -libdir /usr/lib \
+    -plugindir /usr/lib/qt3 \
+    -platform linux-g++$ARCH \
+    -system-zlib \
+    -qt-gif \
+    -release \
+    -shared \
+    -sm \
+    -nis \
+    -thread \
+    -stl \
+    -system-lib{png,jpeg,mng} \
+    -no-g++-exceptions \
+    $SQL
 
-    # don't link against our currently installed libraries
-    export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:`pwd`/lib"
-    rm -rf {doc/html,examples,tutorial}
+  make
+  make INSTALL_ROOT="${PKG}" install
+  sed -i -e "s|-L${SRC}/qt-x11-free-${version}/lib ||g" -e "s|${SRC}/||g" "${PKG}"/usr/lib/*.prl
+  rm -rf "${PKG}"/usr/share/qt3/{phrasebooks,templates,translations}
+  rm -rf "${PKG}"/usr/share/qt3/mkspecs/{aix*,*bsd*,cygwin*,dgux*,darwin*,hpux*,hurd*,irix*,linux-g++$ARCH/linux-g++$ARCH,lynxos*,macx*,qnx*,reliant*,sco*,solaris*,tru64*,unixware*,win32*} 
 
-    # we don't want docs, sample code; please use our optimizations flags
-    sed -i "s|sub-tutorial sub-examples| |" Makefile
-    sed -i "s|-O2|$CXXFLAGS|" mkspecs/linux-g++/qmake.conf
-    sed -i "s|-I. |$CXXFLAGS -I. |" qmake/Makefile.unix
-    sed -i "s|read acceptance|acceptance=yes|" configure
-    sed -i 's|X11R6/||g' mkspecs/*/*.conf
-    [ "$CC" ] && sed -i "s|gcc|$CC|" mkspecs/*/*.conf
-    [ "$CXX" ] && sed -i "s|g++|$CXX|" mkspecs/*/*.conf
+# install man pages
+  install -d -m755 "${PKG}"/usr/share/man
+  cp -r "${SRC}"/qt-x11-free-${version}/doc/man/{man1,man3} "${PKG}"/usr/share/man/
+  for i in "${PKG}"/usr/share/man/man1/*; do
+    mv $i ${i%.*}-qt3.1
+  done
 
-    ./configure -prefix /usr/share/qt3 \
-        -bindir /usr/share/qt3/bin \
-        -headerdir /usr/include/qt3 \
-        -libdir /usr/lib \
-        -plugindir /usr/lib/qt3 \
-        -platform linux-g++ -release -shared -thread -sm \
-        -tablet -nis -verbose -qt-gif -system-zlib \
-        -{system-lib,plugin-imgfmt-}{png,jpeg,mng} \
-        -no-{cups,fast,exceptions,nas-sound} \
-        -x{cursor,ft,inerama,kb,randr,render} \
-        $SQL
-
-    make src-moc sub-src 
-
-    # Makefile magic, don't link against our currently installed libs
-    find . -name Makefile -exec sed -i "s|,/usr/lib|,`pwd`/lib|" {} \;
-    make sub-tools 
-    make INSTALL_ROOT=$PKG install
-
-    for i in mergetr msg2qm qconfig qembed qvfb; do
-        (cd tools/$i/;make SUBLIBS="-lpng -lmng";mv $i $PKG/usr/share/qt3/bin/)
-    done
-    mv bin/{findtr,qtrename140} $PKG/usr/share/qt3/bin/
-
-    mkdir -p $PKG/usr/bin
-    for i in $PKG/usr/share/qt3/bin/*
-    do
-	f="`basename $i`"
-	ln -s ../share/qt3/bin/$f $PKG/usr/bin/$f-qt3
-    done
-
-    mkdir $PKG/usr/man
-    mv doc/man/man1 $PKG/usr/man
-
-    rm -rf `find $PKG/usr/share/qt/mkspecs/* | grep -v linux-g++` \
-        $PKG/usr/share/qt3/{phrasebooks,templates,translations} \
-        $PKG/usr/include/qt3/{j,n}*
-    rm -f $PKG/usr/share/qt3/mkspecs/linux-g++/linux-g++
-
-    ln -s ../../include/qt3 $PKG/usr/share/qt3/include
-    ln -s ../../lib        $PKG/usr/share/qt3/lib
-    ln -s ../../lib/qt3     $PKG/usr/share/qt3/plugins
-    ln -s linux-g++        $PKG/usr/share/qt3/mkspecs/default
-
-    # correct qmake's PRL files (the libraries were placed into /usr/lib*/ and
-    # not in our temporary build directory ./work/src/..)
-    sed -i "s|-L$SRC/qt-x11-free-$version/lib ||g" $PKG/usr/lib/*.prl
-
-    chmod -R u+w,g-sw  $PKG
-    chown -R root:root $PKG
+# Useful symlinks for cmake and configure scripts
+  install -d "${PKG}"/usr/bin
+  for b in "${PKG}"/usr/lib/qt3/bin/*; do
+    ln -s /usr/lib/qt3/bin/$(basename $b) "${PKG}"/usr/bin/$(basename $b)-qt3
+  done
 }

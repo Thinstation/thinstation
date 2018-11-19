@@ -1,0 +1,19 @@
+. $TS_GLOBAL
+
+# Enable Verbose mode of Debug Package
+if [ -n "$DEBUG_BOOT" ] ; then
+	debug="-d"
+fi
+if [ -n "$DEBUG_INIT" ]; then
+	set -v
+fi
+
+if [ -n "$DEBUG_BOOT" ]; then
+	echo -n `echo "$PACKAGE -"`" "
+	echo "$PACKAGE" >> $LOGFILE
+fi
+
+1>> $LOGFILE
+if [ -z "$DEBUG_PACKAGES" ]; then
+	2>> $LOGFILE
+fi

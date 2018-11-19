@@ -9,18 +9,27 @@ tar -C wget_tmp -zxf ./wget_tmp/$gzname
 let returnval=$?
 
 chmod -R u+w ./wget_tmp
-cp -Prf ./wget_tmp/packages/thinlinc/* $INSTALLDIR/.
-
-mv $INSTALLDIR/usr/icons $INSTALLDIR/lib/pixmaps
-rmdir $INSTALLDIR/usr
+cp -Prf ./wget_tmp/*/* $INSTALLDIR/.
 
 mkdir -p $INSTALLDIR/lib/icons/hicolor/scalable/apps
-cp $INSTALLDIR/lib/thinlinc/lib/tlclient/tlclient.svg \
+cp $INSTALLDIR/lib/tlclient/tlclient.svg \
 	$INSTALLDIR/lib/icons/hicolor/scalable/apps/thinlinc.svg
 icon-gen thinlinc
 
-sed -i -e 's/needs="x11";/needs="x11"; menu="Connectivity";/g' $INSTALLDIR/lib/menu/thinlinc
-sed -i -e 's/ \[fs\]//g' $INSTALLDIR/lib/menu/thinlinc
-echo -e "base\n" > $INSTALLDIR/dependencies
+rm $INSTALLDIR/lib/tlclient/pulseaudio
+ln -sf /bin/pulseaudio $INSTALLDIR/lib/tlclient/pulseaudio
+
+for dir in `find $INSTALLDIR/build/extra -type d -printf "%P\n"`; do
+	mkdir -p $INSTALLDIR/$dir
+done
+IFS=$'\n\t'
+for file in `find $INSTALLDIR/build/extra ! -type d -printf "%P\n"`; do
+	if [ -e $INSTALLDIR/"$file" ]; then
+		rm $INSTALLDIR/"$file"
+	fi
+	ln $INSTALLDIR/build/extra/"$file" $INSTALLDIR/"$file"
+done
+unset IFS
+
 
 exit $returnval

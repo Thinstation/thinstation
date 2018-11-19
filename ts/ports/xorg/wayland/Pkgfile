@@ -1,0 +1,25 @@
+# Description:	Wayland Compositor Infrastructure
+# URL:	http://wayland.freedesktop.org/
+# Maintainer:	Simon THOBY, simonthoby at live dot fr
+# Depends on:	git
+
+name=wayland
+version=git
+release=1
+source=()
+
+build() {
+	cd $PKGMK_SOURCE_DIR
+	if [ ! -d $name ]; then
+		git clone git://anongit.freedesktop.org/$name/$name $name
+	else
+		cd $name && git pull
+	fi
+	cp -r $PKGMK_SOURCE_DIR/$name $SRC
+	
+	cd $SRC/$name
+
+	./autogen.sh --prefix=/usr --disable-static --disable-documentation
+	make
+	make DESTDIR=$PKG install
+}

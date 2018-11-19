@@ -1,0 +1,22 @@
+# Description:	Simple and Efficient Reading/Writing/Modifying of Complete Files
+# URL:		http://search.cpan.org/~uri/File-Slurp/
+# Maintainer:	
+# Depends on:	perl
+
+name=p5-file-slurp
+version=9999.19
+release=1
+source=(http://search.cpan.org/CPAN/authors/id/U/UR/URI/File-Slurp-${version}.tar.gz)
+
+build() {
+	cd File-Slurp-$version
+
+	# PERL_MM_USE_DEFAULT=1 \
+	perl Makefile.PL
+	make OPTIMIZE="$CFLAGS" DESTDIR="$PKG" install
+
+	find "$PKG" -depth \
+		-type f \( -name .packlist -o -name \*.bs -o -name perllocal.pod \) -delete , \
+		-type f -name autosplit.ix \( -exec grep -q '^[[:space:]]*package' {} \; -o -delete \) , \
+		-type d -empty -exec rmdir {} +
+}

@@ -3,17 +3,25 @@
 # Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 
 name=cryptodev-linux
-version=1.7
+version=git
 release=1
-kernel=`cat /ts/ports/kernel-modules/VERSION`
-source=(http://download.gna.org/cryptodev-linux/cryptodev-linux-$version.tar.gz)
+kver=`cat /ts/ports/kernel-modules/VERSION`
 
 build() {
-	cd $name-$version
-	export REPORT_KERNEL=${kernel}TS_SMP
+	git clone --depth 1 https://github.com/cryptodev-linux/cryptodev-linux.git
+	cd $name
 
-	make
-	make install PREFIX=$PKG
+	for KERNELTYPE in TS TS+con; do
+		export REPORT_KERNEL=${kver}$KERNELTYPE
 
-	chmod 644 $PKG/usr/include/crypto/cryptodev.h
+		make -j1
+		install -m 644 -D crypto/cryptodev.h $PKG/usr/include/crypto/cryptodev.h
+		install -m 644 -D cryptodev.ko $PKG/lib/modules/`uname -r`/kernel/extra/cryptodev.ko
+
+		/usr/src/kernels/$REPORT_KERNEL/scripts/sign-file \
+		sha256 /etc/ssl/keys/kernel.key \
+		/etc/ssl/certs/kernel.crt \
+	        $PKG/lib/modules/$REPORT_KERNEL/kernel/extra/cryptodev.ko
+		make clean
+	done
 }

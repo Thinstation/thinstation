@@ -4,30 +4,22 @@
 # Depends on:  db gdbm
 
 name=perl
-version=5.20.0
+version=5.24.1
 release=1
-source=(http://www.cpan.org/src/5.0/$name-$version.tar.bz2)
+source=(http://www.cpan.org/src/5.0/$name-$version.tar.xz)
 
 build() {
     cd $name-$version
 
-    # Use system zlib
-    sed -i -e "s|BUILD_ZLIB\s*= True|BUILD_ZLIB = False|" \
-	-e "s|INCLUDE\s*= ./zlib-src|INCLUDE = /usr/include|" \
-	-e "s|LIB\s*= ./zlib-src|LIB = /usr/lib|" \
-	cpan/Compress-Raw-Zlib/config.in
-
     ./Configure -des \
                 -Dprefix=/usr \
-                -Dprivlib=/usr/lib/perl5/core_perl/${version%.*} \
-                -Dsitelib=/usr/lib/perl5/site_perl/${version%.*} \
-		-Dvendorlib=/usr/lib/perl5/vendor_perl/${version%.*} \
 		-Dvendorprefix=/usr \
+                -Dprivlib=/usr/lib/perl5/${version%.*} \
+                -Dsitelib=/usr/lib/perl5/site_perl/${version%.*} \
+                -Dvendorlib=/usr/lib/perl5/vendor_perl/${version%.*} \
                 -Darchname=linux \
                 -Dman1ext=1pm \
                 -Dman3ext=3pm \
-                -Dman1dir=/usr/man/man1 \
-                -Dman3dir=/usr/man/man3 \
                 -Di_gdbm \
                 -Di_db \
                 -Duseshrplib \
@@ -38,9 +30,7 @@ build() {
 
     ln -sf perl${version%-*} $PKG/usr/bin/perl
     ln -sf c2ph $PKG/usr/bin/pstruct
-    ln -sf s2p $PKG/usr/bin/psed
-    ln -sf c2ph.1pm $PKG/usr/man/man1/pstruct.1pm
-    ln -sf s2p.1pm $PKG/usr/man/man1/psed.1pm
+    ln -sf c2ph.1pm $PKG/usr/share/man/man1/pstruct.1pm
 
     find $PKG \
          -iname 'TODO*' -or \
@@ -49,7 +39,7 @@ build() {
          -name '*.bs' -or \
          -name '.packlist' -or \
          -name 'perllocal.pod' | xargs rm
-
+    
     find $PKG -depth -empty -exec rmdir {} \;
     chmod -R +w $PKG
 }

@@ -1,0 +1,22 @@
+# Description:	Keep imports out of your namespace
+# URL:		https://github.com/moose/namespace-autoclean
+# Maintainer:	
+# Depends on:	p5-b-hooks-endofscope p5-namespace-clean p5-sub-identify
+
+name=p5-namespace-autoclean
+version=0.28
+release=1
+source=(http://search.cpan.org/CPAN/authors/id/E/ET/ETHER/namespace-autoclean-${version}.tar.gz)
+
+build() {
+	cd namespace-autoclean-$version
+
+	# PERL_MM_USE_DEFAULT=1 \
+	perl Makefile.PL
+	make OPTIMIZE="$CFLAGS" DESTDIR="$PKG" install
+
+	find "$PKG" -depth \
+		-type f \( -name .packlist -o -name \*.bs -o -name perllocal.pod \) -delete , \
+		-type f -name autosplit.ix \( -exec grep -q '^[[:space:]]*package' {} \; -o -delete \) , \
+		-type d -empty -exec rmdir {} +
+}

@@ -1,17 +1,19 @@
 #!/bin/bash
 trap "exit 1" SIGINT SIGHUP SIGTERM
 
-export TSVER=5.6
+export TSVER=6.1
 export TSWRKNG=/ts/build
+export XTRWRKNG=
 export TSPKGROOT=ts/build/packages
 export TSCOMPROOT=ts/components
-export REPORT_ARCH=i686
 export LANG=C
 export LANGUAGE=C
 export LC_ALL=C
-PATH=$PATH:/ts/bin:/sbin:/bin:/usr/sbin
+PATH=/usr/local/sbin:/usr/sbin:/sbin:/usr/local/bin:/usr/bin:/bin:/root/bin:/ts/bin
 export PATH
 export PAGER=most
+#export XZ_OPT="--threads=0"
+export MACHTYPE=x86_64-pc-linux-gnu
 if [ -n "$chuser" ]; then
 	export HOME=/home/$chuser
 else
@@ -19,6 +21,8 @@ else
 fi
 if [ -e /opt/jre/bin/java ]; then
 	PATH=$PATH:/opt/jre/bin
+elif [ -e  /usr/lib/jdk/bin/java ]; then
+	PATH=$PATH:/usr/lib/jdk/bin
 fi
 if [ -e /opt/meld/bin/meld ]; then
 	PATH=$PATH:/opt/meld/bin
@@ -26,11 +30,13 @@ fi
 if [ -e /dostage2 ] ; then
 	/ts/bin/install_chroot
 fi
-if [ ! -e /root/.nanorc ] ;
-	then cp -f /ts/.nanorc /root/.
-fi
 
 cp -af /ts/etc/* /etc/.
+if [ -n "$XTRWRKNG" ]; then
+	for i in $XTRWRKNG; do
+		cat $XTRWRKNG/ports/prt-get.conf >> /etc/prt-get.conf
+	done
+fi
 
 if [ -e /dostage3 ] ; then
 	/ts/bin/install_chroot

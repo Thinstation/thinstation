@@ -1,0 +1,22 @@
+# Description:	Database of robots.txt-derived permissions
+# URL:		http://search.cpan.org/~gaas/WWW-RobotRules/
+# Maintainer:	
+# Depends on:	p5-uri
+
+name=p5-www-robotrules
+version=6.02
+release=1
+source=(http://search.cpan.org/CPAN/authors/id/G/GA/GAAS/WWW-RobotRules-${version}.tar.gz)
+
+build() {
+	cd WWW-RobotRules-$version
+
+	# PERL_MM_USE_DEFAULT=1 \
+	perl Makefile.PL
+	make OPTIMIZE="$CFLAGS" DESTDIR="$PKG" install
+
+	find "$PKG" -depth \
+		-type f \( -name .packlist -o -name \*.bs -o -name perllocal.pod \) -delete , \
+		-type f -name autosplit.ix \( -exec grep -q '^[[:space:]]*package' {} \; -o -delete \) , \
+		-type d -empty -exec rmdir {} +
+}

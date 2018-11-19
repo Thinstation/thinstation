@@ -4,12 +4,16 @@
 # Depends on:
 
 name=wireless-tools
-version=29
+archname=wireless_tools
+version=30.pre9
 release=1
 source=(http://www.hpl.hp.com/personal/Jean_Tourrilhes/Linux/${name/-/_}.$version.tar.gz)
 
 build() {
-	cd ${name/-/_}.$version
-	make && make PREFIX=$PKG/usr install
+	cd ${name/-/_}.${version%.pre*}
+	sed '/BUILD_STATIC =/d' -i Makefile
+
+	make CFLAGS="${CFLAGS} -I." LDFLAGS="${LDFLAGS}"
+	make PREFIX=$PKG/usr install
 }
 

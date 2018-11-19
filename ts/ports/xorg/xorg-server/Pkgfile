@@ -4,18 +4,48 @@
 # Depends on: udev util-linux mesa3d xorg-bdftopcf xorg-bigreqsproto xorg-libdmx xorg-libpixman xorg-libxaw xorg-libxcomposite xorg-libxcursor xorg-libxft xorg-libxinerama xorg-libxkbfile xorg-libxrandr xorg-libxres xorg-libxtst xorg-libxvmc xorg-libxxf86dga xorg-mkfontdir xorg-mkfontscale xorg-scrnsaverproto xorg-xcmiscproto xorg-xf86driproto
 
 name=xorg-server
-version=1.19.6
+version=1.20.3
 release=1
 source=(http://xorg.freedesktop.org/releases/individual/xserver/xorg-server-$version.tar.bz2 \
-	xorg-gcc.patch)
+	0001-Xext-shm-Refuse-to-work-for-remote-clients.patch
+	0001-v2-FS-58644.patch
+	0002-fix-libshadow-2.patch
+	xserver-1-2-glamor-Always-return-0-from-glamor_fds_from_pixmap-on-error.patch
+	xserver-2-2-glamor-Propagate-glamor_fds_from_pixmap-error-in-glamor_fd_from_pixmap.patch
+	xserver-autobind-hotplug.patch
+	xserver-modesetting-use-drmmode_bo_import-for-rotate_fb.patch
+	0003_Use_PictureMatchFormat_for_source-only_picture_format.diff)
 
 build() {
 #    git clone --depth 1 git://anongit.freedesktop.org/xorg/xserver
 #    cd xserver
 #    ./autogen.sh
     cd $name-$version
-#    patch -Np1 -i $SRC/xorg-gcc.patch
-#   patch -Np1 < $SRC/xorg-server-1.15.0-add_prime_support-1.patch
+
+  # patch from Fedora, not yet merged
+  patch -Np1 -i ../xserver-autobind-hotplug.patch
+
+  # Fix rootless xorg - FS#58644
+  # https://bugs.freedesktop.org/show_bug.cgi?id=106588
+  patch -Np1 -i ../0001-v2-FS-58644.patch
+
+  # Fix XWayland hangs - FS#58705
+  # https://patchwork.freedesktop.org/series/43618/
+#  patch -Np1 -i ../xserver-1-2-glamor-Always-return-0-from-glamor_fds_from_pixmap-on-error.patch
+#  patch -Np1 -i ../xserver-2-2-glamor-Propagate-glamor_fds_from_pixmap-error-in-glamor_fd_from_pixmap.patch
+  
+  # Fix libshadow.so: libfb.so => not found - FS#58731
+  # https://bugs.freedesktop.org/show_bug.cgi?id=106656
+  patch -Np1 -i ../0002-fix-libshadow-2.patch
+
+  # FS#58662
+#  patch -Np1 -i ../0003_Use_PictureMatchFormat_for_source-only_picture_format.diff
+
+  # Display incorrect when rotated 90 degree - FS#58637
+#  patch -Np1 -i ../xserver-modesetting-use-drmmode_bo_import-for-rotate_fb.patch
+
+  # SSH X11 forwarding no longer works for Qt apps - FS#58962
+#  patch -Np1 -i ../0001-Xext-shm-Refuse-to-work-for-remote-clients.patch
 
     ./configure --prefix=/usr \
 		--sysconfdir=/etc \
@@ -34,21 +64,22 @@ build() {
 		--enable-glamor \
 		--enable-glx-tls \
 		--enable-config-udev \
+		--enable-suid-wrapper \
+		--disable-systemd-logind \
+		--disable-install-setuid \
 		--enable-record \
 		--disable-xfbdev \
 		--disable-xfake \
 		--disable-static \
 		--with-sha1=libgcrypt \
 		--with-builder-addr="doncuppjr@yahoo.com" \
-		--with-os-vendor="Thinstation" \
+		--with-os-vendor="ThinStation" \
 		--with-vendor-name="ThinStation made by Don Cupp" \
 		--with-vendor-name-short="ThinStation" \
 		--with-vendor-web="http://www.thinstation.org" \
-		--with-os-name="ThinStation" \
+		--with-os-name="Composer" \
 		--with-builderstring="Donald A. Cupp Jr." \
-		--enable-xcsecurity \
-		--without-systemd-daemon \
-                --disable-systemd-logind
+		--enable-xcsecurity
 
     make
     make DESTDIR=$PKG install

@@ -1,0 +1,22 @@
+# Description:	Data tables useful in parsing HTML
+# URL:		http://search.cpan.org/~petdance/HTML-Tagset/
+# Maintainer:	
+# Depends on:	perl
+
+name=p5-html-tagset
+version=3.20
+release=1
+source=(http://search.cpan.org/CPAN/authors/id/P/PE/PETDANCE/HTML-Tagset-${version}.tar.gz)
+
+build() {
+	cd HTML-Tagset-$version
+
+	# PERL_MM_USE_DEFAULT=1 \
+	perl Makefile.PL
+	make OPTIMIZE="$CFLAGS" DESTDIR="$PKG" install
+
+	find "$PKG" -depth \
+		-type f \( -name .packlist -o -name \*.bs -o -name perllocal.pod \) -delete , \
+		-type f -name autosplit.ix \( -exec grep -q '^[[:space:]]*package' {} \; -o -delete \) , \
+		-type d -empty -exec rmdir {} +
+}

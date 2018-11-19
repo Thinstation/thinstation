@@ -1,0 +1,17 @@
+# $Id$
+# Maintainer: Jan de Groot <jgc@archlinux.org>
+
+name=libgdata
+version=0.17.9
+release=1
+
+build() {
+  git clone https://git.gnome.org/browse/libgdata
+  cd $name
+  NOCONFIGURE=1 ./autogen.sh --add-missing
+#  sed -i '/git-directory/d' configure
+  ./configure --prefix=/usr --disable-static --enable-gtk-doc --disable-always-build-tests
+  sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
+  make
+  make DESTDIR="$PKG" install
+}

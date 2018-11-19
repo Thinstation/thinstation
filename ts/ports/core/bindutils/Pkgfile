@@ -4,14 +4,13 @@
 # Depends on:  openssl
 
 name=bindutils
-version=9.12.0
-release=1
+version=9.9.7-P1
+release=2
 source=(ftp://ftp.isc.org/isc/bind9/$version/bind-$version.tar.gz)
 
 build() {
     cd bind-$version
 
-    sed -i -e "s/json\.h/json_config.h/" configure
     ./configure --prefix=/usr \
                 --disable-linux-caps \
                 --with-libxml2=no
@@ -20,7 +19,7 @@ build() {
     make -C bin/dig
 
     install -D -m 755 bin/dig/host $PKG/usr/bin/host
-    install -D -m 644 bin/dig/host.1 $PKG/usr/man/man1/host.1
+    install -D -m 644 bin/dig/host.1 $PKG/usr/share/man/man1/host.1
     install -D -m 755 bin/dig/dig $PKG/usr/bin/dig
-    install -D -m 644 bin/dig/dig.1 $PKG/usr/man/man1/dig.1
+    install -D -m 644 bin/dig/dig.1 $PKG/usr/share/man/man1/dig.1
 }

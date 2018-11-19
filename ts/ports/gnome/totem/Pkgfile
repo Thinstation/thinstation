@@ -5,26 +5,13 @@
 # Group: gnome/desktop
 
 name=totem
-version=3.24.0
+version=3.26.0
 release=1
 source=(http://ftp.gnome.org/pub/GNOME/sources/$name/${version%.*}/$name-$version.tar.xz)
 
 build() {
 	cd $name-$version
-
-	LINGUAS=en
-	export LINGUAS
-	./configure --prefix=/usr \
-		--libexecdir=/usr/libexec \
-		--sysconfdir=/etc \
-		--with-help-formats="NONE" \
-		--disable-scrollkeeper \
-		 \
-		--disable-static \
-		--enable-shared \
-		
-
-	make
-	make DESTDIR=$PKG install
-	rm -rf $PKG/usr/share/gtk-doc
+        meson . build -D enable_docs=true --prefix=/usr --libdir=/usr/lib
+        ninja -C build
+        DESTDIR=$PKG ninja -C build install
 }

@@ -1,0 +1,18 @@
+# $Id$
+# Maintainer: Antonio Rojas <arojas@archlinux.org>
+# Contributor: Tom Gundersen <teg@jklm.no>
+# Contributor: damir <damir@archlinux.org>
+# Contributor: Kevin Edmonds <edmondskevin@hotmail.com>
+
+name=libmtp
+version=1.1.15
+release=1
+source=("https://downloads.sourceforge.net/$name/$name-$version.tar.gz")
+
+build() {
+  cd $name-$version
+  ./configure --prefix=/usr --with-udev=/usr/lib/udev
+  make
+  make -k check
+  make DESTDIR="$PKG" install
+}

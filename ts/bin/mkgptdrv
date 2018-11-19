@@ -301,10 +301,12 @@ copy_files()
 
 copy_overlay()
 {
+set -x
 	if [ -n "$overlay" ]; then
 		echo -e "\nCopying in the Overlay Directory"
 		copy_dir "$overlay"	"$ESP"
 	fi
+set +x
 }
 
 efi_ready()
@@ -652,8 +654,7 @@ partition()
 	dd if=/dev/zero of=$device bs=1M count=2; orbail 16
 	dd if=/dev/zero of=$device bs=512 count=32 seek=$(($disk_size - 32)); orbail 17
 	sync
-	sleep 1
-	blockdev --rereadpt $device || blockdev --rereadpt $device; orbail 18
+	blockdev --rereadpt $device; orbail 18
 	echo ""
 	sgdisk -o $device; orbail 19
 	sync
@@ -736,9 +737,9 @@ format()
 			;;
 			8300|8302)
 				if [ -n "${label[$part]}" ]; then
-					mkfs.ext4 ${device}${p}${ID[$part]} -L "${label[$part]}"; orbail 25
+					mkfs.ext4 ${device}${p}${ID[$part]} -F -L "${label[$part]}"; orbail 25
 				else
-					mkfs.ext4 ${device}${p}${ID[$part]}; orbail 26
+					mkfs.ext4 ${device}${p}${ID[$part]} -F; orbail 26
 				fi
 			;;
 			8200)

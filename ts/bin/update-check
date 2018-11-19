@@ -1,0 +1,19 @@
+#!/bin/bash
+# this should call update on all packages, without running build. Useful for testing if update still works for all packages.
+
+update_package()
+{
+	cd /build
+	pkg=`basename $1`
+	echo $pkg
+	if [ -e packages/$pkg/build/install ]; then
+		touch packages/$pkg/build/installed
+	fi
+	/ts/bin/update $pkg
+}
+export -f update_package
+export AUTODL=true
+
+cd /build
+procs=15
+ls --color=never packages |grep -Ev 'libreoffice|wine' |xargs -n 1 -P $procs -I {} bash -c 'update_package "$@"' _ {}

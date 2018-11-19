@@ -1,17 +1,18 @@
 # Description: Library giving userland programs access to USB devices
-# URL:         http://libusb.sourceforge.net/
+# URL:         http://libusb.info
 # Maintainer:  CRUX System Team, core-ports at crux dot nu
+# Depends on:  eudev
 
 name=libusb
-version=1.0.21
+version=1.0.22
 release=1
-source=(https://github.com/$name/$name/releases/download/v$version/$name-$version.tar.bz2)
+source=(http://downloads.sourceforge.net/project/$name/$name-1.0/$name-${version%-*}/$name-$version.tar.bz2)
 
 build () {
     cd $name-$version
     
-    ./configure --prefix=/usr 
-    make
+    ./configure --prefix=/usr --disable-static
+    make -j1
     make DESTDIR=$PKG install
     
     install -d $PKG/lib

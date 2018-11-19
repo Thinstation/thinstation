@@ -5,18 +5,22 @@
 # Depends on: alsa-lib mesa3d
 
 name=libsdl
-version=1.2.14
-release=2
+version=1.2.15
+release=3
 source=(http://www.libsdl.org/release/SDL-$version.tar.gz \
-        $name.patch)
+        $name-1.2.x-libx11.patch $name-$version-bs.patch)
 
 build () {
   cd SDL-$version
-  patch -p1 -i $SRC/$name.patch
+
+  patch -p1 -i $SRC/$name-1.2.x-libx11.patch
+  patch -p1 -i $SRC/$name-$version-bs.patch
 
   ./configure --prefix=/usr \
               --enable-alsa \
-              --mandir=/usr/man
+              --mandir=/usr/man \
+              --disable-static
   make
   make DESTDIR=$PKG install
+chown -R root.root $PKG
 }

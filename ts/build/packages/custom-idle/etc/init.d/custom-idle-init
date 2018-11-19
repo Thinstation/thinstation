@@ -1,0 +1,31 @@
+#! /bin/sh
+
+. `dirname $0`/common
+LOGGERTAG="custom-idle.init"
+
+case "$1" in  
+init)
+    # Set the default interval to every 5 minutes
+    if [ -z ${IDLE_CHECK_INTERVAL} ]; then
+      IDLE_CHECK_INTERVAL=5
+    fi
+    
+    # Add to crontab unless it if set to 0 (=disabled)
+    if [ $IDLE_CHECK_INTERVAL -gt 0 ]; then
+	logger --stderr --tag $LOGGERTAG "Adding custom-idle.sh with $IDLE_CHECK_INTERVAL minutes interval to crontab."
+	
+	echo "*/$IDLE_CHECK_INTERVAL * * * * /bin/custom-idle.sh" >> /tmp/crontab
+	crontab /tmp/crontab
+    else
+	logger --stderr --tag $LOGGERTAG "IDLE_CHECK_INTERVAL is set to 0 and will not be added to crontab."
+    fi
+    ;;
+help)
+    echo "Usage: $0 init"
+    ;;
+  *)
+    exit 1
+    ;;
+esac
+
+exit 0

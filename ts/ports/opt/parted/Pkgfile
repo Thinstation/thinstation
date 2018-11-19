@@ -1,30 +1,20 @@
-# Description: Utility for partition & file system manipulation, supporting non-destructive repartitioning.
-# URL: http://www.gnu.org/software/parted
-# Maintainer: Danny Rawlins, monster dot romster at gmail dot com
-# Packager: Younes Hafrim, ycrux at club-internet dot fr
-# Depends on: 
-# Optional: dosfstools e2fsprogs ntfsprogs reiserfsprogs xfsprogs
+# Description: A library and frontend to manipulate partition tables
+# URL: http://www.gnu.org/software/parted/
+# Maintainer: Matt Housh, jaeger at crux dot ninja
+# Depends on: libdevmapper readline eudev util-linux
 
 name=parted
-version=3.0
+version=3.2
 release=1
 source=(http://ftp.gnu.org/gnu/$name/$name-$version.tar.xz)
-up2date_url="http://ftp.gnu.org/gnu/parted/"
 
 build() {
 	cd $name-$version
 
-	./configure \
-		--prefix=/usr \
-		--sbindir=/sbin \
-		--mandir=/usr/man \
-		--disable-nls \
-		--disable-static \
-		--without-readline \
-		--disable-device-mapper
+	./configure --prefix=/usr \
+		--with-readline \
 
-    make CFLAGS="$CFLAGS"
-    make DESTDIR=$PKG install
-    rm -rf $PKG/usr/share/info
+	make
+	make DESTDIR=$PKG install
+	rm -rf $PKG/usr/share
 }
-

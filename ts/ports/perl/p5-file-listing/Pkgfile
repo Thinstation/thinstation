@@ -1,0 +1,22 @@
+# Description:	Parse directory listing
+# URL:		http://search.cpan.org/~gaas/File-Listing/
+# Maintainer:	
+# Depends on:	p5-http-date
+
+name=p5-file-listing
+version=6.04
+release=1
+source=(http://search.cpan.org/CPAN/authors/id/G/GA/GAAS/File-Listing-${version}.tar.gz)
+
+build() {
+	cd File-Listing-$version
+
+	# PERL_MM_USE_DEFAULT=1 \
+	perl Makefile.PL
+	make OPTIMIZE="$CFLAGS" DESTDIR="$PKG" install
+
+	find "$PKG" -depth \
+		-type f \( -name .packlist -o -name \*.bs -o -name perllocal.pod \) -delete , \
+		-type f -name autosplit.ix \( -exec grep -q '^[[:space:]]*package' {} \; -o -delete \) , \
+		-type d -empty -exec rmdir {} +
+}

@@ -454,15 +454,15 @@ start | init )
 	fi
 
 	# ensure pid file directory exists
-	if [ ! -e /var/run/autofs ]
+	if [ ! -e /run/autofs ]
 	then
-		mkdir /var/run/autofs
+		mkdir /run/autofs
 	fi
 
 	getmounts | while read cmd rest
 	do
 		mnt=`echo $rest | sed 's/^.* \(\/[^ ]*\) [A-Za-z].*$/\1/'`
-		pidfile=/var/run/autofs/`echo $mnt | sed 's,/,_,g'`.pid
+		pidfile=/run/autofs/`echo $mnt | sed 's,/,_,g'`.pid
 
 		/usr/sbin/automount --pid-file $pidfile $rest
 
@@ -483,14 +483,14 @@ stop)
 	umount_loopback
 
 	any=0
-	for file in `ls /var/run/autofs/*.pid 2>/dev/null`
+	for file in `ls /run/autofs/*.pid 2>/dev/null`
 	do
 		if [ -e "$file" ]
 		then
 			any=1
 			pid=`head -n 1 $file`
 			mnt=`ps -wwo 'cmd=' $pid | sed -e \
-			  's,.* --pid-file=/var/run/autofs/\([^ ]*\)\.pid.*,\1,; s,_,/,g'`
+			  's,.* --pid-file=/run/autofs/\([^ ]*\)\.pid.*,\1,; s,_,/,g'`
 			dname=`basename $DAEMON`
 
 #			echo start-stop-daemon --stop --quiet \
@@ -531,7 +531,7 @@ reload)
 
 	getmounts >$TMP1
 
-	for i in `ls /var/run/autofs/*.pid 2>/dev/null`
+	for i in `ls /run/autofs/*.pid 2>/dev/null`
 	do
 		pid=`head -n 1 $i 2>/dev/null`
 		[ "$pid" = "" ] && continue
@@ -540,7 +540,7 @@ reload)
 		echo $cmd >>$TMP2
 
 		mnt=`ps -wwo 'cmd=' $pid | sed -e \
-		 's,.* --pid-file=/var/run/autofs/\([^ ]*\)\.pid.*,\1,; s,_,/,g'`
+		 's,.* --pid-file=/run/autofs/\([^ ]*\)\.pid.*,\1,; s,_,/,g'`
 
 		if ! grep -q "$cmd" $TMP1; then
 			echo "Stopping automounter for: $mnt"
@@ -556,7 +556,7 @@ reload)
 			echo $x | while read cmd rest; do
 
 			mnt=`echo $rest | sed 's/^.* \(\/[^ ]*\) [A-Za-z].*$/\1/'`
-			pidfile=/var/run/autofs/`echo $mnt | sed 's,/,_,g'`.pid
+			pidfile=/run/autofs/`echo $mnt | sed 's,/,_,g'`.pid
 
 			echo start-stop-daemon --start --pidfile $pidfile --quiet \
 				--exec $DAEMON -- --pid-file=$pidfile $rest

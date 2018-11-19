@@ -12,12 +12,14 @@ source=(http://www.kernel.org/pub/linux/utils/boot/syslinux/syslinux-$version.ta
 
 build() {
 	cd syslinux-${version}
-        make INSTALLROOT=$PKG install efi32
+#        make INSTALLROOT=$PKG install efi32
 
         cp $SRC/ifmem.c com32/modules/.
         sed -i -e "s/ifcpu.c32/ifcpu.c32 ifmem.c32/g" com32/modules/Makefile
 
-        make efi32
+        make -j1 INSTALLROOT=$PKG install efi32
+
+	make efi32
 	chmod 644 efi32/com32/modules/ifmem.c32
         cp -a efi32/com32/modules/ifmem.c32 $PKG/usr/share/syslinux/efi32/.
 }

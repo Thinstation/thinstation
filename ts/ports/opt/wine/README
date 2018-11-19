@@ -1,0 +1,25 @@
+Note that wine compiles twice for 32bit and 64bit use and as such
+requires compat-32 ports tree to be enabled to work.
+
+You could edit wine to only compile 64bit only but then you can
+only run PE64 bit binaries.
+
+You enable compat-32 by.
+
+mv /etc/ports/compat-32.rsync.inactive /etc/ports/compat-32.rsync
+
+$EDITOR /etc/prt-get.conf
+
+And uncomment:
+
+prtdir /usr/ports/compat-32
+
+Also be sure to enable:
+
+runscripts yes
+
+To speed up building wine multiple times also:
+
+prt-get depinst gcc48-ccache-bindings
+
+And configure ccache https://crux.nu/Wiki/HowToSpeedUpBuildingPackages#ccache

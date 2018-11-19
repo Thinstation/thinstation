@@ -1,0 +1,42 @@
+#! /bin/sh
+
+. `dirname $0`/common
+HOME=/etc/skel
+
+case "$1" in
+init)
+    if ! pkg_initialized $PACKAGE; then
+	pkg_set_init_flag $PACKAGE
+
+	let x=0
+	mkdir $HOME/.2x
+	while [ -n "`eval echo '$SESSION_'$x'_TYPE'`" ] ; do
+	  XXTYPE=`eval echo '$SESSION_'$x'_TYPE'`
+	  if [ "`make_caps $XXTYPE`" = "2X" ] ; then
+
+      	    XXTITLE=`eval echo '$SESSION_'$x'_TITLE'`
+	    if [ -z "$XXTITLE" ] ; then
+		    XXTITLE="2X_$X"
+	    fi
+	    XXCONFIG="$HOME/.2x/$XXTITLE.2x"
+
+	    (set | grep "SESSION_"$x"_2X_" ) |
+	    while read session; do
+		   xxvalue=$`echo $session | cut -f1 -d"="`
+		   xxvalue=`eval echo $xxvalue`
+		   line=`echo $session | cut -f1 -d"="`
+		   xxoption=`echo $line | cut -f4- -d"_"`
+	           echo "$xxoption=$xxvalue" >> "$XXCONFIG"
+	    done
+  	  fi
+	  let x=x+1
+	done
+
+    fi
+    ;;
+  *)
+    exit 1
+    ;;
+esac
+
+exit 0

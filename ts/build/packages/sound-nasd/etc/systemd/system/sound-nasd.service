@@ -1,0 +1,15 @@
+[Unit]
+Description=Thistation sound-nasd
+After=profile-setup.service pkg.service
+Before=display-manager.service
+ConditionPathIsReadWrite=/etc
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+EnvironmentFile=/etc/thinstation.env
+ExecStart=/etc/init.d/sound-nasd init
+SyslogIdentifier=thinstation
+
+[Install]
+WantedBy=multi-user.target

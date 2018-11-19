@@ -5,7 +5,7 @@
 
 name=python
 archname=python2
-version=2.7.14
+version=2.7.12
 release=1
 source=(http://www.python.org/ftp/$name/$version/Python-$version.tar.xz)
 
@@ -16,9 +16,6 @@ build () {
                 --mandir=/usr/man \
                 --enable-shared \
                 --with-threads \
-		--without-ensurepip \
-		--without-setuptools \
-		--without-pip \
                 --enable-ipv6
 
     make EXTRA_CFLAGS="$CFLAGS"
@@ -34,6 +31,4 @@ build () {
     rm $PKG/usr/lib/python/{distutils,site-packages,test/data}/README
     rm $PKG/usr/lib/python/idlelib/{ChangeLog,{NEWS,README,TODO}.txt}
     rm $PKG/usr/lib/python/ctypes/macholib/README.ctypes
-
-    rm -rf $PKG/usr/lib/python2.7/ensurepip
 }

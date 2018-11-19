@@ -98,7 +98,7 @@ echo_log ()
 	local debug noline string
 
 	until [ -z "$1" ]; do
-		case $1 in
+		case "$1" in
 		"-n")
 			noline="-n"
 		;;
@@ -106,18 +106,18 @@ echo_log ()
 			debug="TRUE"
 		;;
 		*)
-			string=$1
+			string="$1"
 		;;
 		esac
 		shift
 	done
 	if [ -n "$debug" ] ; then
-		echo -e $noline $string > $CONSOLE
+		echo -e $noline "$string" > $CONSOLE
 	fi
 	if [ -z "$APPLOG" ]; then
-	  echo -e $noline $string >> $LOGFILE
+	  echo -e $noline "$string" >> $LOGFILE
 	else
-	  echo -e $noline $string >> $APPLOG
+	  echo -e $noline "$string" >> $APPLOG
 	fi
 }
 
@@ -389,12 +389,12 @@ header ()
 
 <tr>
 	<a href="../index.html">
-            <img src="../images/ts_logo.jpg" width="650" height="153" border="0" alt="Thinstation logo">
+            <img src="../images/ts_logo.jpg" width="650" height="153" border="0" alt="ThinStation logo">
 	</a>
 </tr>
 
 
-<h2>Thinstation '$(echo $TS_VERSION)' on '$(hostname)' :: '$(basename $0 .cgi)'</h2>
+<h2>ThinStation '$(echo $TS_VERSION)' on '$(hostname)' :: '$(basename $0 .cgi)'</h2>
 <pre>&nbsp;</pre>
 '
 }
@@ -407,47 +407,32 @@ trailer ()
 
 # Verify's Web Password
 
-getpasswd ()
-{
-	local LOGIN=$1
-
-	set +x
-
-	if [ -z "$LOGIN" ]
-	then
-		echo "ERROR: Invalid login" >&2
-		return
-	fi
-
-	sed -n "s/^$LOGIN:\\([^:]*\\):.*/\\1/p" < /etc/passwd
-}
-
 verify_password ()
 {
-	local LOGIN=$1 PASSWD=$2 p s e
+	local LOGIN=$1 PASSWD=$2
 
-	if [ -z "$LOGIN" ]
-	then
-		echo "Null login" >&2
-		return 1
-	fi
+	USERNAME=$1
+	PASSWORD=$2
 
-	if [ -z "$PASSWD" ]
-	then
-		echo "Null password" >&2
-		return 1
-	fi
+	#since we use expect inside a bash-script, we have to escape tcl-$.
+	expect << EOF
+		log_user 0
+		spawn su $USERNAME -c "exit"
+		expect "Password:"
+		send "$PASSWORD\r"
+		#expect eof
 
-	p=$(getpasswd $LOGIN)
-	s=$(echo "$p" | cut -f1-3 -d\$)
-	e=$(/bin/checkpass $PASSWD $s)
+		set wait_result  [wait]
 
-	if [ "$p" = "$e" ]
-	then
-		return 0
-	else
-		return 1
-	fi
+		# check if it is an OS error or a return code from our command
+		#   index 2 should be -1 for OS erro, 0 for command return code
+		if {[lindex \$wait_result 2] == 0} {
+		        exit [lindex \$wait_result 3]
+		}
+		else {
+		        exit 1
+		}
+EOF
 }
 
 
@@ -613,7 +598,7 @@ x_mouse ()
 
 make_res_list ()
 {
-	xrandr 2>/dev/null |grep -o '   [0-9]*x[0-9]*' |sed -r 's/ //g' |sort -u -t'x' -k1n -k2n > /var/run/applications/resolutions
+	xrandr 2>/dev/null |grep -o '   [0-9]*x[0-9]*' |sed -r 's/ //g' |sort -u -t'x' -k1n -k2n > /var/log/applications/resolutions
 }
 
 get_res ()

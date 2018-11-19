@@ -1,0 +1,23 @@
+# Description:	Atom feed and API implementation
+# URL:		https://github.com/miyagawa/xml-atom
+# Maintainer:	
+# Depends on:	p5-class-data-inheritable p5-datetime p5-datetime-timezone p5-digest-sha1 p5-libwww-perl p5-module-build-tiny p5-uri p5-xml-libxml p5-xml-xpath
+
+name=p5-xml-atom
+version=0.42
+release=1
+source=(http://search.cpan.org/CPAN/authors/id/M/MI/MIYAGAWA/XML-Atom-${version}.tar.gz)
+
+build() {
+	cd XML-Atom-$version
+
+	# PERL_MM_USE_DEFAULT=1 \
+	perl Build.PL --destdir="$PKG"
+	perl Build
+	perl Build install
+
+	find "$PKG" -depth \
+		-type f \( -name .packlist -o -name \*.bs -o -name perllocal.pod \) -delete , \
+		-type f -name autosplit.ix \( -exec grep -q '^[[:space:]]*package' {} \; -o -delete \) , \
+		-type d -empty -exec rmdir {} +
+}

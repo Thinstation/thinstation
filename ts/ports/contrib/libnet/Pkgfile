@@ -1,18 +1,20 @@
-# Description: Portable framework for low-level network packet construction
-# URL: http://sourceforge.net/projects/libnet-dev/
-# Maintainer: 
-# Packager: 
+# Description: Library for constructing and injecting network packets
+# URL:         http://libnet-dev.sf.net
+# Maintainer:  Thomas Penteker, tek at serverop dot de
+# Depends on:
 
 name=libnet
 version=1.1.6
-release=1
-source=(https://github.com/sam-github/$name/archive/$name-$version.tar.gz)
+release=2
+source=(https://downloads.sourceforge.net/project/libnet-dev/libnet-$version.tar.gz)
 
-build(){
-	cd $name-$name-$version/$name
-	sed -i -e "s/\(SUBDIRS =.*\) doc\(.*\)/\1\2/" Makefile.am
-	./autogen.sh
-	./configure --prefix=/usr --sysconfdir=/etc --disable-static
-	make
-	make install DESTDIR=$PKG
+build() {
+    cd $name-$version
+    export CFLAGS=$CFLAGS" -fPIC" 
+
+    ./configure --prefix=/usr --mandir=/usr/man
+    sed -i 's/ sample//g' Makefile
+    make
+    make DESTDIR=$PKG install
+    install -D -m 755 libnet-config $PKG/usr/bin/libnet-config
 }

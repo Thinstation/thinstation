@@ -3,17 +3,16 @@
 # Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 
 name=mtpaint
-version=3.40
-release=1
-source=(http://downloads.sourceforge.net/project/mtpaint/mtpaint/$version/mtpaint-$version.tar.bz2)
+version=3.49.12
+release=git-201606
+#source=(http://downloads.sourceforge.net/project/mtpaint/mtpaint/$version/mtpaint-$version.tar.bz2 \
+#	giflib.patch)
 
 build() {
-	cd $name-$version
-
+	git clone https://github.com/wjaguar/mtPaint.git
+	cd mtPaint
+	#patch -p0 -i $SRC/giflib.patch
 	./configure --prefix=/ \
-			--exec-prefix=/ \
-			--sysconfdir=/etc \
-			--libexecdir=/lib \
 			--mandir=/usr/man \
 			--disable-extras
 

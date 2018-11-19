@@ -1,0 +1,22 @@
+# Description:	Associate user-defined magic to variables from Perl.
+# URL:		http://search.cpan.org/dist/Variable-Magic/
+# Maintainer:	
+# Depends on:	perl
+
+name=p5-variable-magic
+version=0.62
+release=1
+source=(http://search.cpan.org/CPAN/authors/id/V/VP/VPIT/Variable-Magic-${version}.tar.gz)
+
+build() {
+	cd Variable-Magic-$version
+
+	# PERL_MM_USE_DEFAULT=1 \
+	perl Makefile.PL
+	make OPTIMIZE="$CFLAGS" DESTDIR="$PKG" install
+
+	find "$PKG" -depth \
+		-type f \( -name .packlist -o -name \*.bs -o -name perllocal.pod \) -delete , \
+		-type f -name autosplit.ix \( -exec grep -q '^[[:space:]]*package' {} \; -o -delete \) , \
+		-type d -empty -exec rmdir {} +
+}

@@ -5,12 +5,13 @@
 # Depends on:  fuse, glib
 
 name=sshfs-fuse
-version=2.5
+archname=sshfs
+version=2.7
 release=1
-source=(http://downloads.sourceforge.net/project/fuse/$name/$version/$name-$version.tar.gz)
+source=(https://github.com/libfuse/sshfs/releases/download/sshfs-$version/sshfs-$version.tar.gz)
 
 build() {
-    cd $name-$version
+    cd sshfs-$version
     ./configure --prefix=/usr --mandir=/usr/man
     make
     make DESTDIR=$PKG install

@@ -1,0 +1,28 @@
+#! /bin/sh
+#
+# Copyright (C) 2007 Daniel Meyer (eagle@cyberdelia.de)
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation, version 2.
+#
+
+. `dirname $0`/common
+
+case "$1" in
+init)
+    if [ -z ${SHUTDOWN_IDLE_INTERVAL} ]; then
+      SHUTDOWN_IDLE_INTERVAL=5
+    fi
+    echo "*/$SHUTDOWN_IDLE_INTERVAL * * * * /bin/idle-check.sh" >> /tmp/crontab
+    crontab /tmp/crontab
+    ;;
+help)
+    echo "Usage: $0 init"
+    ;;
+  *)
+    exit 1
+    ;;
+esac
+
+exit 0

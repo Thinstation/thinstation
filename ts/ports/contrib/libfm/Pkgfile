@@ -3,22 +3,22 @@
 # Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 
 name=libfm
-version=git
+version=1.2.4
 release=1
-source=()
+source=(http://downloads.sourceforge.net/pcmanfm/libfm-$version.tar.xz)
 
 build() {
-git clone --depth 1 git://pcmanfm.git.sourceforge.net/gitroot/pcmanfm/libfm
-	mkdir -p $PKG/usr/include/libfm
-	cd $name
-	./autogen.sh
+
+	cd $name*
 	./configure --prefix=/usr \
-		--disable-nls \
+		--disable-static \
 		--enable-udisks \
 		--disable-gtk-doc-html \
-		--disable-actions
+		--disable-actions \
+		--with-gtk=3
 
 	make
 	make DESTDIR=$PKG install
 	rm -rf $PKG/usr/share/locale
+	cp libfm-extra.pc $PKG/usr/lib/pkgconfig/.
 }

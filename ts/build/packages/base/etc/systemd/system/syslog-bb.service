@@ -1,0 +1,13 @@
+[Unit]
+Description=System Logger Daemon
+Requires=syslog.socket
+After=profile-setup.service
+
+[Service]
+EnvironmentFile=/etc/thinstation.runtime
+ExecStart=/usr/sbin/syslogd -n -m 0 $SYSLOG_OPTIONS
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+Alias=syslog.service

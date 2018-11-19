@@ -5,7 +5,7 @@
 # Depends on: icu python
 
 name=boost
-version=1.63.0
+version=1.61.0
 release=1
 source=(http://downloads.sourceforge.net/project/$name/$name/$version/${name}_${version//./_}.tar.bz2)
 
@@ -15,15 +15,14 @@ build() {
 	local JOBS=$(awk 'BEGIN{RS="-j|--jobs="} NR==2 {print $1}' <<< $MAKEFLAGS)
 	test -n "$JOBS" && export JOBS="-j $JOBS"
 
+	# This command fixes a header to overcome a problem with Qt's moc command.
+	# It is necessary for building some KDE packages
+	sed \
+		-e '1 i#ifndef Q_MOC_RUN' \
+		-e '$ a#endif' \
+		-i boost/type_traits/detail/has_binary_operator.hpp
+
 	./bootstrap.sh --prefix=$PKG/usr --with-toolset=gcc --with-icu
-
-	./b2 stage \
-		variant=release \
-		threading=multi \
-		runtime-link=shared \
-		link=shared,static \
-		debug-symbols=off \
-		$JOBS
-
+	./b2 stage threading=multi link=shared debug-symbols=off $JOBS
 	./b2 install threading=multi link=shared
 }

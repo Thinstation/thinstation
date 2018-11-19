@@ -20,11 +20,16 @@ update_port()
 {
 #	echo "hell yes"
 	sed -i -e "s/$TSVER/$pkgver/g" $TPKGFILE
-	prt-get update -fr -if -im $prt
+	prt-get update -fr -if -im -is $prt
 	echo $prt >> /updated
 }
 
-for prt in `prt-get listinst`; do
+if [ -n "$1" ]; then
+	prts="`ls /ts/ports/$1/`"
+else
+	prts="`prt-get listinst`"
+fi
+for prt in $prts; do
 	TPKGFILE=`prt-get path $prt`/Pkgfile
 	. $TPKGFILE
 	TSVER=`eval echo $version`
@@ -33,7 +38,7 @@ for prt in `prt-get listinst`; do
 	fi
 	ADIR=`find /arch/ -mindepth 2 -maxdepth 2 -type d -name $archname`
 	if [ -n "$ADIR" ]; then
-		APKGFILE=`find $ADIR -name PKGBUILD |grep -v testing |grep -E 'trunk'`
+		APKGFILE=`find $ADIR -name PKGBUILD |grep -v testing |grep -E '\-any|x86_64'`
 		. $APKGFILE
 		if [ "$TSVER" != "$pkgver" ]; then
 			echo $prt
@@ -53,3 +58,4 @@ for prt in `prt-get listinst`; do
 	fi
 	unset TPKGFILE ADIR APKGFILE pkgver version archname
 done
+

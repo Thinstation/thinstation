@@ -1,16 +1,18 @@
 # Description: pciutils-like utilities for USB
-# URL:         http://libusb.sourceforge.net/
+# URL:         https://github.com/gregkh/usbutils
 # Maintainer:  CRUX System Team, core-ports at crux dot nu
-# Depends on:  libusb
+# Depends on:  eudev libusb
 
 name=usbutils
-version=007
-release=1
-source=(http://www.kernel.org/pub/linux/utils/usb/$name/$name-$version.tar.bz2)
+version=008
+release=2
+source=(http://www.kernel.org/pub/linux/utils/usb/$name/$name-$version.tar.xz)
 
 build() {
+    wget http://www.linux-usb.org/usb.ids
     cd $name-$version
-    ./configure --prefix=/usr --mandir=/usr/man --disable-zlib
+    ./configure --prefix=/usr --disable-zlib
     make
     make DESTDIR=$PKG install
+    cp -a $SRC/usb.ids $PKG/usr/share/usb.ids
 }

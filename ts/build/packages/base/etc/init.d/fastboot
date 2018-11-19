@@ -1,0 +1,222 @@
+#!/bin/sh
+
+. `dirname $0`/common
+
+search()
+{
+	if [ -e $1 ]; then
+		return 0
+	fi
+	if [ -z $squash_location ]; then
+		filename=`basename $1`
+		if [ -e /boot/boot/isolinux/$filename ]; then
+			squash_location="boot/isolinux/"
+		elif [ -e /boot/isolinux/$filename ]; then
+			squash_location="isolinux/"
+		elif [ -e /boot/boot/syslinux/$filename ]; then
+			squash_location="boot/syslinux/"
+		elif [ -e /boot/syslinux/$filename ]; then
+			squash_location="syslinux/"
+		elif [ -e /boot/boot/$filename ]; then
+			squash_location="boot/"
+		fi
+	fi
+	if [ -z $squash_location ]; then
+		return 1
+	else
+		FILE=/boot/"$squash_location"$lib_file
+		UPDATE=/boot/"$squash_location"lib.update
+		if [ -e $FILE ] || [ -e $UPDATE ]; then
+			return 0
+		else
+			return 1
+		fi
+	fi
+}
+
+syslinux()
+{
+	initrd_file=`basename $initrd`
+	if [ "$initrd_file" == "initrd-backup" ]; then
+		lib_file=lib.squash-backup
+	else
+		lib_file=lib.squash
+	fi
+	FILE=/boot/"$squash_location"$lib_file
+	UPDATE=/boot/"$squash_location"lib.update
+	local timeout=10
+	while [ "$BOOTABLE" != "TRUE" ] && [ "$timeout" -ne "0" ]; do 
+		if search $FILE || search $UPDATE ; then
+			BOOTABLE=TRUE
+		else
+			BOOTABLE=FALSE
+			let timeout-=1
+			printf "\rWaiting for Storage -- $timeout"
+			sleep .5
+			mount -a 2>/dev/null
+		fi
+		printf "\n"
+	done
+	if [ "$BOOTABLE" == "FALSE" ]; then
+		printf "\rCould not find the storage volume!"
+		if pkg_initialized debug || is_disabled $HALTONERROR ; then
+			echo_log "Debug enabled...dropping to shell."
+			force_splash_exit
+			/bin/sh
+		else
+			echo_log "Debug not enabled, boot halted."
+	                force_splash_exit
+        	        halt
+        	fi
+	fi
+	if [ -e $UPDATE ]; then
+		rm $FILE
+		mv $UPDATE $FILE
+	fi
+}
+
+pxelinux()
+{
+	MEMORY_CONSTRAINED=TRUE
+	FILE=/tmp/lib.squash
+	cd /tmp
+	if [ -z "$FASTBOOT_URL" ] && [ ${initrd:0:7} == "http://" ]; then
+		FASTBOOT_URL=${initrd%/*}
+	fi
+	if [ -n "$FASTBOOT_URL" ]; then
+		wget $FASTBOOT_URL/lib.squash 2>&1 |tee /var/log/wget_progress &
+		sleep .2
+		OLDPROGRESS=$progress
+		if [ "`readlink /bin/wget`" == "/bin/busybox" ]; then
+			while [ "$WPROGRESS" != "100" ] && [ ! -z "`pidof wget`" ]; do
+				sleep .5
+				WPROGRESS=`cat -v /var/log/wget_progress |sed -e 's/\^M/\n/g'|tail -n 1 |cut -c 22-24`
+				if [ -z "$WPROGRESS" ]; then WPROGRESS=0 ; fi
+				let progress=WPROGRESS+OLDPROGRESS
+				splash_progress
+			done
+		else
+			while [ "$WPROGRESS" != "100" ] && [ ! -z "`pidof wget`" ]; do
+				sleep .5
+				WPROGRESS=`cat -v /var/log/wget_progress |grep -e "%" |tail -n 1 |cut -c 63-65`
+				if [ -z "$WPROGRESS" ]; then WPROGRESS=0 ; fi
+				let progress=WPROGRESS+OLDPROGRESS
+				splash_progress
+			done
+		fi
+		rm -rf /var/log/wget_progress
+	else
+		squash_server=`dirname $boot_file`
+		if [ "$squash_server" == "." -o "$squash_server" == "/." ]; then
+			unset squash_server
+		else
+			squash_server="`basename $squash_server`"/
+		fi
+		FILE_NET="$squash_server$squash_location"lib.squash
+		tftp -g -l $FILE -r $FILE_NET -b $TFTP_BLOCKSIZE $SERVER_IP 2>&1 |tee /var/log/tftp_progress &
+		sleep .2
+		OLDPROGRESS=$progress
+		while [ "$TPROGRESS" != "100" ] && [ ! -z "`pidof tftp`" ]; do
+			sleep .5
+			TPROGRESS=`cat -v /var/log/tftp_progress |sed -e 's/\^M/\n/g'|tail -n 1 |cut -c 22-24`
+			if [ -z "$TPROGRESS" ]; then TPROGRESS=0 ; fi
+			let progress=TPROGRESS+OLDPROGRESS
+			splash_progress
+		done
+		rm -rf /var/log/tftp_progress
+	fi
+	let progress=OLDPROGRESS+100
+	splash_progress
+}
+
+isolinux()
+{
+	FILE=/mnt/cdrom0/"$squash_location"lib.squash
+	timeout=100
+	while ! mountpoint /mnt/cdrom0 && [ $timeout -ne 0 ]; do
+		sleep .1
+		let timeout-=1
+	done
+	if [ ! -e $FILE ]; then
+		if [ -z $squash_location ]; then
+			filename=lib.squash
+			if [ -e /mnt/cdrom0/boot/isolinux/$filename ]; then
+				squash_location="boot/isolinux/"
+			elif [ -e /mnt/cdrom0/isolinux/$filename ]; then
+				squash_location="isolinux/"
+			elif [ -e /mnt/cdrom0/boot/syslinux/$filename ]; then
+				squash_location="boot/syslinux/"
+			elif [ -e /mnt/cdrom0/syslinux/$filename ]; then
+				squash_location="syslinux/"
+			elif [ -e /mnt/cdrom0/boot/$filename ]; then
+				squash_location="boot/"
+			fi
+		fi
+		if [ -z $squash_location ]; then
+			echo "Could not find the image on the CDROM!"
+		else
+			FILE=/mnt/cdrom0/"$squash_location"lib.squash
+		fi
+	fi
+}
+
+squash_loc()
+{
+	squash_location=`dirname $initrd`
+	if [ "$squash_location" == "." -o "$squash_location" == "/." ]; then
+		unset squash_location
+	elif [ "`echo $squash_location |cut -c 1`" == "/" ]; then
+		squash_location="`echo $squash_location |cut -c 2-`/"
+	elif [ "`echo $squash_location |cut -c 1`" == "." ]; then
+		squash_location="`echo $squash_location |cut -c 3-`/"
+	else
+		squash_location=$squash_location/
+	fi
+}
+
+mount_squash()
+{
+	if [ "$FASTBOOT" == "lotsofmem" ] ; then
+		unsquashfs -f -d / -f $FILE |tee /var/log/expand_progress &
+		sleep .2
+		OLDPROGRESS=$progress
+		while [ "$DPROGRESS" != "100" ] && [ ! -z "`pidof unsquashfs`" ] ; do
+			sleep .5
+			DPROGRESS=`cat -v /var/log/expand_progress |grep -e "=" |sed -e 's/\^M/\n/g' |tail -n 1 |cut -c 76-78`
+			if [ -z "$DPROGRESS" ]; then DPROGRESS=0 ; fi
+			let progress=DPROGRESS+OLDPROGRESS
+			splash_progress
+		done
+		let progress=OLDPROGRESS+100
+		splash_progress
+		rm -rf /var/log/expand_progress
+		if [ -e /tmp/lib.squash ] ; then
+			rm /tmp/lib.squash
+		fi
+	else
+		if is_enabled $MEMORY_CONSTRAINED ; then
+			mount -o ro,loop -t squashfs $FILE /lib
+		else
+			if [ ! -e /tmp/lib.squash ] ; then
+				cp $FILE /tmp/lib.squash
+			fi
+			mount -o ro,loop -t squashfs /tmp/lib.squash /lib
+		fi
+	fi
+}
+
+if is_enabled $FASTBOOT; then
+	export FASTBOOT
+	if [ -n "$DEBUG_INIT" ] ; then
+		echo_log "Doing Fastboot"
+	fi
+	squash_loc
+	case $LM in
+		2) syslinux;;
+		3) pxelinux;;
+		4) isolinux;;
+	esac
+	mount_squash
+else
+	return 0
+fi

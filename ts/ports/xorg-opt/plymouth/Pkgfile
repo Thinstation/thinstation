@@ -1,0 +1,35 @@
+#
+# Maintainer: Sebastian Lau <lauseb644@gmail.com>
+# Contributor Damian01w <damian01w@gmail.com>
+# Contributor: Padfoot <padfoot@exemail.com.au>
+#
+
+name=plymouth
+version=git
+release=20160620
+source=('lightdm-plymouth.service')
+
+build() {
+git clone git://git.freedesktop.org/git/plymouth
+        cd $name
+git checkout 0e65b86c686d61ca14fb2fbcce2505251629aa8e
+
+        ./autogen.sh --prefix=/usr \
+                        --sysconfdir=/etc \
+                        --mandir=/usr/man \
+                        --localstatedir=/var \
+                        --enable-pango \
+                        --enable-gtk \
+                        --enable-libdrm_intel \
+                        --enable-libdrm_radeon \
+                        --enable-libkms \
+                        --enable-drm-renderer \
+                        --enable-systemd-integration
+
+        make
+	make DESTDIR=$PKG install
+
+  for i in lightdm-plymouth.service; do
+    install -Dm644 "$SRC/$i" "$PKG/usr/lib/systemd/system/$i"
+  done
+}

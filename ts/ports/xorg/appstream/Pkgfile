@@ -1,0 +1,27 @@
+# $Id$
+# Maintainer: Antonio Rojas <arojas@archlinux.org>
+# Contributor: Jameson Pugh <imntreal@gmail.com>
+# Contributor: Tim Jester-Pfadt <t.jp<at>gmx.de>
+
+pkgbase=appstream
+name=(appstream appstream-qt)
+version=0.12.0
+release=1
+source=("https://www.freedesktop.org/software/appstream/releases/AppStream-$version.tar.xz"
+        update-appstream-cache.hook)
+
+build() {
+  mkdir -p build
+
+  meson AppStream-$version \
+    build \
+    --prefix=/usr \
+    --libdir=/usr/lib \
+    -Dqt=true \
+    -Dvapi=true
+  ninja -C build
+
+  DESTDIR="$PKG" ninja -C build install
+
+  install -Dm644 "$SRC"/update-appstream-cache.hook "$PKG"/usr/share/libalpm/hooks/update-appstream-cache.hook
+}

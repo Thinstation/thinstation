@@ -5,9 +5,7 @@ drwxr-xr-x	root/root	etc/X11/xinit/xinitrc.d/
 -rwxr-xr-x	root/root	etc/X11/xinit/xinitrc.d/30-dbus.launch
 drwxr-xr-x	root/root	etc/dbus-1/
 -rw-r--r--	root/root	etc/dbus-1/session.conf
-drwxr-xr-x	root/root	etc/dbus-1/session.d/
 -rw-r--r--	root/root	etc/dbus-1/system.conf
-drwxr-xr-x	root/root	etc/dbus-1/system.d/
 drwxr-xr-x	root/root	etc/rc.d/
 -rwxr-xr-x	root/root	etc/rc.d/dbus
 drwxr-xr-x	root/root	usr/
@@ -17,6 +15,8 @@ drwxr-xr-x	root/root	usr/bin/
 -rwxr-xr-x	root/root	usr/bin/dbus-monitor
 -rwxr-xr-x	root/root	usr/bin/dbus-run-session
 -rwxr-xr-x	root/root	usr/bin/dbus-send
+-rwxr-xr-x	root/root	usr/bin/dbus-test-tool
+-rwxr-xr-x	root/root	usr/bin/dbus-update-activation-environment
 -rwxr-xr-x	root/root	usr/bin/dbus-uuidgen
 drwxr-xr-x	root/root	usr/include/
 drwxr-xr-x	root/root	usr/include/dbus-1.0/
@@ -39,16 +39,32 @@ drwxr-xr-x	root/root	usr/include/dbus-1.0/dbus/
 -rw-r--r--	root/root	usr/include/dbus-1.0/dbus/dbus-types.h
 -rw-r--r--	root/root	usr/include/dbus-1.0/dbus/dbus.h
 drwxr-xr-x	root/root	usr/lib/
+drwxr-xr-x	root/root	usr/lib/cmake/
+drwxr-xr-x	root/root	usr/lib/cmake/DBus1/
+-rw-r--r--	root/root	usr/lib/cmake/DBus1/DBus1Config.cmake
+-rw-r--r--	root/root	usr/lib/cmake/DBus1/DBus1ConfigVersion.cmake
 drwxr-xr-x	root/root	usr/lib/dbus-1.0/
 drwxr-xr-x	root/root	usr/lib/dbus-1.0/include/
 drwxr-xr-x	root/root	usr/lib/dbus-1.0/include/dbus/
 -rw-r--r--	root/root	usr/lib/dbus-1.0/include/dbus/dbus-arch-deps.h
 -rwxr-xr-x	root/root	usr/lib/libdbus-1.la
-lrwxrwxrwx	root/root	usr/lib/libdbus-1.so -> libdbus-1.so.3.8.11
-lrwxrwxrwx	root/root	usr/lib/libdbus-1.so.3 -> libdbus-1.so.3.8.11
--rwxr-xr-x	root/root	usr/lib/libdbus-1.so.3.8.11
+lrwxrwxrwx	root/root	usr/lib/libdbus-1.so -> libdbus-1.so.3.19.7
+lrwxrwxrwx	root/root	usr/lib/libdbus-1.so.3 -> libdbus-1.so.3.19.7
+-rwxr-xr-x	root/root	usr/lib/libdbus-1.so.3.19.7
 drwxr-xr-x	root/root	usr/lib/pkgconfig/
 -rw-r--r--	root/root	usr/lib/pkgconfig/dbus-1.pc
+drwxr-xr-x	root/root	usr/lib/systemd/
+drwxr-xr-x	root/root	usr/lib/systemd/system/
+-rw-r--r--	root/root	usr/lib/systemd/system/dbus.service
+-rw-r--r--	root/root	usr/lib/systemd/system/dbus.socket
+drwxr-xr-x	root/root	usr/lib/systemd/system/multi-user.target.wants/
+lrwxrwxrwx	root/root	usr/lib/systemd/system/multi-user.target.wants/dbus.service -> ../dbus.service
+drwxr-xr-x	root/root	usr/lib/systemd/system/sockets.target.wants/
+lrwxrwxrwx	root/root	usr/lib/systemd/system/sockets.target.wants/dbus.socket -> ../dbus.socket
+drwxr-xr-x	root/root	usr/lib/sysusers.d/
+-rw-r--r--	root/root	usr/lib/sysusers.d/dbus.conf
+drwxr-xr-x	root/root	usr/lib/tmpfiles.d/
+-rw-r--r--	root/root	usr/lib/tmpfiles.d/dbus.conf
 drwxr-xr-x	root/root	usr/libexec/
 -rwsr-x---	root/messagebus	usr/libexec/dbus-daemon-launch-helper
 drwxr-xr-x	root/root	usr/man/
@@ -59,13 +75,23 @@ drwxr-xr-x	root/root	usr/man/man1/
 -rw-r--r--	root/root	usr/man/man1/dbus-monitor.1.gz
 -rw-r--r--	root/root	usr/man/man1/dbus-run-session.1.gz
 -rw-r--r--	root/root	usr/man/man1/dbus-send.1.gz
+-rw-r--r--	root/root	usr/man/man1/dbus-test-tool.1.gz
+-rw-r--r--	root/root	usr/man/man1/dbus-update-activation-environment.1.gz
 -rw-r--r--	root/root	usr/man/man1/dbus-uuidgen.1.gz
 drwxr-xr-x	root/root	usr/sbin/
 -rwxr-xr-x	root/root	usr/sbin/dbus-daemon
 drwxr-xr-x	root/root	usr/share/
 drwxr-xr-x	root/root	usr/share/dbus-1/
 drwxr-xr-x	root/root	usr/share/dbus-1/services/
+-rw-r--r--	root/root	usr/share/dbus-1/session.conf
+drwxr-xr-x	root/root	usr/share/dbus-1/session.d/
 drwxr-xr-x	root/root	usr/share/dbus-1/system-services/
+-rw-r--r--	root/root	usr/share/dbus-1/system.conf
+drwxr-xr-x	root/root	usr/share/dbus-1/system.d/
+drwxr-xr-x	root/root	usr/share/xml/
+drwxr-xr-x	root/root	usr/share/xml/dbus-1/
+-rw-r--r--	root/root	usr/share/xml/dbus-1/busconfig.dtd
+-rw-r--r--	root/root	usr/share/xml/dbus-1/introspect.dtd
 drwxr-xr-x	root/root	var/
 drwxr-xr-x	root/root	var/lib/
 drwxr-xr-x	root/root	var/lib/dbus/

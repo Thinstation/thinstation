@@ -4,16 +4,13 @@
 # Depends on:	dbus, glib, intltool, xorg-libxtst
 
 name=at-spi2-core
-version=2.20.2
+version=2.28.0
 release=1
 source=(http://ftp.gnome.org/pub/gnome/sources/at-spi2-core/${version:0:4}/at-spi2-core-$version.tar.xz)
 
 build() {
 	cd $name-$version
-	./configure --prefix=/usr --sysconfdir=/etc --libexecdir=/usr/lib/at-spi2 
-	make
-	make DESTDIR=$PKG install
-
-	rm -r $PKG/usr/share/gtk-doc
-chown -R root.root $PKG
+	meson . build -D enable_docs=true --prefix=/usr --libdir=/usr/lib
+	ninja -C build
+	DESTDIR=$PKG ninja -C build install
 }

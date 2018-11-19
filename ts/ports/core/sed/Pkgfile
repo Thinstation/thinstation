@@ -4,17 +4,16 @@
 # Depends on:  acl
 
 name=sed
-version=4.2.1
-release=1
+version=4.2.2
+release=2
 source=(http://ftp.gnu.org/gnu/$name/$name-$version.tar.bz2)
 
 build() {
     cd $name-$version
     ./configure --prefix=/usr \
-                --mandir=/usr/man \
                 --exec-prefix=/ \
-                --disable-nls
+                
     make
     make DESTDIR=$PKG install
-    rm -r $PKG/usr/share
+    rm -r $PKG/usr/share/info
 }

@@ -7,11 +7,16 @@ name=faac
 version=1.28
 release=2
 source=(http://download.sourceforge.net/$name/$name-$version.tar.bz2 \
-	$name-$version-external-libmp4v2.patch)
+	altivec.patch \
+	mp4v2-1.9.patch \
+	mp4v2-2.0.0.patch)
 
 build () {
 	cd $name-$version
-	patch -p1 -i $SRC/$name-$version-external-libmp4v2.patch
+	patch -p1 -i $SRC/mp4v2-1.9.patch
+	patch -p0 -i $SRC/mp4v2-2.0.0.patch
+        patch -p0 -i $SRC/altivec.patch
+
 	chmod +x bootstrap
 	./bootstrap
 	./configure --prefix=/usr

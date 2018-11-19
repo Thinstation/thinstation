@@ -15,8 +15,11 @@ build() {
 	sed -i "s/HighContrast//" themes/Makefile.in
 	./configure	--prefix=/usr         \
 			--disable-glibtest    \
+			         \
+			--disable-gtk3-engine
 
 	make
 	make install DESTDIR=$PKG
 
+	rm -rf $PKG/usr/share/themes/Adwaita/{gtk-3.0,metacity-1}
 }

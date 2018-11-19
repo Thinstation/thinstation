@@ -1,22 +1,31 @@
-
-# Description: Free implementation of the .NET platform including runtime and compiler
-# URL: http://www.mono-project.com/
-# Maintainer: Tadeusz Sosnierz, tadzikes gmail com
-# Depends on: libgdiplus
+# $Id$
+# Maintainer: Daniel Isenmann <daniel@archlinux.org>
+# Contributor: Brice Carpentier <brice@dlfp.org>
 
 name=mono
-version=2.11.3
+version=4.4.1.0
+_version=4.4.1
 release=1
-source=(http://download.mono-project.com/sources/mono-1.1.16/${name}-$version.tar.bz2)
+install="${name}.install"
+source=(http://download.mono-project.com/sources/mono/${name}-${version}.tar.bz2
+        mono.binfmt.d)
 
 build() {
-    cd $name-$version
-    ./configure --prefix=/usr --mandir=/usr/man \
-                --sysconfdir=/etc \
-                --with-libgdiplus=installed \
-                --with-moonlight=no \
-                --with-profile4=yes
-    make
-    make DESTDIR=$PKG install
-    rm -rf $PKG/usr/share/{doc,locale,libgc-mono}
+  cd "${SRC}"/${name}-${_version}
+
+  # build mono
+  ./configure \
+    --prefix=/usr \
+    --sysconfdir=/etc \
+
+  make
+  make DESTDIR="${PKG}" install
+
+  # build jay
+  cd "${SRC}"/${name}-${_version}/mcs/jay
+  make
+  make DESTDIR="${PKG}" install
+
+  # install binfmt conf file and pathes
+  install -D -m644 "${SRC}"/mono.binfmt.d "${PKG}"/usr/lib/binfmt.d/mono.conf
 }

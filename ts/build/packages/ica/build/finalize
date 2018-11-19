@@ -1,16 +1,6 @@
 #ica 25
 chmod u+s /opt/Citrix/ICAClient/ctxusb
 
-# Disable receiver connection bar
-sed -i '/ConnectionBar=*/c\ConnectionBar=0' /opt/Citrix/ICAClient/config/All_Regions.ini
-
-# Links appsrv.ini et wfclient.ini in permanent storage needed in ica.init 
-ln -s appsrv.template /opt/Citrix/ICAClient/config/appsrv.ini
-ln -s wfclient.template /opt/Citrix/ICAClient/config/wfclient.ini
-
-# Add Certificates from /etc/ssl/certs/ before CTX rehash CA certificates
-ln -s `find /etc/ssl/certs/ -type f` /opt/Citrix/ICAClient/keystore/cacerts/
-
 # Rehash all the CA certificates
 chmod 755 /opt/Citrix/ICAClient/keystore/cacerts/*
 /opt/Citrix/ICAClient/util/ctx_rehash

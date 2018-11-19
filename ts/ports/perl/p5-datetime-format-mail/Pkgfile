@@ -1,0 +1,22 @@
+# Description:	Convert between DateTime and RFC2822/822 formats
+# URL:		http://search.cpan.org/~book/DateTime-Format-Mail/
+# Maintainer:	
+# Depends on:	p5-datetime p5-params-validate
+
+name=p5-datetime-format-mail
+version=0.403
+release=1
+source=(http://search.cpan.org/CPAN/authors/id/B/BO/BOOK/DateTime-Format-Mail-${version}.tar.gz)
+
+build() {
+	cd DateTime-Format-Mail-$version
+
+	# PERL_MM_USE_DEFAULT=1 \
+	perl Makefile.PL
+	make OPTIMIZE="$CFLAGS" DESTDIR="$PKG" install
+
+	find "$PKG" -depth \
+		-type f \( -name .packlist -o -name \*.bs -o -name perllocal.pod \) -delete , \
+		-type f -name autosplit.ix \( -exec grep -q '^[[:space:]]*package' {} \; -o -delete \) , \
+		-type d -empty -exec rmdir {} +
+}

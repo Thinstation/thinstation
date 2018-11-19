@@ -1,28 +1,29 @@
 # Description: A library that provides a secure layer over a reliable transport layer
-# URL: http://www.gnu.org/software/gnutls/
+# URL: http://gnutls.org
 # Maintainer: Jose V Beneyto, sepen at crux dot nu
 # Packager: Matt Housh, jaeger at morpheus dot net
 # Depends on: nettle libidn
 
 name=gnutls
-version=3.3.28
+version=3.5.19
 release=1
-source=(ftp://ftp.gnutls.org/gcrypt/$name/v${version%.*}/$name-$version.tar.xz)
+source=(ftp://ftp.gnutls.org/gcrypt/$name/v${version%.*}/$name-${version}.tar.xz)
 
 build() {
   cd $name-$version
 
   ./configure --prefix=/usr \
-              --mandir=/usr/man \
-	      --disable-static \
-	      --disable-rpath \
+              --without-p11-kit \
+              --with-included-libtasn1 \
               --disable-guile \
-	      --disable-nls \
-	      --disable-cryptodev \
-	      --disable-srp-authentication
+		--with-included-unistring
 
   make
+
+  # fix man3 files installation
+  sed '/INSTALL_DATA.*files/ s/$(INSTALL_DATA)/cp/' -i doc/manpages/Makefile
   make DESTDIR=$PKG install
 
   rm -rf $PKG/usr/share/{info,locale}
+chown -R root.root $PKG
 }

@@ -1,6 +1,6 @@
 #! /bin/sh
 
-. $TS_GLOBAL
+. `dirname $0`/common
 
 get_options ()
 {
@@ -204,27 +204,15 @@ modes_ ()
     return 0
 }
 
-case $1 in
-init|start)
-	X_SERVER=Xorg
+X_SERVER=Xorg
 	
-	if ! pkg_initialized $PACKAGE; then
-        pkg_set_init_flag $PACKAGE
-        fi
-	
-	echo "X_SERVER=$X_SERVER" >> $TS_RUNTIME
-	for section in ServerLayout Files Keyboard Mouse Monitor Device Modes ServerFlags Screen Dri; do
-		get_options $section
-		`make_lower $section`_
-		if [ -e /tmp/x_$section ]; then rm /tmp/x_$section; fi
-	done
-	;;
-help)
-	echo "Usage: $0 init"
-	;;
-*)
-	exit 1
-	;;
-esac
+if ! pkg_initialized $PACKAGE; then
+	pkg_set_init_flag $PACKAGE
+fi
 
-exit 0
+echo "X_SERVER=$X_SERVER" >> $TS_RUNTIME
+for section in ServerLayout Files Keyboard Mouse Monitor Device Modes ServerFlags Screen Dri; do
+	get_options $section
+	`make_lower $section`_
+	if [ -e /tmp/x_$section ]; then rm /tmp/x_$section; fi
+done

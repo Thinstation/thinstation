@@ -1,0 +1,47 @@
+# Maintainer: Pierre Schmitz <pierre@archlinux.de>
+
+name=lighttpd
+version=1.4.50
+release=1
+source=("https://download.lighttpd.net/lighttpd/releases-1.4.x/lighttpd-${version}.tar.xz"
+        'lighttpd.logrotate.d' 'lighttpd.conf' 'lighttpd.tmpfiles' 'lighttpd.service' \
+	favicon.ico  index.html  light_button.png  light_logo.png  poweredby.png favicon.patch)
+
+build() {
+	cd $SRC/$name-$version
+	patch -p0 -i $SRC/favicon.patch
+	./configure --prefix=/usr \
+		--libdir=/usr/lib/lighttpd/ \
+		--sysconfdir=/etc/lighttpd \
+		--with-mysql \
+		--with-ldap \
+		--with-attr \
+		--with-openssl \
+		--with-krb5 \
+		--without-fam \
+		--with-webdav-props \
+		--with-webdav-locks \
+		--with-gdbm \
+		--with-lua
+	sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
+	make
+	make check
+	make DESTDIR=$PKG install
+        make DESTDIR=$PKG install-html
+
+
+	install -D -m644 $SRC/lighttpd.logrotate.d $PKG/etc/logrotate.d/lighttpd
+	install -D -m644 $SRC/lighttpd.conf $PKG/etc/lighttpd/lighttpd.conf
+	install -d -m700 -o lighttpd -g lighttpd $PKG/var/www/lighttpd/
+	install -D -m644 ${SRC}/lighttpd.tmpfiles ${PKG}/usr/lib/tmpfiles.d/lighttpd.conf
+	install -D -m644 ${SRC}/lighttpd.service ${PKG}/usr/lib/systemd/system/lighttpd.service
+	for file in favicon.ico  index.html  light_button.png  light_logo.png  poweredby.png; do
+		install -D -m644 -o lighttpd -g lighttpd $SRC/$file $PKG/var/www/lighttpd
+	done
+
+	pushd doc/config >/dev/null
+	find . -type f ! -name 'Makefile*' -exec install -D -m644 {} ${PKG}/usr/share/doc/lighttpd/config/{} \;
+	popd >/dev/null
+
+	install -D -m644 COPYING $PKG/usr/share/licenses/$name/COPYING
+}

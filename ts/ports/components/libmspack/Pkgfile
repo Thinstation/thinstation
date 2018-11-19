@@ -2,15 +2,13 @@
 # Maintainer: AndyRTR <andyrtr@archlinux.org>
 
 name=libmspack
-version=1.5
+version=0.5alpha
 release=1
-source=(https://github.com/kyz/libmspack/archive/v${version}.tar.gz)
+source=(http://www.cabextract.org.uk/libmspack/$name-$version.tar.gz)
 
-build(){
-  cd $name-$version/$name/trunk
-  autoreconf -vfi
+build() {
+  cd $name-$version
   ./configure --prefix=/usr --disable-static
   make
-  make check
   make DESTDIR="$PKG/" install
 }

@@ -1,37 +1,40 @@
-# Description: wxWidgets for GTK+.
-# URL: http://www.wxwidgets.org/
-# Maintainer: Danny Rawlins, crux at romster dot me
-# Packager: Antti Nykanen, aon at iki dot fi
-# Depends on: gtk glu gst-plugins-base-compat
+# $Id$
+# Maintainer: Eric Bélanger <eric@archlinux.org>
 
 name=wxgtk
-version=3.0.2
-release=1
-source=(http://downloads.sourceforge.net/wxwindows/wxWidgets-$version.tar.bz2)
+version=3.0.4
+release=5
+source=(https://github.com/wxWidgets/wxWidgets/releases/download/v$version/wxWidgets-${version}.tar.bz2
+        make-abicheck-non-fatal.patch)
 
 build() {
-	cd wxWidgets-$version
+  cd wxWidgets-${version}
 
-	./configure \
-		--prefix=/usr \
-		--libdir=/usr/lib \
-		--with-gtk=2 \
-		--with-opengl \
-		--enable-unicode \
-		--enable-graphics_ctx \
-		--enable-mediactrl \
-		--enable-webview \
-		--with-regex=builtin \
-		--with-libpng=sys \
-		--with-libxpm=sys \
-		--with-libjpeg=sys \
-		--with-libtiff=sys \
-		--disable-precomp-headers
+  # C++ ABI check is too strict and breaks with GCC 5.1
+  # https://bugzilla.redhat.com/show_bug.cgi?id=1200611
+  patch -Np1 -i ../make-abicheck-non-fatal.patch
 
-	make
-	make DESTDIR=$PKG install
+  # Fix build with GCC 6
+#  patch -p1 -i ../wxgtk-gcc6.patch
 
-	rm -r \
-		$PKG/usr/share/locale \
-		$PKG/usr/share/bakefile
+  ./configure	\
+	--prefix=/usr \
+	--libdir=/usr/lib \
+	--with-gtk=3 \
+	--with-opengl \
+	--enable-unicode \
+	--enable-graphics_ctx \
+	--disable-mediactrl \
+	--enable-webview \
+	--with-regex=builtin \
+	--with-libpng=sys \
+	--with-libxpm=sys \
+	--with-libjpeg=sys \
+	--with-libtiff=sys \
+	--disable-precomp-headers
+
+  make
+  make -C locale allmo
+  make DESTDIR="${PKG}" install
+  install -D -m644 docs/licence.txt "${PKG}/usr/share/licenses/${name}/LICENSE"
 }

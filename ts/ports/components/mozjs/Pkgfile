@@ -3,6 +3,7 @@
 # Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 
 name=mozjs
+archname=js
 version=24.2.0
 release=1
 source=(http://ftp.mozilla.org/pub/mozilla.org/js/$name-$version.tar.bz2)
@@ -11,6 +12,8 @@ build() {
 	cd mozjs-$version
 
 	cd js/src
+
+	sed -i 's/(defined\((@TEMPLATE_FILE)\))/\1/' config/milestone.pl
 
 	./configure --prefix=/usr \
 			--with-system-nspr \

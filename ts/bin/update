@@ -236,7 +236,6 @@ init()
 		esac
 		shift
 	done
-	DEST="$TSWRKNG/packages/$PACKAGE"
 	if $HELP || [ -z $PACKAGE ] && ! $OTHER ; then
 		showhelp
 		exit
@@ -253,12 +252,22 @@ init()
 	elif	$IMAGES ; then
 		DEST="$TSWRKNG/boot-images"
 		FILES="`cat $DEST/.dna`"
-	elif	[ ! -e $DEST/.dna ] ; then
-		echo -e "\nThe package '$PACKAGE' was not found or no .dna exists.\n\n"
-		showhelp
-		exit
 	else
-		FILES="`cat $DEST/.dna`"
+		for i in $TSWRKNG $XTRWRKNG; do
+			if [ -d $i/packages/$PACKAGE ]; then
+				DEST="$i/packages/$PACKAGE"
+			fi
+		done
+		if [ -z "$DEST" ]; then
+			echo -e "\nThe package '$PACKAGE' was not found."
+			showhelp
+			exit
+		elif [ ! -e $DEST/.dna ]; then
+			echo -e "\nNo .dna exists for package '$PACKAGE'."
+			exit
+		else
+			FILES="`cat $DEST/.dna`"
+		fi
 	fi
 }
 
@@ -305,9 +314,9 @@ main()
 	if $DRYRUN ; then
 		echo -e $cmdlist
 	else
-		echo -e $cmdlist >> dothis
-		source dothis
-		rm dothis
+		echo -e $cmdlist >> /tmp/$PACKAGE.dothis
+		source /tmp/$PACKAGE.dothis
+		rm /tmp/$PACKAGE.dothis
 	fi
 }
 

@@ -1,0 +1,200 @@
+#!/bin/bash
+
+gzname=`basename $1`
+INSTALLDIR=./packages/vmview
+
+new_file()
+{
+        if [ -n "`stat -c '%Y' $1 | grep -v \"$bday\"`" ]; then
+                return 0
+        else
+                return 1
+        fi
+}
+
+etcs="passwd group nsswitch.conf issue ld.so.conf"
+bins="stat attr awk basename busybox bash cat chgrp chmod chown cp cut date dd df \
+	dirname echo ed egrep expr false find gawk grep head id init od \
+	install ip ln locale ls mkdir mktemp more mount mv pidof ping \
+	ps red rm rmdir sed sh sleep sort ss tar tc telinit touch tr \
+	true uname vi wc which whoami ldd file ldconfig strace getconf"
+dirs="	proc \
+	etc/udev/rules.d \
+	etc/init.d \
+	bin \
+	lib \
+	tmp \
+	dev/bus/usb \
+	usr/local \
+	sbin \
+        lib/applications \
+	etc/init.d \
+	etc/rc0.d \
+	etc/rc1.d \
+	etc/rc2.d \
+	etc/rc3.d \
+	etc/rc4.d \
+	etc/rc5.d \
+	etc/rc6.d \
+	build "
+clean_dirs="	dev \
+		proc \
+		var \
+		tmp \
+		lib/python2.7 \
+		lib/vmware-installer-horizon \
+		etc/vmware-installer-horizon \
+		etc/rc0.d \
+		etc/rc1.d \
+		etc/rc2.d \
+		etc/rc3.d \
+		etc/rc4.d \
+		etc/rc5.d \
+		etc/rc6.d "
+libs="	/lib/libnss_files.so.2 \
+	/lib/libutil.so.1 \
+	/usr/lib/libsqlite3.so.0 \
+	/usr/lib/libgssapi_krb5.so.2 \
+	/usr/lib/libkrb5.so.3 \
+	/usr/lib/libk5crypto.so.3 \
+	/lib/libcom_err.so.2 \
+	/usr/lib/libgnutls.so.30 \
+	/usr/lib/libavahi-common.so.3 \
+	/usr/lib/libavahi-client.so.3 \
+	/usr/lib/libkrb5support.so.0 \
+	/lib/libkeyutils.so.1 \
+	/lib/libresolv.so.2 \
+	/usr/lib/libnettle.so.6 \
+	/usr/lib/libhogweed.so.4 \
+	/usr/lib/libdbus-1.so.3 \
+	/usr/lib/libsystemd.so.0 \
+	/usr/lib/libgcc_s.so.1 \
+	/usr/lib/libssl.so.1.0.0 \
+	/usr/lib/libcrypto.so.1.0.0 "
+
+# Create all the directories that we are going to need
+for repack in python cups; do
+	repackage $repack -t $INSTALLDIR
+	cp -a $INSTALLDIR/$repack/* $INSTALLDIR/.
+	rm -rf $INSTALLDIR/$repack
+done
+
+for mdir in $dirs; do
+        mkdir -p $INSTALLDIR/$mdir
+done
+
+# Fill in the bin folder
+for cbin in $bins ; do
+        cp `which $cbin` $INSTALLDIR/bin/.
+	if [ -n "`file $INSTALLDIR/bin/$cbin |grep -oe ELF`" ]; then
+		libs="$libs \n`ldd $INSTALLDIR/bin/$cbin |grep -v 'linux-vdso' |grep -v 'not a' |cut -d '>' -f2 |cut -d '(' -f1 |sed -E s/[[:space:]]//g`"
+	fi
+done
+if [ -e /bin/uname-auto ] ; then
+        cp /bin/uname-auto $INSTALLDIR/bin/.
+fi
+echo "exit 0" > $INSTALLDIR/bin/install_initd
+echo "exit 0" > $INSTALLDIR/bin/update-rc.d
+echo "exit 0" > $INSTALLDIR/bin/chkconfig
+chmod +x $INSTALLDIR/bin/install_initd
+chmod +x $INSTALLDIR/bin/update-rc.d
+chmod +x $INSTALLDIR/bin/chkconfig
+touch $INSTALLDIR/bin/firefox
+touch $INSTALLDIR/bin/chrome
+
+# Fill in the lib folder
+for clib in `echo -e $libs |sort -u`; do
+        cp $clib $INSTALLDIR/lib/.
+done
+
+# Fill in the etc folder
+for cetc in $etcs ; do
+        cp /etc/$cetc $INSTALLDIR/etc/.
+done
+cat /proc/mounts |grep -Ev 'gvfs|mapper|media' > $INSTALLDIR/etc/mtab
+
+# Add some links to fool any tests
+ln -sf /sbin $INSTALLDIR/usr/local/sbin
+ln -sf /bin $INSTALLDIR/usr/local/bin
+ln -sf /lib $INSTALLDIR/usr/local/lib
+ln -sf /sbin $INSTALLDIR/usr/sbin
+ln -sf /bin $INSTALLDIR/usr/bin
+ln -sf /lib $INSTALLDIR/usr/lib
+ln -sf /lib $INSTALLDIR/usr/share
+ln -sf /lib $INSTALLDIR/lib64
+ln -sf /lib $INSTALLDIR/usr/lib64
+
+# Now extract the installer
+chroot $INSTALLDIR /bin/busybox --install -s
+chroot $INSTALLDIR /bin/ldconfig
+cp /downloads/$gzname $INSTALLDIR/.
+chmod +x $INSTALLDIR/$gzname
+
+# This will mark all the files before we run install, so that we know what to remove afterwards.
+timestamp="`date +%Y%m%d`0000.00"
+for file in `find $INSTALLDIR`; do
+	touch -c -h -t $timestamp $file
+done
+bday=`stat -c %Y $INSTALLDIR/$gzname`
+
+# Start the installer in a chroot session.
+mount -t proc proc $INSTALLDIR/proc
+
+# Pipe the answers
+chroot $INSTALLDIR strace -f -o /debug ./$gzname --eulas-agreed --console --required
+
+umount $INSTALLDIR/proc
+
+sleep 1
+cp $INSTALLDIR/tmp/vmware-root/* $INSTALLDIR/build/vmware-install.log
+cp $INSTALLDIR/debug $INSTALLDIR/build/install.strace
+
+# Pin open empty folders, they may get used on a running system
+for dir in `find $INSTALLDIR -type d -empty`; do
+        touch $dir/.gitignore
+done
+
+# Remove any files not placed by the installer according to the bday set earlier
+for dir in `find $INSTALLDIR -mindepth 1 -maxdepth 1 -type d ! -name build`; do
+	for file in `find $dir -type f -o -type l`; do
+		if ! new_file $file; then
+			rm $file
+		fi
+	done
+done
+
+# Remove folders and files that we know must go.
+for dir in $clean_dirs ; do
+	rm -rf $INSTALLDIR/$dir
+done
+rm $INSTALLDIR/$gzname
+rm $INSTALLDIR/lib64
+rm $INSTALLDIR/debug
+
+# Merge static files and folders
+cp -Prf $INSTALLDIR/build/extra/* $INSTALLDIR/.
+
+# Remove any now empty folders
+find $INSTALLDIR -type d -empty -delete
+
+# Fix links, relative linking is bad.
+for link in `find $INSTALLDIR/etc/init.d -type l`; do
+	dest=`readlink $link`
+	newdest=`echo $dest |sed -e "s|[.]\+/[.]\+/usr/lib64|/lib|g"`
+	rm $link
+	ln -sf $newdest $link
+done
+for link in `find $INSTALLDIR/bin -type l`; do
+        dest=`readlink $link`
+        newdest=`echo $dest |sed -e "s|[.]\+/lib64|/lib|g"`
+        rm $link
+        ln -sf $newdest $link
+done
+for link in `find $INSTALLDIR/sbin -type l`; do
+        dest=`readlink $link`
+        newdest=`echo $dest |sed -e "s|[.]\+/usr/lib64|/lib|g"`
+        rm $link
+        ln -sf $newdest $link
+done
+
+ln -s ../lib/doc/vmware-view-client/VMware-Horizon-Client-EULA-en.txt $INSTALLDIR/build/license

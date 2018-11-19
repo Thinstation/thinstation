@@ -1,0 +1,15 @@
+[Unit]
+Description=Thistation hdd-spindown_force.init
+After=profile-setup.service
+Before=network-pre.target
+ConditionPathIsReadWrite=/etc
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+EnvironmentFile=/etc/thinstation.env
+ExecStart=/etc/init.d/hdd-spindown_force.init init
+SyslogIdentifier=thinstation
+
+[Install]
+WantedBy=multi-user.target

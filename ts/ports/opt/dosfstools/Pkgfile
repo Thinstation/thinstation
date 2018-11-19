@@ -1,19 +1,24 @@
 # Description: tools for creating and checking DOS filesystems in linux
-# URL: http://www.daniel-baumann.ch/software/dosfstools/
+# URL: https://github.com/dosfstools/dosfstools
 # Maintainer: Jose V Beneyto, sepen at crux dot nu
 # Packager: Ryan B. Lynch, rlynch at strozllc dot com
 # Depends on:
 
 name=dosfstools
-version=3.0.11
+version=4.0
 release=1
-source=(http://www.daniel-baumann.ch/software/$name/$name-$version.tar.bz2)
+source=(https://github.com/dosfstools/dosfstools/releases/download/v$version/$name-$version.tar.xz)
 
 build() {
   cd $name-$version
-  sed -e 's|^install: .*|install: install-bin install-man|' -i Makefile
-  make install DESTDIR=$PKG \
-               PREFIX=/usr \
-               SBINDIR=/sbin \
-               MANDIR=/usr/man
+
+  ./configure --prefix=/usr --enable-compat-symlinks
+  make
+  make -j1 install \
+    DESTDIR=$PKG \
+    PREFIX=/usr \
+    SBINDIR=/sbin
+
+  ln -s fatlabel.8 $PKG/usr/share/man/man8/dosfslabel.8.gz
+  rm -r $PKG/usr/share/doc
 }

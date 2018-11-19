@@ -1,19 +1,96 @@
-# Description: Thinstation essential package
-# URL: http://www.thinstation.org
-# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
-# Depends on: openldap krb5-TS
+# Description:	Daemon to mount/umount filesystems automatically
+# URL:		
+# Maintainer:	Alan Mizrahi, alan at mizrahi dot com dot ve
+# Packager:	Alan Mizrahi, alan at mizrahi dot com dot ve
+# Depends on:
 
 name=autofs
-version=5.1.2
-release=1
-source=(http://www.kernel.org/pub/linux/daemons/$name/v5/$name-$version.tar.xz )
+version=5.1.1
+release=8
+source=(
+http://www.kernel.org/pub/linux/daemons/$name/v${version%%.*}/$name-$version.tar.xz
+autofs.rc
+label.autofs
+auto.label
+patch_order-$version
+https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.1.2/autofs-5.1.1-fix-fix-gcc5-complaints.patch
+https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.1.2/autofs-5.1.1-update-libtirpc-workaround-for-new-soname.patch
+https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.1.2/autofs-5.1.1-revert-fix-libtirpc-name-clash.patch
+https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.1.2/autofs-5.1.1-fix-left-mount-count-return.patch
+https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.1.2/autofs-5.1.1-fix-return-handling-in-sss-lookup-module.patch
+https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.1.2/autofs-5.1.1-move-query-dn-calculation-from-do_bind-to-do_connect.patch
+https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.1.2/autofs-5.1.1-make-do_connect-return-a-status.patch
+https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.1.2/autofs-5.1.1-make-connect_to_server-return-a-status.patch
+https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.1.2/autofs-5.1.1-make-find_dc_server-return-a-status.patch
+https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.1.2/autofs-5.1.1-make-find_server-return-a-status.patch
+https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.1.2/autofs-5.1.1-fix-return-handling-of-do_reconnect-in-ldap-module.patch
+https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.1.2/autofs-5.1.1-fix-rwlock-unlock-crash.patch
+https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.1.2/autofs-5.1.1-fix-config-old-name-lookup.patch
+https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.1.2/autofs-5.1.1-fix-error-handling-on-ldap-bind-fail.patch
+https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.1.2/autofs-5.1.1-fix-direct-mount-stale-instance-flag-reset.patch
+https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.1.2/autofs-5.1.1-fix-direct-map-expire-not-set-for-initial-empty-map.patch
+https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.1.2/autofs-5.1.1-fix-missing-source-sss-in-multi-map-lookup.patch
+https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.1.2/autofs-5.1.1-fix-update_hosts_mounts-return.patch
+https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.1.2/autofs-5.1.1-move-check_nss_result-to-nsswitch_c.patch
+https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.1.2/autofs-5.1.1-make-open_lookup-return-nss-status.patch
+https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.1.2/autofs-5.1.1-fix-nsswitch-handling-when-opening-multi-map.patch
+https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.1.2/autofs-5.1.1-add-reinit-entry-point-to-modules.patch
+https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.1.2/autofs-5.1.1-implement-reinit-in-parse-modules.patch
+https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.1.2/autofs-5.1.1-implement-reinit-in-dir-lookup-module.patch
+https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.1.2/autofs-5.1.1-implement-reinit-in-file-lookup-module.patch
+https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.1.2/autofs-5.1.1-implement-reinit-in-hesiod-lookup-module.patch
+https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.1.2/autofs-5.1.1-implement-reinit-in-hosts-lookup-module.patch
+https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.1.2/autofs-5.1.1-implement-reinit-in-ldap-lookup-module.patch
+https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.1.2/autofs-5.1.1-implement-reinit-in-nisplus-lookup-module.patch
+https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.1.2/autofs-5.1.1-implement-reinit-in-program-lookup-module.patch
+https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.1.2/autofs-5.1.1-implement-reinit-in-sss-lookup-module.patch
+https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.1.2/autofs-5.1.1-implement-reinit-in-yp-lookup-module.patch
+https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.1.2/autofs-5.1.1-add-type-to-struct-lookup_mod.patch
+https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.1.2/autofs-5.1.1-factor-out-free-multi-map-context.patch
+https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.1.2/autofs-5.1.1-factor-out-alloc-multi-map-context.patch
+https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.1.2/autofs-5.1.1-fix-map-format-check-in-nss_open_lookup-multi-map-module.patch
+https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.1.2/autofs-5.1.1-implement-reinit-in-multi-lookup-module.patch
+https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.1.2/autofs-5.1.1-change-lookup-to-use-reinit-instead-of-reopen.patch
+https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.1.2/autofs-5.1.1-update-map_hash_table_size-description.patch
+https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.1.2/autofs-5.1.1-add-configuration-option-to-use-hostname-in-mounts.patch
+https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.1.2/autofs-5.1.1-fix-out-of-order-call-in-program-map-lookup.patch
+https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.1.2/autofs-5.1.1-fix-error-handling-of-is_mounted.patch
+https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.1.2/autofs-5.1.1-Add-a-mode-option-for-master-map-entries.patch
+https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.1.2/autofs-5.1.1-define-monotonic-clock-helper-functions.patch
+https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.1.2/autofs-5.1.1-use-monotonic-clock-for-alarm-thread-condition-wait.patch
+https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.1.2/autofs-5.1.1-define-pending-condition-init-helper-function.patch
+https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.1.2/autofs-5.1.1-use-monotonic-clock-for-direct-mount-condition.patch
+https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.1.2/autofs-5.1.1-use-monotonic-clock-for-indirect-mount-condition.patch
+https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.1.2/autofs-5.1.1-change-remaining-gettimeofday-to-use-clock_gettime.patch
+https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.1.2/autofs-5.1.1-change-time-to-use-monotonic_clock.patch
+https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.1.2/autofs-5.1.1-remove-unused-function-elapsed.patch
+https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.1.2/autofs-5.1.1-fix-unbind-external-mech.patch
+https://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.1.2/autofs-5.1.1-fix-sasl-connection-concurrancy-problem.patch
+)
 
 build() {
 	cd $name-$version
-	./configure --prefix=/usr --with-confdir=/etc
+	for f in `grep ^[^#] $SRC/patch_order-$version`; do
+		patch -p1 -i $SRC/$f
+	done
+
+	sed -i -e '1i#include <stdarg.h>' lib/defaults.c
+	
+	./configure \
+		--prefix=/usr \
+		--with-confdir=/etc \
+		--without-openldap \
+		--enable-ignore-busy \
+		--enable-force-shutdown
 	make
 	make INSTALLROOT=$PKG install
+	install -D -m 755 $SRC/autofs.rc $PKG/etc/rc.d/autofs
+
+	# mkdir $PKG/ssh $PKG/label $PKG/etc/auto.master.d
+	mkdir $PKG/label $PKG/etc/auto.master.d
+	cp $SRC/*.autofs $PKG/etc/auto.master.d
+	cp $SRC/auto.* $PKG/etc
+	chmod 755 $PKG/etc/auto.label
+
 #	sed -i -e 's|fstype=nfs|fstype=nfs,vers=3|g' $PKG/etc/auto.*
-	mkdir $PKG/bin
-	cp daemon/automount $PKG/bin/.
 }

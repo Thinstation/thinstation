@@ -1,0 +1,22 @@
+# Description:	A date and time object for Perl
+# URL:		http://metacpan.org/release/DateTime
+# Maintainer:	
+# Depends on:	p5-datetime-locale p5-datetime-timezone p5-dist-checkconflicts p5-namespace-autoclean p5-params-validationcompiler p5-specio p5-try-tiny
+
+name=p5-datetime
+version=1.48
+release=1
+source=(http://search.cpan.org/CPAN/authors/id/D/DR/DROLSKY/DateTime-${version}.tar.gz)
+
+build() {
+	cd DateTime-$version
+
+	# PERL_MM_USE_DEFAULT=1 \
+	perl Makefile.PL
+	make OPTIMIZE="$CFLAGS" DESTDIR="$PKG" install
+
+	find "$PKG" -depth \
+		-type f \( -name .packlist -o -name \*.bs -o -name perllocal.pod \) -delete , \
+		-type f -name autosplit.ix \( -exec grep -q '^[[:space:]]*package' {} \; -o -delete \) , \
+		-type d -empty -exec rmdir {} +
+}

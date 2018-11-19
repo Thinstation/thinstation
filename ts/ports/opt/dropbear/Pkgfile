@@ -4,19 +4,16 @@
 # Depends on:  zlib
 
 name=dropbear
-version=0.53.1
+version=2018.76
 release=1
 source=(http://matt.ucc.asn.au/$name/releases/$name-$version.tar.bz2 \
         $name)
 
 build () {
     cd $name-$version
-    sed -i 's|libexec|lib/ssh|; s|X11R6/bin|bin|; s|bin/X11|bin|' options.h
-    ./configure --prefix=/usr 
+    ./configure --prefix=/usr --mandir=/usr/man
     make
     make DESTDIR=$PKG install
-    install -d $PKG/{etc/{rc.d,dropbear},usr/man/man{1,8}}
-    install -m 644 dbclient.1 $PKG/usr/man/man1
-    install -m 644 dropbear{.8,key.8} $PKG/usr/man/man8
+    install -d $PKG/etc/{rc.d,dropbear}
     install -m 755 $SRC/dropbear $PKG/etc/rc.d
 }

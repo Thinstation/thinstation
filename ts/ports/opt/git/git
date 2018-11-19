@@ -1,0 +1,37 @@
+#!/bin/sh
+#
+# /etc/ports/drivers/git: git driver script for ports(8)
+#
+
+if [ $# -ne 1 ]; then
+	echo "usage: $0 <file>" >&2
+	exit 1
+fi
+
+. $1
+
+if [ -z "$URL" ]; then
+	echo "URL not set in '$1'" >&2
+	exit 2
+fi
+if [ -z "$NAME" ]; then
+	echo "NAME not set in '$1'" >&2
+	exit 2
+fi
+
+echo "Fetching updates from $URL"
+echo "Updating collection $NAME"
+
+cd "$PORTS_DIR/$NAME" 2> "/dev/null"
+
+if [ $? -lt 1 ]; then
+	git fetch -q
+	git diff --pretty=format: --name-status "$BRANCH" origin/"$BRANCH" | sed "s/M\t/ Edit /g; s/A\t/ Checkout /g; s/D\t/ Delete /g" | sort
+	git clean -q -f
+	git reset -q --hard origin/"$BRANCH"
+else
+	echo " Initial git clone, this may take a while"
+	git clone -q -b "$BRANCH" "$URL" "$PORTS_DIR/$NAME"
+fi
+
+echo "Finished successfully"

@@ -3,22 +3,25 @@
 # Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 
 name=unshield
-version=git
+version=1.2
 release=1
-source=()
+source=(https://github.com/twogood/unshield/archive/$version.tar.gz)
 
 build() {
-	git clone git://github.com/twogood/unshield.git
+#	git clone git://github.com/twogood/unshield.git
 
-	cd $name
+	cd $name-$version
 
 	./bootstrap
 	./configure --prefix=/usr \
 			--exec-prefix=/ \
 			--sysconfdir=/etc \
 			--mandir=/usr/man \
+			--disable-static \
 			--disable-extras
 
 	make
 	make DESTDIR=$PKG install
+	mkdir $PKG/usr/lib
+	mv $PKG/lib/pkgconfig $PKG/usr/lib/.
 }

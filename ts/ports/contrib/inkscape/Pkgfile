@@ -1,34 +1,40 @@
-# $Id$
-# Maintainer: Gaetan Bisson <bisson@archlinux.org>
-# Contributor: Tobias Kieslich <tobias@justdreams.de>
-# Contributor: tobias <tobias@archlinux.org>
+# Description: An open source SVG editor.
+# URL: http://www.inkscape.org/
+# Maintainer: Danny Rawlins, crux at romster dot me
+# Packager: Huynh Ngoc Chau Tran, tran dot huynh at laposte dot net
+# Depends on: boehm-gc boost gsl gtkmm intltool poppler-glib popt
 
 name=inkscape
-version=0.92.1
-release=3
-source=(https://media.inkscape.org/dl/resources/file/inkscape-0.92.1.tar_XlpI7qT.bz2)
+version=0.92.3
+release=1
+source=(http://inkscape.global.ssl.fastly.net/media/resources/file/$name-$version.tar.bz2)
 
 build() {
-	tar -xvf *.bz2
-	cd "${SRC}/${name}-${version}"
+	cd $name-$version
+
+	CXXFLAGS+=' -std=c++11'
+
 	./autogen.sh
-
-#	sed -i 's|/usr/bin/python\>|/usr/bin/python2|g' cxxtest/*.py
-#	sed -i 's|/usr/bin/env python\>|/usr/bin/env python2|g' share/*/{test/,}*.py
-#	sed -i 's|"python" },|"python2" },|g' src/extension/implementation/script.cpp
-#	sed -i 's|python -c|python2 -c|g' configure share/extensions/uniconv*.py
-#	sed -i 's|"python"|"python2"|g' src/main.cpp
-
-	sed -i 's| abs(| std::fabs(|g' src/ui/tools/flood-tool.cpp
-
 	./configure \
 		--prefix=/usr \
+		--enable-lcms \
 		--with-python \
 		--with-perl \
-		--enable-lcms \
 		--enable-poppler-cairo \
 		--disable-strict-build \
 		--disable-dependency-tracking
+
 	make
-	make DESTDIR="${PKG}" install
+	make DESTDIR=$PKG install
+
+	rm \
+		$PKG/usr/share/man/man1/inkscape.??.1 \
+		$PKG/usr/share/man/man1/inkscape.zh_TW.1
+
+	rm -r \
+		$PKG/usr/share/man/?? \
+		$PKG/usr/share/man/zh_TW
+
+	find $PKG/usr/share/inkscape -name README -exec rm -f {} +
+	/usr/bin/python -mcompileall $PKG
 }

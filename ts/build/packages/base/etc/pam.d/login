@@ -1,0 +1,11 @@
+#%PAM-1.0
+auth		required	pam_securetty.so
+auth		include		system-local-login
+auth		sufficient 	pam_succeed_if.so  user = root
+account		include		system-local-login
+account         sufficient      pam_succeed_if.so  user = root
+password	include		system-local-login
+password        sufficient      pam_succeed_if.so  user = root
+session		include		system-local-login
+session		optional	pam_hooks.so /sbin/session
+-session	optional	pam_ck_connector.so nox11

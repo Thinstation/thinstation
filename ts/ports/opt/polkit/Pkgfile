@@ -4,26 +4,29 @@
 # Depends on:
 
 name=polkit
-version=0.112
+version=0.114
 release=1
 source=(http://www.freedesktop.org/software/polkit/releases/$name-$version.tar.gz)
 
 build() {
 	cd $name-$version
 
-	sed -i -e "s/USE_NLS=yes/USE_NLS=no/" \
-			-e "s/ENABLE_NLS 1/ENABLE_NLS 0/" configure
+	sed -e 's/-nonet //g' -i docs/man/*
 
 	./configure --prefix=/usr --sysconfdir=/etc \
 		    --mandir=/usr/man \
 		    --libexecdir=/usr/libexec \
 		    --localstatedir=/var \
 		    --disable-static \
-		    --disable-nls \
 		    --enable-gtk-doc-html=no \
-		    --enable-libsystemd-login=no \
-		    --disable-examples
+		    --disable-examples \
+                    --enable-libsystemd-login=yes
 
 	make
 	make DESTDIR=$PKG install
+
+	chgrp polkitd $PKG/etc/polkit-1/rules.d
+	chgrp polkitd $PKG/usr/share/polkit-1/rules.d
+
+	chmod 750 $PKG/usr/share/polkit-1/rules.d
 }

@@ -2,20 +2,18 @@
 # URL: http://pkg-isocodes.alioth.debian.org/
 # Maintainer: Jose V Beneyto, sepen at users dot sourceforge dot net
 # Packager: Matt Housh, jaeger at morpheus dot net
-# Depends on: gettext python
+# Depends on: gettext
 
 name=iso-codes
-version=3.65
+version=1.0
 release=1
-source=(http://pkg-isocodes.alioth.debian.org/downloads/$name-$version.tar.xz)
+source=(http://crux.nu/files/$name-$version.tar.bz2)
 
 build() {
   cd $name-$version
-
   ./configure --prefix=/usr
-
   make
   make pkgconfigdir=/usr/lib/pkgconfig DESTDIR=$PKG install
-
   rm -rf $PKG/usr/share/locale
 }
+

@@ -249,19 +249,19 @@ done
 echo '</DIV>'
 
 }
-
 if [ -z "$CGI_password" ] && [ -z "$CGI_action" ] ; then
 	echo '<form action="/cgi-bin/Administration.cgi" method=post>'
-	echo 'Enter the root password to access administrative commands<br>'
+	echo 'Enter the TS Admin password to access administrative commands<br>'
 	echo '<br>'
 	echo 'Password: <input type=password name=password size=16><br>'
 	echo '<input type=submit name=sumbit value=submit>'
 	echo '</form>'
 else
    if [ -z "$CGI_action" ] ; then
-	if verify_password root `hex2char "$CGI_password"` ; then
+	if verify_password tsadmin `hex2char "$CGI_password"` ; then
 	   config
 	else
+		echo "$?"
 		echo "Invalid password"
 	fi
    fi
@@ -316,7 +316,6 @@ fi
 
 trailer
 
-if [ -n "$VERIFIED_COMMAND" ]
-then
-	(sleep 5; $VERIFIED_COMMAND) &
+if [ -n "$VERIFIED_COMMAND" ]; then
+	(sleep 5; sudo -u tsadmin sudo $VERIFIED_COMMAND) &
 fi

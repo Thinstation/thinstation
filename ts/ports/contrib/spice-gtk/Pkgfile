@@ -6,26 +6,17 @@
 name=spice-gtk
 version=0.33
 release=1
-source=(http://spice-space.org/download/gtk/spice-gtk-$version.tar.bz2 \
-	debian_843471-clipboard_Fix_crash_by_handling_error.patch
-        ssl-Stop-creating-our-own-X509_LOOKUP_METHOD.patch
-        ssl-Rework-our-custom-BIO-type.patch
-	ssl-Use-accessors-rather-than-direct-struct-access.patch)
+source=(http://spice-space.org/download/gtk/spice-gtk-$version.tar.bz2)
 
 build() {
 	cd spice-gtk-$version
-
-	patch -Np1 -i ../debian_843471-clipboard_Fix_crash_by_handling_error.patch
-	patch -Np1 -i ../ssl-Stop-creating-our-own-X509_LOOKUP_METHOD.patch
-	patch -Np1 -i ../ssl-Rework-our-custom-BIO-type.patch
-	patch -Np1 -i ../ssl-Use-accessors-rather-than-direct-struct-access.patch
-
 	./configure --prefix=/usr \
 			--with-gtk=3.0 \
 			--exec-prefix=/ \
 			--sysconfdir=/etc \
 			--mandir=/usr/man \
-			--disable-introspection
+			 \
+			
 
 	make
 	make -j1 DESTDIR=$PKG install
