@@ -21,52 +21,53 @@ let y=-1
 # Add each Applications configuration parameters
 while [ $x -le $y ]; do
    let x=x+1
-   SESSION_TYPE=
-   SESSION_TITLE=
-   SESSION_AUTOSTART=
-   SESSION_WORKSPACE=
-   SESSION_SCREEN=
-   SESSION_SCREEN_POSITION=
-   SESSION_ICON=
-   SESSION_CUSTOM_CONFIG=
 
-   # Get Session details
+   # Define Default Values. Can be overriden by session parameters.
+   SCREEN=0
+   SCREEN_POSITION=1
+   WORKSPACE=1
+   AUTOSTART=On
+   ICON=Off
+   CONFIG=.
+   SERVER=.
+   OPTIONS=.
+   USER=.
+   GATE=.
+   GATE_USER=.
+
+  # Get Session details
    . $TS_GLOBAL
    SESSION_TYPE=`eval echo '$SESSION_'$x'_TYPE'`
    SESSION_TITLE=`eval echo '$SESSION_'$x'_TITLE'`
-   SESSION_AUTOSTART=`eval echo '$SESSION_'$x'_AUTOSTART'`
-   SESSION_WORKSPACE=`eval echo '$SESSION_'$x'_WORKSPACE'`
    SESSION_SCREEN=`eval echo '$SESSION_'$x'_SCREEN'`
    SESSION_SCREEN_POSITION=`eval echo '$SESSION_'$x'_SCREEN_POSITION'`
-   SESSION_ICON=`eval echo '$SESSION_'$x'_ICON'`
+   SESSION_WORKSPACE=`eval echo '$SESSION_'$x'_WORKSPACE'`
+   SESSION_AUTOSTART=`eval echo '$SESSION_'$x'_AUTOSTART'`
    SESSION_CUSTOM_CONFIG=`eval echo '$SESSION_'$x'_CUSTOM_CONFIG'`
-
-   # Get package parameters
-   session_type=`make_caps $SESSION_TYPE`
-   SESSION_TYPE=`make_lower $SESSION_TYPE`
-   SESSION_SERVER=`eval echo '$SESSION_'$x'_'$session_type'_SERVER'`
+   SESSION_ICON=`eval echo '$SESSION_'$x'_ICON'`
    SESSION_APPLICATION_SET=`eval echo '$SESSION_'$x'_'$session_type'_APPLICATION_SET'`
+   SESSION_SERVER=`eval echo '$SESSION_'$x'_'$session_type'_SERVER'`
    SESSION_OPTIONS=`eval echo '$SESSION_'$x'_'$session_type'_OPTIONS'`
-
-   # Define Default Values
-   if [ -z "$SCREEN" ]; then SCREEN=0 ; fi
-   if [ -z "$WORKSPACE" ]; then WORKSPACE=1 ; fi
-   if [ -z "$AUTOSTART" ]; then AUTOSTART=On ; fi
-   if [ -z "$SERVER" ]; then SERVER=. ; fi
-   if [ -z "$OPTIONS" ]; then OPTIONS=. ; fi
-   if [ -z "$ICON" ]; then ICON=Off ; fi
-   if [ -z "$SCREEN_POSITION" ]; then SCREEN_POSITION=1 ; fi
-
+   SESSION_USER=`eval echo '$SESSION_'$x'_'$session_type'_USER'`
+   SESSION_GATE=`eval echo '$SESSION_'$x'_'$session_type'_GATE'`
+   SESSION_GATE_USER=`eval echo '$SESSION_'$x'_'$session_type'_GATE_USER'`
 
    # Set Default Values
-   if [ -z "$SESSION_SCREEN" ] ;then SESSION_SCREEN=$SCREEN ; fi
-   if [ -z "$SESSION_SCREEN_POSITION" ] ;then SESSION_SCREEN_POSITION=$SCREEN_POSITION ; fi
-   if [ -z "$SESSION_WORKSPACE" ]; then SESSION_WORKSPACE=$WORKSPACE; fi
-   if [ -z "$SESSION_AUTOSTART" ]; then SESSION_AUTOSTART=$AUTOSTART ; fi
-   if [ -z "$SESSION_CUSTOM_CONFIG" ]; then SESSION_CUSTOM_CONFIG=Off ; fi
-   if [ -z "$SESSION_SERVER" ] ;then SESSION_SERVER=$SERVER ; fi
-   if [ -z "$SESSION_OPTIONS" ] ;then SESSION_OPTIONS=$OPTIONS ; fi
-   if [ -z "$SESSION_ICON" ] ;then SESSION_ICON=$ICON ; fi
+   session_type=`make_caps $SESSION_TYPE`
+   SESSION_TYPE=`make_lower $SESSION_TYPE`
+   if [ -z "$SESSION_TITLE" ];		then SESSION_TITLE=$SESSION_TYPE	; fi
+   if [ -z "$SESSION_SCREEN" ];		then SESSION_SCREEN=$SCREEN		; fi
+   if [ -z "$SESSION_SCREEN_POSITION" ];then SESSION_SCREEN_POSITION=$SCREEN_POSITION; fi
+   if [ -z "$SESSION_WORKSPACE" ]; 	then SESSION_WORKSPACE=$WORKSPACE	; fi
+   if [ -z "$SESSION_AUTOSTART" ]; 	then SESSION_AUTOSTART=$AUTOSTART	; fi
+   if [ -z "$SESSION_CUSTOM_CONFIG" ]; 	then SESSION_CUSTOM_CONFIG=$CONFIG	; fi
+   if [ -z "$SESSION_ICON" ];		then SESSION_ICON=$ICON			; fi
+   if [ -z "$SESSION_SERVER" ];		then SESSION_SERVER=$SERVER		; fi
+   if [ -z "$SESSION_OPTIONS" ];	then SESSION_OPTIONS=$OPTIONS		; fi
+   if [ -z "$SESSION_USER" ];		then SESSION_USER=$USER			; fi
+   if [ -z "$SESSION_GATE" ];		then SESSION_GATE=$GATE			; fi
+   if [ -z "$SESSION_GATE_USER" ];	then SESSION_GATE_USER=$GATE_USER	; fi
+
    if [ -e /etc/cmd/$SESSION_TYPE.change_server_type ] ; then
 	if [ -n "$SESSION_TITLE" ] ; then
 	   	SESSION_SERVER=`replace_char "$SESSION_TITLE" " " "_"`
@@ -77,11 +78,11 @@ while [ $x -le $y ]; do
 		SESSION_SERVER="$SESSION_TYPE"_"$x"
    	fi
    fi
-   if [ -z "$SESSION_TITLE" ] ;then SESSION_TITLE=$SESSION_TYPE ; fi
    SESSION_AUTOSTART=`make_caps $SESSION_AUTOSTART`
    SESSION_ICON=`make_caps $SESSION_ICON`
    SESSION_SCREEN_POSITION=`make_caps $SESSION_SCREEN_POSITION`
    SESSION_CUSTOM_CONFIG=`make_caps $SESSION_CUSTOM_CONFIG`
+
 
    if [ "$SESSION_SCREEN_POSITION" != "1" ] ; then
    	if [ "$DUALHEAD" != "ENABLED" ] ; then
@@ -101,7 +102,10 @@ while [ $x -le $y ]; do
 	$SESSION_CUSTOM_CONFIG  \
 	$SESSION_ICON  \
 	$(replace_invalid "$SESSION_SERVER")  \
-	$(replace_invalid "$SESSION_OPTIONS") >> $WKDIR/session
+	$(replace_invalid "$SESSION_OPTIONS") \
+	$SESSION_USER \
+	$SESSION_GATE \
+	$SESSION_GATE_USER >> $WKDIR/session
    fi
 done
 

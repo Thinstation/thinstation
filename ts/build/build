@@ -1658,23 +1658,23 @@ filesystem_fixups()
         fi
 	echo -e "\tRemoving Extra Files"
 	find ./tmp-tree -name .gitignore -delete
-	if [ ! -e ./tmp-tree/etc/systemd/system/audio ]; then
-		for sound in `find ./tmp-tree/lib/modules -type d -name sound`; do
-			rm -rf $sound
-		done
-	fi
-	if [ -z "`find ./tmp-tree/lib/modules -name udf.ko -o -name isofs.ko`" ]; then
-		for cdrom in `find ./tmp-tree/lib/modules -type d -name cdrom`; do
-			rm -rf $cdrom
-		done
-	fi
-	for KERNVER in $KERNVERS; do
-		if [ ! -e ./tmp-tree/lib/modules/$KERNVER/kernel/fs ]; then
-			for driver in `find ./tmp-tree/lib/modules/$KERNVER -type d -name scsi -o -name ata -o -name fusion`; do
-				rm -rf $driver
-			done
-		fi
-	done
+#	if [ ! -e ./tmp-tree/etc/init.d/audio ]; then
+#		for sound in `find ./tmp-tree/lib/modules -type d -name sound`; do
+#			rm -rf $sound
+#		done
+#	fi
+#	if [ -z "`find ./tmp-tree/lib/modules -name udf.ko -o -name isofs.ko`" ]; then
+#		for cdrom in `find ./tmp-tree/lib/modules -type d -name cdrom`; do
+#			rm -rf $cdrom
+#		done
+#	fi
+#	for KERNVER in $KERNVERS; do
+#		if [ ! -e ./tmp-tree/lib/modules/$KERNVER/kernel/fs ]; then
+#			for driver in `find ./tmp-tree/lib/modules/$KERNVER -type d -name scsi -o -name ata -o -name fusion`; do
+#				rm -rf $driver
+#			done
+#		fi
+#	done
 	if [ ! -d ./tmp-tree/etc/X11 ] ;then
 		echo -e "\tRemoving Extra Font Files"
 		rm -rf ./tmp-tree/lib/fonts/X11
@@ -1683,11 +1683,11 @@ filesystem_fixups()
 		rm -f ./tmp-tree/etc/background.jpg
 		rm -f ./tmp-tree/bin/vmmouse_detect
 		# If we are not starting X, why do we need gpu support.
-		if is_enabled $ts_stripmodules; then
-			for gpu in `find ./tmp-tree/lib/modules -type d -name gpu -o -name agp`; do
-				rm -rf $gpu
-			done
-		fi
+#		if is_enabled $ts_stripmodules; then
+#			for gpu in `find ./tmp-tree/lib/modules -type d -name gpu -o -name agp`; do
+#				rm -rf $gpu
+#			done
+#		fi
 	else
 		echo -e "\tRunning mkfontdir and mkfontscale"
 		for fontdir in `find ./tmp-tree/lib/fonts/X11 -mindepth 1 -type d`; do
