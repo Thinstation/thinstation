@@ -1675,19 +1675,12 @@ filesystem_fixups()
 #			done
 #		fi
 #	done
-	if [ ! -d ./tmp-tree/etc/X11 ] ;then
+	if [ ! -e ./tmp-tree/etc/xserverrc ] ;then
 		echo -e "\tRemoving Extra Font Files"
 		rm -rf ./tmp-tree/lib/fonts/X11
 		rm -rf ./tmp-tree/lib/X11
 		rm -rf ./tmp-tree/lib/keymaps
 		rm -f ./tmp-tree/etc/background.jpg
-		rm -f ./tmp-tree/bin/vmmouse_detect
-		# If we are not starting X, why do we need gpu support.
-#		if is_enabled $ts_stripmodules; then
-#			for gpu in `find ./tmp-tree/lib/modules -type d -name gpu -o -name agp`; do
-#				rm -rf $gpu
-#			done
-#		fi
 	else
 		echo -e "\tRunning mkfontdir and mkfontscale"
 		for fontdir in `find ./tmp-tree/lib/fonts/X11 -mindepth 1 -type d`; do

@@ -35,20 +35,24 @@ wm_menu ()
 	touch $MENU_FILE
 	if is_enabled $MENU_SHOWAPPS ; then
 		(cat $WKDIR/session | sort ) |
-			while read type title screen position workspace autostart custom icon server options; do
+			while read type title screen position workspace autostart custom icon server options user pass_enable gate gate_user; do
 				if [ "$server" == "." ]; then unset server ; fi
 				if [ "$options" == "." ]; then unset options ; fi
+				if [ "$user" == "." ];          then unset user         ;fi
+				if [ "$pass_enable" == "." ];   then unset pass_enable  ;fi
+				if [ "$gate" == "." ];          then unset gate         ;fi
+				if [ "$gate_user" == "." ];     then unset gate_user    ;fi
 					case "$icon" in
 						ON|MENU)
 							echo "$type.icon: $type" >> $MENU_ICONS
-							echo "prog \"$title\" \"$type\" pkg $MAXIMIZE_DEFAULT $type \"$server\" \"$options\"" >> $MENU_FILE
+							echo "prog \"$title\" \"$type\" pkg $MAXIMIZE_DEFAULT $type \"$server\" \"$options\" \"$workspace\" \"$user\" \"$pass_enable\" \"$gate\" \"$gate_user\"" >> $MENU_FILE
 						;;
 						SUBMENU|SUBMENUONLY)
 							if [ "$lasttype" != "$type" ] ; then
 								lasttype=$type
 								echo $type >> /tmp/typelist
 							fi
-							echo "prog \"$title\" \"$type\" pkg $MAXIMIZE_DEFAULT $type \"$server\" \"$options\"" >> /tmp/"$type"_menu
+							echo "prog \"$title\" \"$type\" pkg $MAXIMIZE_DEFAULT $type \"$server\" \"$options\" \"$workspace\" \"$user\" \"$pass_enable\" \"$gate\" \"$gate_user\"" >> /tmp/"$type"_menu
 						;;
 					esac
 			done

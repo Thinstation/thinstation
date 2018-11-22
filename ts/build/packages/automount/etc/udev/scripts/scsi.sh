@@ -68,7 +68,7 @@ _unmount()
 	fi
 }
 
-if [ -n "`pgrep udisks`" ]; then
+if [ -n "`pgrep udisks2`" ]; then
 	exit 0
 elif [ "$ACTION" == "remove" ] || [ "$TYPE" == "sr" ] && [ "$ID_CDROM_MEDIA" != "1" ]; then
 	_unmount

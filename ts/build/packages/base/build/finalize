@@ -10,6 +10,7 @@ if [ "$SESSION_0_TYPE" == "sh" ]; then
         rm /lib/systemd/system/default.target
         ln -sf multi-user.target /lib/systemd/system/default.target
         if is_enabled $SESSION_0_AUTOSTART; then
+		mkdir -p /etc/systemd/system/getty@tty1.service.d
                 cat <<EOF> /etc/systemd/system/getty@tty1.service.d/override.conf
 [Service]
 ExecStart=
@@ -23,8 +24,8 @@ fi
 sed -i -e "s/tsuser/$TSUSER/g" /etc/group
 sed -i -e "s/\-a tsuser/\-a $TSUSER/g" /etc/inittab
 sed -i -e "s/\-a tsuser/\-a $TSUSER/g" /etc/systemd/system/display-manager.service
-if [ -e /etc/systemd/system/getty\@tty1.service.d/override.conf ]; then
-	sed -i -e "s/\-a tsuser/\-a $TSUSER/g" /etc/systemd/system/getty\@tty1.service.d/override.conf
+if [ -e /etc/systemd/system/getty@tty1.service.d/override.conf ]; then
+	sed -i -e "s/\-a tsuser/\-a $TSUSER/g" /etc/systemd/system/getty@tty1.service.d/override.conf
 fi
 if [ -e /etc/pam.d/login ]; then
         sed -i -e "s/user = root/user = $TSUSER/g" /etc/pam.d/login

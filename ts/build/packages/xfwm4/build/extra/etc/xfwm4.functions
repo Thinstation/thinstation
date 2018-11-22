@@ -253,10 +253,14 @@ wm_menu()
 
 	sindex=50
 	(cat $WKDIR/session |grep -Ev '^xfwm4 ') |
-		while read type title screen position workspace autostart custom icon_mode server options; do
-			if [ "$server" = "." ]; then unset server ; fi
-			if [ "$options" = "." ]; then unset options ; fi
-			command="pkg $MAXIMIZE_DEFAULT $type \"$server\" \"$options\""
+		while read type title screen position workspace autostart custom icon_mode server options user pass_enable gate gate_user; do
+			if [ "$server" == "." ];	then unset server	;fi
+			if [ "$options" == "." ];	then unset options	;fi
+			if [ "$user" == "." ];		then unset user		;fi
+			if [ "$pass_enable" == "." ];	then unset pass_enable	;fi
+			if [ "$gate" == "." ];          then unset gate         ;fi
+			if [ "$gate_user" == "." ];	then unset gate_user	;fi
+			command="pkg $MAXIMIZE_DEFAULT $type \"$server\" \"$options\" \"$workspace\" \"$user\" \"$pass_enable\" \"$gate\" \"$gate_user\""
 			package=$type
 			icon=$type
 			menu="`echo $title | awk -F:: -v OFS=:: "{ NF--; print }"`"

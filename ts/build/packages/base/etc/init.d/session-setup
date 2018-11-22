@@ -32,7 +32,7 @@ done
 
 #Now read the sessions for real and create our session script.
 (cat $WKDIR/session) |
-while read type title screen position workspace autostart custom icon server options user gate gate_user; do
+while read type title screen position workspace autostart custom icon server options user pass_enable gate gate_user; do
 	autostart=`make_caps $autostart`
 	case $autostart in
 	ON)
@@ -41,19 +41,23 @@ while read type title screen position workspace autostart custom icon server opt
 		export DISPLAY_NUMBER=$screen
 		export WMWORKSPACE=$workspace
 		export POSITION=$position
-		if [ "$server" = "." ] ; then server= ; fi
-		if [ "$options" = "." ] ; then options= ; fi
+		if [ "$server" = "." ] ; then unset server ; fi
+		if [ "$options" = "." ] ; then unset options ; fi
+		if [ "$user" = "." ] ; then unset user ; fi
+		if [ "$pass_enable" = "." ] ; then unset pass_enable ; fi
+		if [ "$gate" = "." ] ; then unset gate ; fi
+		if [ "$gate_user" = "." ] ; then unset gate_user ; fi
 
 		if [ ! -e /etc/console/$type ]; then
 		if [ -n "$WMNAME" ] && [ "$type" != "$WMNAME" ]; then
-			echo "pkg auto $type \"$server\" \"$options\" \"$WMWORKSPACE\" \"$user\" \"$gate\" \"$gate_user\" &" >> $WKDIR/$WMNAME.autostart
+			echo "pkg auto $type \"$server\" \"$options\" \"$WMWORKSPACE\" \"$user\" \"$pass_enable\" \"$gate\" \"$gate_user\" &" >> $WKDIR/$WMNAME.autostart
  			echo "sleep .2" >> $WKDIR/$WMNAME.autostart
 		elif [ -n "$WMNAME" ] && [ "$type" == "$WMNAME" ]; then
 			echo "export DISPLAY_NUMBER=$DISPLAY_NUMBER" >> $WKDIR/windowapps
-			echo "exec pkg console $type \"$server\" \"$options\"" >> $WKDIR/windowapps
+			echo "exec pkg console $type \"$server\" \"$options\" \"$WMWORKSPACE\" \"$user\" \"$pass_enable\" \"$gate\" \"$gate_user\"" >> $WKDIR/windowapps
 		else
 			echo "export DISPLAY_NUMBER=$DISPLAY_NUMBER" >> $WKDIR/windowapps
-			echo "pkg console $type \"$server\" \"$options\" &" >> $WKDIR/windowapps
+			echo "pkg console $type \"$server\" \"$options\" \"$WMWORKSPACE\" \"$user\" \"$pass_enable\" \"$gate\" \"$gate_user\" &" >> $WKDIR/windowapps
 		fi
 		else
 		echo "pkg console $type \"$server\" \"$options\"" >> $WKDIR/consoleapps
