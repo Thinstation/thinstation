@@ -632,7 +632,6 @@ dconf_proxy_configure ()
 {
 	if which dconf > /dev/null 2>&1; then
 		# Ignore needs more work
-	set -x
 		if [ -n "$PROXY_IGNORE" ]; then
 			unset hosts
 			IFS=','
@@ -645,7 +644,6 @@ dconf_proxy_configure ()
 
 			dconf write /org/gnome/system/proxy/ignore-hosts "$hosts"
 		fi
-	set +x
 	if [ -n "$PROXY_HOST" ] && [ -n "$PROXY_PORT" ] ; then
 			dconf write /org/gnome/system/proxy/http/host "'$PROXY_HOST'"
 			dconf write /org/gnome/system/proxy/http/port "$PROXY_PORT"

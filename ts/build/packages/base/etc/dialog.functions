@@ -316,3 +316,103 @@ dialog_get_server_address()
 		fi
 	done
 }
+
+gen_text_widget()
+{
+	cat <<EOF
+	<text use-markup="true" justify="2" space-expand="true" space-fill="true" wrap="true" width-chars="40">
+		<label>"$1"</label>
+	</text>
+EOF
+}
+
+net_progress()
+{
+	let chunksize="99 / $PACKAGE_NET_WAIT"
+	progress=".    "
+	for i in $(seq 99 -$chunksize 0); do
+		if [ -z "`ifconfig |grep -e 'inet addr' |grep -v 127.0`" ]; then
+			echo $i
+			echo "Scanning$progress"
+			if	[ "$progress" == ".    " ]; then progress="..   "
+			elif	[ "$progress" == "..   " ]; then progress="...  "
+			elif	[ "$progress" == "...  " ]; then progress=".... "
+			elif	[ "$progress" == ".... " ]; then progress="....."
+			elif	[ "$progress" == "....." ]; then progress=".    "
+			fi
+			sleep 1
+		fi
+	done
+	echo 100 Done
+}
+
+x_error()
+{
+	title="$1"
+	shift
+	while [ -n "$1" ]; do
+		local text_widget="$text_widget `gen_text_widget \"$1\"`"
+		shift
+	done
+	export MAIN_DIALOG='
+<window title="'$title'" decorated="false" resizable="false">
+	<vbox>
+		<hseparator></hseparator>
+		<hbox>
+			<pixmap icon_size="6">
+				<input file stock="gtk-dialog-error" has-focus="true"></input>
+			</pixmap>
+			<vbox>
+				'$text_widget'
+				<vseparator height-request="5"></vseparator>
+			</vbox>
+		</hbox>
+		<hseparator></hseparator>
+		<hbox>
+			<button has-focus="false" can-focus="false">
+				<label>"Exit"</label>
+					<action>EXIT:ok</action>
+			</button>
+		</hbox>
+	</vbox>
+</window>
+'
+	result=`$GTKDIALOG`
+	exit 1
+}
+
+find_network()
+{
+	if is_disabled $NETWORK_REQUIRED; then
+		return 0
+	fi
+	export -f net_progress
+	export BAR_DIALOG='
+<window title="Kiosk Progress" decorated="false" width-request="325" height-request="95" allow-grow="false" allow-shrink="false" skip_taskbar_hint="true">
+	<vbox>
+		<text>
+			<label>Waiting for '$PACKAGE' network.</label>
+		</text>
+		<vseparator height-request="5"></vseparator>
+		<progressbar>
+			<variable>PROGRESS_BAR</variable>
+			<label>Some Text</label>
+			<input>bash -c net_progress</input>
+			<action function="refresh">ENTRY</action>
+			<action function="closewindow">BAR_DIALOG</action>
+			<action>echo ready</action>
+		</progressbar>
+	</vbox>
+	<variable>BAR_DIALOG</variable>
+</window>
+'
+	[ -z $GTKDIALOG ] && GTKDIALOG=gtkdialog
+	if [ -z "`ifconfig |grep -e 'inet addr' |grep -v 127.0`" ]; then
+		export PACKAGE_NET_WAIT
+		$GTKDIALOG --program=BAR_DIALOG
+	fi
+	if [ -z "`ifconfig |grep -e 'inet addr' |grep -v 127.0`" ]; then
+		x_error "Network" "Timed out waiting for network!"
+		return 1
+	fi
+}
