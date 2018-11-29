@@ -39,6 +39,7 @@ while [ $x -le $y ]; do
   # Get Session details
    . $TS_GLOBAL
    SESSION_TYPE=`eval echo '$SESSION_'$x'_TYPE'`
+   session_type=`make_caps $SESSION_TYPE`
    SESSION_TITLE=`eval echo '$SESSION_'$x'_TITLE'`
    SESSION_SCREEN=`eval echo '$SESSION_'$x'_SCREEN'`
    SESSION_SCREEN_POSITION=`eval echo '$SESSION_'$x'_SCREEN_POSITION'`
@@ -55,8 +56,6 @@ while [ $x -le $y ]; do
    SESSION_GATE_USER=`eval echo '$SESSION_'$x'_'$session_type'_GATE_USER'`
 
    # Set Default Values
-   session_type=`make_caps $SESSION_TYPE`
-   SESSION_TYPE=`make_lower $SESSION_TYPE`
    if [ -z "$SESSION_TITLE" ];		then SESSION_TITLE=$SESSION_TYPE	; fi
    if [ -z "$SESSION_SCREEN" ];		then SESSION_SCREEN=$SCREEN		; fi
    if [ -z "$SESSION_SCREEN_POSITION" ];then SESSION_SCREEN_POSITION=$SCREEN_POSITION; fi
@@ -71,6 +70,7 @@ while [ $x -le $y ]; do
    if [ -z "$SESSION_GATE" ];		then SESSION_GATE=$GATE			; fi
    if [ -z "$SESSION_GATE_USER" ];	then SESSION_GATE_USER=$GATE_USER	; fi
 
+   SESSION_TYPE=`make_lower $SESSION_TYPE`
    if [ -e /etc/cmd/$SESSION_TYPE.change_server_type ] ; then
 	if [ -n "$SESSION_TITLE" ] ; then
 	   	SESSION_SERVER=`replace_char "$SESSION_TITLE" " " "_"`
