@@ -1,7 +1,11 @@
 . /etc/thinstation.env
 . $TS_GLOBAL
 
-$WMNAME & >> $LOGFILE 2>&1
+openbox-session & >> $LOGFILE 2>&1
+until [ -n "`ps x |grep -e OPENBOX |grep -v grep`" ]; do
+	sleep 1
+done
+
 use_xrandr
 use_wallpaper
 
