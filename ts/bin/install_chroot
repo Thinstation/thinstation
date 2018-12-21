@@ -177,7 +177,7 @@ install_port()
 	if [ -f $port_dir/$pkg_name ]; then
 		echo $name > /tmp/$name.db
 		echo $version-$release >> /tmp/$name.db
-		tar -hxvf $port_dir/$pkg_name -C / 2>&1 |grep -v Ignoring >> /tmp/$name.db #|| rm /tmp/$name.db && echo "$pkg_name failed"
+		tar -hxvf $port_dir/$pkg_name -C / > /tmp/$name.db 2>/dev/null #|| rm /tmp/$name.db && echo "$pkg_name failed"
 #		/usr/bin/pkgadd -f $port_dir/$pkg_name
 		if [ -e $port_dir/pre-install ]; then
 			echo ". $port_dir/pre-install" >> $ROOT/post-install.sh
