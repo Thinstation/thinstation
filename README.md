@@ -12,7 +12,7 @@ Work To Do / Work in Progress: mail to developer List if you can help
 * We could really use some help on the documentation. A lot has changed since 2.2, and I am afraid the documentation has not kept up. Please create a wiki account and help others with your knowledge.
 
 New:
-
+- 64 bit across the board.
 - Moved to kernel 4.14.53
 - Updated Gnome to 3.28
 - Moved to systemd for init
