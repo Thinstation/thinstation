@@ -13,7 +13,7 @@ Work To Do / Work in Progress: mail to developer List if you can help
 
 New:
 - 64 bit across the board.
-- Moved to kernel 4.14.53
+- Moved to kernel 4.14.91
 - Updated Gnome to 3.28
 - Moved to systemd for init
 - No more splash(maybe just for now)
