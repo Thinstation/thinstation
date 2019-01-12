@@ -16,7 +16,6 @@ New:
 - Moved to kernel 4.14.91
 - Updated Gnome to 3.28
 - Moved to systemd for init
-- No more splash(maybe just for now)
 
 **Note that Several modules have been moved inside the kernel**
 
