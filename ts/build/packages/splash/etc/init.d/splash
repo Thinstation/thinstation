@@ -29,7 +29,7 @@ start)
 		splash_rc2=`ls /etc/rc2.d | wc -l`
 		splash_rc5=`ls /etc/rc5.d | wc -l`
 	fi
-	while [ "`vstate udev-settle`" != "active" ] && [ ! -e /sys/devices/virtual/vtconsole/vtcon1 ]; do
+	while ! systemctl is-active systemd-udev-settle && [ ! -e /sys/devices/virtual/vtconsole/vtcon1 ]; do
 		sleep .1
 	done
 
