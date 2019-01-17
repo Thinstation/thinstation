@@ -407,11 +407,11 @@ find_network()
 </window>
 '
 	[ -z $GTKDIALOG ] && GTKDIALOG=gtkdialog
-	if [ -z "`ifconfig |grep -e 'inet addr' |grep -v 127.0`" ]; then
+	if [ -z "`busybox ifconfig |grep -e 'inet addr' |grep -v 127.0`" ]; then
 		export PACKAGE_NET_WAIT
 		$GTKDIALOG --program=BAR_DIALOG
 	fi
-	if [ -z "`ifconfig |grep -e 'inet addr' |grep -v 127.0`" ]; then
+	if [ -z "`busybox ifconfig |grep -e 'inet addr' |grep -v 127.0`" ]; then
 		x_error "Network" "Timed out waiting for network!"
 		return 1
 	fi
