@@ -188,10 +188,11 @@ dialog_no_value()
 create_dialog()
 {
 	MAIN_DIALOG='
-<window title="'"$DIALOG_TITLE"'" decorated="true" width-request="325" height-request="205" allow-grow="false" allow-shrink="false" skip_taskbar_hint="true" image-name="'$(choose_pixmap)'">
+<window title="'"$DIALOG_TITLE"'" decorated="true" width-request="325" height-request="212" allow-grow="false" allow-shrink="false" skip_taskbar_hint="true" image-name="'$(choose_pixmap)'">
 	<vbox>
 	<notebook labels="User|Server">
 		<vbox visible="'"$SHOW_USER"'">
+			<vseparator height-request="1"></vseparator>
 			<text space-expand="false" space-fill="false" use-markup="true" xalign="0">
 				<label>Username</label>
 			</text>
@@ -207,8 +208,10 @@ create_dialog()
 			<entry visible="'"$GET_PASSWORD"'" visibility="false" caps-lock-warning="true" has-focus="'$PASS_FOCUS'" activates_default="true">
 				<variable>DIALOG_PASSWORD</variable>
 			</entry>
+			<vseparator height-request="1"></vseparator>
 		</vbox>
 		<vbox visible="'"$ALLOW_SERVER_EDITS"'">
+			<vseparator height-request="1"></vseparator>
 			<text space-expand="false" space-fill="false" use-markup="true" xalign="0">
 				<label>Server name or IP number</label>
 			</text>
@@ -227,9 +230,10 @@ create_dialog()
 				<input>echo "$DIALOG_OPTIONS" |sed -e "s|[\&\;\`\(\)\|]||g"</input>
 				<action signal="focus-out-event">refresh:DIALOG_OPTIONS</action>
 			</entry>
+			<vseparator height-request="1"></vseparator>
 		</vbox>
 	</notebook>
-	<vseparator height-request="5"></vseparator>
+	<vseparator height-request="1"></vseparator>
 		<hbox>
 			<checkbox visible="'"$WINDOWED_SELECTABLE"'">
 				<label>Windowed</label>
