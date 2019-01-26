@@ -26,6 +26,7 @@ drwxr-xr-x	root/root	etc/strongswan.d/charon/
 -rw-r--r--	root/root	etc/strongswan.d/charon/cmac.conf
 -rw-r--r--	root/root	etc/strongswan.d/charon/connmark.conf
 -rw-r--r--	root/root	etc/strongswan.d/charon/constraints.conf
+-rw-r--r--	root/root	etc/strongswan.d/charon/counters.conf
 -rw-r--r--	root/root	etc/strongswan.d/charon/curl.conf
 -rw-r--r--	root/root	etc/strongswan.d/charon/curve25519.conf
 -rw-r--r--	root/root	etc/strongswan.d/charon/des.conf
@@ -55,6 +56,7 @@ drwxr-xr-x	root/root	etc/strongswan.d/charon/
 -rw-r--r--	root/root	etc/strongswan.d/charon/hmac.conf
 -rw-r--r--	root/root	etc/strongswan.d/charon/kernel-netlink.conf
 -rw-r--r--	root/root	etc/strongswan.d/charon/md5.conf
+-rw-r--r--	root/root	etc/strongswan.d/charon/mgf1.conf
 -rw-r--r--	root/root	etc/strongswan.d/charon/nonce.conf
 -rw-r--r--	root/root	etc/strongswan.d/charon/openssl.conf
 -rw-r--r--	root/root	etc/strongswan.d/charon/pem.conf
@@ -92,6 +94,7 @@ drwxr-xr-x	root/root	etc/strongswan.d/charon/
 -rw-r--r--	root/root	etc/strongswan.d/swanctl.conf
 drwxr-xr-x	root/root	etc/swanctl/
 drwxr-x---	root/root	etc/swanctl/bliss/
+drwxr-xr-x	root/root	etc/swanctl/conf.d/
 drwxr-x---	root/root	etc/swanctl/ecdsa/
 drwxr-x---	root/root	etc/swanctl/pkcs12/
 drwxr-x---	root/root	etc/swanctl/pkcs8/
@@ -130,10 +133,6 @@ lrwxrwxrwx	root/root	usr/lib/ipsec/libstrongswan.so.0 -> libstrongswan.so.0.0.0
 lrwxrwxrwx	root/root	usr/lib/ipsec/libtls.so -> libtls.so.0.0.0
 lrwxrwxrwx	root/root	usr/lib/ipsec/libtls.so.0 -> libtls.so.0.0.0
 -rwxr-xr-x	root/root	usr/lib/ipsec/libtls.so.0.0.0
--rwxr-xr-x	root/root	usr/lib/ipsec/libtpmtss.la
-lrwxrwxrwx	root/root	usr/lib/ipsec/libtpmtss.so -> libtpmtss.so.0.0.0
-lrwxrwxrwx	root/root	usr/lib/ipsec/libtpmtss.so.0 -> libtpmtss.so.0.0.0
--rwxr-xr-x	root/root	usr/lib/ipsec/libtpmtss.so.0.0.0
 -rwxr-xr-x	root/root	usr/lib/ipsec/libvici.la
 lrwxrwxrwx	root/root	usr/lib/ipsec/libvici.so -> libvici.so.0.0.0
 lrwxrwxrwx	root/root	usr/lib/ipsec/libvici.so.0 -> libvici.so.0.0.0
@@ -155,6 +154,8 @@ drwxr-xr-x	root/root	usr/lib/ipsec/plugins/
 -rwxr-xr-x	root/root	usr/lib/ipsec/plugins/libstrongswan-connmark.so
 -rwxr-xr-x	root/root	usr/lib/ipsec/plugins/libstrongswan-constraints.la
 -rwxr-xr-x	root/root	usr/lib/ipsec/plugins/libstrongswan-constraints.so
+-rwxr-xr-x	root/root	usr/lib/ipsec/plugins/libstrongswan-counters.la
+-rwxr-xr-x	root/root	usr/lib/ipsec/plugins/libstrongswan-counters.so
 -rwxr-xr-x	root/root	usr/lib/ipsec/plugins/libstrongswan-curl.la
 -rwxr-xr-x	root/root	usr/lib/ipsec/plugins/libstrongswan-curl.so
 -rwxr-xr-x	root/root	usr/lib/ipsec/plugins/libstrongswan-curve25519.la
@@ -213,6 +214,8 @@ drwxr-xr-x	root/root	usr/lib/ipsec/plugins/
 -rwxr-xr-x	root/root	usr/lib/ipsec/plugins/libstrongswan-kernel-netlink.so
 -rwxr-xr-x	root/root	usr/lib/ipsec/plugins/libstrongswan-md5.la
 -rwxr-xr-x	root/root	usr/lib/ipsec/plugins/libstrongswan-md5.so
+-rwxr-xr-x	root/root	usr/lib/ipsec/plugins/libstrongswan-mgf1.la
+-rwxr-xr-x	root/root	usr/lib/ipsec/plugins/libstrongswan-mgf1.so
 -rwxr-xr-x	root/root	usr/lib/ipsec/plugins/libstrongswan-nonce.la
 -rwxr-xr-x	root/root	usr/lib/ipsec/plugins/libstrongswan-nonce.so
 -rwxr-xr-x	root/root	usr/lib/ipsec/plugins/libstrongswan-openssl.la
@@ -327,6 +330,7 @@ drwxr-xr-x	root/root	usr/share/strongswan/templates/config/plugins/
 -rw-r--r--	root/root	usr/share/strongswan/templates/config/plugins/cmac.conf
 -rw-r--r--	root/root	usr/share/strongswan/templates/config/plugins/connmark.conf
 -rw-r--r--	root/root	usr/share/strongswan/templates/config/plugins/constraints.conf
+-rw-r--r--	root/root	usr/share/strongswan/templates/config/plugins/counters.conf
 -rw-r--r--	root/root	usr/share/strongswan/templates/config/plugins/curl.conf
 -rw-r--r--	root/root	usr/share/strongswan/templates/config/plugins/curve25519.conf
 -rw-r--r--	root/root	usr/share/strongswan/templates/config/plugins/des.conf
@@ -356,6 +360,7 @@ drwxr-xr-x	root/root	usr/share/strongswan/templates/config/plugins/
 -rw-r--r--	root/root	usr/share/strongswan/templates/config/plugins/hmac.conf
 -rw-r--r--	root/root	usr/share/strongswan/templates/config/plugins/kernel-netlink.conf
 -rw-r--r--	root/root	usr/share/strongswan/templates/config/plugins/md5.conf
+-rw-r--r--	root/root	usr/share/strongswan/templates/config/plugins/mgf1.conf
 -rw-r--r--	root/root	usr/share/strongswan/templates/config/plugins/nonce.conf
 -rw-r--r--	root/root	usr/share/strongswan/templates/config/plugins/openssl.conf
 -rw-r--r--	root/root	usr/share/strongswan/templates/config/plugins/pem.conf
