@@ -178,18 +178,18 @@ mount_squash()
 {
 	if [ "$FASTBOOT" == "lotsofmem" ] ; then
 		unsquashfs -f -d / -f $FILE |tee /var/log/expand_progress &
-		sleep .2
-		OLDPROGRESS=$progress
-		while [ "$DPROGRESS" != "100" ] && [ ! -z "`pidof unsquashfs`" ] ; do
-			sleep .5
-			DPROGRESS=`cat -v /var/log/expand_progress |grep -e "=" |sed -e 's/\^M/\n/g' |tail -n 1 |cut -c 76-78`
-			if [ -z "$DPROGRESS" ]; then DPROGRESS=0 ; fi
-			let progress=DPROGRESS+OLDPROGRESS
-			splash_progress
-		done
-		let progress=OLDPROGRESS+100
-		splash_progress
-		rm -rf /var/log/expand_progress
+#		sleep .2
+#		OLDPROGRESS=$progress
+#		while [ "$DPROGRESS" != "100" ] && [ ! -z "`pidof unsquashfs`" ] ; do
+#			sleep .5
+#			DPROGRESS=`cat -v /var/log/expand_progress |grep -e "=" |sed -e 's/\^M/\n/g' |tail -n 1 |cut -c 76-78`
+#			if [ -z "$DPROGRESS" ]; then DPROGRESS=0 ; fi
+#			let progress=DPROGRESS+OLDPROGRESS
+#			splash_progress
+#		done
+#		let progress=OLDPROGRESS+100
+#		splash_progress
+#		rm -rf /var/log/expand_progress
 		if [ -e /tmp/lib.squash ] ; then
 			rm /tmp/lib.squash
 		fi

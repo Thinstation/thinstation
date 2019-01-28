@@ -8,33 +8,24 @@
 
 case $1 in
 start)
-	# Setup Splash Progress Bar
-	fast_progress=0
-	if ! is_disabled $FASTBOOT ; then
-		if [ "$FASTBOOT" == "lotsofmem" ] ; then
-			let fast_progress=100
-		fi
-		if [ "$LM" == "3" ] || [ "$LM" == "5" ] ; then
-			let fast_progress+=100
-		fi
-	fi
-
-	while ! systemctl is-active systemd-udev-settle && [ ! -e /sys/devices/virtual/vtconsole/vtcon1 ]; do
+	while ! systemctl is-active systemd-udev \
+	 && [ ! -e /sys/devices/virtual/vtconsole/vtcon1 ] \
+	 && [ ! -e /dev/fb0 ]; do
 		sleep .1
 	done
 
-	total_units=`systemctl list-units |grep -E '\.timer|\.target|\.service|\.slice|\.cups|\.device|\.mount|\.path|\.scope|\.socket' |wc -l`
-
-	let splash_total=fast_progress+total_units
-
-	if [ -e /sys/devices/virtual/vtconsole/vtcon1 ] ; then
+	splash_total=`systemctl list-units |grep -E '\.timer|\.target|\.service|\.slice|\.cups|\.device|\.mount|\.path|\.scope|\.socket' |wc -l`
+	if [ -e /sys/devices/virtual/vtconsole/vtcon1 ]; then
+		while ! fbset > /dev/null 2>&1; do
+			sleep .1
+		done
 		mkdir -p /lib/splash/cache
 		splash
 		splash_start
 		while ! systemctl is-active multi-user.target; do
 			progress=`systemctl list-units |grep -E '\.timer|\.target|\.service|\.slice|\.cups|\.device|\.mount|\.path|\.scope|\.socket' |grep -v inactive |wc -l`
 			splash_progress
-			sleep .2
+			sleep .1
 		done
 	fi
 ;;

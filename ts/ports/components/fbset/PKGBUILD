@@ -1,0 +1,28 @@
+# Maintainer: Aaron Griffin <aaron@archlinux.org>
+# Contributor: Paul Mattal <pjmattal@elys.com>
+
+pkgname=fbset
+pkgver=2.1
+pkgrel=6
+pkgdesc="Framebuffer setup utility"
+arch=('x86_64')
+url="http://users.telenet.be/geertu/Linux/fbdev/"
+license=('GPL')
+depends=('glibc')
+backup=('etc/fb.modes')
+options=('!makeflags')
+source=(http://users.telenet.be/geertu/Linux/fbdev/fbset-${pkgver}.tar.gz)
+sha512sums=('7e0380760f77b0db7dcc128f6375a3ed8da4b8521d1926faba27812c5cb20e6f1a62f3a539591a81a6b7e7986940db4cd83e03d6de487e0ab7f0760ed1d21b28')
+
+build() {
+  cd "${srcdir}/${pkgname}-${pkgver}"
+  make
+}
+
+package() {
+  cd "${srcdir}/${pkgname}-${pkgver}"
+  install -D -m755 fbset "${pkgdir}/usr/bin/fbset"
+  install -D -m644 fb.modes.5 "${pkgdir}/usr/share/man/man5/fb.modes.5"
+  install -D -m644 fbset.8 "${pkgdir}/usr/share/man/man8/fbset.8"
+  install -D -m644 etc/fb.modes.ATI "${pkgdir}/etc/fb.modes"
+}

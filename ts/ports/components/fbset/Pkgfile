@@ -1,0 +1,17 @@
+# Maintainer: Aaron Griffin <aaron@archlinux.org>
+# Contributor: Paul Mattal <pjmattal@elys.com>
+
+name=fbset
+version=2.1
+release=6
+source=(http://users.telenet.be/geertu/Linux/fbdev/fbset-${version}.tar.gz)
+
+build() {
+unset MAKEFLAGS
+  cd "${SRC}/${name}-${version}"
+  make
+  install -D -m755 fbset "${PKG}/usr/bin/fbset"
+  install -D -m644 fb.modes.5 "${PKG}/usr/share/man/man5/fb.modes.5"
+  install -D -m644 fbset.8 "${PKG}/usr/share/man/man8/fbset.8"
+  install -D -m644 etc/fb.modes.ATI "${PKG}/etc/fb.modes"
+}
