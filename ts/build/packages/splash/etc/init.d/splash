@@ -8,9 +8,9 @@
 
 case $1 in
 start)
-	while ! systemctl is-active systemd-udev \
-	 && [ ! -e /sys/devices/virtual/vtconsole/vtcon1 ] \
-	 && [ ! -e /dev/fb0 ]; do sleep .1; done
+	while [ ! -e /dev/fb0 ] \
+	   || [ ! -e /sys/devices/virtual/vtconsole/vtcon1 ] \
+	     && ! systemctl is-active systemd-udev; do sleep .1; done
 
 	splash_total=`systemctl list-units |grep -E '\.timer|\.target|\.service|\.slice|\.cups|\.device|\.mount|\.path|\.scope|\.socket' |wc -l`
 #	if ! is_disabled $FASTBOOT; then
