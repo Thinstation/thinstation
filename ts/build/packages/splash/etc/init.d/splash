@@ -3,8 +3,8 @@
 . `dirname $0`/common
 . /etc/splash.functions
 
-set -x
-exec </dev/null >/var/log/splash.log  2>&1
+#set -x
+#exec </dev/null >/var/log/splash.log  2>&1
 
 case $1 in
 start)
@@ -13,20 +13,21 @@ start)
 	 && [ ! -e /dev/fb0 ]; do sleep .1; done
 
 	splash_total=`systemctl list-units |grep -E '\.timer|\.target|\.service|\.slice|\.cups|\.device|\.mount|\.path|\.scope|\.socket' |wc -l`
-	if ! is_disabled $FASTBOOT; then
-		if [ "$FASTBOOT" == "lotsofmem" ]; then
-			let splash_total+=100
-		fi
-		if [ "$LM" == "3" ] || [ "$LM" == "5" ]; then
-			let splash_total+=100
-		fi
-	fi
+#	if ! is_disabled $FASTBOOT; then
+#		if [ "$FASTBOOT" == "lotsofmem" ]; then
+#			let splash_total+=100
+#		fi
+#		if [ "$LM" == "3" ] || [ "$LM" == "5" ]; then
+#			let splash_total+=100
+#		fi
+#	fi
 
 	while ! systemctl is-active multi-user.target \
-	&& [ ! -e /sys/devices/virtual/vtconsole/vtcon1 ]; do sleep .1; done
+	 && [ ! -e /sys/devices/virtual/vtconsole/vtcon1 ]; do sleep .1; done
 
 	if [ -e /sys/devices/virtual/vtconsole/vtcon1 ]; then
-		while ! fbset > /dev/null 2>&1; do
+		while ! fbset > /dev/null 2>&1 \
+		   && ! systemctl is-active multi-user.target; do
 			sleep .1
 		done
 		mkdir -p /lib/splash/cache
