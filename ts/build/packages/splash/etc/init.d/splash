@@ -8,7 +8,7 @@
 
 case $1 in
 start)
-	while ! systemctl is-active systemd-udev \
+	while ! systemctl is-active systemd-udev > /dev/null 2>&1 \
 	 && [ ! -e /dev/fb0 ]; do sleep .1 ; done
 
 	splash_total=`systemctl list-units |grep -E '\.timer|\.target|\.service|\.slice|\.cups|\.device|\.mount|\.path|\.scope|\.socket' |wc -l`
@@ -21,15 +21,15 @@ start)
 #		fi
 #	fi
 
-	while ! systemctl is-active multi-user.target \
-	 && [ ! -e /sys/devices/virtual/vtconsole/vtcon1 ]; do openvt -f -c 1 -- exit 0; sleep .1; done
+	while ! systemctl is-active multi-user.target > /dev/null 2>&1 \
+	 && [ ! -e /sys/devices/virtual/vtconsole/vtcon1 ]; do openvt -f -c 1 -- echo -e "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\t\t\t\t\t\t\t\t\t\t."; sleep .1; done
 
-	if ! systemctl is-active multi-user.target \
+	if ! systemctl is-active multi-user.target > /dev/null 2>&1 \
 	&& [ -e /sys/devices/virtual/vtconsole/vtcon1 ]; then
 		mkdir -p /lib/splash/cache
 		splash
 		splash_start
-		while ! systemctl is-active multi-user.target; do
+		while ! systemctl is-active multi-user.target > /dev/null 2>&1; do
 			progress=`systemctl list-units |grep -E '\.timer|\.target|\.service|\.slice|\.cups|\.device|\.mount|\.path|\.scope|\.socket' |grep -v inactive |wc -l`
 			splash_progress
 			sleep .1
