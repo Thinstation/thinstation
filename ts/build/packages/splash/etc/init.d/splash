@@ -22,7 +22,7 @@ start)
 #	fi
 
 	while ! systemctl is-active multi-user.target \
-	 && [ ! -e /sys/devices/virtual/vtconsole/vtcon1 ]; do sleep .1; done
+	 && [ ! -e /sys/devices/virtual/vtconsole/vtcon1 ]; do openvt -f -c 1 -- exit 0; sleep .1; done
 
 	if ! systemctl is-active multi-user.target \
 	&& [ -e /sys/devices/virtual/vtconsole/vtcon1 ]; then
