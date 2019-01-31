@@ -8,9 +8,8 @@
 
 case $1 in
 start)
-	while [ ! -e /dev/fb0 ] \
-	   || [ ! -e /sys/devices/virtual/vtconsole/vtcon1 ] \
-	     && ! systemctl is-active systemd-udev; do sleep .1; done
+	while ! systemctl is-active systemd-udev \
+	 && [ ! -e /dev/fb0 ]; do sleep .1 ; done
 
 	splash_total=`systemctl list-units |grep -E '\.timer|\.target|\.service|\.slice|\.cups|\.device|\.mount|\.path|\.scope|\.socket' |wc -l`
 #	if ! is_disabled $FASTBOOT; then
@@ -25,11 +24,8 @@ start)
 	while ! systemctl is-active multi-user.target \
 	 && [ ! -e /sys/devices/virtual/vtconsole/vtcon1 ]; do sleep .1; done
 
-	if [ -e /sys/devices/virtual/vtconsole/vtcon1 ]; then
-		while ! fbset > /dev/null 2>&1 \
-		   && ! systemctl is-active multi-user.target; do
-			sleep .1
-		done
+	if ! systemctl is-active multi-user.target \
+	&& [ -e /sys/devices/virtual/vtconsole/vtcon1 ]; then
 		mkdir -p /lib/splash/cache
 		splash
 		splash_start

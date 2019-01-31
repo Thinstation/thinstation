@@ -4,12 +4,14 @@
 # Depends on:  eudev ncurses zlib
 
 name=util-linux
-version=2.30
+version=2.33
 release=1
-source=(https://www.kernel.org/pub/linux/utils/$name/v$version/$name-$version.tar.xz)
+source=(https://www.kernel.org/pub/linux/utils/$name/v$version/$name-$version.tar.xz \
+	autologin.patch)
 
 build() {
     cd $name-$version
+    patch -p0 -i $SRC/autologin.patch
 
     ./configure --prefix=/usr \
                  \
