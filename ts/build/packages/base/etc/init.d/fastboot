@@ -2,6 +2,9 @@
 
 . `dirname $0`/common
 
+#set -x
+#exec </dev/null >/var/log/fastboot.log  2>&1
+
 search()
 {
 	if [ -e $1 ]; then
@@ -195,12 +198,12 @@ mount_squash()
 		fi
 	else
 		if is_enabled $MEMORY_CONSTRAINED ; then
-			mount -o ro,loop -t squashfs $FILE /lib
+			systemd-mount --no-block --fsck=no -o ro,loop -t squashfs $FILE /lib
 		else
 			if [ ! -e /tmp/lib.squash ] ; then
 				cp $FILE /tmp/lib.squash
 			fi
-			mount -o ro,loop -t squashfs /tmp/lib.squash /lib
+			systemd-mount --no-block --fsck=no -o ro,loop -t squashfs /tmp/lib.squash /lib
 		fi
 	fi
 }

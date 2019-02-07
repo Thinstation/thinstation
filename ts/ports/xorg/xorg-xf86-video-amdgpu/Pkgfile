@@ -1,0 +1,23 @@
+# Description: ATI Radeon video driver for the Xorg X server
+# URL: http://xorg.freedesktop.org
+# Maintainer: CRUX Xorg Team, xorg-ports at crux dot nu
+# Depends on: xorg-server
+
+name=xorg-xf86-video-amdgpu
+version=18.1.0
+#version=git
+release=1
+source=(http://xorg.freedesktop.org/releases/individual/driver/xf86-video-amdgpu-$version.tar.bz2)
+
+build() {
+	cd xf86-video-amdgpu-$version
+
+#	git clone --depth 1 git://anongit.freedesktop.org/xorg/driver/xf86-video-ati
+#	cd xf86-video-amdgpu
+#	NOCONFIGURE=1 ./autogen.sh
+
+	./configure --prefix=/usr --mandir=/usr/man --enable-glamor
+
+	make
+	make DESTDIR=$PKG install
+}
