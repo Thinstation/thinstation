@@ -32,13 +32,14 @@ if [ -e /certs ]; then
 	if [ ! -d /certs/ca ]; then
 		mkdir -p /certs/ca
 		mv -f /certs/*.crt /certs/ca 2>/dev/null
+		mv -f /certs/*.pem /certs/ca 2>/dev/null
 		rmdir --ignore-fail-on-non-empty /certs/ca
 	fi
 fi
 
 install_pem() {
 	if [ ! -L $1 ]; then
-		j=`basename $1 | sed -e 's/\.crt//'`
+		j=`basename $1 | sed -e 's/\.crt//' |sed -e 's/\.pem//'`
 		cp $1 /etc/ssl/certs/$j.pem
 		#ln -s $j.pem /etc/ssl/certs/$j.crt
 
@@ -52,7 +53,7 @@ install_pem() {
 }
 
 if [ -e /certs/ca ]; then
-	for cert in /certs/ca/*.crt; do
+	for cert in `ls -1 /certs/ca/*.crt 2>/dev/null` `ls -1 /certs/ca/*.pem 2>/dev/null`; do
 		DN=`openssl x509 -subject -noout -in $cert 2>/dev/null`
 		if [ -n "`echo $DN | grep 'OU='`" ]; then
 			ALIAS=`echo $DN | sed -e "s/subject=.*OU = //" -e "s/OU = .*CN = //" -e "s/CN = //" -e "s/\/emailAddress.*//" -e "s/Certificate Authority/CA/g" -e "s/Certification Authority/CA/g"`
@@ -64,7 +65,8 @@ if [ -e /certs/ca ]; then
 			LD_LIBRARY_PATH=$JAVA/lib/i386/jli keytool -importcert -alias "extra-$JALIAS" -keystore /etc/pki/java/cacerts -noprompt -storepass 'changeit' -file $cert > /dev/null 2>&1
 		fi
 		if [ -e /bin/certutil ]; then
-			/bin/certutil -A -n "$ALIAS" -t "CT,C," -d sql:/etc/pki/nssdb -i $cert
+			mkdir /etc/pki/nssdb
+			#/bin/certutil -A -n "$ALIAS" -t "CT,C," -d sql:/etc/pki/nssdb -i $cert
 			/bin/certutil -A -n "$ALIAS" -t "CT,C," -d dbm:/etc/pki/nssdb -i $cert
 		fi
 		openssl x509 -text -in $cert >> /etc/ssl/cert.pem 2>/dev/null
@@ -73,7 +75,7 @@ if [ -e /certs/ca ]; then
 fi
 
 if [ -e /certs/trusted ]; then
-	for cert in /certs/trusted/*.crt; do
+	for cert in `ls -1 /certs/trusted/*.crt 2>/dev/null` `ls -l /certs/trusted/*.pem 2>/dev/null`; do
 		DN=`openssl x509 -subject -noout -in $cert 2>/dev/null`
 		if [ -n "`echo $DN | grep 'OU='`" ]; then
 			ALIAS=`echo $DN | sed -e "s/subject=.*OU=//" -e "s/OU=.*CN=//" -e "s/CN=//" -e "s/\/emailAddress.*//" -e "s/Certificate Authority/CA/g" -e "s/Certification Authority/CA/g"`
@@ -96,6 +98,12 @@ if [ -e /certs/trusted ]; then
 			fi
 			LD_LIBRARY_PATH=$JAVA/lib/i386/jli keytool -importcert -alias $JALIAS -keystore $JAVA/lib/security/trusted.certs -noprompt -storepass 'trustit' -file $cert > /dev/null 2>&1
 		fi
+		if [ -e /bin/certutil ]; then
+			mkdir /etc/pki/nssdb
+			#/bin/certutil -A -n "$ALIAS" -t "P,," -d sql:/etc/pki/nssdb -i $cert
+			/bin/certutil -A -n "$ALIAS" -t "P,," -d dbm:/etc/pki/nssdb -i $cert
+		fi
+		openssl x509 -text -in $cert >> /etc/ssl/cert.pem 2>/dev/null
 		install_pem $cert
 	done
 fi
