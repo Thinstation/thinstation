@@ -3,31 +3,16 @@
 # Mount Hotplug Device
 #
 
-# wait until hostname has been specified
-#while [ "`hostname`" = "(none)" ]; do
-#  sleep 1
-#done
-
 . /etc/thinstation.env
 . $TS_GLOBAL
 
 #exec </dev/null >>/var/log/scsi.log  2>&1
 #set -x
 
-#echo "1 $DEVPATH" >> /var/log/scsi
-#echo "2 $ACTION" >> /var/log/scsi
-#echo "3 $ID_BUS" >> /var/log/scsi
-#echo "4 $ID_FS_TYPE" >> /var/log/scsi
-#echo "4 $ID_CDROM_MEDIA" >> /var/log/scsi
-#echo "6 $ID_FS_LABEL" >> /var/log/scsi
-
 devpath=`basename $DEVPATH`
 name=`echo $devpath | sed -e "s/[0-9]*//g"`
 node=`echo $devpath | sed -e "s/[a-z]*//g"`
 TYPE=`echo $name | cut -c 1-2`
-
-#echo "7 $devpath" >> /var/log/scsi
-#echo "8 $TYPE" >> /var/log/scsi
 
 no_mount()
 {
@@ -67,7 +52,6 @@ _unmount()
 		done
 	fi
 }
-
 if [ -n "`busybox pgrep udisksd`" ]; then
 	exit 0
 elif [ "$ACTION" == "remove" ] || [ "$TYPE" == "sr" ] && [ "$ID_CDROM_MEDIA" != "1" ]; then
@@ -84,6 +68,7 @@ if ! check_module $ID_FS_TYPE ; then
 	modprobe $ID_FS_TYPE
 fi
 
+# The more complex task of mounting.
 cmount()
 {
 	if [ "`busybox mountpoint -n $1`" == "/dev/$devpath $1" ] \
@@ -103,8 +88,7 @@ do_mounts()
 		else
 			MT_CMD="systemd-mount --no-block --fsck=no /dev/$devpath $mtpath"
 		fi
-#		echo "$MT_CMD" >> /var/log/scsi
-		$MT_CMD #2>> /var/log/scsi
+		$MT_CMD
 	fi
 	local index=0
 	local MOUNT FS_LABEL MT_PATH
@@ -117,7 +101,6 @@ do_mounts()
 			|| ! cmount $MT_PATH; then #because that's how mountpoint will look at it.
 				mkdir -p $MT_PATH
 				systemd-mount --no-block --bind $mtpath $MT_PATH
-				# echo "6 $mtpath $MT_PATH" >> /var/log/scsi
 			fi
 		fi
 		let index+=1
@@ -148,8 +131,6 @@ elif ( [ "$TYPE" == "sd" ] || [ "$TYPE" == "mm" ] ) && [ "$ACTION" == "add" ] ; 
 	        label=$devpath
 	        if [ -n "$USB_MOUNT_USELABEL" ] ;then
         		if is_enabled $USB_MOUNT_USELABEL ; then
-#				echo "$USB_MOUNT_USELABEL" >> /var/log/scsi.log
-#				echo "$ID_FS_LABEL" >> /var/log/scsi.log
 				if [ -n "$ID_FS_LABEL" ] ; then
 					label=$ID_FS_LABEL
 				elif [ -n "$ID_FS_UUID" ]; then
