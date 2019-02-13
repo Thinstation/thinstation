@@ -68,7 +68,7 @@ _unmount()
 	fi
 }
 
-if [ -n "`busybox pgrep udisks2`" ]; then
+if [ -n "`busybox pgrep udisksd`" ]; then
 	exit 0
 elif [ "$ACTION" == "remove" ] || [ "$TYPE" == "sr" ] && [ "$ID_CDROM_MEDIA" != "1" ]; then
 	_unmount
