@@ -147,7 +147,7 @@ elif ( [ "$TYPE" == "sd" ] || [ "$TYPE" == "mm" ] ) && [ "$ACTION" == "add" ] ; 
 		mtpath=$BASE_MOUNT_PATH/$USB_MOUNT_DIR/$label
 	        let x=0
 	        testmountpoint=$mtpath
-		while mounted ${testmountpoint} ] ; do
+		while mounted ${testmountpoint} ; do
 			let x=x+1
 			testmountpoint=$mtpath$x
 		done
