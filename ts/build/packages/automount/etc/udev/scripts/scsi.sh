@@ -59,7 +59,7 @@ _unmount()
 	else
 		while mounted /dev/$devpath ; do
 			mtdpath=`cat /proc/mounts |grep -e /dev/$devpath |tail -n 1 |cut -d ' ' -f 2`
-			systmed-mount -u --no-block $mtdpath
+			systemed-mount -u $mtdpath
 			while [ -n "$mtdpath" ] && [ -z "`ls -A $mtdpath`" ] && [ -z "`pidof xfreerdp`" ]; do
 				rmdir $mtdpath
 				mtdpath="`dirname $mtdpath`"
@@ -68,7 +68,7 @@ _unmount()
 	fi
 }
 
-if [ -n "`pgrep udisks2`" ]; then
+if [ -n "`busybox pgrep udisks2`" ]; then
 	exit 0
 elif [ "$ACTION" == "remove" ] || [ "$TYPE" == "sr" ] && [ "$ID_CDROM_MEDIA" != "1" ]; then
 	_unmount
