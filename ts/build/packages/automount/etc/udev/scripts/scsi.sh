@@ -89,7 +89,8 @@ cmount()
 
 do_mounts()
 {
-	if [ ! -e $mtpath ] || ! cmount $mtpath; then
+	if [ ! -e $mtpath ] \
+	  || ! cmount $mtpath; then
 		_unmount
 		mkdir -p $mtpath
 		if [ -n "$mount_opts" ]; then
@@ -105,7 +106,8 @@ do_mounts()
 		FS_LABEL=`echo "$MOUNT" | cut -d ":" -f1`
 		MT_PATH=`echo "$MOUNT" | cut -d ":" -f2`
 		if [ "$ID_FS_LABEL" == "$FS_LABEL" ]; then
-			if [ ! -e $MT_PATH ] || ! cmount $MT_PATH; then
+			if [ ! -e $MT_PATH ] \
+			  || ! cmount $MT_PATH; then
 				mkdir -p $MT_PATH
 				systemd-mount --no-block --bind $mtpath $MT_PATH
 			fi
