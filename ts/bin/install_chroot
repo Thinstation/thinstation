@@ -112,12 +112,8 @@ stage4()
 {
 	rm /dostage4
 	printf "\rLooking at core binary ports\n"
-	if ! $autodl; then
-		procs=1
-	else
-		procs=`nproc`
-	        let procs-=1
-	fi
+	procs=`nproc`
+        let procs-=1
         for Root in $ROOT/ts $XTRWRKNG; do
                 find -L $Root/ports -name Pkgfile | \
                 grep -E "binary-core" | \
