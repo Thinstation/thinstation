@@ -94,9 +94,9 @@ do_mounts()
 		_unmount
 		mkdir -p $mtpath
 		if [ -n "$mount_opts" ]; then
-			systemd-mount --no-block --fsck=no -o $mount_opts /dev/$devpath $mtpath
+			systemd-mount --type=$ID_FS_TYPE --no-block --fsck=no -o $mount_opts /dev/$devpath $mtpath
 		else
-			systemd-mount --no-block --fsck=no /dev/$devpath $mtpath
+			systemd-mount --type=$ID_FS_TYPE --no-block --fsck=no /dev/$devpath $mtpath
 		fi
 	fi
 	local index=0
