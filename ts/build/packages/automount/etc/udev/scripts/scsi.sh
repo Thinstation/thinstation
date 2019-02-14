@@ -109,7 +109,7 @@ do_mounts()
 			if [ ! -e $MT_PATH ] \
 			  || ! cmount $MT_PATH; then
 				mkdir -p $MT_PATH
-				systemd-mount --no-block --type=$ID_FS_TYPE --bind $mtpath $MT_PATH
+				systemd-mount --no-block --bind $mtpath $MT_PATH
 			fi
 		fi
 		let index+=1
