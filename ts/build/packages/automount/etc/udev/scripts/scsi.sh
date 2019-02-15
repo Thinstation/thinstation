@@ -46,6 +46,7 @@ _unmount()
 			mtdpath=`cat /proc/mounts |grep -e /dev/$devpath |tail -n 1 |cut -d ' ' -f 2`
 			systemd-mount -u $mtdpath
 			while [ -n "$mtdpath" ] \
+			   && [ "$mtdpath" != "/mnt" ] \
 			   && [ -z "`ls -A $mtdpath`" ] \
 			   && [ -z "`pidof xfreerdp`" ]; do
 				rmdir $mtdpath
