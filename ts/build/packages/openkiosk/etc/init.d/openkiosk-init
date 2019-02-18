@@ -45,7 +45,7 @@ EOF
 			echo 'user_pref("bmakiosk.startup.homepage", "'$OK_HOMEPAGE'");' >> $OK_PREFS
 
 			# admin password
-			OK_ADMIN_PASS=`eval echo '$SESSION_'$x'_OPENKIOSK_ADMINPASS'`
+			OK_ADMIN_PASS=`eval echo '$SESSION_'$x'_OPENKIOSK_ADMIN_PASS'`
 			if [ -n "$OK_ADMIN_PASS" ] ; then
 				echo 'user_pref("bmakiosk.admin.login", "'$OK_ADMIN_PASS'");' >> $OK_PREFS
 			fi
@@ -75,7 +75,7 @@ EOF
 				WL=$HOME/.mdg/openkiosk/$OK_PROFILE/whitelist.txt
 				echo 'user_pref("bmakiosk.filter.filepath", "'$WL'");' >> $OK_PREFS
 				# download whitelist file
-				wget -N $OK_WHITELIST_URL -O $WL --quiet --no-check-certificate --timeout=5
+				wget $OK_WHITELIST_URL -O $WL --quiet --no-check-certificate --timeout=5
 			fi
 		fi
 		let x=x+1
