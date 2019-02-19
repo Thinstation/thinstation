@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>English</string>
+	<key>CFBundleExecutable</key>
+	<string>ifd-rutokens.bundle</string>
+	<key>CFBundleIdentifier</key>
+	<string>ru.rutoken.rutokensdriver</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>RUTOKENSDRIVER</string>
+	<key>CFBundlePackageType</key>
+	<string>BNDL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>1.0.4</string>
+	<key>CFBundleSignature</key>
+	<string>????</string>
+	<key>CFBundleVersion</key>
+	<string>0.0.1d1</string>
+	<key>ifdCapabilities</key>
+	<string>0x00000000</string>
+
+	<!-- Possible values for ifdCapabilities bits
+	1: IFD_GENERATE_HOTPLUG
+	   plugging the reader calls pcscd \-\-hotplug
+	-->
+
+	<key>ifdProtocolSupport</key>
+	<string>0x00000001</string>
+	<key>ifdVersionNumber</key>
+	<string>0x00000001</string>
+
+	<key>ifdLogLevel</key>
+	<string>0x0000</string>
+
+	<!-- Possible values for ifdLogLevel
+	1: CRITICAL  important error messages
+	2: INFO      informative messages like what reader was detected
+	4: COMM      a dump of all the bytes exchanged between the host and
+	             the reader
+	8: PERIODIC  periodic info when pcscd test if a card is present
+	             (every 1/10 of a second)
+
+	The final value is a OR of these values
+
+	Default value: 3 (CRITICAL + INFO)
+	-->
+
+	<key>ifdDriverOptions</key>
+	<string>0x0000</string>
+
+	<!-- Possible values for ifdDriverOptions
+	1: DRIVER_OPTION_CCID_EXCHANGE_AUTHORIZED
+		the CCID Exchange command is allowed. You can use it through
+		SCardControl(hCard, IOCTL_SMARTCARD_VENDOR_IFD_EXCHANGE, ...) 
+
+	2: DRIVER_OPTION_GEMPC_TWIN_KEY_APDU
+		If set the GemPC Twin and GemPC Key readers with be configured
+		so that the T=1 TPDU protocol is done by the firmware instead of
+		the driver.
+		This switches the reader in APDU mode and also in EMV mode so
+		may not work with non EMV cards.
+
+	4: DRIVER_OPTION_USE_BOGUS_FIRMWARE
+		Some reader firmwares have bugs. By default the driver refuses
+		to work with such firmware versions. If your reader is rejected
+		because of the firmware (log message: "Firmware (x.y) is
+		bogus!") you can:
+		- upgrade your reader firmware (not all readers can do that)
+		or
+		- get another reader with a new/bugfree firmware
+		or
+		- activate this option but you will have problems depending on
+		  the bug
+
+	8: DRIVER_OPTION_RESET_ON_CLOSE
+		This option may be required on Linux 2.4 so that the
+		device reset if sequencial (bSeq) counter and can be
+		reused if pcscd restart. Otherwise the reader needs to
+		be unplugged/replugged.
+
+	bits 4 & 5: (values 0, 16, 32, 48)
+	  0: power on the card at 5V (default value)
+	 16: power on the card at 3V and then, it 3V fails use 5V
+	 32: power on the card at 1.8V, then 3V and then 5V
+	 48: let the reader decide
+
+	Default value: 0
+	-->
+
+	<key>CFBundleExecutable</key>
+	<string>librutokens.so</string>
+
+	<key>ifdManufacturerString</key>
+	<string>Aktiv Co</string>
+
+	<key>ifdProductString</key>
+	<string>Rutoken S driver</string>
+
+	<key>ifdVendorID</key>
+	<array>
+		<string>0x0A89</string>
+	</array>
+
+	<key>ifdProductID</key>
+	<array>
+		<string>0x0020</string>
+	</array>
+
+	<key>ifdFriendlyName</key>
+	<array>
+		<string>Aktiv Co. Rutoken S</string>
+	</array>
+
+	<key>Copyright</key>
+	<string>This driver is protected by terms of the GNU Lesser General Public License version 2.1, or (at your option) any later version.</string>
+
+</dict>
+</plist>
