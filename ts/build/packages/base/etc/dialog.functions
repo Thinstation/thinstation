@@ -165,7 +165,7 @@ read_options()
 set_default()
 {
 	if [ -n "$1" ]; then
-		echo "<default>$@</default>"
+		echo "<default>`echo "$@" |sed -e '/\\\\"/! s|"|\\\\"|g' |sed -e '/\\'\''/! s|'\''|\\'\''|g'`</default>"
 	fi
 }
 
