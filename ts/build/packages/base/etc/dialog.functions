@@ -259,10 +259,41 @@ create_dialog()
 run_dialog()
 {
 	I=$IFS; IFS=""
-	for STATEMENTS in  $(gtkdialog -c --program=MAIN_DIALOG |sed -e 's|`|\\`|g' |sed -e 's|\$|\\\$|g' |sed 's|\"|\\\"|g' |sed 's|\=\\\"|\=\"|g' |sed 's|\\\"$|\"|g'); do
-		eval $STATEMENTS
+	usub=`random_string`
+	psub=`random_string`
+	ssub=`random_string`
+	osub=`random_string`
+	wsub=`random_string`
+	esub=`random_string`
+	lsub=`random_string`
+	for STATEMENTS in \
+		$(gtkdialog -c --program=MAIN_DIALOG \
+		|sed -e 's|^DIALOG_USER="|'$usub'|g' \
+		|sed -e 's|^DIALOG_PASSWORD="|'$psub'|g' \
+		|sed -e 's|^DIALOG_SERVER="|'$ssub'|g' \
+		|sed -e 's|^DIALOG_OPTIONS="|'$osub'|g' \
+		|sed -e 's|^EXIT="|'$esub'|g' \
+		|sed -e 's|^windowed="|'$wsub'|g' \
+		|sed -e 's|"$|'$lsub'|g' \
+		|sed -e 's|`|\\`|g' \
+		|sed -e 's|\$|\\\$|g' \
+		|sed -e 's|"|\\"|g' \
+		|sed -e 's|'$usub'|DIALOG_USER="|g' \
+		|sed -e 's|'$psub'|DIALOG_PASSWORD="|g' \
+		|sed -e 's|'$ssub'|DIALOG_SERVER="|g' \
+		|sed -e 's|'$osub'|DIALOG_OPTIONS="|g' \
+		|sed -e 's|'$esub'|EXIT="|g' \
+		|sed -e 's|'$wsub'|windowed="|g' \
+		|sed -e 's|'$lsub'|"|g' \
+		); do
+			eval $STATEMENTS
 	done
 	IFS=$I
+}
+
+random_string()
+{
+	head /dev/urandom | tr -dc A-Za-z0-9 | head -c 16 ; echo ''
 }
 
 parse_results()
