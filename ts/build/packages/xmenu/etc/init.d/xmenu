@@ -1,0 +1,23 @@
+#! /bin/sh
+
+. $TS_GLOBAL
+
+case "$1" in
+init)
+    if ! pkg_initialized $PACKAGE; then
+        pkg_set_init_flag $PACKAGE
+	exec /bin/xmenu
+    fi
+    ;;
+console)
+    exec /bin/xmenu
+    ;;
+help)
+    echo "Usage: $0 {init|console}"
+    ;;
+  *)
+    exit 1
+    ;;
+esac
+
+exit 0
