@@ -4,24 +4,20 @@
 # Depends on: xorg, xorg-imake, xorg-gccmakedep (?)
 
 name=tigervnc
-version=1.6.0
+version=1.9.0
 release=1
-_xorgver=1.18.1
+_xorgver=1.20.0
 source=(https://github.com/TigerVNC/tigervnc/archive/v${version}.tar.gz
-	ftp://ftp.freedesktop.org/pub/xorg/individual/xserver/xorg-server-${_xorgver}.tar.bz2
-	gethomedir.patch
-	xorg118.patch)
+	ftp://ftp.freedesktop.org/pub/xorg/individual/xserver/xorg-server-${_xorgver}.tar.bz2)
 
 build() {
 	cd $SRC/$name-${version}
 
-	patch -Np1 -i $SRC/gethomedir.patch
-	patch -Np1 -i $SRC/xorg118.patch
 	sed -i 's/iconic/nowin/' unix/vncserver
 
 	cd unix/xserver
 	cp -r $SRC/xorg-server-${_xorgver}/* .
-	patch -Np1 -i ../xserver117.patch
+	patch -Np1 -i ../xserver120.patch
         cd $SRC/$name-$version
 
 	cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX=/usr
@@ -30,7 +26,7 @@ build() {
 
 	cd unix/xserver
 	autoreconf -fiv
-	./configure --prefix=/usr \
+	CFLAGS="$CFLAGS -I/usr/include/libdrm" ./configure --prefix=/usr \
 	--disable-static --disable-xinerama --without-dtrace \
 	--disable-xorg --disable-xnest --disable-xvfb --disable-dmx \
 	--disable-xwin --disable-xephyr --disable-kdrive --disable-xwayland \
