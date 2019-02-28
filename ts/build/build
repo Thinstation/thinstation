@@ -1541,6 +1541,12 @@ do
     mkdir -p ./tmp-tree/finalize
     cp $pkgpath/build/finalize ./tmp-tree/finalize/`head -n 1 $pkgpath/build/finalize | cut -d' ' -f 2`$package
   fi
+  if find_package $package && [ -e "$pkgpath/build/pip2.freeze" ]; then
+    cat $pkgpath/build/pip2.freeze >> ./tmp-tree/pip2.freeze
+  fi
+  if find_package $package && [ -e "$pkgpath/build/pip3.freeze" ]; then
+    cat $pkgpath/build/pip3.freeze >> ./tmp-tree/pip3.freeze
+  fi
   if find_package $package && [ -e "$pkgpath/build/image" ]; then
     cat $pkgpath/build/image >> build.image
   fi
@@ -1633,6 +1639,22 @@ mesa()
 
 filesystem_fixups()
 {
+	# Install Python Packages
+	if [ -e ./tmp-tree/pip2.freeze ]; then
+		echo -e "Installing Python2 Packages"
+		mkdir ./py-tmp
+		pip2 install -r ./tmp-tree/pip2.freeze -I --root ./py-tmp --prefix=/usr
+		cp -a ./py-tmp/usr/* ./tmp-tree/.
+		rm -rf ./py-tmp
+	fi
+	if [ -e ./tmp-tree/pip3.freeze ]; then
+		echo -e "Installing Python3 Packages"
+		mkdir py-tmp
+		pip3 install -r ./tmp-tree/pip3.freeze -I --root ./py-tmp --prefix=/usr
+		cp -a ./py-tmp/usr/* ./tmp-tree/.
+		rm -rf ./py-tmp
+	fi
+
 	# Various filesystem fixups
 	echo -e "Running File System Fixups"
 	if [ -z "$ts_cdvolname" ]; then
