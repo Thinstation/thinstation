@@ -165,7 +165,7 @@ read_options()
 set_default()
 {
 	if [ -n "$1" ]; then
-		echo "<default>`echo "$@" |sed -e '/\\\\"/! s|"|\\\\"|g' |sed -e '/\\'\''/! s|'\''|\\'\''|g'`</default>"
+		echo "<default>`echo "$@" |sed -e 's|'\''"'\''"'\''|'\''|g' |sed -e '/\\\\"/! s|"|\\\\"|g' |sed -e '/\\'\''/! s|'\''|\\'\''|g'`</default>"
 	fi
 }
 
@@ -278,6 +278,7 @@ run_dialog()
 		|sed -e 's|`|\\`|g' \
 		|sed -e 's|\$|\\\$|g' \
 		|sed -e 's|"|\\"|g' \
+		|sed -e "s|'|'\\\\\"'\\\\\"'|g" \
 		|sed -e 's|'$usub'|DIALOG_USER="|g' \
 		|sed -e 's|'$psub'|DIALOG_PASSWORD="|g' \
 		|sed -e 's|'$ssub'|DIALOG_SERVER="|g' \
@@ -300,9 +301,9 @@ parse_results()
 {
 	if [ "$EXIT" == "ok" ]; then
 		# preserve settings
-		echo "$DIALOG_USER" |sed -e "s|[\$\&\;\`\(\)\|]||g" > /tmp/.dialog_${client}_user
-		echo "$DIALOG_SERVER" |sed -e "s|[\$\&\;\`\(\)\|]||g"> /tmp/.dialog_${client}_server
-		echo "$DIALOG_OPTIONS" |sed -e "s|[\$\&\;\`\(\)\|]||g"> /tmp/.dialog_${client}_options
+		echo "$DIALOG_USER"	|sed -e "s|[\$\&\;\`\(\)\|]||g"	> /tmp/.dialog_${client}_user
+		echo "$DIALOG_SERVER"	|sed -e "s|[\$\&\;\`\(\)\|]||g"	> /tmp/.dialog_${client}_server
+		echo "$DIALOG_OPTIONS"	|sed -e "s|[\$\&\;\`\(\)\|]||g"	> /tmp/.dialog_${client}_options
 		if [ "$DIALOG_SERVER" != "type server name here" ]; then
 			REMUSER="$DIALOG_USER"
 			PASSWORD="$DIALOG_PASSWORD"
