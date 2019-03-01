@@ -1,0 +1,20 @@
+# Description: Python bindings for GObject
+# URL: http://www.pygtk.org
+# Maintainer: Jose V Beneyto, sepen at crux dot nu
+# Packager: Simone Rota, sip at varlock dot com
+# Depends on: gtk python
+
+name=pygobject2
+version=2.28.7
+release=1
+source=(http://ftp.gnome.org/pub/GNOME/sources/pygobject/${version::4}/pygobject-$version.tar.xz)
+
+build() {
+	cd pygobject-$version
+
+	./configure --prefix=/usr --disable-introspection
+	make
+	make DESTDIR=$PKG install
+
+	rm -rf $PKG/usr/share/gtk-doc
+}
