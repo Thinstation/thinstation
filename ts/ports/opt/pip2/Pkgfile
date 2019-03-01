@@ -1,0 +1,21 @@
+# Description: A language that lets writing C extensions for the Python language.
+# URL: http://www.cython.org/
+# Maintainer: Danny Rawlins, monster dot romster at gmail dot com
+# Packager: Victor Martinez, pitillo at ono dot com
+# Depends on: setuptools
+
+name=pip2
+pname=pip
+version=pip
+release=1
+source=()
+
+build() {
+	python2 -m pip download $pname --no-binary :all:
+        mkdir -p $SRC/$name
+        tar -xvf $SRC/$pname*.tar.* -C $SRC/$name || unzip -d $SRC/$name $pname-*.zip
+        cd $SRC/$name/*
+
+        python2 ./setup.py install --root $PKG
+	rm $PKG/usr/bin/pip
+}
