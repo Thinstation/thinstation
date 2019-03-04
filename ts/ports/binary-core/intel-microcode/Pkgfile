@@ -3,19 +3,17 @@
 # Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 
 name=intel-microcode
-version=20140430
-trans=23829
+version=20180807a
+trans=28087
 release=1
 source=(http://downloadmirror.intel.com/$trans/eng/microcode-$version.tgz
-        LICENSE
-        intel-microcode2ucode.c)
+        LICENSE)
 
 build() {
   cd $SRC
-  gcc -Wall ${CFLAGS} -o intel-microcode2ucode intel-microcode2ucode.c
-  ./intel-microcode2ucode ./microcode.dat
 
-  install -d -m755 $PKG/lib/firmware/intel-ucode/
-  cp intel-ucode/* $PKG/lib/firmware/intel-ucode/
+  install -d -m755 $PKG/lib/firmware
+  cp intel-ucode* $PKG/lib/firmware -a
+
   install -D -m644 LICENSE $PKG/lib/firmware/intel-ucode/.
 }
