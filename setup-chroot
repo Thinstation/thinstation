@@ -6,7 +6,7 @@ state_checks()
 {
 	test $(id -u) -ne 0 && echo "please run as root" && exit 1
 	test ! -e setup-chroot  && echo "This utility must be run in the directory in which it exists." && exit 1
-	test "$PWD" == "/" && echo "You have already started the session." && exit 1
+	test "$(/bin/pwd)" == "/" && echo "You have already started the session." && exit 1
 	test ! -d var/lib/pkg && ts/bin/install_chroot
 }
 
@@ -114,7 +114,7 @@ set_proxy()
 
 mounted()
 {
-	if [ "`cat /proc/mounts |grep -e $PWD/$1 -c`" -ne "0" ]; then
+	if [ "`cat /proc/mounts |grep -e $(/bin/pwd)/$1 -c`" -ne "0" ]; then
 		return 0
 	else
 		return 1
@@ -156,7 +156,7 @@ launch_chroot()
 	else
 		chroot_cmd="chroot"
 	fi
-	$chroot_cmd $PWD /ts/TS_ENV
+	$chroot_cmd $(/bin/pwd) /ts/TS_ENV
 	howdiditgo=$?
 	if first_or_last ; then
 		kill_ssh_agent
@@ -186,7 +186,7 @@ secure_keys()
 do_unmounts()
 {
 	for mount in dev/pts dev tmp proc sys ; do
-	        fuser -k $PWD/$mount > /dev/null 2>&1
+	        fuser -k $(/bin/pwd)/$mount > /dev/null 2>&1
 		while mounted $mount ; do
 			umount $mount
 		done
