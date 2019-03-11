@@ -29,8 +29,18 @@ build() {
         cp -a doc/* $PKG/usr/share/doc/syslinux
 
         # Build extra modules
-        make bios
+        make bios 
 
 	chmod 644 bios/com32/modules/ifmem.c32
 	cp -a bios/com32/modules/ifmem.c32 $PKG/usr/share/syslinux/bios/.
+
+	make -j1 INSTALLROOT=$PKG install efi32
+	make efi32
+	chmod 644 efi32/com32/modules/ifmem.c32
+        cp -a efi32/com32/modules/ifmem.c32 $PKG/usr/share/syslinux/efi32/.
+
+	make -j1 INSTALLROOT=$PKG install efi64
+	make efi64
+	chmod 644 efi64/com32/modules/ifmem.c32
+        cp -a efi64/com32/modules/ifmem.c32 $PKG/usr/share/syslinux/efi64/.
 }
