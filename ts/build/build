@@ -971,9 +971,9 @@ fi
 (cat $CONF_FILE; echo) | # make sure there is a LF at the end
 while read type name args
 do
-    type=`echo $type | sed -e 's/\^M//g' | sed -e 's/\&/\\\&/g'`
-    name=`echo $name | sed -e 's/\^M//g' | sed -e 's/\&/\\\&/g'`
-    args=`echo $args | sed -e 's/\^M//g' | sed -e 's/\&/\\\&/g'`
+    type=`echo $type | busybox dos2unix | sed -e 's/\&/\\\&/g'`
+    name=`echo $name | busybox dos2unix | sed -e 's/\&/\\\&/g'
+    args=`echo $args | busybox dox2unix | sed -e 's/\&/\\\&/g'`
     case $type in
     \#*|"") continue
 	    ;;
@@ -1489,7 +1489,7 @@ lib_dependencies
 # Add user defined defaults
 if [ -e ./$ts_defaultconfig ] && [ ! -z "$ts_defaultconfig" ] ; then
 	cat ./$ts_defaultconfig | grep -v "^#" | sed '/^[ \t]*$/d' >> ./tmp-tree/thinstation.defaults
-	sed -e 's/\^M//g' ./tmp-tree/thinstation.defaults >> ./tmp-tree/etc/thinstation.defaults
+	busybox dos2unix ./tmp-tree/thinstation.defaults
 	rm ./tmp-tree/thinstation.defaults
 	source $ts_defaultconfig
 fi
