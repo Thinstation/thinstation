@@ -971,12 +971,9 @@ fi
 (cat $CONF_FILE; echo) | # make sure there is a LF at the end
 while read type name args
 do
-    type=`echo $type | sed -e s/
-//g | sed -e 's/\&/\\\&/g'`
-    name=`echo $name | sed -e s/
-//g | sed -e 's/\&/\\\&/g'`
-    args=`echo $args | sed -e s/
-//g | sed -e 's/\&/\\\&/g'`
+    type=`echo $type | sed -e s/^M//g | sed -e 's/\&/\\\&/g'`
+    name=`echo $name | sed -e s/^M//g | sed -e 's/\&/\\\&/g'`
+    args=`echo $args | sed -e s/^M//g | sed -e 's/\&/\\\&/g'`
     case $type in
     \#*|"") continue
 	    ;;
