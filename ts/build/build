@@ -1973,7 +1973,7 @@ else
 				$unzip -dc < ../$INITDIR/initrd |cpio -i
 			fi
 		fi
-		sed -e 's/\^M//g' ../"$BUILDTIME" >> ../tmp-tree/thinstation.buildtime
+		cat -v ../"$BUILDTIME" |busybox dos2unix >> ../tmp-tree/thinstation.buildtime
 		. ../$INITDIR/kernel_parameters
 		if [ "$ts_initrdcmd" == "squashfs" ]; then
 		    mksquashfs . ../$INITDIR/initrd $ts_squashopt -always-use-fragments -no-recovery -no-exports -no-xattrs
