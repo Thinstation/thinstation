@@ -115,7 +115,7 @@ stage4()
 	printf "\rLooking at core binary ports\n"
 	procs=`nproc`
         let procs-=1
-        for Root in /ts $XTRWRKNG; do
+        for Root in $ROOT/ts $XTRWRKNG; do
                 find -L $Root/ports -name Pkgfile | \
                 grep -E "binary-core" | \
                 xargs -n 1 -P $procs -I {} bash -c 'install_binary_port "$@"' _ {}
