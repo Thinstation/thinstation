@@ -9,7 +9,8 @@ stage1()
 {
 	echo "Chroot not previously setup. Doing it NOW!"
 
-	chown -R root.root .
+	chown -R root.root ts setup-chroot README.md
+
 	for dir in proc sys home dev mnt downloads var/lib/pkg; do
 		if [ ! -e $dir ] ; then
 				mkdir -p -m 755 $dir
@@ -50,14 +51,14 @@ stage2()
 	mkdir -p /var/lib/pkg
 	procs=`nproc`
 	let procs-=1
-	for Root in $ROOT/ts $XTRWRKNG; do
+	for Root in /ts $XTRWRKNG; do
 		find -L $Root/ports -name Pkgfile | \
 		grep -Ev "proprietary|binary-core|binary-opt" | \
 		grep -Ev "$exclude" | \
 		xargs -n 1 -P $procs -I {} bash -c 'install_port "$@"' _ {}
 	done
 	for core_port in $core_ports; do
-               	Pkgfile=$ROOT/ts/ports/core/$core_port/Pkgfile
+               	Pkgfile=/ts/ports/core/$core_port/Pkgfile
 		install_port $Pkgfile
 	done
 	add_to_db
@@ -114,7 +115,7 @@ stage4()
 	printf "\rLooking at core binary ports\n"
 	procs=`nproc`
         let procs-=1
-        for Root in $ROOT/ts $XTRWRKNG; do
+        for Root in /ts $XTRWRKNG; do
                 find -L $Root/ports -name Pkgfile | \
                 grep -E "binary-core" | \
                 xargs -n 1 -P $procs -I {} bash -c 'install_binary_port "$@"' _ {}
@@ -169,22 +170,26 @@ install_port()
 	port_dir=`dirname $Pkgfile`
 	port_name=`basename $port_dir`
 	pkg_name="`find -L $port_dir -type f -name ${name}#${version}-${release}.pkg.tar.\* -printf '%f'`"
-	printf "\rInstalling Port %-40s" "$port_name"
-	if [ -f $port_dir/$pkg_name ]; then
-		echo $name > /tmp/$name.db
-		echo $version-$release >> /tmp/$name.db
-		tar -hxvf $port_dir/$pkg_name -C / >> /tmp/$name.db 2>/dev/null #|| rm /tmp/$name.db && echo "$pkg_name failed"
-#		/usr/bin/pkgadd -f $port_dir/$pkg_name
-		if [ -e $port_dir/pre-install ]; then
-			echo ". $port_dir/pre-install" >> $ROOT/post-install.sh
-		fi
-		if [ -e $port_dir/post-install ]; then
-			echo ". $port_dir/post-install" >> $ROOT/post-install.sh
-		fi
+	if [ -n "$XTRWRKNG" ] \
+	&& [ -e "$XTRWRKNG/${port_dir##/ts/}" ]; then
 		return 0
 	else
-		printf "Could not find an archive.\n"
-		return 1
+	printf "\rInstalling Port %-40s" "$port_name"
+		if [ -f $port_dir/$pkg_name ]; then
+			echo $name > /tmp/$name.db
+			echo $version-$release >> /tmp/$name.db
+			tar -hxvf $port_dir/$pkg_name -C / >> /tmp/$name.db 2>/dev/null #|| rm /tmp/$name.db && echo "$pkg_name failed"
+			if [ -e $port_dir/pre-install ]; then
+				echo ". $port_dir/pre-install" >> $ROOT/post-install.sh
+			fi
+			if [ -e $port_dir/post-install ]; then
+				echo ". $port_dir/post-install" >> $ROOT/post-install.sh
+			fi
+			return 0
+		else
+			printf "Could not find an archive.\n"
+			return 1
+		fi
 	fi
 }
 
