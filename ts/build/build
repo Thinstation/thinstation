@@ -971,9 +971,9 @@ fi
 (cat $CONF_FILE; echo) | # make sure there is a LF at the end
 while read type name args
 do
-    type=`echo $type | busybox dos2unix | sed -e 's/\&/\\\&/g'`
-    name=`echo $name | busybox dos2unix | sed -e 's/\&/\\\&/g'`
-    args=`echo $args | busybox dos2unix | sed -e 's/\&/\\\&/g'`
+    type=`echo $type | sed -e s///g | sed -e 's/\&/\\\&/g'`
+    name=`echo $name | sed -e s///g | sed -e 's/\&/\\\&/g'`
+    args=`echo $args | sed -e s///g | sed -e 's/\&/\\\&/g'`
     case $type in
     \#*|"") continue
 	    ;;
@@ -1489,7 +1489,8 @@ lib_dependencies
 # Add user defined defaults
 if [ -e ./$ts_defaultconfig ] && [ ! -z "$ts_defaultconfig" ] ; then
 	cat ./$ts_defaultconfig | grep -v "^#" | sed '/^[ \t]*$/d' >> ./tmp-tree/thinstation.defaults
-	busybox dos2unix ./tmp-tree/thinstation.defaults
+	sed -e 's/\
+//g' ./tmp-tree/thinstation.defaults >> ./tmp-tree/etc/thinstation.defaults
 	rm ./tmp-tree/thinstation.defaults
 	source $ts_defaultconfig
 fi
@@ -1973,7 +1974,8 @@ else
 				$unzip -dc < ../$INITDIR/initrd |cpio -i
 			fi
 		fi
-		cat -v ../"$BUILDTIME" |busybox dos2unix >> ../tmp-tree/thinstation.buildtime
+		sed -e 's/\
+//g' ../"$BUILDTIME" >> ../tmp-tree/thinstation.buildtime
 		. ../$INITDIR/kernel_parameters
 		if [ "$ts_initrdcmd" == "squashfs" ]; then
 		    mksquashfs . ../$INITDIR/initrd $ts_squashopt -always-use-fragments -no-recovery -no-exports -no-xattrs
