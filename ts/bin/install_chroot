@@ -51,7 +51,7 @@ stage2()
 	mkdir -p /var/lib/pkg
 	procs=`nproc`
 	let procs-=1
-	for Root in /ts $XTRWRKNG; do
+	for Root in $ROOT/ts $XTRWRKNG; do
 		find -L $Root/ports -name Pkgfile | \
 		grep -Ev "proprietary|binary-core|binary-opt" | \
 		grep -Ev "$exclude" | \
@@ -171,7 +171,7 @@ install_port()
 	port_name=`basename $port_dir`
 	pkg_name="`find -L $port_dir -type f -name ${name}#${version}-${release}.pkg.tar.\* -printf '%f'`"
 	if [ -n "$XTRWRKNG" ] \
-	&& [ -e "$XTRWRKNG/${port_dir##/ts/}" ]; then
+	&& [ -e "$XTRWRKNG/${port_dir##//ts/}" ]; then
 		return 0
 	else
 	printf "\rInstalling Port %-40s" "$port_name"
