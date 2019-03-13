@@ -1,0 +1,32 @@
+# Maintainer: Andreas Radke <andyrtr@archlinux.org>
+# Maintainer: Jan de Groot
+
+name=libinput
+version=1.12.6
+release=1
+source=(https://freedesktop.org/software/$name/$name-$version.tar.xz \
+	61-evdev-local.hwdb \
+	61-libinput-local.hwdb \
+	local-overrides.quirks )
+
+build() {
+  ts-meson $name-$version build \
+    -Dudev-dir=/usr/lib/udev \
+    -Dtests=false \
+    -Ddocumentation=false
+  ninja -C build
+
+  DESTDIR="$PKG" ninja -C build install
+
+  install -Dvm644 $name-$version/COPYING \
+    "$PKG/usr/share/licenses/$name/LICENSE"
+
+  install -Dvm755 61-evdev-local.hwdb \
+	$PKG/etc/udev/hwdb.d/61-evdev-local.hwdb
+
+  install -Dvm755 61-libinput-local.hwdb \
+	$PKG/etc/udev/hwdb.d/61-libinput-local.hwdb
+
+  install -Dvm755 local-overrides.quirks \
+	$PKG/etc/libinput/local-overrides.quirks
+}
