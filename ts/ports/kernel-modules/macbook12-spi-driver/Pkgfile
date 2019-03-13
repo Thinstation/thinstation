@@ -1,0 +1,40 @@
+# Description:
+# URL:
+# Packager:
+# Maintainer:
+
+name=macbook12-spi-driver
+version=git
+release=1
+kver=`cat /ts/ports/kernel-modules/VERSION`
+
+build() {
+git clone --depth 1 https://github.com/roadrunner2/macbook12-spi-driver.git
+
+    for KERNELTYPE in TS; do
+       export REPORT_KERNEL=${kver}$KERNELTYPE
+
+       cd $SRC/macbook12-spi-driver
+       KVERSION=${kver}$KERNELTYPE
+       KCOMPDIR=${KERNELTYPE##TS}
+       KDIR=/lib/modules/$KVERSION/build
+       MODLIB=$PKG/lib/modules/${KVERSION}
+
+       make
+
+	for module in *.ko; do
+		/usr/src/kernels/$KVERSION/scripts/sign-file \
+		sha256 \
+		/etc/ssl/keys/kernel.key \
+		/etc/ssl/certs/kernel.crt \
+		$module
+	done
+
+       make install \
+	KVERSION=$KVERSION \
+	MODLIB=$MODLIB
+
+       make clean
+    done
+}
+
