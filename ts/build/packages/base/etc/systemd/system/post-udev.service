@@ -1,0 +1,13 @@
+[Unit]
+Description=ThinStation Post Udev Quirks
+After=systemd-udev-settle.service
+Before=display-manager.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/etc/init.d/post-udev
+SyslogIdentifier=thinstation
+
+[Install]
+WantedBy=multi-user.target
