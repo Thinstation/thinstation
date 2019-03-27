@@ -1764,12 +1764,26 @@ filesystem_fixups()
 		rm ./tmp-tree/build.finalize
 		rm -rf ./tmp-tree/finalize
 		rm -rf ./tmp-tree/tmp/*
-		#Run depmod one last time, in case a finalize script removed a module
+		# Possibly compress modules and run depmod one last time, in case a finalize script removed a module
+		if [ -n "$ts_modcmd" ]; then
+			# Maybe "gzip -n -f" or "xz -f"
+			echo -e "\tCompressing Modules"
+			export -f compress_module
+			export ts_modcmd
+			find ./tmp-tree/lib/modules -name \*.ko | \
+			 xargs -n 1 -P $procs -I {} bash -c 'compress_module "$@"' _ {}
+		fi
 		for KERNVER in $KERNVERS; do
 			depmod -b ./tmp-tree $KERNVER 2>/dev/null
 		done
 	fi
 }
+
+compress_module()
+{
+	$ts_modcmd $1
+}
+
 
 # this is the starting point =>
 remove_files
