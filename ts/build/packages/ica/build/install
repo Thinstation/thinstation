@@ -21,11 +21,9 @@ bins="attr awk basename bash cat chgrp chmod chown cp cut date dd df \
 	ps red rm rmdir sed sh sleep sort ss tar tc telinit touch tr \
 	true uname vi wc which whoami ldd gst-play-1.0"
 dirs="proc etc/udev/rules.d etc/init.d bin lib tmp dev/bus/usb usr/local \
-        lib/applications lib/netscape/plugins \
-        lib/gstreamer-1.0 lib/firefox/plugins \
-        lib/chrome/plugins"
+        lib/applications lib/gstreamer-1.0"
 clean_dirs="setupwfc linuxx64 dev PkgId tmp proc \
-        lib/firefox/plugins lib/chrome/plugins lib/plugins lib/mailcap \
+        lib/plugins lib/mailcap \
         lib/mime.types"
 libs="/lib/libnss_files.so.2 /usr/lib/libgstapp-1.0.so.0"
 
@@ -89,7 +87,7 @@ bday=`stat -c %Y $INSTALLDIR/linuxx64/linuxx64.psf`
 # Start the installer in a chroot session.
 mount -t proc proc $INSTALLDIR/proc
 # Pipe the answers
-(for answer in 1 '\n' y y y 3; do
+(for answer in 1 '\n' y n y y 3; do
 		sleep .2
 		echo -e "$answer"
 done)|chroot $INSTALLDIR ./setupwfc
@@ -120,9 +118,8 @@ rm $INSTALLDIR/lib64
 # Remove library versions that we don't have the dependencies for
 rm $INSTALLDIR/opt/Citrix/ICAClient/lib/{libkcph.so,ctxjpeg_fb.so}
 rm $INSTALLDIR/opt/Citrix/ICAClient/VDHSSPI.DLL
-
-# A little bit of shifing about for "our" filesystem layout.
-mv $INSTALLDIR/lib/netscape $INSTALLDIR/lib/mozilla
+rm $INSTALLDIR/opt/Citrix/ICAClient/npica.so
+rm $INSTALLDIR/opt/Citrix/ICAClient/util/*0.10*
 
 # Define wfica as a mimetype handler for .ica files
 echo "MimeType=application/x-ica;" >> $INSTALLDIR/opt/Citrix/ICAClient/desktop/wfica.desktop
