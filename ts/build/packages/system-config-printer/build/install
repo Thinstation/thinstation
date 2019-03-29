@@ -4,8 +4,8 @@ export PACKAGE=system-config-printer
 export PORTS="$PACKAGE cups-pk-helper"
 repackage -e
 
-mv packages/$PACKAGE/etc/udev packages/$PACKAGE/lib
-
 returnval=$?
+
+sed -i -e "s/cups.socket/org.cups.cupsd.socket/" packages/$PACKAGE/lib/systemd/system/configure-printer\@.service
 
 exit $returnval
