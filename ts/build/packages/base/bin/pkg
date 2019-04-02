@@ -32,7 +32,7 @@ load)
 			if [ -e /etc/cmd/$2.load ]; then
 				/etc/cmd/$2.load /$2.$3
 			else
-			tar -xvf /$2.$3 / |grep -e "etc/systemd/system/multi-user.target.wants/" > $INITLIST.$2
+			tar -xvf /$2.$3 -C / |grep -e "etc/systemd/system/multi-user.target.wants/" > $INITLIST.$2
 			if [ -e $INITLIST.$2 ]; then
 				for service in `cat $INITLIST.$2`; do
 					systemctl start /$service
