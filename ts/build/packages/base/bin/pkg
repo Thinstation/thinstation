@@ -32,14 +32,11 @@ load)
 			if [ -e /etc/cmd/$2.load ]; then
 				/etc/cmd/$2.load /$2.$3
 			else
-			gunzip -c /$2.$3 | tar -C $PKGDIR -xf - etc/rc$CURRENTRC.d 2> /dev/null
-			# This gets pulls out the list of init processes which need to be done
-			# otherwise you don't know which have/haven't been processed later
-			if [ -e $PKGDIR/etc/rc$CURRENTRC.d ] ; then
-				ls $PKGDIR/etc/rc$CURRENTRC.d >> $INITLIST
-			fi
-			rm -Rf $PKGDIR/* 2>/dev/null
-			gunzip -c /$2.$3 | tar -C / -xf -
+			tar -xvf /$2.$3 / |grep -e "etc/systemd/system/multi-user.target.wants/" > $INITLIST.$2
+			if [ -e $INITLIST.$2 ]; then
+				for service in `cat $INITLIST.$2`; do
+					systemctl start /$service
+				done
 			rm /$2.$3
 			echo_log "Ok" $debug
 			fi
