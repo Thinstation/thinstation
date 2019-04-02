@@ -1,4 +1,4 @@
-# ThinStation - Solutions for a Flat Earth
+# ThinStation
 
 README - Displaying of this file can be disabled by touching `/ts/etc/READ`
 
