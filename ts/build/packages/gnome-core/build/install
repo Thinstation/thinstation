@@ -10,4 +10,8 @@ repackage -e
 
 returnval=$?
 
+for i in secrets pkcs11 ssh; do
+  sed -i -e "s/OnlyShowIn=GNOME/OnlyShowIn=GNOME;XFCE/" packages/$PACKAGE/etc/xdg/autostart/gnome-keyring-$i.desktop
+done
+
 exit $returnval
