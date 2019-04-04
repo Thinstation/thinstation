@@ -8,6 +8,8 @@ drwxr-xr-x	root/root	etc/dbus-1/system.d/
 -rw-rw-r--	root/root	etc/dbus-1/system.d/org.freedesktop.hostname1.conf
 -rw-rw-r--	root/root	etc/dbus-1/system.d/org.freedesktop.login1.conf
 -rw-rw-r--	root/root	etc/dbus-1/system.d/org.freedesktop.systemd1.conf
+-rw-rw-r--	root/root	etc/dbus-1/system.d/org.freedesktop.timedate1.conf
+-rw-rw-r--	root/root	etc/dbus-1/system.d/org.freedesktop.timesync1.conf
 drwxr-xr-x	root/root	etc/kernel/
 drwxr-xr-x	root/root	etc/kernel/install.d/
 drwxr-xr-x	root/root	etc/modules-load.d/
@@ -24,6 +26,9 @@ drwxr-xr-x	root/root	etc/systemd/system/getty.target.wants/
 lrwxrwxrwx	root/root	etc/systemd/system/getty.target.wants/getty@tty1.service -> ../../../../usr/lib/systemd/system/getty@.service
 drwxr-xr-x	root/root	etc/systemd/system/multi-user.target.wants/
 lrwxrwxrwx	root/root	etc/systemd/system/multi-user.target.wants/remote-fs.target -> ../../../../usr/lib/systemd/system/remote-fs.target
+drwxr-xr-x	root/root	etc/systemd/system/sysinit.target.wants/
+lrwxrwxrwx	root/root	etc/systemd/system/sysinit.target.wants/systemd-timesyncd.service -> ../../../../usr/lib/systemd/system/systemd-timesyncd.service
+-rw-rw-r--	root/root	etc/systemd/timesyncd.conf
 -rw-rw-r--	root/root	etc/systemd/user.conf
 drwxr-xr-x	root/root	etc/systemd/user/
 drwxr-xr-x	root/root	etc/tmpfiles.d/
@@ -71,6 +76,7 @@ lrwxrwxrwx	root/root	usr/bin/shutdown -> systemctl
 -rwxr-xr-x	root/root	usr/bin/systemd-tty-ask-password-agent
 lrwxrwxrwx	root/root	usr/bin/systemd-umount -> systemd-mount
 lrwxrwxrwx	root/root	usr/bin/telinit -> systemctl
+-rwxr-xr-x	root/root	usr/bin/timedatectl
 -rwxr-xr-x	root/root	usr/bin/udevadm
 drwxr-xr-x	root/root	usr/include/
 -rw-rw-r--	root/root	usr/include/libudev.h
@@ -146,6 +152,7 @@ lrwxrwxrwx	root/root	usr/lib/systemd/system/autovt@.service -> getty@.service
 lrwxrwxrwx	root/root	usr/lib/systemd/system/ctrl-alt-del.target -> reboot.target
 lrwxrwxrwx	root/root	usr/lib/systemd/system/dbus-org.freedesktop.hostname1.service -> systemd-hostnamed.service
 lrwxrwxrwx	root/root	usr/lib/systemd/system/dbus-org.freedesktop.login1.service -> systemd-logind.service
+lrwxrwxrwx	root/root	usr/lib/systemd/system/dbus-org.freedesktop.timedate1.service -> systemd-timedated.service
 -rw-r--r--	root/root	usr/lib/systemd/system/debug-shell.service
 lrwxrwxrwx	root/root	usr/lib/systemd/system/default.target -> graphical.target
 -rw-rw-r--	root/root	usr/lib/systemd/system/dev-hugepages.mount
@@ -275,6 +282,9 @@ lrwxrwxrwx	root/root	usr/lib/systemd/system/sysinit.target.wants/systemd-update-
 -rw-r--r--	root/root	usr/lib/systemd/system/systemd-remount-fs.service
 -rw-r--r--	root/root	usr/lib/systemd/system/systemd-suspend.service
 -rw-r--r--	root/root	usr/lib/systemd/system/systemd-sysctl.service
+-rw-r--r--	root/root	usr/lib/systemd/system/systemd-time-wait-sync.service
+-rw-r--r--	root/root	usr/lib/systemd/system/systemd-timedated.service
+-rw-r--r--	root/root	usr/lib/systemd/system/systemd-timesyncd.service
 -rw-r--r--	root/root	usr/lib/systemd/system/systemd-tmpfiles-clean.service
 -rw-rw-r--	root/root	usr/lib/systemd/system/systemd-tmpfiles-clean.timer
 -rw-r--r--	root/root	usr/lib/systemd/system/systemd-tmpfiles-setup-dev.service
@@ -318,6 +328,9 @@ drwxr-xr-x	root/root	usr/lib/systemd/system/user-.slice.d/
 -rwxr-xr-x	root/root	usr/lib/systemd/systemd-socket-proxyd
 -rwxr-xr-x	root/root	usr/lib/systemd/systemd-sulogin-shell
 -rwxr-xr-x	root/root	usr/lib/systemd/systemd-sysctl
+-rwxr-xr-x	root/root	usr/lib/systemd/systemd-time-wait-sync
+-rwxr-xr-x	root/root	usr/lib/systemd/systemd-timedated
+-rwxr-xr-x	root/root	usr/lib/systemd/systemd-timesyncd
 -rwxr-xr-x	root/root	usr/lib/systemd/systemd-udevd
 -rwxr-xr-x	root/root	usr/lib/systemd/systemd-update-done
 -rwxr-xr-x	root/root	usr/lib/systemd/systemd-update-utmp
@@ -429,6 +442,7 @@ drwxr-xr-x	root/root	usr/share/bash-completion/completions/
 -rw-rw-r--	root/root	usr/share/bash-completion/completions/systemd-nspawn
 -rw-rw-r--	root/root	usr/share/bash-completion/completions/systemd-path
 -rw-rw-r--	root/root	usr/share/bash-completion/completions/systemd-run
+-rw-rw-r--	root/root	usr/share/bash-completion/completions/timedatectl
 -rw-rw-r--	root/root	usr/share/bash-completion/completions/udevadm
 drwxr-xr-x	root/root	usr/share/dbus-1/
 drwxr-xr-x	root/root	usr/share/dbus-1/services/
@@ -437,6 +451,8 @@ drwxr-xr-x	root/root	usr/share/dbus-1/system-services/
 -rw-rw-r--	root/root	usr/share/dbus-1/system-services/org.freedesktop.hostname1.service
 -rw-rw-r--	root/root	usr/share/dbus-1/system-services/org.freedesktop.login1.service
 -rw-rw-r--	root/root	usr/share/dbus-1/system-services/org.freedesktop.systemd1.service
+-rw-rw-r--	root/root	usr/share/dbus-1/system-services/org.freedesktop.timedate1.service
+-rw-rw-r--	root/root	usr/share/dbus-1/system-services/org.freedesktop.timesync1.service
 drwxr-xr-x	root/root	usr/share/doc/
 drwxr-xr-x	root/root	usr/share/doc/systemd/
 -rw-rw-r--	root/root	usr/share/doc/systemd/CODING_STYLE
@@ -570,6 +586,7 @@ drwxr-xr-x	root/root	usr/share/man/man1/
 -rw-r--r--	root/root	usr/share/man/man1/systemd-tty-ask-password-agent.1.gz
 -rw-r--r--	root/root	usr/share/man/man1/systemd-umount.1.gz
 -rw-r--r--	root/root	usr/share/man/man1/systemd.1.gz
+-rw-r--r--	root/root	usr/share/man/man1/timedatectl.1.gz
 drwxr-xr-x	root/root	usr/share/man/man3/
 -rw-r--r--	root/root	usr/share/man/man3/SD_ALERT.3.gz
 -rw-r--r--	root/root	usr/share/man/man3/SD_BUS_ERROR_ACCESS_DENIED.3.gz
@@ -1096,6 +1113,8 @@ drwxr-xr-x	root/root	usr/share/man/man5/
 -rw-r--r--	root/root	usr/share/man/man5/systemd.target.5.gz
 -rw-r--r--	root/root	usr/share/man/man5/systemd.timer.5.gz
 -rw-r--r--	root/root	usr/share/man/man5/systemd.unit.5.gz
+-rw-r--r--	root/root	usr/share/man/man5/timesyncd.conf.5.gz
+-rw-r--r--	root/root	usr/share/man/man5/timesyncd.conf.d.5.gz
 -rw-r--r--	root/root	usr/share/man/man5/tmpfiles.d.5.gz
 -rw-r--r--	root/root	usr/share/man/man5/udev.conf.5.gz
 -rw-r--r--	root/root	usr/share/man/man5/user.conf.d.5.gz
@@ -1173,6 +1192,12 @@ drwxr-xr-x	root/root	usr/share/man/man8/
 -rw-r--r--	root/root	usr/share/man/man8/systemd-system-update-generator.8.gz
 -rw-r--r--	root/root	usr/share/man/man8/systemd-sysusers.8.gz
 -rw-r--r--	root/root	usr/share/man/man8/systemd-sysusers.service.8.gz
+-rw-r--r--	root/root	usr/share/man/man8/systemd-time-wait-sync.8.gz
+-rw-r--r--	root/root	usr/share/man/man8/systemd-time-wait-sync.service.8.gz
+-rw-r--r--	root/root	usr/share/man/man8/systemd-timedated.8.gz
+-rw-r--r--	root/root	usr/share/man/man8/systemd-timedated.service.8.gz
+-rw-r--r--	root/root	usr/share/man/man8/systemd-timesyncd.8.gz
+-rw-r--r--	root/root	usr/share/man/man8/systemd-timesyncd.service.8.gz
 -rw-r--r--	root/root	usr/share/man/man8/systemd-tmpfiles-clean.service.8.gz
 -rw-r--r--	root/root	usr/share/man/man8/systemd-tmpfiles-clean.timer.8.gz
 -rw-r--r--	root/root	usr/share/man/man8/systemd-tmpfiles-setup-dev.service.8.gz
@@ -1200,6 +1225,7 @@ drwxr-xr-x	root/root	usr/share/polkit-1/actions/
 -rw-rw-r--	root/root	usr/share/polkit-1/actions/org.freedesktop.hostname1.policy
 -rw-rw-r--	root/root	usr/share/polkit-1/actions/org.freedesktop.login1.policy
 -rw-rw-r--	root/root	usr/share/polkit-1/actions/org.freedesktop.systemd1.policy
+-rw-rw-r--	root/root	usr/share/polkit-1/actions/org.freedesktop.timedate1.policy
 drwxr-x---	root/102	usr/share/polkit-1/rules.d/
 drwxr-xr-x	root/root	usr/share/zsh/
 drwxr-xr-x	root/root	usr/share/zsh/site-functions/
@@ -1221,6 +1247,7 @@ drwxr-xr-x	root/root	usr/share/zsh/site-functions/
 -rw-rw-r--	root/root	usr/share/zsh/site-functions/_systemd-nspawn
 -rw-rw-r--	root/root	usr/share/zsh/site-functions/_systemd-run
 -rw-rw-r--	root/root	usr/share/zsh/site-functions/_systemd-tmpfiles
+-rw-rw-r--	root/root	usr/share/zsh/site-functions/_timedatectl
 -rw-rw-r--	root/root	usr/share/zsh/site-functions/_udevadm
 drwxr-xr-x	root/root	var/
 drwxr-xr-x	root/root	var/lib/
