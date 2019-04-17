@@ -1,0 +1,11 @@
+[Unit]
+Description=VirtualHere USB Sharing                                                                        
+After=session.service                                                                                                                                   
+[Service]
+Type=forking
+EnvironmentFile=/etc/thinstation.env
+PidFile=/var/run/virtualhere.pid
+ExecStartPre=/bin/sh -c 'logger VirtualHere settling...;sleep 1s;logger VirtualHere settled'
+ExecStart=/etc/init.d/vhusbip
+[Install]
+WantedBy=multi-user.target
