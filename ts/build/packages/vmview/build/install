@@ -207,4 +207,8 @@ for link in `find $INSTALLDIR/sbin -type l`; do
         ln -sf $newdest $link
 done
 
+for elf in `find $INSTALLDIR -type f |xargs file |grep -e ELF |cut -d ":" -f1` ; do
+	strip --strip-all -R.note -R.comment $elf
+done
+
 ln -s ../lib/doc/vmware-view-client/VMware-Horizon-Client-EULA-en.txt $INSTALLDIR/build/license
