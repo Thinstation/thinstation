@@ -184,9 +184,6 @@ rm $INSTALLDIR/debug
 # Merge static files and folders
 cp -Prf $INSTALLDIR/build/extra/* $INSTALLDIR/.
 
-# Remove any now empty folders
-find $INSTALLDIR -type d -empty -delete
-
 # Fix links, relative linking is bad.
 for link in `find $INSTALLDIR/etc/init.d -type l`; do
 	dest=`readlink $link`
@@ -207,8 +204,23 @@ for link in `find $INSTALLDIR/sbin -type l`; do
         ln -sf $newdest $link
 done
 
+# Delete libraries we already have in our build system
+for lib in `find $INSTALLDIR ! -type d -name lib\*|grep -v glibmm`; do
+	if readlink $lib >/dev/null; then
+		if [ -z $(find-dep-files $(basename $lib) $INSTALLDIR 2>/dev/null) ]; then
+			rm $lib
+		fi
+	elif prt-get fsearch `basename $lib` > /dev/null; then
+		rm $lib
+	fi
+done
+
+# Remove any now empty folders
+find $INSTALLDIR -type d -empty -delete
+
+# Remove the debugging symbols ## VMWare ??
 for elf in `find $INSTALLDIR -type f |xargs file |grep -e ELF |cut -d ":" -f1` ; do
-	strip --strip-all -R.note -R.comment $elf
+	strip --strip-all $elf
 done
 
 ln -s ../lib/doc/vmware-view-client/VMware-Horizon-Client-EULA-en.txt $INSTALLDIR/build/license

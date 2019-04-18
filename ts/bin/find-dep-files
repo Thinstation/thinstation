@@ -1,20 +1,23 @@
 #!/bin/bash
 dependency=$1
 
-if [ ! -e /tmp/binlist ]; then
-	echo "Finding all files"
+if [ ! -e /tmp/binlist ] || [ -n "$2" ]; then
+	rm -f /tmp/binlist
 	if [ -n "$2" ]; then
+		>&2 echo "Finding files in $2"
 		location=$2
 	else
+		>&2 echo "Finding all files"
 		location=/{bin,boot,etc,home,lib,opt,root,sbin,share,usr,var,www}
 	fi
 	eval find $location -type f > /tmp/filelist
-	echo "Determining which files are ELF"
+	>&2 echo "Determining which files are ELF"
 	for file in `file -f /tmp/filelist |grep -e ELF |grep -E "shared|executable" |cut -d: -f1`; do
 		echo $file >> /tmp/binlist
 	done
 fi
-echo "Looking for dependent binaries on $dependency"
+
+>&2 echo "Looking for dependent binaries on $dependency"
 for bin in `cat /tmp/binlist`; do
 	if objdump -x $bin 2>/dev/null |grep -e NEEDED |grep -e $dependency >/dev/null; then
 		echo $bin
