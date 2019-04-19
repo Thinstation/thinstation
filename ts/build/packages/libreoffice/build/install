@@ -19,7 +19,7 @@ if [ -n "$1" ]; then
       if [ -n "`echo $file | grep -v dict-es | grep -v dict-fr | grep -v extension`" ]; then
       ar -xf $file
       let returnval=returnval+$?
-      tar -C ../$installdir -xf data.tar.gz
+      tar -C ../$installdir -xf data.tar.*
       let returnval=returnval+$?
       fi
     done
@@ -31,7 +31,7 @@ if [ -n "$1" ]; then
   if [ -d $installdir/usr/bin ]; then
     mv $installdir/usr/bin $installdir/bin
   fi
-  mv $installdir/usr/share/* $installdir/lib
+  cp -a $installdir/usr/share/* $installdir/lib
   rm -rf $installdir/usr
 
 else
