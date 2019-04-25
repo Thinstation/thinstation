@@ -25,7 +25,7 @@
 #----------------------------------------------------------------------
 #
 
-. /etc/thinstation.functions
+. /etc/thinstation.global
 
 if [ -e $HOME/.2x/"$1".2x ] ; then
 . $HOME/.2x/"$1".2x
@@ -96,11 +96,13 @@ if [ "`echo $CMD |grep -c -e '-s'`" == "0" ] ; then
 fi
 
 echo $CMD > /tmp/CMD.2X
+
+APPLOG=$APPLOGDIR/2x.$$
 if [ -e /tmp/CMD.2X ] ; then
 	if is_enabled $LOG_COMMANDS ; then
-		cat /tmp/CMD.2X >> $LOGFILE
+		cat /tmp/CMD.2X >> $APPLOG
 	fi
-	. /tmp/CMD.2X >> $LOGFILE 2>&1
+	. /tmp/CMD.2X >> $APPLOG 2>&1
 	sleep .1
 	rm /tmp/CMD.2X
 fi
