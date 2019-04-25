@@ -190,6 +190,10 @@ xfconf_settings()
 	else
 		xfconf-query -c xfce4-panel -p /panels/panel-1/autohide -t bool -s false -n
 	fi
+	if [ -n "$SCREEN_BLANK_TIME" ]; then
+		xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/blank-on-ac -t uint -s $SCREEN_BLANK_TIME -n
+		xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/blank-on-battery -t uint -s $SCREEN_BLANK_TIME -n
+	fi
 	if [ -n "$SCREEN_SUSPEND_TIME" ]; then
 		xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/dpms-on-ac-sleep -t uint -s $SCREEN_SUSPEND_TIME -n
 		xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/dpms-on-battery-sleep -t uint -s $SCREEN_SUSPEND_TIME -n
