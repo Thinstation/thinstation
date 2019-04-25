@@ -1,0 +1,85 @@
+diff -up openssl-1.1.0h/apps/s_client.c.disable-ssl3 openssl-1.1.0h/apps/s_client.c
+--- openssl-1.1.0h/apps/s_client.c.disable-ssl3	2018-03-29 14:38:39.612133765 +0200
++++ openssl-1.1.0h/apps/s_client.c	2018-03-29 14:41:51.309635904 +0200
+@@ -1489,6 +1489,9 @@ int s_client_main(int argc, char **argv)
+     if (!config_ctx(cctx, ssl_args, ctx))
+         goto end;
+ 
++    if (min_version == SSL3_VERSION && max_version == SSL3_VERSION)
++        SSL_CTX_clear_options(ctx, SSL_OP_NO_SSLv3);
++
+     if (ssl_config) {
+         if (SSL_CTX_config(ctx, ssl_config) == 0) {
+             BIO_printf(bio_err, "Error using configuration \"%s\"\n",
+diff -up openssl-1.1.0h/apps/s_server.c.disable-ssl3 openssl-1.1.0h/apps/s_server.c
+--- openssl-1.1.0h/apps/s_server.c.disable-ssl3	2018-03-29 14:38:39.613133788 +0200
++++ openssl-1.1.0h/apps/s_server.c	2018-03-29 14:42:27.313481477 +0200
+@@ -1619,6 +1619,9 @@ int s_server_main(int argc, char *argv[]
+     if (!config_ctx(cctx, ssl_args, ctx))
+         goto end;
+ 
++    if (min_version == SSL3_VERSION && max_version == SSL3_VERSION)
++        SSL_CTX_clear_options(ctx, SSL_OP_NO_SSLv3);
++
+     if (ssl_config) {
+         if (SSL_CTX_config(ctx, ssl_config) == 0) {
+             BIO_printf(bio_err, "Error using configuration \"%s\"\n",
+diff -up openssl-1.1.0h/ssl/ssl_lib.c.disable-ssl3 openssl-1.1.0h/ssl/ssl_lib.c
+--- openssl-1.1.0h/ssl/ssl_lib.c.disable-ssl3	2018-03-27 15:50:40.000000000 +0200
++++ openssl-1.1.0h/ssl/ssl_lib.c	2018-03-29 14:38:39.614133811 +0200
+@@ -2653,6 +2653,13 @@ SSL_CTX *SSL_CTX_new(const SSL_METHOD *m
+      * or by using the SSL_CONF library.
+      */
+     ret->options |= SSL_OP_NO_COMPRESSION;
++    /*
++     * Disable SSLv3 by default.  Applications can
++     * re-enable it by configuring
++     * SSL_CTX_clear_options(ctx, SSL_OP_NO_SSLv3);
++     * or by using the SSL_CONF library.
++     */
++    ret->options |= SSL_OP_NO_SSLv3;
+ 
+     ret->tlsext_status_type = -1;
+ 
+diff -up openssl-1.1.0h/test/ssl_test.c.disable-ssl3 openssl-1.1.0h/test/ssl_test.c
+--- openssl-1.1.0h/test/ssl_test.c.disable-ssl3	2018-03-29 14:38:39.615133835 +0200
++++ openssl-1.1.0h/test/ssl_test.c	2018-03-29 14:43:37.893139086 +0200
+@@ -277,6 +277,7 @@ static int execute_test(SSL_TEST_FIXTURE
+             SSL_TEST_SERVERNAME_CB_NONE) {
+             server2_ctx = SSL_CTX_new(TLS_server_method());
+             TEST_check(server2_ctx != NULL);
++            SSL_CTX_clear_options(server2_ctx, SSL_OP_NO_SSLv3);
+         }
+         client_ctx = SSL_CTX_new(TLS_client_method());
+         TEST_check(SSL_CTX_set_max_proto_version(client_ctx, TLS_MAX_VERSION));
+@@ -290,11 +291,15 @@ static int execute_test(SSL_TEST_FIXTURE
+                                                      TLS_MAX_VERSION));
+             TEST_check(resume_server_ctx != NULL);
+             TEST_check(resume_client_ctx != NULL);
++            SSL_CTX_clear_options(resume_server_ctx, SSL_OP_NO_SSLv3);
++            SSL_CTX_clear_options(resume_client_ctx, SSL_OP_NO_SSLv3);
+         }
+     }
+ 
+     TEST_check(server_ctx != NULL);
+     TEST_check(client_ctx != NULL);
++    SSL_CTX_clear_options(server_ctx, SSL_OP_NO_SSLv3);
++    SSL_CTX_clear_options(client_ctx, SSL_OP_NO_SSLv3);
+ 
+     TEST_check(CONF_modules_load(conf, fixture.test_app, 0) > 0);
+ 
+diff -up openssl-1.1.0h/test/ssltest_old.c.disable-ssl3 openssl-1.1.0h/test/ssltest_old.c
+--- openssl-1.1.0h/test/ssltest_old.c.disable-ssl3	2018-03-27 15:50:41.000000000 +0200
++++ openssl-1.1.0h/test/ssltest_old.c	2018-03-29 14:38:39.615133835 +0200
+@@ -1460,6 +1460,11 @@ int main(int argc, char *argv[])
+         ERR_print_errors(bio_err);
+         goto end;
+     }
++
++    SSL_CTX_clear_options(c_ctx, SSL_OP_NO_SSLv3);
++    SSL_CTX_clear_options(s_ctx, SSL_OP_NO_SSLv3);
++    SSL_CTX_clear_options(s_ctx2, SSL_OP_NO_SSLv3);
++
+     /*
+      * Since we will use low security ciphersuites and keys for testing set
+      * security level to zero by default. Tests can override this by adding

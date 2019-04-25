@@ -1,0 +1,24 @@
+diff -up openssl-1.1.0h/apps/app_rand.c.silent-rnd-write openssl-1.1.0h/apps/app_rand.c
+--- openssl-1.1.0h/apps/app_rand.c.silent-rnd-write	2018-03-27 15:50:37.000000000 +0200
++++ openssl-1.1.0h/apps/app_rand.c	2018-03-29 15:27:24.597891091 +0200
+@@ -91,6 +91,7 @@ long app_RAND_load_files(char *name)
+ int app_RAND_write_file(const char *file)
+ {
+     char buffer[200];
++    const char *origfile = file;
+ 
+     if (egdsocket || !seeded)
+         /*
+@@ -103,8 +104,10 @@ int app_RAND_write_file(const char *file
+     if (file == NULL)
+         file = RAND_file_name(buffer, sizeof(buffer));
+     if (file == NULL || !RAND_write_file(file)) {
+-        BIO_printf(bio_err, "unable to write 'random state'\n");
+-        return 0;
++        if (origfile != NULL) {
++            BIO_printf(bio_err, "unable to write 'random state'\n");
++            return 0;
++        }
+     }
+     return 1;
+ }

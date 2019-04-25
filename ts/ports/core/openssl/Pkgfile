@@ -3,27 +3,85 @@
 # Maintainer:  CRUX System Team, core-ports at crux dot nu
 
 name=openssl
-version=1.0.2p
-release=2
+version=1.1.0i
+release=1
 source=(http://www.openssl.org/source/$name-$version.tar.gz \
+	openssl-1.1.0-build.patch \
+	openssl-1.1.0-defaults.patch \
+	openssl-1.1.0-no-html.patch \
+	openssl-1.1.0-issuer-hash.patch \
+	openssl-1.1.0-algo-doc.patch \
+	openssl-1.1.0-manfix.patch \
+	openssl-1.1.0-ca-dir.patch \
+	openssl-1.1.0-version-add-engines.patch \
+	openssl-1.1.0-apps-dgst.patch \
+	openssl-1.1.0-starttls-xmpp.patch \
+	openssl-1.1.0-chil-fixes.patch \
+	openssl-1.1.0-secure-getenv.patch \
+	openssl-1.1.0-ec-curves.patch \
+	openssl-1.1.0-no-weak-verify.patch \
+	openssl-1.1.0-cc-reqs.patch \
+	openssl-1.1.0-disable-ssl3.patch \
+	openssl-1.1.0-system-cipherlist.patch \
+	openssl-1.1.0-fips.patch \
+	openssl-1.1.0-bio-fd-preserve-nl.patch \
+	openssl-1.1.0-weak-ciphers.patch \
+	openssl-1.1.0-silent-rnd-write.patch \
+	hobble-openssl \
+	ec_curve.c \
+	ectest.c \
+	openssl.config \
         mksslcert.sh)
 
 build() {
     cd $name-$version
+	. $SRC/hobble-openssl
+	cp $SRC/ec_curve.c crypto/ec/
+	cp $SRC/ectest.c test/
+
+	patch -p1 -i $SRC/openssl-1.1.0-build.patch
+	patch -p1 -i $SRC/openssl-1.1.0-defaults.patch
+	patch -p1 -i $SRC/openssl-1.1.0-no-html.patch
+	patch -p1 -i $SRC/openssl-1.1.0-issuer-hash.patch
+	patch -p1 -i $SRC/openssl-1.1.0-algo-doc.patch
+	patch -p1 -i $SRC/openssl-1.1.0-manfix.patch
+	patch -p1 -i $SRC/openssl-1.1.0-ca-dir.patch
+	patch -p1 -i $SRC/openssl-1.1.0-version-add-engines.patch
+	patch -p1 -i $SRC/openssl-1.1.0-apps-dgst.patch
+	patch -p1 -i $SRC/openssl-1.1.0-starttls-xmpp.patch
+	patch -p1 -i $SRC/openssl-1.1.0-chil-fixes.patch
+	patch -p1 -i $SRC/openssl-1.1.0-secure-getenv.patch
+	patch -p1 -i $SRC/openssl-1.1.0-ec-curves.patch
+	patch -p1 -i $SRC/openssl-1.1.0-no-weak-verify.patch
+	patch -p1 -i $SRC/openssl-1.1.0-cc-reqs.patch
+	patch -p1 -i $SRC/openssl-1.1.0-disable-ssl3.patch
+	patch -p1 -i $SRC/openssl-1.1.0-system-cipherlist.patch
+	patch -p1 -i $SRC/openssl-1.1.0-fips.patch
+	patch -p1 -i $SRC/openssl-1.1.0-bio-fd-preserve-nl.patch
+	patch -p1 -i $SRC/openssl-1.1.0-weak-ciphers.patch
+	patch -p1 -i $SRC/openssl-1.1.0-silent-rnd-write.patch
 
     export MAKEFLAGS="$MAKEFLAGS -j1"
 
     ./config --prefix=/usr \
              --openssldir=/etc/ssl \
-	     --with-fipsdir=/usr/lib/openssl-1.0 \
-             shared \
-             enable-ec_nistp_64_gcc_128 \
-	     fips
+             --libdir=lib \
+             --system-ciphers-file=/etc/crypto-policies/back-ends/openssl.config \
+		zlib enable-camellia enable-seed enable-rfc3779 \
+		enable-cms enable-md2 enable-rc5 enable-ssl3 enable-ssl3-method \
+		enable-weak-ssl-ciphers \
+		no-mdc2 no-ec2m \
+             shared
+
+    sed -i "s|-O3|$CFLAGS|" Makefile
+
+    util/mkdef.pl crypto update
 
     make depend
-    make INSTALL_PREFIX=$PKG LIBDIR=lib MANDIR=/usr/share/man MANSUFFIX=ssl install
+    make DESTDIR=$PKG LIBDIR=lib MANDIR=/usr/share/man MANSUFFIX=ssl install
 
+#    find $PKG -name "*fips*" -delete
+    chmod -R +w $PKG
     install -D -m 755 $SRC/mksslcert.sh $PKG/usr/bin/mksslcert
-    ln -sf libssl.so.1.0.0 $PKG/usr/lib/libssl.so.1.0.2
-    ln -sf libcrypto.so.1.0.0 $PKG/usr/lib/libcrypto.so.1.0.2
+    install -D -m 644 $SRC/openssl.config $PKG/etc/crypto-policies/back-ends/openssl.config
 }

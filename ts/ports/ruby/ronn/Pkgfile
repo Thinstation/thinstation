@@ -4,16 +4,21 @@
 # Depends on: hpricot mustache rdiscount
 
 name=ronn
-archname=ruby-ronn
 version=0.7.3
 release=1
-source=(http://gems.rubyforge.org/gems/$name-${version}.gem)
+source=(http://rubygems.org/downloads/$name-${version}.gem)
 lastman=ronn-format.7
 
 build() {
 	cd $SRC
-  local _gemdir="$(ruby -e'puts Gem.default_dir')"
-  gem install --ignore-dependencies --no-user-install -i "$PKG/$_gemdir" -n "$PKG/usr/bin" $name-$version.gem
-  rm "$PKG/$_gemdir/cache/$name-$version.gem"
-  install -D -m644 "$PKG/$_gemdir/gems/$name-$version/COPYING" "$PKG/usr/share/licenses/$name/COPYING"
+	local _gemdir="$(ruby -rubygems -e'puts Gem.default_dir')"
+  	gem install --ignore-dependencies -i "$PKG$_gemdir" $name-$version.gem \
+  		-n "$PKG/usr/bin"
+
+#  install -Dm644 $PKG/usr/lib/ruby/gems/1.9/gems/$name-$version/COPYING \
+#                 $PKG/usr/share/licenses/$name/COPYING
+#  install -Dm644 $PKG/usr/lib/ruby/gems/1.9/gems/$name-$version/man/$name.1 \
+#                 $PKG/usr/share/man/man1/$name.1
+#  install -Dm644 $PKG/usr/lib/ruby/gems/1.9/gems/$name-$version/man/$lastman \
+#                 $PKG/usr/share/man/man7/$lastman
 }

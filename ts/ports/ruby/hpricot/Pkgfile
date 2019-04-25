@@ -3,20 +3,15 @@
 # Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 
 name=hpricot
-archname=ruby-hpricot
 version=0.8.6
 release=1
-source=(http://gems.rubyforge.org/gems/$name-${version}.gem)
+source=(http://rubygems.org/downloads/$name-${version}.gem)
 lastman=markdown.7
 
 build() {
 	cd $SRC
-  local _gemdir="$(ruby -e'puts Gem.default_dir')"
-  gem install --ignore-dependencies --no-user-install --no-document -i "$PKG/$_gemdir" -n "$PKG/usr/bin" $name-$version.gem
-  rm "$PKG/$_gemdir/cache/$name-$version.gem"
-  find "$PKG/$_gemdir/extensions/" -name *.so -delete
-  rm -r "$PKG/$_gemdir/gems/$name-$version/test"
-  install -D -m644 "$PKG/$_gemdir/gems/$name-$version/COPYING" "$PKG/usr/share/licenses/$name/COPYING"
+	local _gemdir="$(ruby -rubygems -e'puts Gem.default_dir')"
+  	gem install --ignore-dependencies -i "$PKG$_gemdir" $name-$version.gem \
+  		-n "$PKG/usr/bin"
 
-  rm -r "$PKG/$_gemdir/gems/$name-$version/ext"
 }

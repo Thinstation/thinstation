@@ -4,9 +4,9 @@
 # Depends on:  db openssl libpcre
 
 name=exim
-version=4.87
+version=4.92
 release=1
-source=(ftp://ftp.exim.org/pub/exim/exim4/$name-$version.tar.bz2 \
+source=(ftp://ftp.exim.org/pub/exim/exim4/$name-$version.tar.xz \
         $name $name-config.patch)
 
 build() {
@@ -32,4 +32,9 @@ build() {
 
     ln -sf $name $PKG/usr/sbin/sendmail
     ln -sf ../sbin/$name $PKG/usr/bin/mailq
+
+    install -d $PKG/etc/ssl/{certs,keys}
+    touch $PKG/etc/ssl/certs/exim.crt
+    touch $PKG/etc/ssl/keys/exim.key
+    chmod 0600 $PKG/etc/ssl/{keys/exim.key,certs/exim.crt}
 }

@@ -1,19 +1,20 @@
-# Description: ssh library
-# URL:         http://libssh2.org
-# Maintainer:  Thomas Penteker, tek at serverop dot de
-# Depends on:  cmake
+# $Id$
+# Maintainer: Dave Reisner <dreisner@archlinux.org>
+# Contributor: Angel Velasquez <angvp@archlinux.org> 
+# Contributor: Sergej Pupykin <pupykin.s+arch@gmail.com>
+# Contributor: Andrea Scarpino <andrea@archlinux.org>
+# Contributor: ice-man <icemanf@gmail.com>
 
 name=libssh2
-version=1.7.0
-release=1
-source=(http://www.libssh2.org/download/$name-$version.tar.gz)
+version=1.8.0
+release=2
+source=(https://www.libssh2.org/download/$name-$version.tar.gz)
 
 build() {
-	cd $name-$version
+  cd "$name-$version"
 
-	./configure --prefix=/usr \
-			--with-openssl \
-			--with-libz
-
-	  make DESTDIR=$PKG install
+  ./configure --prefix=/usr
+  make
+  make DESTDIR="$PKG" install
+  install -Dm644 COPYING "$PKG/usr/share/licenses/$name/LICENSE"
 }

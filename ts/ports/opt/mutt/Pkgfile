@@ -4,21 +4,22 @@
 # Depends on:  gdbm ncurses openssl zlib
 
 name=mutt
-version=1.6.2
-release=2
-source=(https://bitbucket.org/mutt/mutt/downloads/$name-$version.tar.gz)
+version=1.8.3
+release=1
+source=(http://ftp.mutt.org/pub/mutt/$name-$version.tar.gz)
 
 build () {
     cd $name-$version
 
     ./configure --prefix=/usr \
+                --mandir=/usr/man \
                 --with-docdir=/usr/share/mutt \
                 --with-mailpath=/var/spool/mail \
                 --enable-pop \
                 --enable-imap \
                 --with-ssl \
                 --enable-hcache \
-                 \
+                --disable-nls \
                 # --enable-smtp --with-sasl 
 
     make
@@ -27,6 +28,6 @@ build () {
     find $PKG/usr/share/mutt/* ! -name manual.txt -delete
     rm $PKG/usr/etc/{Muttrc,mime.types}.dist 
     rm $PKG/usr/bin/{flea,muttbug}
-    rm $PKG/usr/share/man/man1/{flea.1,muttbug.1}
-    rm $PKG/usr/share/man/man5/{mmdf.5,mbox.5}
+    rm $PKG/usr/man/man1/{flea.1,muttbug.1}
+    rm $PKG/usr/man/man5/{mmdf.5,mbox.5}
 }

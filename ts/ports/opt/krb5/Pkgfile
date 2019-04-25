@@ -1,0 +1,26 @@
+# Description:	Network Authentication Protocol
+# URL:	http://web.mit.edu/kerberos
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+# Depends on:
+
+name=krb5
+version=1.15.2
+release=1
+source=(http://web.mit.edu/kerberos/dist/krb5/${version%.*}/krb5-${version}.tar.gz pkinit_errors.patch)
+
+build() {
+    	cd $name-$version/src
+	patch -Np1 < $SRC/pkinit_errors.patch
+
+
+	sed -e "s@python2.5/Python.h@& python2.7/Python.h@g" -e "s@-lpython2.5]@&,\n  AC_CHECK_LIB(python2.7,main,[PYTHON_LIB=-lpython2.7])@g" -i configure.in
+	sed -e "s@interp->result@Tcl_GetStringResult(interp)@g" \
+		-i kadmin/testing/util/tcl_kadm5.c &&
+	sed -e 's@\^u}@^u cols 300}@' -i tests/dejagnu/config/default.exp
+
+    	CFLAGS="-I/usr/include/et" ./configure --prefix=/usr --sysconfdir=/etc --localstatedir=/var --mandir=/usr/man --with-system-et --with-system-ss --with-ldap --without-system-verto --enable-dns-for-realm
+
+	make
+    	make DESTDIR=$PKG install
+	rm -rf $PKG/usr/share
+}

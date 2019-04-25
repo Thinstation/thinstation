@@ -1,0 +1,156 @@
+diff -up openssl-1.1.0i/apps/speed.c.curves openssl-1.1.0i/apps/speed.c
+--- openssl-1.1.0i/apps/speed.c.curves	2018-09-20 14:53:56.778102859 +0200
++++ openssl-1.1.0i/apps/speed.c	2018-09-20 14:58:41.089707321 +0200
+@@ -479,63 +479,27 @@ static const OPT_PAIR rsa_choices[] = {
+ 
+ static double rsa_results[RSA_NUM][2];  /* 2 ops: sign then verify */
+ 
+-#define R_EC_P160    0
+-#define R_EC_P192    1
+-#define R_EC_P224    2
+-#define R_EC_P256    3
+-#define R_EC_P384    4
+-#define R_EC_P521    5
+-#define R_EC_K163    6
+-#define R_EC_K233    7
+-#define R_EC_K283    8
+-#define R_EC_K409    9
+-#define R_EC_K571    10
+-#define R_EC_B163    11
+-#define R_EC_B233    12
+-#define R_EC_B283    13
+-#define R_EC_B409    14
+-#define R_EC_B571    15
+-#define R_EC_X25519  16
++#define R_EC_P224    0
++#define R_EC_P256    1
++#define R_EC_P384    2
++#define R_EC_P521    3
++#define R_EC_X25519  4
+ #ifndef OPENSSL_NO_EC
+ static const OPT_PAIR ecdsa_choices[] = {
+-    {"ecdsap160", R_EC_P160},
+-    {"ecdsap192", R_EC_P192},
+     {"ecdsap224", R_EC_P224},
+     {"ecdsap256", R_EC_P256},
+     {"ecdsap384", R_EC_P384},
+     {"ecdsap521", R_EC_P521},
+-    {"ecdsak163", R_EC_K163},
+-    {"ecdsak233", R_EC_K233},
+-    {"ecdsak283", R_EC_K283},
+-    {"ecdsak409", R_EC_K409},
+-    {"ecdsak571", R_EC_K571},
+-    {"ecdsab163", R_EC_B163},
+-    {"ecdsab233", R_EC_B233},
+-    {"ecdsab283", R_EC_B283},
+-    {"ecdsab409", R_EC_B409},
+-    {"ecdsab571", R_EC_B571}
+ };
+ # define ECDSA_NUM       OSSL_NELEM(ecdsa_choices)
+ 
+ static double ecdsa_results[ECDSA_NUM][2];    /* 2 ops: sign then verify */
+ 
+ static const OPT_PAIR ecdh_choices[] = {
+-    {"ecdhp160", R_EC_P160},
+-    {"ecdhp192", R_EC_P192},
+     {"ecdhp224", R_EC_P224},
+     {"ecdhp256", R_EC_P256},
+     {"ecdhp384", R_EC_P384},
+     {"ecdhp521", R_EC_P521},
+-    {"ecdhk163", R_EC_K163},
+-    {"ecdhk233", R_EC_K233},
+-    {"ecdhk283", R_EC_K283},
+-    {"ecdhk409", R_EC_K409},
+-    {"ecdhk571", R_EC_K571},
+-    {"ecdhb163", R_EC_B163},
+-    {"ecdhb233", R_EC_B233},
+-    {"ecdhb283", R_EC_B283},
+-    {"ecdhb409", R_EC_B409},
+-    {"ecdhb571", R_EC_B571},
+     {"ecdhx25519", R_EC_X25519},
+     {NULL}
+ };
+@@ -1766,9 +1730,9 @@ int speed_main(int argc, char **argv)
+ #  endif
+ 
+ #  ifndef OPENSSL_NO_EC
+-    ecdsa_c[R_EC_P160][0] = count / 1000;
+-    ecdsa_c[R_EC_P160][1] = count / 1000 / 2;
+-    for (i = R_EC_P192; i <= R_EC_P521; i++) {
++    ecdsa_c[R_EC_P224][0] = count / 1000;
++    ecdsa_c[R_EC_P224][1] = count / 1000 / 2;
++    for (i = R_EC_P256; i <= R_EC_P521; i++) {
+         ecdsa_c[i][0] = ecdsa_c[i - 1][0] / 2;
+         ecdsa_c[i][1] = ecdsa_c[i - 1][1] / 2;
+         if (ecdsa_doit[i] <= 1 && ecdsa_c[i][0] == 0)
+@@ -1780,6 +1744,7 @@ int speed_main(int argc, char **argv)
+             }
+         }
+     }
++#if 0
+     ecdsa_c[R_EC_K163][0] = count / 1000;
+     ecdsa_c[R_EC_K163][1] = count / 1000 / 2;
+     for (i = R_EC_K233; i <= R_EC_K571; i++) {
+@@ -1808,9 +1773,9 @@ int speed_main(int argc, char **argv)
+             }
+         }
+     }
+-
+-    ecdh_c[R_EC_P160][0] = count / 1000;
+-    for (i = R_EC_P192; i <= R_EC_P521; i++) {
++#endif
++    ecdh_c[R_EC_P224][0] = count / 1000;
++    for (i = R_EC_P256; i <= R_EC_P521; i++) {
+         ecdh_c[i][0] = ecdh_c[i - 1][0] / 2;
+         if (ecdh_doit[i] <= 1 && ecdh_c[i][0] == 0)
+             ecdh_doit[i] = 0;
+@@ -1820,6 +1785,7 @@ int speed_main(int argc, char **argv)
+             }
+         }
+     }
++#if 0
+     ecdh_c[R_EC_K163][0] = count / 1000;
+     for (i = R_EC_K233; i <= R_EC_K571; i++) {
+         ecdh_c[i][0] = ecdh_c[i - 1][0] / 2;
+@@ -1842,6 +1808,7 @@ int speed_main(int argc, char **argv)
+             }
+         }
+     }
++#endif
+     /* default iteration count for the last EC Curve */
+     ecdh_c[R_EC_X25519][0] = count / 1800;
+ #  endif
+diff -up openssl-1.1.0i/crypto/ec/ecp_smpl.c.curves openssl-1.1.0i/crypto/ec/ecp_smpl.c
+--- openssl-1.1.0i/crypto/ec/ecp_smpl.c.curves	2018-08-14 14:45:07.000000000 +0200
++++ openssl-1.1.0i/crypto/ec/ecp_smpl.c	2018-09-20 14:53:56.778102859 +0200
+@@ -144,6 +144,11 @@ int ec_GFp_simple_group_set_curve(EC_GRO
+         return 0;
+     }
+ 
++    if (BN_num_bits(p) < 224) {
++        ECerr(EC_F_EC_GFP_SIMPLE_GROUP_SET_CURVE, EC_R_UNSUPPORTED_FIELD);
++        return 0;
++    }
++
+     if (ctx == NULL) {
+         ctx = new_ctx = BN_CTX_new();
+         if (ctx == NULL)
+diff -up openssl-1.1.0i/test/ecdsatest.c.curves openssl-1.1.0i/test/ecdsatest.c
+--- openssl-1.1.0i/test/ecdsatest.c.curves	2018-08-14 14:45:10.000000000 +0200
++++ openssl-1.1.0i/test/ecdsatest.c	2018-09-20 14:53:56.779102882 +0200
+@@ -216,6 +216,7 @@ int x9_62_tests(BIO *out)
+     if (!change_rand())
+         goto x962_err;
+ 
++#if 0
+     if (!x9_62_test_internal(out, NID_X9_62_prime192v1,
+                              "3342403536405981729393488334694600415596881826869351677613",
+                              "5735822328888155254683894997897571951568553642892029982342"))
+@@ -226,6 +227,7 @@ int x9_62_tests(BIO *out)
+                              "3238135532097973577080787768312505059318910517550078427819"
+                              "78505179448783"))
+         goto x962_err;
++#endif
+ # ifndef OPENSSL_NO_EC2M
+     if (!x9_62_test_internal(out, NID_X9_62_c2tnb191v1,
+                              "87194383164871543355722284926904419997237591535066528048",

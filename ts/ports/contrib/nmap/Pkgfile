@@ -5,7 +5,7 @@
 # Depends on: libpcap
 
 name=nmap
-version=7.12
+version=7.50
 release=1
 source=(http://nmap.org/dist/$name-$version.tar.bz2)
 
@@ -13,13 +13,12 @@ source=(http://nmap.org/dist/$name-$version.tar.bz2)
 build () {
     cd $name-$version
     ./configure --prefix=/usr --libexecdir=/usr/lib --mandir=/usr/man \
-    --with-libpcre=included --with-liblua=included \
-    --without-zenmap --without-ndiff  \
-    --without-nmap-update
+    --with-liblua=included --without-zenmap --without-ndiff --disable-nls
 
+    #install -d $PKG/usr/share/nmap
     make
-    make DESTDIR=$PKG install
-
+    make -j1 DESTDIR=$PKG install
+    rm -rf $PKG/usr/man/man1/zenmap.*
     rm -f $PKG/usr/share/nmap/nselib/data/psexec/README
     
 }
