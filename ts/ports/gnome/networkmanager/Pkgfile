@@ -5,7 +5,7 @@
 # Optional:	ppp
 
 name=networkmanager
-version=1.15.1
+version=1.18.0
 release=1
 source=(http://ftp.gnome.org/pub/GNOME/sources/NetworkManager/${version%.*}/NetworkManager-$version.tar.xz
 networkmanager.rc
@@ -43,7 +43,7 @@ build() {
 		--with-modem-manager-1 \
 		--with-consolekit=no \
 		--with-systemd-logind=yes \
-		--enable-introspection
+		--disable-introspection
 
 	sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
 	make
