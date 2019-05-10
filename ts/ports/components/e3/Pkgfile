@@ -4,14 +4,14 @@
 # Depends on:	
 
 name=e3
-version=2.8
+version=2.82
 release=1
 source=(http://sites.google.com/site/e3editor/Home/$name-$version.tgz)
 
 build() {
 	cd $name-$version
         export EXMODE=sed
-        make
+        make NASM_OR_YASM=yasm 64
 	make DESTDIR=$PKG install
         mkdir -p $PKG/bin
         cp -d e3 e3em e3ne e3pi e3vi e3ws $PKG/bin/.
