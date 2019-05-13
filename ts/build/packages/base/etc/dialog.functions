@@ -100,9 +100,10 @@ read_options()
 	if $GET_USER; then
 		if [ -n "$REMUSER" ]; then
 			echo "$REMUSER" > /tmp/.dialog_${client}_user
+			REMOTEUSER="`cat /tmp/.dialog_${client}_user`"
 		fi
 
-		if [ -z "$REMUSER" ] || $GET_PASSWORD; then
+		if [ -z "$REMOTEUSER" ] || $GET_PASSWORD; then
 			SHOW_USER=true
 		fi
 	fi
@@ -305,7 +306,7 @@ parse_results()
 		echo "$DIALOG_SERVER"	|sed -e "s|[\$\&\;\`\(\)\|]||g"	> /tmp/.dialog_${client}_server
 		echo "$DIALOG_OPTIONS"	|sed -e "s|[\$\&\;\`\(\)\|]||g"	> /tmp/.dialog_${client}_options
 		if [ "$DIALOG_SERVER" != "type server name here" ]; then
-			REMUSER="$DIALOG_USER"
+			REMOTEUSER="$DIALOG_USER"
 			PASSWORD="$DIALOG_PASSWORD"
 			SERVER="$DIALOG_SERVER"
 			OPTIONS="$DIALOG_OPTIONS"
@@ -320,11 +321,11 @@ parse_results()
 
 check_results()
 {
-	if $GET_USER && [ -z "$SERVER" ] && [ -z "$REMUSER" ]; then
+	if $GET_USER && [ -z "$SERVER" ] && [ -z "$REMOTEUSER" ]; then
 		dialog_no_value $client "Username and Server"
 	elif [ -z "$SERVER" ]; then
 		dialog_no_value $client "Server name or IP"
-	elif $GET_USER && [ -z "$REMUSER" ]; then
+	elif $GET_USER && [ -z "$REMOTEUSER" ]; then
 		dialog_no_value $client "Username"
 	else
 		notcomplete=false
