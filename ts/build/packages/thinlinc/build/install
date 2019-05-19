@@ -12,7 +12,7 @@ chmod -R u+w ./wget_tmp
 cp -Prf ./wget_tmp/*/* $INSTALLDIR/.
 
 mkdir -p $INSTALLDIR/lib/icons/hicolor/scalable/apps
-cp $INSTALLDIR/lib/tlclient/tlclient.svg \
+cp $INSTALLDIR/lib/tlclient/share/icons/hicolor/scalable/apps/thinlinc-client.svg \
 	$INSTALLDIR/lib/icons/hicolor/scalable/apps/thinlinc.svg
 icon-gen thinlinc
 
@@ -30,6 +30,8 @@ for file in `find $INSTALLDIR/build/extra ! -type d -printf "%P\n"`; do
 	ln $INSTALLDIR/build/extra/"$file" $INSTALLDIR/"$file"
 done
 unset IFS
+
+sed -i -e 's|${ORIGIN}/..||g' $INSTALLDIR/bin/tlclient
 
 
 exit $returnval

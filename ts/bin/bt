@@ -3,7 +3,7 @@ set -x
 set -e
 
 ISO=build/boot-images/iso/thinstation.iso
-HD=thinstation.img
+HD=build/boot-images/iso/thinstation-refind.iso
 procs=`nproc`
 let procs=procs/2
 
@@ -31,6 +31,7 @@ bridge()
 
 wrap_efi()
 {
+	return 0
 	export AGREE=true; mkgptdrv -o /build/boot-images/refind -p ESP:1G:boot -l thinstation.img:2G
 }
 
