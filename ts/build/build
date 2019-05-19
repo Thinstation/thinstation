@@ -2064,7 +2064,7 @@ image_fastboot()
 }
 
 if [ -z "$ts_bootimages" ]; then
-	ts_bootimages="syslinux refind pxe systemd-boot iso"
+	ts_bootimages="syslinux refind pxe systemd-boot refind-iso systemd-boot-iso iso"
 fi
 if [ -z "$ts_syslinuxtheme" ]; then
 	ts_syslinuxtheme="default"
@@ -2321,7 +2321,7 @@ wrap_efi()
 	rmdir temp-efi
 	mkdir -p $ESP/../source/EFI/BOOT
 	mv $INITDIR/boot.efi $ESP/../source/EFI/BOOT/.
-	echo $ESP/../boot.efi >> boot-images/initrd/added.files
+	echo $ESP/../source/EFI/BOOT/boot.efi >> boot-images/initrd/added.files
 }
 
 # Skips Images if NOIMAGES is set, useful for TS-O-Matic
@@ -2407,6 +2407,7 @@ if [ -z "$NOIMAGES" ]; then
 				EFIOVERLAY=$ESP/EFI
 
 				LM=2
+
 				CONFIGFILE=refind.conf
 				refind_copy_files
 				add_overlay
@@ -2417,24 +2418,18 @@ if [ -z "$NOIMAGES" ]; then
 				ESP=boot-images/refind-iso/efi-source
 				EFIOVERLAY=$ESP/EFI
 
-				LM=2
-				BDIR=/syslinux
-				CONFIGFILE=syslinux.cfg
-				LOADER=syslinux
-				syslinux_copy_files_bios
+				LM=4
 
 				CONFIGFILE=refind.conf
 				refind_copy_files
-
-				add_image efi
 				add_overlay
+				add_image efi
 				wrap_efi
 
 				ESP=boot-images/refind-iso/source
 				BDIR=/syslinux
 				CONFIGFILE=isolinux.cfg
 				LOADER=isolinux.bin
-				LM=4
 				syslinux_copy_files_bios
 
 				add_image
@@ -2466,7 +2461,7 @@ if [ -z "$NOIMAGES" ]; then
 				else
 					ESP=boot-images/systemd-boot
 					EFIOVERLAY="$ESP/EFI $ESP/loader"
-					LM=4
+					LM=2
 					configdir=boot-images/templates/systemd-boot/$ts_gummitheme
 					sys_copy /usr/lib/prebootloader/PreLoader.efi $ESP/EFI/BOOT/bootx64.efi
 					sys_copy /usr/lib/prebootloader/HashTool.efi $ESP/EFI/BOOT/HashTool.efi
@@ -2489,11 +2484,7 @@ if [ -z "$NOIMAGES" ]; then
 					ESP=boot-images/systemd-boot-iso/efi-source
 					EFIOVERLAY="$ESP/EFI $ESP/loader"
 
-					LM=2
-					BDIR=/syslinux
-					CONFIGFILE=syslinux.cfg
-					LOADER=syslinux
-					syslinux_copy_files_bios
+					LM=4
 
 					configdir=boot-images/templates/systemd-boot/$ts_gummitheme
 					sys_copy /usr/lib/prebootloader/PreLoader.efi $ESP/EFI/BOOT/bootx64.efi
@@ -2514,7 +2505,6 @@ if [ -z "$NOIMAGES" ]; then
 					BDIR=/syslinux
 					CONFIGFILE=isolinux.cfg
 					LOADER=isolinux.bin
-					LM=4
 					syslinux_copy_files_bios
 
 					add_image

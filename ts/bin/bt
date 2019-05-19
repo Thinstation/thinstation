@@ -2,8 +2,12 @@
 set -x
 set -e
 
-ISO=build/boot-images/iso/thinstation.iso
-HD=build/boot-images/iso/thinstation-refind.iso
+ISO=build/boot-images/refind-iso/thinstation-refind.iso
+#ISO=build/boot-images/systemd-boot-iso/thinstation-efi.iso
+#ISO=build/boot-images/iso/thinstation.iso
+IMAGE=refind
+#IMAGE=systemd-boot
+HD=thinstation.img
 procs=`nproc`
 let procs=procs/2
 
@@ -31,8 +35,8 @@ bridge()
 
 wrap_efi()
 {
-	return 0
-	export AGREE=true; mkgptdrv -o /build/boot-images/refind -p ESP:1G:boot -l thinstation.img:2G
+#	cp $ISO $HD
+	export AGREE=true; mkgptdrv -o /build/boot-images/$IMAGE -p ESP:1G:boot -l thinstation.img:2G
 }
 
 VGA="-vga qxl -global qxl-vga.vram_size=132710400"
