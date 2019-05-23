@@ -2216,39 +2216,39 @@ syslinux_copy_files_bios()
 syslinux_copy_files_efi()
 {
 	# Comment out all 32bit, cause were 64 bit only now.
-#	efi32dir=/usr/share/syslinux/efi32
+	efi32dir=/usr/share/syslinux/efi32
 	efi64dir=/usr/share/syslinux/efi64
 
 	for file in `find $configdir -type f |sed -e "s|$configdir||g"`; do
-#		sys_copy ${configdir}${file} "$EFI32DIR/$file"
+		sys_copy ${configdir}${file} "$EFI32DIR/$file"
 		sys_copy ${configdir}${file} "$EFI64DIR/$file"
 	done
 	find $ESP -name syslinux.cfg.tpl -delete
 
 	if [ "$LOADER" == "lpxelinux.0" ]; then
-#		sys_copy $BIOSDIR/$CONFIGFILE "$EFI32DIR/$CONFIGFILE"
+		sys_copy $BIOSDIR/$CONFIGFILE "$EFI32DIR/$CONFIGFILE"
 		sys_copy $BIOSDIR/$CONFIGFILE "$EFI64DIR/$CONFIGFILE"
+		sys_copy $efi32dir/syslinux.efi "$EFI32DIR/syslinux.efi"
+		sys_copy $efi64dir/syslinux.efi "$EFI64DIR/syslinux.efi"
 	else
-#		sys_copy $BIOSDIR/$CONFIGFILE "$EFI32DIR/syslinux.cfg"
+		sys_copy $BIOSDIR/$CONFIGFILE "$EFI32DIR/syslinux.cfg"
 		sys_copy $BIOSDIR/$CONFIGFILE "$EFI64DIR/syslinux.cfg"
+		sys_copy $efi32dir/syslinux.efi "$EFI32DIR/bootia32.efi"
+		sys_copy $efi64dir/syslinux.efi "$EFI64DIR/bootx64.efi"
 	fi
+	sys_copy $efi32dir/ldlinux.e32  "$EFI32DIR/ldlinux.e32"
+	sys_copy $efi64dir/ldlinux.e64  "$EFI64DIR/ldlinux.e64"
 
 	for com in `cat /tmp/syslinux-com32`; do
-#		sys_copy $efi32dir/$com "$EFI32DIR/$com"
+		sys_copy $efi32dir/$com "$EFI32DIR/$com"
 		sys_copy $efi64dir/$com "$EFI64DIR/$com"
 		if [ "$com" == "hdt.c32" ]; then
-#			sys_copy /usr/share/pci.ids $EFI32DIR/pci.ids
-#			sys_copy `prt-get fsearch modules.alias |grep -v Found |head -n1` $EFI32DIR/modules.alias
+			sys_copy /usr/share/pci.ids $EFI32DIR/pci.ids
+			sys_copy `prt-get fsearch modules.alias |grep -v Found |head -n1` $EFI32DIR/modules.alias
 			sys_copy /usr/share/pci.ids $EFI64DIR/pci.ids
 			sys_copy `prt-get fsearch modules.alias |grep -v Found |head -n1` $EFI64DIR/modules.alias
 		fi
 	done
-
-#	sys_copy $efi32dir/syslinux.efi "$EFI32DIR/syslinux.efi"
-#	sys_copy $efi32dir/ldlinux.e32  "$EFI32DIR/ldlinux.e32"
-
-	sys_copy $efi64dir/syslinux.efi "$EFI64DIR/bootx64.efi"
-	sys_copy $efi64dir/ldlinux.e64  "$EFI64DIR/ldlinux.e64"
 }
 
 refind_copy_files()
@@ -2258,11 +2258,11 @@ refind_copy_files()
 	KDIR=${ESP}/boot
 	EFIDIR=$ESP/EFI/BOOT
 
-	for file in `find $refdir -type f |grep -Ev 'banners|docs|refind.conf-sample|refind_ia32.efi|refind_x64.efi|README.txt|mkfont.sh|gptsync' |sed -e "s|$refdir/||g"`; do
+	for file in `find $refdir -type f |grep -Ev 'banners|docs|refind.conf-sample|refind_ia32.efi|refind_x64.efi|refind_aa64.efi|README.txt|mkfont.sh|gptsync' |sed -e "s|$refdir/||g"`; do
 		sys_copy $refdir/$file $EFIDIR/$file
 	done
 
-#	sys_copy $refdir/refind_ia32.efi $EFIDIR/bootia32.efi
+	sys_copy $refdir/refind_ia32.efi $EFIDIR/bootia32.efi
 	sys_copy $refdir/refind_x64.efi $EFIDIR/bootx64.efi
 
 	for file in `find $configdir -type f |sed -e "s|$configdir||g"`; do
@@ -2310,6 +2310,7 @@ wrap_efi()
 	mount ${lodev}p1 temp-efi
 	cp -a $ESP/* temp-efi
 	rm -rf temp-efi/EFI/BOOT/drivers_x64
+	rm -rf temp-efi/EFI/BOOT/drivers_ia32
 	if [ -e temp-efi/EFI/boot/*.conf ]; then
 		sed -i -e 's/LM=2/LM=4/g' temp-efi/EFI/boot/*.conf
 	fi
@@ -2341,7 +2342,8 @@ if [ -z "$NOIMAGES" ]; then
 		case $image in
 			syslinux)
 				ESP=boot-images/syslinux
-				EFI64DIR=$ESP/BOOT/EFI
+				EFI32DIR=$ESP/EFI/BOOT
+				EFI64DIR=$ESP/EFI/BOOT
 				BDIR=/syslinux
 				CONFIGFILE=syslinux.cfg
 				LOADER=syslinux
@@ -2349,12 +2351,13 @@ if [ -z "$NOIMAGES" ]; then
 
 				addpkgs $ESP
 				syslinux_copy_files_bios
+				syslinux_copy_files_efi
 				add_image
 				add_overlay
 			;;
 			pxe)
 				ESP=boot-images/pxe
-#				EFI32DIR=$ESP/boot/efi32
+				EFI32DIR=$ESP/boot/efi32
 				EFI64DIR=$ESP/boot/efi64
 				CONFIGFILE=pxelinux.cfg/default
 
