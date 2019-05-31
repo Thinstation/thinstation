@@ -34,8 +34,15 @@ KVM="-enable-kvm"
 EFI="-L . --bios /usr/share/edk2.git/ovmf-x64/OVMF-with-csm.fd"
 #NETWORK="-net bridge,br=br0 -net nic,macaddr=52:54:00:12F:34f:56"
 #NETWORK="-net nic,model=virtio"
-QEMU=qemu-system-i386
-#QEMU=qemu-system-x86_64
+
+if   which qemu-system-x86_64 > /dev/null 2>&1; then
+	QEMU=qemu-system-x86_64
+elif which qemu-system-i386 > /dev/null 2>&1; then
+	QEMU=qemu-system-i386
+else
+	echo "Looks QEMU isn't installed"
+	exit 1
+fi
 
 STANDARD_MACHINE="$SOUND $RNG $VGA $CPU $MEMORY $MOUSE $KVM $NETWORK"
 
