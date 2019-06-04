@@ -27,7 +27,6 @@ confirm_hd()
 VGA="-vga qxl"
 SOUND="-soundhw ac97"
 CPU="-smp cores=$procs,threads=1,sockets=1"
-MEMORY="-m 4096"
 #RNG="-object rng-random,id=RNG"
 MOUSE="-usbdevice tablet"
 KVM="-enable-kvm"
@@ -37,8 +36,10 @@ EFI="-L . --bios /usr/share/edk2.git/ovmf-x64/OVMF-with-csm.fd"
 
 if   which qemu-system-x86_64 > /dev/null 2>&1; then
 	QEMU=qemu-system-x86_64
+	MEMORY="-m 4096"
 elif which qemu-system-i386 > /dev/null 2>&1; then
 	QEMU=qemu-system-i386
+	MEMORY="-m 2047"
 else
 	echo "Looks QEMU isn't installed"
 	exit 1
