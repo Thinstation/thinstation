@@ -40,6 +40,17 @@ wrap_efi()
 	export AGREE=true; mkgptdrv -o /build/boot-images/$IMAGE -p ESP:1G:boot -l thinstation.img:2G
 }
 
+if   which qemu-system-x86_64 > /dev/null 2>&1; then
+	QEMU=qemu-system-x86_64
+	MEMORY="-m 4096"
+elif which qemu-system-i386 > /dev/null 2>&1; then
+	QEMU=qemu-system-i386
+	MEMORY="-m 2047"
+else
+	echo "Looks QEMU isn't installed"
+	exit 1
+fi
+
 VGA="-vga qxl -global qxl-vga.vram_size=132710400"
 #VGA="-vga virtio"
 #VGA="-vga std"
@@ -47,14 +58,11 @@ VGA="-vga qxl -global qxl-vga.vram_size=132710400"
 #VGA="-vga vmware"
 SOUND="-soundhw ac97"
 CPU="-smp cores=$procs,threads=1,sockets=1"
-MEMORY="-m 4096"
 #RNG="-object rng-random,id=RNG"
 MOUSE="-usbdevice tablet"
 KVM="-enable-kvm"
 EFI="-L . --bios /usr/share/edk2.git/ovmf-x64/OVMF-pure-efi.fd"
 NETWORK=`bridge`
-#QEMU=qemu-system-i386
-QEMU=qemu-system-x86_64
 
 STANDARD_MACHINE="$SOUND $RNG $VGA $CPU $MEMORY $MOUSE $KVM $NETWORK"
 
