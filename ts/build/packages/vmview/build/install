@@ -205,15 +205,15 @@ for link in `find $INSTALLDIR/sbin -type l`; do
 done
 
 # Delete libraries we already have in our build system
-for lib in `find $INSTALLDIR ! -type d -name lib\*|grep -v glibmm`; do
-	if readlink $lib >/dev/null; then
-		if [ -z $(find-dep-files $(basename $lib) $INSTALLDIR 2>/dev/null) ]; then
-			rm $lib
-		fi
-	elif prt-get fsearch `basename $lib` > /dev/null; then
-		rm $lib
-	fi
-done
+#for lib in `find $INSTALLDIR ! -type d -name lib\*|grep -v glibmm`; do
+#	if readlink $lib >/dev/null; then
+#		if [ -z $(find-dep-files $(basename $lib) $INSTALLDIR 2>/dev/null) ]; then
+#			rm $lib
+#		fi
+#	elif prt-get fsearch `basename $lib` > /dev/null; then
+#		rm $lib
+#	fi
+#done
 
 # Remove any now empty folders
 find $INSTALLDIR -type d -empty -delete
