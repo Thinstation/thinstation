@@ -89,10 +89,14 @@ idesk_icons ()
     fi
 
     (cat $WKDIR/session) |
-    while read type title screen position workspace autostart custom icon server options
+    while read type title screen position workspace autostart custom icon server options user pass_enable gate gate_user
     do
-      if [ "$server" = "." ] ; then server= ; fi
-      if [ "$options" = "." ] ; then options= ; fi
+      if [ "$server" == "." ];        then unset server       ;fi
+      if [ "$options" == "." ];       then unset options      ;fi
+      if [ "$user" == "." ];          then unset user         ;fi
+      if [ "$pass_enable" == "." ];   then unset pass_enable  ;fi
+      if [ "$gate" == "." ];          then unset gate         ;fi
+      if [ "$gate_user" == "." ];     then unset gate_user    ;fi
       case "$icon" in
       ON|SUBMENU)
         ICON=/lib/pixmaps/`replace_char $type " " "_"`"_32x32.xpm"
