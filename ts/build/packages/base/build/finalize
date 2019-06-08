@@ -65,3 +65,30 @@ for i in 2 1 0; do
 done
 systemd-hwdb update
 
+cat <<EOF> /etc/os-release
+NAME=ThinStation
+VERSION="$TSVER"
+ID=thinstation
+VERSION_ID=$TSVER
+PRETTY_NAME="ThinStation $TSVER $CODENAME"
+ANSI_COLOR="0;34"
+CPE_NAME="cpe:/o:thinstation:thinstation:$TSVER"
+HOME_URL="https://thinstation.org/"
+SUPPORT_URL="https://thinstation.org/wiki/Communicating_and_getting_help"
+BUG_REPORT_URL="https://www.github.com/thinstation"
+PRIVACY_POLICY_URL=https://thinstation.org/wiki/Legal:PrivacyPolicy
+EOF
+
+cat <<EOF> /etc/thinstation-release
+ThinStation release $TSVER $CODENAME
+EOF
+
+cat <<'EOF'> /etc/issue
+\S
+Kernel \r on an \m (\l)
+EOF
+
+for link in release system-release system-release-cpe; do
+	ln -sf thinstation-release /etc/$link
+done
+
