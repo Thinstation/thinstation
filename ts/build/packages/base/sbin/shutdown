@@ -9,8 +9,7 @@ _shutdown ()
 		kill -SIGHUP $UPID > /dev/null 2>&1
 	fi
 
-	/bin/umount -a -R >/dev/null 2>&1
-	/bin/umount -a -r >/dev/null 2>&1
+	systemd-run /bin/umount -a -r -R >/dev/null 2>&1
 }
 
 _systemfail ()

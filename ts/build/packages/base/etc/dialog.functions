@@ -42,11 +42,11 @@ check_reconnect()
 							--title "Reconnect/Shutdown?" \
 							--clear \
 							--no-cancel \
-							--combobox "Choose option then OK to continue." 10 60 Reconnect Shutdown)
+							--combobox "The session has ended. How would you like to continue?" 10 60 Reconnect Shutdown)
 				choice_error=$?
 			done
 			if [ "$choice" = "Shutdown" ] ; then
-				shutdown
+				$NO_SESSION
 			elif [ -e /tmp/shutdown ] ; then
 				crontab /tmp/crontab
 				rm /tmp/shutdown
