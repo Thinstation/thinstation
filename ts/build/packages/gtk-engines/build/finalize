@@ -1,7 +1,9 @@
 #gtk-engines 42
 if [ "$GTK_THEME" != "ALL" ]; then
+
+
 	if [ -z "$GTK_THEME" ]; then
-		GTK_THEME=Adwaita
+		GTK_THEME=Clearlooks
 	fi
 	if [ -e /lib/themes/$GTK_THEME/gtk-2.0/gtkrc ]; then
 		engine="`grep /lib/themes/$GTK_THEME/gtk-2.0/gtkrc -e engine |grep -v \"#\" |grep -v pixmap|tail -n1 |cut -d '\"' -f2`"
@@ -14,29 +16,22 @@ if [ "$GTK_THEME" != "ALL" ]; then
 		for del_engine in `find /lib/gtk-2.0/2.10.0/engines -type f |grep -v pixmap |grep -v $engine`; do
 			rm $del_engine
 		done
-		sed -i -e "s/gtk-theme-name = \"Adwaita\"/gtk-theme-name = \"$GTK_THEME\"/g" /etc/gtk-2.0/gtkrc
-	else
+		sed -i -e "s/gtk-theme-name = \"Clearlooks\"/gtk-theme-name = \"$GTK_THEME\"/g" /etc/gtk-2.0/gtkr*
+	elif [ -e /etc/gtk-2.0 ]; then
 		echo -e "\tGtk-2 Theme $GTK_THEME not found!"
 	fi
-	
-	if [ "$GTK_THEME" == "Adwaita" ]; then
-		GTK3_THEME=Default
-	else
-		GTK3_THEME=$GTK_THEME
+	if [ -e /lib/themes/$GTK_THEME/gtk-3.0/gtk.css ]; then
+		echo "gtk-theme-name = $GTK_THEME" >> /etc/gtk-3.0/settings.ini
+	elif [ -e /etc/gtk-3.0 ]; then
+		echo -e "\tGtk-3 Theme $GTK_THEME not found!"
 	fi
-	if [ -e /lib/themes/$GTK3_THEME/gtk-3.0/gtk-keys.css ]; then
-		echo "[Settings]" >> /etc/gtk-3.0/settings.ini
-		echo "gtk-theme-name = $GTK3_THEME" >> /etc/gtk-3.0/settings.ini
-		for theme in `find /lib/themes -name gtkrc -o -name gtk-keys.css |cut -d "/" -f4`; do
-			if [ "$theme" != "$GTK3_THEME" ] && [ "$theme" != "$GTK_THEME" ]; then
-				rm -rf /lib/themes/$theme/gtk-2.0
-				rm -rf /lib/themes/$theme/gtk-3.0
-				if [ -d /lib/themes/$theme ] && [ -z "`ls -A /lib/themes/$theme`" ]; then
-					rmdir /lib/themes/$theme
-				fi
+	for theme in `find /lib/themes -name gtkrc -o -name gtk.css |cut -d "/" -f4`; do
+		if [ "$theme" != "$GTK_THEME" ]; then
+			rm -rf /lib/themes/$theme/gtk-2.0
+			rm -rf /lib/themes/$theme/gtk-3.0
+			if [ -d /lib/themes/$theme ] && [ -z "`ls -A /lib/themes/$theme`" ]; then
+				rmdir /lib/themes/$theme
 			fi
-		done
-	else
-		echo -e "\tGtk-3 Theme $GTK3_THEME not found!"
-	fi
+		fi
+	done
 fi

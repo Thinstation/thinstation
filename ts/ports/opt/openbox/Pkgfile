@@ -11,7 +11,10 @@ source=(http://www.icculus.org/$name/releases/$name-$version.tar.gz)
 build() {
 	cd $name-$version
 
-	./configure --prefix=/usr --mandir=/usr/man 
+	sed -i 's|/usr/bin/env python|/usr/bin/env python2|' \
+		data/autostart/openbox-xdg-autostart
+
+	./configure --prefix=/usr --mandir=/usr/man
 
 	make
 	make DESTDIR=$PKG install
