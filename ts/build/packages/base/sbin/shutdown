@@ -9,7 +9,7 @@ _shutdown ()
 		kill -SIGHUP $UPID > /dev/null 2>&1
 	fi
 
-	systemd-run /bin/umount -a -r -R >/dev/null 2>&1
+	busybox umount -a -r -t ext2,ext3,ext4,fat,fat16,fat32,vfat,ntfs,nfs,hfs,affs,msdos,cifs,reiserfs,xfs,btrfs,romfs,jfs,hfsplus,jbd2,befs,ceph,orangefs
 }
 
 _systemfail ()
@@ -21,7 +21,7 @@ _systemfail ()
 }
 
 case $1 in
-	-r)		_shutdown	;/sbin/reboot			>/dev/null 2>&1;;
-	-h|*)		_shutdown	;/sbin/poweroff			>/dev/null 2>&1;;
-	--systemfail)   _systemfail	;_shutdown ;/sbin/poweroff 	>/dev/null 2>&1;;
+	-r)		_shutdown	;/sbin/reboot			>/dev/null;;
+	-h|*)		_shutdown	;/sbin/poweroff			>/dev/null;;
+	--systemfail)   _systemfail	;_shutdown ;/sbin/poweroff	>/dev/null;;
 esac
