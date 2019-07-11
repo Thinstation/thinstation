@@ -227,6 +227,36 @@ if ! pkg_initialized $PACKAGE; then
   fi
  fi
 
+ # Check Receiver Preference for Reconnect at Logon behavior
+ if is_enabled ${ICA_RECEIVER_RECONNECT_ON_LOGON}; then
+   sed -i -e "s/\(<ReconnectOnLogon>\)False/\1True/" $ICA_CACHE
+ fi
+
+ # Check Receiver Preference for Reconnect at Launch Or Refresh behavior
+ if is_enabled ${ICA_RECEIVER_RECONNECT_ON_LAUNCH_OR_REFRESH}; then
+   sed -i -e "s/\(<ReconnectOnLaunchOrRefresh>\)False/\1True/" $ICA_CACHE
+ fi
+
+ # Check Receiver Preference for Display Desktops in window/full screen mode
+ if is_disabled ${ICA_RECEIVER_DISPLAY_DESKTOPS_IN_FULLSCREEN}; then
+   sed -i -e "s,\(<VisibleStores>\),<SessionWindowedMode>True</SessionWindowedMode>\n\1," $ICA_CACHE
+ fi
+
+ # Check Receiver Preference for SharedUserMode
+ if is_enabled ${ICA_RECEIVER_SHARED_USER_MODE}; then
+   sed -i -e "s/\(<SharedUserMode>\)False/\1True/" $ICA_CACHE
+ fi
+
+ # Check Receiver Preference for FullscreenMode
+ if [ -n "${ICA_RECEIVER_FULLSCREEN_MODE}" ]; then
+   sed -i -e "s/\(<FullscreenMode>\)0/\1${ICA_RECEIVER_FULLSCREEN_MODE}/" $ICA_CACHE
+ fi
+
+ # Check Receiver Preference for SelfSelection
+ if is_disabled ${ICA_RECEIVER_SELF_SELECTION}; then
+   sed -i -e "s/\(<SelfSelection>\)True/\1False/" $ICA_CACHE
+ fi
+
  # Checks for pre-existing files, from permanent storage
  if [ ! -e $ICA_CONF/wfclient.ini ] ; then
 
