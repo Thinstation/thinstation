@@ -1,0 +1,29 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=slbl
+version=0.1
+release=1
+source=(https://buildroot.org/downloads/buildroot-2019.05.1.tar.bz2 \
+	slbl.config \
+	slbl-bb.config \
+	slblfs.tar.gz \
+	bootloader.init \
+	drop.files)
+
+build() {
+	mv bootloader.init slblfs/etc/.
+	cd buildroot*
+	mv $SRC/slbl.config .config
+
+	make
+	mkdir -p $PKG/slblfs
+	tar -xvf $SRC/buildroot*/output/images/rootfs.tar -C $PKG/slblfs
+	cd $PKG/slblfs
+	mv usr/bin/gpg bin/.
+	mv usr/sbin/kexec sbin/.
+	for file in `cat $SRC/drop.files`; do
+		rm $file -rf
+	done
+}

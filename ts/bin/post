@@ -1,0 +1,60 @@
+APPEND='console=tty1'
+#KVER=`cat /boot/KERNEL_VERSION`
+#KERNEL=4.19.18slbl
+#KERNDIR=/usr/src/kernels/$KERNEL
+#CONFIG=$KERNDIR/.config
+IMAGE_NAME="eboot.iso"
+
+#sed -i '/CONFIG_INITRAMFS/d' $CONFIG || exit 1
+#echo 'CONFIG_INITRAMFS_SOURCE="/slbl-base"' >> $CONFIG || exit 2
+#echo 'CONFIG_INITRAMFS_ROOT_UID=0' >> $CONFIG || exit 3
+#echo 'CONFIG_INITRAMFS_ROOT_GID=0' >> $CONFIG || exit 4
+
+#sed -i '/CONFIG_CMDLINE_BOOL/d' $CONFIG || exit 5
+#sed -i '/CONFIG_CMDLINE=/d' $CONFIG || exit 6
+#sed -i '/CONFIG_CMDLINE_OVERRIDE/d' $CONFIG || exit 7
+#echo 'CONFIG_CMDLINE_BOOL=y' >> $CONFIG || exit 8
+#echo 'CONFIG_CMDLINE="'$APPEND'"' >> $CONFIG || exit 9
+#echo 'CONFIG_CMDLINE_OVERRIDE=y' >> $CONFIG || exit 10
+
+rm -rf /iso-temp
+mkdir -p /iso-temp/boot/syslinux || exit 12
+mkdir -p /eb/EFI/BOOT
+cp /usr/share/syslinux/bios/ldlinux.c32 /iso-temp/boot/syslinux/.
+cp /usr/share/syslinux/bios/isolinux.bin /iso-temp/boot/syslinux/.
+cat << EOF > /iso-temp/boot/syslinux/isolinux.cfg
+TIMEOUT 0
+DEFAULT default
+
+LABEL default
+        KERNEL /boot.efi
+EOF
+
+#cd $KERNDIR || exit 16
+#make clean || exit 17
+#make -j15 bzImage || exit 18
+#cp arch/x86/boot/bzImage /iso-temp/boot.efi || exit 19
+#cp arch/x86/boot/bzImage /eb/EFI/BOOT/bootx64.efi || exit 13
+cp /boot/slbl.efi /iso-temp/boot.efi
+cp /boot/slbl.efi /eb/EFI/BOOT/bootx64.efi
+cd /iso-temp || exit 20
+
+mkisofs -V "ThinStation" \
+	-o /$IMAGE_NAME \
+	-b boot/syslinux/isolinux.bin \
+	-c boot/syslinux/boot.cat \
+	-no-emul-boot \
+	-boot-load-size 4 \
+	-boot-info-table \
+	-joliet \
+	-ucs-level 3 \
+	-rock \
+	-f \
+        -eltorito-alt-boot \
+	-eltorito-platform efi \
+	-b boot.efi \
+	-no-emul-boot \
+	-quiet \
+        /iso-temp || exit 29
+
+cd / || exit 30

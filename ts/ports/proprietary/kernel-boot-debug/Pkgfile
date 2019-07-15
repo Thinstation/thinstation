@@ -1,0 +1,34 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=kernel-boot-debug
+pname=${name%-*-*}
+version=1
+sversion=`cat /ts/ports/kernel-modules/VERSION`
+release=1
+kernel=${sversion}slbl
+source=(http://www.kernel.org/pub/linux/kernel/v4.x/linux-$sversion.tar.xz \
+	ts.config)
+
+build() {
+	cd linux-$sversion
+	cp $SRC/ts.config ./.config
+
+	if [ -e /etc/ssl/keys/kernel.key ]; then
+		touch certs/x509.genkey
+		cp /etc/ssl/keys/kernel.key certs/signing_key.pem
+		openssl x509 -inform DER -in /etc/ssl/certs/kernel.crt -outform PEM >> certs/signing_key.pem
+		if [ -e kernel-ca.crt ]; then
+			cp /etc/ssl/certs/kernel-ca.crt certs/extra_certificates
+		fi
+	fi
+
+	make
+	make INSTALL_PATH=$PKG install
+
+	cd $PKG
+	mkdir boot
+	mv vmlinuz boot/slbl.efi
+	rm System.map
+}
