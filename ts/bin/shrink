@@ -1,0 +1,30 @@
+#!/bin/bash
+
+home=`pwd`
+
+port=$1
+version=`prt-get printf %v --filter=$port`
+release=`prt-get printf %r --filter=$port`
+path=`prt-get path $port`
+archive=$path/${port}#${version}-${release}.pkg.tar.xz
+
+if [ -z $path ]; then
+	echo "you failed $port"
+	exit 1
+fi
+
+if [ -e /tmp/shrink ]; then
+	while mountpoint /tmp/shrink; do
+		umount /tmp/shrink
+	done
+	rmdir /tmp/shrink
+fi
+
+mkdir -p /tmp/shrink
+mount -t tmpfs -o size=1G tmpfs /tmp/shrink
+tar -xf $archive -C /tmp/shrink 2>/dev/null
+cd /tmp/shrink
+tar -c * |xz -9 > $archive
+cd $home
+umount /tmp/shrink
+rmdir /tmp/shrink
