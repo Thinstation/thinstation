@@ -31,7 +31,8 @@ for file in `find $INSTALLDIR/build/extra ! -type d -printf "%P\n"`; do
 done
 unset IFS
 
+sed -i -e '/TLCLIENT_PREFIX=/d' $INSTALLDIR/bin/tlclient
+sed -i -e 's/export TLCLIENT_PREFIX/export TLCLIENT_PREFIX=\//g' $INSTALLDIR/bin/tlclient
 sed -i -e 's|${ORIGIN}/..||g' $INSTALLDIR/bin/tlclient
-
 
 exit $returnval
