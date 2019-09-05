@@ -453,7 +453,7 @@ make_initrd()
 	ln -sf /lib usr/lib64
 
 	if [ "$ts_hardlinkfs" == "true" ]; then
-		hardlink -t -m .
+		hardlink -v .
 	fi
 	if [ "$ts_sametimestmp" == "true" ]; then
 		timestamp="`date +%Y%m%d`0000"
@@ -1503,7 +1503,7 @@ if [ ! -d ${tzpath%/*} ]; then
 	mkdir -p ${tzpath%/*}
 fi
 if [ ! -e $tzpath ]; then
-	ln /usr/local/etc/zoneinfo/$TIME_ZONE ${tzpath%/*}/
+	ln /usr/share/zoneinfo/$TIME_ZONE ${tzpath%/*}/
 fi
 ln -sf /usr/share/zoneinfo/$TIME_ZONE ./tmp-tree/etc/localtime
 
