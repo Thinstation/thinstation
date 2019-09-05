@@ -1,0 +1,41 @@
+# Maintainer: Felix Yan <felixonmars@gmail.com>
+# Contributor: Andrew Fyfe <andrew@neptune-one.net>
+# Contributor: Stefan Husmann <stefan-husmann@t-online.de>
+
+name=docbook-sgml
+version=4.5
+release=6
+install='docbook-sgml.install'
+source=("http://www.docbook.org/sgml/${version}/docbook-${version}.zip")
+
+build() {
+  cd "$SRC"
+
+  local DTDDIR="usr/share/sgml/docbook-sgml-$version"
+
+  sed -i \
+      -e '/ISO 8879/d' \
+      -e '/gml/d' \
+      docbook.cat
+
+  # Add support for previous versions.
+  cat >> docbook.cat << "EOF"
+
+  -- Begin Single Major Version catalog changes --
+
+PUBLIC "-//OASIS//DTD DocBook V4.4//EN" "docbook.dtd"
+PUBLIC "-//OASIS//DTD DocBook V4.3//EN" "docbook.dtd"
+PUBLIC "-//OASIS//DTD DocBook V4.2//EN" "docbook.dtd"
+PUBLIC "-//OASIS//DTD DocBook V4.1//EN" "docbook.dtd"
+PUBLIC "-//OASIS//DTD DocBook V4.0//EN" "docbook.dtd"
+
+  -- End Single Major Version catalog changes --
+
+EOF
+
+  local DTDDIR="usr/share/sgml/docbook-sgml-$version"
+
+  install -dm755 "$PKG/$DTDDIR"
+  install -m644 docbook.cat "$PKG/$DTDDIR/catalog"
+  install -m644 *.dtd *.mod *.dcl "$PKG/$DTDDIR"
+}

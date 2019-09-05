@@ -3,22 +3,17 @@
 # Maintainer: None
 
 name=gnome-desktop
-version=3.28.2
+version=3.32.2
 release=1
 source=(ftp://ftp.gnome.org/pub/gnome/sources/$name/${version%.*}/$name-$version.tar.xz)
 
 build() {
-	cd $name-$version
+  ts-meson $name-$version build \
+    -D gnome_distributor="ThinStation Linux" \
+    -D gtk_doc=true
 
-	./configure --prefix=/usr \
-		 \
-		--disable-scrollkeeper \
-		--disable-desktop-docs \
-		--disable-gtk-doc \
-		--enable-shared \
-		--disable-static \
-
-	make
-	make install DESTDIR=$PKG
-	rm -rf $PKG/usr/share/gtk-doc
+  ninja -C build
+  # tests broken: missing locale he_IL.UTF-8
+  xvfb-run meson test -C build --print-errorlogs || :
+  DESTDIR="$PKG" meson install -C build
 }

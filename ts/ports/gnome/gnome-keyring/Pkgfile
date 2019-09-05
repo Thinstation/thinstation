@@ -4,7 +4,7 @@
 # Group: gnome/desktop
 
 name=gnome-keyring
-version=3.28.2
+version=3.31.91
 release=1
 source=(http://ftp.gnome.org/pub/GNOME/sources/$name/${version%.*}/$name-$version.tar.xz)
 
@@ -21,7 +21,7 @@ build() {
 			--enable-shared \
 			--disable-static
 
-	make -j1
+	make
 	make DESTDIR=$PKG install
 	sed -i -r 's:"(/desktop):"/org/gnome\1:g' $PKG/usr/share/glib-2.0/schemas/*.xml
 	rm -rf $PKG/usr/share/gtk-doc

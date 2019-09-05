@@ -3,18 +3,13 @@
 # Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 
 name=xidle
-version=24102005
+version=26052015
 release=1
 source=(http://distcache.freebsd.org/local-distfiles/novel/xidle-$version.tar.bz2
-        xidle_linux_compat.patch)
+        Makefile)
 
 build() {
 	cd $name-$version
-	patch -p1 < ../xidle_linux_compat.patch
-	gcc -o Xidle -lXss -lXext -lX11 -I/usr/include/X11 -L/usr/lib xidle.c
-#	gcc -o Xidle -DDEBUG=1 -lXss -lXext -lX11 -I/usr/include/X11 -L/usr/lib xidle.c
-	strip Xidle
-	mkdir -p $PKG/bin
-	cp $SRC/$name-$version/Xidle $PKG/bin
-
+make -f ../Makefile
+make -f ../Makefile DESTDIR=$PKG install
 }

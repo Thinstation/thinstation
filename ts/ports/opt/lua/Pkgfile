@@ -1,35 +1,40 @@
 # Description: A programming language designed for extending applications.
 # URL: http://www.lua.org/
 # Maintainer: Danny Rawlins, crux at romster dot me
-# Packager: Tilman Sauerbeck, tilman at crux dot nu
 # Depends on: readline
 
 name=lua
-version=5.3.3
+version=5.3.5
 release=1
-source=(http://www.lua.org/ftp/$name-$version.tar.gz
+source=(https://www.lua.org/ftp/$name-$version.tar.gz
 	liblua.so.patch lua.pc)
 
 build() {
 	cd $name-$version
 
-	patch -p 1 -i $SRC/liblua.so.patch
-	export CFLAGS="$CFLAGS -fPIC -DLUA_COMPAT_5_2 -DLUA_COMPAT_5_1"
+	patch -p1 -i $SRC/liblua.so.patch
 
-	make MYCFLAGS="$CFLAGS" MYLDFLAGS="$LDFLAGS" linux
+	sed "s/%VER%/${version:0:3}/g;s/%REL%/$version/g" $SRC/lua.pc > lua.pc
+
+	# Lua 5.3.4 has wrong release version in its Makefile. Fix it.
+	sed "s/^R= \$V.4/R= \$V.5/" -i Makefile
+
+	make MYCFLAGS="$CFLAGS -fPIC -DLUA_COMPAT_5_2 -DLUA_COMPAT_5_1" MYLDFLAGS="$LDFLAGS" linux
 
 	make \
-		TO_LIB="liblua.a liblua.so.$version" \
+		TO_LIB="liblua.a liblua.so liblua.so.${version:0:3} liblua.so.$version" \
+		INSTALL_DATA='cp -d' \
 		INSTALL_TOP=$PKG/usr \
 		INSTALL_MAN=$PKG/usr/share/man/man1 \
 		install
 
-	ln -sf liblua.so.$version $PKG/usr/lib/liblua.so.${version:0:3}
-	ln -sf liblua.so.${version:0:3} $PKG/usr/lib/liblua.so
-	ln -sf /usr/bin/lua $PKG/usr/bin/lua${version:0:3}
-	ln -sf /usr/bin/luac $PKG/usr/bin/luac${version:0:3}
+	# odd behaviour
+	chmod -v u+w $PKG/usr/share/man/man1/lua.1
 
-	#make pc > lua.pc
-	sed "s/%VER%/${version:0:3}/g;s/%REL%/$version/g" $SRC/lua.pc > lua.pc
-	install -m 0644 -D lua.pc $PKG/usr/lib/pkgconfig/lua.pc
+	ln -s lua $PKG/usr/bin/lua${version:0:3}
+	ln -s luac $PKG/usr/bin/luac${version:0:3}
+	ln -s liblua.so.$version $PKG/usr/lib/liblua${version:0:3}.so
+
+	install -m 0644 -D lua.pc $PKG/usr/lib/pkgconfig/lua53.pc
+	ln -s lua53.pc $PKG/usr/lib/pkgconfig/lua.pc
 }

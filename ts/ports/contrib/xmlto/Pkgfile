@@ -1,21 +1,24 @@
-# $Id$
-# Maintainer: Giovanni Scafora <giovanni@archlinux.org>
-# Contributor: Jan de Groot <jgc@archlinux.org>
-# Contributor: Sergej Pupykin <sergej@aur.archlinux.org>
-# Contributor: Robert Stoffers <rob1@ubuntu.com>
+# Description: Convert xml to many other formats.
+# URL: https://pagure.io/xmlto
+# Maintainer: Danny Rawlins, crux at romster dot me
+# Packager: Matt Housh, jaeger at morpheus dot net
+# Depends on: docbook-xsl
 
 name=xmlto
 version=0.0.28
-release=2
-source=("https://fedorahosted.org/releases/x/m/${name}/${name}-${version}.tar.bz2")
+release=1
+source=(https://releases.pagure.org/$name/$name-$version.tar.bz2)
 
 build() {
-  cd "$SRC/${name}-${version}"
+	cd $name-$version
 
-  ./configure --prefix=/usr \
-              --mandir=/usr/share/man
-  make
-  make DESTDIR="$PKG" install
+	sed -i -e 's,4\.2,4\.5,g' doc/xmlif.xml
+	sed -i -e 's,4\.2,4\.5,g' doc/xmlto.xml
+
+	./configure \
+		--prefix=/usr
+
+	make
+	make DESTDIR=$PKG install
 }
-
 

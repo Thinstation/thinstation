@@ -5,15 +5,21 @@
 
 name=jfsutils
 version=1.1.15
-release=3
-source=(http://jfs.sourceforge.net/project/pub/$name-$version.tar.gz inttypes.patch)
+release=4
+source=(http://jfs.sourceforge.net/project/pub/$name-$version.tar.gz
+        inttypes.patch sysmacros.patch)
 
 build() {
     cd $name-$version
+
     patch -p1 -i $SRC/inttypes.patch
+    patch -p1 -i $SRC/sysmacros.patch
+
     ./configure --prefix=/ --mandir=/usr/share/man
+
     make
     make DESTDIR=$PKG install
+
     ln -sf jfs_mkfs $PKG/sbin/mkfs.jfs
     ln -sf jfs_fsck $PKG/sbin/fsck.jfs
     ln -sf jfs_mkfs.8 $PKG/usr/share/man/man8/mkfs.jfs.8

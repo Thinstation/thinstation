@@ -1,19 +1,26 @@
 # Description: Filesystem utilities for btrfs
 # URL:         http://btrfs.wiki.kernel.org
 # Maintainer:  Fredrik Rinnestam, fredrik at crux dot nu
-# Depends on:  util-linux e2fsprogs lzo zlib
+# Depends on:  lzo zstd
 
 name=btrfs-progs
-version=4.7
+version=5.2.1
 release=1
-source=(https://www.kernel.org/pub/linux/kernel/people/kdave/btrfs-progs/btrfs-progs-v$version.tar.xz \
-        $name-man-v$version.tar.xz)
+source=(https://www.kernel.org/pub/linux/kernel/people/kdave/btrfs-progs/btrfs-progs-v$version.tar.xz)
 
 build() {
-    cd $name-v$version
-    ./configure --prefix=/usr --bindir=/sbin
-    make
-    make DESTDIR=$PKG install
+	cd $name-v$version
+	./configure --prefix=/usr \
+		--bindir=/sbin \
+		--disable-documentation \
+		--disable-convert --disable-python
+	make
+	make DESTDIR=$PKG install
 
-    rm $PKG/usr/lib/libbtrfs.a
+	mkdir -p $PKG/usr/share/man/{man5,man8}
+	install -m644 Documentation/*.5 $PKG/usr/share/man/man5/
+	install -m644 Documentation/*.8 $PKG/usr/share/man/man8/
+
+	#btrfs-convert disabled
+	rm $PKG/usr/share/man/man8/btrfs-convert.8
 }

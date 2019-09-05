@@ -1,26 +1,29 @@
 # Description: PDF rendering library based on xpdf 3.0
 # URL:         http://poppler.freedesktop.org/
 # Maintainer:  Juergen Daubert, jue at crux dot nu
-# Packager:    Matt Housh, jaeger at crux dot nu
-# Depends on:  cairo lcms2
+# Depends on:  cmake cairo lcms2
 
 name=poppler
-version=0.42.0
+version=0.79.0
 release=1
-source=(http://poppler.freedesktop.org/$name-$version.tar.xz)
+source=(https://poppler.freedesktop.org/poppler-$version.tar.xz)
 
 build() {
-    cd $name-$version
+    cd poppler-$version
 
-    ./configure --prefix=/usr \
-                --mandir=/usr/man \
-		--disable-static \
-                --enable-{zlib,libjpeg,libpng} \
-                --enable-cms=lcms2 \
-                --enable-libopenjpeg=none \
-                --enable-xpdf-headers \
-                --disable-poppler-{qt4,qt5}
+    cmake . \
+        -DCMAKE_INSTALL_PREFIX=/usr \
+        -DCMAKE_INSTALL_LIBDIR=/usr/lib \
+        -DENABLE_UNSTABLE_API_ABI_HEADERS=ON \
+        -DENABLE_UTILS=ON \
+        -DENABLE_SPLASH=ON \
+        -DENABLE_CPP=ON \
+        -DENABLE_GLIB=ON \
+        -DENABLE_ZLIB=ON \
+        -DENABLE_CMS=lcms2 \
+	-DENABLE_GTK_DOC=OFF
 
     make
     make DESTDIR=$PKG install
 }
+

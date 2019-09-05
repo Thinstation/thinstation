@@ -1,25 +1,29 @@
 # Description: A daemon which implements the PPP protocol for internetworking over dialup lines
-# URL:         http://www.samba.org/ppp/
+# URL:         https://www.samba.org/ppp/
 # Maintainer:  CRUX System Team, core-ports at crux dot nu
 # Depends on:  zlib, openssl
 
 name=ppp
 version=2.4.7
-release=3
-source=(http://ppp.samba.org/ftp/ppp/$name-$version.tar.gz \
-        $name-nofilter.patch
-	http://www.nikhef.nl/~janjust/$name/$name-$version-eaptls-mppe-0.998.patch)
+release=4
+source=(https://ppp.samba.org/ftp/ppp/$name-$version.tar.gz \
+        $name-nofilter.patch \
+        0029-pppoe-include-netinet-in.h-before-linux-in.h.patch \
+        glibc-2.28.patch)
 
 build () {
     cd $name-$version
-    patch -p1 -i $SRC/$name-nofilter.patch
-    patch -p1 -i $SRC/$name-$version-eaptls-mppe-0.998.patch
 
-    sed -i -e "s/\(DESTDIR =\) \(.*\)/\1 \$(INSTROOT)\2/" \
-	pppd/plugins/pppol2tp/Makefile.linux
+    patch -p1 -i $SRC/$name-nofilter.patch
+
+    # http://pkgs.fedoraproject.org/cgit/rpms/ppp.git/tree/
+    patch -p1 -i $SRC/0029-pppoe-include-netinet-in.h-before-linux-in.h.patch
+
+    # from https://dev.gentoo.org/~polynomial-c/ppp-2.4.7-patches-7.tar.xz
+    patch -p1 -i $SRC/glibc-2.28.patch
+
     ./configure --prefix=/usr --sysconfdir=/etc
-    make HAVE_INET6=y
-    make -j1 HAVA_INET6=y INSTROOT=$PKG install install-etcppp
-    mv $PKG/usr/{share/man,man} && rm -r $PKG/usr/share
+    make
+    make -j1 INSTROOT=$PKG install install-etcppp
     chmod +w -R $PKG
 }

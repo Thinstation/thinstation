@@ -1,0 +1,44 @@
+# Maintainer: Tobias Powalowski <tpowa@archlinux.org>
+# Contributor: Sarah Hay <sarahhay@mb.sympatico.ca>
+# Contributor: Simo L. <neotuli@yahoo.com>
+# Contributor: eric <eric@archlinux.org>
+
+name=sane
+version=1.0.27
+release=2
+source=(https://sources.archlinux.org/other/sane/$name-backends-$version.tar.gz)
+
+build() {
+  cd "${SRC}/${name}-backends-${version}"
+
+  ./configure --prefix=/usr \
+    --sysconfdir=/etc \
+    --localstatedir=/var \
+    --with-docdir=/usr/share/doc/sane \
+    --enable-avahi \
+    --enable-pthread \
+    --disable-rpath \
+    --enable-libusb_1_0 \
+    --disable-locking
+  make
+  make DESTDIR="${PKG}" install
+  # fix hp officejets
+  echo "#hpaio" >> "${PKG}/etc/sane.d/dll.conf"
+  # install udev files
+  install -D -m0644 tools/udev/libsane.rules \
+    "${PKG}/usr/lib/udev/rules.d/49-sane.rules"
+  # fix udev rules
+  sed -i 's|NAME="%k", ||g' "${PKG}/usr/lib/udev/rules.d/49-sane.rules"
+
+  # install xinetd file
+#  install -D -m644 "${SRC}/sane.xinetd" "${PKG}/etc/xinetd.d/sane"
+
+  # Install the pkg-config file
+  install -D -m644 tools/sane-backends.pc \
+     "${PKG}/usr/lib/pkgconfig/sane-backends.pc"
+  # install systemd files
+#  install -D -m644 ${SRC}/saned.socket \
+#      "${PKG}/usr/lib/systemd/system/saned.socket"
+#  install -D -m644 ${SRC}/saned.service \
+#      "${PKG}/usr/lib/systemd/system/saned@.service"
+}

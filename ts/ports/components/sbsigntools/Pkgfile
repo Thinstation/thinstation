@@ -1,0 +1,21 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=sbsigntools
+version=0.9.2
+release=1
+source=()
+
+build() {
+	git clone https://git.kernel.org/pub/scm/linux/kernel/git/jejb/sbsigntools.git
+	cd $name
+	git checkout v$version
+
+	./autogen.sh
+	./configure --prefix=/usr
+	sed -i -e  "s| docs||g" Makefile
+
+	make
+	make DESTDIR=$PKG install
+}

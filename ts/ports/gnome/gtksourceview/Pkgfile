@@ -20,9 +20,11 @@ unset MAKEFLAGS
 
 	./configure \
 		--prefix=/usr \
-		--disable-nls \
+		--disable-docs \
 		--disable-dependency-tracking \
 		"$glade"
+
+sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
 
 	make
 	make DESTDIR=$PKG install

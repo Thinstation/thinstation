@@ -4,19 +4,20 @@
 # Depends on:  cairo
 
 name=harfbuzz
-version=1.7.6
+version=2.5.3
 release=1
-source=(http://www.freedesktop.org/software/harfbuzz/release/harfbuzz-$version.tar.bz2)
+source=(http://www.freedesktop.org/software/harfbuzz/release/harfbuzz-$version.tar.xz)
 
 build() {
 	cd $name-$version
 
-	sed -i s/"SUBDIRS = api shaping"/"SUBDIRS = shaping"/g test/Makefile.in
+	autoreconf
 	./configure --prefix=/usr \
 	            --with-glib \
 	            --with-freetype \
 	            --with-cairo \
-	            --with-icu=yes
+	            --with-icu=yes \
+			--disable-static
 
 	make
 	make DESTDIR=$PKG install

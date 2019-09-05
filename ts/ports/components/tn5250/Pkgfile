@@ -6,15 +6,18 @@ name=tn5250
 version=0.17.4
 release=1
 source=(http://downloads.sourceforge.net/project/tn5250/tn5250/0.17.4/tn5250-0.17.4.tar.gz \
-destructive-backspace.patch)
+	destructive-backspace.patch \
+	patch-lib5250_sslstream_c)
 
 build() {
 	cd $name-$version
 	patch -p1 < ../destructive-backspace.patch
+	patch -p0 -i "${SRC}/patch-lib5250_sslstream_c"
 	./configure --prefix=/usr \
 			--sysconfdir=/etc \
 			--libexecdir=/lib \
 			--mandir=/usr/man \
+			--with-ssl=/usr/include/openssl-1.0/ \
 			--disable-static \
 			--disable-extras
 

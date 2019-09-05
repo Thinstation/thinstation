@@ -3,18 +3,18 @@
 # Maintainer:  CRUX System Team, core-ports at crux dot nu
 
 name=flex
-version=2.6.0
+version=2.6.4
 release=2
-source=(http://downloads.sourceforge.net/project/$name/$name-$version.tar.xz
-        $name-$version-2.patch)
+source=(https://github.com/westes/flex/releases/download/v$version/$name-$version.tar.gz
+        flex-pie.patch)
 
 build() {
     cd $name-$version
     
     # fix for FS#1284
-    patch -p1 -i $SRC/$name-$version-2.patch
+    patch -p1 -i $SRC/flex-pie.patch
     touch doc/flex.1
-
+    autoreconf
     ./configure --prefix=/usr 
     
     make

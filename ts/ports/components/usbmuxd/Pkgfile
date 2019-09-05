@@ -5,13 +5,16 @@
 # Dependencies:	libimobiledevice libplist
 
 name=usbmuxd
-version=1.1.0
+version=git
 release=1
-source=(http://www.libimobiledevice.org/downloads/$name-$version.tar.bz2)
+#source=(http://www.libimobiledevice.org/downloads/$name-$version.tar.bz2)
 
 build() {
-    cd $name-$version
-    ./configure --prefix=/usr
+git clone https://github.com/libimobiledevice/usbmuxd
+#    cd $name-$version
+cd usbmuxd
+    ./autogen.sh NOCONFIGURE=1
+    PYTHON=/usr/bin/python3 ./configure --prefix=/usr
 
     make
     make DESTDIR=$PKG install

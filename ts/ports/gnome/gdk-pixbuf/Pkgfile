@@ -5,27 +5,20 @@
 
 name=gdk-pixbuf
 archname=gdk-pixbuf2
-version=2.36.12
+version=2.38.1
 release=1
 source=(http://download.gnome.org/sources/$name/${version:0:4}/$name-$version.tar.xz \
         gdk-pixbuf.loaders gdk-pixbuf-register.sh)
 
 build () {
-    cd $name-$version
+	cd $name-$version
 
-    ./configure --prefix=/usr \
-                 \
-                --without-libjasper \
-                --with-x11 \
-		--enable-gio-sniffing=no
+        ts-meson build --prefix=/usr \
+		-Dinstalled_tests=false \
+		-Dman=true
 
-    make
-    make DESTDIR=$PKG install
+        DESTDIR=$PKG ninja -C build -j ${JOBS:-1} install
 
-    install -m 644 $SRC/gdk-pixbuf.loaders \
-            $PKG/usr/lib/gdk-pixbuf-2.0/2.10.0/loaders.cache
-    install -m 755 $SRC/gdk-pixbuf-register.sh \
-            $PKG/usr/bin/gdk-pixbuf-register
-    rm -r $PKG/usr/share/gtk-doc
-chown -R root.root $PKG
+	install -m 755 $SRC/gdk-pixbuf-register.sh \
+		$PKG/usr/bin/gdk-pixbuf-register
 }

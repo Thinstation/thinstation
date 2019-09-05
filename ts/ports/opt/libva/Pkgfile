@@ -5,13 +5,15 @@
 # Depends on: mesa3d xorg-libpciaccess
 
 name=libva
-version=1.7.1
+version=2.5.0
 release=1
-source=(http://www.freedesktop.org/software/vaapi/releases/$name/$name-$version.tar.bz2)
+source=(https://github.com/intel/libva/archive/$version.tar.gz)
+
 build() {
 
 	cd $name-$version
 
+	./autogen.sh
 	./configure \
 		--prefix=/usr \
         	--enable-glx \

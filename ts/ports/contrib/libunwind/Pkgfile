@@ -1,0 +1,20 @@
+# Maintainer: Felix Yan <felixonmars@archlinux.org>
+# Contributor: Sébastien Luttringer
+# Contributor: Lawrence Lee <valheru@facticius.net>
+# Contributor: Phillip Marvin <phillip.marvin@gmail.com>
+# Contributor: keystone <phillip.marvin@gmail.com>
+
+name=libunwind
+version=1.3.1
+release=1
+source=("https://download.savannah.gnu.org/releases/$name/$name-$version.tar.gz")
+
+build() {
+  cd $name-$version
+  ./configure --prefix=/usr
+  make
+  make check || :
+  make DESTDIR="$PKG" install
+}
+
+# vim:set ts=2 sw=2 et:

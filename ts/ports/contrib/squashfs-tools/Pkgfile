@@ -9,6 +9,7 @@ source=(http://download.sourceforge.net/squashfs/squashfs${version}.tar.gz)
 
 build() {
 	cd squashfs${version}/$name
+	sed -i '1,1i#include <sys/sysmacros.h>' mksquashfs.c unsquashfs.c
 	make XZ_SUPPORT=1
 	install -D -m 0755 mksquashfs ${PKG}/sbin/mksquashfs
 	install -D -m 0755 unsquashfs ${PKG}/sbin/unsquashfs

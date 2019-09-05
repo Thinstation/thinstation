@@ -1,0 +1,37 @@
+# Description: Gstreamer is a library that allows the construction of graphs of media-handling components.
+# URL: http://gstreamer.freedesktop.org/
+# Maintainer: Jose V Beneyto, sepen at crux dot nu
+# Packager: Matt Housh, jaeger at morpheus dot net
+# Depends on: glib libxml2 python
+
+name=gstreamer-compat
+version=0.10.36
+release=1
+source=(https://gstreamer.freedesktop.org/src/${name%-compat}/${name%-compat}-$version.tar.bz2)
+
+build() {
+  cd ${name%-compat}-$version
+
+  sed -i -e '/YYLEX_PARAM/d' \
+	-e '/parse-param.*scanner/i %lex-param { void *scanner }' \
+	gst/parse/grammar.y
+  
+  ./configure --prefix=/usr \
+              --mandir=/usr/man \
+              --libexecdir=/usr/libexec \
+	      --disable-rpath \
+	      --disable-tests \
+              --enable-debug \
+               \
+              --disable-dependency-tracking \
+              --disable-valgrind \
+              --disable-examples \
+	      --disable-static \
+	      --enable-shared
+
+  
+  make
+  make DESTDIR=$PKG install
+  rm -r $PKG/usr/share/gtk-doc
+  rm -rf $PKG/usr/man
+}

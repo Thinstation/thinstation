@@ -1,0 +1,26 @@
+# Maintainer: Andreas Radke <andyrtr@archlinux.org>
+
+# Contributor: Chris Severance aur.severach aATt spamgourmet dott com
+# Contributor: Andreas B. Wagner <AndreasBWagner@pointfree.net>
+# Contributor: Suat SARIALP <muhendis.suat@gmail.com>
+
+name=docbook-utils
+version=0.6.14
+release=9
+source=(ftp://sources.redhat.com/pub/docbook-tools/new-trials/SOURCES/${name}-${version}.tar.gz
+        docbook-utils-0.6.14-grep_fix-1.patch)
+
+build() {
+  cd "${name}-${version}"
+  patch -Np1 -i ${SRC}/docbook-utils-0.6.14-grep_fix-1.patch
+  ./configure --prefix=/usr \
+    --sysconfdir=/etc \
+    --mandir=/usr/share/man
+  make
+  make install DESTDIR="${PKG}" htmldir="/usr/share/doc/${name}/html"
+
+  #common alternative names
+  for doctype in 'html' 'ps' 'dvi' 'man' 'pdf' 'rtf' 'tex' 'texi' 'txt'; do
+    ln -svf "docbook2${doctype}" "${PKG}/usr/bin/db2${doctype}"
+  done
+}

@@ -1,0 +1,41 @@
+# Maintainer: Antonio Rojas <arojas@archlinux.org>
+# Contributor: Tom Gundersen <teg@jklm.no>
+# Contributor: Jan de Groot <jgc@archlinux.org>
+# Contributor: Sean Middleditch <elanthis@awesomeplay.com>
+# Contributor: Daniel J Griffiths <ghost1227@archlinux.us>
+
+name=docbook-xsl
+version=1.79.2
+release=5
+install=$name.install
+source=(https://github.com/docbook/xslt10-stylesheets/releases/download/release%2F$version/docbook-xsl{,-nons}-$version.tar.gz
+        765567_non-recursive_string_subst.patch)
+
+build() {
+  cd $name-$version
+  patch -Np2 -i ../765567_non-recursive_string_subst.patch
+
+  cd ../$name-nons-$version
+  patch -Np2 -i ../765567_non-recursive_string_subst.patch
+
+  cd $SRC
+  local pkgroot ns dir
+  for ns in -nons ''; do
+    pkgroot="$PKG/usr/share/xml/docbook/xsl-stylesheets-$version$ns"
+    dir=$name$ns-$version
+
+    install -Dt "$pkgroot" -m644 $dir/VERSION{,.xsl}
+
+      for fn in assembly common eclipse epub epub3 fo highlighting html \
+        htmlhelp javahelp lib manpages params profiling roundtrip template \
+        website xhtml xhtml-1_1 xhtml5
+      do
+        install -Dt "$pkgroot/$fn" -m644 $dir/$fn/*.{xml,xsl,dtd,ent} || true
+      done
+  done
+
+  install -d "$PKG/etc/xml"
+  install -Dt "$PKG/usr/share/licenses/$name" -m644 $dir/COPYING
+}
+
+# vim:set sw=2 et:

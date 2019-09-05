@@ -1,43 +1,26 @@
-# $Id$
-# Maintainer: Felix Yan <felixonmars@archlinux.org>
+# Description: Node Package Manager - a package manager for javascript
+# URL: https://github.com/npm/cli
+# Maintainer: Tim Biermann, tbier at posteo dot de
+# Depends on: nodejs
 
 name=npm
-version=3.10.5
+version=6.10.3
 release=1
+source=(https://github.com/npm/cli/archive/v$version/cli-$version.tar.gz)
 
 build() {
-git clone https://github.com/npm/npm.git
-cd npm
-git fetch origin release-$version
-git checkout release-$version
+  cd cli-$version
+  mkdir -p node_modules/.bin # we don't want or need marked-man it seems, but you need to create the links for the build to succeed
+  ln -sf /usr/bin/marked{,-man} node_modules/.bin/
+  mkdir -p man/man1
   make
   make NPMOPTS="--prefix=\"$PKG/usr\"" install
-
-  # Why 777? :/
-  chmod -R u=rwX,go=rX "$PKG"
-  
-  # Fix files owned by nobody:
-  chown -R root "$PKG/usr/lib/node_modules" 
-
-  # Fix wrong symlinks
-  for _dir in man1 man5 man7; do
-    rm -f "$PKG"/usr/share/man/$_dir/*
-    cd "$PKG"/usr/lib/node_modules/npm/man/$_dir
-    for _file in *; do
-      ln -s /usr/lib/node_modules/npm/man/$_dir/$_file "$PKG"/usr/share/man/$_dir/
-    done
-  done
-  
-  # Provide node-gyp executable
-  cp "$PKG"/usr/lib/node_modules/npm/bin/node-gyp-bin/node-gyp "$PKG"/usr/bin/node-gyp
-  sed -i 's|"`dirname "$0"`/../../|"`dirname "$0"`/../lib/node_modules/npm/|' "$PKG"/usr/bin/node-gyp
-
-  # Experimental dedup
-#  cd "$PKG"/usr/lib/node_modules/$name/node_modules
-#  for dep in semver; do
-#    rm -r $dep;
-#    node "$SRC"/npm/cli.js link $dep;
-#  done
-  
-  install -Dm644 "$SRC/npm/LICENSE" "$PKG/usr/share/licenses/$name/LICENSE"
+  chmod -R u=rwX,go=rX $PKG
+  chown -R root:root $PKG/usr/lib/node_modules # not optimal, if you know a better way, message me
+  find $PKG \(\
+    -iname "*README*" -o \
+    -iname "ChangeLog" -o \
+    -iname "AUTHORS*" \)\
+    -exec rm '{}' \+
 }
+

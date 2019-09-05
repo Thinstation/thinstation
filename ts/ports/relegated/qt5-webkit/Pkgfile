@@ -1,0 +1,27 @@
+# $Id: PKGBUILD 240297 2015-06-03 10:22:03Z fyan $
+# Maintainer: Felix Yan <felixonmars@archlinux.org>
+# Maintainer: Antonio Rojas <arojas@archlinux.org>
+# Contributor: Andrea Scarpino <andrea@archlinux.org>
+
+name=qt5-webkit
+_qtver=5.212.0-alpha3
+version=${_qtver/-/}
+release=19
+_pkgfqn="${name/5-/}-opensource-src-${_qtver}"
+source=("https://github.com/annulen/webkit/releases/download/qtwebkit-$_qtver/qtwebkit-$_qtver.tar.xz")
+
+build() {
+  mkdir -p build
+  cd build
+
+  cmake ../qtwebkit-$_qtver \
+    -DCMAKE_INSTALL_PREFIX=/usr \
+    -DCMAKE_CXX_FLAGS="${CXXFLAGS} -DNDEBUG" \
+    -DPORT=Qt \
+    -DENABLE_TOOLS=OFF
+  make
+  make DESTDIR="$PKG" install
+
+  install -d "$PKG"/usr/share/licenses
+  ln -s /usr/share/licenses/qt5-base "$PKG"/usr/share/licenses/${name}
+}

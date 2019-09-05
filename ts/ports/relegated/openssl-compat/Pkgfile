@@ -1,0 +1,36 @@
+# Description: Secure Sockets Layer and Transport Layer Security tools
+# URL:         http://www.openssl.org/
+# Maintainer:  CRUX System Team, core-ports at crux dot nu
+
+name=openssl-compat
+version=1.0.2r
+release=fips2016
+source=(http://www.openssl.org/source/openssl-$version.tar.gz)
+
+build() {
+    cd openssl-$version
+    export CFLAGS="$CFLAGS -I/usr/lib/openssl-1.0/include"
+    ./config --prefix=/usr --libdir=lib/openssl-1.0 --openssldir=/etc/ssl fips shared
+#    ./config --prefix=/usr --libdir=lib/openssl-1.0 --openssldir=/etc/ssl shared
+
+    sed -i "s|-O3|$CFLAGS|" Makefile
+    sed -i "s|SHLIB_VERSION_NUMBER\=.*|SHLIB_VERSION_NUMBER=1.0.2|" Makefile
+    sed -i "s|SHLIB_MINOR\=.*|SHLIB_MINOR=0.2|" Makefile
+
+    make depend
+    make INSTALL_PREFIX=$PKG MANDIR=/usr/man MANSUFFIX=ssl install -j1
+
+    chmod -R +w $PKG
+
+    rm -rf $PKG/usr/{share,bin} $PKG/etc $PKG/usr/man
+    mv $PKG/usr/lib/openssl-1.0/lib{crypto,ssl}.so.1.0.2 $PKG/usr/lib
+    ln -s ../libssl.so.1.0.2 $PKG/usr/lib/openssl-1.0
+    ln -s ../libcrypto.so.1.0.2 $PKG/usr/lib/openssl-1.0
+    ln -s libssl.so.1.0.2 $PKG/usr/lib/libssl.so.1.0.0
+    ln -s libssl.so.1.0.2 $PKG/usr/lib/libssl.so.1.0.1
+    ln -s libcrypto.so.1.0.2 $PKG/usr/lib/libcrypto.so.1.0.0
+    ln -s libcrypto.so.1.0.2 $PKG/usr/lib/libcrypto.so.1.0.1
+
+    mv $PKG/usr/include/{openssl,openssl-1.0}
+    sed 's@/include$@/include/openssl-1.0@' -i $PKG/usr/lib/openssl-1.0/pkgconfig/*.pc
+}

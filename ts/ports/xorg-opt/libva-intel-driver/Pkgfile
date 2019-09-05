@@ -4,12 +4,14 @@
 # Depends on:  libva mesa3d libvdpau glu ffmpeg\
 
 name=libva-intel-driver
-version=1.7.1
+version=2.3.0
 release=1
-source=(http://www.freedesktop.org/software/vaapi/releases/$name/$name-$version.tar.bz2)
-build() {
-	cd $name-$version
+source=(https://github.com/intel/intel-vaapi-driver/archive/$version.tar.gz)
 
+build() {
+	cd intel-vaapi-driver-$version
+
+	./autogen.sh
 	./configure --prefix=/usr \
 		--disable-dependency-tracking
 

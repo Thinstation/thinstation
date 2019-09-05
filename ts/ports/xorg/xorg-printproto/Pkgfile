@@ -1,0 +1,20 @@
+# Description: xorg proto inputproto
+# URL: http://xorg.freedesktop.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=xorg-printproto
+version=1.0.5
+release=1
+source=(https://xorg.freedesktop.org/releases/individual/proto/printproto-$version.tar.bz2)
+
+build() {
+	cd printproto-$version
+
+	./configure --prefix=/usr
+
+	make
+	make DESTDIR=$PKG install
+
+	rm -rf $PKG/usr/share/man
+	find $PKG/usr/share -type d -delete
+}

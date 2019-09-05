@@ -3,37 +3,42 @@
 # Maintainer:  CRUX System Team, core-ports at crux dot nu
 
 name=glibc
-version=2.24
+version=2.29
 release=1
 source=(http://ftp.gnu.org/gnu/glibc/glibc-$version.tar.xz \
 	http://crux.nu/files/distfiles/kernel-headers-4.1.tar.xz \
-	$name-2.20-multilib-dirs.patch \
+	0001-Revert-elf-Correct-absolute-SHN_ABS-symbol-run-time-.patch \
+	file-truncated-while-reading-soname-after-patchelf.patch \
+	glibc-2.20-multilib-dirs.patch \
 	hosts resolv.conf nsswitch.conf host.conf ld.so.conf)
 
 build() {
-unset CPPFLAGS
-CFLAGS="`echo $CFLAGS |sed -e 's/ -fstack-protector-strong//g'`"
-CXXFLAGS=$CFLAGS
+#CFLAGS="`echo $CFLAGS |sed -e 's/ -fstack-protector-strong//g'`"
+#CXXFLAGS=$CFLAGS
 	# install kernel headers
 	install -d $PKG/usr/
 	cp -r $SRC/kernel-headers-4.1/include $PKG/usr
 	chown root:root $PKG/usr
 
-
-        patch -p1 -d $SRC/$name-$version -i $SRC/$name-2.20-multilib-dirs.patch
+	cd glibc-$version
+	for patch in \
+	        file-truncated-while-reading-soname-after-patchelf.patch \
+		glibc-2.20-multilib-dirs.patch; do
+			patch -p1 -i $SRC/$patch
+	done
 
 	mkdir $SRC/build
 	cd $SRC/build
 	../$name-$version/configure --prefix=/usr \
 		--libexecdir=/usr/lib \
 		--with-headers=$PKG/usr/include \
-		--enable-kernel=3.12 \
+		--enable-kernel=3.10 \
 		--enable-add-ons \
-		--enable-static-nss \
+		--enable-stack-protector=strong \
+		--disable-obsolete-rpc \
 		--disable-profile \
 		--disable-werror \
 		--without-gd \
-		--enable-obsolete-rpc \
 		--enable-multi-arch
 
 	make

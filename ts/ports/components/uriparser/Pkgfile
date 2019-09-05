@@ -3,25 +3,24 @@
 # Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 
 name=uriparser
-version=0.8.4
+version=0.9.3
 release=1
 source=(http://pilotfiber.dl.sourceforge.net/project/uriparser/Sources/$version/uriparser-$version.tar.bz2)
 
 build() {
-	cd $name-$version
+  mkdir "$SRC"/build
+  cd "$SRC"/build
 
-	./configure --prefix=/ \
-			--exec-prefix=/ \
-			--sysconfdir=/etc \
-			--libexecdir=/lib \
-			--mandir=/usr/man \
-			--includedir=/usr/include \
-			--disable-static \
-			--disable-extras \
-			--disable-test \
-			--disable-doc
-	make
-	make DESTDIR=$PKG install
-	mkdir $PKG/usr/lib
-	mv $PKG/lib/pkgconfig $PKG/usr/lib/.
+  cmake \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_INSTALL_PREFIX=/usr \
+    -DCMAKE_INSTALL_LIBDIR=lib \
+    -DURIPARSER_BUILD_DOCS=OFF \
+    -DURIPARSER_BUILD_TESTS=OFF \
+    "$SRC"/$name-$version
+  make
+  make DESTDIR="$PKG" install
+  install -D -m0644 "$SRC"/$name-$version/COPYING "${PKG}"/usr/share/licenses/${name}/LICENSE
+
+
 }

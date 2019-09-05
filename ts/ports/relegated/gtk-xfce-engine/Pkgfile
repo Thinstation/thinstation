@@ -1,0 +1,27 @@
+# Description: Theme engine for XFce4 
+# URL: http://www.xfce.org
+# Maintainer: Jose V Beneyto, sepen at crux dot nu
+# Packager: Juergen Daubert, juergen dot daubert at t-online dot de
+# Depends on: gtk
+# Group: xfce4
+
+name=gtk-xfce-engine
+version=3.2.0
+release=1
+source=(https://archive.xfce.org/src/archive/$name/${version%.*}/$name-$version.tar.bz2)
+
+build () {
+  cd ${name}-$version
+
+  #Fix missing px in gtk.css
+  for css in `grep -R * -e "text-shadow" |cut -d ":" -f1`; do
+    sed -i -e 's/text-shadow: 1 1/text-shadow: 1px 1px/g' $css
+  done
+
+  ./configure --prefix=/usr \
+              --disable-static \
+              --disable-debug
+
+  make
+  make DESTDIR=$PKG install
+}

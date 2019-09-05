@@ -6,22 +6,17 @@
 # Nice to have: iw
 
 name=aircrack-ng
-version=1.2-rc4
+version=1.5.2
 release=1
 source=(http://download.aircrack-ng.org/aircrack-ng-$version.tar.gz)
 
 build() {
-#svn co http://trac.aircrack-ng.org/svn/trunk aircrack-ng
   cd $name-$version
-  make \
-      prefix=/usr \
-      sqlite=true \
-      unstable=true \
-      REVISION=0 \
-      DESTDIR=$PKG install
-  mkdir -p $PKG/usr/local/etc/aircrack-ng
-#  cp ../oui.txt $PKG/usr/local/etc/aircrack-ng/airodump-ng-oui.txt
-  cd scripts/airoscript-ng
-  make prefix=/usr DESTDIR=$PKG installdirs install-binary install-locale
-  find $PKG/ -name .svn |xargs rm -rf
+  ./autogen.sh
+
+  ./configure --prefix=/usr
+
+  make
+  make check
+  make DESTDIR="$PKG" pkglibexecdir=/usr/lib/aircrack-ng install
 }

@@ -1,35 +1,38 @@
-# $Id$
-# Contributor: Ionut Biru <ibiru@archlinux.org>
+# Maintainer: Jan Alexander Steffens (heftig) <jan.steffens@gmail.com>
 
 name=js52
-version=52.8.0
-release=2
-_ffver=${version%%.*}
-_repo=https://hg.mozilla.org/mozilla-unified
-source=(https://hg.mozilla.org/mozilla-unified/archive/FIREFOX_52_8_0esr_RELEASE.tar.bz2
+version=52.9.0
+release=3
+_relver=${version}esr
+source=(https://archive.mozilla.org/pub/firefox/releases/$_relver/source/firefox-$_relver.source.tar.xz
         mozjs52-copy-headers.patch
         mozjs52-disable-mozglue.patch
         mozjs52-fix-soname.patch
-        mozjs52-include-configure-script.patch)
+        no-error.diff)
 
 build() {
-  cd mozilla-unified-FIREFOX*
+  cd firefox-$_relver
+  mkdir obj
 
-  # https://anonscm.debian.org/git/pkg-gnome/mozjs52.git/tree/debian/patches
+  # https://salsa.debian.org/gnome-team/mozjs52/tree/debian/master/debian/patches
   patch -Np1 -i ../mozjs52-fix-soname.patch
   patch -Np1 -i ../mozjs52-copy-headers.patch
   patch -Np1 -i ../mozjs52-disable-mozglue.patch
-  patch -Np1 -i ../mozjs52-include-configure-script.patch
+
+  # New errors in test code as of GCC 9
+  patch -Np1 -i ../no-error.diff
+
+  autoreconf -fi
 
   unset CPPFLAGS
-  CFLAGS+=' -fno-delete-null-pointer-checks -fno-strict-aliasing -fno-tree-vrp -flto=3'
-  CXXFLAGS+=' -fno-delete-null-pointer-checks -fno-strict-aliasing -fno-tree-vrp -flto=3'
+  CFLAGS+=" ${flags[*]}"
+  CXXFLAGS+=" ${flags[*]}"
   export CC=gcc CXX=g++ PYTHON=/usr/bin/python2
 
-  cd js/src
-  sh configure \
+  cd $SRC/firefox-$_relver/obj
+  sh ../js/src/configure \
     --prefix=/usr \
-    --disable-debug \
+    --disable-debug\
     --disable-debug-symbols \
     --disable-strip \
     --enable-gold \
@@ -43,10 +46,14 @@ build() {
     --with-intl-api \
     --with-system-zlib \
     --without-system-icu
+
+  touch ../js/src/configure
+  touch config.status
   make
-  python2 tests/jstests.py -d -s -t 300 --no-progress ../../js/src/js/src/shell/js
-  python2 jit-test/jit_test.py -s -t 300 --no-progress ../../js/src/js/src/shell/js basic
+
   make DESTDIR="$PKG" install
   rm "$PKG"/usr/lib/*.ajs
   find "$PKG"/usr/{lib/pkgconfig,include} -type f -exec chmod -c a-x {} +
 }
+
+# vim:set ts=2 sw=2 et:

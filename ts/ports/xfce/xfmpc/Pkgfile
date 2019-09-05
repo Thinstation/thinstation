@@ -6,7 +6,7 @@
 # Group: xfce4
 
 name=xfmpc
-version=0.2.3
+version=0.3.0
 release=1
 source=(http://archive.xfce.org/src/apps/$name/${version%.*}/$name-$version.tar.bz2)
 
@@ -15,6 +15,9 @@ build() {
   ./configure --prefix=/usr \
               --disable-static \
               --disable-debug
+
+sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
+
   make
   install -D -m 0755 src/$name $PKG/usr/bin/$name
   install -D -m 0644 $name.desktop $PKG/usr/share/applications/$name.desktop

@@ -1,31 +1,31 @@
-# Description: unique library
-# URL: https://live.gnome.org/LibUnique
-# Maintainer: None
-# Depends on: dbus-glib
+# Description: Unique is a library for writing single instance application
+# URL: https://wiki.gnome.org/Attic/LibUnique
+# Maintainer: Jose V Beneyto, sepen at crux dot nu
+# Packager: Jose V Beneyto, sepen at crux dot nu
+# Depends on: gtk xorg-libxdamage
 
 name=libunique
 version=1.1.6
-release=1
-source=(ftp://ftp.gnome.org/pub/gnome/sources/$name/${version%.*}/$name-$version.tar.bz2 \
-	remove_G_CONST_RETURN.patch \
-	unique-gdbus.patch)
+release=4
+source=(http://download.gnome.org/sources/$name/${version%.*}/$name-$version.tar.bz2 \
+        G_CONST_RETURN.patch)
 
 build() {
-	cd $name-$version
-	patch -p1 -i $SRC/remove_G_CONST_RETURN.patch
-	patch -p1 -i $SRC/unique-gdbus.patch
+  cd $name-$version
+  patch -p1 -i $SRC/G_CONST_RETURN.patch
+  sed -e 's/-Werror//' -i configure.ac
 
-	./configure --prefix=/usr \
-			--disable-gtk-doc \
-			--disable-static \
-			--disable-dbus
+  ./configure --prefix=/usr \
+              --disable-dbus \
+              --disable-static \
+              --disable-debug \
+              --with-x
 
-        sed -i -e 's/tests //g' Makefile
-	sed -i -e 's/tests //g' Makefile.am
-	sed -i -e 's/tests //g' Makefile.in
-        sed -i -e 's|tests/Makefile ||g' configure
+sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
 
-	make -j1
-	make install DESTDIR=$PKG
-	rm -rf $PKG/usr/share
+
+  make
+  make DESTDIR=$PKG install
+
+  rm -rf $PKG/usr/share/gtk-doc
 }

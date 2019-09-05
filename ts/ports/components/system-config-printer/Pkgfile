@@ -3,13 +3,14 @@
 # Maintainer: None
 
 name=system-config-printer
-version=1.4.3
+version=1.5.11
 release=1
-source=(http://cyberelk.net/tim/data/$name/1.4/$name-$version.tar.xz)
+source=(https://github.com/zdohnal/system-config-printer/archive/$version.tar.gz)
 
 build() {
 	cd $name-$version
 
+	./bootstrap
 	./configure --sysconfdir=/etc --prefix=/usr --with-udev-rules 
 
 	make man_MANS=

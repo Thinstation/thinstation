@@ -5,13 +5,13 @@
 # Depends on: 
 
 name=inotify-tools
-version=3.14
+version=3.20.1
 release=2
-source=(http://dl.sourceforge.net/sourceforge/$name/$name-$version.tar.gz)
-source=(http://github.com/downloads/rvoicilas/inotify-tools/inotify-tools-$version.tar.gz)
+source=(https://github.com/rvoicilas/inotify-tools/archive/$version.tar.gz)
 
 build() {
     cd $name-$version
+    NOCONFIGURE=1 ./autogen.sh
     ./configure --prefix=/usr --mandir=/usr/man
     make
     make DESTDIR=$PKG install

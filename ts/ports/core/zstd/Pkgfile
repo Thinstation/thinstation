@@ -1,0 +1,16 @@
+# Description:	Real-time compression with high compression ratios.
+# URL:		http://www.zstd.net/
+# Maintainer:	Fredrik Rinnestam, fredrik at crux dot nu
+# Depends on:	zlib xz 
+
+name=zstd
+version=1.4.2
+release=1
+source=(https://github.com/facebook/zstd/archive/v$version/$name-v$version.tar.gz)
+
+build() {
+	cd zstd-$version
+
+	make
+	PREFIX=/usr make DESTDIR=$PKG install
+}

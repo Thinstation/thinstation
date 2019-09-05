@@ -1,0 +1,22 @@
+# Description: Utility for verifying hash sums of files
+# URL: https://github.com/rhash/RHash
+# Maintainer: Tim Biermann, tbier at posteo dot de
+# Depends on:
+
+name=rhash
+version=1.3.8
+release=1
+source=(https://github.com/rhash/RHash/archive/v$version/$name-$version.tar.gz)
+
+build() {
+cd RHash-$version
+  ./configure --prefix=/usr \
+    --extra-cflags="$CFLAGS" \
+    --extra-ldflags="$LDFLAGS" \
+    --enable-lib-shared
+
+  make
+  make DESTDIR=$PKG install 
+  make -C librhash DESTDIR=$PKG install-lib-headers install-lib-shared install-so-link
+  install -Dm644 dist/librhash.pc $PKG/usr/lib/pkgconfig/librhash.pc
+}

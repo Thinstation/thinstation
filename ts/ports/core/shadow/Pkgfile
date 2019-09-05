@@ -1,29 +1,24 @@
 # Description: Shadow password file utilities
-# URL:         http://pkg-shadow.alioth.debian.org/
+# URL:         https://github.com/shadow-maint/shadow/
 # Maintainer:  CRUX System Team, core-ports at crux dot nu
-# Depends on:  acl
+# Depends on:  acl linux-pam
 
 name=shadow
-version=4.2.1
-release=2
-source=(http://pkg-shadow.alioth.debian.org/releases/$name-$version.tar.xz
-        pwck login.defs)
+version=4.7
+release=1
+source=(https://github.com/shadow-maint/$name/releases/download/$version/$name-$version.tar.xz \
+        pwck login.defs chfn chsh login groupadd groupdel \
+        groupmems groupmod passwd su useradd userdel usermod)
 
 build() {
     cd $name-$version
-    sed -e 's/yes/no/g' -i etc/useradd
-    sed -e 's/1000/100/g' -i etc/useradd
-    sed -i -e "/pam_selinux/d" etc/pam.d/su
-    sed -i -e "/pam_selinux/d" etc/pam.d/login
 
     ./configure --prefix=/usr \
                 --sysconfdir=/etc \
-                --disable-shared \
-		--with-group-name-max-length=32 \
-		--without-selinux \
-		--without-nscd \
-                --with-libpam \
-		--with-sha-crypt
+                --without-selinux \
+		--with-libpam \
+		--with-audit \
+		LIBS="-lcrypt"
 
     make
     make DESTDIR=$PKG install
@@ -34,13 +29,17 @@ build() {
     mv $PKG/bin/{su,groups} $PKG/usr/bin
     touch $PKG/var/log/{lastlog,faillog}
 
-#    rm -r $PKG/usr/bin/gpasswd \
-#          $PKG/usr/share/man/man1/gpasswd.1 \
-#          $PKG/usr/sbin/{chpasswd,grpconv,grpunconv,logoutd} \
-#          $PKG/usr/sbin/{newusers,pwconv,pwunconv} \
-#          $PKG/usr/share/man/man8/{chpasswd.8,grpconv.8,grpunconv.8,logoutd.8} \
-#          $PKG/usr/share/man/man8/{newusers.8,pwconv.8,pwunconv.8} \
-#          $PKG/usr/share/man/man5/gshadow.5 \
-#          $PKG/usr/share/man/man3 \
-#          $PKG/etc/{login.access,limits,default}
+    rm -r $PKG/usr/bin/gpasswd \
+          $PKG/usr/share/man/man1/gpasswd.1 \
+          $PKG/usr/sbin/{chpasswd,grpconv,grpunconv,logoutd} \
+          $PKG/usr/sbin/newusers \
+          $PKG/usr/share/man/man8/{chpasswd.8,grpconv.8,grpunconv.8,logoutd.8} \
+          $PKG/usr/share/man/man8/{newusers.8,pwconv.8,pwunconv.8} \
+          $PKG/usr/share/man/man5/gshadow.5 \
+          $PKG/usr/share/man/man3 \
+          $PKG/etc/{default,pam.d/*}
+
+    install -o root -g root -m 0644 \
+        $SRC/{ch{fn,sh},login,group{add,del,mems,mod},passwd,su,user{add,del,mod}} \
+        $PKG/etc/pam.d/
 }

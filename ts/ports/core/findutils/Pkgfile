@@ -4,13 +4,16 @@
 
 name=findutils
 version=4.6.0
-release=2
-source=(http://ftp.gnu.org/pub/gnu/$name/$name-$version.tar.gz)
+release=1
+source=(http://ftpmirror.gnu.org/gnu/$name/$name-$version.tar.gz \
+    $name-glibc-2.28.patch $name-makedev.patch)
 
 build() {
     cd $name-$version
-    ./configure --prefix=/usr \
-                
+    patch -p1 -i $SRC/$name-glibc-2.28.patch
+    patch -p1 -i $SRC/$name-makedev.patch
+    autoreconf -if
+    ./configure --prefix=/usr 
     make
     make DESTDIR=$PKG install
     rm $PKG/usr/bin/{updatedb,locate}

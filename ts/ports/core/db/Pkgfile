@@ -4,15 +4,19 @@
 
 name=db
 version=5.3.28
-release=1
-source=(http://download.oracle.com/berkeley-db/$name-$version.tar.gz)
+release=2
+source=(http://download.oracle.com/berkeley-db/$name-$version.tar.gz \
+	0001-atomic-Rename-local-__atomic_compare_exchange-to-avo.patch)
 
 build() {
-    cd $name-$version/build_unix
+    cd $name-$version
+    patch -p1 -i $SRC/0001-atomic-Rename-local-__atomic_compare_exchange-to-avo.patch
+
+    cd build_unix
     ../dist/configure --prefix=/usr \
                       --enable-compat185 \
                       --enable-shared \
-                      --disable-static \
+                      --enable-static \
                       --enable-cxx
     make
     make DESTDIR=$PKG install

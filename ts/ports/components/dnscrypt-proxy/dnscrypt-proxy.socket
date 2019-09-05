@@ -1,0 +1,16 @@
+[Unit]
+Description=DNSCrypt-proxy socket
+Documentation=https://github.com/jedisct1/dnscrypt-proxy/wiki
+Before=nss-lookup.target
+Wants=nss-lookup.target network-online.target
+
+[Socket]
+ListenStream=127.0.0.1:53
+ListenDatagram=127.0.0.1:53
+ListenStream=[::1]:53
+ListenDatagram=[::1]:53
+NoDelay=true
+DeferAcceptSec=1
+
+[Install]
+WantedBy=sockets.target

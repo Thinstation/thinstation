@@ -6,14 +6,14 @@
 # Group: xfce4
 
 name=xfce4-session
-version=4.12.1
+version=4.14.0
 release=1
 source=(http://archive.xfce.org/src/xfce/$name/${version%.*}/$name-$version.tar.bz2 logout.patch logout.patch2)
 
 build () {
   cd $name-$version/xfce4-session
-  patch -p0 < ../../logout.patch
-  patch -p0 < ../../logout.patch2
+#  patch -p0 < ../../logout.patch
+#  patch -p0 < ../../logout.patch2
   cd ..
 
   ./configure --prefix=/usr \
@@ -22,6 +22,8 @@ build () {
               --libexecdir=/usr/libexec \
               --disable-static \
               --disable-debug
+
+sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
 
   make
   make DESTDIR=$PKG install

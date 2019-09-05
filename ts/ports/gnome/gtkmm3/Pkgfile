@@ -4,13 +4,16 @@
 # Depends on: glibmm pangomm cairomm gtk3 atkmm
 
 name=gtkmm3
-version=3.22.2
+version=3.24.1
 release=1
 source=(https://download.gnome.org/sources/gtkmm/${version%.*}/gtkmm-$version.tar.xz)
 
 build() {
     cd gtkmm-$version
     ./configure --prefix=/usr
+
+sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
+
     make
     make DESTDIR=$PKG install
     rm -r $PKG/usr/share/doc

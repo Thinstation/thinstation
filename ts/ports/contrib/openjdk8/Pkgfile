@@ -1,0 +1,166 @@
+# Description: OpenJDK 8 built using IcedTea build harness
+# URL:         http://icedtea.classpath.org http://openjdk.java.net
+# Maintainer:  John Vogel, jvogel4 at stny dot rr dot com
+# Depends on:  alsa-lib cups fontconfig freetype giflib gtk krb5 lcms2 libjpeg-turbo libpng libxslt nss unzip xorg-libxt xorg-libxtst xorg-libxinerama zip
+
+name=openjdk8
+version=8u222-b10
+icedtea_version=3.13.0
+boot_version=20190719
+pkgsrc_quarter=2018Q3
+certdata_rev=f84b1b428d42
+release=1
+source=(http://icedtea.wildebeest.org/download/source/icedtea-$icedtea_version.tar.xz
+	https://stygian.me/crux/distfiles/$name/corba-$version.tar.xz
+	https://stygian.me/crux/distfiles/$name/hotspot-$version.tar.xz
+	https://stygian.me/crux/distfiles/$name/jaxp-$version.tar.xz
+	https://stygian.me/crux/distfiles/$name/jaxws-$version.tar.xz
+	https://stygian.me/crux/distfiles/$name/jdk-$version.tar.xz
+	https://stygian.me/crux/distfiles/$name/langtools-$version.tar.xz
+	https://stygian.me/crux/distfiles/$name/nashorn-$version.tar.xz
+	https://stygian.me/crux/distfiles/$name/openjdk-$version.tar.xz
+	https://stygian.me/crux/distfiles/certdata-$certdata_rev.txt
+	https://stygian.me/crux/distfiles/mozilla-rootcerts-$pkgsrc_quarter.sh
+	https://stygian.me/crux/distfiles/$name-boot-$boot_version-bin.tar.xz)
+	# See README for links to originally named files and rationale of renaming/versioning/mirroring.
+
+unpack_source() {
+	for file in ${source[@]}; do
+		case ${file##*/} in
+			icedtea-$icedtea_version.tar.xz|\
+			$name-boot-$boot_version-bin.tar.xz)
+				bsdtar -p -o -C $SRC -xf $(get_filename $file) ;;
+			*)
+				cp $(get_filename $file) $SRC ;;
+		esac
+	done
+}
+
+build() {
+	# Most of these flags were snarfed directly from Alpine Linux APKBUILD for openjdk7, added -fabi-version.
+	# Fixes build failures due to suspected gcc8 changes for default std and abi.
+	export EXTRA_CPP_FLAGS="$CXXFLAGS -fabi-version=10 -std=gnu++98 -fno-delete-null-pointer-checks -fno-lifetime-dse -fno-strict-overflow"
+	export EXTRA_CFLAGS="$CFLAGS -fabi-version=10 -std=gnu++98 -Wno-error -fno-delete-null-pointer-checks -fno-lifetime-dse -fno-strict-overflow"
+
+	# Make sure we do not have ccache masquerade directory in PATH.
+	# Use --enable-ccache instead of providing a wrapped compiler.
+	# NOTE: the check for usr/bin/ccache may be too specific, since it rules out
+	#       local or opt installs.
+	if [ -e '/usr/bin/ccache' ]; then
+		EXTRA_OPTIONS='--enable-ccache'
+		PATH=$(echo ${PATH} | awk -v RS=: -v ORS=: '/ccache/ {next} {print}' | sed 's/:*$//')
+	fi
+
+	OLD_PATH=$PATH
+	export JAVA_HOME=$SRC/$name-boot
+	export PATH=$JAVA_HOME/bin:$OLD_PATH
+
+	mkdir $SRC/build
+	cd $SRC/build
+
+	LC_ALL=C \
+	CONFIG_SHELL=/bin/bash \
+	../icedtea-$icedtea_version/configure ${EXTRA_OPTIONS} \
+		--prefix=/usr/lib/java/$name \
+		--disable-docs \
+		--disable-downloading \
+		--disable-hotspot-tests \
+		--disable-jdk-tests \
+		--disable-langtools-tests \
+		--disable-precompiled-headers \
+		--disable-system-pcsc \
+		--disable-system-sctp \
+		--disable-systemtap-tests \
+		--disable-tests \
+		--enable-improved-font-rendering \
+		--enable-non-nss-curves \
+		--enable-nss \
+		--enable-sunec \
+		--enable-system-jpeg \
+		--enable-system-kerberos \
+		--enable-system-lcms \
+		--enable-system-png \
+		--enable-system-zlib \
+		--with-corba-src-zip=$SRC/corba-$version.tar.xz \
+		--with-hotspot-src-zip=$SRC/hotspot-$version.tar.xz \
+		--with-jaxp-src-zip=$SRC/jaxp-$version.tar.xz \
+		--with-jaxws-src-zip=$SRC/jaxws-$version.tar.xz \
+		--with-jdk-src-zip=$SRC/jdk-$version.tar.xz \
+		--with-langtools-src-zip=$SRC/langtools-$version.tar.xz \
+		--with-nashorn-src-zip=$SRC/nashorn-$version.tar.xz \
+		--with-openjdk-src-zip=$SRC/openjdk-$version.tar.xz \
+		--with-pkgversion=CRUX \
+		--with-jdk-home=$JAVA_HOME
+
+	LC_ALL=C \
+	make
+
+	# Copy the sdk image first before pruning it, saving original for later inspection/comparison.
+	install -d -m 0755 $PKG/usr/lib/java/$name
+	cp -a openjdk.build/images/j2sdk-image/* $PKG/usr/lib/java/$name
+
+	install -d -m 0755 $PKG/etc/revdep.d
+	echo "/usr/lib/java/$name/jre/lib/amd64" > $PKG/etc/revdep.d/$name
+	echo "/usr/lib/java/$name/jre/lib/amd64/jli" >> $PKG/etc/revdep.d/$name
+	echo "/usr/lib/java/$name/jre/lib/amd64/server" >> $PKG/etc/revdep.d/$name
+
+	# Remove unneeded files
+	rm -f $PKG/usr/lib/java/$name/src.zip
+	rm -rf $PKG/usr/lib/java/$name/{demo,man/ja*,sample}
+	rm -f $PKG/usr/lib/java/$name/{,jre/}THIRD_PARTY_README
+	find $PKG/usr/lib/java/$name \( \
+		-name '*.ja' -o \
+		-name 'ASSEMBLY_EXCEPTION' -o \
+		-name 'LICENSE' -o \
+		-name 'THIRD_PARTY_README' \) \
+		-delete
+
+	# Deduplicate
+	rm $PKG/usr/lib/java/$name/jre/lib/amd64/libjawt.so
+	ln -sr $PKG/usr/lib/java/$name/lib/amd64/libjawt.so \
+		$PKG/usr/lib/java/$name/jre/lib/amd64/libjawt.so
+	rm $PKG/usr/lib/java/$name/jre/lib/amd64/jli/libjli.so
+	ln -sr $PKG/usr/lib/java/$name/lib/amd64/jli/libjli.so \
+		$PKG/usr/lib/java/$name/jre/lib/amd64/jli/libjli.so
+	for f in $PKG/usr/lib/java/$name/jre/bin/* ; do
+		if [ -f $PKG/usr/lib/java/$name/bin/${f##*/} ]; then
+			rm $f
+			ln -sr $PKG/usr/lib/java/$name/bin/${f##*/} $f
+		fi
+	done
+
+	sed -e "/# cd \/etc\/openssl\/certs/s//# cd \/usr\/share\/$name\/certs/" \
+		-e '/@AWK@/s,,/usr/bin/awk,' \
+		-e "/@DATADIR@/s,,/usr/share/$name," \
+		-e '/@ECHO@/s,,/bin/echo,' \
+		-e '/@EXPR@/s,,/usr/bin/expr,' \
+		-e '/@LN@/s,,/bin/ln,' \
+		-e '/@LS@/s,,/bin/ls,' \
+		-e '/@MKDIR@/s,,/bin/mkdir,' \
+		-e '/@OPENSSL@/s,,/usr/bin/openssl,' \
+		-e '/@PREFIX@/s,,/usr,' \
+		-e "/@SSLDIR@/s,,/usr/share/$name," \
+		-e '/@RM@/s,,/bin/rm,' \
+		-e 's,self extract,self -f $certfile extract,' \
+		-e 's,self rehash,self -f $certfile rehash,' \
+		$SRC/mozilla-rootcerts-$pkgsrc_quarter.sh > $SRC/mozilla-rootcerts
+
+	export JAVA_HOME=$PKG/usr/lib/java/$name
+	export PATH=$JAVA_HOME/bin:$OLD_PATH
+
+	# Generate java's cacerts.
+	# Big thanks to pkgsrc's mozilla-rootcerts and openjdk pkg's for this part.
+	rm -f $PKG/usr/lib/java/$name/jre/lib/security/cacerts
+	mkdir $SRC/cacerts
+	cd $SRC/cacerts
+	sh $SRC/mozilla-rootcerts -f $SRC/certdata-$certdata_rev.txt extract
+	for cert in *.pem; do
+		keytool \
+			-noprompt \
+			-importcert \
+			-keystore $PKG/usr/lib/java/$name/jre/lib/security/cacerts \
+			-alias $(echo $cert | sed 's,.*/\([^/]*\)\.pem,\1,') \
+			-file $cert \
+			-storepass changeit
+	done
+}

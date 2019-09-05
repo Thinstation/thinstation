@@ -1,0 +1,72 @@
+# $Id$
+# Maintainer: Felix Yan <felixonmars@archlinux.org>
+# Contributor: Andrea Scarpino <andrea@archlinux.org>
+
+pkgbase=qt5-base
+name=qt5-base
+_qtver=5.13.0
+version=$_qtver
+release=2
+_pkgfqn="${pkgbase/5-/}-everywhere-src-${_qtver}"
+source=("http://download.qt.io/official_releases/qt/${version%.*}/${_qtver}/submodules/${_pkgfqn}.tar.xz"
+        glibc-2.28.patch)
+
+build() {
+  cd ${_pkgfqn}
+
+  # Work around build failure with glibc 2.28 (patch from Fedora)
+#  patch -Np1 -i ../glibc-2.28.patch
+
+  # Build qmake using Arch {C,LD}FLAGS
+  # This also sets default {C,CXX,LD}FLAGS for projects built using qmake
+  sed -i -e "s|^\(QMAKE_CFLAGS_RELEASE.*\)|\1 ${CFLAGS}|" \
+    mkspecs/common/gcc-base.conf
+  sed -i -e "s|^\(QMAKE_LFLAGS_RELEASE.*\)|\1 ${LDFLAGS}|" \
+    mkspecs/common/g++-unix.conf
+
+	export QTDIR="$PWD"
+	export LD_LIBRARY_PATH="$QTDIR/qtbase/lib:$QTDIR/qttools/lib:$LD_LIBRARY_PATH"
+	export QT_PLUGIN_PATH="$QTDIR/qtbase/plugins"
+
+  ./configure -confirm-license -opensource -v \
+    -prefix /usr \
+    -docdir /usr/share/doc/qt \
+    -headerdir /usr/include/qt \
+    -archdatadir /usr/lib/qt \
+    -datadir /usr/share/qt \
+    -sysconfdir /etc/xdg \
+    -examplesdir /usr/share/doc/qt/examples \
+    -plugin-sql-{mysql,sqlite} \
+    -system-sqlite \
+    -openssl-linked \
+    -nomake examples \
+    -no-rpath \
+    -optimized-qmake \
+    -dbus-linked \
+    -system-harfbuzz \
+    -journald \
+    -no-use-gold-linker \
+    -reduce-relocations
+
+  make
+  make INSTALL_ROOT="${PKG}" install
+
+#  install -D -m644 LGPL_EXCEPTION.txt \
+#    "${PKG}"/usr/share/licenses/${pkgbase}/LGPL_EXCEPTION.txt
+
+  # Drop QMAKE_PRL_BUILD_DIR because reference the build dir
+  find "${PKG}/usr/lib" -type f -name '*.prl' \
+    -exec sed -i -e '/^QMAKE_PRL_BUILD_DIR/d' {} \;
+
+  # Fix wrong qmake path in pri file
+  sed -i "s|${SRC}/${_pkgfqn}|/usr|" \
+    "${PKG}"/usr/lib/qt/mkspecs/modules/qt_lib_bootstrap_private.pri
+
+  # Symlinks for backwards compatibility
+  for b in "${PKG}"/usr/bin/*; do
+    ln -s /usr/bin/$(basename $b) "${PKG}"/usr/bin/$(basename $b)-qt5
+  done
+
+  install -d -m755 "$PKG"/usr/include/qtxcb-private
+  cp -r src/plugins/platforms/xcb/*.h "$PKG"/usr/include/qtxcb-private/
+}

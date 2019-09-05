@@ -3,7 +3,7 @@
 # Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 
 name=avahi
-version=0.6.32
+version=0.7
 release=1
 source=(https://github.com/lathiat/avahi/releases/download/v$version/avahi-$version.tar.gz)
 
@@ -11,14 +11,14 @@ build() {
 	cd $name-$version
 	./configure --prefix=/usr \
 		--sysconfdir=/etc \
-		--with-distro=slackware \
+		--with-distro=lfs \
 		--disable-qt3 \
 		--disable-qt4 \
-		--disable-gtk3 \
-		--disable-libdaemon \
-		--disable-static \
-		--disable-mono \
-		--disable-monodoc
+		--disable-gdbm \
+		--disable-monodoc \
+		--enable-compat-libdns_sd
+
+sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
 
 
 	make

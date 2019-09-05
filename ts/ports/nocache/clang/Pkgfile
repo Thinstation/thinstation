@@ -1,0 +1,47 @@
+# Description: LLVM + clang compiler
+# URL:         http://llvm.org/
+# Maintainer:  Thomas Penteker, tek at serverop dot de
+# Depends on:  llvm
+
+name=clang
+version=8.0.1
+release=2
+source=(https://github.com/llvm/llvm-project/releases/download/llvmorg-$version/llvm-$version.src.tar.xz \
+	https://github.com/llvm/llvm-project/releases/download/llvmorg-$version/cfe-$version.src.tar.xz)
+
+build() {
+  mv cfe-$version.src llvm-$version.src/tools/clang
+
+  cd llvm-$version.src
+  mkdir build
+  cd build
+  JOBS=`nproc`
+
+  cmake .. -G Ninja \
+    -DLLVM_PARALLEL_COMPILE_JOBS="${JOBS:-1}" \
+    -DLLVM_ENABLE_CXX1Y=1 \
+    -DLLVM_INCLUDE_EXAMPLES=0 \
+    -DLLVM_INCLUDE_TESTS=0 \
+    -DLLVM_ENABLE_FFI=1 \
+    -DLLVM_ENABLE_RTTI=1 \
+    -DLLVM_TARGETS_TO_BUILD='X86;AMDGPU;BPF' \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_INSTALL_PREFIX=/usr \
+    -DLLVM_APPEND_VC_REV=0 \
+    -Wno-dev
+
+  ninja
+  DESTDIR=$PKG ninja install
+
+  # only clang may be left, remove llvm
+  rm -r $PKG/usr/include/llvm{,-c}
+  rm -r $PKG/usr/lib/cmake/llvm
+  rm -r $PKG/usr/share/opt-viewer
+  rm $PKG/usr/bin/{bugpoint,ll*,opt,obj2yaml,sancov,sanstats,verify-uselistorder,yaml2obj,dsymutil}
+  rm $PKG/usr/lib/{libLTO.*,libOptRemarks.*,libLLVM*}
+
+
+  mv $PKG/usr/libexec/{c++-analyzer,ccc-analyzer} $PKG/usr/lib/clang
+  rmdir $PKG/usr/libexec
+  sed -i 's|libexec|lib/clang|' $PKG/usr/bin/scan-build
+}

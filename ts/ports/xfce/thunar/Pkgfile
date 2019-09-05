@@ -6,7 +6,7 @@
 # Group: xfce4
 
 name=thunar
-version=1.6.15
+version=1.8.9
 release=2
 source=(http://archive.xfce.org/src/xfce/$name/${version%.*}/Thunar-$version.tar.bz2 \
 	nowarn.patch)
@@ -29,6 +29,9 @@ build () {
                \
               --disable-static \
               --disable-debug
+
+sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
+
 
   make
   make DESTDIR=$PKG install

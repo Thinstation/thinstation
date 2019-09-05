@@ -1,0 +1,18 @@
+# Description:	Luit is a filter that can be run between an arbitrary application and a UTF-8 terminal emulator.
+# URL:		http://invisible-island.net/luit/
+# Packager:	Ivan Rodionov, jean at mosk ru
+# Depends on:
+
+name=luit
+version=1.1.1
+release=1
+source=(https://xorg.freedesktop.org/releases/individual/app/luit-$version.tar.bz2 \
+	git-fixes.patch)
+
+build () {
+	cd $name-$version
+	patch -p1 -i $SRC/git-fixes.patch
+	autoreconf -vfi
+	./configure --prefix=/usr --mandir=/usr/man
+	make && make DESTDIR=$PKG install
+}

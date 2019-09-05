@@ -1,19 +1,19 @@
 # Description: IASL Compiler
-# URL: http://www.intel.com/technology/iapc/acpi
-# Maintainer: Jose V Beneyto, sepen at crux dot nu
-# Packager: Jose V Beneyto, sepen at crux dot nu
-# Depends on: 
+# URL:         https://www.acpica.org/
+# Maintainer:  John Vogel, jvogel4 at stny dot rr dot com
 
 name=iasl
-version=20160212
+version=20190816
 release=1
 source=(https://acpica.org/sites/acpica/files/acpica-unix2-$version.tar.gz)
 
 build() {
-  cd acpica-unix2-$version
+	cd acpica-unix2-$version
 
-  make clean
-  make BITS=64 HOST=_LINUX $name
+	sed -i "s/\-Werror/\-Wno-error/g" generate/unix/iasl/Makefile
+	make clean
+	make BITS=64 HOST=_LINUX $name
 
-  install -D -m 0755 generate/unix/bin/$name $PKG/usr/bin/$name
+	install -D -m 0755 generate/unix/bin/$name $PKG/usr/bin/$name
 }
+

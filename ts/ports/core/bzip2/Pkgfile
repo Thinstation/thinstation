@@ -1,21 +1,36 @@
 # Description: Very high-quality data compression program
-# URL: http://www.bzip.org/
+# URL: https://sourceware.org/bzip2/
 # Maintainer: CRUX System Team, core-ports at crux dot nu
 
 name=bzip2
-version=1.0.6
+version=1.0.8
 release=2
-source=(http://www.bzip.org/$version/$name-$version.tar.gz \
-        $name.patch)
+source=(https://sourceware.org/pub/bzip2/$name-$version.tar.gz)
 
 build() {
 	cd $name-$version
 
-	patch -Np1 -i $SRC/$name.patch
-
-	make
-	make PREFIX=$PKG/usr install
+	install -d $PKG/usr/{bin,lib,include,share/man/man1}
+	sed "/^CFLAGS/s/-O2/$CFLAGS/" -i Makefile Makefile-libbz2_so
 
 	make -f Makefile-libbz2_so
-	make -f Makefile-libbz2_so PREFIX=$PKG/usr install
+
+	install libbz2.so.$version $PKG/usr/lib
+	ln -s libbz2.so.$version $PKG/usr/lib/libbz2.so
+	ln -s libbz2.so.$version $PKG/usr/lib/libbz2.so.1.0
+
+	make clean
+	make
+
+	install -m 0755 bzip2 bzip2recover bzdiff bzgrep bzmore $PKG/usr/bin
+	ln -s bzip2  $PKG/usr/bin/bunzip2
+	ln -s bzip2  $PKG/usr/bin/bzcat
+	ln -s bzdiff $PKG/usr/bin/bzcmp
+	ln -s bzgrep $PKG/usr/bin/bzegrep
+	ln -s bzgrep $PKG/usr/bin/bzfgrep
+	ln -s bzmore $PKG/usr/bin/bzless
+
+	install -m 0644 libbz2.a $PKG/usr/lib
+	install -m 0644 bzlib.h $PKG/usr/include
+	install -m 0644 *.1 $PKG/usr/share/man/man1
 }

@@ -1,20 +1,19 @@
 # Description: A compressed GIF library compatible with libungif
 # URL: http://giflib.sourceforge.net
-# Maintainer: Jose V Beneyto, sepen at crux dot nu
-# Packager: Brett Goulder, predatorfreak at dcaf-security dot org
+# Maintainer: Fredrik Rinnestam, fredrik at crux dot guru
 # Depends on:
 
 name=giflib
-version=5.1.4
+version=5.2.1
 release=1
-source=(http://download.sourceforge.net/$name/$name-$version.tar.bz2)
+source=(http://download.sourceforge.net/$name/$name-$version.tar.gz)
 
 build() {
-    cd $name-$version
+	cd $name-$version
+	make
+	make PREFIX=$PKG/usr install
 
-    ./configure --prefix=/usr --disable-static
-
-    sed 's|SUBDIRS =.*|SUBDIRS = lib util|' -i Makefile
-    make
-    make prefix=$PKG/usr install
+	#We only want the library and no manpages
+	rm -rf $PKG/usr/share
 }
+

@@ -1,0 +1,21 @@
+# Description: Public client interface library for NIS(YP) and NIS+
+# URL: https://github.com/thkukuk/libnsl
+# Maintainer: Danny Rawlins, crux at romster dot me
+# Depends on: libtirpc
+
+name=libnsl
+version=1.2.0
+release=1
+source=(https://github.com/thkukuk/$name/archive/v$version/$name-$version.tar.gz
+)
+
+build() {
+	cd $name-$version
+
+	autoreconf -fi
+
+	./configure --prefix=/usr
+
+	make 
+	make DESTDIR=$PKG install
+}

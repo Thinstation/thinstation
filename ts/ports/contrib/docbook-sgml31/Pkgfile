@@ -1,0 +1,27 @@
+# Maintainer: Andreas Radke <andyrtr@archlinux.org>
+
+# Contributor: Chris Severance aur.severach aATt spamgourmet dott com
+# Contributor: Andreas B. Wagner <AndreasBWagner@gmail.com>
+
+name=docbook-sgml31
+version=3.1
+release=3
+install=$name.install
+source=("http://www.docbook.org/sgml/${version}/docbk31.zip")
+
+build() {
+  cd "$SRC"
+  # This command removes the ENT definitions from the catalog file.
+  # This command replaces the DTDDECL catalog entry, which is not supported by Linux SGML tools, 
+  # with the SGMLDECL catalog entry.
+  sed -i -e '/ISO 8879/d' \
+         -e 's|DTDDECL "-//OASIS//DTD DocBook V3.1//EN"|SGMLDECL|g' \
+         docbook.cat
+
+  local DTDDIR="usr/share/sgml/docbook-sgml-${version}"
+
+  install -dm755 "$PKG/$DTDDIR"
+  install -m644 docbook.cat "$PKG/$DTDDIR/catalog"
+  install -m644 *.dtd *.mod *.dcl "$PKG/$DTDDIR"
+}
+

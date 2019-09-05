@@ -1,0 +1,37 @@
+From: Debian Cyrus SASL Team
+ <pkg-cyrus-sasl2-debian-devel@lists.alioth.debian.org>
+Date: Thu, 24 Mar 2016 11:35:04 +0100
+Subject: Update required libraries when ld --as-needed is used
+
+it.
+---
+ saslauthd/Makefile.am | 2 +-
+ sasldb/Makefile.am    | 4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/saslauthd/Makefile.am b/saslauthd/Makefile.am
+index 864b29b..4cf3a3d 100644
+--- a/saslauthd/Makefile.am
++++ b/saslauthd/Makefile.am
+@@ -25,7 +25,7 @@ EXTRA_saslauthd_sources = getaddrinfo.c getnameinfo.c
+ saslauthd_DEPENDENCIES = saslauthd-main.o $(LTLIBOBJS_FULL)
+ saslauthd_LDADD	= @SASL_KRB_LIB@ \
+ 		  @GSSAPIBASE_LIBS@ @LIB_CRYPT@ @LIB_SIA@ \
+-		  @LIB_SOCKET@ @SASL_DB_LIB@ @LIB_PAM@ @LDAP_LIBS@ $(LTLIBOBJS_FULL) $(CRYPTO_COMPAT_OBJS) $(LIBSASLDB_OBJS)
++		  @LIB_SOCKET@ ../sasldb/libsasldb.la @LIB_PAM@ @LDAP_LIBS@ $(LTLIBOBJS_FULL) $(CRYPTO_COMPAT_OBJS) $(LIBSASLDB_OBJS)
+ 
+ testsaslauthd_SOURCES = testsaslauthd.c utils.c
+ testsaslauthd_LDADD = @LIB_SOCKET@
+diff --git a/sasldb/Makefile.am b/sasldb/Makefile.am
+index 497ee25..a27645f 100644
+--- a/sasldb/Makefile.am
++++ b/sasldb/Makefile.am
+@@ -54,6 +54,6 @@ noinst_LTLIBRARIES = libsasldb.la
+ 
+ libsasldb_la_SOURCES = allockey.c sasldb.h
+ EXTRA_libsasldb_la_SOURCES = $(extra_common_sources)
+-libsasldb_la_DEPENDENCIES = $(SASL_DB_BACKEND)
+-libsasldb_la_LIBADD = $(SASL_DB_BACKEND)
++libsasldb_la_DEPENDENCIES = $(SASL_DB_BACKEND) $(SASL_DB_LIB)
++libsasldb_la_LIBADD = $(SASL_DB_BACKEND) $(SASL_DB_LIB)
+ libsasldb_la_LDFLAGS = -no-undefined

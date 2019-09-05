@@ -3,16 +3,13 @@
 # Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 
 name=libgusb
-version=0.2.9
+version=0.3.0
 release=1
 source=(http://people.freedesktop.org/~hughsient/releases/${name}-${version}.tar.xz)
 
 build() {
-	cd $name-$version
+        cd $name-$version
 
-	./configure --prefix=/usr \
-			--disable-static
-
-	make
-	make DESTDIR=$PKG install
+        ts-meson build --prefix=/usr
+        DESTDIR=$PKG ninja -C build -j ${JOBS:-1} install
 }

@@ -1,0 +1,27 @@
+#!/bin/bash
+
+CATALOG=/etc/xml/catalog
+
+if [ ! -f ${CATALOG} ]; then
+	xmlcatalog --noout --create ${CATALOG}
+fi
+
+xmlcatalog --noout --add "delegatePublic" \
+	"-//OASIS//ENTITIES DocBook XML" \
+	"file:///etc/xml/docbook-xml" \
+	${CATALOG}
+
+xmlcatalog --noout --add "delegatePublic" \
+	"-//OASIS//DTD DocBook XML" \
+	"file:///etc/xml/docbook-xml" \
+	${CATALOG}
+
+xmlcatalog --noout --add "delegateSystem" \
+	"http://www.oasis-open.org/docbook/" \
+	"file:///etc/xml/docbook-xml" \
+	${CATALOG}
+
+xmlcatalog --noout --add "delegateURI" \
+	"http://www.oasis-open.org/docbook/" \
+	"file:///etc/xml/docbook-xml" \
+	${CATALOG}

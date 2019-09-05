@@ -6,7 +6,7 @@
 # Nice to have: vte
 
 name=geany
-version=1.33
+version=1.35
 release=1
 source=(http://download.geany.org/$name-$version.tar.bz2)
 
@@ -16,6 +16,9 @@ build () {
   ./configure --prefix=/usr \
               --mandir=/usr/man \
               --enable-plugins
+
+sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
+
 
   make
   make DESTDIR=$PKG install

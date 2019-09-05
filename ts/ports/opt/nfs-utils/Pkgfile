@@ -4,18 +4,14 @@
 # Depends on:  util-linux eudev libcap rpcbind libnfsidmap libevent keyutils sqlite3
 
 name=nfs-utils
-version=1.3.3
+version=2.4.1
 release=1
 source=(http://downloads.sourceforge.net/project/nfs/$name/$version/$name-$version.tar.bz2
         exports idmapd.conf
-        nfs nfsclient nfsserver rpc.idmapd rpc.statd rpc.mountd rpc.nfsd
-        nfssvc_setfds.patch)
+        nfs nfsclient nfsserver rpc.idmapd rpc.statd rpc.mountd rpc.nfsd)
 
 build () {
     cd $name-$version
-
-    # http://thread.gmane.org/gmane.linux.nfs/72767
-    patch -p1 -i $SRC/nfssvc_setfds.patch
 
     ./configure --prefix=/usr \
                 --mandir=/usr/man \

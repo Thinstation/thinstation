@@ -1,0 +1,54 @@
+# $Id: PKGBUILD 240297 2015-06-03 10:22:03Z fyan $
+# Maintainer: Felix Yan <felixonmars@archlinux.org>
+# Contributor: Andrea Scarpino <andrea@archlinux.org>
+
+name=qt5-tools
+_qtver=5.13.0
+version=${_qtver/-/}
+release=1
+_pkgfqn="${name/5-/}-everywhere-src-${_qtver}"
+source=("http://download.qt.io/official_releases/qt/${version%.*}/${_qtver}/submodules/${_pkgfqn}.tar.xz"
+        {assistant,designer,linguist,qdbusviewer}.desktop)
+
+build() {
+  mkdir -p build
+  cd build
+
+  qmake ../${_pkgfqn}
+  make
+  make INSTALL_ROOT="${PKG}" install
+
+  cd ../${_pkgfqn}
+  # install missing icons and desktop files
+  for icon in src/linguist/linguist/images/icons/linguist-*-32.png ; do
+    size=$(echo $(basename ${icon}) | cut -d- -f2)
+    install -p -D -m644 ${icon} \
+      "${PKG}/usr/share/icons/hicolor/${size}x${size}/apps/linguist.png"
+  done
+
+  install -D -m644 src/assistant/assistant/images/assistant.png \
+    "${PKG}/usr/share/icons/hicolor/32x32/apps/assistant.png"
+  install -D -m644 src/assistant/assistant/images/assistant-128.png \
+    "${PKG}/usr/share/icons/hicolor/128x128/apps/assistant.png"
+  install -D -m644 src/designer/src/designer/images/designer.png \
+    "${PKG}/usr/share/icons/hicolor/128x128/apps/QtProject-designer.png"
+  install -D -m644 src/qdbus/qdbusviewer/images/qdbusviewer.png \
+    "${PKG}/usr/share/icons/hicolor/32x32/apps/qdbusviewer.png"
+  install -D -m644 src/qdbus/qdbusviewer/images/qdbusviewer-128.png \
+    "${PKG}/usr/share/icons/hicolor/128x128/apps/qdbusviewer.png"
+  install -d "${PKG}/usr/share/applications"
+  install -m644 "${SRC}"/{linguist,designer,assistant,qdbusviewer}.desktop \
+    "${PKG}/usr/share/applications/"
+
+  # Symlinks for backwards compatibility
+  for b in "${PKG}"/usr/bin/*; do
+    ln -s /usr/bin/$(basename $b) "${PKG}"/usr/bin/$(basename $b)-qt5
+  done
+
+  # Drop QMAKE_PRL_BUILD_DIR because reference the build dir
+  find "${PKG}/usr/lib" -type f -name '*.prl' \
+    -exec sed -i -e '/^QMAKE_PRL_BUILD_DIR/d' {} \;
+
+  install -d "$PKG"/usr/share/licenses
+  ln -s /usr/share/licenses/qt5-base "$PKG"/usr/share/licenses/${name}
+}

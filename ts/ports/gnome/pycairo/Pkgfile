@@ -10,6 +10,16 @@ version=1.17.0
 release=1
 
 build() {
+        python3 -m pip download --no-binary --no-deps $pname
+        mkdir -p $SRC/$pname
+        tar -xvf $SRC/$pname*.tar.* -C $SRC/$pname
+        cd $SRC/$pname/*
+
+        python3 ./setup.py install --root $PKG
+
+	cd $SRC
+	rm -rf $SRC/*
+
         python2 -m pip download --no-binary --no-deps $pname
         mkdir -p $SRC/$pname
         tar -xvf $SRC/$pname*.tar.* -C $SRC/$pname

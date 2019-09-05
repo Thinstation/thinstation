@@ -1,0 +1,23 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Tue, 25 Oct 2016 12:33:27 +0200
+Subject: Add ${with_pgsql}include/postgresql/ to include path
+
+---
+ configure.ac | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/configure.ac b/configure.ac
+index fe7f0eb..1882f31 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -894,7 +894,9 @@ case "$with_pgsql" in
+      LIB_PGSQL_DIR=$LIB_PGSQL
+      LIB_PGSQL="$LIB_PGSQL -lpq"
+ 
+-     if test -d ${with_pgsql}/include/pgsql; then
++     if test -d ${with_pgsql}/include/postgresql/; then
++         CPPFLAGS="${CPPFLAGS} -I${with_pgsql}/include/postgresql"
++     elif test -d ${with_pgsql}/include/pgsql; then
+          CPPFLAGS="${CPPFLAGS} -I${with_pgsql}/include/pgsql"
+      elif test -d ${with_pgsql}/pgsql/include; then
+          CPPFLAGS="${CPPFLAGS} -I${with_pgsql}/pgsql/include"

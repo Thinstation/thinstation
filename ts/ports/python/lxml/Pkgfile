@@ -1,0 +1,21 @@
+# Description: A pythonic binding for the libxml2 and libxslt libraries.
+# URL: http://lxml.de/
+# Maintainer: Danny Rawlins, monster dot romster at gmail dot com
+# Packager: Danny Rawlins, monster dot romster at gmail dot com
+# Depends on: libxslt cython
+
+name=lxml
+pname=lxml
+version=pip
+release=1
+source=()
+
+build() {
+        pip2 download $name --no-binary :all: --no-deps
+        mkdir -p $SRC/$name
+        tar -xvf $SRC/*-*.* -C $SRC/$name || unzip -d $SRC/$name *-*.zip
+        cd $SRC/$name/*
+
+        python ./setup.py install --root $PKG
+}
+

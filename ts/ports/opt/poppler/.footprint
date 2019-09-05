@@ -1,5 +1,6 @@
 drwxr-xr-x	root/root	usr/
 drwxr-xr-x	root/root	usr/bin/
+-rwxr-xr-x	root/root	usr/bin/pdfattach
 -rwxr-xr-x	root/root	usr/bin/pdfdetach
 -rwxr-xr-x	root/root	usr/bin/pdffonts
 -rwxr-xr-x	root/root	usr/bin/pdfimages
@@ -12,7 +13,6 @@ drwxr-xr-x	root/root	usr/bin/
 -rwxr-xr-x	root/root	usr/bin/pdftops
 -rwxr-xr-x	root/root	usr/bin/pdftotext
 -rwxr-xr-x	root/root	usr/bin/pdfunite
--rwxr-xr-x	root/root	usr/bin/poppler-glib-demo
 drwxr-xr-x	root/root	usr/include/
 drwxr-xr-x	root/root	usr/include/poppler/
 -rw-r--r--	root/root	usr/include/poppler/Annot.h
@@ -22,9 +22,12 @@ drwxr-xr-x	root/root	usr/include/poppler/
 -rw-r--r--	root/root	usr/include/poppler/CMap.h
 -rw-r--r--	root/root	usr/include/poppler/CachedFile.h
 -rw-r--r--	root/root	usr/include/poppler/Catalog.h
+-rw-r--r--	root/root	usr/include/poppler/CertificateInfo.h
 -rw-r--r--	root/root	usr/include/poppler/CharCodeToUnicode.h
 -rw-r--r--	root/root	usr/include/poppler/CharTypes.h
 -rw-r--r--	root/root	usr/include/poppler/CompactFontTables.h
+-rw-r--r--	root/root	usr/include/poppler/CurlCachedFile.h
+-rw-r--r--	root/root	usr/include/poppler/CurlPDFDocBuilder.h
 -rw-r--r--	root/root	usr/include/poppler/DateInfo.h
 -rw-r--r--	root/root	usr/include/poppler/Decrypt.h
 -rw-r--r--	root/root	usr/include/poppler/Dict.h
@@ -43,6 +46,7 @@ drwxr-xr-x	root/root	usr/include/poppler/
 -rw-r--r--	root/root	usr/include/poppler/Hints.h
 -rw-r--r--	root/root	usr/include/poppler/JArithmeticDecoder.h
 -rw-r--r--	root/root	usr/include/poppler/JBIG2Stream.h
+-rw-r--r--	root/root	usr/include/poppler/JPEG2000Stream.h
 -rw-r--r--	root/root	usr/include/poppler/Lexer.h
 -rw-r--r--	root/root	usr/include/poppler/Linearization.h
 -rw-r--r--	root/root	usr/include/poppler/Link.h
@@ -69,8 +73,6 @@ drwxr-xr-x	root/root	usr/include/poppler/
 -rw-r--r--	root/root	usr/include/poppler/ProfileData.h
 -rw-r--r--	root/root	usr/include/poppler/Rendition.h
 -rw-r--r--	root/root	usr/include/poppler/SecurityHandler.h
--rw-r--r--	root/root	usr/include/poppler/SignatureHandler.h
--rw-r--r--	root/root	usr/include/poppler/SignatureInfo.h
 -rw-r--r--	root/root	usr/include/poppler/Sound.h
 -rw-r--r--	root/root	usr/include/poppler/SplashOutputDev.h
 -rw-r--r--	root/root	usr/include/poppler/StdinCachedFile.h
@@ -81,17 +83,17 @@ drwxr-xr-x	root/root	usr/include/poppler/
 -rw-r--r--	root/root	usr/include/poppler/StructTreeRoot.h
 -rw-r--r--	root/root	usr/include/poppler/TextOutputDev.h
 -rw-r--r--	root/root	usr/include/poppler/UTF.h
--rw-r--r--	root/root	usr/include/poppler/UTF8.h
 -rw-r--r--	root/root	usr/include/poppler/UnicodeCClassTables.h
 -rw-r--r--	root/root	usr/include/poppler/UnicodeCompTables.h
 -rw-r--r--	root/root	usr/include/poppler/UnicodeDecompTables.h
 -rw-r--r--	root/root	usr/include/poppler/UnicodeMap.h
+-rw-r--r--	root/root	usr/include/poppler/UnicodeMapFuncs.h
 -rw-r--r--	root/root	usr/include/poppler/UnicodeMapTables.h
 -rw-r--r--	root/root	usr/include/poppler/UnicodeTypeTable.h
 -rw-r--r--	root/root	usr/include/poppler/ViewerPreferences.h
 -rw-r--r--	root/root	usr/include/poppler/XRef.h
--rw-r--r--	root/root	usr/include/poppler/XpdfPluginAPI.h
 drwxr-xr-x	root/root	usr/include/poppler/cpp/
+-rw-r--r--	root/root	usr/include/poppler/cpp/poppler-destination.h
 -rw-r--r--	root/root	usr/include/poppler/cpp/poppler-document.h
 -rw-r--r--	root/root	usr/include/poppler/cpp/poppler-embedded-file.h
 -rw-r--r--	root/root	usr/include/poppler/cpp/poppler-font.h
@@ -120,6 +122,7 @@ drwxr-xr-x	root/root	usr/include/poppler/glib/
 -rw-r--r--	root/root	usr/include/poppler/glib/poppler-features.h
 -rw-r--r--	root/root	usr/include/poppler/glib/poppler-form-field.h
 -rw-r--r--	root/root	usr/include/poppler/glib/poppler-layer.h
+-rw-r--r--	root/root	usr/include/poppler/glib/poppler-macros.h
 -rw-r--r--	root/root	usr/include/poppler/glib/poppler-media.h
 -rw-r--r--	root/root	usr/include/poppler/glib/poppler-movie.h
 -rw-r--r--	root/root	usr/include/poppler/glib/poppler-page.h
@@ -127,23 +130,30 @@ drwxr-xr-x	root/root	usr/include/poppler/glib/
 -rw-r--r--	root/root	usr/include/poppler/glib/poppler.h
 drwxr-xr-x	root/root	usr/include/poppler/goo/
 -rw-r--r--	root/root	usr/include/poppler/goo/FixedPoint.h
--rw-r--r--	root/root	usr/include/poppler/goo/GooHash.h
+-rw-r--r--	root/root	usr/include/poppler/goo/GooCheckedOps.h
 -rw-r--r--	root/root	usr/include/poppler/goo/GooLikely.h
--rw-r--r--	root/root	usr/include/poppler/goo/GooList.h
--rw-r--r--	root/root	usr/include/poppler/goo/GooMutex.h
 -rw-r--r--	root/root	usr/include/poppler/goo/GooString.h
 -rw-r--r--	root/root	usr/include/poppler/goo/GooTimer.h
 -rw-r--r--	root/root	usr/include/poppler/goo/ImgWriter.h
 -rw-r--r--	root/root	usr/include/poppler/goo/JpegWriter.h
--rw-r--r--	root/root	usr/include/poppler/goo/NetPBMWriter.h
 -rw-r--r--	root/root	usr/include/poppler/goo/PNGWriter.h
 -rw-r--r--	root/root	usr/include/poppler/goo/TiffWriter.h
+-rw-r--r--	root/root	usr/include/poppler/goo/gdir.h
 -rw-r--r--	root/root	usr/include/poppler/goo/gfile.h
 -rw-r--r--	root/root	usr/include/poppler/goo/gmem.h
 -rw-r--r--	root/root	usr/include/poppler/goo/grandom.h
 -rw-r--r--	root/root	usr/include/poppler/goo/gstrtod.h
--rw-r--r--	root/root	usr/include/poppler/goo/gtypes.h
 -rw-r--r--	root/root	usr/include/poppler/poppler-config.h
+drwxr-xr-x	root/root	usr/include/poppler/qt5/
+-rw-r--r--	root/root	usr/include/poppler/qt5/poppler-annotation.h
+-rw-r--r--	root/root	usr/include/poppler/qt5/poppler-export.h
+-rw-r--r--	root/root	usr/include/poppler/qt5/poppler-form.h
+-rw-r--r--	root/root	usr/include/poppler/qt5/poppler-link.h
+-rw-r--r--	root/root	usr/include/poppler/qt5/poppler-media.h
+-rw-r--r--	root/root	usr/include/poppler/qt5/poppler-optcontent.h
+-rw-r--r--	root/root	usr/include/poppler/qt5/poppler-page-transition.h
+-rw-r--r--	root/root	usr/include/poppler/qt5/poppler-qt5.h
+-rw-r--r--	root/root	usr/include/poppler/qt5/poppler-version.h
 drwxr-xr-x	root/root	usr/include/poppler/splash/
 -rw-r--r--	root/root	usr/include/poppler/splash/Splash.h
 -rw-r--r--	root/root	usr/include/poppler/splash/SplashBitmap.h
@@ -162,86 +172,46 @@ drwxr-xr-x	root/root	usr/include/poppler/splash/
 -rw-r--r--	root/root	usr/include/poppler/splash/SplashPattern.h
 -rw-r--r--	root/root	usr/include/poppler/splash/SplashScreen.h
 -rw-r--r--	root/root	usr/include/poppler/splash/SplashState.h
--rw-r--r--	root/root	usr/include/poppler/splash/SplashT1Font.h
--rw-r--r--	root/root	usr/include/poppler/splash/SplashT1FontEngine.h
--rw-r--r--	root/root	usr/include/poppler/splash/SplashT1FontFile.h
 -rw-r--r--	root/root	usr/include/poppler/splash/SplashTypes.h
 -rw-r--r--	root/root	usr/include/poppler/splash/SplashXPath.h
 -rw-r--r--	root/root	usr/include/poppler/splash/SplashXPathScanner.h
 drwxr-xr-x	root/root	usr/lib/
 drwxr-xr-x	root/root	usr/lib/girepository-1.0/
 -rw-r--r--	root/root	usr/lib/girepository-1.0/Poppler-0.18.typelib
--rwxr-xr-x	root/root	usr/lib/libpoppler-cpp.la
-lrwxrwxrwx	root/root	usr/lib/libpoppler-cpp.so -> libpoppler-cpp.so.0.2.1
-lrwxrwxrwx	root/root	usr/lib/libpoppler-cpp.so.0 -> libpoppler-cpp.so.0.2.1
--rwxr-xr-x	root/root	usr/lib/libpoppler-cpp.so.0.2.1
--rwxr-xr-x	root/root	usr/lib/libpoppler-glib.la
-lrwxrwxrwx	root/root	usr/lib/libpoppler-glib.so -> libpoppler-glib.so.8.7.0
-lrwxrwxrwx	root/root	usr/lib/libpoppler-glib.so.8 -> libpoppler-glib.so.8.7.0
--rwxr-xr-x	root/root	usr/lib/libpoppler-glib.so.8.7.0
--rwxr-xr-x	root/root	usr/lib/libpoppler.la
-lrwxrwxrwx	root/root	usr/lib/libpoppler.so -> libpoppler.so.59.0.0
-lrwxrwxrwx	root/root	usr/lib/libpoppler.so.59 -> libpoppler.so.59.0.0
--rwxr-xr-x	root/root	usr/lib/libpoppler.so.59.0.0
+lrwxrwxrwx	root/root	usr/lib/libpoppler-cpp.so -> libpoppler-cpp.so.0
+lrwxrwxrwx	root/root	usr/lib/libpoppler-cpp.so.0 -> libpoppler-cpp.so.0.7.0
+-rwxr-xr-x	root/root	usr/lib/libpoppler-cpp.so.0.7.0
+lrwxrwxrwx	root/root	usr/lib/libpoppler-glib.so -> libpoppler-glib.so.8
+lrwxrwxrwx	root/root	usr/lib/libpoppler-glib.so.8 -> libpoppler-glib.so.8.13.0
+-rwxr-xr-x	root/root	usr/lib/libpoppler-glib.so.8.13.0
+lrwxrwxrwx	root/root	usr/lib/libpoppler-qt5.so -> libpoppler-qt5.so.1
+lrwxrwxrwx	root/root	usr/lib/libpoppler-qt5.so.1 -> libpoppler-qt5.so.1.20.0
+-rwxr-xr-x	root/root	usr/lib/libpoppler-qt5.so.1.20.0
+lrwxrwxrwx	root/root	usr/lib/libpoppler.so -> libpoppler.so.89
+lrwxrwxrwx	root/root	usr/lib/libpoppler.so.89 -> libpoppler.so.89.0.0
+-rwxr-xr-x	root/root	usr/lib/libpoppler.so.89.0.0
 drwxr-xr-x	root/root	usr/lib/pkgconfig/
 -rw-r--r--	root/root	usr/lib/pkgconfig/poppler-cairo.pc
 -rw-r--r--	root/root	usr/lib/pkgconfig/poppler-cpp.pc
 -rw-r--r--	root/root	usr/lib/pkgconfig/poppler-glib.pc
+-rw-r--r--	root/root	usr/lib/pkgconfig/poppler-qt5.pc
 -rw-r--r--	root/root	usr/lib/pkgconfig/poppler-splash.pc
 -rw-r--r--	root/root	usr/lib/pkgconfig/poppler.pc
-drwxr-xr-x	root/root	usr/man/
-drwxr-xr-x	root/root	usr/man/man1/
--rw-r--r--	root/root	usr/man/man1/pdfdetach.1.gz
--rw-r--r--	root/root	usr/man/man1/pdffonts.1.gz
--rw-r--r--	root/root	usr/man/man1/pdfimages.1.gz
--rw-r--r--	root/root	usr/man/man1/pdfinfo.1.gz
--rw-r--r--	root/root	usr/man/man1/pdfseparate.1.gz
--rw-r--r--	root/root	usr/man/man1/pdftocairo.1.gz
--rw-r--r--	root/root	usr/man/man1/pdftohtml.1.gz
--rw-r--r--	root/root	usr/man/man1/pdftoppm.1.gz
--rw-r--r--	root/root	usr/man/man1/pdftops.1.gz
--rw-r--r--	root/root	usr/man/man1/pdftotext.1.gz
--rw-r--r--	root/root	usr/man/man1/pdfunite.1.gz
 drwxr-xr-x	root/root	usr/share/
 drwxr-xr-x	root/root	usr/share/gir-1.0/
 -rw-r--r--	root/root	usr/share/gir-1.0/Poppler-0.18.gir
-drwxr-xr-x	root/root	usr/share/gtk-doc/
-drwxr-xr-x	root/root	usr/share/gtk-doc/html/
-drwxr-xr-x	root/root	usr/share/gtk-doc/html/poppler/
--rw-r--r--	root/root	usr/share/gtk-doc/html/poppler/PopplerAnnot.html
--rw-r--r--	root/root	usr/share/gtk-doc/html/poppler/PopplerAttachment.html
--rw-r--r--	root/root	usr/share/gtk-doc/html/poppler/PopplerDocument.html
--rw-r--r--	root/root	usr/share/gtk-doc/html/poppler/PopplerFormField.html
--rw-r--r--	root/root	usr/share/gtk-doc/html/poppler/PopplerLayer.html
--rw-r--r--	root/root	usr/share/gtk-doc/html/poppler/PopplerMedia.html
--rw-r--r--	root/root	usr/share/gtk-doc/html/poppler/PopplerMovie.html
--rw-r--r--	root/root	usr/share/gtk-doc/html/poppler/PopplerPage.html
--rw-r--r--	root/root	usr/share/gtk-doc/html/poppler/PopplerStructureElement.html
--rw-r--r--	root/root	usr/share/gtk-doc/html/poppler/annotation-glossary.html
--rw-r--r--	root/root	usr/share/gtk-doc/html/poppler/api-index-0-12.html
--rw-r--r--	root/root	usr/share/gtk-doc/html/poppler/api-index-0-14.html
--rw-r--r--	root/root	usr/share/gtk-doc/html/poppler/api-index-0-16.html
--rw-r--r--	root/root	usr/share/gtk-doc/html/poppler/api-index-0-18.html
--rw-r--r--	root/root	usr/share/gtk-doc/html/poppler/api-index-0-20.html
--rw-r--r--	root/root	usr/share/gtk-doc/html/poppler/api-index-0-22.html
--rw-r--r--	root/root	usr/share/gtk-doc/html/poppler/api-index-0-26.html
--rw-r--r--	root/root	usr/share/gtk-doc/html/poppler/api-index-0-33.html
--rw-r--r--	root/root	usr/share/gtk-doc/html/poppler/api-index-deprecated.html
--rw-r--r--	root/root	usr/share/gtk-doc/html/poppler/api-index-full.html
--rw-r--r--	root/root	usr/share/gtk-doc/html/poppler/ch01.html
--rw-r--r--	root/root	usr/share/gtk-doc/html/poppler/home.png
--rw-r--r--	root/root	usr/share/gtk-doc/html/poppler/index.html
--rw-r--r--	root/root	usr/share/gtk-doc/html/poppler/index.sgml
--rw-r--r--	root/root	usr/share/gtk-doc/html/poppler/left-insensitive.png
--rw-r--r--	root/root	usr/share/gtk-doc/html/poppler/left.png
--rw-r--r--	root/root	usr/share/gtk-doc/html/poppler/poppler-Error-handling.html
--rw-r--r--	root/root	usr/share/gtk-doc/html/poppler/poppler-PDF-Utility-functions.html
--rw-r--r--	root/root	usr/share/gtk-doc/html/poppler/poppler-PopplerAction.html
--rw-r--r--	root/root	usr/share/gtk-doc/html/poppler/poppler-PopplerColor.html
--rw-r--r--	root/root	usr/share/gtk-doc/html/poppler/poppler-Version-and-Features-Information.html
--rw-r--r--	root/root	usr/share/gtk-doc/html/poppler/poppler.devhelp2
--rw-r--r--	root/root	usr/share/gtk-doc/html/poppler/right-insensitive.png
--rw-r--r--	root/root	usr/share/gtk-doc/html/poppler/right.png
--rw-r--r--	root/root	usr/share/gtk-doc/html/poppler/style.css
--rw-r--r--	root/root	usr/share/gtk-doc/html/poppler/up-insensitive.png
--rw-r--r--	root/root	usr/share/gtk-doc/html/poppler/up.png
+drwxr-xr-x	root/root	usr/share/man/
+drwxr-xr-x	root/root	usr/share/man/man1/
+-rw-r--r--	root/root	usr/share/man/man1/pdfattach.1.gz
+-rw-r--r--	root/root	usr/share/man/man1/pdfdetach.1.gz
+-rw-r--r--	root/root	usr/share/man/man1/pdffonts.1.gz
+-rw-r--r--	root/root	usr/share/man/man1/pdfimages.1.gz
+-rw-r--r--	root/root	usr/share/man/man1/pdfinfo.1.gz
+-rw-r--r--	root/root	usr/share/man/man1/pdfseparate.1.gz
+-rw-r--r--	root/root	usr/share/man/man1/pdfsig.1.gz
+-rw-r--r--	root/root	usr/share/man/man1/pdftocairo.1.gz
+-rw-r--r--	root/root	usr/share/man/man1/pdftohtml.1.gz
+-rw-r--r--	root/root	usr/share/man/man1/pdftoppm.1.gz
+-rw-r--r--	root/root	usr/share/man/man1/pdftops.1.gz
+-rw-r--r--	root/root	usr/share/man/man1/pdftotext.1.gz
+-rw-r--r--	root/root	usr/share/man/man1/pdfunite.1.gz

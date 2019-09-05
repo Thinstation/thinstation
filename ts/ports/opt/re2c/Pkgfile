@@ -1,23 +1,18 @@
-# Description: re2c scanner generator
-# URL: http://www.thinstation.org
-# Maintainer: Jens Maus (mail@jens-maus.de)
+# Description: A tool for generating C-based recognizers from regular expressions
+# URL: https://re2c.org/
+# Maintainer: Tim Biermann, tbier at posteo dot de
+# Depends on:
 
 name=re2c
-version=0.16
+version=1.2.1
 release=1
-source=()
+source=(https://github.com/skvadrik/re2c/archive/$version/$name-$version.tar.gz)
 
 build() {
-  git clone git://git.code.sf.net/p/re2c/code-git ${name}-${version}
-  cd ${name}-${version}/re2c
-  git checkout -b ${version} tags/${version}
-
+  cd $name-$version #/$name
   ./autogen.sh
-  ./configure --prefix=/usr \
-              --exec-prefix=/ \
-              --sysconfdir=/etc \
-              --mandir=/usr/man
-
-	make
-	make DESTDIR=$PKG install
+  ./configure --prefix=/usr
+  make
+  make DESTDIR=$PKG install
 }
+

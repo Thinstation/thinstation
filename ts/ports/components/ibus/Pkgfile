@@ -4,7 +4,7 @@
 # Depends on:  dbus-python libnotify iso-codes gtk
 
 name=ibus
-version=1.5.19
+version=1.5.21
 release=1
 source=(
 	https://github.com/$name/$name/releases/download/$version/$name-$version.tar.gz
@@ -31,49 +31,20 @@ build() {
 	cp $SRC/NamesList.txt $SRC/$name-$version/annotation/share/unicode/cldr/common/annotations/
 	cp $SRC/Blocks.txt $SRC/$name-$version/annotation/share/unicode/cldr/common/annotations/
 
-	local VALA
-	if [ "$(pkginfo -i | grep '^vala ' )" ]
-	then
-		VALA='--enable-vala=yes'
-	else
-		VALA='--enable-vala=no'
-	fi
-
-	local GTK3
-	if [ "$(pkginfo -i | grep '^gtk3 ' )" ]
-	then
-		GTK3='--enable-gtk3'
-	else
-		GTK3='--disable-gtk3'
-	fi
-
-	local EMOJI
-	if [ "$(pkginfo -i | grep '^json-glib ' )" ]
-	then
-		EMOJI="--enable-emoji-dict --with-unicode-emoji-dir=$SRC/$name-$version/emoji --with-emoji-annotation-dir=$SRC/$name-$version/annotation/share/unicode/cldr/common/annotations --with-ucd-dir=$SRC/$name-$version/annotation/share/unicode/cldr/common/annotations"
-	else
-		EMOJI='--disable-emoji-dict'
-	fi
-
 	cd $SRC/$name-$version
 
 	./configure \
 		--prefix=/usr \
 		--sysconfdir=/etc \
 		--libexecdir=/usr/lib/$name \
-		--disable-nls \
-		--disable-tests \
-		$VALA \
-		$GTK3 \
-		--enable-xim \
-		--enable-wayland=no \
-		--disable-gtk-doc-html \
-		--disable-gconf \
 		--enable-dconf \
-		--disable-appindicator \
-		--with-python=python2 \
+		--enable-wayland \
+		--enable-gtk-doc \
+		--disable-memconf \
+		--enable-ui \
 		--enable-python-library \
-		$EMOJI
+		--with-python=python3 \
+		--with-ucd-dir=/usr/share/unicode/
 
 	make
 	make DESTDIR=$PKG install

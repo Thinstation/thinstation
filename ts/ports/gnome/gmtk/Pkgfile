@@ -17,8 +17,8 @@ build() {
 		--disable-static \
 		--enable-shared \
 
+sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
+
     make
     make DESTDIR=$PKG install
-    rm -rf $PKG/usr/share/doc
-    rm -rf $PKG/usr/share/locale
 }

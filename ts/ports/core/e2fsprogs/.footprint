@@ -1,4 +1,7 @@
 drwxr-xr-x	root/root	etc/
+drwxr-xr-x	root/root	etc/cron.d/
+-rw-r--r--	root/root	etc/cron.d/e2scrub_all
+-rw-r--r--	root/root	etc/e2scrub.conf
 -rw-r--r--	root/root	etc/mke2fs.conf
 drwxr-xr-x	root/root	lib/
 lrwxrwxrwx	root/root	lib/libcom_err.so.2 -> libcom_err.so.2.1
@@ -16,23 +19,25 @@ drwxr-xr-x	root/root	sbin/
 -rwxr-xr-x	root/root	sbin/e2fsck
 -rwxr-xr-x	root/root	sbin/e2image
 lrwxrwxrwx	root/root	sbin/e2label -> tune2fs
+lrwxrwxrwx	root/root	sbin/e2mmpstatus -> dumpe2fs
+-rwxr-xr-x	root/root	sbin/e2scrub
+-rwxr-xr-x	root/root	sbin/e2scrub_all
 -rwxr-xr-x	root/root	sbin/e2undo
 lrwxrwxrwx	root/root	sbin/fsck.ext2 -> e2fsck
 lrwxrwxrwx	root/root	sbin/fsck.ext3 -> e2fsck
 lrwxrwxrwx	root/root	sbin/fsck.ext4 -> e2fsck
-lrwxrwxrwx	root/root	sbin/fsck.ext4dev -> e2fsck
 -rwxr-xr-x	root/root	sbin/logsave
 -rwxr-xr-x	root/root	sbin/mke2fs
 lrwxrwxrwx	root/root	sbin/mkfs.ext2 -> mke2fs
 lrwxrwxrwx	root/root	sbin/mkfs.ext3 -> mke2fs
 lrwxrwxrwx	root/root	sbin/mkfs.ext4 -> mke2fs
-lrwxrwxrwx	root/root	sbin/mkfs.ext4dev -> mke2fs
 -rwxr-xr-x	root/root	sbin/resize2fs
 -rwxr-xr-x	root/root	sbin/tune2fs
 drwxr-xr-x	root/root	usr/
 drwxr-xr-x	root/root	usr/bin/
 -rwxr-xr-x	root/root	usr/bin/chattr
 -rwxr-xr-x	root/root	usr/bin/compile_et
+-rwxr-xr-x	root/root	usr/bin/fuse2fs
 -rwxr-xr-x	root/root	usr/bin/lsattr
 -rwxr-xr-x	root/root	usr/bin/mk_cmds
 drwxr-xr-x	root/root	usr/include/
@@ -50,12 +55,16 @@ drwxr-xr-x	root/root	usr/include/ext2fs/
 -rw-r--r--	root/root	usr/include/ext2fs/ext2_types.h
 -rw-r--r--	root/root	usr/include/ext2fs/ext2fs.h
 -rw-r--r--	root/root	usr/include/ext2fs/ext3_extents.h
+-rw-r--r--	root/root	usr/include/ext2fs/hashmap.h
 -rw-r--r--	root/root	usr/include/ext2fs/qcow2.h
 -rw-r--r--	root/root	usr/include/ext2fs/tdb.h
 drwxr-xr-x	root/root	usr/include/ss/
 -rw-r--r--	root/root	usr/include/ss/ss.h
 -rw-r--r--	root/root	usr/include/ss/ss_err.h
 drwxr-xr-x	root/root	usr/lib/
+drwxr-xr-x	root/root	usr/lib/e2fsprogs/
+-rwxr-xr-x	root/root	usr/lib/e2fsprogs/e2scrub_all_cron
+-rwxr-xr-x	root/root	usr/lib/e2fsprogs/e2scrub_fail
 -rw-r--r--	root/root	usr/lib/libcom_err.a
 lrwxrwxrwx	root/root	usr/lib/libcom_err.so -> /lib/libcom_err.so.2
 -rw-r--r--	root/root	usr/lib/libe2p.a
@@ -69,12 +78,21 @@ drwxr-xr-x	root/root	usr/lib/pkgconfig/
 -rw-r--r--	root/root	usr/lib/pkgconfig/e2p.pc
 -rw-r--r--	root/root	usr/lib/pkgconfig/ext2fs.pc
 -rw-r--r--	root/root	usr/lib/pkgconfig/ss.pc
+drwxr-xr-x	root/root	usr/lib/systemd/
+drwxr-xr-x	root/root	usr/lib/systemd/system/
+-rw-r--r--	root/root	usr/lib/systemd/system/e2scrub@.service
+-rw-r--r--	root/root	usr/lib/systemd/system/e2scrub_all.service
+-rw-r--r--	root/root	usr/lib/systemd/system/e2scrub_all.timer
+-rw-r--r--	root/root	usr/lib/systemd/system/e2scrub_fail@.service
+-rw-r--r--	root/root	usr/lib/systemd/system/e2scrub_reap.service
+drwxr-xr-x	root/root	usr/lib/udev/
+drwxr-xr-x	root/root	usr/lib/udev/rules.d/
+-rw-r--r--	root/root	usr/lib/udev/rules.d/96-e2scrub.rules
 drwxr-xr-x	root/root	usr/sbin/
 -rwxr-xr-x	root/root	usr/sbin/e2freefrag
 -rwxr-xr-x	root/root	usr/sbin/e4crypt
 -rwxr-xr-x	root/root	usr/sbin/e4defrag
 -rwxr-xr-x	root/root	usr/sbin/filefrag
--rwxr-xr-x	root/root	usr/sbin/fuse2fs
 -rwxr-xr-x	root/root	usr/sbin/mklost+found
 drwxr-xr-x	root/root	usr/share/
 drwxr-xr-x	root/root	usr/share/et/
@@ -99,21 +117,36 @@ drwxr-xr-x	root/root	usr/share/locale/eo/LC_MESSAGES/
 drwxr-xr-x	root/root	usr/share/locale/es/
 drwxr-xr-x	root/root	usr/share/locale/es/LC_MESSAGES/
 -rw-r--r--	root/root	usr/share/locale/es/LC_MESSAGES/e2fsprogs.mo
+drwxr-xr-x	root/root	usr/share/locale/fi/
+drwxr-xr-x	root/root	usr/share/locale/fi/LC_MESSAGES/
+-rw-r--r--	root/root	usr/share/locale/fi/LC_MESSAGES/e2fsprogs.mo
 drwxr-xr-x	root/root	usr/share/locale/fr/
 drwxr-xr-x	root/root	usr/share/locale/fr/LC_MESSAGES/
 -rw-r--r--	root/root	usr/share/locale/fr/LC_MESSAGES/e2fsprogs.mo
+drwxr-xr-x	root/root	usr/share/locale/hu/
+drwxr-xr-x	root/root	usr/share/locale/hu/LC_MESSAGES/
+-rw-r--r--	root/root	usr/share/locale/hu/LC_MESSAGES/e2fsprogs.mo
 drwxr-xr-x	root/root	usr/share/locale/id/
 drwxr-xr-x	root/root	usr/share/locale/id/LC_MESSAGES/
 -rw-r--r--	root/root	usr/share/locale/id/LC_MESSAGES/e2fsprogs.mo
 drwxr-xr-x	root/root	usr/share/locale/it/
 drwxr-xr-x	root/root	usr/share/locale/it/LC_MESSAGES/
 -rw-r--r--	root/root	usr/share/locale/it/LC_MESSAGES/e2fsprogs.mo
+drwxr-xr-x	root/root	usr/share/locale/ms/
+drwxr-xr-x	root/root	usr/share/locale/ms/LC_MESSAGES/
+-rw-r--r--	root/root	usr/share/locale/ms/LC_MESSAGES/e2fsprogs.mo
 drwxr-xr-x	root/root	usr/share/locale/nl/
 drwxr-xr-x	root/root	usr/share/locale/nl/LC_MESSAGES/
 -rw-r--r--	root/root	usr/share/locale/nl/LC_MESSAGES/e2fsprogs.mo
 drwxr-xr-x	root/root	usr/share/locale/pl/
 drwxr-xr-x	root/root	usr/share/locale/pl/LC_MESSAGES/
 -rw-r--r--	root/root	usr/share/locale/pl/LC_MESSAGES/e2fsprogs.mo
+drwxr-xr-x	root/root	usr/share/locale/pt/
+drwxr-xr-x	root/root	usr/share/locale/pt/LC_MESSAGES/
+-rw-r--r--	root/root	usr/share/locale/pt/LC_MESSAGES/e2fsprogs.mo
+drwxr-xr-x	root/root	usr/share/locale/sr/
+drwxr-xr-x	root/root	usr/share/locale/sr/LC_MESSAGES/
+-rw-r--r--	root/root	usr/share/locale/sr/LC_MESSAGES/e2fsprogs.mo
 drwxr-xr-x	root/root	usr/share/locale/sv/
 drwxr-xr-x	root/root	usr/share/locale/sv/LC_MESSAGES/
 -rw-r--r--	root/root	usr/share/locale/sv/LC_MESSAGES/e2fsprogs.mo
@@ -152,6 +185,9 @@ drwxr-xr-x	root/root	usr/share/man/man8/
 -rw-r--r--	root/root	usr/share/man/man8/e2fsck.8.gz
 -rw-r--r--	root/root	usr/share/man/man8/e2image.8.gz
 -rw-r--r--	root/root	usr/share/man/man8/e2label.8.gz
+-rw-r--r--	root/root	usr/share/man/man8/e2mmpstatus.8.gz
+-rw-r--r--	root/root	usr/share/man/man8/e2scrub.8.gz
+-rw-r--r--	root/root	usr/share/man/man8/e2scrub_all.8.gz
 -rw-r--r--	root/root	usr/share/man/man8/e2undo.8.gz
 -rw-r--r--	root/root	usr/share/man/man8/e4crypt.8.gz
 -rw-r--r--	root/root	usr/share/man/man8/e4defrag.8.gz
@@ -159,13 +195,11 @@ drwxr-xr-x	root/root	usr/share/man/man8/
 lrwxrwxrwx	root/root	usr/share/man/man8/fsck.ext2.8.gz -> e2fsck.8.gz
 lrwxrwxrwx	root/root	usr/share/man/man8/fsck.ext3.8.gz -> e2fsck.8.gz
 lrwxrwxrwx	root/root	usr/share/man/man8/fsck.ext4.8.gz -> e2fsck.8.gz
-lrwxrwxrwx	root/root	usr/share/man/man8/fsck.ext4dev.8.gz -> e2fsck.8.gz
 -rw-r--r--	root/root	usr/share/man/man8/logsave.8.gz
 -rw-r--r--	root/root	usr/share/man/man8/mke2fs.8.gz
 lrwxrwxrwx	root/root	usr/share/man/man8/mkfs.ext2.8.gz -> mke2fs.8.gz
 lrwxrwxrwx	root/root	usr/share/man/man8/mkfs.ext3.8.gz -> mke2fs.8.gz
 lrwxrwxrwx	root/root	usr/share/man/man8/mkfs.ext4.8.gz -> mke2fs.8.gz
-lrwxrwxrwx	root/root	usr/share/man/man8/mkfs.ext4dev.8.gz -> mke2fs.8.gz
 -rw-r--r--	root/root	usr/share/man/man8/mklost+found.8.gz
 -rw-r--r--	root/root	usr/share/man/man8/resize2fs.8.gz
 -rw-r--r--	root/root	usr/share/man/man8/tune2fs.8.gz

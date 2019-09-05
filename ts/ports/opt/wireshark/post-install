@@ -1,0 +1,20 @@
+#
+# Add your users to the wireshark group and allow them to capture network data
+# as non-root users.
+#
+
+# ugly hack to test for support for capabilities
+#if ! setfattr -n user.xattr_test /usr/bin/dumpcap 2> /dev/null; then
+#  echo capabilities not supported on this system
+#  echo capturing with wireshark will require root privileges
+#  exit 0
+#fi
+
+#setfattr -x user.xattr_test /usr/bin/dumpcap 
+
+
+getent group wireshark >/dev/null || groupadd -r wireshark
+
+chgrp wireshark /usr/bin/dumpcap
+chmod 754 /usr/bin/dumpcap
+#/sbin/setcap 'CAP_NET_RAW+eip CAP_NET_ADMIN+eip' /usr/bin/dumpcap

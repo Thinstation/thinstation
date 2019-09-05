@@ -3,16 +3,14 @@
 # Maintainer:	Sÿl, syl at clyl dot net
 # Depends on:	gnutls, libgcrypt
 name=gtk-vnc
-version=0.7.2
+version=1.0.0
 release=1
-source=(https://download.gnome.org/sources/gtk-vnc/0.7/$name-$version.tar.xz)
+source=(https://download.gnome.org/sources/gtk-vnc/1.0/$name-$version.tar.xz)
 
 build () {
-	cd $name-$version
-	./configure --prefix=/usr \
-		 \
-		
-
-	make 
-	make DESTDIR=$PKG install
+  ts-meson $name-$version build
+  ninja -C build
+  meson test -C build --print-errorlogs
+  DESTDIR="$PKG" meson install -C build
+  install -Dt "$PKG/usr/bin" build/examples/gvncviewer
 }

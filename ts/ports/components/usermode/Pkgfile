@@ -4,15 +4,12 @@
 # Depends on: 
 
 name=usermode
-version=1.112
+version=1.113
 release=1
 source=(https://releases.pagure.org/usermode/$name-$version.tar.xz)
 
 build() {
     cd $name-$version
-sed -e '411 s/"$/\\n"/' \
-	    -i po/tr.po
-    ./autogen.sh
     ./configure --prefix=/usr 
 
     make

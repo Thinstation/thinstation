@@ -1,0 +1,24 @@
+_xmlcatalog() {
+  xmlcatalog --noout "$@" /etc/xml/catalog
+}
+
+post_install() {
+  [[ -f /etc/xml/catalog ]] || _xmlcatalog --create
+
+  local ver x new=${1%-*}
+
+  for ver in $new current; do
+    for x in rewriteSystem rewriteURI; do
+      _xmlcatalog --add $x http://cdn.docbook.org/release/xsl/$ver \
+        /usr/share/xml/docbook/xsl-stylesheets-$new
+
+      _xmlcatalog --add $x http://docbook.sourceforge.net/release/xsl-ns/$ver \
+        /usr/share/xml/docbook/xsl-stylesheets-$new
+
+      _xmlcatalog --add $x http://docbook.sourceforge.net/release/xsl/$ver \
+        /usr/share/xml/docbook/xsl-stylesheets-$new-nons
+    done
+  done
+}
+
+post_install 1.79.2

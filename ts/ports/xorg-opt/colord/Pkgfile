@@ -1,0 +1,22 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=colord
+version=1.4.4
+release=1
+source=(http://www.freedesktop.org/software/colord/releases/$name-$version.tar.xz)
+
+build() {
+  ts-meson colord-$version build \
+    -D libcolordcompat=true \
+    -D sane=true \
+    -D vapi=true \
+    -D print_profiles=false \
+    -D daemon_user=colord \
+    -D argyllcms_sensor=false
+
+  ninja -C build
+  meson test -C build
+  DESTDIR=$PKG ninja -C build install
+}

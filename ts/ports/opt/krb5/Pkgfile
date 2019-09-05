@@ -1,26 +1,62 @@
-# Description:	Network Authentication Protocol
-# URL:	http://web.mit.edu/kerberos
-# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
-# Depends on:
+# Description: Network Authentication Protocol
+# URL:         https://web.mit.edu/kerberos
+# Maintainer:  CRUX System Team, core-ports at crux dot nu
+# Depends on:  e2fsprogs openssl
 
 name=krb5
-version=1.15.2
+version=git
 release=1
-source=(http://web.mit.edu/kerberos/dist/krb5/${version%.*}/krb5-${version}.tar.gz pkinit_errors.patch)
+source=(krb5-config_LDFLAGS.patch \
+	krb5)
 
 build() {
-    	cd $name-$version/src
-	patch -Np1 < $SRC/pkinit_errors.patch
+git clone https://github.com/krb5/krb5.git krb5-git
+cd krb5-git/src
+#	cd $SRC/$name-$version
+  # cf https://bugs.gentoo.org/show_bug.cgi?id=448778
+#  patch -p1 < "${SRC}"/krb5-config_LDFLAGS.patch
+
+  # FS#25384
+#  sed -i "/KRB5ROOT=/s/\/local//" src/util/ac_check_krb5.m4
 
 
-	sed -e "s@python2.5/Python.h@& python2.7/Python.h@g" -e "s@-lpython2.5]@&,\n  AC_CHECK_LIB(python2.7,main,[PYTHON_LIB=-lpython2.7])@g" -i configure.in
-	sed -e "s@interp->result@Tcl_GetStringResult(interp)@g" \
-		-i kadmin/testing/util/tcl_kadm5.c &&
-	sed -e 's@\^u}@^u cols 300}@' -i tests/dejagnu/config/default.exp
+	cd $SRC/$name-$version/src
 
-    	CFLAGS="-I/usr/include/et" ./configure --prefix=/usr --sysconfdir=/etc --localstatedir=/var --mandir=/usr/man --with-system-et --with-system-ss --with-ldap --without-system-verto --enable-dns-for-realm
+	export CFLAGS+=" -fPIC -fno-strict-aliasing -fstack-protector-all"
+	export CPPFLAGS+=" -I/usr/include/et"
+	autoreconf
+	./configure \
+		--prefix=/usr \
+		--localstatedir=/var \
+		--enable-shared \
+		--disable-rpath \
+		--with-ldap \
+		--without-tcl \
+		--with-system-et \
+		--with-system-ss \
+		--without-system-verto \
+		--enable-dns-for-realm
 
-	make
-    	make DESTDIR=$PKG install
-	rm -rf $PKG/usr/share
+	make -j1
+	make DESTDIR=$PKG install
+
+
+	# move essential libs and the ksu binary to /lib resp. /bin
+	install -d $PKG/{bin,lib}
+
+	mv $PKG/usr/bin/ksu $PKG/bin
+
+	mv $PKG/usr/lib/libkrb5.so.3* $PKG/lib
+	mv $PKG/usr/lib/libk5crypto.so.3* $PKG/lib
+	mv $PKG/usr/lib/libkrb5support.so.0* $PKG/lib
+
+	ln -sf ../../lib/$(readlink $PKG/usr/lib/libkrb5.so) $PKG/usr/lib/libkrb5.so
+	ln -sf ../../lib/$(readlink $PKG/usr/lib/libk5crypto.so) $PKG/usr/lib/libk5crypto.so
+	ln -sf ../../lib/$(readlink $PKG/usr/lib/libkrb5support.so) $PKG/usr/lib/libkrb5support.so
+
+	# cleanup
+	rm -r $PKG/usr/share/{examples,man/cat*}
+
+	# start script
+	install -D -m 0755 $SRC/krb5 $PKG/etc/rc.d/krb5
 }

@@ -1,22 +1,24 @@
-# Description: Thinstation essential package
-# URL: http://www.thinstation.org
-# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+# Description:	Advanced spell checker
+# URL:		http://hunspell.sourceforge.net/
+# Maintainer:	Alan Mizrahi, alan at mizrahi dot com dot ve
+# Depends on:
 
 name=hunspell
-version=1.4.1
-release=1
-source=(https://github.com/hunspell/hunspell/archive/v${version}.tar.gz)
+version=1.7.0
+release=2
+source=(https://github.com/hunspell/$name/archive/v$version/$name-v$version.tar.gz)
 
 build() {
 	cd $name-$version
 
-	./configure --prefix=/usr/ \
-			--exec-prefix=/usr/ \
-			--sysconfdir=/etc \
-			--libexecdir=/usr/lib \
-			--mandir=/usr/man \
-			--disable-extras
+	autoreconf -if
 
-	make
-	make DESTDIR=$PKG install
+	./configure \
+		--prefix=/usr \
+		
+
+	make prefix=$PKG/usr install
+
+	ln -s libhunspell-1.7.so.0.0.1 $PKG/usr/lib/libhunspell.so
+	rm -rf $PKG/usr/share/man/hu
 }

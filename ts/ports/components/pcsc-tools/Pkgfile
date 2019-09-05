@@ -5,12 +5,14 @@
 # Depends on:  opensc
 
 name=pcsc-tools
-version=1.4.27
+version=1.5.4
 release=0
-source=(http://ludovic.rousseau.free.fr/softwares/$name/$name-$version.tar.gz)
+source=(http://ludovic.rousseau.free.fr/softwares/$name/$name-$version.tar.bz2)
 
 build() {
     cd $name-$version
+    ./configure --prefix=/usr
+
     make
     make DESTDIR=$PKG install
     rm -rf $PKG/usr/share

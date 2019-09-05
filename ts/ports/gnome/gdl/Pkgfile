@@ -1,0 +1,21 @@
+# Description: GNOME Docking Library
+# URL: https://developer.gnome.org/gdl/
+# Maintainer: Tim Biermann, tbier at posteo dot de
+# Packager: Erich Eckner, crux at eckner dot net
+# Depends on: gtk3
+
+name=gdl
+version=3.28.0
+release=1
+source=("http://ftp.gnome.org/pub/GNOME/sources/${name}/${version%.*}/${name}-${version}.tar.xz")
+
+build() {
+    cd ${name}-${version}
+    ./configure --prefix=/usr \
+        --sysconfdir=/etc \
+        --localstatedir=/var \
+        --disable-static \
+        
+    make
+    make DESTDIR="$PKG" install
+}

@@ -3,13 +3,14 @@
 # Contributor: Federico Quagliata (quaqo) <quaqo@despammed.com>
 
 name=cracklib
-version=2.9.6
+version=2.9.7
 release=1
-source=(https://github.com/cracklib/cracklib/releases/download/$name-$version/$name-$version.tar.gz)
+source=(https://github.com/cracklib/cracklib/archive/v$version.tar.gz)
 
 build() {
-  cd $SRC/$name-$version
-  ./configure --prefix=/usr --sbindir=/usr/bin --without-python
+  cd $SRC/$name-$version/src
+  ./autogen.sh
+  ./configure --prefix=/usr --without-python
   make 
   make DESTDIR=$PKG install
   # symlink cracklib-small #34778

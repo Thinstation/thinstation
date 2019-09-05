@@ -5,19 +5,13 @@
 # Depends on: gtk libsigc++
 
 name=gsettings-desktop-schemas
-version=3.28.0
+version=3.32.0
 release=1
 source=(http://ftp.gnome.org/pub/GNOME/sources/$name/${version%.*}/$name-$version.tar.xz)
 
 build() {
-	cd $name-$version
-	sed -i -r 's:"(/system):"/org/gnome\1:g' schemas/*.in
-
-	./configure \
-		--prefix=/usr \
-		--disable-dependency-tracking
-
-	make
-	make DESTDIR=$PKG install
-	rm -rf $PKG/usr/share/doc
+  ts-meson $name-$version build
+  ninja -C build
+  meson test -C build
+  DESTDIR="$PKG" meson install -C build
 }

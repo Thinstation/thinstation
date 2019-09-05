@@ -1,0 +1,24 @@
+# Description:	An API for simple XML files
+# URL:		http://search.cpan.org/~grantm/XML-Simple/
+# Maintainer:	
+# Depends on:	p5-xml-namespacesupport p5-xml-sax p5-xml-sax-expat
+
+name=p5-sgmls
+version=1.1
+release=1
+source=(https://search.cpan.org/CPAN/authors/id/R/RA/RAAB/SGMLSpm-$version.tar.gz)
+
+build() {
+	cd SGMLSpm-$version
+
+	# PERL_MM_USE_DEFAULT=1 \
+	perl Makefile.PL
+	make OPTIMIZE="$CFLAGS" DESTDIR="$PKG" install
+
+	find "$PKG" -depth \
+		-type f \( -name .packlist -o -name \*.bs -o -name perllocal.pod \) -delete , \
+		-type f -name autosplit.ix \( -exec grep -q '^[[:space:]]*package' {} \; -o -delete \) , \
+		-type d -empty -exec rmdir {} +
+
+	ln -sv /usr/bin/sgmlspl.pl $PKG/usr/bin/sgmlspl
+}

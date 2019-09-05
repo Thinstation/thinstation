@@ -1,0 +1,28 @@
+# Description: inetd replacement
+# URL: 	       http://www.xinetd.org/
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+# Depends on:  tcp_wrappers
+
+name=xinetd
+version=2.3.15
+release=1
+source=(xinetd-2.3.15.tar.gz \
+	fix-CVE-2013-4342.patch)
+
+build () {
+    cd xinetd-2.3.15
+
+    patch -p1 -i $SRC/fix-CVE-2013-4342.patch
+
+    ./configure --prefix=/usr --sysconfdir=/etc --with-libwrap --with-loadavg
+    CFLAGS+=' -I/usr/include/tirpc' LDFLAGS+=' -ltirpc' make
+
+    make prefix=$PKG/usr install
+    mkdir -p $PKG/etc/rc.d
+#    mv ../xinetd $PKG/etc/rc.d/
+    mv xinetd/sample.conf $PKG/etc/xinetd.conf.sample
+    mkdir -p $PKG/var/log && touch $PKG/var/log/xinetd.log && \
+       chmod 600 $PKG/var/log/xinetd.log
+    chown -R root.root $PKG
+}
+
