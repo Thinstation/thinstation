@@ -90,7 +90,7 @@ stage1()
 	echo "Checking Ports Directories for Downloaded Files"
 	for distro in /ts $XTRWRKNG; do
 		cd $distro/ports
-		for port_type in `list_folders`; do
+		for port_type in `list_folders |grep -v relegated`; do
 			cd $port_type
 			export distro
 			export port_type
@@ -120,7 +120,7 @@ clean_port()
         port_archive=`find -L . -maxdepth 1 -type f -name ${port}#$whole_version.pkg.tar.\*`
         if [ -n "$port_archive" ]; then
         	case $port_type in
-                	proprietary|binary-core|binary-opt)
+                	proprietary|binary-core|binary-opt|nocache)
                         	if $super; then
                                 	pkgmk -c
                                 else

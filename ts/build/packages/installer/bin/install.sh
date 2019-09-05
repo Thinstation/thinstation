@@ -101,6 +101,7 @@ sleep 1
 mkdir -p $bootdir/syslinux
 cd $bootdir/syslinux
 cp /install/* .
+cp /install/bios/* .
 ./extlinux -i /boot/boot/syslinux
 cd $bootdir
 

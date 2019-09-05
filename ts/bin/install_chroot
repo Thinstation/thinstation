@@ -53,7 +53,7 @@ stage2()
 	let procs-=1
 	for Root in $ROOT/ts $XTRWRKNG; do
 		find -L $Root/ports -name Pkgfile | \
-		grep -Ev "proprietary|binary-core|binary-opt" | \
+		grep -Ev "nocache|proprietary|binary-core|binary-opt|relegated" | \
 		grep -Ev "$exclude" | \
 		xargs -n 1 -P $procs -I {} bash -c 'install_port "$@"' _ {}
 	done
@@ -63,7 +63,9 @@ stage2()
 	done
 	add_to_db
 	printf "\rPort Installation %-40s\n" "Complete"
+	printf "\rRunning the pre and post install scripts\n"
 	post_install
+	printf "\rPort Install scripts %-40s\n" "Complete"
 	rm /dostage2
 	touch /dostage3
 }
@@ -180,10 +182,12 @@ install_port()
 			echo $version-$release >> /tmp/$name.db
 			tar -hxvf $port_dir/$pkg_name -C / >> /tmp/$name.db 2>/dev/null #|| rm /tmp/$name.db && echo "$pkg_name failed"
 			if [ -e $port_dir/pre-install ]; then
-				echo ". $port_dir/pre-install" >> $ROOT/post-install.sh
+#				echo "echo $port_name pre" >> $ROOT/post-install.sh
+				echo ". $port_dir/pre-install || echo \"$port_name pre-install failed!\" && true" >> $ROOT/post-install.sh
 			fi
 			if [ -e $port_dir/post-install ]; then
-				echo ". $port_dir/post-install" >> $ROOT/post-install.sh
+#				echo "echo $port_name post" >> $ROOT/post-install.sh
+				echo ". $port_dir/post-install || echo \"$port_name post-install failed!\" && true" >> $ROOT/post-install.sh
 			fi
 			return 0
 		else
