@@ -1,13 +1,13 @@
 # Description: CUPS - Common UNIX Printing System
 # URL:         http://www.cups.org
 # Maintainer:  Juergen Daubert, jue at crux dot nu
-# Depends on:  acl libusb zlib
+# Depends on:  acl libusb zlib linux-pam
 
 name=cups
-version=2.2.11
+version=2.3.0
 release=1
 source=(https://github.com/apple/cups/releases/download/v$version/$name-$version-source.tar.gz
-        cups)
+        cups.rc cups.pam)
 
 build () {
     cd $name-$version
@@ -23,10 +23,9 @@ build () {
                 --with-cups-user=daemon \
                 --with-cups-group=lp \
                 --with-languages="" \
+                --without-rcdir \
                 --with-optim="$CFLAGS" \
-                --disable-tcp-wrappers \
-                --enable-acl \
-                --disable-pam
+                --enable-acl
 
     make
     make BUILDROOT=$PKG install
@@ -35,12 +34,12 @@ build () {
     rm -r $PKG/usr/share/cups/{banners,data}
     
     # cleanup
-#    rm -rf $PKG/usr/share/{applications,icons}
+    rm -rf $PKG/usr/share/{applications,icons}
     chmod 0755 $PKG/var/{cache,spool}   
     chmod -R +w $PKG
 
-    # start script
-    install -D -m 755 $SRC/cups $PKG/etc/rc.d/cups
+    # start script and pam module
+    install -D -m 644 $SRC/cups.pam $PKG/etc/pam.d/cups
 
     # blacklist usblp kernel module
     install -d $PKG/etc/modprobe.d

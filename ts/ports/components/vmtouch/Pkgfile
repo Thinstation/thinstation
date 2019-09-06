@@ -1,0 +1,15 @@
+# Maintainer: Stefano Angeleri <weltall2 AT gmail DOT com>
+# Contributor: Boris Shomodjvarac <spam AT shomodj DOT com>
+name=vmtouch
+version=1.3.1
+release=1
+source=("https://github.com/hoytech/$name/archive/v$version.tar.gz")
+
+build() {
+  cd "vmtouch-$version"
+  gcc -Wall -O3 -o vmtouch vmtouch.c
+  pod2man --section 8 vmtouch.pod > vmtouch.8
+  install -Dm755 vmtouch   $PKG/usr/bin/vmtouch
+  install -Dm644 vmtouch.8 $PKG/usr/share/man/man8/vmtouch.8
+}
+
