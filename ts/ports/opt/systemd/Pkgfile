@@ -25,13 +25,16 @@ source=(https://github.com/systemd/systemd/archive/v242.tar.gz
         'systemd-sysusers.hook'
         'systemd-tmpfiles.hook'
         'systemd-udev-reload.hook'
-        'systemd-update.hook')
+        'systemd-update.hook'
+	utmp.patch
+	quiet.patch)
 
 build() {
 
-#  cd $SRC/systemd-$version
-#  patch -p0 -i $SRC/fstab-generator.patch
-#  cd $SRC
+  cd $SRC/systemd-$version
+  patch -p0 -i $SRC/utmp.patch
+  patch -p0 -i $SRC/quiet.patch
+  cd $SRC
 
   local _timeservers=({0..3}.us.pool.ntp.org)
   local _nameservers=(

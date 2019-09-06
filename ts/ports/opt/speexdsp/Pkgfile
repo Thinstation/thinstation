@@ -1,0 +1,21 @@
+# Description: DSP library derived from speex
+# URL:         http://www.speex.org/
+# Maintainer:  Alan Mizrahi, alan at mizrahi dot com dot ve
+# Depends on:
+
+name=speexdsp
+version=1.2rc3
+release=1
+source=(http://downloads.us.xiph.org/releases/speex/$name-$version.tar.gz)
+
+build() {
+	cd $name-$version
+
+	./configure \
+		--prefix=/usr
+
+	make
+	make DESTDIR=$PKG install
+
+	rm -rf $PKG/usr/share/doc
+}

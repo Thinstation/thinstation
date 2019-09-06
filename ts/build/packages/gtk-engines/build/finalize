@@ -20,6 +20,9 @@ if [ "$GTK_THEME" != "ALL" ]; then
 	elif [ -e /etc/gtk-2.0 ]; then
 		echo -e "\tGtk-2 Theme $GTK_THEME not found!"
 	fi
+	if [ ! -e /etc/gtk-3.0/settings.ini ]; then
+		echo "[Settings]" >> /etc/gtk-3.0/settings.ini
+	fi
 	if [ -e /lib/themes/$GTK_THEME/gtk-3.0/gtk.css ]; then
 		echo "gtk-theme-name = $GTK_THEME" >> /etc/gtk-3.0/settings.ini
 	elif [ -e /etc/gtk-3.0 ]; then

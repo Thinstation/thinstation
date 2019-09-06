@@ -1,0 +1,12 @@
+--- src/shared/module-util.c.orig	2019-09-06 02:38:51.810320379 +0000
++++ src/shared/module-util.c	2019-09-06 02:39:28.596589567 +0000
+@@ -47,8 +47,7 @@
+                         err = kmod_module_probe_insert_module(mod, probe_flags,
+                                                               NULL, NULL, NULL, NULL);
+                         if (err == 0)
+-                                log_full(verbose ? LOG_INFO : LOG_DEBUG,
+-                                         "Inserted module '%s'", kmod_module_get_name(mod));
++                                log_debug("Inserted module '%s'", kmod_module_get_name(mod));
+                         else if (err == KMOD_PROBE_APPLY_BLACKLIST)
+                                 log_full(verbose ? LOG_INFO : LOG_DEBUG,
+                                          "Module '%s' is blacklisted", kmod_module_get_name(mod));
