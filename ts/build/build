@@ -2298,7 +2298,7 @@ sys_copy()
 wrap_efi()
 {
 	lsize=`du -s $ESP |cut -f1`
-	let lsize+=2048
+	let lsize+=4096
 	dd if=/dev/zero of=$INITDIR/boot.efi bs=1K count=$lsize
 	lodev=`losetup -f`
 	losetup -P $lodev $INITDIR/boot.efi

@@ -1,0 +1,25 @@
+From: Lukas Schwaighofer <lukas@schwaighofer.name>
+Date: Mon, 3 Dec 2018 22:45:44 +0100
+Subject: Fix compatibility with new gnu-efi version
+
+Allow multiple definitions when linking the syslinux binary so the
+memset and memcpy symbols which are included by gnu-efi since 3.0.8 are
+ignored (we still use the definitions from syslinux) but linking
+succeeds.
+---
+ efi/Makefile | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/efi/Makefile b/efi/Makefile
+index f4501e7..0d1a673 100644
+--- a/efi/Makefile
++++ b/efi/Makefile
+@@ -71,7 +71,7 @@ $(OBJS): | $(OBJ)/$(ARCH)
+ BTARGET  = syslinux.efi
+ 
+ syslinux.so: $(OBJS) $(CORE_OBJS) $(LIB_OBJS)
+-	$(LD) $(LDFLAGS) --strip-debug -o $@ $^ -lgnuefi -lefi
++	$(LD) $(LDFLAGS) -zmuldefs --strip-debug -o $@ $^ -lgnuefi -lefi
+ 
+ # We need to rename the .hash section because the EFI firmware
+ # linker really doesn't like it.

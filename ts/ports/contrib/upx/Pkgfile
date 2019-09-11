@@ -1,0 +1,20 @@
+# Description: Ultimate Packer for eXecutables.
+# URL: http://upx.sourceforge.net/
+# Maintainer: Danny Rawlins, crux at romster dot me
+# Packager: Younes Hafri, ycrux at club-internet dot fr
+# Depends on: ucl zlib
+
+name=upx
+version=3.95
+release=1
+source=(https://github.com/$name/$name/releases/download/v$version/$name-$version-src.tar.xz
+	http://downloads.sourceforge.net/sevenzip/lzma465.tar.bz2)
+
+build() {
+	cd $name-$version-src
+
+	make UPX_LZMA_VERSION=0x465 UPX_LZMADIR=$SRC all
+
+	install -m 0644 -D doc/upx.1 $PKG/usr/share/man/man1/upx.1
+	install -m 0755 -D src/upx.out $PKG/usr/bin/upx
+}

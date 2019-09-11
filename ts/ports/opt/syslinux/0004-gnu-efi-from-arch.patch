@@ -1,0 +1,36 @@
+From: Lukas Schwaighofer <lukas@schwaighofer.name>
+Date: Tue, 3 Oct 2017 18:29:13 +0200
+Subject: Link against gnu-efi from Debian
+
+Adjust EFIINC, LIBDIR and LIBEFI variables in mk/efi.mk to point to the
+files installed by Arch's gnu-efi package.
+
+Forwarded: not-needed
+---
+ mk/efi.mk | 13 ++++++++++---
+ 1 file changed, 10 insertions(+), 3 deletions(-)
+
+diff --git a/mk/efi.mk b/mk/efi.mk
+index f097ad2..dc2b708 100644
+--- a/mk/efi.mk
++++ b/mk/efi.mk
+@@ -8,8 +8,8 @@ core = $(topdir)/core
+ # gnuefi sets up architecture specifics in ia32 or x86_64 sub directories
+ # set up the LIBDIR and EFIINC for building for the appropriate architecture
+ GCCOPT := $(call gcc_ok,-fno-stack-protector,)
+-EFIINC = $(objdir)/include/efi
+-LIBDIR  = $(objdir)/lib
++EFIINC = /usr/include/efi
++LIBDIR  = /usr/lib
+ 
+ ifeq ($(ARCH),i386)
+ 	ARCHOPT = -m32 -march=i386
+@@ -44,7 +51,7 @@ SFLAGS     = $(GCCOPT) $(GCCWARN) $(ARCHOPT) \
+ 	     -nostdinc -iwithprefix include \
+ 	     -I$(com32)/libutil/include -I$(com32)/include -I$(com32)/include/sys $(GPLINCLUDE)
+ 
+-LIBEFI = $(objdir)/lib/libefi.a
++LIBEFI = $(LIBDIR)/libefi.a
+ 
+ $(LIBEFI):
+ 	@echo Building gnu-efi for $(EFI_SUBARCH)

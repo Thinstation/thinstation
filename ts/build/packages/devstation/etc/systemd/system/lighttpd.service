@@ -1,0 +1,12 @@
+[Unit]
+Description=Lighttpd Web Server
+After=syslog.target network.target
+
+[Service]
+PrivateTmp=true
+ExecStart=/sbin/lighttpd-angel -D -f /etc/lighttpd.conf
+ExecReload=/bin/kill -HUP $MAINPID
+KillSignal=SIGINT
+
+[Install]
+WantedBy=multi-user.target
