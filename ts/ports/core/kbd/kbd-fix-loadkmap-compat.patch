@@ -1,0 +1,14 @@
+diff --git a/src/libkeymap/dump.c b/src/libkeymap/dump.c
+index 83ac351..a7ba1e5 100644
+--- a/src/libkeymap/dump.c
++++ b/src/libkeymap/dump.c
+@@ -72,7 +72,7 @@ int lk_dump_bkeymap(struct lk_ctx *ctx, FILE *fd)
+ 			continue;
+ 
+ 		for (j = 0; j < NR_KEYS / 2; j++) {
+-			int v = lk_get_key(ctx, i, j);
++			short v = (short)lk_get_key(ctx, i, j);
+ 
+ 			if (fwrite(&v, sizeof(v), 1, fd) != 1)
+ 				goto fail;
+

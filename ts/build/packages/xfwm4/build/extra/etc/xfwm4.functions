@@ -226,19 +226,21 @@ wm_menu()
 					\#*|"") continue ;;
 				esac
 				eval $entry
-				ICONDIR=$HOME/.local/share/applications
-				if [ -z "$menu" ]; then
-					menu=X-Xfce-Toplevel
-				else
-					echo $menu >> /tmp/typelist
+				if ! is_enabled $nomenu ; then
+					ICONDIR=$HOME/.local/share/applications
+					if [ -z "$menu" ]; then
+						menu=X-Xfce-Toplevel
+					else
+						echo $menu >> /tmp/typelist
+					fi
+					if [ -z "$icon" ]; then
+						icon=$package
+					fi
+					if [ -n "$path" ]; then
+						Path=$path
+					fi
+					make_desktop
 				fi
-				if [ -z "$icon" ]; then
-					icon=$package
-				fi
-				if [ -n "$path" ]; then
-					Path=$path
-				fi
-				make_desktop
 				if ! is_enabled $nodesktop ; then
 					if [ -z "$metric" ]; then
 						metric=99
@@ -248,7 +250,7 @@ wm_menu()
 					desktop_icon_file=$ICONDIR/`replace_char "$title.desktop" "[ /]" "_"`
 					echo "$metric $desktop_icon_file" >> /tmp/icon.sort
 				fi
-				unset title package command nodesktop menu needs icon metric desktop_icon_file
+				unset title package command nodesktop nomenu menu needs icon metric desktop_icon_file
 			done
 			screenrc=$HOME/.config/xfce4/desktop/icons.screen0.rc
 			mkdir -p $HOME/.config/xfce4/desktop

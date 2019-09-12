@@ -3,18 +3,25 @@
 # Maintainer:  CRUX System Team, core-ports at crux dot nu
 
 name=kbd
-version=2.2.0
+version=git
 release=1
-source=(https://www.kernel.org/pub/linux/utils/$name/$name-$version.tar.xz)
+source=(fix-euro2.patch \
+	kbd-fix-loadkmap-compat.patch)
 
 build() {
-    cd $name-$version
+    git clone https://git.kernel.org/pub/scm/linux/kernel/git/legion/kbd.git
+    cd $name
+  patch -Np1 -i ../fix-euro2.patch
+  git cherry-pick -n 15a74479 # Don't override CFLAGS
+  git cherry-pick -n acf93e44 # https://github.com/legionus/kbd/issues/31
+  git cherry-pick -n 7e27102b # https://github.com/legionus/kbd/issues/32
+  patch -p1 -i ../kbd-fix-loadkmap-compat.patch # Restore compatibility with busybox loadkmap
+  autoreconf -if
 
     ./configure --prefix=/usr \
-                --datadir=/usr/share/kbd \
-                --disable-vlock \
+                --datadir=/usr/share/kbd
 
-    make
+    make KEYCODES_PROGS=yes RESIZECONS_PROGS=yes
     make DESTDIR=$PKG install
 
     ln -sf default8x16.psfu.gz $PKG/usr/share/kbd/consolefonts/default.gz

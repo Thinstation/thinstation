@@ -6,19 +6,38 @@
 
 name=syslinux
 version=6.04-pre2
+commit=bf6db5b4
 release=2
-source=(http://www.kernel.org/pub/linux/utils/boot/$name/$name-$version.tar.gz ifmem.c)
-source=(https://www.zytor.com/pub/syslinux/Testing/6.04/syslinux-$version.tar.xz ifmem.c ld.patch)
-#source=(http://www.kernel.org/pub/linux/utils/boot/$name/Testing/${version%-*}/$name-$version.tar.gz ifmem.c)
+source=(ifmem.c \
+        0002-gfxboot-menu-label.patch \
+        0017-single-load-segment.patch \
+        0016-strip-gnu-property.patch \
+        0018-prevent-pow-optimization.patch)
+
+_targets='bios efi32 efi64'
 
 build() {
-        cd ${name}-${version}
-	patch -p0 -i $SRC/ld.patch
+  git clone https://repo.or.cz/syslinux.git
+  cd syslinux
+  git checkout $commit
+
+  patch -p1 < ../0002-gfxboot-menu-label.patch
+  patch -p1 < ../0017-single-load-segment.patch
+  patch -p1 < ../0016-strip-gnu-property.patch
+  patch -p1 < ../0018-prevent-pow-optimization.patch
+
+  sed 's|> /dev/null 2>&1||' -i efi/check-gnu-efi.sh
+
+  truncate --size 0 mk/devel.mk
+
+  export LDFLAGS+=--no-dynamic-linker  # workaround for binutils 2.28 http://www.syslinux.org/wiki/index.php?title=Building
+  export EXTRA_CFLAGS=-fno-PIE   # to fix gpxe build
 
 	cp $SRC/ifmem.c com32/modules/.
 	sed -i -e "s/ifcpu.c32/ifcpu.c32 ifmem.c32/g" com32/modules/Makefile
 	# Get the prebuild .exe files
-	make -j1 INSTALLROOT=$PKG install bios
+	make PYTHON=python3 $_targets -j1
+	make bios install INSTALLROOT="$PKG" -j1 PYTHON=python3
 
         rm -rf $PKG/usr/share/syslinux/com32
 	mv $PKG/usr/share/syslinux $PKG/usr/share/bios
@@ -28,19 +47,6 @@ build() {
         mkdir -p $PKG/usr/share/doc/syslinux
         cp -a doc/* $PKG/usr/share/doc/syslinux
 
-        # Build extra modules
-        make bios 
-
-	chmod 644 bios/com32/modules/ifmem.c32
-	cp -a bios/com32/modules/ifmem.c32 $PKG/usr/share/syslinux/bios/.
-
-	make -j1 INSTALLROOT=$PKG install efi32
-	make efi32
-	chmod 644 efi32/com32/modules/ifmem.c32
-        cp -a efi32/com32/modules/ifmem.c32 $PKG/usr/share/syslinux/efi32/.
-
-	make -j1 INSTALLROOT=$PKG install efi64
-	make efi64
-	chmod 644 efi64/com32/modules/ifmem.c32
-        cp -a efi64/com32/modules/ifmem.c32 $PKG/usr/share/syslinux/efi64/.
+	make -j1 INSTALLROOT=$PKG install efi32 PYTHON=python3 || make -j1 INSTALLROOT=$PKG install efi32 PYTHON=python3
+	make -j1 INSTALLROOT=$PKG install efi64 PYTHON=python3 || make -j1 INSTALLROOT=$PKG install efi64 PYTHON=python3
 }
