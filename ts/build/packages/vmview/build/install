@@ -53,6 +53,10 @@ clean_dirs="	dev \
 		lib/python2.7 \
 		lib/vmware-installer-horizon \
 		etc/vmware-installer-horizon \
+		etc/ld.so.cache \
+		lib/vmware/gcc \
+		lib/doc/vmware-horizon-client/debug \
+		lib/doc/vmware-horizon-client/patches \
 		etc/rc0.d \
 		etc/rc1.d \
 		etc/rc2.d \
@@ -215,6 +219,11 @@ done
 #	fi
 #done
 
+# Fix typos and work around missing features in busybox
+sed -i -e 's/$ENABLE_SEAMLESS_WINDOW = /"$ENABLE_SEAMLESS_WINDOW" = /' \
+sed -i -e 's/$ROLLBACK_VMWAREVIEW = /"$ROLLBACK_VMWARE_VIEW" = /' \
+    -e 's/glibcxx=.*/glibcxx=1/' $INSTALLDIR/bin/vmware-view
+
 # Remove any now empty folders
 find $INSTALLDIR -type d -empty -delete
 
@@ -223,4 +232,4 @@ for elf in `find $INSTALLDIR -type f |xargs file |grep -e ELF |cut -d ":" -f1` ;
 	strip --strip-all $elf
 done
 
-ln -s ../lib/doc/vmware-view-client/VMware-Horizon-Client-EULA-en.txt $INSTALLDIR/build/license
+ln -s ../lib/doc/vmware-horizon-client/VMware-Horizon-Client-EULA-en.txt $INSTALLDIR/build/license

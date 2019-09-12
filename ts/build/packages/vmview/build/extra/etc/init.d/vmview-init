@@ -34,6 +34,13 @@ if ! pkg_initialized $PACKAGE; then
 		if [ -n "$VMVIEW_DEFAULTBROKER" ]; then
 			echo "view.defaultBroker = \"$VMVIEW_DEFAULTBROKER\"" >> /etc/skel/.vmware/view-preferences
 		fi
+		if [ -n "$VMVIEW_SSLPROTOCOL" ]; then
+		    echo "view.sslProtocolString = \"$VMVIEW_SSLPROTOCOL\"" >> /etc/skel/.vmware/view-preferences
+		fi
+		if [ -n "$VMVIEW_SSLCIPHERS" ]; then
+		    echo "view.sslCipherString = \"$VMVIEW_SSLCIPHER\"" >> /etc/skel/.vmware/view-preferences
+		fi
+
 	fi
 
 	let x=0
@@ -72,6 +79,9 @@ if ! pkg_initialized $PACKAGE; then
 				if [ "$vdioption" == "kiosklogin" ] ; then vdioption="kioskLogin" ; fi
 				if [ "$vdioption" == "enablenla" ] ; then vdioption="enableNla" ; fi
 				if [ "$vdioption" == "lockserver" ] ; then vdioption="lockServer" ; fi
+				if [ "$vdioption" == "sslprotocolstring" ] ; then vdioption="sslProtocolString" ; fi
+				if [ "$vdioption" == "sslcipherstring" ] ; then vdioption="sslCipherString" ; fi
+
 				case $vdioption in
 				fullscreen|allmonitors|nonInteractive|unattended|keep-wm-bindings|once|printEnvironmentInfo|enableNla|kioskLogin|save|nomenubar|lockServer)
 					# some parameters don't have values
