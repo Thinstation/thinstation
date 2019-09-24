@@ -20,6 +20,9 @@ KERNEL_PARAMETERS=""
 CONFDIR=./conf
 export TOOLSDIR
 
+ignore_libs='libcrypto.so.1.0.2|libssl.so.1.0.2'
+export ignore_libs
+
 libutil="chain complex cptime display fancyhello hdt ifcpu \
          keytest libmenu menu prdhcp pxechn rosh simple test \
          test2 vesamenu"
@@ -176,7 +179,7 @@ calculate_lib_dependencies()
 {
 	unset DISPLAYED
 	filename=$1
-	(objdump -x $filename 2>/dev/null |grep -e NEEDED |cut -c 24-) \
+	(objdump -x $filename 2>/dev/null |grep -e NEEDED |cut -c 24- |grep -Ev "$ignore_libs") \
 	|while read libfile; do
 		filepath=`dirname $filename | sed -e "s,$pkgname,,"`
 		export filepath

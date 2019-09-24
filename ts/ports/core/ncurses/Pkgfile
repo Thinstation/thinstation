@@ -25,7 +25,7 @@ build() {
 
     # move library to /lib and create symlinks
     mv $PKG/usr/lib/libncursesw.so.* $PKG/lib
-    ln -sf ../../lib/libncursesw.so.$version $PKG/usr/lib/libncursesw.so
+    ln -sf /lib/libncursesw.so.$version $PKG/usr/lib/libncursesw.so
     ln -s libncursesw.so.$version $PKG/lib/libncurses.so.${version%%.*}
 
     # linker scripts and .pc files for non-wide ncurses
@@ -36,12 +36,12 @@ build() {
 
     # linker script for the curses library
     echo "INPUT(-lncursesw)" > $PKG/usr/lib/libcursesw.so
-    ln -s libncurses.so $PKG/usr/lib/libcurses.so
+    ln $PKG/usr/lib/libcursesw.so $PKG/usr/lib/libcurses.so
 
     # symlinks for ncurses 5 (remove them later))
-    ln -s libncursesw.so $PKG/usr/lib/libncurses.so.5
-    ln -s libncursesw.so $PKG/usr/lib/libncursesw.so.5
-    ln -s libncursesw.so $PKG/usr/lib/libncursesw.so.6
+#    ln -s libncursesw.so $PKG/usr/lib/libncurses.so.5
+#    ln -s libncursesw.so $PKG/usr/lib/libncursesw.so.5
+#    ln -s libncursesw.so $PKG/usr/lib/libncursesw.so.6
 
     # some progs expect a /usr/include/curses.h
     ln -s ../curses.h $PKG/usr/include/ncursesw/ncurses.h

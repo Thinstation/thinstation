@@ -85,6 +85,11 @@ extract_archive()
 		fi
 	fi
 	bsdtar -pxf $ppath/$archive -C $pkgpath 2>/dev/null
+
+        # Fix for ncurses folding
+	if [ "$package" == "ncurses" ]; then
+	        find $pkgpath/usr/lib -type l -name terminfo -delete
+	fi
 }
 
 preserve_empty_working()
@@ -269,7 +274,8 @@ reduce_libs()
 				continue
 			fi
 			# Ignore TCL, it doesn't ever declare an SONAME
-			if [ `basename $link` == "libtcl.so" ]; then
+			# ncurses has some wierd scripts named .so ??
+			if [ -n "`basename $link |grep -E 'libtcl.so$|libncurses.so$|libcurses.so$|libform.so$|libmenu.so$|libpanel.so$|libcursesw.so$'`" ]; then
 				continue
 			fi
 			soname=`objdump -p $linkdir/$linkdest | grep SONAME | awk '{print $2}'`
@@ -289,7 +295,8 @@ reduce_libs()
 		| grep -E 'lib\/lib' \
 		| grep -E '\.so' |sort -u`; do
 			# Ignore TCL, it doesn't ever declare an SONAME
-			if [ `basename $lib` == "libtcl8.6.so" ]; then
+			# ncurses has some wierd scripts named .so ??
+			if [ -n "`basename $lib |grep -E 'libtcl8.6.so$|libncurses.so$|libcurses.so$|libform.so$|libmenu.so$|libpanel.so$|libcursesw.so'`" ]; then
 				continue
 			fi
 			soname=`objdump -p $lib | grep SONAME | awk '{print $2}'`
