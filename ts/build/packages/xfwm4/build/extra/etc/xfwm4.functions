@@ -125,22 +125,20 @@ xfconf_settings()
 		xfconf-query -c xfce4-desktop -p /desktop-icons/font-size -t double -s $DESKTOP_FONT_SIZE -n
 	fi
 	if [ -e /etc/background.svg ]; then
-		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitorVirtual-1/workspace0/last-image -t string -s /etc/background.svg -n
-		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitorVirtual-1/workspace0/image-style -t int -s 4 -n
-		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitorVirtual-2/workspace0/last-image -t string -s /etc/background.svg -n
-		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitorVirtual-2/workspace0/image-style -t int -s 4 -n
+		background=/etc/background.svg
+		bg_mode=4
 	elif [ -e /etc/background.jpg ]; then
-		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitorVirtual-1/workspace0/last-image -t string -s /etc/background.jpg -n
-		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitorVirtual-1/workspace0/image-style -t int -s 3 -n
-		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitorVirtual-2/workspace0/last-image -t string -s /etc/background.jpg -n
-		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitorVirtual-2/workspace0/image-style -t int -s 3 -n
+		background=/etc/background.jpg
+		bg_mode=3
 	fi
-	if [ -n "$XFWM4_RED" ] && [ -n "$XFWM4_BLUE" ] && [ -n "$XFWM4_GREEN" ]; then
-		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitorVirtual-1/workspace0/color-style -t int -s 0 -n
-		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitorVirtual-1/workspace0/rgba1 -t double -t double -t double -t double -s $XFWM4_RED -s $XFWM4_GREEN -s $XFWM4_BLUE -s ${XFWM4_ALPHA:=1.0} -n
-		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitorVirtual-2/workspace0/color-style -t int -s 0 -n
-		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitorVirtual-2/workspace0/rgba1 -t double -t double -t double -t double -s $XFWM4_RED -s $XFWM4_GREEN -s $XFWM4_BLUE -s ${XFWM4_ALPHA:=1.0} -n
-	fi
+	for display in monitorVirtual{1,2,-1,-2}; do
+		if [ -n "$backgrund" ]; then
+			xfconf-query -c xfce4-desktop -p /backdrop/screen0/$display/workspace0/last-image -t string -s $background -n
+			xfconf-query -c xfce4-desktop -p /backdrop/screen0/$display/workspace0/image-style -t int -s $bg_mode -n
+		fi
+		xfconf-query -c xfce4-desktop -p /backdrop/screen0/$display/workspace0/color-style -t int -s 0 -n
+		xfconf-query -c xfce4-desktop -p /backdrop/screen0/$display/workspace0/rgba1 -t double -t double -t double -t double -s "${XFWM4_RED:=0}" -s "${XFWM4_GREEN:=0}" -s "${XFWM4_BLUE:=0}" -s "${XFWM4_ALPHA:=1.0}" -n
+	done
 	if [ -n "$XFWM4_START_ICON" ]; then
 		xfconf-query -c xfce4-panel -p /plugins/plugin-1/button-icon -t string -s $XFWM4_START_ICON -n
 	fi
@@ -188,10 +186,10 @@ xfconf_settings()
 		xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/dpms-on-ac-sleep -t uint -s $SCREEN_SUSPEND_TIME -n
 		xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/dpms-on-battery-sleep -t uint -s $SCREEN_SUSPEND_TIME -n
 	fi
-        if [ -n "$SCREEN_OFF_TIME" ]; then
-                xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/dpms-on-ac-off -t uint -s $SCREEN_OFF_TIME -n
+	if [ -n "$SCREEN_OFF_TIME" ]; then
+		xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/dpms-on-ac-off -t uint -s $SCREEN_OFF_TIME -n
 		xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/dpms-on-battery-off -t uint -s $SCREEN_OFF_TIME -n
-        fi
+	fi
 	if [ -n "$XFWM4_SHOW_SUSPEND" ]; then
 		xfconf-query -c xfce4-session -p /shutdown/ShowSuspend -t bool -s $XFWM4_SHOW_SUSPEND -n
 	fi
@@ -372,15 +370,15 @@ wm_menu()
 	cat /tmp/typelist |sort -u | while read menu_type; do
 		menu_dirtype="`echo $menu_type | awk -F:: "{ print \\$NF }"`"
 		menudirfile=$menudir/$menu_dirtype.directory
-		echo $menu_type | awk -F:: "{ for (i=1; i<NF; i++) { print \"<Menu>\"; print \"<Name>\"\$i\"</Name>\" } }"  >>$menufile
+		echo $menu_type | awk -F:: "{ for (i=1; i<NF; i++) { print \"<Menu>\"; print \"<Name>\"\$i\"</Name>\" } }"	>>$menufile
 		echo "    <Menu>"								>>$menufile
-		echo "        <Name>$menu_dirtype</Name>"						>>$menufile
+		echo "        <Name>$menu_dirtype</Name>"					>>$menufile
 		echo "        <Directory>$menu_dirtype.directory</Directory>"			>>$menufile
 		echo "        <Include>"							>>$menufile
 		echo "            <Category>$menu_dirtype</Category>"				>>$menufile
 		echo "        </Include>"							>>$menufile
 		echo "    </Menu>"								>>$menufile
-		echo $menu_type | awk -F:: "{ for (i=1; i<NF; i++) print \"</Menu>\" }"          >>$menufile
+		echo $menu_type | awk -F:: "{ for (i=1; i<NF; i++) print \"</Menu>\" }"		>>$menufile
 		echo ""										>>$menufile
 		echo "[Desktop Entry]"								>>$menudirfile
 		echo "Version=1.0"								>>$menudirfile
