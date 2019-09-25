@@ -124,32 +124,22 @@ xfconf_settings()
 		xfconf-query -c xfce4-desktop -p /desktop-icons/use-custom-font-size -t bool -s true -n
 		xfconf-query -c xfce4-desktop -p /desktop-icons/font-size -t double -s $DESKTOP_FONT_SIZE -n
 	fi
-	if [ -n "$XFWM4_BRIGHTNESS" ]; then
-		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/brightness -t int -s $XFWM4_BRIGHTNESS -n
-		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor1/brightness -t int -s $XFWM4_BRIGHTNESS -n
-	fi
-	if [ -n "$XFWM4_SATURATION" ]; then
-		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/saturation -t double -s $XFWM4_SATURATION -n
-		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor1/saturation -t double -s $XFWM4_SATURATION -n
-	fi
 	if [ -e /etc/background.svg ]; then
-		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/image-path -t string -s /etc/background.svg -n
-		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/image-show -t bool -s true -n
-		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/image-style -t int -s 4 -n
-		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor1/image-path -t string -s /etc/background.svg -n
-		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor1/image-show -t bool -s true -n
-		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor1/image-style -t int -s 4 -n
+		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitorVirtual-1/workspace0/last-image -t string -s /etc/background.svg -n
+		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitorVirtual-1/workspace0/image-style -t int -s 4 -n
+		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitorVirtual-2/workspace0/last-image -t string -s /etc/background.svg -n
+		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitorVirtual-2/workspace0/image-style -t int -s 4 -n
 	elif [ -e /etc/background.jpg ]; then
-		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/image-path -t string -s /etc/background.jpg -n
-		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/image-show -t bool -s true -n
-		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/image-style -t int -s 3 -n
-		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor1/image-path -t string -s /etc/background.jpg -n
-		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor1/image-show -t bool -s true -n
-		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor1/image-style -t int -s 3 -n
+		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitorVirtual-1/workspace0/last-image -t string -s /etc/background.jpg -n
+		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitorVirtual-1/workspace0/image-style -t int -s 3 -n
+		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitorVirtual-2/workspace0/last-image -t string -s /etc/background.jpg -n
+		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitorVirtual-2/workspace0/image-style -t int -s 3 -n
 	fi
 	if [ -n "$XFWM4_RED" ] && [ -n "$XFWM4_BLUE" ] && [ -n "$XFWM4_GREEN" ]; then
-		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/color1 -t uint -t uint -t uint -t uint -s $XFWM4_RED -s $XFWM4_GREEN -s $XFWM4_BLUE -s 65535 -n
-		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor1/color1 -t uint -t uint -t uint -t uint -s $XFWM4_RED -s $XFWM4_GREEN -s $XFWM4_BLUE -s 65535 -n
+		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitorVirtual-1/workspace0/color-style -t int -s 0 -n
+		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitorVirtual-1/workspace0/rgba1 -t double -t double -t double -t double -s $XFWM4_RED -s $XFWM4_GREEN -s $XFWM4_BLUE -s ${XFWM4_ALPHA:=1.0} -n
+		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitorVirtual-2/workspace0/color-style -t int -s 0 -n
+		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitorVirtual-2/workspace0/rgba1 -t double -t double -t double -t double -s $XFWM4_RED -s $XFWM4_GREEN -s $XFWM4_BLUE -s ${XFWM4_ALPHA:=1.0} -n
 	fi
 	if [ -n "$XFWM4_START_ICON" ]; then
 		xfconf-query -c xfce4-panel -p /plugins/plugin-1/button-icon -t string -s $XFWM4_START_ICON -n
