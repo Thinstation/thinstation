@@ -12,10 +12,15 @@ Work To Do / Work in Progress: mail to developer List if you can help
 * We could really use some help on the documentation. A lot has changed since 2.2, and I am afraid the documentation has not kept up. Please create a wiki account and help others with your knowledge.
 
 New:
-- 64 bit across the board.
-- Moved to kernel 4.19.18
-- Updated Gnome to 3.28
-- Moved to systemd for init
+- Moved to kernel 4.19.72
+- Added a new cache loading feature for faster app launching.
+- Enabled compositing by default.
+- Horizon 5.2 support.
+
+Fixes:
+- hwclock cron task fixed.
+- remade logo svg to render more accuretly.
+- fix background colors not being set correctly.
 
 **Note that Several modules have been moved inside the kernel**
 
