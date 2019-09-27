@@ -54,6 +54,7 @@ cp wget_tmp/vbox/other/vboxclient.desktop $INSTALLDIR/etc/xdg/autostart
 
 do_module() {
   pushd wget_tmp/$3/src/vboxguest-*/$2
+  export KBUILD_MODPOST_WARN=1
   make KERN_DIR=/lib/modules/$1/build clean
   make KERN_DIR=/lib/modules/$1/build
   let returnval=returnval+$?
