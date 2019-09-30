@@ -12,12 +12,14 @@ Work To Do / Work in Progress: mail to developer List if you can help
 * We could really use some help on the documentation. A lot has changed since 2.2, and I am afraid the documentation has not kept up. Please create a wiki account and help others with your knowledge.
 
 New:
+
 - Moved to kernel 5.2.17
 - Added a new cache loading feature for faster app launching.
 - Enabled compositing by default.
 - Horizon 5.2 support.
 
 Fixes:
+
 - hwclock cron task fixed.
 - remade logo svg to render more accuretly.
 - fix background colors not being set correctly.
