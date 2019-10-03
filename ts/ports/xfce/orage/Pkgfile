@@ -1,0 +1,28 @@
+# Maintainer: Evangelos Foutras <evangelos@foutrelis.com>
+# Contributor: Andreas Radke <andyrtr@archlinux.org>
+# Contributor: Tobias Kieslich <tobias (at) archlinux.org>
+
+name=orage
+version=4.12.1
+release=4
+source=(https://archive.xfce.org/src/apps/$name/${version%.*}/$name-$version.tar.bz2
+        libical3.patch)
+
+build() {
+  cd "$SRC/$name-$version"
+
+  # https://bugzilla.redhat.com/show_bug.cgi?id=1512302
+  patch -Np1 -i ../libical3.patch
+
+  ./configure \
+    --prefix=/usr \
+    --sysconfdir=/etc \
+    --libexecdir=/usr/lib \
+    --localstatedir=/var \
+    --enable-libical \
+    --disable-debug
+  make
+  make DESTDIR="$PKG" install
+}
+
+# vim:set ts=2 sw=2 et:

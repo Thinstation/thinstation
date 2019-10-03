@@ -1,0 +1,47 @@
+# Maintainer: Evangelos Foutras <evangelos@foutrelis.com>
+# Contributor: Andreas Radke <andyrtr@archlinux.org>
+# Contributor: Tobias Kieslich <tobias (at) archlinux.org>
+
+pkgname=orage
+pkgver=4.12.1
+pkgrel=4
+pkgdesc="A simple calendar application with reminders for Xfce"
+arch=('x86_64')
+license=('GPL2')
+url="https://www.xfce.org/projects/"
+groups=('xfce4-goodies')
+depends=('xfce4-panel' 'libical' 'popt' 'libnotify')
+makedepends=('intltool')
+conflicts=('xfcalendar')
+replaces=('xfcalendar')
+source=(https://archive.xfce.org/src/apps/$pkgname/${pkgver%.*}/$pkgname-$pkgver.tar.bz2
+        libical3.patch)
+sha256sums=('3cf9aa441ae83c8688865f82217025cdf3ebaa152cce4571777b8c2aa8dd9062'
+            'c9da6ce0e03f9072b16a554ea3e30ed453d5bcb3fb0fdab8b4574582cd375602')
+
+prepare() {
+  cd "$srcdir/$pkgname-$pkgver"
+
+  # https://bugzilla.redhat.com/show_bug.cgi?id=1512302
+  patch -Np1 -i ../libical3.patch
+}
+
+build() {
+  cd "$srcdir/$pkgname-$pkgver"
+
+  ./configure \
+    --prefix=/usr \
+    --sysconfdir=/etc \
+    --libexecdir=/usr/lib \
+    --localstatedir=/var \
+    --enable-libical \
+    --disable-debug
+  make
+}
+
+package() {
+  cd "$srcdir/$pkgname-$pkgver"
+  make DESTDIR="$pkgdir" install
+}
+
+# vim:set ts=2 sw=2 et:
