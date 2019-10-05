@@ -139,6 +139,14 @@ xfconf_settings()
 		xfconf-query -c xfce4-desktop -p /backdrop/screen0/$display/workspace0/color-style -t int -s 0 -n
 		xfconf-query -c xfce4-desktop -p /backdrop/screen0/$display/workspace0/rgba1 -t double -t double -t double -t double -s "${XFWM4_RED:=0}" -s "${XFWM4_GREEN:=0}" -s "${XFWM4_BLUE:=0}" -s "${XFWM4_ALPHA:=1.0}" -n
 	done
+	for display in monitor{0,1}; do
+		if [ -n "$background" ]; then
+			xfconf-query -c xfce4-desktop -p /backdrop/screen0/$display/image-path -t string -s $background -n
+			xfconf-query -c xfce4-desktop -p /backdrop/screen0/$display/image-show -t bool -s true -n
+			xfconf-query -c xfce4-desktop -p /backdrop/screen0/$display/image-style -t int -s $bg_mode -n
+		fi
+		xfconf-query -c xfce4-desktop -p /backdrop/screen0/$display/color1 -t uint -t uint -t uint -t uint -s "${XFWM4_RED:=0}" -s "${XFWM4_GREEN:=0}" -s "${XFWM4_BLUE:=0}" -s 65535 -n
+	done
 	if [ -n "$XFWM4_START_ICON" ]; then
 		xfconf-query -c xfce4-panel -p /plugins/plugin-1/button-icon -t string -s $XFWM4_START_ICON -n
 	fi
