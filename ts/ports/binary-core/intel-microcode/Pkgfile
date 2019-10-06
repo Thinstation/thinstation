@@ -3,17 +3,14 @@
 # Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 
 name=intel-microcode
-version=20180807a
-trans=28087
+version=git
 release=1
-source=(http://downloadmirror.intel.com/$trans/eng/microcode-$version.tgz
-        LICENSE)
 
 build() {
   cd $SRC
-
+  git clone https://github.com/intel/Intel-Linux-Processor-Microcode-Data-Files.git
   install -d -m755 $PKG/lib/firmware
-  cp intel-ucode* $PKG/lib/firmware -a
 
-  install -D -m644 LICENSE $PKG/lib/firmware/intel-ucode/.
+  cp Intel-Linux-Processor-Microcode-Data-Files/intel-ucode* $PKG/lib/firmware/. -a
+  install -D -m644 Intel-Linux-Processor-Microcode-Data-Files/license $PKG/lib/firmware/intel-ucode/LICENSE
 }
