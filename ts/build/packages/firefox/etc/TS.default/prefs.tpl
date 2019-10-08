@@ -27,3 +27,4 @@ user_pref("extensions.update.enabled", false);
 user_pref("security.warn_viewing_mixed", false);
 user_pref("toolkit.telemetry.prompted", 2);
 user_pref("toolkit.telemetry.rejected", true);
+user_pref("devtools.webextensions.https-everywhere@eff.org.enabled", true);
