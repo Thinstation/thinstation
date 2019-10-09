@@ -8,3 +8,12 @@ chmod 755 /opt/Citrix/ICAClient/keystore/cacerts/*
 if is_enabled $ICA_DISABLE_START_CONFIG; then
 	rm /etc/xdg/autostart/ica_receiver_config.desktop
 fi
+
+if [ ! -e /etc/xdg/mimeapps.list ]; then
+	echo "[Default Applications]" > /etc/xdg/mimeapss.list
+fi
+cat << 'EOF' >> /etc/xdg/mimeapps.list
+application/x-ica=wfica.desktop;
+application/vnd.citrix.receiver.configure=new_store.desktop;
+x-scheme-handler/receiver=receiver.desktop;
+EOF
