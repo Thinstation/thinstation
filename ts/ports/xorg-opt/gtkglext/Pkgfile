@@ -1,0 +1,23 @@
+# Maintainer: Ronald van Haren <ronald.archlinux.org>
+# Contributor: Ben <ben@benmazer.net>
+
+name=gtkglext
+version=1.2.0
+release=11
+source=("https://downloads.sourceforge.net/sourceforge/gtkglext/${name}-${version}.tar.bz2"
+	'gtk2.20.patch' gtkglext-gcc8.patch)
+
+build() {
+  cd $name-$version
+
+  patch -Np1 -i "${SRC}/gtk2.20.patch"
+  sed '/AC_PATH_XTRA/d' -i configure.in  
+  patch -p1 -i ../gtkglext-gcc8.patch # Fix build with GCC 8
+
+  autoreconf -vi
+
+  ./configure --prefix=/usr \
+              --disable-static
+  make
+  make DESTDIR="${PKG}" install
+}

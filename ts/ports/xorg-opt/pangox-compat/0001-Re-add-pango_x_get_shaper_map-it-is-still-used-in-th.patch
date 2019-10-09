@@ -1,0 +1,39 @@
+From bd0fcfbd2f8f493e96955c1edd8a791de1e6568a Mon Sep 17 00:00:00 2001
+From: Jan de Groot <jgc@archlinux.org>
+Date: Sun, 19 Feb 2017 07:57:57 +0000
+Subject: [PATCH] Re-add pango_x_get_shaper_map, it is still used in the
+ fallback code
+
+---
+ pangox.c | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
+
+diff --git a/pangox.c b/pangox.c
+index 0a66cc9..1e6efc6 100644
+--- a/pangox.c
++++ b/pangox.c
+@@ -1344,6 +1344,21 @@ pango_x_font_describe (PangoFont *font)
+     return NULL;
+ }
+ 
++PangoMap *
++pango_x_get_shaper_map (PangoLanguage *language)
++{
++  static guint engine_type_id = 0;
++  static guint render_type_id = 0;
++
++  if (engine_type_id == 0)
++    {
++      engine_type_id = g_quark_from_static_string (PANGO_ENGINE_TYPE_SHAPE);
++      render_type_id = g_quark_from_static_string (PANGO_RENDER_TYPE_X);
++    }
++
++  return pango_find_map (language, engine_type_id, render_type_id);
++}
++
+ static PangoCoverage *
+ pango_x_font_get_coverage (PangoFont     *font,
+ 			   PangoLanguage *language)
+-- 
+2.11.1
+
