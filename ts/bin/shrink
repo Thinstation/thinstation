@@ -1,13 +1,25 @@
 #!/bin/bash
 
 home=`pwd`
-
+set -x
 port=$1
 version=`prt-get printf %v --filter=$port`
 release=`prt-get printf %r --filter=$port`
 path=`prt-get path $port`
-archive=$path/${port}#${version}-${release}.pkg.tar.xz
+if [ -e $path/${port}#${version}-${release}.pkg.tar.gz ]; then
+	sarchive=$path/${port}#${version}-${release}.pkg.tar.gz
+	darchive=$path/`basename $sarchive .gz`.xz
+elif [ -e $path/${port}#${version}-${release}.pkg.tar.xz ]; then
+	sarchive=$path/${port}#${version}-${release}.pkg.tar.xz
+	darchive=$sarchive
+fi
 
+if [ -z $sarchive ]; then
+	echo "couldn't find an archive"
+	prt-get update -fr $port
+	echo $port >> /tryagain
+	exit 1
+fi
 if [ -z $path ]; then
 	echo "you failed $port"
 	exit 1
@@ -22,9 +34,16 @@ fi
 
 mkdir -p /tmp/shrink
 mount -t tmpfs -o size=1G tmpfs /tmp/shrink
-tar -xf $archive -C /tmp/shrink 2>/dev/null
+tar -xf $sarchive -C /tmp/shrink 2>/dev/null || exit 1
+oldsize=`du -sb $sarchive |cut -f1`
 cd /tmp/shrink
-tar -c * |xz -9 > $archive
+tar -c * |xz -9 > $darchive.new
+newsize=`du -sb $darchive.new |cut -f1`
+if [ "$oldsize" -gt "$newsize" ]; then
+	cp $darchive.new $darchive
+fi
+rm $darchive.new
+
 cd $home
 umount /tmp/shrink
 rmdir /tmp/shrink

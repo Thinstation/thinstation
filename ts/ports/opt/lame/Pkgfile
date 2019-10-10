@@ -4,20 +4,18 @@
 # Depends on:  ncurses
 
 name=lame
-version=3.99.5
+version=3.100
 release=1
-source=(http://downloads.sourceforge.net/project/$name/$name/${version%.*}/$name-$version.tar.gz \
-	sse.patch)
+source=(http://downloads.sourceforge.net/project/$name/$name/$version/$name-$version.tar.gz)
 
 build () {
     cd $name-$version
-    patch -p1 -i $SRC/sse.patch
     ./configure --prefix=/usr \
-                --mandir=/usr/man \
                 --disable-analyzer-hooks \
                 --disable-gtktest \
                 --enable-nasm
     make
     make DESTDIR=$PKG install
-    rm -r $PKG/usr/share
+    rm -r $PKG/usr/share/doc
 }
+

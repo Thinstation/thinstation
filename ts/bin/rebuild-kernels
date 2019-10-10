@@ -10,12 +10,13 @@ kernels()
 		fi
 		prt-get update -uf $port
 		prt-get update -um $port
+		shrink $port
 	done
 }
 
 modules()
 {
-	for port in bbswitch cryptodev-linux broadcom-sta; do
+	for port in bbswitch cryptodev-linux macbook12-spi-driver; do
         	if prt-get current $port > /dev/null; then
                 	prt-get update -fr -if -im -is $port
 	        else
@@ -23,6 +24,7 @@ modules()
 	        fi
 	        prt-get update -uf $port
 	        prt-get update -um $port
+		shrink $port
 	done
 }
 

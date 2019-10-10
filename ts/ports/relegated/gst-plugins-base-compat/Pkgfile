@@ -1,0 +1,31 @@
+# Description: An essential exemplary set of plugins for gstreamer.
+# URL: http://gstreamer.freedesktop.org/modules/gst-plugins-base.html
+# Maintainer: Jose V Beneyto, sepen at crux dot nu
+# Packager: Matt Housh, jaeger at morpheus dot net
+# Depends on: alsa-lib e2fsprogs glibc gstreamer liboil libvorbis pango xorg-libxv xorg-libxcomposite
+
+name=gst-plugins-base-compat
+version=0.10.36
+release=1
+source=(http://gstreamer.freedesktop.org/src/${name%-compat}/${name%-compat}-$version.tar.xz)
+
+build() {
+  cd ${name%-compat}-$version
+
+  ./configure --prefix=/usr \
+              --mandir=/usr/man \
+              --disable-debug \
+               \
+              --disable-dependency-tracking \
+              --disable-valgrind \
+              --disable-examples \
+	      --enable-experimental \
+	      --enable-introspection=yes \
+	      --enable-shared \
+	      --disable-static
+
+  make
+  make DESTDIR=$PKG install
+  rm -r $PKG/usr/share/gtk-doc
+  rm -rf $PKG/usr/man
+}

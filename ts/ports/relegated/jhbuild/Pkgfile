@@ -1,0 +1,18 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=jhbuild
+version=git
+release=1
+source=()
+
+build() {
+git clone --depth 1 https://gitlab.gnome.org/GNOME/jhbuild.git
+	cd $name
+
+	gnome-autogen.sh
+	PYTHON=/usr/bin/python3 ./configure --prefix=/usr
+	make
+	make DESTDIR=$PKG install
+}

@@ -66,7 +66,7 @@ parted -s $disk mkpart primary linux-swap "8390656s 12584959s"
 parted -s $disk mkpart primary ext4 "12584960s -0"
 read_pt
 un_mount
-dd if=/install/mbr.bin of=$disk bs=440b count=1
+dd if=/install/bios/mbr.bin of=$disk bs=440b count=1
 sleep 1
 read_pt
 sleep 1
@@ -101,6 +101,7 @@ sleep 1
 mkdir -p $bootdir/syslinux
 cd $bootdir/syslinux
 cp /install/* .
+cp /install/bios/* .
 ./extlinux -i /boot/boot/syslinux
 cd $bootdir
 

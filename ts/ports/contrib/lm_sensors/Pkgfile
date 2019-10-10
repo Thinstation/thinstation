@@ -1,0 +1,25 @@
+# Maintainer: Laurent Carlier <lordheavym@gmail.com>
+# Contributor: Eric Bélanger
+
+name=lm_sensors
+version=3.5.0
+_version=${version//./-}
+release=1
+source=(https://github.com/lm-sensors/lm-sensors/archive/V${_version}.tar.gz
+	healthd healthd.conf healthd.service sensord.conf)
+
+build() {
+  cd "${SRC}/lm-sensors-${_version}"
+  sed -i 's|/etc/sysconfig|/etc/conf.d|' prog/{detect/sensors-detect,init/{sensord,lm_sensors}.service}
+  sed -i 's/EnvironmentFile=/EnvironmentFile=-/' prog/init/lm_sensors.service
+  make PREFIX=/usr
+  make PREFIX=/usr MANDIR=/usr/share/man DESTDIR="${PKG}" install
+
+  install -D -m755 "${SRC}/healthd" "${PKG}/usr/bin/healthd"
+
+  install -D -m644 "${SRC}/healthd.conf" "${PKG}/etc/healthd.conf"
+  install -D -m644 "${SRC}/sensord.conf" "${PKG}/etc/conf.d/sensord"
+ 
+  install -D -m644 "${SRC}/healthd.service" "${PKG}/usr/lib/systemd/system/healthd.service"
+  install -D -m644 prog/init/*.service "${PKG}/usr/lib/systemd/system/"
+}

@@ -1,0 +1,17 @@
+# Maintainer: Jan de Groot <jgc@archlinux.org>
+
+name=gsound
+version=1.0.2
+release=4
+
+build() {
+  git clone https://gitlab.gnome.org/GNOME/gsound.git
+  cd $name
+  NOCONFIGURE=1 ./autogen.sh
+  ./configure --prefix=/usr --disable-static --enable-gtk-doc \
+    --enable-compile-warnings=yes
+  sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
+  make
+  make -C $name check
+  make DESTDIR="$PKG" install
+}

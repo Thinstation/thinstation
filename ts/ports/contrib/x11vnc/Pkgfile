@@ -4,12 +4,13 @@
 # Depends on:	libjpeg xorg-libxdamage xorg-libxinerama xorg-libxrandr xorg-libxtst
 
 name=x11vnc
-version=0.9.13
+version=0.9.16
 release=1
-source=(http://prdownloads.sf.net/libvncserver/$name-$version.tar.gz)
+source=(https://github.com/LibVNC/x11vnc/archive/${version}.tar.gz)
 
 build() {
 	cd $name-$version
+	NOCONFIGURE=1 ./autogen.sh
 	./configure --prefix=/usr \
 		     \
 		    --mandir=$PKG/usr/man

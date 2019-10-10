@@ -5,7 +5,7 @@
 # Optional:	ppp
 
 name=networkmanager
-version=1.18.0
+version=1.20.0
 release=1
 source=(http://ftp.gnome.org/pub/GNOME/sources/NetworkManager/${version%.*}/NetworkManager-$version.tar.xz
 networkmanager.rc
@@ -22,7 +22,7 @@ build() {
         export NSS_CFLAGS NSS_LIBS
 
 	CPPFLAGS="-I/usr/include/nspr $CPPFLAGS" \
-	./configure \
+	PYTHON=/usr/bin/python3 ./configure \
 		--prefix=/usr \
 		--sysconfdir=/etc \
 		--localstatedir=/var \
@@ -42,12 +42,11 @@ build() {
 		--with-pppd-plugin-dir=/usr/lib/pppd/2.4.7 \
 		--with-modem-manager-1 \
 		--with-consolekit=no \
-		--with-systemd-logind=yes \
-		--disable-introspection
+		--with-systemd-logind=yes
 
 	sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
 	make
-	make DESTDIR=$PKG install
+	make DESTDIR=$PKG install install-libnmincludeHEADERS
 
 	# Remove unneeded files
 	rm -rf $PKG/usr/share/bash-completion $PKG/usr/share/gtk-doc
@@ -57,4 +56,6 @@ build() {
 
 	# Install startup script
 	install -D -m 755 -o root -g root $SRC/$name.rc $PKG/etc/rc.d/$name
+
+#	install -D -m 755 -o root -g root NetworkManager.pc $PKG/usr/lib/pkgconfig/NetworkManager.pc
 }

@@ -4,21 +4,13 @@
 # Depends on: faad2
 
 name=faac
-version=1.28
-release=2
-source=(http://download.sourceforge.net/$name/$name-$version.tar.bz2 \
-	altivec.patch \
-	mp4v2-1.9.patch \
-	mp4v2-2.0.0.patch)
+version=1.29.9.2
+release=1
+source=(https://sourceforge.net/projects/$name/files/$name-src/$name-${version::4}/$name-$version.tar.gz)
 
 build () {
 	cd $name-$version
-	patch -p1 -i $SRC/mp4v2-1.9.patch
-	patch -p0 -i $SRC/mp4v2-2.0.0.patch
-        patch -p0 -i $SRC/altivec.patch
 
-	chmod +x bootstrap
-	./bootstrap
 	./configure --prefix=/usr
 	make CFLAGS="$CFLAGS"
 	make prefix=$PKG/usr mandir=$PKG/usr/man install

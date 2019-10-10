@@ -4,9 +4,9 @@
 # Depends on:  db openssl libpcre
 
 name=exim
-version=4.92
+version=4.92.1
 release=1
-source=(ftp://ftp.exim.org/pub/exim/exim4/$name-$version.tar.xz \
+source=(https://downloads.exim.org/exim4/$name-$version.tar.xz \
         $name $name-config.patch)
 
 build() {
@@ -15,10 +15,10 @@ build() {
     sed "s/#CFLAGS#/$CFLAGS/" $SRC/$name-config.patch | patch -p1
     cp src/EDITME Local/Makefile
 
-    make -j1
+    make
     make DESTDIR=$PKG install
 
-    mv $PKG/usr/sbin/{$name-$version-?,$name}
+    mv $PKG/usr/sbin/{$(readlink $PKG/usr/sbin/$name),$name}
 
     install -D -m 755 $SRC/exim $PKG/etc/rc.d/exim
     install -D -m 644 doc/exim.8 $PKG/usr/share/man/man8/exim.8

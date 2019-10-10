@@ -1,26 +1,23 @@
-# Description: Thinstation essential package
-# URL: http://meldmerge.org/
-# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+# Description: Mozilla's JavaScript engine
+# URL: https://developer.mozilla.org/en-US/docs/Mozilla/Projects/SpiderMonkey
+# Maintainer: Matt Housh, jaeger at crux dot ninja
+# Depends on: autoconf-2.13 icu zlib nspr
 
 name=mozjs
-archname=js
-version=24.2.0
+version=60.1.0
 release=1
-source=(http://ftp.mozilla.org/pub/mozilla.org/js/$name-$version.tar.bz2)
+source=(http://ftp.gnome.org/pub/gnome/teams/releng/tarballs-needing-help/$name/$name-$version.tar.bz2)
 
 build() {
-	cd mozjs-$version
-
-	cd js/src
-
-	sed -i 's/(defined\((@TEMPLATE_FILE)\))/\1/' config/milestone.pl
-
-	./configure --prefix=/usr \
-			--with-system-nspr \
-			--with-system-ffi  \
-			--enable-threadsafe \
-			--enable-readline
-
+	mkdir build && cd build
+	../$name-$version/js/src/configure --prefix=/usr \
+		--enable-readline \
+		--disable-jemalloc \
+		--with-intl-api \
+		--with-system-icu \
+		--with-system-nspr \
+		--with-system-nss \
+		--with-system-zlib
 	make
 	make DESTDIR=$PKG install
 }

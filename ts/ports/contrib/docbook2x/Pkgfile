@@ -1,0 +1,25 @@
+# Maintainer: Sergej Pupykin <pupykin.s+arch@gmail.com>
+# Contributor: Alessio 'mOLOk' Bolognino <themolok@gmail.com>
+
+name=docbook2x
+version=0.8.8
+release=16
+source=(https://downloads.sourceforge.net/$name/docbook2X-$version.tar.gz
+        datadir.diff)
+
+build() {
+  cd "$SRC"/docbook2X-$version
+  patch -p1 <"$SRC"/datadir.diff
+  sed -e 's/AM_CONFIG_HEADER(/AC_CONFIG_HEADERS(/' -i configure.ac
+  autoreconf -i -f
+  ./configure \
+    --prefix=/usr \
+    --mandir=/usr/share/man \
+    --program-transform-name 's,2x-,2,' \
+  make
+  make DESTDIR="$PKG" install
+  install -D -m0644 COPYING "$PKG"/usr/share/licenses/$name/license
+  sed -i 's|http://docbook2x.sf.net/latest|/usr/share/docbook2X|g' \
+    "$PKG"/usr/bin/db2x_xsltproc
+  rm -rf $PKG/usr/share/info
+}

@@ -1,17 +1,12 @@
-# Description: nl80211 based CLI configuration utility for wireless devices
-# URL:         http://wireless.kernel.org/en/users/Documentation/iw
-# Maintainer:  Bartlomiej Palmowski, rotwang at crux dot org dot pl
-# Depends on:  libnl
+# Maintainer: Thomas Bächler <thomas@archlinux.org>
 
 name=iw
-version=4.7
+version=5.3
 release=1
-source=()
+source=(https://www.kernel.org/pub/software/network/$name/$name-$version.tar.xz)
 
 build() {
-    git clone git://git.sipsolutions.net/iw.git
-    cd $name
-#    sed "s/#VER#/$version/" ../version.sh > version.sh
-    make
-    MANDIR=/usr/man make DESTDIR=$PKG install
+  cd "$SRC"/$name-$version
+  make
+  make DESTDIR="$PKG" SBINDIR="/usr/bin" install
 }

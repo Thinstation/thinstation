@@ -1,0 +1,25 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=inkcut
+pname=inkcut
+version=pip
+release=1
+source=()
+
+build() {
+        pip3 download $name --no-binary :all: --no-deps
+        mkdir -p $SRC/$name
+        tar -xvf $SRC/$pname-*.* -C $SRC/$name || unzip -d $SRC/$name $pname-*.zip
+        cd $SRC/$name/*
+
+        python ./setup.py install --root $PKG
+}
+
+
+
+
+
+
+

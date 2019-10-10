@@ -1,0 +1,16 @@
+# Maintainer: Jan Alexander Steffens (heftig) <jan.steffens@gmail.com>
+# Maintainer: Jan de Groot <jgc@archlinux.org>
+
+name=gspell
+version=1.8.1
+release=1
+
+build() {
+  git clone https://gitlab.gnome.org/GNOME/gspell.git
+  cd $name
+  NOCONFIGURE=1 ./autogen.sh
+  ./configure  --prefix=/usr --enable-gtk-doc
+  sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
+  make
+  make DESTDIR="$PKG" install
+}

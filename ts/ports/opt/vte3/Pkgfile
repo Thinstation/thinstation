@@ -1,0 +1,22 @@
+# Maintainer: Jan Alexander Steffens (heftig) <jan.steffens@gmail.com>
+# Contributor: Ionut Biru <ibiru@archlinux.org>
+
+name=vte3
+version=0.56.3
+release=1
+
+build() {
+  git clone https://gitlab.gnome.org/GNOME/vte.git
+  cd vte
+  git checkout 14fac9f56d923cbb23b0c114ddf630fe36c5163c
+
+  NOCONFIGURE=1 ./autogen.sh
+
+  ./configure --prefix=/usr --sysconfdir=/etc --libexecdir=/usr/lib/vte \
+    --localstatedir=/var --disable-static --enable-introspection --enable-glade-catalogue --enable-gtk-doc
+
+  sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
+
+  make
+  make DESTDIR="$PKG" install
+}

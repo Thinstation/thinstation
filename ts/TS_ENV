@@ -1,7 +1,7 @@
 #!/bin/bash
 trap "exit 1" SIGINT SIGHUP SIGTERM
 
-export TSVER=6.1
+export TSVER=6.2
 export TSWRKNG=/ts/build
 export TSPKGROOT=ts/build/packages
 export TSCOMPROOT=ts/components
@@ -18,10 +18,18 @@ if [ -n "$chuser" ]; then
 else
 	export HOME=/root
 fi
-if [ -e /opt/jre/bin/java ]; then
+if [ -e /usr/lib/java/openjdk8 ]; then
+	PATH=$PATH:/usr/lib/java/openjdk8/bin
+	export JAVA_HOME=/usr/lib/java/openjdk8
+elif [ -e /opt/jre/bin/java ]; then
 	PATH=$PATH:/opt/jre/bin
+	export JAVA_HOME=/opt/jre
 elif [ -e  /usr/lib/jdk/bin/java ]; then
 	PATH=$PATH:/usr/lib/jdk/bin
+	export JAVA_HOME=/usr/lib/jdk
+elif [ -e /opt/jdk/bin/java ]; then
+	PATH=$PATH:/opt/jdk/bin
+	export JAVA_HOME=/opt/jdk
 fi
 if [ -e /opt/meld/bin/meld ]; then
 	PATH=$PATH:/opt/meld/bin

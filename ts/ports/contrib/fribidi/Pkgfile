@@ -1,21 +1,16 @@
 # Description: Unicode Bidirectional (BiDi) Algorithm.
-# URL: http://fribidi.org/
-# Maintainer: Danny Rawlins, monster dot romster at gmail dot com
-# Packager: sten, nick dot steeves at shaw dot ca
+# URL: https://github.com/fribidi/fribidi/
+# Maintainer: Danny Rawlins, crux at romster dot me
 
 name=fribidi
-version=0.19.7
+version=1.0.5
 release=1
-source=(http://fribidi.org/download/$name-$version.tar.bz2)
+source=(https://github.com/$name/$name/releases/download/v$version/$name-$version.tar.bz2)
 
 build() {
 	cd $name-$version
-
-	./configure \
-		--prefix=/usr \
-		--mandir=/usr/man \
-		--disable-static
-
+	./configure --prefix=/usr
 	make
 	make DESTDIR=$PKG install
 }
+

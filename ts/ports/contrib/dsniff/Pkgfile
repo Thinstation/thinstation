@@ -1,25 +1,40 @@
-# Description: Tools for network auditing and penetration testing
-# URL: http://www.monkey.org/~dugsong/dsniff/
-# Maintainer: 
-# Packager: 
+# Maintainer: Levente Polyak <anthraxx[at]archlinux[dot]org>
+# Maintainer: Baptiste Jonglez <archlinux at bitsofnetworks dot org>
+# Contributor: Sergej Pupykin <pupykin.s+arch@gmail.com>
+# Contributor: ViNS <gladiator@fastwebnet.it>
 
 name=dsniff
-version=2.4
-release=1
-source=(http://www.monkey.org/~dugsong/$name/beta/$name-${version}b1.tar.gz
-	dsniff-2.4-libnet_11.patch
-	dsniff-openssl-1.1.patch
-	dsniff-2.4-sshcrypto.patch
-	dsniff-2.4-sysconf_clocks.patch)
+version=2.4b1
+release=27
+source=(https://www.monkey.org/~dugsong/${name}/beta/${name}-${version}.tar.gz
+        http://ftp.de.debian.org/debian/pool/main/d/${name}/${name}_2.4b1+debian-29.debian.tar.xz
+        dsniff-rpc.patch
+        dsniff-macof-size-calculation.patch
+        dsniff-httppostfix.patch)
 
-build(){
-	cd $name-$version
-	patch -Np1 < ../dsniff-2.4-libnet_11.patch
-	patch -Np1 < ../dsniff-2.4-sshcrypto.patch
-	patch -Np1 < ../dsniff-2.4-sysconf_clocks.patch
-	patch -Np1 < ../dsniff-openssl-1.1.patch
+build() {
+  cd ${name}-2.4
 
-	./configure --prefix=/usr --sysconfdir=/etc
-	make
-	make install install_prefix=$PKG
+  # apply bundled patches via series
+  while IFS='' read -r patch || [[ -n "${patch}" ]]; do
+    patch -Np1 < "../debian/patches/${patch}"
+  done < ../debian/patches/series
+
+  # apply local patches
+  for _patch in "${source[@]}"; do
+    _patch=${_patch%%::*}
+    if [[ "${_patch}" =~ \.patch$ ]]; then
+      patch -Np1 < "../${_patch}"
+    fi
+  done
+
+  autoreconf -fiv
+  ./configure \
+    --with-libtirpc \
+    --prefix=/usr \
+
+  make
+  make install_prefix="${PKG}" install
+  install -Dm 644 LICENSE -t "${PKG}/usr/share/licenses/${name}"
+  install -Dm 644 CHANGES README -t "${PKG}/usr/share/doc/${name}"
 }

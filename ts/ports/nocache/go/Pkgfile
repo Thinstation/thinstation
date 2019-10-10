@@ -1,0 +1,45 @@
+# Description: The Go Programming Language
+# URL: https://golang.org/
+# Maintainer: Matt Housh, jaeger at crux dot ninja
+
+name=go
+version=1.12.9
+release=1
+source=(https://storage.googleapis.com/golang/go1.4.3.linux-amd64.tar.gz \
+    https://storage.googleapis.com/golang/${name}${version}.src.tar.gz \
+    $name-certpath.diff)
+
+unpack_source() {
+    install -d $SRC/go1.4
+    bsdtar -xf $PKGMK_SOURCE_DIR/${name}1.4.3.linux-amd64.tar.gz \
+        -C $SRC/go1.4 --strip-components 1
+    bsdtar -xf $PKGMK_SOURCE_DIR/${name}${version}.src.tar.gz \
+        -C $SRC
+    cp $name-certpath.diff $SRC
+}
+
+build() {
+    export GOROOT_BOOTSTRAP=${SRC}/go1.4
+    export GOROOT_FINAL=/usr/lib/go
+    export GOOS=linux
+    export GOARCH=amd64
+    export GOCACHE=off
+
+    patch -p0 -i $SRC/$name-certpath.diff
+
+    cd go/src
+    bash make.bash --no-clean
+
+    rm -rf $SRC/go/pkg/obj/go-build/*
+
+    install -d $PKG/usr/lib
+    cp -r $SRC/go $PKG/usr/lib/
+
+    install -d $PKG/usr/bin
+    ln -s /usr/lib/go/bin/go $PKG/usr/bin/
+    ln -s /usr/lib/go/bin/gofmt $PKG/usr/bin/
+
+    find $PKG \( -name "*.a" -o -name "*.go" \) -exec chmod 644 '{}' \;
+    find $PKG \( -name "README*" -o -name "AUTHORS" -o -name "TODO" \) -delete
+    rm $PKG/usr/lib/go/src/*.bat
+}

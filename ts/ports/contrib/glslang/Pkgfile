@@ -1,0 +1,35 @@
+# Maintainer: Sven-Hendrik Haase <sh@lutzhaase.com>
+
+name=glslang
+version=7.11.3214
+release=2
+source=(https://github.com/KhronosGroup/glslang/archive/${version}.tar.gz)
+
+build() {
+  cd ${name}-${version}
+  mkdir -p build-{shared,static}
+  (cd build-shared
+    cmake .. \
+      -GNinja \
+      -DCMAKE_INSTALL_PREFIX=/usr \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DBUILD_SHARED_LIBS=ON
+    ninja
+  )
+  (cd build-static
+    cmake .. \
+      -GNinja \
+      -DCMAKE_INSTALL_PREFIX=/usr \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DBUILD_SHARED_LIBS=OFF
+    ninja
+  )
+  DESTDIR="${PKG}" ninja -C build-shared install
+  DESTDIR="${PKG}" ninja -C build-static install
+  cd "${PKG}"/usr/lib
+  for lib in *.so; do
+    ln -sf "${lib}" "${lib}.0"
+  done
+}
+
+# vim: ts=2 sw=2 et:

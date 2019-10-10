@@ -1,0 +1,18 @@
+# Description: Interface for userspace filesystems
+# URL:         https://github.com/libfuse/
+# Maintainer:  Juergen Daubert, jue at crux dot nu
+# Depends on:  meson ninja
+
+name=fuse3
+version=3.6.2
+release=1
+source=(https://github.com/libfuse/libfuse/releases/download/fuse-$version/fuse-$version.tar.xz)
+
+build() {
+    cd fuse-$version
+
+    meson build --prefix /usr --sysconfdir /etc
+    DESTDIR=$PKG ninja -C build -j ${JOBS:-1} install
+
+    rm -r $PKG/dev
+}

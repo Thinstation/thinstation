@@ -3,7 +3,7 @@
 # Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 
 name=unshield
-version=1.2
+version=1.4.3
 release=1
 source=(https://github.com/twogood/unshield/archive/$version.tar.gz)
 
@@ -12,16 +12,11 @@ build() {
 
 	cd $name-$version
 
-	./bootstrap
-	./configure --prefix=/usr \
-			--exec-prefix=/ \
-			--sysconfdir=/etc \
-			--mandir=/usr/man \
-			--disable-static \
-			--disable-extras
+	cmake \
+	-DCMAKE_INSTALL_PREFIX=/usr \
+	-DCMAKE_INSTALL_LIBDIR=lib \
+	.
 
 	make
 	make DESTDIR=$PKG install
-	mkdir $PKG/usr/lib
-	mv $PKG/lib/pkgconfig $PKG/usr/lib/.
 }

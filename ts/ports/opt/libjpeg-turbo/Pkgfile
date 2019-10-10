@@ -1,16 +1,32 @@
-# Description:	Library of JPEG support functions.
-# URL:		http://www.libjpeg-turbo.org/
-# Maintainer:	Fredrik Rinnestam, fredrik at crux dot nu
+# Maintainer: Gaetan Bisson <bisson@archlinux.org>
+# Contributor: Allan McRae <allan@archlinux.org>
+# Contributor: Simone Sclavi 'Ito' <darkhado@gmail.com>
 
 name=libjpeg-turbo
-version=1.5.0
+version=2.0.2
 release=1
-source=(http://downloads.sourceforge.net/libjpeg-turbo/libjpeg-turbo-$version.tar.gz)
+source=("https://downloads.sourceforge.net/project/${name}/${version}/${name}-${version}.tar.gz")
 
 build() {
-	cd $name-$version
-	./configure --prefix=/usr --with-jpeg8 --mandir=/usr/share/man --disable-static
+	cd "${SRC}/${name}-${version}"
+	sed 's/Szathmáry/Szathmary/g' -i java/org/libjpegturbo/turbojpeg/*.java
+
+	cmake \
+		-DWITH_JAVA=1 \
+		-DWITH_JPEG8=1 \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=/usr/lib \
+		.
+
 	make
-	make DESTDIR=$PKG install
-	rm -r $PKG/usr/share/doc
+	make test
+	make \
+		DESTDIR="${PKG}" \
+		docdir="/usr/share/doc/${name}" \
+		exampledir="/usr/share/doc/${name}" \
+		install
+
+	install -d "${PKG}/usr/share/licenses/${name}"
+	ln -s ../../doc/libjpeg-turbo/LICENSE.md "${PKG}/usr/share/licenses/${name}"
+	install -m 644 jpegint.h "${PKG}/usr/include" # required by other software
 }

@@ -1,26 +1,33 @@
 # Description: An open source SVG editor.
-# URL: http://www.inkscape.org/
+# URL: https://www.inkscape.org/
 # Maintainer: Danny Rawlins, crux at romster dot me
-# Packager: Huynh Ngoc Chau Tran, tran dot huynh at laposte dot net
-# Depends on: boehm-gc boost gsl gtkmm intltool poppler-glib popt
+# Depends on: boehm-gc boost gsl gtkmm poppler-glib popt
+# Optional: rtmpdump openldap libexif openjade gtk-doc gtkspell brotli imagemagick-compat
 
 name=inkscape
-version=0.92.3
+version=0.92.4
 release=1
-source=(http://inkscape.global.ssl.fastly.net/media/resources/file/$name-$version.tar.bz2)
+source=(https://media.inkscape.org/dl/resources/file/$name-$version.tar.bz2
+	inkscape-0.92.4-poppler-0.76.0.patch)
 
 build() {
 	cd $name-$version
 
+	patch -p1 -i $SRC/inkscape-0.92.4-poppler-0.76.0.patch
+
 	CXXFLAGS+=' -std=c++11'
 
 	./autogen.sh
+
+#	export PKG_CONFIG_PATH='/usr/lib/imagemagick6/pkgconfig'
+	export FREETYPE_CONFIG="/usr/bin/pkg-config freetype2"
+
 	./configure \
 		--prefix=/usr \
-		--enable-lcms \
 		--with-python \
 		--with-perl \
-		--enable-poppler-cairo \
+		--enable-lcms \
+		--disable-poppler-cairo \
 		--disable-strict-build \
 		--disable-dependency-tracking
 

@@ -4,21 +4,16 @@
 # Depends on: sysfsutils
 
 name=iputils
-version=s20101006
+version=git
 release=1
-source=(http://www.skbuff.net/iputils/$name-$version.tar.bz2
-        http://crux.nu/files/distfiles/$name-man-$version.tar.xz)
 
 build() {
-    cd $name-$version
+	git clone https://github.com/iputils/iputils.git
+        cd $name
 
-    sed -i "/^CCOPT=/s|-O2|$CFLAGS|;s| -g$||" Makefile
-    make
+        ts-meson build --prefix=/usr \
+                -Dinstalled_tests=false \
+                -Dman=true
 
-    install -d $PKG/{{s,}bin,usr/{man/man8,sbin}}
-    install ping{,6} $PKG/bin/
-    install arping $PKG/sbin/
-    install tracepath{,6} traceroute6 clockdiff rarpd rdisc $PKG/usr/sbin/
-    cp -d $SRC/$name-man-$version/* $PKG/usr/man/man8
-    chmod u+s $PKG/bin/ping{,6} $PKG/usr/sbin/traceroute6
+        DESTDIR=$PKG ninja -C build -j ${JOBS:-1} install
 }

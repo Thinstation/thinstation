@@ -203,7 +203,8 @@ mount_squash()
 			if [ ! -e /tmp/lib.squash ] ; then
 				cp $FILE /tmp/lib.squash
 			fi
-			systemd-mount --no-block --fsck=no -o ro,loop -t squashfs /tmp/lib.squash /lib
+			systemd-mount --fsck=no -o ro,loop -t squashfs /tmp/lib.squash /lib
+			systemctl start --no-block vmtouch.service
 		fi
 	fi
 }
@@ -221,5 +222,5 @@ if is_enabled $FASTBOOT; then
 	esac
 	mount_squash
 else
-	return 0
+	exit 0
 fi

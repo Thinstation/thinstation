@@ -10,6 +10,9 @@ build() {
 	git clone --depth 1 https://github.com/vathpela/pesign.git
 	cd pesign
 
+	sed -i -e 's/-fvar-tracking //g' Make.defaults
+	sed -i -e 's/-fvar-tracking-assignments //g' Make.defaults
+
 
 	make PREFIX="/usr/" LIBDIR="/usr/lib/"
 	make INSTALLROOT="${PKG}/" PREFIX="/usr/" LIBDIR="/usr/lib/" install

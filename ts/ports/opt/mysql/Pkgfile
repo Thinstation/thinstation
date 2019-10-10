@@ -4,9 +4,9 @@
 # Depends on:  ncurses zlib openssl cmake libaio
 
 name=mysql
-version=5.6.33
+version=5.7.27
 release=1
-source=(http://mirror.switch.ch/mirror/mysql/Downloads/MySQL-5.6/$name-$version.tar.gz \
+source=(https://ftp.gwdg.de/pub/misc/mysql/Downloads/MySQL-5.7/$name-boost-$version.tar.gz \
         my.cnf mysqld)
 
 build () {
@@ -20,6 +20,8 @@ build () {
         -DINSTALL_LIBDIR=lib \
         -DINSTALL_PLUGINDIR=lib/mysql/plugin \
         -DINSTALL_MANDIR=share/man \
+        -DINSTALL_SECURE_PRIVDIR=/var/lib/mysql-files \
+        -DWITH_BOOST=./boost \
         -DWITH_LIBWRAP=0 \
         -DWITH_SSL=system \
         -DWITH_ZLIB=system
@@ -31,7 +33,8 @@ build () {
     rm $PKG/usr/share/mysql/charsets/README
     find $PKG/usr/share/mysql/* -type d ! -name english ! -name charsets | xargs rm -rf {} \;
 
-    install -d -m 700 -o mysql -g mysql $PKG/var/{lib,log,run}/mysql
+    install -d -m 700 -o mysql -g mysql $PKG/var/{{lib,log,run}/mysql,lib/mysql-files}
     install -D -m 755 $SRC/mysqld $PKG/etc/rc.d/mysqld
     install -m 600 $SRC/my.cnf $PKG/etc
 }
+

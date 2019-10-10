@@ -15,6 +15,9 @@ build() {
   sed -e '/^SUBDIRS = /s/docs //' -i Makefile.in
   ./configure --prefix=/usr \
               --disable-static
+
+sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
+
   make
   make DESTDIR=$PKG install
   rm -rf $PKG/usr/share

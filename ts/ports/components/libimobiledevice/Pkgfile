@@ -5,13 +5,19 @@
 # Dependencies: libusbmuxd libplist
 
 name=libimobiledevice
-version=1.2.0
+version=git
 release=1
-source=(http://www.libimobiledevice.org/downloads/$name-$version.tar.bz2)
+#source=(http://www.libimobiledevice.org/downloads/$name-$version.tar.bz2)
 
 build() {
-    cd $name-$version
-    ./configure --sysconfdir=/etc --prefix=/usr --disable-static
+git clone https://github.com/libimobiledevice/libimobiledevice
+cd $name
+#    cd $name-$version
+    ./autogen.sh NOCONFIGURE=1
+    PYTHON=/usr/bin/python3 ./configure --sysconfdir=/etc --prefix=/usr --disable-static
+
+sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
+
     make
     make DESTDIR=$PKG install
 }

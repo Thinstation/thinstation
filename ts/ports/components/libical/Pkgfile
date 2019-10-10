@@ -4,15 +4,24 @@
 # Depends on:
 
 name=libical
-version=2.0.0
+version=3.0.4
 release=1
 source=(https://github.com/libical/libical/releases/download/v$version/libical-$version.tar.gz)
 
 build() {
-	cd $name-$version
-	mkdir build
-	cd build
-	cmake .. -DCMAKE_INSTALL_PREFIX=/usr
-    make install DESTDIR=$PKG
-	mv $PKG/usr/lib64 $PKG/usr/lib
+  mkdir build
+  cd build
+
+  cmake ../"${name}-${version}" \
+    -G Ninja \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DSHARED_ONLY=true \
+    -DCMAKE_INSTALL_PREFIX=/usr \
+    -DCMAKE_INSTALL_LIBDIR=/usr/lib \
+    -DICAL_BUILD_DOCS=false
+
+  ninja
+  cd $SRC
+  ninja -C build test
+  DESTDIR="${PKG}" ninja -C build install
 }

@@ -3,15 +3,14 @@
 # Maintainer:  CRUX System Team, core-ports at crux dot nu 
 
 name=tzdata
-version=2016f
+version=2019b
 release=1
 source=(http://www.iana.org/time-zones/repository/releases/$name$version.tar.gz
-        http://www.iana.org/time-zones/repository/releases/tzcode$version.tar.gz
-        tzcode-makefile.patch)
+        http://www.iana.org/time-zones/repository/releases/tzcode$version.tar.gz)
 
 build() {
-#    patch -p1 -i $SRC/tzcode-makefile.patch
     make CFLAGS="$CFLAGS"
     make DESTDIR=$PKG MANDIR=/usr/share/man install
     ln -sf /usr/local/etc/zoneinfo $PKG/usr/share/zoneinfo
+    rm $PKG/etc/localtime
 }

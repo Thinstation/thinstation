@@ -13,19 +13,15 @@ build () {
     cd $name-$version
     ./configure --prefix=/usr \
         --mandir=/usr/man \
-         \
         --disable-schemas-install \
-        --with-nspr-includes=/usr/include/nspr \
-        --with-nss-includes=/usr/include/nss \
-        --with-nspr-libs=/usr/lib \
-        --with-nss-libs=/usr/lib \
 	--with-gnutls-includes=/usr/include/gnutls \
 	--with-gnutls-libs=/usr/lib \
-	--disable-gtkspell \
-	--enable-gnutls=no \
-        --disable-avahi \
-	--disable-tcl \
-        --disable-vv
+        --disable-gnutls \
+        --enable-cyrus-sasl \
+        --disable-doxygen \
+	--disable-vv \
+	--disable-tk \
+	--disable-nm
 
     make
     make DESTDIR=$PKG install

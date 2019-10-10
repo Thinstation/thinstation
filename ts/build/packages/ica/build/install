@@ -19,13 +19,60 @@ bins="attr awk basename bash cat chgrp chmod chown cp cut date dd df \
 	dirname echo ed egrep expr false find gawk grep head id init \
 	install ip ln locale ls mkdir mktemp more mount mv pidof ping \
 	ps red rm rmdir sed sh sleep sort ss tar tc telinit touch tr \
-	true uname vi wc which whoami ldd gst-play-1.0"
+	true uname vi wc which whoami ldd gst-play-1.0 strace xdg-icon-resource \
+	xdg-mime update-desktop-database"
 dirs="proc etc/udev/rules.d etc/init.d bin lib tmp dev/bus/usb usr/local \
         lib/applications lib/gstreamer-1.0"
-clean_dirs="setupwfc linuxx64 dev PkgId tmp proc \
+clean_dirs="setupwfc linuxx64 dev PkgId tmp proc root \
         lib/plugins lib/mailcap \
-        lib/mime.types"
-libs="/lib/libnss_files.so.2 /usr/lib/libgstapp-1.0.so.0"
+        lib/mime.types \
+	etc/xdg/mimeapps.list"
+libs="	/lib/libnss_files.so.2 \
+	/usr/lib/libgstapp-1.0.so.0 \
+	/usr/lib/libwebkit2gtk-4.0.so.37 \
+	/usr/lib/libacl.so.1 \
+	/lib/libcap.so.2 \
+	/lib/libc.so.6 \
+	/lib/libdl.so.2 \
+	/usr/lib/libgmp.so.10 \
+	/usr/lib/libgstapp-1.0.so.0 \
+	/lib/libm.so.6 \
+	/lib/libpcre.so.1 \
+	/lib/libreadline.so.8 \
+	/usr/lib/libelf.so.1 \
+	/usr/lib/libgstreamer-1.0.so \
+	/usr/lib/libgstvideo-1.0.so.0 \
+	/usr/lib/libgstbase-1.0.so.0 \
+	/usr/lib/libgstreamer-1.0.so.0 \
+	/usr/lib/libgobject-2.0.so.0 \
+	/usr/lib/libglib-2.0.so.0 \
+	/lib/libpthread.so.0 \
+	/usr/lib/liborc-0.4.so.0 \
+	/usr/lib/libgmodule-2.0.so.0 \
+	/usr/lib/libunwind.so.8 \
+	/usr/lib/libdw.so.1 \
+	/lib/librt.so.1 \
+	/usr/lib/libffi.so.6 \
+	/lib/libpcre.so.1 \
+	/usr/lib/libgcc_s.so.1 \
+	/usr/lib/liblzma.so.5 \
+	/usr/lib/libelf.so.1 \
+	/lib/libz.so.1 \
+	/usr/lib/libbz2.so.1.0"
+
+for repack in cups expat sane libgphoto2 v4l-utils libtiff libjpeg-turbo libxkbcommon libepoxy \
+        libusb libwebp zstd libtool libexif systemd libgcrypt libgpg-error gtk gtk3 wayland file \
+        openssl gst-plugins-base gstreamer gst-plugins-good gst-plugins-bad gst-plugins-ugly pygobject-3 \
+        gdb \
+        libpng12 pcsc-lite atkmm cairomm ffmpeg libsigc++ pangomm util-linux at-spi2-atk \
+        atk gdk-pixbuf glib glibmm gtk gtkmm libxml2 pango alsa-lib cairo fontconfig freetype libva \
+        nspr nss pulseaudio libglvnd libvdpau xorg-libpixman xorg-libx11 xorg-libxcb \
+        xorg-libxcomposite xorg-libxcursor xorg-libxdamage xorg-libxext xorg-libxfixes xorg-libxi \
+        xorg-libxinerama xorg-libxkbfile xorg-libxrandr xorg-libxrender xorg-libxscrnsaver xorg-libxtst glibc; do
+        repackage $repack -t $INSTALLDIR
+        cp -a $INSTALLDIR/$repack/* $INSTALLDIR/.
+        rm -rf $INSTALLDIR/$repack
+done
 
 # Create all the directories that we are going to need
 for mdir in $dirs; do
@@ -118,7 +165,6 @@ rm $INSTALLDIR/lib64
 # Remove library versions that we don't have the dependencies for
 rm $INSTALLDIR/opt/Citrix/ICAClient/lib/{libkcph.so,ctxjpeg_fb.so}
 rm $INSTALLDIR/opt/Citrix/ICAClient/VDHSSPI.DLL
-rm $INSTALLDIR/opt/Citrix/ICAClient/npica.so
 rm $INSTALLDIR/opt/Citrix/ICAClient/util/*0.10*
 
 # Define wfica as a mimetype handler for .ica files
@@ -134,7 +180,8 @@ cp -Prf $INSTALLDIR/build/extra/* $INSTALLDIR/.
 # Remove sysv init files
 rm -rf $INSTALLDIR/etc/init.d/ctxusbd
 
-mv $INSTALLDIR/var/run $INSTALLDIR/.
+mv $INSTALLDIR/var/run/* $INSTALLDIR/run/.
+rmdir $INSTALLDIR/var/run
 
 # Remove any now empty folders
 find $INSTALLDIR -type d -empty -delete

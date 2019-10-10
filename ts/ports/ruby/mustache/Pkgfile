@@ -3,14 +3,15 @@
 # Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 
 name=mustache
-version=0.99.5
+version=1.1.0
 release=1
 source=(http://rubygems.org/downloads/$name-${version}.gem)
 lastman=mustache.5
 
 build() {
+	local _gemdir="$(ruby -e'puts Gem.default_dir')"
+	mkdir -p $PKG/usr/bin
 	cd $SRC
-	local _gemdir="$(ruby -rubygems -e'puts Gem.default_dir')"
   	gem install --ignore-dependencies -i "$PKG$_gemdir" $name-$version.gem \
   		-n "$PKG/usr/bin"
 }

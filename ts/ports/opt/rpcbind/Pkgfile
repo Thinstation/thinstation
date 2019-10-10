@@ -4,15 +4,14 @@
 # Depends on:  libtirpc
 
 name=rpcbind
-version=0.2.3
+version=1.2.5
 release=1
 source=(http://downloads.sourceforge.net/project/$name/$name/$version/$name-$version.tar.bz2 \
-        do_not_use_the_xp_auth_pointer_directly.diff \
 	rpcbind)
 
 build() {
     cd $name-$version
-    patch -p1 -i $SRC/do_not_use_the_xp_auth_pointer_directly.diff
+
     ./configure --prefix=/usr \
                 --bindir=/sbin \
                 --mandir=/usr/man

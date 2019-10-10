@@ -5,7 +5,7 @@
 # Depends on:  libtool freetype ghostscript lcms libungif libxml2
 
 name=imagemagick
-version=6.9.8-10
+version=7.0.8-62
 release=1
 source=(https://www.imagemagick.org/download/releases/ImageMagick-$version.tar.xz)
 
@@ -19,6 +19,9 @@ build () {
                 --enable-shared \
 		--disable-static \
                 --with-perl
+
+sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
+
 
     make
     make DESTDIR=$PKG install

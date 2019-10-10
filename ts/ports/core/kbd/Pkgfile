@@ -3,23 +3,25 @@
 # Maintainer:  CRUX System Team, core-ports at crux dot nu
 
 name=kbd
-version=2.0.3
-release=2
-source=(http://ftp.kernel.org/pub/linux/utils/$name/$name-$version.tar.xz)
+version=git
+release=1
+source=(fix-euro2.patch \
+	kbd-fix-loadkmap-compat.patch)
 
 build() {
-    cd $name-$version
-
-    # we don't want a dependency to 'check'
-    sed -i '/^SUBDIR/s/tests//' Makefile.am
-    sed -i '/\[check >= 0.9.4\]/s/^/#/' configure.ac
-    autoreconf --install
+    git clone https://git.kernel.org/pub/scm/linux/kernel/git/legion/kbd.git
+    cd $name
+  patch -Np1 -i ../fix-euro2.patch
+  git cherry-pick -n 15a74479 # Don't override CFLAGS
+  git cherry-pick -n acf93e44 # https://github.com/legionus/kbd/issues/31
+  git cherry-pick -n 7e27102b # https://github.com/legionus/kbd/issues/32
+  patch -p1 -i ../kbd-fix-loadkmap-compat.patch # Restore compatibility with busybox loadkmap
+  autoreconf -if
 
     ./configure --prefix=/usr \
-                --datadir=/usr/share/kbd \
-                --disable-vlock \
-                
-    make
+                --datadir=/usr/share/kbd
+
+    make KEYCODES_PROGS=yes RESIZECONS_PROGS=yes
     make DESTDIR=$PKG install
 
     ln -sf default8x16.psfu.gz $PKG/usr/share/kbd/consolefonts/default.gz
@@ -30,3 +32,4 @@ build() {
     rm $PKG/usr/share/man/man1/psf*table.1
     find $PKG/usr/share/kbd/ -type f -name "README*" -delete
 }
+

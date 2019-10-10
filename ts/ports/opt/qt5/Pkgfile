@@ -1,0 +1,170 @@
+# Description: Qt Free Edition, version 5.x.
+# URL: http://www.qt.io/
+# Maintainer: Danny Rawlins, crux at romster dot me
+# Depends on: dbus gdk-pixbuf gst-plugins-base libepoxy libmng libxkbcommon xorg-libxcomposite xorg-libxcursor xorg-libxi xorg-libxinerama xorg-xcb-util-image xorg-xcb-util-keysyms xorg-xcb-util-wm
+
+name=qt5
+version=5.12.4
+release=2
+source=(https://download.qt.io/official_releases/qt/${version::4}/$version/single/qt-everywhere-src-$version.tar.xz
+	qt5-logo.png QTBUG-76625.patch)
+
+build() {
+	cd qt-everywhere-src-$version
+
+	# https://bugreports.qt.io/browse/QTBUG-76625
+	patch -p1 -d qtbase -i $SRC/QTBUG-76625.patch
+
+	# Respect system CXX
+	[ "$CXX" ] || CXX=g++
+	sed -e "/^QMAKE_CXX\s/s|=.*|= $CXX|" \
+		-i qtbase/mkspecs/common/g++-base.conf
+
+	# Remove obsolete xorg path
+	sed -e 's|X11R6/||g' -i qtbase/mkspecs/*/*.conf
+
+	# Respect system CXXFLAGS
+	sed -e "s|^\(QMAKE_CFLAGS_RELEASE.*\)|\1 ${CXXFLAGS}|" \
+		-i qtbase/mkspecs/common/gcc-base.conf
+
+	# Respect system LDFLAGS
+	sed -e "s|^\(QMAKE_LFLAGS_RELEASE.*\)|\1 ${LDFLAGS}|" \
+		-i qtbase/mkspecs/common/g++-unix.conf
+
+	export QTDIR="$PWD"
+	export LD_LIBRARY_PATH="$QTDIR/qtbase/lib:$QTDIR/qttools/lib:$LD_LIBRARY_PATH"
+	export QT_PLUGIN_PATH="$QTDIR/qtbase/plugins"
+
+	prt-get isinst ccache && PKGMK_QT5+=' -ccache'
+
+	./configure $PKGMK_QT5 \
+		-prefix /usr/ \
+		-archdatadir /usr/lib/qt5 \
+		-bindir /usr/lib/qt5/bin \
+		-plugindir /usr/lib/qt5/plugins \
+		-importdir /usr/lib/qt5/imports \
+		-datadir /usr/share/qt5 \
+		-docdir /usr/share/doc/qt5 \
+		-translationdir /usr/share/qt5/translations \
+		-examplesdir /usr/share/doc/qt5/examples \
+		-headerdir /usr/include/qt5 \
+		-libdir /usr/lib \
+		-sysconfdir /usr/etc/xdg \
+		-confirm-license \
+		-dbus-linked \
+		-no-egl \
+		-nomake examples \
+		-no-pch \
+		-no-rpath \
+		-no-separate-debug-info \
+		-no-strip \
+		-opengl desktop \
+		-opensource \
+		-openssl-linked \
+		-optimized-qmake \
+		-reduce-relocations \
+		-release \
+		-shared \
+		-plugin-sql-sqlite \
+		-system-sqlite \
+		-system-harfbuzz \
+		-skip qtwebengine \
+		-silent
+
+	make
+	make -j1 INSTALL_ROOT=$PKG install
+    
+	# Fix paths
+	find $PKG/usr/lib/ -type f -name '*.prl' \
+		-exec sed -i -e '/^QMAKE_PRL_BUILD_DIR/d;s/\(QMAKE_PRL_LIBS =\).*/\1/' {} \;
+        
+	sed -e "s|$PWD/qtbase|/usr/lib/qt5|g" \
+		-i $PKG/usr/lib/qt5/mkspecs/modules/qt_lib_bootstrap_private.pri
+
+	rm -r $PKG/usr/share/doc
+
+	# Install useful symlinks
+	install -d $PKG/usr/bin
+	for file in $PKG/usr/lib/qt5/bin/*; do
+		ln -s ../lib/qt5/bin/$(basename $file) $PKG/usr/bin/$(basename $file)-qt5
+	done
+
+	# Add menu entries for all those hidden but great Qt applications:
+	# # Qt5 logo:
+	install -d $PKG/usr/share/icons/hicolor/48x48/apps
+# requires imagemagick
+#	convert qtdoc/doc/src/images/qt-logo.png  -resize 48x48 $PKG/usr/share/icons/hicolor/48x48/apps/qt5-logo.png
+	install -m 0644 $SRC/qt5-logo.png $PKG/usr/share/icons/hicolor/48x48/apps/qt5-logo.png
+
+	# Assistant icons
+	install -m 0644 -D qttools/src/assistant/assistant/images/assistant.png \
+		$PKG/usr/share/icons/hicolor/32x32/apps/qt5-assistant.png
+	install -m 0644 -D qttools/src/assistant/assistant/images/assistant-128.png \
+		$PKG/usr/share/icons/hicolor/128x128/apps/qt5-assistant.png
+
+	# Designer icon
+	install -m 0644 -D qttools/src/designer/src/designer/images/designer.png \
+		$PKG/usr/share/icons/hicolor/128x128/apps/qt5-designer.png
+
+	# QDbusViewer icons
+	install -m 0644 qttools/src/qdbus/qdbusviewer/images/qdbusviewer.png \
+		$PKG/usr/share/icons/hicolor/32x32/apps/qt5-qdbusviewer.png
+	install -m 0644 qttools/src/qdbus/qdbusviewer/images/qdbusviewer-128.png \
+		$PKG/usr/share/icons/hicolor/128x128/apps/qt5-qdbusviewer.png
+
+	# Linguist icons
+	for icon in qttools/src/linguist/linguist/images/icons/linguist-*-32.png ; do
+		size=$(echo $(basename ${icon}) | cut -d- -f2)
+		install -m 0644 -D ${icon} $PKG/usr/share/icons/hicolor/${size}x${size}/apps/qt5-linguist.png
+	done
+
+	# And the .desktop files too:
+	install -d $PKG/usr/share/applications
+	cat <<EOF > $PKG/usr/share/applications/qt5-designer.desktop
+[Desktop Entry]
+Name=Qt5 Designer
+GenericName=Interface Designer
+Comment=Design GUIs for Qt5 applications
+Exec=designer-qt5 -qt=5
+Icon=qt5-designer
+MimeType=application/x-designer;
+Terminal=false
+Encoding=UTF-8
+Type=Application
+Categories=Qt;Development;
+EOF
+	cat <<EOF > $PKG/usr/share/applications/qt5-assistant.desktop
+[Desktop Entry]
+Name=Qt5 Assistant
+Comment=Shows Qt5 documentation and examples
+Exec=assistant-qt5 -qt=5
+Icon=qt5-assistant
+Terminal=false
+Encoding=UTF-8
+Type=Application
+Categories=Qt;Development;Documentation;
+EOF
+	cat <<EOF > $PKG/usr/share/applications/qt5-linguist.desktop
+[Desktop Entry]
+Name=Qt5 Linguist
+Comment=Add translations to Qt5 applications
+Exec=linguist-qt5 -qt=5
+Icon=qt5-linguist
+MimeType=text/vnd.trolltech.linguist;application/x-linguist;
+Terminal=false
+Encoding=UTF-8
+Type=Application
+Categories=Qt;Development;
+EOF
+	cat <<EOF > $PKG/usr/share/applications/qt5-qdbusviewer.desktop
+[Desktop Entry]
+Name=Qt5 QDbusViewer
+GenericName=Qt5 D-Bus Debugger
+Comment=Debug D-Bus applications
+Exec=qdbusviewer-qt5
+Icon=qt5-qdbusviewer
+Terminal=false
+Type=Application
+Categories=Qt;Development;Debugger;
+EOF
+}

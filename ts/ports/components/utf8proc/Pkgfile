@@ -1,0 +1,17 @@
+# Description: A library for processing UTF-8 encoded Unicode strings.
+# URL: http://julialang.org/utf8proc/
+# Maintainer: Danny Rawlins, crux at romster dot me
+# Packager: Danny Rawlins, crux at romster dot me
+
+name=utf8proc
+version=1.1.6
+release=1
+source=(https://github.com/JuliaLang/utf8proc/archive/v$version.tar.gz)
+
+build() {
+	cd $name-$version
+	make c-library
+	install -d 0755 $PKG/usr/lib
+	install -m 0644 -t $PKG/usr/lib/ libutf8proc.a libutf8proc.so
+	install -m 0644 -D utf8proc.h $PKG/usr/include/utf8proc.h
+}

@@ -4,7 +4,7 @@
 # Depends on: gtk-2.0 celt
 
 name=spice-gtk
-version=0.33
+version=0.37
 release=1
 source=(http://spice-space.org/download/gtk/spice-gtk-$version.tar.bz2)
 
@@ -15,8 +15,10 @@ build() {
 			--exec-prefix=/ \
 			--sysconfdir=/etc \
 			--mandir=/usr/man \
-			 \
-			
+			--enable-celt051
+
+sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
+
 
 	make
 	make -j1 DESTDIR=$PKG install

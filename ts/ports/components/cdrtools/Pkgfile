@@ -3,18 +3,18 @@
 # Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 
 name=cdrtools
-version=3.02a06
+version=3.02a09
 release=1
 source=(http://downloads.sourceforge.net/cdrtools/cdrtools-$version.tar.bz2)
 
 build() {
-export MAKEFLAGS="-j1"
 	cd $name-${version%%a*}
 	sed -i 's|/opt/schily|/usr|g' DEFAULTS/Defaults.linux
 	sed -i 's|DEFINSGRP=.*|DEFINSGRP=root|' DEFAULTS/Defaults.linux
 
 	export GMAKE_NOWARN=true
-	make INS_BASE=/usr INS_RBASE=/ DESTDIR=$PKG install
+	make INS_BASE=/usr INS_RBASE=/ DESTDIR=$PKG -j1
+	make INS_BASE=/usr INS_RBASE=/ DESTDIR=$PKG install -j1
 
 	rm -rf "$PKG"/usr/include
 	rm -rf "$PKG"/usr/lib/{*.a,profiled}

@@ -1,7 +1,6 @@
-# Description:	Python bindings for the CUPS printing system API
-# URL:		http://cyberelk.net/tim/software/pycups/
-# Maintainer:	Alan Mizrahi, alan at mizrahi dot com dot ve
-# Depends on:	cups python
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 
 name=pycups
 pname=pycups
@@ -10,11 +9,11 @@ release=1
 source=()
 
 build() {
-        pip install $name --download=$SRC --no-binary :all:
+        pip3 download $name --no-binary :all: --no-deps
         mkdir -p $SRC/$name
-        tar -xvf $SRC/$pname*.tar.* -C $SRC/$name
+        tar -xvf $SRC/*-*.* -C $SRC/$name || unzip -d $SRC/$name *-*.zip
         cd $SRC/$name/*
 
-        python ./setup.py install --root $PKG
+        python3 ./setup.py install --root $PKG
 }
 

@@ -1,26 +1,34 @@
-# $Id$
-# Maintainer: Eric Bélanger <eric@archlinux.org>
+# Description: alternate syslogging daemon
+# URL:         http://www.balabit.com/network-security/syslog-ng/opensource-logging-system
+# Maintainer:  Thomas Penteker, tek at serverop dot de
+# Depends on:  glib
 
 name=syslog-ng
-version=3.6.3
-release=2
-source=(http://www.balabit.com/downloads/files/syslog-ng/sources/$version/source/${name}_$version.tar.gz
-        syslog-ng.conf syslog-ng.logrotate)
+version=3.22.1
+release=1
+source=(https://github.com/balabit/syslog-ng/releases/download/syslog-ng-$version/syslog-ng-$version.tar.gz \
+	syslog-ng.conf)
 
 build() {
-  cd $name-$version
+   cd $name-$version
 
-  ./configure --prefix=/usr --sysconfdir=/etc/syslog-ng  \
-    --localstatedir=/var/lib/syslog-ng --datadir=/usr/share/syslog-ng \
-    --with-pidfile-dir=/run --disable-spoof-source --enable-ipv6 --enable-sql \
-    --enable-systemd --with-systemdsystemunitdir=/usr/lib/systemd/system \
-    --enable-manpages --with-jsonc=system
+#  ./autogen.sh
+#   autoconf
+   ./configure \
+      --prefix=/usr \
+      --sysconfdir=/etc \
+      --libexecdir=/var/libexec \
+      --localstatedir=/var/run \
+      --mandir=/usr/man \
+      --enable-dynamic-linking \
+      --sbindir=/sbin \
+      --disable-java \
+      --disable-java-modules
 
-  make
-  make check
-  make DESTDIR="$PKG" install
 
-  install -dm755 "$PKG/var/lib/syslog-ng" "$PKG/etc/syslog-ng/patterndb.d"
-  install -Dm644 "$SRC/syslog-ng.conf" "$PKG/etc/syslog-ng/syslog-ng.conf"
-  install -Dm644 "$SRC/syslog-ng.logrotate" "$PKG/etc/logrotate.d/syslog-ng"
+   make && make DESTDIR=$PKG install
+   rm -rf $PKG/usr/doc
+   rm -rf $PKG/usr/share/include/scl/syslogconf/README
+   install -D -m 644 ../syslog-ng.conf $PKG/etc/syslog-ng.conf
 }
+

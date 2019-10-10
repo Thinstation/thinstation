@@ -1,14 +1,36 @@
-[Unit]
-Description=Light Display Manager
-Documentation=man:lightdm(1)
-Conflicts=getty@tty1.service
-After=getty@tty1.service systemd-user-sessions.service plymouth-quit.service acpid.service
+#!/bin/sh
+#
+# /etc/rc.d/lightdm: start/stop lightdm 
+#
 
-[Service]
-ExecStart=/usr/bin/lightdm
-Restart=always
-IgnoreSIGPIPE=no
-BusName=org.freedesktop.DisplayManager
+SSD=/sbin/start-stop-daemon
+PROG=/usr/bin/lightdm
+OPTS="--pid-file=/var/run/lightdm/lightdm.pid"
+RUNDIR=/var/run/lightdm
+PIDFILE=$RUNDIR/lightdm.pid
 
-[Install]
-Alias=display-manager.service
+case $1 in
+        start)
+        $SSD --start --pidfile=$PIDFILE --exec $PROG -- $OPTS
+        ;;
+stop)
+        $SSD --stop --retry 10 --pidfile=$PIDFILE
+        ;;
+restart)
+        $0 stop
+        $0 start
+        ;;
+status)
+        $SSD --status --exec $PROG
+        case $? in
+        0) echo "$PROG is running with pid $(pidof $PROG)" ;;
+        1) echo "$PROG is not running but the pid file $PID exists" ;;
+        3) echo "$PROG is not running" ;;
+        4) echo "Unable to determine the program status" ;;
+        esac
+        ;;
+*)
+        echo "usage: $0 [start|stop|restart|status]"
+        ;;
+esac
+

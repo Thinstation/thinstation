@@ -4,9 +4,9 @@
 # Depends on:  cups, ncurses, readline
 
 name=gutenprint
-version=5.2.11
+version=5.3.1
 release=1
-source=(http://downloads.sourceforge.net/project/gimp-print/$name-5.2/$version/$name-$version.tar.bz2)
+source=(http://downloads.sourceforge.net/project/gimp-print/$name-${version%.*}/$version/$name-$version.tar.xz)
 
 build () {
     cd $name-$version
@@ -15,6 +15,9 @@ build () {
                 --mandir=/usr/man \
                  \
                 --disable-samples
+
+sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
+
     make
     make DESTDIR=$PKG install
 

@@ -20,6 +20,9 @@ KERNEL_PARAMETERS=""
 CONFDIR=./conf
 export TOOLSDIR
 
+ignore_libs='libcrypto.so.1.0.2|libssl.so.1.0.2|libcrypto.so.1.0.0|libssl.so.1.0.0'
+export ignore_libs
+
 libutil="chain complex cptime display fancyhello hdt ifcpu \
          keytest libmenu menu prdhcp pxechn rosh simple test \
          test2 vesamenu"
@@ -176,7 +179,7 @@ calculate_lib_dependencies()
 {
 	unset DISPLAYED
 	filename=$1
-	(objdump -x $filename 2>/dev/null |grep -e NEEDED |cut -c 24-) \
+	(objdump -x $filename 2>/dev/null |grep -e NEEDED |cut -c 24- |grep -Ev "$ignore_libs") \
 	|while read libfile; do
 		filepath=`dirname $filename | sed -e "s,$pkgname,,"`
 		export filepath
@@ -453,7 +456,7 @@ make_initrd()
 	ln -sf /lib usr/lib64
 
 	if [ "$ts_hardlinkfs" == "true" ]; then
-		hardlink -t -m .
+		hardlink -v .
 	fi
 	if [ "$ts_sametimestmp" == "true" ]; then
 		timestamp="`date +%Y%m%d`0000"
@@ -1503,7 +1506,7 @@ if [ ! -d ${tzpath%/*} ]; then
 	mkdir -p ${tzpath%/*}
 fi
 if [ ! -e $tzpath ]; then
-	ln /usr/local/etc/zoneinfo/$TIME_ZONE ${tzpath%/*}/
+	ln /usr/share/zoneinfo/$TIME_ZONE ${tzpath%/*}/
 fi
 ln -sf /usr/share/zoneinfo/$TIME_ZONE ./tmp-tree/etc/localtime
 
@@ -2298,7 +2301,7 @@ sys_copy()
 wrap_efi()
 {
 	lsize=`du -s $ESP |cut -f1`
-	let lsize+=2048
+	let lsize+=4096
 	dd if=/dev/zero of=$INITDIR/boot.efi bs=1K count=$lsize
 	lodev=`losetup -f`
 	losetup -P $lodev $INITDIR/boot.efi

@@ -18,6 +18,9 @@ build() {
 			--enable-atspi \
 			--enable-vala=no
 
+sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
+
+
 	make
 	make DESTDIR=$PKG install
 }

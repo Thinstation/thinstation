@@ -5,16 +5,22 @@
 name=gtkspell
 version=2.0.16
 release=1
-source=(http://gtkspell.sourceforge.net/download/gtkspell-$version.tar.gz)
+source=(http://gtkspell.sourceforge.net/download/gtkspell-$version.tar.gz \
+	enchant-2.diff)
 
 build() {
 	cd $name-$version
+	patch -p1 -i $SRC/enchant-2.diff
+
+	gtkdocize
+	autoreconf -fvi
 
 	./configure --prefix=/usr \
 			--sysconfdir=/etc \
 			--mandir=/usr/man \
-			--enable-gtk2 \
-			
+
+sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
+
 
 	make
 	make DESTDIR=$PKG install

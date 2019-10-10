@@ -9,27 +9,26 @@ version=2.24.32
 release=1
 source=(http://download.gnome.org/sources/gtk+/${version%.*}/gtk+-$version.tar.xz \
 	gtk.immodules gtk-register.sh
-	old-icon-symlinks.patch)
+	old-icon-symlinks.patch \
+	python3.patch)
 
 build () {
 	cd gtk+-$version
 
-#	patch -p1 -i $SRC/old-icon-symlinks.patch
+	patch -p0 -i $SRC/python3.patch
 
+	autoreconf
 	./configure	--prefix=/usr \
 			--mandir=/usr/man \
-			--enable-debug \
-			 \
-			--with-xinput=xfree \
-			--disable-glibtest \
-			--disable-static \
-			--enable-shared
+			--with-xinput=yes
+
+sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
 
 	make
 	make DESTDIR=$PKG install
 	mkdir -p $PKG/usr/etc/gtk-2.0
 	install -m 644 $SRC/gtk.immodules $PKG/usr/etc/gtk-2.0/
-	rm -r $PKG/usr/share/{locale,gtk-doc,gtk-2.0} $PKG/usr/bin/gtk-demo
+	rm -r $PKG/usr/bin/gtk-demo
 
 	install -m 0755 $SRC/gtk-register.sh $PKG/usr/bin/gtk-register
 }

@@ -1,0 +1,2307 @@
+diff --git a/pango/fonts.c b/pango/fonts.c
+index b46aef027525aa553501ccedf20fdc0ff425833b..6a7778d31901bfa67954202bf1d03df52aa0bada 100644
+--- a/pango/fonts.c
++++ b/pango/fonts.c
+@@ -38,7 +38,7 @@
+ #include <string.h>
+ 
+ #include "pango-types.h"
+-#include "pango-font.h"
++#include "pango-font-private.h"
+ #include "pango-fontmap.h"
+ #include "pango-impl-utils.h"
+ 
+diff --git a/pango/meson.build b/pango/meson.build
+index 6d35cc3266879b5b1f0a000928a871efc920888f..4ca062eca0380a33083f5c057d3e84726a0c328e 100644
+--- a/pango/meson.build
++++ b/pango/meson.build
+@@ -99,8 +99,6 @@ pango_cflags = [
+   '-DG_LOG_DOMAIN="Pango"',
+   '-DG_LOG_USE_STRUCTURED=1',
+   '-DPANGO_COMPILATION',
+-  '-DPANGO_ENABLE_BACKEND',
+-  '-DPANGO_ENABLE_ENGINE',
+   '-DSYSCONFDIR="@0@"'.format(pango_sysconfdir),
+   '-DLIBDIR="@0@"'.format(pango_libdir),
+ ]
+@@ -127,8 +125,6 @@ build_gir = get_option('introspection')
+ if build_gir
+   gir_args = [
+     '--quiet',
+-    '-DPANGO_ENABLE_BACKEND',
+-    '-DPANGO_ENABLE_ENGINE',
+   ]
+ 
+   pango_gir = gnome.generate_gir(
+diff --git a/pango/pango-break.h b/pango/pango-break.h
+index 4c2cec8ea005eabb8c9d31ba2fd717cbce650bec..92af390bf6634272579b8f4fc4543bad0290eb59 100644
+--- a/pango/pango-break.h
++++ b/pango/pango-break.h
+@@ -156,8 +156,6 @@ void pango_get_log_attrs (const char    *text,
+ 			  PangoLogAttr  *log_attrs,
+ 			  int            attrs_len);
+ 
+-#ifdef PANGO_ENABLE_ENGINE
+-
+ /* This is the default break algorithm, used if no language
+  * engine overrides it. Normally you should use pango_break()
+  * instead; this function is mostly useful for chaining up
+@@ -170,8 +168,6 @@ void pango_default_break (const gchar   *text,
+ 			  PangoLogAttr  *attrs,
+ 			  int            attrs_len);
+ 
+-#endif /* PANGO_ENABLE_ENGINE */
+-
+ G_END_DECLS
+ 
+ #endif /* __PANGO_BREAK_H__ */
+diff --git a/pango/pango-context.c b/pango/pango-context.c
+index 6a1a81e2899d9efc644d876cef16447b89641780..83fdc9a6e02e4faf91a997671e368deb00e44120 100644
+--- a/pango/pango-context.c
++++ b/pango/pango-context.c
+@@ -36,6 +36,9 @@
+ #include "pango-context.h"
+ #include "pango-impl-utils.h"
+ 
++#include "pango-font-private.h"
++#include "pango-fontset-private.h"
++#include "pango-fontmap-private.h"
+ #include "pango-engine-private.h"
+ #include "pango-script-private.h"
+ #include "pango-emoji-private.h"
+diff --git a/pango/pango-engine.h b/pango/pango-engine.h
+index a5c92d8896e7f73308bc2115878b2f528b0ba7fa..f15747c6367219c416b015ec48bfc8742e6407c9 100644
+--- a/pango/pango-engine.h
++++ b/pango/pango-engine.h
+@@ -30,7 +30,7 @@
+ 
+ G_BEGIN_DECLS
+ 
+-#ifdef PANGO_ENABLE_ENGINE
++#ifndef PANGO_DISABLE_DEPRECATED
+ 
+ /**
+  * PANGO_RENDER_TYPE_NONE:
+@@ -444,7 +444,7 @@ prefix ## _register_type (GTypeModule *module)				  \
+ #define PANGO_MODULE_ENTRY(func) script_engine_##func
+ #endif
+ 
+-#endif /* PANGO_ENABLE_ENGINE */
++#endif /* PANGO_DISABLE_DEPRECATED */
+ 
+ G_END_DECLS
+ 
+diff --git a/pango/pango-font-private.h b/pango/pango-font-private.h
+new file mode 100644
+index 0000000000000000000000000000000000000000..13b05254696d3fce5ecbf840daaf6a9af7231011
+--- /dev/null
++++ b/pango/pango-font-private.h
+@@ -0,0 +1,194 @@
++/* Pango
++ * pango-font.h: Font handling
++ *
++ * Copyright (C) 2000 Red Hat Software
++ *
++ * This library is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU Library General Public
++ * License as published by the Free Software Foundation; either
++ * version 2 of the License, or (at your option) any later version.
++ *
++ * This library is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the GNU
++ * Library General Public License for more details.
++ *
++ * You should have received a copy of the GNU Library General Public
++ * License along with this library; if not, write to the
++ * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
++ * Boston, MA 02111-1307, USA.
++ */
++
++#ifndef __PANGO_FONT_PRIVATE_H__
++#define __PANGO_FONT_PRIVATE_H__
++
++#include <pango/pango-font.h>
++#include <pango/pango-coverage.h>
++#include <pango/pango-types.h>
++
++#include <glib-object.h>
++
++G_BEGIN_DECLS
++
++
++PANGO_AVAILABLE_IN_ALL
++PangoFontMetrics *pango_font_metrics_new (void);
++
++struct _PangoFontMetrics
++{
++  /* <private> */
++  guint ref_count;
++
++  int ascent;
++  int descent;
++  int approximate_char_width;
++  int approximate_digit_width;
++  int underline_position;
++  int underline_thickness;
++  int strikethrough_position;
++  int strikethrough_thickness;
++};
++
++
++#define PANGO_FONT_FAMILY_CLASS(klass)      (G_TYPE_CHECK_CLASS_CAST ((klass), PANGO_TYPE_FONT_FAMILY, PangoFontFamilyClass))
++#define PANGO_IS_FONT_FAMILY_CLASS(klass)   (G_TYPE_CHECK_CLASS_TYPE ((klass), PANGO_TYPE_FONT_FAMILY))
++#define PANGO_FONT_FAMILY_GET_CLASS(obj)    (G_TYPE_INSTANCE_GET_CLASS ((obj), PANGO_TYPE_FONT_FAMILY, PangoFontFamilyClass))
++
++typedef struct _PangoFontFamilyClass PangoFontFamilyClass;
++
++
++/**
++ * PangoFontFamily:
++ *
++ * The #PangoFontFamily structure is used to represent a family of related
++ * font faces. The faces in a family share a common design, but differ in
++ * slant, weight, width and other aspects.
++ */
++struct _PangoFontFamily
++{
++  GObject parent_instance;
++};
++
++struct _PangoFontFamilyClass
++{
++  GObjectClass parent_class;
++
++  /*< public >*/
++
++  void  (*list_faces)      (PangoFontFamily  *family,
++			    PangoFontFace  ***faces,
++			    int              *n_faces);
++  const char * (*get_name) (PangoFontFamily  *family);
++  gboolean (*is_monospace) (PangoFontFamily *family);
++  gboolean (*is_variable)  (PangoFontFamily *family);
++
++  /*< private >*/
++
++  /* Padding for future expansion */
++  void (*_pango_reserved2) (void);
++  void (*_pango_reserved3) (void);
++};
++
++
++#define PANGO_FONT_FACE_CLASS(klass)      (G_TYPE_CHECK_CLASS_CAST ((klass), PANGO_TYPE_FONT_FACE, PangoFontFaceClass))
++#define PANGO_IS_FONT_FACE_CLASS(klass)   (G_TYPE_CHECK_CLASS_TYPE ((klass), PANGO_TYPE_FONT_FACE))
++#define PANGO_FONT_FACE_GET_CLASS(obj)    (G_TYPE_INSTANCE_GET_CLASS ((obj), PANGO_TYPE_FONT_FACE, PangoFontFaceClass))
++
++typedef struct _PangoFontFaceClass   PangoFontFaceClass;
++
++/**
++ * PangoFontFace:
++ *
++ * The #PangoFontFace structure is used to represent a group of fonts with
++ * the same family, slant, weight, width, but varying sizes.
++ */
++struct _PangoFontFace
++{
++  GObject parent_instance;
++};
++
++struct _PangoFontFaceClass
++{
++  GObjectClass parent_class;
++
++  /*< public >*/
++
++  const char           * (*get_face_name)  (PangoFontFace *face);
++  PangoFontDescription * (*describe)       (PangoFontFace *face);
++  void                   (*list_sizes)     (PangoFontFace  *face,
++					    int           **sizes,
++					    int            *n_sizes);
++  gboolean               (*is_synthesized) (PangoFontFace *face);
++
++  /*< private >*/
++
++  /* Padding for future expansion */
++  void (*_pango_reserved3) (void);
++  void (*_pango_reserved4) (void);
++};
++
++
++#define PANGO_FONT_CLASS(klass)      (G_TYPE_CHECK_CLASS_CAST ((klass), PANGO_TYPE_FONT, PangoFontClass))
++#define PANGO_IS_FONT_CLASS(klass)   (G_TYPE_CHECK_CLASS_TYPE ((klass), PANGO_TYPE_FONT))
++#define PANGO_FONT_GET_CLASS(obj)    (G_TYPE_INSTANCE_GET_CLASS ((obj), PANGO_TYPE_FONT, PangoFontClass))
++
++typedef struct _PangoFontClass       PangoFontClass;
++
++/**
++ * PangoFont:
++ *
++ * The #PangoFont structure is used to represent
++ * a font in a rendering-system-independent matter.
++ * To create an implementation of a #PangoFont,
++ * the rendering-system specific code should allocate
++ * a larger structure that contains a nested
++ * #PangoFont, fill in the <structfield>klass</structfield> member of
++ * the nested #PangoFont with a pointer to
++ * a appropriate #PangoFontClass, then call
++ * pango_font_init() on the structure.
++ *
++ * The #PangoFont structure contains one member
++ * which the implementation fills in.
++ */
++struct _PangoFont
++{
++  GObject parent_instance;
++};
++
++struct _PangoFontClass
++{
++  GObjectClass parent_class;
++
++  /*< public >*/
++
++  PangoFontDescription *(*describe)           (PangoFont      *font);
++  PangoCoverage *       (*get_coverage)       (PangoFont      *font,
++					       PangoLanguage  *language);
++  PangoEngineShape *    (*find_shaper)        (PangoFont      *font,
++					       PangoLanguage  *language,
++					       guint32         ch);
++  void                  (*get_glyph_extents)  (PangoFont      *font,
++					       PangoGlyph      glyph,
++					       PangoRectangle *ink_rect,
++					       PangoRectangle *logical_rect);
++  PangoFontMetrics *    (*get_metrics)        (PangoFont      *font,
++					       PangoLanguage  *language);
++  PangoFontMap *        (*get_font_map)       (PangoFont      *font);
++  PangoFontDescription *(*describe_absolute)  (PangoFont      *font);
++  /*< private >*/
++
++  /* Padding for future expansion */
++  void (*_pango_reserved1) (void);
++  void (*_pango_reserved2) (void);
++};
++
++/* used for very rare and miserable situtations that we cannot even
++ * draw a hexbox
++ */
++#define PANGO_UNKNOWN_GLYPH_WIDTH  10
++#define PANGO_UNKNOWN_GLYPH_HEIGHT 14
++
++
++G_END_DECLS
++
++#endif /* __PANGO_FONT_PRIVATE_H__ */
+diff --git a/pango/pango-font.h b/pango/pango-font.h
+index 90127b849b7da4b2a56c79cec043b69a9d1ef88f..60501216c30818be1d17d6012f8e597385f767d6 100644
+--- a/pango/pango-font.h
++++ b/pango/pango-font.h
+@@ -348,27 +348,6 @@ int               pango_font_metrics_get_strikethrough_position  (PangoFontMetri
+ PANGO_AVAILABLE_IN_1_6
+ int               pango_font_metrics_get_strikethrough_thickness (PangoFontMetrics *metrics) G_GNUC_PURE;
+ 
+-#ifdef PANGO_ENABLE_BACKEND
+-
+-PANGO_AVAILABLE_IN_ALL
+-PangoFontMetrics *pango_font_metrics_new (void);
+-
+-struct _PangoFontMetrics
+-{
+-  /* <private> */
+-  guint ref_count;
+-
+-  int ascent;
+-  int descent;
+-  int approximate_char_width;
+-  int approximate_digit_width;
+-  int underline_position;
+-  int underline_thickness;
+-  int strikethrough_position;
+-  int strikethrough_thickness;
+-};
+-
+-#endif /* PANGO_ENABLE_BACKEND */
+ 
+ /*
+  * PangoFontFamily
+@@ -412,48 +391,6 @@ gboolean   pango_font_family_is_monospace         (PangoFontFamily  *family) G_G
+ PANGO_AVAILABLE_IN_1_44
+ gboolean   pango_font_family_is_variable          (PangoFontFamily  *family) G_GNUC_PURE;
+ 
+-#ifdef PANGO_ENABLE_BACKEND
+-
+-#define PANGO_FONT_FAMILY_CLASS(klass)      (G_TYPE_CHECK_CLASS_CAST ((klass), PANGO_TYPE_FONT_FAMILY, PangoFontFamilyClass))
+-#define PANGO_IS_FONT_FAMILY_CLASS(klass)   (G_TYPE_CHECK_CLASS_TYPE ((klass), PANGO_TYPE_FONT_FAMILY))
+-#define PANGO_FONT_FAMILY_GET_CLASS(obj)    (G_TYPE_INSTANCE_GET_CLASS ((obj), PANGO_TYPE_FONT_FAMILY, PangoFontFamilyClass))
+-
+-typedef struct _PangoFontFamilyClass PangoFontFamilyClass;
+-
+-
+-/**
+- * PangoFontFamily:
+- *
+- * The #PangoFontFamily structure is used to represent a family of related
+- * font faces. The faces in a family share a common design, but differ in
+- * slant, weight, width and other aspects.
+- */
+-struct _PangoFontFamily
+-{
+-  GObject parent_instance;
+-};
+-
+-struct _PangoFontFamilyClass
+-{
+-  GObjectClass parent_class;
+-
+-  /*< public >*/
+-
+-  void  (*list_faces)      (PangoFontFamily  *family,
+-			    PangoFontFace  ***faces,
+-			    int              *n_faces);
+-  const char * (*get_name) (PangoFontFamily  *family);
+-  gboolean (*is_monospace) (PangoFontFamily *family);
+-  gboolean (*is_variable)  (PangoFontFamily *family);
+-
+-  /*< private >*/
+-
+-  /* Padding for future expansion */
+-  void (*_pango_reserved2) (void);
+-  void (*_pango_reserved3) (void);
+-};
+-
+-#endif /* PANGO_ENABLE_BACKEND */
+ 
+ /*
+  * PangoFontFace
+@@ -494,46 +431,6 @@ void                  pango_font_face_list_sizes     (PangoFontFace  *face,
+ PANGO_AVAILABLE_IN_1_18
+ gboolean              pango_font_face_is_synthesized (PangoFontFace  *face) G_GNUC_PURE;
+ 
+-#ifdef PANGO_ENABLE_BACKEND
+-
+-#define PANGO_FONT_FACE_CLASS(klass)      (G_TYPE_CHECK_CLASS_CAST ((klass), PANGO_TYPE_FONT_FACE, PangoFontFaceClass))
+-#define PANGO_IS_FONT_FACE_CLASS(klass)   (G_TYPE_CHECK_CLASS_TYPE ((klass), PANGO_TYPE_FONT_FACE))
+-#define PANGO_FONT_FACE_GET_CLASS(obj)    (G_TYPE_INSTANCE_GET_CLASS ((obj), PANGO_TYPE_FONT_FACE, PangoFontFaceClass))
+-
+-typedef struct _PangoFontFaceClass   PangoFontFaceClass;
+-
+-/**
+- * PangoFontFace:
+- *
+- * The #PangoFontFace structure is used to represent a group of fonts with
+- * the same family, slant, weight, width, but varying sizes.
+- */
+-struct _PangoFontFace
+-{
+-  GObject parent_instance;
+-};
+-
+-struct _PangoFontFaceClass
+-{
+-  GObjectClass parent_class;
+-
+-  /*< public >*/
+-
+-  const char           * (*get_face_name)  (PangoFontFace *face);
+-  PangoFontDescription * (*describe)       (PangoFontFace *face);
+-  void                   (*list_sizes)     (PangoFontFace  *face,
+-					    int           **sizes,
+-					    int            *n_sizes);
+-  gboolean               (*is_synthesized) (PangoFontFace *face);
+-
+-  /*< private >*/
+-
+-  /* Padding for future expansion */
+-  void (*_pango_reserved3) (void);
+-  void (*_pango_reserved4) (void);
+-};
+-
+-#endif /* PANGO_ENABLE_BACKEND */
+ 
+ /*
+  * PangoFont
+@@ -585,69 +482,6 @@ void                  pango_font_get_glyph_extents (PangoFont        *font,
+ PANGO_AVAILABLE_IN_1_10
+ PangoFontMap         *pango_font_get_font_map      (PangoFont        *font);
+ 
+-#ifdef PANGO_ENABLE_BACKEND
+-
+-#define PANGO_FONT_CLASS(klass)      (G_TYPE_CHECK_CLASS_CAST ((klass), PANGO_TYPE_FONT, PangoFontClass))
+-#define PANGO_IS_FONT_CLASS(klass)   (G_TYPE_CHECK_CLASS_TYPE ((klass), PANGO_TYPE_FONT))
+-#define PANGO_FONT_GET_CLASS(obj)    (G_TYPE_INSTANCE_GET_CLASS ((obj), PANGO_TYPE_FONT, PangoFontClass))
+-
+-typedef struct _PangoFontClass       PangoFontClass;
+-
+-/**
+- * PangoFont:
+- *
+- * The #PangoFont structure is used to represent
+- * a font in a rendering-system-independent matter.
+- * To create an implementation of a #PangoFont,
+- * the rendering-system specific code should allocate
+- * a larger structure that contains a nested
+- * #PangoFont, fill in the <structfield>klass</structfield> member of
+- * the nested #PangoFont with a pointer to
+- * a appropriate #PangoFontClass, then call
+- * pango_font_init() on the structure.
+- *
+- * The #PangoFont structure contains one member
+- * which the implementation fills in.
+- */
+-struct _PangoFont
+-{
+-  GObject parent_instance;
+-};
+-
+-struct _PangoFontClass
+-{
+-  GObjectClass parent_class;
+-
+-  /*< public >*/
+-
+-  PangoFontDescription *(*describe)           (PangoFont      *font);
+-  PangoCoverage *       (*get_coverage)       (PangoFont      *font,
+-					       PangoLanguage  *language);
+-  PangoEngineShape *    (*find_shaper)        (PangoFont      *font,
+-					       PangoLanguage  *language,
+-					       guint32         ch);
+-  void                  (*get_glyph_extents)  (PangoFont      *font,
+-					       PangoGlyph      glyph,
+-					       PangoRectangle *ink_rect,
+-					       PangoRectangle *logical_rect);
+-  PangoFontMetrics *    (*get_metrics)        (PangoFont      *font,
+-					       PangoLanguage  *language);
+-  PangoFontMap *        (*get_font_map)       (PangoFont      *font);
+-  PangoFontDescription *(*describe_absolute)  (PangoFont      *font);
+-  /*< private >*/
+-
+-  /* Padding for future expansion */
+-  void (*_pango_reserved1) (void);
+-  void (*_pango_reserved2) (void);
+-};
+-
+-/* used for very rare and miserable situtations that we cannot even
+- * draw a hexbox
+- */
+-#define PANGO_UNKNOWN_GLYPH_WIDTH  10
+-#define PANGO_UNKNOWN_GLYPH_HEIGHT 14
+-
+-#endif /* PANGO_ENABLE_BACKEND */
+ 
+ /**
+  * PANGO_GLYPH_EMPTY:
+diff --git a/pango/pango-fontmap-private.h b/pango/pango-fontmap-private.h
+new file mode 100644
+index 0000000000000000000000000000000000000000..1bece87dc10e81c16c756446f4ad858aba69c18f
+--- /dev/null
++++ b/pango/pango-fontmap-private.h
+@@ -0,0 +1,129 @@
++/* Pango
++ * pango-font.h: Font handling
++ *
++ * Copyright (C) 2000 Red Hat Software
++ *
++ * This library is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU Library General Public
++ * License as published by the Free Software Foundation; either
++ * version 2 of the License, or (at your option) any later version.
++ *
++ * This library is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the GNU
++ * Library General Public License for more details.
++ *
++ * You should have received a copy of the GNU Library General Public
++ * License along with this library; if not, write to the
++ * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
++ * Boston, MA 02111-1307, USA.
++ */
++
++#ifndef __PANGO_FONTMAP_PRIVATE_H__
++#define __PANGO_FONTMAP_PRIVATE_H__
++
++#include <pango/pango-font-private.h>
++#include <pango/pango-fontset.h>
++#include <pango/pango-fontmap.h>
++
++G_BEGIN_DECLS
++
++
++/**
++ * PANGO_FONT_MAP_CLASS:
++ * @klass: a #GObject.
++ *
++ * Casts a #GObject to a #PangoFontMapClass.
++ */
++/**
++ * PANGO_IS_FONT_MAP_CLASS:
++ * @klass: a #GObject.
++ *
++ * Returns: %TRUE if @klass is a subtype of #PangoFontMapClass.
++ */
++/**
++ * PANGO_FONT_MAP_GET_CLASS:
++ * @obj: a #PangoFontMap.
++ *
++ * Returns: class of @obj
++ */
++#define PANGO_FONT_MAP_CLASS(klass)      (G_TYPE_CHECK_CLASS_CAST ((klass), PANGO_TYPE_FONT_MAP, PangoFontMapClass))
++#define PANGO_IS_FONT_MAP_CLASS(klass)   (G_TYPE_CHECK_CLASS_TYPE ((klass), PANGO_TYPE_FONT_MAP))
++#define PANGO_FONT_MAP_GET_CLASS(obj)    (G_TYPE_INSTANCE_GET_CLASS ((obj), PANGO_TYPE_FONT_MAP, PangoFontMapClass))
++
++typedef struct _PangoFontMapClass PangoFontMapClass;
++
++/**
++ * PangoFontMap:
++ *
++ * The #PangoFontMap represents the set of fonts available for a
++ * particular rendering system. This is a virtual object with
++ * implementations being specific to particular rendering systems.  To
++ * create an implementation of a #PangoFontMap, the rendering-system
++ * specific code should allocate a larger structure that contains a nested
++ * #PangoFontMap, fill in the <structfield>klass</structfield> member of the nested #PangoFontMap with a
++ * pointer to a appropriate #PangoFontMapClass, then call
++ * pango_font_map_init() on the structure.
++ *
++ * The #PangoFontMap structure contains one member which the implementation
++ * fills in.
++ */
++struct _PangoFontMap
++{
++  GObject parent_instance;
++};
++
++/**
++ * PangoFontMapClass:
++ * @parent_class: parent #GObjectClass.
++ * @load_font: a function to load a font with a given description. See
++ * pango_font_map_load_font().
++ * @list_families: A function to list available font families. See
++ * pango_font_map_list_families().
++ * @load_fontset: a function to load a fontset with a given given description
++ * suitable for a particular language. See pango_font_map_load_fontset().
++ * @shape_engine_type: the type of rendering-system-dependent engines that
++ * can handle fonts of this fonts loaded with this fontmap.
++ * @get_serial: a function to get the serial number of the fontmap.
++ * See pango_font_map_get_serial().
++ * @changed: See pango_font_map_changed()
++ *
++ * The #PangoFontMapClass structure holds the virtual functions for
++ * a particular #PangoFontMap implementation.
++ */
++struct _PangoFontMapClass
++{
++  GObjectClass parent_class;
++
++  /*< public >*/
++
++  PangoFont *   (*load_font)     (PangoFontMap               *fontmap,
++				  PangoContext               *context,
++				  const PangoFontDescription *desc);
++  void          (*list_families) (PangoFontMap               *fontmap,
++				  PangoFontFamily          ***families,
++				  int                        *n_families);
++  PangoFontset *(*load_fontset)  (PangoFontMap               *fontmap,
++				  PangoContext               *context,
++				  const PangoFontDescription *desc,
++				  PangoLanguage              *language);
++
++  const char     *shape_engine_type;
++
++  guint         (*get_serial)    (PangoFontMap               *fontmap);
++  void          (*changed)       (PangoFontMap               *fontmap);
++
++  /*< private >*/
++
++  /* Padding for future expansion */
++  void (*_pango_reserved1) (void);
++  void (*_pango_reserved2) (void);
++};
++
++PANGO_DEPRECATED_IN_1_38
++const char   *pango_font_map_get_shape_engine_type (PangoFontMap *fontmap);
++
++
++G_END_DECLS
++
++#endif /* __PANGO_FONTMAP_PRIVATE_H__ */
+diff --git a/pango/pango-fontmap.c b/pango/pango-fontmap.c
+index ff066beff07a60d4b669abb2b4fa13bab9019b6a..46054ec115738ec02a40c44456c4290e1f1f9a4f 100644
+--- a/pango/pango-fontmap.c
++++ b/pango/pango-fontmap.c
+@@ -20,7 +20,8 @@
+  */
+ 
+ #include "config.h"
+-#include "pango-fontmap.h"
++#include "pango-fontmap-private.h"
++#include "pango-fontset-private.h"
+ #include "pango-impl-utils.h"
+ #include <stdlib.h>
+ 
+diff --git a/pango/pango-fontmap.h b/pango/pango-fontmap.h
+index 56128e9b2234ee0c7b617b326965a90c0d9594bf..036de2df7f767b3bd4999e000911c902007f696b 100644
+--- a/pango/pango-fontmap.h
++++ b/pango/pango-fontmap.h
+@@ -72,103 +72,6 @@ guint         pango_font_map_get_serial    (PangoFontMap                 *fontma
+ PANGO_AVAILABLE_IN_1_34
+ void          pango_font_map_changed       (PangoFontMap                 *fontmap);
+ 
+-#ifdef PANGO_ENABLE_BACKEND
+-
+-/**
+- * PANGO_FONT_MAP_CLASS:
+- * @klass: a #GObject.
+- *
+- * Casts a #GObject to a #PangoFontMapClass.
+- */
+-/**
+- * PANGO_IS_FONT_MAP_CLASS:
+- * @klass: a #GObject.
+- *
+- * Returns: %TRUE if @klass is a subtype of #PangoFontMapClass.
+- */
+-/**
+- * PANGO_FONT_MAP_GET_CLASS:
+- * @obj: a #PangoFontMap.
+- *
+- * Returns: class of @obj
+- */
+-#define PANGO_FONT_MAP_CLASS(klass)      (G_TYPE_CHECK_CLASS_CAST ((klass), PANGO_TYPE_FONT_MAP, PangoFontMapClass))
+-#define PANGO_IS_FONT_MAP_CLASS(klass)   (G_TYPE_CHECK_CLASS_TYPE ((klass), PANGO_TYPE_FONT_MAP))
+-#define PANGO_FONT_MAP_GET_CLASS(obj)    (G_TYPE_INSTANCE_GET_CLASS ((obj), PANGO_TYPE_FONT_MAP, PangoFontMapClass))
+-
+-typedef struct _PangoFontMapClass PangoFontMapClass;
+-
+-/**
+- * PangoFontMap:
+- *
+- * The #PangoFontMap represents the set of fonts available for a
+- * particular rendering system. This is a virtual object with
+- * implementations being specific to particular rendering systems.  To
+- * create an implementation of a #PangoFontMap, the rendering-system
+- * specific code should allocate a larger structure that contains a nested
+- * #PangoFontMap, fill in the <structfield>klass</structfield> member of the nested #PangoFontMap with a
+- * pointer to a appropriate #PangoFontMapClass, then call
+- * pango_font_map_init() on the structure.
+- *
+- * The #PangoFontMap structure contains one member which the implementation
+- * fills in.
+- */
+-struct _PangoFontMap
+-{
+-  GObject parent_instance;
+-};
+-
+-/**
+- * PangoFontMapClass:
+- * @parent_class: parent #GObjectClass.
+- * @load_font: a function to load a font with a given description. See
+- * pango_font_map_load_font().
+- * @list_families: A function to list available font families. See
+- * pango_font_map_list_families().
+- * @load_fontset: a function to load a fontset with a given given description
+- * suitable for a particular language. See pango_font_map_load_fontset().
+- * @shape_engine_type: the type of rendering-system-dependent engines that
+- * can handle fonts of this fonts loaded with this fontmap.
+- * @get_serial: a function to get the serial number of the fontmap.
+- * See pango_font_map_get_serial().
+- * @changed: See pango_font_map_changed()
+- *
+- * The #PangoFontMapClass structure holds the virtual functions for
+- * a particular #PangoFontMap implementation.
+- */
+-struct _PangoFontMapClass
+-{
+-  GObjectClass parent_class;
+-
+-  /*< public >*/
+-
+-  PangoFont *   (*load_font)     (PangoFontMap               *fontmap,
+-				  PangoContext               *context,
+-				  const PangoFontDescription *desc);
+-  void          (*list_families) (PangoFontMap               *fontmap,
+-				  PangoFontFamily          ***families,
+-				  int                        *n_families);
+-  PangoFontset *(*load_fontset)  (PangoFontMap               *fontmap,
+-				  PangoContext               *context,
+-				  const PangoFontDescription *desc,
+-				  PangoLanguage              *language);
+-
+-  const char     *shape_engine_type;
+-
+-  guint         (*get_serial)    (PangoFontMap               *fontmap);
+-  void          (*changed)       (PangoFontMap               *fontmap);
+-
+-  /*< private >*/
+-
+-  /* Padding for future expansion */
+-  void (*_pango_reserved1) (void);
+-  void (*_pango_reserved2) (void);
+-};
+-
+-PANGO_DEPRECATED_IN_1_38
+-const char   *pango_font_map_get_shape_engine_type (PangoFontMap *fontmap);
+-
+-#endif /* PANGO_ENABLE_BACKEND */
+ 
+ G_END_DECLS
+ 
+diff --git a/pango/pango-fontset-private.h b/pango/pango-fontset-private.h
+new file mode 100644
+index 0000000000000000000000000000000000000000..a0829cc9da3ef91b32decdb215c6e86bef54c087
+--- /dev/null
++++ b/pango/pango-fontset-private.h
+@@ -0,0 +1,131 @@
++/* Pango
++ * pango-fontset.h: Font set handling
++ *
++ * Copyright (C) 2001 Red Hat Software
++ *
++ * This library is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU Library General Public
++ * License as published by the Free Software Foundation; either
++ * version 2 of the License, or (at your option) any later version.
++ *
++ * This library is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the GNU
++ * Library General Public License for more details.
++ *
++ * You should have received a copy of the GNU Library General Public
++ * License along with this library; if not, write to the
++ * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
++ * Boston, MA 02111-1307, USA.
++ */
++
++#ifndef __PANGO_FONTSET_PRIVATE_H__
++#define __PANGO_FONTSET_PRIVATE_H__
++
++#include <pango/pango-types.h>
++#include <pango/pango-fontset.h>
++#include <pango/pango-coverage.h>
++
++#include <glib-object.h>
++
++G_BEGIN_DECLS
++
++
++typedef struct _PangoFontsetClass   PangoFontsetClass;
++
++#define PANGO_FONTSET_CLASS(klass)      (G_TYPE_CHECK_CLASS_CAST ((klass), PANGO_TYPE_FONTSET, PangoFontsetClass))
++#define PANGO_IS_FONTSET_CLASS(klass)   (G_TYPE_CHECK_CLASS_TYPE ((klass), PANGO_TYPE_FONTSET))
++#define PANGO_FONTSET_GET_CLASS(obj)    (G_TYPE_INSTANCE_GET_CLASS ((obj), PANGO_TYPE_FONTSET, PangoFontsetClass))
++
++/**
++ * PangoFontset:
++ *
++ * A #PangoFontset represents a set of #PangoFont to use
++ * when rendering text. It is the result of resolving a
++ * #PangoFontDescription against a particular #PangoContext.
++ * It has operations for finding the component font for
++ * a particular Unicode character, and for finding a composite
++ * set of metrics for the entire fontset.
++ */
++struct _PangoFontset
++{
++  GObject parent_instance;
++};
++
++/**
++ * PangoFontsetClass:
++ * @parent_class: parent #GObjectClass.
++ * @get_font: a function to get the font in the fontset that contains the
++ * best glyph for the given Unicode character; see pango_fontset_get_font().
++ * @get_metrics: a function to get overall metric information for the fonts
++ * in the fontset; see pango_fontset_get_metrics().
++ * @get_language: a function to get the language of the fontset.
++ * @foreach: a function to loop over the fonts in the fontset. See
++ * pango_fontset_foreach().
++ *
++ * The #PangoFontsetClass structure holds the virtual functions for
++ * a particular #PangoFontset implementation.
++ */
++struct _PangoFontsetClass
++{
++  GObjectClass parent_class;
++
++  /*< public >*/
++
++  PangoFont *       (*get_font)     (PangoFontset     *fontset,
++				     guint             wc);
++
++  PangoFontMetrics *(*get_metrics)  (PangoFontset     *fontset);
++  PangoLanguage *   (*get_language) (PangoFontset     *fontset);
++  void              (*foreach)      (PangoFontset           *fontset,
++				     PangoFontsetForeachFunc func,
++				     gpointer                data);
++
++  /*< private >*/
++
++  /* Padding for future expansion */
++  void (*_pango_reserved1) (void);
++  void (*_pango_reserved2) (void);
++  void (*_pango_reserved3) (void);
++  void (*_pango_reserved4) (void);
++};
++
++/*
++ * PangoFontsetSimple
++ */
++
++/**
++ * PANGO_TYPE_FONTSET_SIMPLE:
++ *
++ * The #GObject type for #PangoFontsetSimple.
++ */
++/**
++ * PangoFontsetSimple:
++ *
++ * #PangoFontsetSimple is a implementation of the abstract
++ * #PangoFontset base class in terms of an array of fonts,
++ * which the creator provides when constructing the
++ * #PangoFontsetSimple.
++ */
++#define PANGO_TYPE_FONTSET_SIMPLE       (pango_fontset_simple_get_type ())
++#define PANGO_FONTSET_SIMPLE(object)    (G_TYPE_CHECK_INSTANCE_CAST ((object), PANGO_TYPE_FONTSET_SIMPLE, PangoFontsetSimple))
++#define PANGO_IS_FONTSET_SIMPLE(object) (G_TYPE_CHECK_INSTANCE_TYPE ((object), PANGO_TYPE_FONTSET_SIMPLE))
++
++typedef struct _PangoFontsetSimple  PangoFontsetSimple;
++typedef struct _PangoFontsetSimpleClass  PangoFontsetSimpleClass;
++
++PANGO_AVAILABLE_IN_ALL
++GType pango_fontset_simple_get_type (void) G_GNUC_CONST;
++
++PANGO_AVAILABLE_IN_ALL
++PangoFontsetSimple * pango_fontset_simple_new    (PangoLanguage      *language);
++PANGO_AVAILABLE_IN_ALL
++void                 pango_fontset_simple_append (PangoFontsetSimple *fontset,
++						  PangoFont          *font);
++PANGO_AVAILABLE_IN_ALL
++int                  pango_fontset_simple_size   (PangoFontsetSimple *fontset);
++
++
++G_END_DECLS
++
++#endif /* __PANGO_FONTSET_PRIVATE_H__ */
+diff --git a/pango/pango-fontset.c b/pango/pango-fontset.c
+index 7c382b34942cc1809ad1b6ffae1dd08c51f9d330..6a3ef4c69c7ac96a7808067e946be56212ebb92e 100644
+--- a/pango/pango-fontset.c
++++ b/pango/pango-fontset.c
+@@ -26,8 +26,8 @@
+  */
+ 
+ #include "pango-types.h"
+-#include "pango-font.h"
+-#include "pango-fontset.h"
++#include "pango-font-private.h"
++#include "pango-fontset-private.h"
+ #include "pango-impl-utils.h"
+ 
+ static PangoFontMetrics *pango_fontset_real_get_metrics (PangoFontset      *fontset);
+diff --git a/pango/pango-fontset.h b/pango/pango-fontset.h
+index 6ea16d8ead15b972aadff50e675a0ecc0700494f..da3cef46d34d4b8aca80db9dd00c95a6a6b6302c 100644
+--- a/pango/pango-fontset.h
++++ b/pango/pango-fontset.h
+@@ -74,103 +74,6 @@ void              pango_fontset_foreach     (PangoFontset           *fontset,
+ 					     PangoFontsetForeachFunc func,
+ 					     gpointer                data);
+ 
+-#ifdef PANGO_ENABLE_BACKEND
+-
+-typedef struct _PangoFontsetClass   PangoFontsetClass;
+-
+-#define PANGO_FONTSET_CLASS(klass)      (G_TYPE_CHECK_CLASS_CAST ((klass), PANGO_TYPE_FONTSET, PangoFontsetClass))
+-#define PANGO_IS_FONTSET_CLASS(klass)   (G_TYPE_CHECK_CLASS_TYPE ((klass), PANGO_TYPE_FONTSET))
+-#define PANGO_FONTSET_GET_CLASS(obj)    (G_TYPE_INSTANCE_GET_CLASS ((obj), PANGO_TYPE_FONTSET, PangoFontsetClass))
+-
+-/**
+- * PangoFontset:
+- *
+- * A #PangoFontset represents a set of #PangoFont to use
+- * when rendering text. It is the result of resolving a
+- * #PangoFontDescription against a particular #PangoContext.
+- * It has operations for finding the component font for
+- * a particular Unicode character, and for finding a composite
+- * set of metrics for the entire fontset.
+- */
+-struct _PangoFontset
+-{
+-  GObject parent_instance;
+-};
+-
+-/**
+- * PangoFontsetClass:
+- * @parent_class: parent #GObjectClass.
+- * @get_font: a function to get the font in the fontset that contains the
+- * best glyph for the given Unicode character; see pango_fontset_get_font().
+- * @get_metrics: a function to get overall metric information for the fonts
+- * in the fontset; see pango_fontset_get_metrics().
+- * @get_language: a function to get the language of the fontset.
+- * @foreach: a function to loop over the fonts in the fontset. See
+- * pango_fontset_foreach().
+- *
+- * The #PangoFontsetClass structure holds the virtual functions for
+- * a particular #PangoFontset implementation.
+- */
+-struct _PangoFontsetClass
+-{
+-  GObjectClass parent_class;
+-
+-  /*< public >*/
+-
+-  PangoFont *       (*get_font)     (PangoFontset     *fontset,
+-				     guint             wc);
+-
+-  PangoFontMetrics *(*get_metrics)  (PangoFontset     *fontset);
+-  PangoLanguage *   (*get_language) (PangoFontset     *fontset);
+-  void              (*foreach)      (PangoFontset           *fontset,
+-				     PangoFontsetForeachFunc func,
+-				     gpointer                data);
+-
+-  /*< private >*/
+-
+-  /* Padding for future expansion */
+-  void (*_pango_reserved1) (void);
+-  void (*_pango_reserved2) (void);
+-  void (*_pango_reserved3) (void);
+-  void (*_pango_reserved4) (void);
+-};
+-
+-/*
+- * PangoFontsetSimple
+- */
+-
+-/**
+- * PANGO_TYPE_FONTSET_SIMPLE:
+- *
+- * The #GObject type for #PangoFontsetSimple.
+- */
+-/**
+- * PangoFontsetSimple:
+- *
+- * #PangoFontsetSimple is a implementation of the abstract
+- * #PangoFontset base class in terms of an array of fonts,
+- * which the creator provides when constructing the
+- * #PangoFontsetSimple.
+- */
+-#define PANGO_TYPE_FONTSET_SIMPLE       (pango_fontset_simple_get_type ())
+-#define PANGO_FONTSET_SIMPLE(object)    (G_TYPE_CHECK_INSTANCE_CAST ((object), PANGO_TYPE_FONTSET_SIMPLE, PangoFontsetSimple))
+-#define PANGO_IS_FONTSET_SIMPLE(object) (G_TYPE_CHECK_INSTANCE_TYPE ((object), PANGO_TYPE_FONTSET_SIMPLE))
+-
+-typedef struct _PangoFontsetSimple  PangoFontsetSimple;
+-typedef struct _PangoFontsetSimpleClass  PangoFontsetSimpleClass;
+-
+-PANGO_AVAILABLE_IN_ALL
+-GType pango_fontset_simple_get_type (void) G_GNUC_CONST;
+-
+-PANGO_AVAILABLE_IN_ALL
+-PangoFontsetSimple * pango_fontset_simple_new    (PangoLanguage      *language);
+-PANGO_AVAILABLE_IN_ALL
+-void                 pango_fontset_simple_append (PangoFontsetSimple *fontset,
+-						  PangoFont          *font);
+-PANGO_AVAILABLE_IN_ALL
+-int                  pango_fontset_simple_size   (PangoFontsetSimple *fontset);
+-
+-#endif /* PANGO_ENABLE_BACKEND */
+ 
+ G_END_DECLS
+ 
+diff --git a/pango/pango-modules.h b/pango/pango-modules.h
+index 82230b6c79a5c5439e6ab06274b1080cc0d4865c..64900a176c6bb7b8ccc22287ae994f36ac4e947a 100644
+--- a/pango/pango-modules.h
++++ b/pango/pango-modules.h
+@@ -26,7 +26,7 @@
+ 
+ G_BEGIN_DECLS
+ 
+-#ifdef PANGO_ENABLE_BACKEND
++#ifndef PANGO_DISABLE_DEPRECATED
+ 
+ typedef struct _PangoMap PangoMap;
+ typedef struct _PangoMapEntry PangoMapEntry;
+@@ -70,7 +70,7 @@ void           pango_map_get_engines (PangoMap            *map,
+ PANGO_DEPRECATED_IN_1_38
+ void           pango_module_register (PangoIncludedModule *module);
+ 
+-#endif /* PANGO_ENABLE_BACKEND */
++#endif /* PANGO_DISABLE_DEPRECATED */
+ 
+ G_END_DECLS
+ 
+diff --git a/pango/pango-ot.h b/pango/pango-ot.h
+index 45b1a1a67f1560aa2e4b2e7a7b73fe94e2d2e9d3..6d6a9f5cd03776dbd47e0a9dc147e1817ae415af 100644
+--- a/pango/pango-ot.h
++++ b/pango/pango-ot.h
+@@ -32,7 +32,7 @@
+ 
+ G_BEGIN_DECLS
+ 
+-#ifdef PANGO_ENABLE_ENGINE
++#ifndef PANGO_DISABLE_DEPRECATED
+ 
+ /**
+  * PangoOTTag:
+@@ -389,7 +389,7 @@ PANGO_DEPRECATED
+ void            pango_ot_ruleset_description_free  (PangoOTRulesetDescription       *desc);
+ 
+ 
+-#endif /* PANGO_ENABLE_ENGINE */
++#endif /* PANGO_DISABLE_DEPRECATED */
+ 
+ G_END_DECLS
+ 
+diff --git a/pango/pango-utils-private.h b/pango/pango-utils-private.h
+new file mode 100644
+index 0000000000000000000000000000000000000000..4087dc14d5195dc1a4bb438f458d52b8f60bf9bc
+--- /dev/null
++++ b/pango/pango-utils-private.h
+@@ -0,0 +1,59 @@
++/* Pango
++ * pango-utils.c: Utilities for internal functions and modules
++ *
++ * Copyright (C) 2000 Red Hat Software
++ *
++ * This library is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU Library General Public
++ * License as published by the Free Software Foundation; either
++ * version 2 of the License, or (at your option) any later version.
++ *
++ * This library is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the GNU
++ * Library General Public License for more details.
++ *
++ * You should have received a copy of the GNU Library General Public
++ * License along with this library; if not, write to the
++ * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
++ * Boston, MA 02111-1307, USA.
++ */
++
++#ifndef __PANGO_UTILS_PRIVATE_H__
++#define __PANGO_UTILS_PRIVATE_H__
++
++#include <stdio.h>
++#include <glib.h>
++#include <pango/pango-font.h>
++#include <pango/pango-utils.h>
++
++G_BEGIN_DECLS
++
++PANGO_DEPRECATED_IN_1_38
++char *   pango_config_key_get_system (const char *key);
++PANGO_DEPRECATED_IN_1_38
++char *   pango_config_key_get (const char  *key);
++PANGO_DEPRECATED_IN_1_32
++void     pango_lookup_aliases (const char   *fontname,
++			       char       ***families,
++			       int          *n_families);
++
++/* On Unix, return the name of the "pango" subdirectory of SYSCONFDIR
++ * (which is set at compile time). On Win32, return the Pango
++ * installation directory (which is set at installation time, and
++ * stored in the registry). The returned string should not be
++ * g_free'd.
++ */
++PANGO_DEPRECATED
++const char *   pango_get_sysconf_subdirectory (void) G_GNUC_PURE;
++
++/* Ditto for LIBDIR/pango. On Win32, use the same Pango
++ * installation directory. This returned string should not be
++ * g_free'd either.
++ */
++PANGO_DEPRECATED
++const char *   pango_get_lib_subdirectory (void) G_GNUC_PURE;
++
++G_END_DECLS
++
++#endif /* __PANGO_UTILS_PRIATE_H__ */
+diff --git a/pango/pango-utils.c b/pango/pango-utils.c
+index bb5d18add33b16e9b9cddfefec9a8365e0871056..5fc4475d39a12a2ae5ada54b702b91abaceca2c0 100644
+--- a/pango/pango-utils.c
++++ b/pango/pango-utils.c
+@@ -48,6 +48,7 @@
+ #include "pango-features.h"
+ #include "pango-impl-utils.h"
+ #include "pango-utils-internal.h"
++#include "pango-utils-private.h"
+ 
+ #include <glib/gstdio.h>
+ 
+diff --git a/pango/pango-utils.h b/pango/pango-utils.h
+index bb9a4621aa1af08c3d6341d13c098465dde8d0ab..04452eb4fcb696750fc5e5073a252d9f8db17c1e 100644
+--- a/pango/pango-utils.h
++++ b/pango/pango-utils.h
+@@ -48,17 +48,6 @@ PANGO_DEPRECATED
+ gboolean pango_scan_int       (const char **pos,
+ 			       int         *out);
+ 
+-#ifdef PANGO_ENABLE_BACKEND
+-PANGO_DEPRECATED_IN_1_38
+-char *   pango_config_key_get_system (const char *key);
+-PANGO_DEPRECATED_IN_1_38
+-char *   pango_config_key_get (const char  *key);
+-PANGO_DEPRECATED_IN_1_32
+-void     pango_lookup_aliases (const char   *fontname,
+-			       char       ***families,
+-			       int          *n_families);
+-#endif /* PANGO_ENABLE_BACKEND */
+-
+ PANGO_DEPRECATED
+ gboolean pango_parse_enum     (GType       type,
+ 			       const char *str,
+@@ -90,25 +79,6 @@ gboolean pango_parse_stretch (const char   *str,
+ 			      PangoStretch *stretch,
+ 			      gboolean      warn);
+ 
+-#ifdef PANGO_ENABLE_BACKEND
+-
+-/* On Unix, return the name of the "pango" subdirectory of SYSCONFDIR
+- * (which is set at compile time). On Win32, return the Pango
+- * installation directory (which is set at installation time, and
+- * stored in the registry). The returned string should not be
+- * g_free'd.
+- */
+-PANGO_DEPRECATED
+-const char *   pango_get_sysconf_subdirectory (void) G_GNUC_PURE;
+-
+-/* Ditto for LIBDIR/pango. On Win32, use the same Pango
+- * installation directory. This returned string should not be
+- * g_free'd either.
+- */
+-PANGO_DEPRECATED
+-const char *   pango_get_lib_subdirectory (void) G_GNUC_PURE;
+-
+-#endif /* PANGO_ENABLE_BACKEND */
+ 
+ /* Hint line position and thickness.
+  */
+diff --git a/pango/pangocairo-fc-private.h b/pango/pangocairo-fc-private.h
+new file mode 100644
+index 0000000000000000000000000000000000000000..fc0193e46f947c09fcf1e4cc57a436fcfe53f48e
+--- /dev/null
++++ b/pango/pangocairo-fc-private.h
+@@ -0,0 +1,48 @@
++/* Pango
++ * pangocairo-fc.h: Private header file for Cairo/fontconfig combination
++ *
++ * Copyright (C) 2005 Red Hat, Inc.
++ *
++ * This library is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU Library General Public
++ * License as published by the Free Software Foundation; either
++ * version 2 of the License, or (at your option) any later version.
++ *
++ * This library is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the GNU
++ * Library General Public License for more details.
++ *
++ * You should have received a copy of the GNU Library General Public
++ * License along with this library; if not, write to the
++ * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
++ * Boston, MA 02111-1307, USA.
++ */
++
++#ifndef __PANGOCAIRO_FC_PRIVATE_H__
++#define __PANGOCAIRO_FC_PRIVATE_H__
++
++#include <pango/pangofc-fontmap-private.h>
++#include <pango/pangocairo-fc.h>
++
++G_BEGIN_DECLS
++
++struct _PangoCairoFcFontMap
++{
++  PangoFcFontMap parent_instance;
++
++  guint serial;
++  double dpi;
++
++  FT_Library library;
++};
++
++
++PangoFcFont *_pango_cairo_fc_font_new (PangoCairoFcFontMap *cffontmap,
++				       PangoFcFontKey      *key);
++FT_Library   _pango_cairo_fc_font_map_get_library (PangoCairoFcFontMap *fontmap);
++
++G_END_DECLS
++
++#endif /* __PANGOCAIRO_FC_PRIVATE_H__ */
++
+diff --git a/pango/pangocairo-fc.h b/pango/pangocairo-fc.h
+index 172700f1384674f74d5ce8dbabf02c7001c714c1..0d9d04b4bd28fad26938055f29a9aca4e3840cde 100644
+--- a/pango/pangocairo-fc.h
++++ b/pango/pangocairo-fc.h
+@@ -33,23 +33,9 @@ G_BEGIN_DECLS
+ 
+ typedef struct _PangoCairoFcFontMap PangoCairoFcFontMap;
+ 
+-struct _PangoCairoFcFontMap
+-{
+-  PangoFcFontMap parent_instance;
+-
+-  guint serial;
+-  double dpi;
+-
+-  FT_Library library;
+-};
+-
+ PANGO_AVAILABLE_IN_ALL
+ GType pango_cairo_fc_font_map_get_type (void) G_GNUC_CONST;
+ 
+-PangoFcFont *_pango_cairo_fc_font_new (PangoCairoFcFontMap *cffontmap,
+-				       PangoFcFontKey      *key);
+-FT_Library   _pango_cairo_fc_font_map_get_library (PangoCairoFcFontMap *fontmap);
+-
+ G_END_DECLS
+ 
+ #endif /* __PANGOCAIRO_FC_H__ */
+diff --git a/pango/pangocairo-fcfont.c b/pango/pangocairo-fcfont.c
+index e153c13ebf5235f85e11a5d73f38c9f62ba33341..0019f83af19705e99c1a51df310928aae3931882 100644
+--- a/pango/pangocairo-fcfont.c
++++ b/pango/pangocairo-fcfont.c
+@@ -27,9 +27,9 @@
+ #include <cairo-ft.h>
+ #pragma GCC diagnostic pop
+ 
+-#include "pango-fontmap.h"
++#include "pangofc-fontmap-private.h"
+ #include "pangocairo-private.h"
+-#include "pangocairo-fc.h"
++#include "pangocairo-fc-private.h"
+ #include "pangofc-private.h"
+ #include "pango-impl-utils.h"
+ 
+diff --git a/pango/pangocairo-fcfontmap.c b/pango/pangocairo-fcfontmap.c
+index bce3665c8d7d8b5e2252cf8e9024b9a0c44275f8..957cfdb344f01c7972b41a5c9a7f8d98fe2850bc 100644
+--- a/pango/pangocairo-fcfontmap.c
++++ b/pango/pangocairo-fcfontmap.c
+@@ -26,10 +26,10 @@
+ #include <cairo-ft.h>
+ #pragma GCC diagnostic pop
+ 
+-#include "pangofc-fontmap.h"
++#include "pangofc-fontmap-private.h"
+ #include "pangocairo.h"
+ #include "pangocairo-private.h"
+-#include "pangocairo-fc.h"
++#include "pangocairo-fc-private.h"
+ 
+ typedef struct _PangoCairoFcFontMapClass PangoCairoFcFontMapClass;
+ 
+diff --git a/pango/pangocairo-font.c b/pango/pangocairo-font.c
+index b86f85b70265a6c38b9a8c25bf87eabf0a5849bd..cc2e7bee122b7cc4568456d4a8bbea33cc878d78 100644
+--- a/pango/pangocairo-font.c
++++ b/pango/pangocairo-font.c
+@@ -26,6 +26,7 @@
+ 
+ #include "pangocairo.h"
+ #include "pangocairo-private.h"
++#include "pango-font-private.h"
+ #include "pango-impl-utils.h"
+ 
+ #define PANGO_CAIRO_FONT_PRIVATE(font)		\
+diff --git a/pango/pangocairo-render.c b/pango/pangocairo-render.c
+index b39b8156efccc0a6a90e7e3beee21f6538f1bad2..d3b3d34d0b729c7c8b9b61b9b41d34f926262c6c 100644
+--- a/pango/pangocairo-render.c
++++ b/pango/pangocairo-render.c
+@@ -156,6 +156,7 @@
+ 
+ #include <math.h>
+ 
++#include "pango-font-private.h"
+ #include "pangocairo-private.h"
+ #include "pango-glyph-item.h"
+ 
+diff --git a/pango/pangocoretext-private.h b/pango/pangocoretext-private.h
+index 76eb1ebc6f8cd20199c1cebd48b41612f73f682e..d91370903926327367fa0db6e2f387e73d619b62 100644
+--- a/pango/pangocoretext-private.h
++++ b/pango/pangocoretext-private.h
+@@ -28,6 +28,43 @@
+ 
+ G_BEGIN_DECLS
+ 
++/**
++ * PANGO_RENDER_TYPE_CORE_TEXT:
++ *
++ * A string constant identifying the CoreText renderer. The associated quark (see
++ * g_quark_from_string()) is used to identify the renderer in pango_find_map().
++ */
++#define PANGO_RENDER_TYPE_CORE_TEXT "PangoRenderCoreText"
++
++#define PANGO_CORE_TEXT_FONT_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), PANGO_TYPE_CORE_TEXT_FONT, PangoCoreTextFontClass))
++#define PANGO_IS_CORE_TEXT_FONT_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), PANGO_TYPE_CORE_TEXT_FONT))
++#define PANGO_CORE_TEXT_FONT_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), PANGO_TYPE_CORE_TEXT_FONT, PangoCoreTextFontClass))
++
++typedef struct _PangoCoreTextFontPrivate  PangoCoreTextFontPrivate;
++
++struct _PangoCoreTextFont
++{
++  PangoFont parent_instance;
++  PangoCoreTextFontPrivate *priv;
++};
++
++struct _PangoCoreTextFontClass
++{
++  PangoFontClass parent_class;
++
++  /*< private >*/
++
++  /* Padding for future expansion */
++  void (*_pango_reserved1) (void);
++  void (*_pango_reserved2) (void);
++  void (*_pango_reserved3) (void);
++  void (*_pango_reserved4) (void);
++};
++
++PANGO_AVAILABLE_IN_1_24
++CTFontRef  pango_core_text_font_get_ctfont  (PangoCoreTextFont *font);
++
++
+ #define PANGO_TYPE_CORE_TEXT_FONT_MAP             (pango_core_text_font_map_get_type ())
+ #define PANGO_CORE_TEXT_FONT_MAP(object)          (G_TYPE_CHECK_INSTANCE_CAST ((object), PANGO_TYPE_CORE_TEXT_FONT_MAP, PangoCoreTextFontMap))
+ #define PANGO_CORE_TEXT_IS_FONT_MAP(object)       (G_TYPE_CHECK_INSTANCE_TYPE ((object), PANGO_TYPE_CORE_TEXT_FONT_MAP))
+diff --git a/pango/pangocoretext.h b/pango/pangocoretext.h
+index 3bb9fcd63738509e61da84320039fe2b66823561..8c850c3cc43a2af66b7b56ab3d51bf2107a755b7 100644
+--- a/pango/pangocoretext.h
++++ b/pango/pangocoretext.h
+@@ -35,49 +35,6 @@ G_BEGIN_DECLS
+ typedef struct _PangoCoreTextFont         PangoCoreTextFont;
+ typedef struct _PangoCoreTextFontClass    PangoCoreTextFontClass;
+ 
+-#if defined(PANGO_ENABLE_ENGINE) || defined(PANGO_ENABLE_BACKEND)
+-
+-/**
+- * PANGO_RENDER_TYPE_CORE_TEXT:
+- *
+- * A string constant identifying the CoreText renderer. The associated quark (see
+- * g_quark_from_string()) is used to identify the renderer in pango_find_map().
+- */
+-#define PANGO_RENDER_TYPE_CORE_TEXT "PangoRenderCoreText"
+-
+-#ifdef PANGO_ENABLE_BACKEND
+-
+-#define PANGO_CORE_TEXT_FONT_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), PANGO_TYPE_CORE_TEXT_FONT, PangoCoreTextFontClass))
+-#define PANGO_IS_CORE_TEXT_FONT_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), PANGO_TYPE_CORE_TEXT_FONT))
+-#define PANGO_CORE_TEXT_FONT_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), PANGO_TYPE_CORE_TEXT_FONT, PangoCoreTextFontClass))
+-
+-typedef struct _PangoCoreTextFontPrivate  PangoCoreTextFontPrivate;
+-
+-struct _PangoCoreTextFont
+-{
+-  PangoFont parent_instance;
+-  PangoCoreTextFontPrivate *priv;
+-};
+-
+-struct _PangoCoreTextFontClass
+-{
+-  PangoFontClass parent_class;
+-
+-  /*< private >*/
+-
+-  /* Padding for future expansion */
+-  void (*_pango_reserved1) (void);
+-  void (*_pango_reserved2) (void);
+-  void (*_pango_reserved3) (void);
+-  void (*_pango_reserved4) (void);
+-};
+-
+-#endif /* PANGO_ENABLE_BACKEND */
+-
+-PANGO_AVAILABLE_IN_1_24
+-CTFontRef  pango_core_text_font_get_ctfont  (PangoCoreTextFont *font);
+-
+-#endif /* PANGO_ENABLE_ENGINE || PANGO_ENABLE_BACKEND */
+ 
+ PANGO_AVAILABLE_IN_ALL
+ GType      pango_core_text_font_get_type         (void) G_GNUC_CONST;
+diff --git a/pango/pangofc-font-private.h b/pango/pangofc-font-private.h
+new file mode 100644
+index 0000000000000000000000000000000000000000..3e85413b9dc2788f7c3288a5231c3c4bd0f744fa
+--- /dev/null
++++ b/pango/pangofc-font-private.h
+@@ -0,0 +1,148 @@
++/* Pango
++ * pangofc-font.h: Base fontmap type for fontconfig-based backends
++ *
++ * Copyright (C) 2003 Red Hat Software
++ *
++ * This library is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU Library General Public
++ * License as published by the Free Software Foundation; either
++ * version 2 of the License, or (at your option) any later version.
++ *
++ * This library is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the GNU
++ * Library General Public License for more details.
++ *
++ * You should have received a copy of the GNU Library General Public
++ * License along with this library; if not, write to the
++ * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
++ * Boston, MA 02111-1307, USA.
++ */
++
++#ifndef __PANGO_FC_FONT_PRIVATE_H__
++#define __PANGO_FC_FONT_PRIVATE_H__
++
++#include <pango/pango-glyph.h>
++#include <pango/pangofc-font.h>
++#include <pango/pango-font-private.h>
++
++/* Freetype has undefined macros in its header */
++#ifdef PANGO_COMPILATION
++#pragma GCC diagnostic push
++#pragma GCC diagnostic ignored "-Wundef"
++#endif
++
++#include <ft2build.h>
++#include FT_FREETYPE_H
++#include <fontconfig/fontconfig.h>
++
++#ifdef PANGO_COMPILATION
++#pragma GCC diagnostic pop
++#endif
++
++G_BEGIN_DECLS
++
++
++/**
++ * PANGO_RENDER_TYPE_FC:
++ *
++ * A string constant used to identify shape engines that work
++ * with the fontconfig based backends. See the @engine_type field
++ * of #PangoEngineInfo.
++ **/
++#define PANGO_RENDER_TYPE_FC "PangoRenderFc"
++
++#define PANGO_FC_FONT_CLASS(klass)      (G_TYPE_CHECK_CLASS_CAST ((klass), PANGO_TYPE_FC_FONT, PangoFcFontClass))
++#define PANGO_IS_FC_FONT_CLASS(klass)   (G_TYPE_CHECK_CLASS_TYPE ((klass), PANGO_TYPE_FC_FONT))
++#define PANGO_FC_FONT_GET_CLASS(obj)    (G_TYPE_INSTANCE_GET_CLASS ((obj), PANGO_TYPE_FC_FONT, PangoFcFontClass))
++
++/**
++ * PangoFcFont:
++ *
++ * #PangoFcFont is a base class for font implementations
++ * using the Fontconfig and FreeType libraries and is used in
++ * conjunction with #PangoFcFontMap. When deriving from this
++ * class, you need to implement all of its virtual functions
++ * other than shutdown() along with the get_glyph_extents()
++ * virtual function from #PangoFont.
++ **/
++struct _PangoFcFont
++{
++  PangoFont parent_instance;
++
++  FcPattern *font_pattern;	    /* fully resolved pattern */
++  PangoFontMap *fontmap;	    /* associated map */
++  gpointer priv;		    /* used internally */
++  PangoMatrix matrix;		    /* used internally */
++  PangoFontDescription *description;
++
++  GSList *metrics_by_lang;
++
++  guint is_hinted : 1;
++  guint is_transformed : 1;
++};
++
++/**
++ * PangoFcFontClass:
++ * @lock_face: Returns the FT_Face of the font and increases
++ *  the reference count for the face by one.
++ * @unlock_face: Decreases the reference count for the
++ *  FT_Face of the font by one. When the count is zero,
++ *  the #PangoFcFont subclass is allowed to free the
++ *  FT_Face.
++ * @has_char: Return %TRUE if the the font contains a glyph
++ *   corresponding to the specified character.
++ * @get_glyph: Gets the glyph that corresponds to the given
++ *   Unicode character.
++ * @get_unknown_glyph: (nullable): Gets the glyph that
++ *   should be used to display an unknown-glyph indication
++ *   for the specified Unicode character.  May be %NULL.
++ * @shutdown: (nullable): Performs any font-specific
++ *   shutdown code that needs to be done when
++ *   pango_fc_font_map_shutdown is called.  May be %NULL.
++ *
++ * Class structure for #PangoFcFont.
++ **/
++struct _PangoFcFontClass
++{
++  /*< private >*/
++  PangoFontClass parent_class;
++
++  /*< public >*/
++  FT_Face    (*lock_face)         (PangoFcFont      *font);
++  void       (*unlock_face)       (PangoFcFont      *font);
++  gboolean   (*has_char)          (PangoFcFont      *font,
++				   gunichar          wc);
++  guint      (*get_glyph)         (PangoFcFont      *font,
++				   gunichar          wc);
++  PangoGlyph (*get_unknown_glyph) (PangoFcFont      *font,
++				   gunichar          wc);
++  void       (*shutdown)          (PangoFcFont      *font);
++  /*< private >*/
++
++  /* Padding for future expansion */
++  void (*_pango_reserved1) (void);
++  void (*_pango_reserved2) (void);
++  void (*_pango_reserved3) (void);
++  void (*_pango_reserved4) (void);
++};
++
++
++PANGO_AVAILABLE_IN_1_4
++gboolean   pango_fc_font_has_char          (PangoFcFont      *font,
++					    gunichar          wc);
++PANGO_AVAILABLE_IN_1_4
++guint      pango_fc_font_get_glyph         (PangoFcFont      *font,
++					    gunichar          wc);
++#ifndef PANGO_DISABLE_DEPRECATED
++PANGO_DEPRECATED_FOR(PANGO_GET_UNKNOWN_GLYPH)
++PangoGlyph pango_fc_font_get_unknown_glyph (PangoFcFont      *font,
++					    gunichar          wc);
++PANGO_DEPRECATED_IN_1_32
++void       pango_fc_font_kern_glyphs       (PangoFcFont      *font,
++					    PangoGlyphString *glyphs);
++#endif /* PANGO_DISABLE_DEPRECATED */
++
++
++G_END_DECLS
++#endif /* __PANGO_FC_FONT_PRIVATE_H__ */
+diff --git a/pango/pangofc-font.c b/pango/pangofc-font.c
+index 5a48e78222f4c5fb3ee9f6fa5631d20900906f42..7fd7db0fb222131d3b087ac1d65c98b1c1a8ad4e 100644
+--- a/pango/pangofc-font.c
++++ b/pango/pangofc-font.c
+@@ -39,7 +39,7 @@
+  */
+ #include "config.h"
+ 
+-#include "pangofc-font.h"
++#include "pangofc-font-private.h"
+ #include "pangofc-fontmap.h"
+ #include "pangofc-private.h"
+ #include "pango-engine.h"
+diff --git a/pango/pangofc-font.h b/pango/pangofc-font.h
+index 954abdcbb4e942b38adb5f6ff7f27176a81eac54..38d86fa91dcb1d648bd620094c76be510fe0f921 100644
+--- a/pango/pangofc-font.h
++++ b/pango/pangofc-font.h
+@@ -22,7 +22,7 @@
+ #ifndef __PANGO_FC_FONT_H__
+ #define __PANGO_FC_FONT_H__
+ 
+-#include <pango/pango.h>
++#include <pango/pango-font.h>
+ 
+ /* Freetype has undefined macros in its header */
+ #ifdef PANGO_COMPILATION
+@@ -47,112 +47,6 @@ G_BEGIN_DECLS
+ typedef struct _PangoFcFont      PangoFcFont;
+ typedef struct _PangoFcFontClass PangoFcFontClass;
+ 
+-#if defined(PANGO_ENABLE_ENGINE) || defined(PANGO_ENABLE_BACKEND)
+-
+-/**
+- * PANGO_RENDER_TYPE_FC:
+- *
+- * A string constant used to identify shape engines that work
+- * with the fontconfig based backends. See the @engine_type field
+- * of #PangoEngineInfo.
+- **/
+-#define PANGO_RENDER_TYPE_FC "PangoRenderFc"
+-
+-#ifdef PANGO_ENABLE_BACKEND
+-
+-#define PANGO_FC_FONT_CLASS(klass)      (G_TYPE_CHECK_CLASS_CAST ((klass), PANGO_TYPE_FC_FONT, PangoFcFontClass))
+-#define PANGO_IS_FC_FONT_CLASS(klass)   (G_TYPE_CHECK_CLASS_TYPE ((klass), PANGO_TYPE_FC_FONT))
+-#define PANGO_FC_FONT_GET_CLASS(obj)    (G_TYPE_INSTANCE_GET_CLASS ((obj), PANGO_TYPE_FC_FONT, PangoFcFontClass))
+-
+-/**
+- * PangoFcFont:
+- *
+- * #PangoFcFont is a base class for font implementations
+- * using the Fontconfig and FreeType libraries and is used in
+- * conjunction with #PangoFcFontMap. When deriving from this
+- * class, you need to implement all of its virtual functions
+- * other than shutdown() along with the get_glyph_extents()
+- * virtual function from #PangoFont.
+- **/
+-struct _PangoFcFont
+-{
+-  PangoFont parent_instance;
+-
+-  FcPattern *font_pattern;	    /* fully resolved pattern */
+-  PangoFontMap *fontmap;	    /* associated map */
+-  gpointer priv;		    /* used internally */
+-  PangoMatrix matrix;		    /* used internally */
+-  PangoFontDescription *description;
+-
+-  GSList *metrics_by_lang;
+-
+-  guint is_hinted : 1;
+-  guint is_transformed : 1;
+-};
+-
+-/**
+- * PangoFcFontClass:
+- * @lock_face: Returns the FT_Face of the font and increases
+- *  the reference count for the face by one.
+- * @unlock_face: Decreases the reference count for the
+- *  FT_Face of the font by one. When the count is zero,
+- *  the #PangoFcFont subclass is allowed to free the
+- *  FT_Face.
+- * @has_char: Return %TRUE if the the font contains a glyph
+- *   corresponding to the specified character.
+- * @get_glyph: Gets the glyph that corresponds to the given
+- *   Unicode character.
+- * @get_unknown_glyph: (nullable): Gets the glyph that
+- *   should be used to display an unknown-glyph indication
+- *   for the specified Unicode character.  May be %NULL.
+- * @shutdown: (nullable): Performs any font-specific
+- *   shutdown code that needs to be done when
+- *   pango_fc_font_map_shutdown is called.  May be %NULL.
+- *
+- * Class structure for #PangoFcFont.
+- **/
+-struct _PangoFcFontClass
+-{
+-  /*< private >*/
+-  PangoFontClass parent_class;
+-
+-  /*< public >*/
+-  FT_Face    (*lock_face)         (PangoFcFont      *font);
+-  void       (*unlock_face)       (PangoFcFont      *font);
+-  gboolean   (*has_char)          (PangoFcFont      *font,
+-				   gunichar          wc);
+-  guint      (*get_glyph)         (PangoFcFont      *font,
+-				   gunichar          wc);
+-  PangoGlyph (*get_unknown_glyph) (PangoFcFont      *font,
+-				   gunichar          wc);
+-  void       (*shutdown)          (PangoFcFont      *font);
+-  /*< private >*/
+-
+-  /* Padding for future expansion */
+-  void (*_pango_reserved1) (void);
+-  void (*_pango_reserved2) (void);
+-  void (*_pango_reserved3) (void);
+-  void (*_pango_reserved4) (void);
+-};
+-
+-#endif /* PANGO_ENABLE_BACKEND */
+-
+-PANGO_AVAILABLE_IN_1_4
+-gboolean   pango_fc_font_has_char          (PangoFcFont      *font,
+-					    gunichar          wc);
+-PANGO_AVAILABLE_IN_1_4
+-guint      pango_fc_font_get_glyph         (PangoFcFont      *font,
+-					    gunichar          wc);
+-#ifndef PANGO_DISABLE_DEPRECATED
+-PANGO_DEPRECATED_FOR(PANGO_GET_UNKNOWN_GLYPH)
+-PangoGlyph pango_fc_font_get_unknown_glyph (PangoFcFont      *font,
+-					    gunichar          wc);
+-PANGO_DEPRECATED_IN_1_32
+-void       pango_fc_font_kern_glyphs       (PangoFcFont      *font,
+-					    PangoGlyphString *glyphs);
+-#endif /* PANGO_DISABLE_DEPRECATED */
+-
+-#endif /* PANGO_ENABLE_ENGINE || PANGO_ENABLE_BACKEND */
+ 
+ PANGO_AVAILABLE_IN_ALL
+ GType      pango_fc_font_get_type (void) G_GNUC_CONST;
+diff --git a/pango/pangofc-fontmap-private.h b/pango/pangofc-fontmap-private.h
+new file mode 100644
+index 0000000000000000000000000000000000000000..4d8d8c5910e00f800bbaa32f4d9e05ab282ea1ce
+--- /dev/null
++++ b/pango/pangofc-fontmap-private.h
+@@ -0,0 +1,194 @@
++/* Pango
++ * pangofc-fontmap.h: Base fontmap type for fontconfig-based backends
++ *
++ * Copyright (C) 2003 Red Hat Software
++ *
++ * This library is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU Library General Public
++ * License as published by the Free Software Foundation; either
++ * version 2 of the License, or (at your option) any later version.
++ *
++ * This library is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the GNU
++ * Library General Public License for more details.
++ *
++ * You should have received a copy of the GNU Library General Public
++ * License along with this library; if not, write to the
++ * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
++ * Boston, MA 02111-1307, USA.
++ */
++
++#ifndef __PANGO_FC_FONT_MAP_PRIVATE_H__
++#define __PANGO_FC_FONT_MAP_PRIVATE_H__
++
++#include <pango/pangofc-fontmap.h>
++#include <pango/pangofc-decoder.h>
++#include <pango/pangofc-font-private.h>
++#include <pango/pango-fontmap-private.h>
++#include <pango/pango-fontset-private.h>
++
++#include <fontconfig/fontconfig.h>
++
++G_BEGIN_DECLS
++
++
++/**
++ * PangoFcFontsetKey:
++ *
++ * An opaque structure containing all the information needed for
++ * loading a fontset with the PangoFc fontmap.
++ *
++ * Since: 1.24
++ **/
++typedef struct _PangoFcFontsetKey  PangoFcFontsetKey;
++
++PANGO_AVAILABLE_IN_1_24
++PangoLanguage              *pango_fc_fontset_key_get_language      (const PangoFcFontsetKey *key);
++PANGO_AVAILABLE_IN_1_24
++const PangoFontDescription *pango_fc_fontset_key_get_description   (const PangoFcFontsetKey *key);
++PANGO_AVAILABLE_IN_1_24
++const PangoMatrix          *pango_fc_fontset_key_get_matrix        (const PangoFcFontsetKey *key);
++PANGO_AVAILABLE_IN_1_24
++double                      pango_fc_fontset_key_get_absolute_size (const PangoFcFontsetKey *key);
++PANGO_AVAILABLE_IN_1_24
++double                      pango_fc_fontset_key_get_resolution    (const PangoFcFontsetKey *key);
++PANGO_AVAILABLE_IN_1_24
++gpointer                    pango_fc_fontset_key_get_context_key   (const PangoFcFontsetKey *key);
++
++/**
++ * PangoFcFontKey:
++ *
++ * An opaque structure containing all the information needed for
++ * loading a font with the PangoFc fontmap.
++ *
++ * Since: 1.24
++ **/
++typedef struct _PangoFcFontKey     PangoFcFontKey;
++
++PANGO_AVAILABLE_IN_1_24
++const FcPattern   *pango_fc_font_key_get_pattern     (const PangoFcFontKey *key);
++PANGO_AVAILABLE_IN_1_24
++const PangoMatrix *pango_fc_font_key_get_matrix      (const PangoFcFontKey *key);
++PANGO_AVAILABLE_IN_1_24
++gpointer           pango_fc_font_key_get_context_key (const PangoFcFontKey *key);
++PANGO_AVAILABLE_IN_1_40
++const char        *pango_fc_font_key_get_variations  (const PangoFcFontKey *key);
++
++
++#define PANGO_FC_FONT_MAP_CLASS(klass)      (G_TYPE_CHECK_CLASS_CAST ((klass), PANGO_TYPE_FC_FONT_MAP, PangoFcFontMapClass))
++#define PANGO_IS_FC_FONT_MAP_CLASS(klass)   (G_TYPE_CHECK_CLASS_TYPE ((klass), PANGO_TYPE_FC_FONT_MAP))
++#define PANGO_FC_FONT_MAP_GET_CLASS(obj)    (G_TYPE_INSTANCE_GET_CLASS ((obj), PANGO_TYPE_FC_FONT_MAP, PangoFcFontMapClass))
++
++/**
++ * PangoFcFontMap:
++ *
++ * #PangoFcFontMap is a base class for font map implementations
++ * using the Fontconfig and FreeType libraries. To create a new
++ * backend using Fontconfig and FreeType, you derive from this class
++ * and implement a new_font() virtual function that creates an
++ * instance deriving from #PangoFcFont.
++ **/
++struct _PangoFcFontMap
++{
++  PangoFontMap parent_instance;
++
++  PangoFcFontMapPrivate *priv;
++};
++
++/**
++ * PangoFcFontMapClass:
++ * @default_substitute: (nullable): Substitutes in default
++ *  values for unspecified fields in a #FcPattern. This will
++ *  be called prior to creating a font for the pattern. May be
++ *  %NULL.  Deprecated in favor of @font_key_substitute().
++ * @new_font: Creates a new #PangoFcFont for the specified
++ *  pattern of the appropriate type for this font map. The
++ *  @pattern argument must be passed to the "pattern" property
++ *  of #PangoFcFont when you call g_object_new(). Deprecated
++ *  in favor of @create_font().
++ * @get_resolution: Gets the resolution (the scale factor
++ *  between logical and absolute font sizes) that the backend
++ *  will use for a particular fontmap and context. @context
++ *  may be null.
++ * @context_key_get: Gets an opaque key holding backend
++ *  specific options for the context that will affect
++ *  fonts created by @create_font(). The result must point to
++ *  persistant storage owned by the fontmap. This key
++ *  is used to index hash tables used to look up fontsets
++ *  and fonts.
++ * @context_key_copy: Copies a context key. Pango uses this
++ *  to make a persistant copy of the value returned from
++ *  @context_key_get.
++ * @context_key_free: Frees a context key copied with
++ *  @context_key_copy.
++ * @context_key_hash: Gets a hash value for a context key
++ * @context_key_equal: Compares two context keys for equality.
++ * @fontset_key_substitute: (nullable): Substitutes in
++ *  default values for unspecified fields in a
++ *  #FcPattern. This will be called prior to creating a font
++ *  for the pattern. May be %NULL.  (Since: 1.24)
++ * @create_font: (nullable): Creates a new #PangoFcFont for
++ *  the specified pattern of the appropriate type for this
++ *  font map using information from the font key that is
++ *  passed in. The @pattern member of @font_key can be
++ *  retrieved using pango_fc_font_key_get_pattern() and must
++ *  be passed to the "pattern" property of #PangoFcFont when
++ *  you call g_object_new().  If %NULL, new_font() is used.
++ *  (Since: 1.24)
++ *
++ * Class structure for #PangoFcFontMap.
++ **/
++struct _PangoFcFontMapClass
++{
++  /*< private >*/
++  PangoFontMapClass parent_class;
++
++  /*< public >*/
++  /* Deprecated in favor of fontset_key_substitute */
++  void         (*default_substitute) (PangoFcFontMap   *fontmap,
++				      FcPattern        *pattern);
++  /* Deprecated in favor of create_font */
++  PangoFcFont  *(*new_font)          (PangoFcFontMap  *fontmap,
++				      FcPattern       *pattern);
++
++  double       (*get_resolution)     (PangoFcFontMap             *fcfontmap,
++				      PangoContext               *context);
++
++  gconstpointer (*context_key_get)   (PangoFcFontMap             *fcfontmap,
++				      PangoContext               *context);
++  gpointer     (*context_key_copy)   (PangoFcFontMap             *fcfontmap,
++				      gconstpointer               key);
++  void         (*context_key_free)   (PangoFcFontMap             *fcfontmap,
++				      gpointer                    key);
++  guint32      (*context_key_hash)   (PangoFcFontMap             *fcfontmap,
++				      gconstpointer               key);
++  gboolean     (*context_key_equal)  (PangoFcFontMap             *fcfontmap,
++				      gconstpointer               key_a,
++				      gconstpointer               key_b);
++  void         (*fontset_key_substitute)(PangoFcFontMap             *fontmap,
++
++				      PangoFcFontsetKey          *fontsetkey,
++				      FcPattern                  *pattern);
++  PangoFcFont  *(*create_font)       (PangoFcFontMap             *fontmap,
++				      PangoFcFontKey             *fontkey);
++  /*< private >*/
++
++  /* Padding for future expansion */
++  void (*_pango_reserved1) (void);
++  void (*_pango_reserved2) (void);
++  void (*_pango_reserved3) (void);
++  void (*_pango_reserved4) (void);
++};
++
++#ifndef PANGO_DISABLE_DEPRECATED
++PANGO_DEPRECATED_IN_1_22_FOR(pango_font_map_create_context)
++PangoContext * pango_fc_font_map_create_context (PangoFcFontMap *fcfontmap);
++#endif
++PANGO_AVAILABLE_IN_1_4
++void           pango_fc_font_map_shutdown       (PangoFcFontMap *fcfontmap);
++
++
++G_END_DECLS
++
++#endif /* __PANGO_FC_FONT_MAP_PRIVATE_H__ */
+diff --git a/pango/pangofc-fontmap.c b/pango/pangofc-fontmap.c
+index 7d75f6f9c0f96c21ba74a72f74b80fea62f87f90..e88ac4313f0629de0a7f3013a09c09afd16af5c2 100644
+--- a/pango/pangofc-fontmap.c
++++ b/pango/pangofc-fontmap.c
+@@ -46,7 +46,8 @@
+ #include <math.h>
+ 
+ #include "pango-context.h"
+-#include "pangofc-fontmap.h"
++#include "pango-font-private.h"
++#include "pangofc-fontmap-private.h"
+ #include "pangofc-private.h"
+ #include "pango-impl-utils.h"
+ #include "pango-enum-types.h"
+diff --git a/pango/pangofc-fontmap.h b/pango/pangofc-fontmap.h
+index bff288b68e87386a5557360a9c5e469774a81dac..5195d76195ff5ceb20bf69deb6153861a9adde59 100644
+--- a/pango/pangofc-fontmap.h
++++ b/pango/pangofc-fontmap.h
+@@ -30,53 +30,6 @@
+ G_BEGIN_DECLS
+ 
+ 
+-#ifdef PANGO_ENABLE_BACKEND
+-
+-/**
+- * PangoFcFontsetKey:
+- *
+- * An opaque structure containing all the information needed for
+- * loading a fontset with the PangoFc fontmap.
+- *
+- * Since: 1.24
+- **/
+-typedef struct _PangoFcFontsetKey  PangoFcFontsetKey;
+-
+-PANGO_AVAILABLE_IN_1_24
+-PangoLanguage              *pango_fc_fontset_key_get_language      (const PangoFcFontsetKey *key);
+-PANGO_AVAILABLE_IN_1_24
+-const PangoFontDescription *pango_fc_fontset_key_get_description   (const PangoFcFontsetKey *key);
+-PANGO_AVAILABLE_IN_1_24
+-const PangoMatrix          *pango_fc_fontset_key_get_matrix        (const PangoFcFontsetKey *key);
+-PANGO_AVAILABLE_IN_1_24
+-double                      pango_fc_fontset_key_get_absolute_size (const PangoFcFontsetKey *key);
+-PANGO_AVAILABLE_IN_1_24
+-double                      pango_fc_fontset_key_get_resolution    (const PangoFcFontsetKey *key);
+-PANGO_AVAILABLE_IN_1_24
+-gpointer                    pango_fc_fontset_key_get_context_key   (const PangoFcFontsetKey *key);
+-
+-/**
+- * PangoFcFontKey:
+- *
+- * An opaque structure containing all the information needed for
+- * loading a font with the PangoFc fontmap.
+- *
+- * Since: 1.24
+- **/
+-typedef struct _PangoFcFontKey     PangoFcFontKey;
+-
+-PANGO_AVAILABLE_IN_1_24
+-const FcPattern   *pango_fc_font_key_get_pattern     (const PangoFcFontKey *key);
+-PANGO_AVAILABLE_IN_1_24
+-const PangoMatrix *pango_fc_font_key_get_matrix      (const PangoFcFontKey *key);
+-PANGO_AVAILABLE_IN_1_24
+-gpointer           pango_fc_font_key_get_context_key (const PangoFcFontKey *key);
+-PANGO_AVAILABLE_IN_1_40
+-const char        *pango_fc_font_key_get_variations  (const PangoFcFontKey *key);
+-
+-#endif
+-
+-
+ /*
+  * PangoFcFontMap
+  */
+@@ -89,121 +42,6 @@ typedef struct _PangoFcFontMap        PangoFcFontMap;
+ typedef struct _PangoFcFontMapClass   PangoFcFontMapClass;
+ typedef struct _PangoFcFontMapPrivate PangoFcFontMapPrivate;
+ 
+-#ifdef PANGO_ENABLE_BACKEND
+-
+-#define PANGO_FC_FONT_MAP_CLASS(klass)      (G_TYPE_CHECK_CLASS_CAST ((klass), PANGO_TYPE_FC_FONT_MAP, PangoFcFontMapClass))
+-#define PANGO_IS_FC_FONT_MAP_CLASS(klass)   (G_TYPE_CHECK_CLASS_TYPE ((klass), PANGO_TYPE_FC_FONT_MAP))
+-#define PANGO_FC_FONT_MAP_GET_CLASS(obj)    (G_TYPE_INSTANCE_GET_CLASS ((obj), PANGO_TYPE_FC_FONT_MAP, PangoFcFontMapClass))
+-
+-/**
+- * PangoFcFontMap:
+- *
+- * #PangoFcFontMap is a base class for font map implementations
+- * using the Fontconfig and FreeType libraries. To create a new
+- * backend using Fontconfig and FreeType, you derive from this class
+- * and implement a new_font() virtual function that creates an
+- * instance deriving from #PangoFcFont.
+- **/
+-struct _PangoFcFontMap
+-{
+-  PangoFontMap parent_instance;
+-
+-  PangoFcFontMapPrivate *priv;
+-};
+-
+-/**
+- * PangoFcFontMapClass:
+- * @default_substitute: (nullable): Substitutes in default
+- *  values for unspecified fields in a #FcPattern. This will
+- *  be called prior to creating a font for the pattern. May be
+- *  %NULL.  Deprecated in favor of @font_key_substitute().
+- * @new_font: Creates a new #PangoFcFont for the specified
+- *  pattern of the appropriate type for this font map. The
+- *  @pattern argument must be passed to the "pattern" property
+- *  of #PangoFcFont when you call g_object_new(). Deprecated
+- *  in favor of @create_font().
+- * @get_resolution: Gets the resolution (the scale factor
+- *  between logical and absolute font sizes) that the backend
+- *  will use for a particular fontmap and context. @context
+- *  may be null.
+- * @context_key_get: Gets an opaque key holding backend
+- *  specific options for the context that will affect
+- *  fonts created by @create_font(). The result must point to
+- *  persistant storage owned by the fontmap. This key
+- *  is used to index hash tables used to look up fontsets
+- *  and fonts.
+- * @context_key_copy: Copies a context key. Pango uses this
+- *  to make a persistant copy of the value returned from
+- *  @context_key_get.
+- * @context_key_free: Frees a context key copied with
+- *  @context_key_copy.
+- * @context_key_hash: Gets a hash value for a context key
+- * @context_key_equal: Compares two context keys for equality.
+- * @fontset_key_substitute: (nullable): Substitutes in
+- *  default values for unspecified fields in a
+- *  #FcPattern. This will be called prior to creating a font
+- *  for the pattern. May be %NULL.  (Since: 1.24)
+- * @create_font: (nullable): Creates a new #PangoFcFont for
+- *  the specified pattern of the appropriate type for this
+- *  font map using information from the font key that is
+- *  passed in. The @pattern member of @font_key can be
+- *  retrieved using pango_fc_font_key_get_pattern() and must
+- *  be passed to the "pattern" property of #PangoFcFont when
+- *  you call g_object_new().  If %NULL, new_font() is used.
+- *  (Since: 1.24)
+- *
+- * Class structure for #PangoFcFontMap.
+- **/
+-struct _PangoFcFontMapClass
+-{
+-  /*< private >*/
+-  PangoFontMapClass parent_class;
+-
+-  /*< public >*/
+-  /* Deprecated in favor of fontset_key_substitute */
+-  void         (*default_substitute) (PangoFcFontMap   *fontmap,
+-				      FcPattern        *pattern);
+-  /* Deprecated in favor of create_font */
+-  PangoFcFont  *(*new_font)          (PangoFcFontMap  *fontmap,
+-				      FcPattern       *pattern);
+-
+-  double       (*get_resolution)     (PangoFcFontMap             *fcfontmap,
+-				      PangoContext               *context);
+-
+-  gconstpointer (*context_key_get)   (PangoFcFontMap             *fcfontmap,
+-				      PangoContext               *context);
+-  gpointer     (*context_key_copy)   (PangoFcFontMap             *fcfontmap,
+-				      gconstpointer               key);
+-  void         (*context_key_free)   (PangoFcFontMap             *fcfontmap,
+-				      gpointer                    key);
+-  guint32      (*context_key_hash)   (PangoFcFontMap             *fcfontmap,
+-				      gconstpointer               key);
+-  gboolean     (*context_key_equal)  (PangoFcFontMap             *fcfontmap,
+-				      gconstpointer               key_a,
+-				      gconstpointer               key_b);
+-  void         (*fontset_key_substitute)(PangoFcFontMap             *fontmap,
+-
+-				      PangoFcFontsetKey          *fontsetkey,
+-				      FcPattern                  *pattern);
+-  PangoFcFont  *(*create_font)       (PangoFcFontMap             *fontmap,
+-				      PangoFcFontKey             *fontkey);
+-  /*< private >*/
+-
+-  /* Padding for future expansion */
+-  void (*_pango_reserved1) (void);
+-  void (*_pango_reserved2) (void);
+-  void (*_pango_reserved3) (void);
+-  void (*_pango_reserved4) (void);
+-};
+-
+-#ifndef PANGO_DISABLE_DEPRECATED
+-PANGO_DEPRECATED_IN_1_22_FOR(pango_font_map_create_context)
+-PangoContext * pango_fc_font_map_create_context (PangoFcFontMap *fcfontmap);
+-#endif
+-PANGO_AVAILABLE_IN_1_4
+-void           pango_fc_font_map_shutdown       (PangoFcFontMap *fcfontmap);
+-
+-#endif
+ 
+ PANGO_AVAILABLE_IN_ALL
+ GType pango_fc_font_map_get_type (void) G_GNUC_CONST;
+diff --git a/pango/pangofc-private.h b/pango/pangofc-private.h
+index ee048719fd9d15f86324cd40b54889326fa7dada..5babc5365217ea9f3dac7b4639b2467ae6198aec 100644
+--- a/pango/pangofc-private.h
++++ b/pango/pangofc-private.h
+@@ -23,7 +23,7 @@
+ #ifndef __PANGOFC_PRIVATE_H__
+ #define __PANGOFC_PRIVATE_H__
+ 
+-#include <pangofc-fontmap.h>
++#include <pangofc-fontmap-private.h>
+ 
+ G_BEGIN_DECLS
+ 
+diff --git a/pango/pangofc-shape.c b/pango/pangofc-shape.c
+index 53269d73f753e85509ae0184bca9a3d62a09cdd6..b062bd26a41798ce5e4ebd6f919278bb65dfda8b 100644
+--- a/pango/pangofc-shape.c
++++ b/pango/pangofc-shape.c
+@@ -27,6 +27,8 @@
+ #include <math.h>
+ 
+ #include "pangofc-private.h"
++#include "pangofc-font-private.h"
++#include "pangofc-fontmap-private.h"
+ #include <hb-ft.h>
+ #include <hb-glib.h>
+ 
+diff --git a/pango/pangoft2-private.h b/pango/pangoft2-private.h
+index c9b25d1468551c6aff13904e226ee64f134f0741..ba16d2de2d53b50c1301be001929281522df1c4e 100644
+--- a/pango/pangoft2-private.h
++++ b/pango/pangoft2-private.h
+@@ -24,7 +24,7 @@
+ #define __PANGOFT2_PRIVATE_H__
+ 
+ #include <pango/pangoft2.h>
+-#include <pango/pangofc-fontmap.h>
++#include <pango/pangofc-fontmap-private.h>
+ #include <pango/pango-renderer.h>
+ #include <fontconfig/fontconfig.h>
+ 
+diff --git a/pango/pangoft2-render.c b/pango/pangoft2-render.c
+index efb950dca5db4c3196eea693ff0f4ea7b75ec853..3c573bce2fff9e4955768a0203ed58d3fa4bb612 100644
+--- a/pango/pangoft2-render.c
++++ b/pango/pangoft2-render.c
+@@ -34,6 +34,7 @@
+ #include "config.h"
+ #include <math.h>
+ 
++#include "pango-font-private.h"
+ #include "pangoft2-private.h"
+ 
+ /* for compatibility with older freetype versions */
+diff --git a/pango/pangoft2.c b/pango/pangoft2.c
+index 0671a11bb65566fecf4bf7c895774f12c55cba17..20e73925b2bf1706c3539d21b53a2c0b863b352e 100644
+--- a/pango/pangoft2.c
++++ b/pango/pangoft2.c
+@@ -38,7 +38,7 @@
+ 
+ #include "pangoft2.h"
+ #include "pangoft2-private.h"
+-#include "pangofc-fontmap.h"
++#include "pangofc-fontmap-private.h"
+ #include "pangofc-private.h"
+ 
+ /* for compatibility with older freetype versions */
+diff --git a/pango/pangowin32-private.h b/pango/pangowin32-private.h
+index 88e5655d43ef41e1a731d478dce649c50aea0c82..fd102413abaa444e64668a739836345fbcdb4ef3 100644
+--- a/pango/pangowin32-private.h
++++ b/pango/pangowin32-private.h
+@@ -53,6 +53,9 @@
+ #endif
+ 
+ #include "pangowin32.h"
++#include "pango-font-private.h"
++#include "pango-fontset-private.h"
++#include "pango-fontmap-private.h"
+ 
+ typedef enum
+   {
+diff --git a/pango/pangowin32.h b/pango/pangowin32.h
+index 99a738c9c6c1772e43c2c1d9f8539e810247c3eb..406c428b3c4e84f2a108dce5fc35b3d524d7a5f2 100644
+--- a/pango/pangowin32.h
++++ b/pango/pangowin32.h
+@@ -77,32 +77,30 @@ void           pango_win32_render_transformed (HDC         hdc,
+ 					       int                x,
+ 					       int                y);
+ 
+-#ifdef PANGO_ENABLE_ENGINE
++#ifndef PANGO_DISABLE_DEPRECATED
+ 
+ /* For shape engines
+  */
+ 
+-#ifndef PANGO_DISABLE_DEPRECATED
+ PANGO_DEPRECATED_FOR(PANGO_GET_UNKNOWN_GLYPH)
+ PangoGlyph     pango_win32_get_unknown_glyph  (PangoFont        *font,
+ 					       gunichar          wc);
+-#endif /* PANGO_DISABLE_DEPRECATED */
+-PANGO_AVAILABLE_IN_ALL
++PANGO_DEPRECATED
+ gint	      pango_win32_font_get_glyph_index(PangoFont        *font,
+ 					       gunichar          wc);
+ 
+-PANGO_AVAILABLE_IN_ALL
++PANGO_DEPRECATED
+ HDC            pango_win32_get_dc             (void);
+ 
+-PANGO_AVAILABLE_IN_1_2
++PANGO_DEPRECATED
+ gboolean       pango_win32_get_debug_flag     (void);
+ 
+-PANGO_AVAILABLE_IN_ALL
++PANGO_DEPRECATED
+ gboolean pango_win32_font_select_font        (PangoFont *font,
+ 					      HDC        hdc);
+-PANGO_AVAILABLE_IN_ALL
++PANGO_DEPRECATED
+ void     pango_win32_font_done_font          (PangoFont *font);
+-PANGO_AVAILABLE_IN_ALL
++PANGO_DEPRECATED
+ double   pango_win32_font_get_metrics_factor (PangoFont *font);
+ 
+ #endif
+diff --git a/pango/pangoxft-fontmap.c b/pango/pangoxft-fontmap.c
+index 674e006b6c316f8c517875c66e70649212eaa5a1..fce8c665ccb8d797cf4543ed9de1d4dabd305b7b 100644
+--- a/pango/pangoxft-fontmap.c
++++ b/pango/pangoxft-fontmap.c
+@@ -23,7 +23,7 @@
+ #include <stdlib.h>
+ #include <string.h>
+ 
+-#include "pangofc-fontmap.h"
++#include "pangofc-fontmap-private.h"
+ #include "pangoxft.h"
+ #include "pangoxft-private.h"
+ 
+diff --git a/pango/pangoxft-private.h b/pango/pangoxft-private.h
+index fb1c244404a0236c8146f3dd843062e899d2161b..7f6ad384b885d2e503d092bec85b68ed4d7f9e0f 100644
+--- a/pango/pangoxft-private.h
++++ b/pango/pangoxft-private.h
+@@ -23,6 +23,7 @@
+ #define __PANGOXFT_PRIVATE_H__
+ 
+ #include <pango/pangoxft.h>
++#include <pango/pangofc-font-private.h>
+ #include <pango/pango-renderer.h>
+ 
+ G_BEGIN_DECLS
+diff --git a/pango/pangoxft.h b/pango/pangoxft.h
+index 744fce0d0bc18c7785b9e788007f939d2a5053b5..d02624f355a814a44850af9ae99ed749cb1c7060 100644
+--- a/pango/pangoxft.h
++++ b/pango/pangoxft.h
+@@ -109,12 +109,12 @@ GType      pango_xft_font_get_type (void) G_GNUC_CONST;
+ /* For shape engines
+  */
+ 
+-#ifdef PANGO_ENABLE_ENGINE
+-PANGO_AVAILABLE_IN_ALL
++#ifndef PANGO_DISABLE_DEPRECATED
++
++PANGO_DEPRECATED
+ XftFont *     pango_xft_font_get_font          (PangoFont *font);
+-PANGO_AVAILABLE_IN_ALL
++PANGO_DEPRECATED
+ Display *     pango_xft_font_get_display       (PangoFont *font);
+-#ifndef PANGO_DISABLE_DEPRECATED
+ PANGO_DEPRECATED_FOR(pango_fc_font_lock_face)
+ FT_Face       pango_xft_font_lock_face         (PangoFont *font);
+ PANGO_DEPRECATED_FOR(pango_fc_font_unlock_face)
+@@ -129,7 +129,6 @@ PANGO_DEPRECATED_FOR(PANGO_GET_UNKNOWN_GLYPH)
+ PangoGlyph    pango_xft_font_get_unknown_glyph (PangoFont *font,
+ 						gunichar   wc);
+ #endif /* PANGO_DISABLE_DEPRECATED */
+-#endif /* PANGO_ENABLE_ENGINE */
+ 
+ G_END_DECLS
+ 
+diff --git a/tests/cxx-test.cpp b/tests/cxx-test.cpp
+index 643bc7102eb1147e477ac454e0580b510b760082..3e4e476ebe057f8c7dfa5c9454c92f152f937d4b 100644
+--- a/tests/cxx-test.cpp
++++ b/tests/cxx-test.cpp
+@@ -1,8 +1,6 @@
+ /* This test makes sure that all Pango headers can be included
+  * and compiled in a C++ program.
+  */
+-#define PANGO_ENABLE_ENGINE
+-#define PANGO_ENABLE_BACKEND
+ 
+ #include <pango/pango.h>
+ 
+diff --git a/tests/test-ot-tags.c b/tests/test-ot-tags.c
+index 9ae748c1a7e333a223f9ae581528cdd475c956bc..e4acbfa64acbd7cbdd369e51289e0bb2f33e1ccb 100644
+--- a/tests/test-ot-tags.c
++++ b/tests/test-ot-tags.c
+@@ -20,7 +20,7 @@
+  * Boston, MA 02111-1307, USA.
+  */
+ 
+-#define PANGO_ENABLE_ENGINE
++#undef PANGO_DISABLE_DEPRECATED
+ #include <pango/pango-ot.h>
+ 
+ #undef VERBOSE

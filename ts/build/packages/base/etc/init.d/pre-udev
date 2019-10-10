@@ -2,6 +2,9 @@
 
 . `dirname $0`/common
 
+#set -x
+#exec </dev/null >/var/log/pre-udev.log  2>&1
+
 bb_switch()
 {
 	# Compensate for NVidia Optimus hardware. Video mux must be turned OFF
@@ -54,7 +57,7 @@ vga_quirks()
 	if ! vesa_mode; then
 		# This is very dependent upon full lspci, as busybox lspci needs modules to be in memory,
 		# and at this point, nothing is.
-		if lspci -k |grep -E 'radeon|vmwgfx|nouveau|i915|gma500_gfx|qxl|hyperv_fb|cirrus|bochs_drm|amdgpu' > /dev/null 2>&1; then
+		if /sbin/lspci -k |grep -E 'radeon|vmwgfx|nouveau|i915|gma500_gfx|qxl|hyperv_fb|cirrus|bochs_drm|amdgpu' > /dev/null 2>&1; then
 			kms=true
 		fi
 	fi

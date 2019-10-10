@@ -4,6 +4,12 @@ export PACKAGE=fonts-TTF-noto
 export PORTS=noto-fonts
 repackage -e
 
+for font in `ls packages/$PACKAGE/lib/fonts/X11/TTF/ --color=never |grep -Ev 'LICENSE|COPYING'`; do
+	if [ -z "`echo $font |grep -wf packages/$PACKAGE/build/build.fonts`" ]; then
+		rm -rf packages/$PACKAGE/lib/fonts/X11/TTF/$font
+	fi
+done
+
 returnval=$?
 
 exit $returnval

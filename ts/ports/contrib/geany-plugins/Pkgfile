@@ -19,8 +19,12 @@ git clone --depth 1 https://github.com/geany/geany-plugins.git
 		--disable-geanyprj \
 		--disable-gproject \
 		--disable-projectorganizer \
-		--disable-multiterm
+		--disable-multiterm \
+		--disable-devhelp \
+		--disable-peg-markdown \
+		--disable-webhelper
 
+  sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
   make
   make DESTDIR=$PKG install
   rm -rf $PKG/usr/share/{doc,locale}

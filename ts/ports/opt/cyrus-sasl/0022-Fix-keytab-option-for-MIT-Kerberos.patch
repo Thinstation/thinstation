@@ -1,0 +1,66 @@
+From: Debian Cyrus SASL Team
+ <pkg-cyrus-sasl2-debian-devel@lists.alioth.debian.org>
+Date: Thu, 24 Mar 2016 11:35:05 +0100
+Subject: Fix keytab option for MIT Kerberos
+
+---
+ m4/sasl2.m4      |  1 +
+ plugins/gssapi.c | 11 ++++++++---
+ 2 files changed, 9 insertions(+), 3 deletions(-)
+
+diff --git a/m4/sasl2.m4 b/m4/sasl2.m4
+index 56e0504..a90f7b4 100644
+--- a/m4/sasl2.m4
++++ b/m4/sasl2.m4
+@@ -282,6 +282,7 @@ if test "$gssapi" != no; then
+                     ])
+     fi
+   fi
++  AC_CHECK_FUNCS(krb5_gss_register_acceptor_identity)
+   AC_CHECK_FUNCS(gss_decapsulate_token)
+   AC_CHECK_FUNCS(gss_encapsulate_token)
+   AC_CHECK_FUNCS(gss_oid_equal)
+diff --git a/plugins/gssapi.c b/plugins/gssapi.c
+index ff663da..7c69ac2 100644
+--- a/plugins/gssapi.c
++++ b/plugins/gssapi.c
+@@ -1545,7 +1545,7 @@ static sasl_server_plug_t gssapi_server_plugins[] =
+ };
+ 
+ int gssapiv2_server_plug_init(
+-#ifndef HAVE_GSSKRB5_REGISTER_ACCEPTOR_IDENTITY
++#if !defined(HAVE_GSSKRB5_REGISTER_ACCEPTOR_IDENTITY) && !defined(HAVE_KRB5_GSS_REGISTER_ACCEPTOR_IDENTITY)
+     const sasl_utils_t *utils __attribute__((unused)),
+ #else
+     const sasl_utils_t *utils,
+@@ -1555,7 +1555,7 @@ int gssapiv2_server_plug_init(
+     sasl_server_plug_t **pluglist,
+     int *plugcount)
+ {
+-#ifdef HAVE_GSSKRB5_REGISTER_ACCEPTOR_IDENTITY
++#if defined(HAVE_GSSKRB5_REGISTER_ACCEPTOR_IDENTITY) || defined(HAVE_KRB5_GSS_REGISTER_ACCEPTOR_IDENTITY)
+     const char *keytab = NULL;
+     char keytab_path[1024];
+     unsigned int rl;
+@@ -1565,7 +1565,7 @@ int gssapiv2_server_plug_init(
+ 	return SASL_BADVERS;
+     }
+     
+-#ifdef HAVE_GSSKRB5_REGISTER_ACCEPTOR_IDENTITY
++#if defined(HAVE_GSSKRB5_REGISTER_ACCEPTOR_IDENTITY) || defined(HAVE_KRB5_GSS_REGISTER_ACCEPTOR_IDENTITY)
+     /* unfortunately, we don't check for readability of keytab if it's
+        the standard one, since we don't know where it is */
+     
+@@ -1587,7 +1587,12 @@ int gssapiv2_server_plug_init(
+ 	
+ 	strncpy(keytab_path, keytab, 1024);
+ 	
++#ifdef HAVE_GSSKRB5_REGISTER_ACCEPTOR_IDENTITY
+ 	gsskrb5_register_acceptor_identity(keytab_path);
++#endif
++#ifdef HAVE_KRB5_GSS_REGISTER_ACCEPTOR_IDENTITY
++	krb5_gss_register_acceptor_identity(keytab_path);
++#endif
+     }
+ #endif
+     

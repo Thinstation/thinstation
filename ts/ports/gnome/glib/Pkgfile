@@ -1,32 +1,21 @@
 # Description: Low-level data structure handling, portability wrappers, and interfaces for runtime functionality
 # URL:         http://www.gtk.org/
 # Maintainer:  Fredrik Rinnestam, fredrik at crux dot nu
-# Depends on:  libpcre libffi python
+# Depends on:  libpcre libffi ninja meson
 
 name=glib
-archname=glib2
-version=2.58.1
+version=2.60.6
 release=1
 source=(http://download.gnome.org/sources/$name/${version:0:4}/$name-$version.tar.xz \
 	gschemas.compiled)
 
 build () {
-    cd $name-$version
+	cd $name-$version
 
-    ./autogen.sh
-    ./configure --prefix=/usr \
-                --disable-man \
-                --with-pcre=system \
-		--with-python=/usr/bin/python3
+	ts-meson build --prefix=/usr
 
-    make
-    make -j1 DESTDIR=$PKG install
+	DESTDIR=$PKG ninja -C build -j ${JOBS:-1} install
 
-    install -d $PKG/usr/share/man/man1
-    find docs -name '*.1' -exec install -m 0644 {} $PKG/usr/share/man/man1 \;
-
-    install -m 0644 $SRC/gschemas.compiled $PKG/usr/share/glib-2.0/schemas/gschemas.compiled
-    rm -rf $PKG/usr/share/{gtk-doc,locale}
-    rm -r $PKG/usr/share/bash-completion
-chown -R root.root $PKG
+	install -m 0644 $SRC/gschemas.compiled $PKG/usr/share/glib-2.0/schemas/gschemas.compiled
+	rm -r $PKG/usr/share/bash-completion
 }

@@ -5,7 +5,7 @@
 # Depends on: gnupg gtk3 p11-kit util-linux vala xorg-libxcomposite xorg-libxcursor xorg-libxinerama xorg-libxrandr
 
 name=gcr
-version=3.28.0
+version=3.28.1
 release=1
 source=(http://download.gnome.org/sources/$name/${version:0:4}/$name-$version.tar.xz)
 
@@ -16,11 +16,11 @@ build() {
 		--prefix=/usr \
 		--disable-update-icon-cache \
 		--disable-update-mime
-		
+
+sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
 
 	make
 	make DESTDIR=$PKG install
 	sed -i -r 's:"(/desktop):"/org/gnome\1:' $PKG/usr/share/glib-2.0/schemas/*.xml
 
-	rm -r $PKG/usr/share/{locale,gtk-doc}
 }

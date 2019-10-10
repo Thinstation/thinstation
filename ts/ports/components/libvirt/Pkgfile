@@ -3,13 +3,15 @@
 # Maintainer:	Pierre Chaussee, syl at clyl dot net
 # Depends on:	
 name=libvirt
-version=2.1.0
+version=5.5.0
 release=1
 source=(ftp://libvirt.org/$name/$name-$version.tar.xz)
 
 build () {
 	cd $name-$version
-	./configure --prefix=/usr
+	./configure --prefix=/usr \
+		--without-wireshark-dissector
+
 	make 
 	make DESTDIR=$PKG install
 }

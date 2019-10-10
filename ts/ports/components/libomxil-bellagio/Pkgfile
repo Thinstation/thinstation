@@ -1,0 +1,21 @@
+# Maintainer: Laurent Carlier <lordheavym@gmail.com>
+# Contributor: Fly-away <flyaaway@gmail.com>
+
+name=libomxil-bellagio
+version=0.9.3
+release=2
+source=("https://downloads.sourceforge.net/project/omxil/omxil/Bellagio%200.9.3/${name}-${version}.tar.gz"
+        fedora-fixes.patch)
+
+build() {
+  cd ${SRC}/${name}-$version
+
+  # Fixes from fedora repo
+  patch -Np1 -i ../fedora-fixes.patch
+  sed -e 's/-Werror//' -i configure.ac
+  autoreconf -fiv
+
+  ./configure --prefix=/usr --disable-static --docdir=/usr/share/doc/${name}
+  make
+  make DESTDIR="${PKG}" install
+}

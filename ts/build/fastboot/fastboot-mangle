@@ -14,6 +14,7 @@ if [ "$2" == "true" ] ; then
 	mv sbin lib/.
 	ln -sf /lib/bin bin
 	ln -sf /lib/sbin sbin
+	ln -sf . lib/lib
 	mkdir lib/etc
 	mkdir -p fastboot/bin
 	mkdir -p fastboot/sbin
@@ -61,7 +62,7 @@ if [ "$2" == "true" ] ; then
 		touch -c -h -t $timestamp lib/$file
 	done
 	if [ "$HARDLINK" == "true" ]; then
-		hardlink -t -m lib
+		hardlink -v lib
 	fi
 	mksquashfs lib ../$INITDIR/lib.squash -always-use-fragments -no-recovery -no-xattrs -noappend $FB_COMP_EXTRA
 	for i in `ls --color=never lib/ |grep -xvf ../fastboot/lib-boot |grep -Ewv 'bin|sbin|dbus-1'` ; do
@@ -124,7 +125,7 @@ if [ "$2" == "lotsofmem" ]; then
 		fi
 	done
 	if [ "$HARDLINK" == "true" ]; then
-		hardlink -t -m ../fastboot-tmp
+		hardlink -v ../fastboot-tmp
 	fi
 	echo -e "\tMaking lib.squash"
 	mksquashfs ../fastboot-tmp/. ../$INITDIR/lib.squash -always-use-fragments -no-recovery -no-xattrs -noappend $FB_COMP_EXTRA

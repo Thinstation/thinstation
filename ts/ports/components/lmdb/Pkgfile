@@ -1,0 +1,19 @@
+# Description:	Lightning Memory-Mapped Database Manager (LMDB)
+# URL:		http://symas.com/mdb
+# Maintainer:	Torsten Henschel, thenschel at henschelsoft dot de
+# Depends on:	
+
+name=lmdb
+version=0.9.24
+release=1
+source=(https://github.com/LMDB/lmdb/archive/LMDB_$version.tar.gz \
+	lmdb.pc)
+
+build() {
+	cd lmdb-LMDB_$version/libraries/liblmdb
+
+	make
+	sed -i 's| liblmdb.a||' Makefile
+	make prefix=/usr DESTDIR=$PKG install
+	install -Dm644 $SRC/lmdb.pc $PKG/usr/lib/pkgconfig/lmdb.pc
+}

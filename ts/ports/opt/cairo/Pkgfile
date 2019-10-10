@@ -4,23 +4,32 @@
 # Depends on: fontconfig, libpng, xorg-libxext, xorg-libxrender, xorg-libpixman, xorg-xcb-util, glib
 
 name=cairo
-version=1.15.12
+version=1.17.2
 release=1
-source=(http://cairographics.org/snapshots/$name-$version.tar.xz)
+commit=52a7c79fd4ff96bb5fac175f0199819b0f8c18fc
+#source=(http://cairographics.org/snapshots/$name-$version.tar.xz)
 
 build() {
-        cd $name-$version
+git clone https://gitlab.freedesktop.org/cairo/cairo.git
+cd cairo
+git checkout $commit
+#        cd $name-$version
+  sed -i 's/have_png/use_png/g' configure.ac
+
+  NOCONFIGURE=1 ./autogen.sh
         ./configure --prefix=/usr \
-		--disable-static \
-		--disable-lto \
-		--enable-egl \
-		--enable-svg \
-		--enable-gobject \
-                --enable-ps \
-		--enable-gl \
-                --enable-pdf \
-                --disable-gtk-doc \
-                --enable-tee=yes
+        --disable-static \
+        --disable-gl \
+        --enable-tee \
+        --enable-svg \
+        --enable-ps \
+        --enable-pdf \
+        --enable-gobject \
+        --enable-gtk-doc \
+        --enable-full-testing \
+        --enable-test-surfaces
+  sed -i 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
+
         make
         make DESTDIR=$PKG install
         rm -rf $PKG/usr/share

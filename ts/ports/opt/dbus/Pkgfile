@@ -5,7 +5,7 @@
 # Depends on: expat
 
 name=dbus
-version=1.12.10
+version=1.12.16
 release=1
 source=(http://dbus.freedesktop.org/releases/dbus/$name-$version.tar.gz \
 rc.dbus 30-dbus.launch)
@@ -17,6 +17,8 @@ build() {
                --sysconfdir=/etc \
                --with-dbus-daemondir=/usr/sbin \
                --localstatedir=/var \
+		--runstatedir=/run \
+		--with-system-socket=/run/dbus/system_bus_socket \
                --mandir=/usr/man \
                --disable-static \
                --with-dbus-user=messagebus \

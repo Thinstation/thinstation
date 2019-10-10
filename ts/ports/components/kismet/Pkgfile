@@ -3,22 +3,24 @@
 # Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 
 name=kismet
-version=2016-07-R1
+version=2019_05_R2
+_realver="${version//_/-}"
 release=1
-source=(http://www.kismetwireless.net/code/$name-$version.tar.xz)
+source=(https://www.kismetwireless.net/code/$name-$_realver.tar.xz)
 
 build() {
-	cd $name-$version
+	cd $name-$_realver
 
 	./configure --prefix=/usr \
+			--disable-python-tools \
 			--disable-extras
 
 	make
 	make DESTDIR=$PKG install
-	cd restricted-plugin-autowep
-        KIS_SRC_DIR=../ make
-	KIS_SRC_DIR=../ make DESTDIR=$PKG install
-	cd ../restricted-plugin-ptw
-        KIS_SRC_DIR=../ make
-	KIS_SRC_DIR=../ make DESTDIR=$PKG install
+#	cd restricted-plugin-autowep
+#        KIS_SRC_DIR=../ make
+#	KIS_SRC_DIR=../ make DESTDIR=$PKG install
+#	cd ../restricted-plugin-ptw
+#        KIS_SRC_DIR=../ make
+#	KIS_SRC_DIR=../ make DESTDIR=$PKG install
 }

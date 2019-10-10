@@ -5,16 +5,16 @@
 # Depends on:  boehm-gc
 
 name=w3m
-version=0.5.3
+version=git
 release=2
-source=(http://downloads.sourceforge.net/project/$name/$name/$name-$version/$name-$version.tar.gz)
 
 build() {
-    cd $name-$version
+    git clone https://salsa.debian.org/debian/w3m.git
+    cd $name
 
-    sed -i s/showaudio/mplayer/ config.h.in
-    sed -i '836d' main.c # function type is void
-    sed -i 's/file_handle/file_foo/' istream.{c,h}
+#    sed -i s/showaudio/mplayer/ config.h.in
+#    sed -i '836d' main.c # function type is void
+#    sed -i 's/file_handle/file_foo/' istream.{c,h}
 
     ./configure \
         --prefix=/usr \
@@ -22,7 +22,6 @@ build() {
         --disable-image \
         --disable-gopher \
         --disable-nntp \
-        --disable-unicode \
         --disable-xface \
         --enable-alarm \
         --enable-ansi-color \
@@ -46,5 +45,4 @@ build() {
     make DESTDIR=$PKG install 
 
     rm -rf $PKG/usr/share/man/ja*
-    rm -rf $PKG/usr/share/locale/
 }

@@ -5,7 +5,7 @@
 # Depends on: gtk libcroco
 
 name=librsvg
-version=2.42.4
+version=2.44.14
 release=2
 source=(ftp://ftp.gnome.org/pub/gnome/sources/$name/${version%.*}/$name-$version.tar.xz)
 
@@ -17,9 +17,10 @@ build() {
               --enable-gtk-theme \
               --enable-pixbuf-loader \
               --disable-gtk-doc \
-	       \
 	      --enable-shared \
 	      --disable-static
+
+sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
 
   make
   make DESTDIR=$PKG install

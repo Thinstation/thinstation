@@ -1,0 +1,17 @@
+# Description: The GL Vendor-Neutral Dispatch library
+# URL: https://github.com/NVIDIA/libglvnd
+# Maintainer: CRUX Xorg Team, xorg-ports at crux dot nu
+# Depends on: xorg-libx11 xorg-libxext
+
+name=libglvnd
+version=1.1.1
+release=1
+source=(https://github.com/NVIDIA/$name/archive/v$version/$name-$version.tar.gz)
+
+build() {
+	cd $name-$version
+	./autogen.sh
+	./configure --prefix=/usr
+	make
+	make DESTDIR=$PKG install
+}

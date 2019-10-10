@@ -6,19 +6,23 @@
 # Group: xfce4
 
 name=xfce4-panel
-version=4.12.2
+version=4.14.1
 release=1
 source=(http://archive.xfce.org/src/xfce/$name/${version%.*}/$name-$version.tar.bz2 clock_timezone.patch)
 
 build () {
   cd $name-$version
-  patch -Np1 < ../clock_timezone.patch
+#  patch -Np1 < ../clock_timezone.patch
 
   ./configure --prefix=/usr \
               --sysconfdir=/etc \
               --libexecdir=/usr/libexec \
               --enable-gtk3 \
+		--disable-introspection \
               --disable-debug
+
+sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
+
 
   make
   make DESTDIR=$PKG install

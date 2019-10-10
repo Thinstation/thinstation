@@ -1,25 +1,46 @@
-# Description: An implementation of DSSSL -- Document Style Semantics and Specification Language.
-# URL: http://openjade.sourceforge.net/
-# Maintainer: Danny Rawlins, crux at romster dot me
-# Packager: Diederick de Vries, diederick at diederickdevries.net
-# Depends on: opensp
+# Maintainer: AndyRTR <andyrtr@archlinux.org>
 
 name=openjade
-version=1.3.3-pre1
-release=2
-source=(http://downloads.sourceforge.net/project/$name/$name/1.3.3/$name-$version.tar.gz
-	iostream.patch msggen.pl.patch)
+version=1.3.2
+release=5
+_debpatch=13
+source=(http://downloads.sourceforge.net/project/${name}/${name}/${version}/${name}-${version}.tar.gz
+        http://ftp.debian.org/debian/pool/main/o/${name}1.3/${name}1.3_${version}-${_debpatch}.diff.gz \
+	msggen.pl.patch)
 
 build() {
-	cd $name-$version
+  gzip -d *.gz
+  cd ${name}-$version
+  patch -Np1 -i $SRC/${name}1.3_${version}-${_debpatch}.diff
+  patch -Np1 -i $SRC/msggen.pl.patch
+  # https://bugs.archlinux.org/task/55331 / https://gcc.gnu.org/bugzilla/show_bug.cgi?id=69534#c9
+  export CXXFLAGS+=' -fno-lifetime-dse'
+  ./configure --prefix=/usr \
+    --mandir=/usr/share/man \
+    --enable-default-catalog=/etc/sgml/catalog \
+    --datadir=/usr/share/sgml/openjade-${version} \
+    --enable-html \
+    --enable-http \
+    --enable-mif
+  make
+  make DESTDIR="$PKG/" install install-man 
+  
+  # add unversioned symlink
+  ln -svf openjade-${version} ${PKG}/usr/share/sgml/openjade
+  
+  # openjade -> jade compat symlinks
+  ln -svf /usr/bin/openjade $PKG/usr/bin/jade
+  ln -svf /usr/lib/libogrove.so $PKG/usr/lib/libgrove.so
+  ln -svf /usr/lib/libospgrove.so $PKG/usr/lib/libspgrove.so
+  ln -svf /usr/lib/libostyle.so $PKG/usr/lib/libstyle.so
+  ln -svf /usr/share/man/man1/openjade.1.gz $PKG/usr/share/man/man1/jade.1.gz
+  
+  # license
+  install -m755 -d "${PKG}/usr/share/licenses/${name}"
+  install -m644 COPYING "${PKG}/usr/share/licenses/${name}/"
 
-	patch -p 1 -i $SRC/iostream.patch
-	patch -p 1 -i $SRC/msggen.pl.patch
-
-	./configure \
-		--prefix=/usr \
-		
-
-	make
-	make DESTDIR=$PKG install
+  install -dm755 "$PKG"/usr/share/sgml/openjade-${version}
+  install -m644 dsssl/builtins.dsl dsssl/dsssl.dtd \
+    dsssl/style-sheet.dtd dsssl/fot.dtd \
+    dsssl/catalog "$PKG"/usr/share/sgml/openjade-${version}
 }

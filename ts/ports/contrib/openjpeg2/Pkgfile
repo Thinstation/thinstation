@@ -1,0 +1,23 @@
+# Description: An open source JPEG 2000 codec.
+# URL: https://github.com/uclouvain/openjpeg
+# Maintainer: Danny Rawlins, crux at romster dot me
+# Depends on: lcms2 libpng
+
+name=openjpeg2
+version=2.3.1
+release=1
+source=(https://github.com/uclouvain/openjpeg/archive/v$version/openjpeg-$version.tar.gz)
+
+build() {
+	cd openjpeg-$version
+
+	mkdir build
+	cd build
+
+	cmake .. \
+		-DCMAKE_BUILD_TYPE=Release \
+		-DCMAKE_INSTALL_PREFIX=/usr
+
+	make
+	make DESTDIR=$PKG install
+}

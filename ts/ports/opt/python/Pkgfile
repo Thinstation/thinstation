@@ -4,31 +4,45 @@
 # Depends on:  db gdbm openssl bzip2 zlib sqlite3
 
 name=python
-archname=python2
 version=2.7.16
-release=1
-source=(http://www.python.org/ftp/$name/$version/Python-$version.tar.xz)
+release=2
+source=(http://www.python.org/ftp/$name/$version/Python-$version.tar.xz \
+        pyconfig.h)
 
 build () {
     cd Python-$version
-    
-    ./configure --prefix=/usr \
-                --mandir=/usr/man \
-                --enable-shared \
-                --with-threads \
-                --enable-ipv6
 
-    make EXTRA_CFLAGS="$CFLAGS"
+    # set OPT to the python default without -O3
+    # our CFLAGS are used as well
+  export OPT="${CFLAGS}"
+  ./configure --prefix=/usr \
+              --enable-shared \
+              --with-threads \
+              --enable-optimizations \
+              --with-lto \
+              --enable-ipv6 \
+              --enable-unicode=ucs4 \
+              --with-system-expat \
+              --with-system-ffi \
+              --with-dbmliborder=gdbm:ndbm
+    make
     make -j1 DESTDIR=$PKG install
+
+    # fix issue with man-page symlink
+    ln -sf python2.7.1 $PKG/usr/share//man/man1/python.1
 
     ln -sf python2.7 $PKG/usr/bin/python
     ln -s python2.7 $PKG/usr/lib/python
     ln -s python2.7 $PKG/usr/include/python
     ln -s /usr/lib/libpython2.7.so $PKG/usr/lib/python2.7/config/libpython2.7.so
 
-    rm -r $PKG/usr/lib/python/{bsddb,ctypes,email,sqlite3}/test
+    rm -r $PKG/usr/lib/python/{bsddb,ctypes,email,lib-tk,sqlite3,unittest}/test
     rm -r $PKG/usr/lib/python/{distutils,json,lib2to3}/tests
-    rm $PKG/usr/lib/python/{distutils,site-packages,test/data}/README
+    rm -r $PKG/usr/lib/python/test
+    rm $PKG/usr/lib/python/{distutils,site-packages}/README
     rm $PKG/usr/lib/python/idlelib/{ChangeLog,{NEWS,README,TODO}.txt}
     rm $PKG/usr/lib/python/ctypes/macholib/README.ctypes
+
+    mv $PKG/usr/include/python2.7/pyconfig{,-64}.h
+    install -m 0644 $SRC/pyconfig.h $PKG/usr/include/python2.7/
 }

@@ -1,20 +1,21 @@
 # Description: A library and frontend to manipulate partition tables
 # URL: http://www.gnu.org/software/parted/
 # Maintainer: Matt Housh, jaeger at crux dot ninja
-# Depends on: libdevmapper readline eudev util-linux
+# Depends on: libdevmapper readline
 
 name=parted
 version=3.2
-release=1
-source=(http://ftp.gnu.org/gnu/$name/$name-$version.tar.xz)
+release=2
+source=(http://ftp.gnu.org/gnu/$name/$name-$version.tar.xz \
+	$name-sysmacros.patch)
 
 build() {
 	cd $name-$version
-
+	patch -p1 -i $SRC/$name-sysmacros.patch
 	./configure --prefix=/usr \
-		--with-readline \
-
+		 \
+		--with-readline
 	make
 	make DESTDIR=$PKG install
-	rm -rf $PKG/usr/share
+	rm -rf $PKG/usr/share/info
 }

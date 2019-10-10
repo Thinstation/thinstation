@@ -4,7 +4,7 @@
 # Depends on:	qt4 sysfsutils
 
 name=v4l-utils
-version=1.10.1
+version=1.16.6
 release=1
 source=(http://linuxtv.org/downloads/v4l-utils/$name-$version.tar.bz2)
 
@@ -15,10 +15,9 @@ build() {
 	./configure \
 		--prefix=/usr \
 		--sysconfdir=/etc \
-		--sbindir=/usr/bin \
 		--disable-static \
 		--disable-qv4l2
 
-	make -j1
+	make
 	make -j1 PREFIX=/usr DESTDIR=$PKG install
 }

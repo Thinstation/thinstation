@@ -1,0 +1,16 @@
+# Maintainer: Laurent Carlier <lordheavym@gmail.com>
+
+name=libclc
+version=git
+release=1
+
+build() {
+  git clone https://llvm.org/git/libclc.git
+  cd libclc
+
+   ./configure.py --prefix=/usr
+  make
+  make install DESTDIR="$PKG"
+  install -Dm644 LICENSE.TXT "$PKG/usr/share/licenses/$name/LICENSE"
+}
+

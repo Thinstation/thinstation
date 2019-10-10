@@ -1,0 +1,15 @@
+# Maintainer: Felix Yan <felixonmars@archlinux.org>
+
+name=libblockdev
+version=2.22
+release=1
+source=("https://github.com/rhinstaller/libblockdev/archive/$version-1.tar.gz")
+
+build() {
+  cd "$SRC"/$name-$version-1
+  ./autogen.sh
+  ./configure --prefix=/usr --sysconfdir=/etc --without-lvm_dbus
+  make
+  make check
+  make DESTDIR="$PKG" install
+}

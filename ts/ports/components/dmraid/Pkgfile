@@ -1,0 +1,27 @@
+# Maintainer: Tobias Powalowski <tpowa@archlinux.org>
+#Contributor: Urs Wolfer <uwolfer @ fwo.ch>
+
+name=dmraid
+version=1.0.0.rc16.3
+release=11
+source=(#https://sources.archlinux.org/other/dmraid/$name-$version.tar.bz2
+        https://people.redhat.com/~heinzm/sw/dmraid/src/$name-1.0.0.rc16-3.tar.bz2
+        dmraid_install
+        dmraid_hook
+        dmraid_tmpfiles
+        dmraid.service)
+
+build() {
+  cd "$name/1.0.0.rc16-3/$name"
+  ./configure --enable-led --enable-intel_led
+  make -j1
+  make DESTDIR="$PKG" prefix=/usr libdir=/usr/lib mandir=/usr/share/man includedir=/usr/include install
+  install -D -m644 "$SRC"/dmraid_install "$PKG"/usr/lib/initcpio/install/dmraid
+  install -D -m644 "$SRC"/dmraid_hook "$PKG"/usr/lib/initcpio/hooks/dmraid
+  install -D -m644 "$SRC"/dmraid_tmpfiles "$PKG"/usr/lib/tmpfiles.d/dmraid.conf
+
+  # fix permissions
+  chmod 644 "$PKG"/usr/include/dmraid/* "$PKG"/usr/lib/libdmraid.a
+
+  install -Dm644 "$SRC/dmraid.service" "$PKG/usr/lib/systemd/system/dmraid.service"
+}

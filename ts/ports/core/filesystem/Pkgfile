@@ -3,8 +3,8 @@
 # Maintainer:  CRUX System Team, core-ports at crux dot nu
 
 name=filesystem
-version=3.2
-release=4
+version=3.5
+release=1
 source=(issue motd shells group passwd shadow securetty fstab mime.types)
 
 build() {
@@ -13,14 +13,14 @@ build() {
     install -d $PKG/sbin
     install -d $PKG/boot
     install -d $PKG/dev
-    install -d $PKG/dev/{pts,shm}
+    install -d $PKG/dev/pts
     install -d $PKG/proc
     install -d $PKG/sys
     install -d $PKG/etc
     install -d $PKG/mnt
     install -d $PKG/run
     install -d $PKG/lib
-#    ln -s lib $PKG/lib64
+    ln -s lib $PKG/lib64
     install -d $PKG/lib/modules
     install -d $PKG/opt
     install -d $PKG/opt/bin
@@ -50,6 +50,7 @@ build() {
     install -d -m 1777 $PKG/var/lock
     install -d -m 1777 $PKG/var/spool/mail
     install -d -m 1777 $PKG/var/tmp
+    install -d -m 1777 $PKG/dev/shm
 
     # /dev
     mknod $PKG/dev/console c 5 1

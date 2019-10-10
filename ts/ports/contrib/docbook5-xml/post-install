@@ -1,0 +1,36 @@
+_datadir=/usr/share
+_rootcatalog=/etc/xml/catalog
+
+post_install() {
+  if [[ -w $_rootcatalog ]]; then
+    for v in 5.{0,1}; do
+      xmlcatalog --noout --add "delegatePublic" \
+        "-//OASIS//DTD DocBook XML ${v}//EN" \
+        "file://${_datadir}/xml/docbook/schema/dtd/${v}/catalog.xml" \
+        ${_rootcatalog}
+      xmlcatalog --noout --add "delegateSystem" \
+        "http://docbook.org/xml/${v}/dtd/" \
+        "file://${_datadir}/xml/docbook/schema/dtd/${v}/catalog.xml" \
+        ${_rootcatalog}
+      xmlcatalog --noout --add "delegateURI" \
+        "http://docbook.org/xml/${v}/dtd/" \
+        "file://${_datadir}/xml/docbook/schema/dtd/${v}/catalog.xml" \
+        ${_rootcatalog}
+      xmlcatalog --noout --add "delegateURI" \
+        "http://docbook.org/xml/${v}/rng/"  \
+        "file://${_datadir}/xml/docbook/schema/rng/${v}/catalog.xml" \
+        ${_rootcatalog}
+      xmlcatalog --noout --add "delegateURI" \
+        "http://docbook.org/xml/${v}/sch/"  \
+        "file://${_datadir}/xml/docbook/schema/sch/${v}/catalog.xml" \
+        ${_rootcatalog}
+      xmlcatalog --noout --add "delegateURI" \
+        "http://docbook.org/xml/${v}/xsd/"  \
+        "file://${_datadir}/xml/docbook/schema/xsd/${v}/catalog.xml" \
+        ${_rootcatalog}
+    done
+  fi
+}
+
+
+post_install

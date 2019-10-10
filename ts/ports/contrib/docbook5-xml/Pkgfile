@@ -1,0 +1,302 @@
+# Maintainer: Andreas Radke <andyrtr@archlinux.org>
+# Contributor: Andy Weidenbaum <archbaum@gmail.com>
+# Contributor: Holger Rauch < holger dot rauch at posteo dot de >
+# based on CentOS 7 rpm
+# http://pkgs.org/centos-7/centos-x86_64/docbook5-schemas-5.0-10.el7.noarch.rpm.html
+
+name=docbook5-xml
+version=5.1
+release=1
+source=(https://docbook.org/xml/5.0/docbook-5.0.zip
+        https://docbook.org/xml/5.1/docbook-v5.1-os.zip)
+install=$name.install
+
+_datadir=/usr/share
+_catalog50=docbook-5.0.xml
+_catalog51=docbook-5.1.xml
+
+build() {
+
+  # docbook-5.0
+  pushd "$SRC/docbook-5.0"
+  xmlcatalog --create --noout ${_catalog50}
+
+  for v in 5.0; do
+    # DTD
+    xmlcatalog --noout --add "public" \
+      "-//OASIS//DTD DocBook XML ${v}//EN" \
+      "file://${_datadir}/xml/docbook/schema/dtd/${v}/docbook.dtd" ${_catalog50}
+    xmlcatalog --noout --add "system" \
+      "http://www.oasis-open.org/docbook/xml/${v}/dtd/docbook.dtd" \
+      "file://${_datadir}/xml/docbook/schema/dtd/${v}/docbook.dtd" ${_catalog50}
+    xmlcatalog --noout --add "system" \
+      "http://docbook.org/xml/${v}/dtd/docbook.dtd" \
+      "file://${_datadir}/xml/docbook/schema/dtd/${v}/docbook.dtd" ${_catalog50}
+    # RNG
+    xmlcatalog --noout --add "uri" \
+      "http://www.oasis-open.org/docbook/xml/${v}/rng/docbook.rng" \
+      "file://${_datadir}/xml/docbook/schema/rng/${v}/docbook.rng" ${_catalog50}
+    xmlcatalog --noout --add "uri" \
+      "http://docbook.org/xml/${v}/rng/docbook.rng" \
+      "file://${_datadir}/xml/docbook/schema/rng/${v}/docbook.rng" ${_catalog50}
+    # RNG+XInclude
+    xmlcatalog --noout --add "uri" \
+      "http://www.oasis-open.org/docbook/xml/${v}/rng/docbookxi.rng" \
+      "file://${_datadir}/xml/docbook/schema/rng/${v}/docbookxi.rng" ${_catalog50}
+    xmlcatalog --noout --add "uri" \
+      "http://docbook.org/xml/${v}/rng/docbookxi.rng" \
+      "file://${_datadir}/xml/docbook/schema/rng/${v}/docbookxi.rng" ${_catalog50}
+    # RNC
+    xmlcatalog --noout --add "uri" \
+      "http://www.oasis-open.org/docbook/xml/${v}/rnc/docbook.rnc" \
+      "file://${_datadir}/xml/docbook/schema/rng/${v}/docbook.rnc" ${_catalog50}
+    xmlcatalog --noout --add "uri" \
+      "http://docbook.org/xml/${v}/rng/docbook.rnc" \
+      "file://${_datadir}/xml/docbook/schema/rng/${v}/docbook.rnc" ${_catalog50}
+    # RNC+XInclude
+    xmlcatalog --noout --add "uri" \
+      "http://www.oasis-open.org/docbook/xml/${v}/rnc/docbookxi.rnc" \
+      "file://${_datadir}/xml/docbook/schema/rng/${v}/docbookxi.rnc" ${_catalog50}
+    xmlcatalog --noout --add "uri" \
+      "http://docbook.org/xml/${v}/rng/docbookxi.rnc" \
+      "file://${_datadir}/xml/docbook/schema/rng/${v}/docbookxi.rnc" ${_catalog50}
+    # XSD
+    xmlcatalog --noout --add "uri" \
+      "http://www.oasis-open.org/docbook/xml/${v}/xsd/docbook.xsd" \
+      "file://${_datadir}/xml/docbook/schema/xsd/${v}/docbook.xsd" ${_catalog50}
+    xmlcatalog --noout --add "uri" \
+      "http://docbook.org/xml/${v}/xsd/docbook.xsd" \
+      "file://${_datadir}/xml/docbook/schema/xsd/${v}/docbook.xsd" ${_catalog50}
+    # XSD + XInclude
+    xmlcatalog --noout --add "uri" \
+      "http://www.oasis-open.org/docbook/xml/${v}/xsd/docbookxi.xsd" \
+      "file://${_datadir}/xml/docbook/schema/xsd/${v}/docbookxi.xsd" ${_catalog50}
+    xmlcatalog --noout --add "uri" \
+      "http://docbook.org/xml/${v}/xsd/docbookxi.xsd" \
+      "file://${_datadir}/xml/docbook/schema/xsd/${v}/docbookxi.xsd" ${_catalog50}
+    xmlcatalog --noout --add "uri" \
+      "http://www.oasis-open.org/docbook/xml/${v}/xsd/xi.xsd" \
+      "file://${_datadir}/xml/docbook/schema/xsd/${v}/xi.xsd" ${_catalog50}
+    xmlcatalog --noout --add "uri" \
+      "http://docbook.org/xml/${v}/xsd/xi.xsd" \
+      "file://${_datadir}/xml/docbook/schema/xsd/${v}/xi.xsd" ${_catalog50}
+    # XLink + XML
+    xmlcatalog --noout --add "uri" \
+      "http://www.oasis-open.org/docbook/xml/${v}/xsd/xlink.xsd" \
+      "file://${_datadir}/xml/docbook/schema/xsd/${v}/xlink.xsd" ${_catalog50}
+    xmlcatalog --noout --add "uri" \
+      "http://docbook.org/xml/${v}/xsd/xlink.xsd" \
+      "file://${_datadir}/xml/docbook/schema/xsd/${v}/xlink.xsd" ${_catalog50}
+    xmlcatalog --noout --add "uri" \
+      "http://www.oasis-open.org/docbook/xml/${v}/xsd/xml.xsd" \
+      "file://${_datadir}/xml/docbook/schema/xsd/${v}/xml.xsd" ${_catalog50}
+    xmlcatalog --noout --add "uri" \
+      "http://docbook.org/xml/${v}/xsd/xml.xsd" \
+      "file://${_datadir}/xml/docbook/schema/xsd/${v}/xml.xsd" ${_catalog50}
+    # Schematron
+    xmlcatalog --noout --add "uri" \
+      "http://www.oasis-open.org/docbook/xml/${v}/sch/docbook.sch" \
+      "file://${_datadir}/xml/docbook/schema/sch/${v}/docbook.sch" ${_catalog50}
+    xmlcatalog --noout --add "uri" \
+      "http://docbook.org/xml/${v}/sch/docbook.sch" \
+      "file://${_datadir}/xml/docbook/schema/sch/${v}/docbook.sch" ${_catalog50}
+
+    # ---------------------
+    # Build XML catalog files for each Schema
+    for s in dtd rng sch xsd; do
+      _schema_catalog=${s}/catalog.xml
+      xmlcatalog --noout --create ${_schema_catalog}
+      case $s in
+        dtd)
+          xmlcatalog --noout --add "public" \
+            "-//OASIS//DTD DocBook XML ${v}//EN" \
+            "docbook.dtd" ${_schema_catalog}
+          xmlcatalog --noout --add "system" \
+            "http://www.oasis-open.org/docbook/xml/${v}/dtd/docbook.dtd" \
+            "docbook.dtd" ${_schema_catalog}
+          ;;
+        sch)
+          xmlcatalog --noout --add "uri" \
+            "http://docbook.org/xml/${v}/${s}/docbook.${s}" \
+            "docbook.${s}" ${_schema_catalog}
+          xmlcatalog --noout --add "uri" \
+            "http://www.oasis-open.org/docbook/xml/${v}/${s}/docbook.${s}" \
+            "docbook.${s}" ${_schema_catalog}
+          ;;
+        rng)
+          xmlcatalog --noout --add "uri" \
+            "http://docbook.org/xml/${v}/${s}/docbook.${s}" \
+            "docbook.${s}" ${_schema_catalog}
+          xmlcatalog --noout --add "uri" \
+            "http://www.oasis-open.org/docbook/xml/${v}/${s}/docbook.${s}" \
+            "docbook.${s}" ${_schema_catalog}
+          xmlcatalog --noout --add "uri" \
+            "http://docbook.org/xml/${v}/${s}/docbookxi.${s}" \
+            "docbookxi.${s}" ${_schema_catalog}
+          xmlcatalog --noout --add "uri" \
+            "http://www.oasis-open.org/docbook/xml/${v}/${s}/docbookxi.${s}" \
+            "docbookxi.${s}" ${_schema_catalog}
+          xmlcatalog --noout --add "uri" \
+            "http://docbook.org/xml/${v}/${s}/docbook.rnc" \
+            "docbook.rnc" ${_schema_catalog}
+          xmlcatalog --noout --add "uri" \
+            "http://www.oasis-open.org/docbook/xml/${v}/${s}/docbook.rnc" \
+            "docbook.rnc" ${_schema_catalog}
+          xmlcatalog --noout --add "uri" \
+            "http://docbook.org/xml/${v}/${s}/docbookxi.rnc" \
+            "docbookxi.rnc" ${_schema_catalog}
+          xmlcatalog --noout --add "uri" \
+            "http://www.oasis-open.org/docbook/xml/${v}/${s}/docbookxi.rnc" \
+            "docbookxi.rnc" ${_schema_catalog}
+          ;;
+        xsd)
+          # https://docbook.org/xml/5.0/xsd/docbook.xsd
+          # https://docbook.org/xml/5.0/xsd/xml.xsd
+          # https://docbook.org/xml/5.0/xsd/xlink.xsd
+          xmlcatalog --noout --add "uri" \
+            "http://docbook.org/xml/${v}/${s}/docbook.${s}" \
+            "docbook.${s}" ${_schema_catalog}
+          xmlcatalog --noout --add "uri" \
+            "http://www.oasis-open.org/docbook/xml/${v}/${s}/docbook.${s}" \
+            "docbook.${s}" ${_schema_catalog}
+          xmlcatalog --noout --add "uri" \
+            "http://docbook.org/xml/${v}/${s}/docbookxi.${s}" \
+            "docbookxi.${s}" ${_schema_catalog}
+          xmlcatalog --noout --add "uri" \
+            "http://www.oasis-open.org/docbook/xml/${v}/${s}/docbookxi.${s}" \
+            "docbookxi.${s}" ${_schema_catalog}
+          # XLink + XML:
+          xmlcatalog --noout --add "uri" \
+            "http://docbook.org/xml/${v}/${s}/xlink.xsd" \
+            "xlink.xsd" ${_schema_catalog}
+          xmlcatalog --noout --add "uri" \
+            "http://www.oasis-open.org/docbook/xml/${v}/${s}/xlink.xsd" \
+            "xlink.xsd" ${_schema_catalog}
+          xmlcatalog --noout --add "uri" \
+            "http://docbook.org/xml/${v}/${s}/xml.xsd" \
+            "xml.xsd" ${_schema_catalog}
+          xmlcatalog --noout --add "uri" \
+            "http://www.oasis-open.org/docbook/xml/${v}/${s}/xml.xsd" \
+            "xml.xsd" ${_schema_catalog}
+          ;;
+      esac
+    done
+  done
+  popd
+  
+  # docbook-5.1
+  xmlcatalog --create --noout ${_catalog51}
+
+  for v in 5.1; do
+    # RNG
+    xmlcatalog --noout --add "uri" \
+      "http://www.oasis-open.org/docbook/xml/${v}/rng/docbook.rng" \
+      "file://${_datadir}/xml/docbook/schema/rng/${v}/docbook.rng" ${_catalog51}
+    xmlcatalog --noout --add "uri" \
+      "http://docbook.org/xml/${v}/rng/docbook.rng" \
+      "file://${_datadir}/xml/docbook/schema/rng/${v}/docbook.rng" ${_catalog51}
+    # RNG+XInclude
+    xmlcatalog --noout --add "uri" \
+      "http://www.oasis-open.org/docbook/xml/${v}/rng/docbookxi.rng" \
+      "file://${_datadir}/xml/docbook/schema/rng/${v}/docbookxi.rng" ${_catalog51}
+    xmlcatalog --noout --add "uri" \
+      "http://docbook.org/xml/${v}/rng/docbookxi.rng" \
+      "file://${_datadir}/xml/docbook/schema/rng/${v}/docbookxi.rng" ${_catalog51}
+    # RNC
+    xmlcatalog --noout --add "uri" \
+      "http://www.oasis-open.org/docbook/xml/${v}/rnc/docbook.rnc" \
+      "file://${_datadir}/xml/docbook/schema/rng/${v}/docbook.rnc" ${_catalog51}
+    xmlcatalog --noout --add "uri" \
+      "http://docbook.org/xml/${v}/rng/docbook.rnc" \
+      "file://${_datadir}/xml/docbook/schema/rng/${v}/docbook.rnc" ${_catalog51}
+    # RNC+XInclude
+    xmlcatalog --noout --add "uri" \
+      "http://www.oasis-open.org/docbook/xml/${v}/rnc/docbookxi.rnc" \
+      "file://${_datadir}/xml/docbook/schema/rng/${v}/docbookxi.rnc" ${_catalog51}
+    xmlcatalog --noout --add "uri" \
+      "http://docbook.org/xml/${v}/rng/docbookxi.rnc" \
+      "file://${_datadir}/xml/docbook/schema/rng/${v}/docbookxi.rnc" ${_catalog51}
+    # Schematron
+    xmlcatalog --noout --add "uri" \
+      "http://www.oasis-open.org/docbook/xml/${v}/sch/docbook.sch" \
+      "file://${_datadir}/xml/docbook/schema/sch/${v}/docbook.sch" ${_catalog51}
+    xmlcatalog --noout --add "uri" \
+      "http://docbook.org/xml/${v}/sch/docbook.sch" \
+      "file://${_datadir}/xml/docbook/schema/sch/${v}/docbook.sch" ${_catalog51}
+
+    # ---------------------
+    # Build XML catalog files for each Schema
+    for s in schemas/rng schemas/sch; do
+      _schema_catalog=${s}/catalog.xml
+      xmlcatalog --noout --create ${_schema_catalog}
+      case $s in
+        sch)
+          xmlcatalog --noout --add "uri" \
+            "http://docbook.org/xml/${v}/${s}/docbook.${s}" \
+            "docbook.${s}" ${_schema_catalog}
+          xmlcatalog --noout --add "uri" \
+            "http://www.oasis-open.org/docbook/xml/${v}/${s}/docbook.${s}" \
+            "docbook.${s}" ${_schema_catalog}
+          ;;
+        rng)
+          xmlcatalog --noout --add "uri" \
+            "http://docbook.org/xml/${v}/${s}/docbook.${s}" \
+            "docbook.${s}" ${_schema_catalog}
+          xmlcatalog --noout --add "uri" \
+            "http://www.oasis-open.org/docbook/xml/${v}/${s}/docbook.${s}" \
+            "docbook.${s}" ${_schema_catalog}
+          xmlcatalog --noout --add "uri" \
+            "http://docbook.org/xml/${v}/${s}/docbookxi.${s}" \
+            "docbookxi.${s}" ${_schema_catalog}
+          xmlcatalog --noout --add "uri" \
+            "http://www.oasis-open.org/docbook/xml/${v}/${s}/docbookxi.${s}" \
+            "docbookxi.${s}" ${_schema_catalog}
+          xmlcatalog --noout --add "uri" \
+            "http://docbook.org/xml/${v}/${s}/docbook.rnc" \
+            "docbook.rnc" ${_schema_catalog}
+          xmlcatalog --noout --add "uri" \
+            "http://www.oasis-open.org/docbook/xml/${v}/${s}/docbook.rnc" \
+            "docbook.rnc" ${_schema_catalog}
+          xmlcatalog --noout --add "uri" \
+            "http://docbook.org/xml/${v}/${s}/docbookxi.rnc" \
+            "docbookxi.rnc" ${_schema_catalog}
+          xmlcatalog --noout --add "uri" \
+            "http://www.oasis-open.org/docbook/xml/${v}/${s}/docbookxi.rnc" \
+            "docbookxi.rnc" ${_schema_catalog}
+          ;;
+      esac
+    done
+  done
+
+  _docbook5dir="${PKG}${_datadir}/xml/docbook"
+  	
+  # docbook-5.0
+  pushd "$SRC/docbook-5.0"
+  for v in 5.0; do
+    for type in dtd rng sch xsd; do
+      mkdir -p ${_docbook5dir}/schema/${type}/${v}
+      install -m644 ${type}/* ${_docbook5dir}/schema/${type}/${v}
+    done
+  done
+  popd
+
+  # docbook-5.1
+  pushd "$SRC/schemas"
+  for v in 5.1; do
+    for type in rng sch; do
+      mkdir -p ${_docbook5dir}/schema/${type}/${v}
+      install -m644 ${type}/* ${_docbook5dir}/schema/${type}/${v}
+    done
+  done
+  popd
+
+  mkdir -p "$PKG/usr/bin"
+  install -m755 tools/db4-entities.pl "$PKG/usr/bin"
+  mkdir -p "${_docbook5dir}/stylesheet/docbook5"
+  install -m644 tools/db4-upgrade.xsl "${_docbook5dir}/stylesheet/docbook5/"
+
+  # catalog configuration
+  mkdir -p "$PKG/etc/xml"
+  install -m644 docbook-5.0/${_catalog50} "$PKG/etc/xml/${_catalog50}"
+  install -m644 ${_catalog51} "$PKG/etc/xml/${_catalog51}"
+}

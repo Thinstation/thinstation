@@ -4,18 +4,16 @@
 # Depends on: xorg-libsm, xorg-libxft, gobject-introspection fribidi
 
 name=pango
-version=1.42.1
+version=1.44.5
 release=1
-source=(http://download.gnome.org/sources/$name/${version:0:4}/$name-$version.tar.xz \
-        pango.modules)
 
 build () {
-        cd $name-$version
-        ./configure --prefix=/usr
+git clone https://gitlab.gnome.org/GNOME/pango.git
+cd pango
+git checkout -f 5112387e
+cd ..
 
-        make
-        make DESTDIR=$PKG install
-
-        install -D -m 644 $SRC/pango.modules $PKG/usr/etc/pango/pango.modules
-        rm -r $PKG/usr/share/gtk-doc
+  ts-meson pango build -D gtk_doc=false -D install_tests=false
+  ninja -C build -j ${JOBS:-1}
+  DESTDIR="$PKG" meson install -C build
 }

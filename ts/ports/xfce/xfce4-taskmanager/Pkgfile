@@ -6,7 +6,7 @@
 # Group: xfce4
 
 name=xfce4-taskmanager
-version=1.2.0
+version=1.2.2
 release=2
 source=(http://archive.xfce.org/src/apps/$name/${version%.*}/$name-$version.tar.bz2)
 
@@ -14,6 +14,9 @@ build() {
   cd $name-$version
   ./configure --prefix=/usr \
               --disable-debug
+
+sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
+
   make 
   make DESTDIR=$PKG install
   rm -rf $PKG/usr/share/{doc,locale}

@@ -1,23 +1,46 @@
-# Description:	Codec JPEG-2000 Part-1 standard.
-# URL:		http://www.ece.uvic.ca/~mdadams/jasper/
-# Maintainer:	Oleksiy V. Khilkevich <grim@asu.ntu-kpi.kiev.ua>
-# Packager:	Danny Rawlins, romster at shortcircuit dot net dot au
-# Depends on:	mesa3d
+# Description: Codec JPEG-2000 Part-1 standard.
+# URL: http://www.ece.uvic.ca/~frodo/jasper/
+# Maintainer: Danny Rawlins, crux at romster dot me
+# Depends on: freeglut libjpeg-turbo xorg-libxmu
 
 name=jasper
-version=1.900.1
+version=2.0.16
 release=1
-source=(http://www.ece.uvic.ca/~mdadams/jasper/software/jasper-$version.zip)
+source=(https://github.com/mdadams/jasper/archive/version-$version/$name-$version.tar.gz
+	jasper-1.900.1-fix-filename-buffer-overflow.patch)
 
 build() {
-	cd jasper-$version
+	cd $name-version-$version
 
-	./configure \
-		--prefix=/usr \
-		--enable-shared \
-		--disable-static
+	patch -p1 -i $SRC/jasper-1.900.1-fix-filename-buffer-overflow.patch
+	sed -r 's|(CMAKE_SKIP_BUILD_RPATH) FALSE|\1 TRUE|g' -i CMakeLists.txt
 
+	mkdir -p build-{shared,static}
+
+	local config="
+-DCMAKE_INSTALL_PREFIX=/usr
+-DCMAKE_INSTALL_LIBDIR=lib
+-DCMAKE_BUILD_TYPE=Release
+-DJAS_ENABLE_OPENGL=ON
+-DJAS_ENABLE_LIBJPEG=ON
+-DJAS_ENABLE_AUTOMATIC_DEPENDENCIES=OFF
+-DCMAKE_SKIP_RPATH=ON
+-DOpenGL_GL_PREFERENCE=GLVND"
+
+	#build static lib
+	(cd build-static
+	cmake .. $config -DJAS_ENABLE_SHARED=OFF
 	make
-	make DESTDIR=$PKG install
-}
+	)
 
+	#build shared lib
+	(cd build-shared
+	cmake .. $config -DJAS_ENABLE_SHARED=ON
+	make
+	)
+
+	make -C build-static DESTDIR=$PKG install
+	make -C build-shared DESTDIR=$PKG install
+
+	rm -r $PKG/usr/share/doc
+}

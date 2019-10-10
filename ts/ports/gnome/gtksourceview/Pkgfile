@@ -6,7 +6,7 @@
 # Optional: glade vala
 
 name=gtksourceview
-version=3.18.1
+version=3.24.11
 release=1
 source=(http://ftp.gnome.org/pub/gnome/sources/$name/${version:0:4}/$name-$version.tar.xz)
 
@@ -20,9 +20,11 @@ unset MAKEFLAGS
 
 	./configure \
 		--prefix=/usr \
-		--disable-nls \
+		--disable-docs \
 		--disable-dependency-tracking \
 		"$glade"
+
+sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
 
 	make
 	make DESTDIR=$PKG install

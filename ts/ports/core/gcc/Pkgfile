@@ -5,15 +5,17 @@
 # NOTE: libtool requires rebuilt with each new gcc version
 
 name=('gcc' 'gcc-libs' 'gcc-fortran' 'gcc-objc' 'gcc-ada' 'gcc-go')
-version=7.4.0
+version=9.1.0
 _version=7
-_islver=0.18
+_islver=0.21
 release=1
 _commit=c2103c17
 checkdepends=('dejagnu' 'inetutils')
 options=('!emptydirs')
 source=(http://isl.gforge.inria.fr/isl-${_islver}.tar.bz2 \
-	ftp://gcc.gnu.org/pub/gcc/releases/gcc-$version/$name-$version.tar.xz)
+	ftp://gcc.gnu.org/pub/gcc/releases/gcc-$version/$name-$version.tar.xz \
+	bz90397.patch \
+        bz90949.patch)
 
 # gcc-6.0 forces a changed triplet - need to address in pacman/devtools
 CARCH=x86_64
@@ -27,6 +29,9 @@ build() {
 #git checkout ${_commit}
   mv gcc-$version gcc
   cd ${SRC}/gcc
+
+  patch -p0 -i "$SRC/bz90397.patch"
+  patch -p0 -i "$SRC/bz90949.patch"
 
   # link isl for in-tree build
   ln -s ../isl-${_islver} isl
@@ -114,15 +119,17 @@ build() {
   ln -s /usr/lib/gcc/$CHOST/${version}/liblto_plugin.so \
     ${PKG}/usr/lib/bfd-plugins/
 
-  make -C $CHOST/libcilkrts DESTDIR=${PKG} install-nodist_toolexeclibHEADERS \
-    install-nodist_cilkincludeHEADERS
-  make -C $CHOST/libgomp DESTDIR=${PKG} install-nodist_toolexeclibHEADERS \
-    install-nodist_libsubincludeHEADERS
-  make -C $CHOST/libitm DESTDIR=${PKG} install-nodist_toolexeclibHEADERS
-  make -C $CHOST/libquadmath DESTDIR=${PKG} install-nodist_libsubincludeHEADERS
-  make -C $CHOST/libsanitizer DESTDIR=${PKG} install-nodist_{saninclude,toolexeclib}HEADERS
-  make -C $CHOST/libsanitizer/asan DESTDIR=${PKG} install-nodist_toolexeclibHEADERS
-  make -C $CHOST/libmpx DESTDIR=${PKG} install-nodist_toolexeclibHEADERS
+  for lib in libatomic \
+             libgfortran \
+             libgo \
+             libgomp \
+             libitm \
+             libquadmath \
+             libsanitizer/{a,l,ub,t}san \
+             libstdc++-v3/src \
+             libvtv; do
+    make -C $CHOST/$lib DESTDIR="$PKG" install-toolexeclibLTLIBRARIES
+  done
 
   make -C libiberty DESTDIR=${PKG} install
   # install PIC version of libiberty
@@ -239,4 +246,6 @@ EOF
   # Install Runtime Library Exception
   install -d ${PKG}/usr/share/licenses/gcc-go/
   ln -s ../gcc-libs/RUNTIME.LIBRARY.EXCEPTION ${PKG}/usr/share/licenses/gcc-go/
+
+  rm $PKG/usr/bin/{go,gofmt}
 }

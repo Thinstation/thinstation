@@ -5,7 +5,7 @@
 # Depends on:  zlib
 
 name=libxml2
-version=2.9.8
+version=2.9.9
 release=1
 source=(ftp://xmlsoft.org/libxml2/$name-$version.tar.gz)
 
@@ -17,7 +17,14 @@ build () {
 sed \
   -e /xmlInitializeCatalog/d \
   -e 's/((ent->checked =.*&&/(((ent->checked == 0) || ((ent->children == NULL) \&\& (ctxt->options \& XML_PARSE_NOENT)))\&\&/' -i parser.c
-    ./configure --prefix=/usr \
+    PYTHON=/usr/bin/python3 ./configure --prefix=/usr \
+                --mandir=/usr/man \
+
+    make
+    make DESTDIR=$PKG install
+    rm -r $PKG/usr/share/{doc,gtk-doc}
+    make distclean
+    PYTHON=/usr/bin/python2 ./configure --prefix=/usr \
                 --mandir=/usr/man \
 
     make

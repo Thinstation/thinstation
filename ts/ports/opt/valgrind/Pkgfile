@@ -1,0 +1,31 @@
+# Description: A debugging and profiling system for Linux programs
+# URL:         http://valgrind.org
+# Maintainer:  Thomas Penteker, tek at serverop dot de
+# Packager:    Tilman Sauerbeck, tilman at crux dot nu
+# Nice to have: gdb
+
+name=valgrind
+version=3.15.0
+release=1
+source=(ftp://sourceware.org/pub/valgrind/valgrind-${version}.tar.bz2 \
+	valgrind-3.7.0-respect-flags.patch)
+
+build() {
+  cd $name-$version
+
+  patch -p1 -i $SRC/valgrind-3.7.0-respect-flags.patch
+  sed -i 's|sgml/docbook/xsl-stylesheets|xml/docbook/xsl-stylesheets-1.79.2|' docs/Makefile.am
+  sed -i 's/2.18/2.19/' configure
+
+  autoconf
+
+  # valgrind does not like stack protector flags
+  unset CXXFLAGS CFLAGS CPPFLAGS
+
+  ./configure --prefix=/usr
+  make
+  make DESTDIR=$PKG install
+
+  rm -rf $PKG/usr/share/doc
+}
+

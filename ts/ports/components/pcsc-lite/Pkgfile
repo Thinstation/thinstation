@@ -3,16 +3,18 @@
 # Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 
 name=pcsc-lite
-version=1.8.20
+version=1.8.25
 release=1
-source=(https://alioth.debian.org/frs/download.php/file/4203/$name-$version.tar.bz2)
+source=(https://github.com/LudovicRousseau/PCSC/archive/pcsc-$version.tar.gz)
 
 build() {
-	cd $name-$version
-
+	cd PCSC-pcsc-$version
+	./bootstrap
 	./configure --prefix=/usr \
 			--sysconfdir=/etc \
-			--mandir=/usr/man
+			--mandir=/usr/man \
+			--enable-ipcdir=/run/pcscd
+
 	make
 	make DESTDIR=$PKG install
 }

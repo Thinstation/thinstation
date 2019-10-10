@@ -29,6 +29,8 @@ build() {
 		--without-libnm-gtk \
 		--with-modem-manager-1
 
+sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
+
 	make
 	make DESTDIR=$PKG install
 }

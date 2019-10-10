@@ -1,0 +1,18 @@
+# Maintainer: Massimiliano Torromeo <massimiliano.torromeo@gmail.com>
+# Contributor: Brian Bidulock <bidulock@openss7.org>
+# Contributor: Timothy Redaelli <timothy.redaelli@gmail.com>
+# Contributor: kevku <kevku@msn.com>
+# Contributor: Rene Pärts <rene87@hot.ee>
+
+name=libp11
+version=0.4.10
+release=1
+source=("https://github.com/OpenSC/${name}/releases/download/${name}-${version}/${name}-${version}.tar.gz")
+
+
+build() {
+  cd "$name-$version"
+  ./configure --prefix=/usr --disable-static
+  make
+  make DESTDIR="$PKG/" install
+}

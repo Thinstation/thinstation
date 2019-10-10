@@ -1,0 +1,25 @@
+# Maintainer: Andreas Radke <andyrtr@archlinux.org>
+
+# Contributor: Chris Severance aur.severach aATt spamgourmet dott com
+# Contributor: Andreas B. Wagner <AndreasBWagner@pointfree.net>
+# Contributor: Suat SARIALP <muhendis.suat@gmail.com>
+
+name='docbook-dsssl'
+version=1.79
+release=6
+install=${name}.install
+source=(https://sourceforge.net/projects/docbook/files/${name}/${version}/${name}-${version}.tar.bz2
+        docbook-style-dsssl.Makefile)
+
+build() {
+  cd "${name}-${version}"
+  cp ${SRC}/docbook-style-dsssl.Makefile Makefile
+  make install \
+     BINDIR="${PKG}/usr/bin" \
+     DESTDIR="${PKG}/usr/share/sgml/docbook/dsssl-stylesheets-${version}" \
+     MANDIR="${PKG}/usr/share/man"
+  
+  ln -s dsssl-stylesheets-${version} ${PKG}/usr/share/sgml/docbook/dsssl-stylesheets
+  # license
+  install -Dm644 README "$PKG/usr/share/licenses/$name/COPYING"
+}

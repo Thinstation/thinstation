@@ -1,6 +1,6 @@
 #!/bin/bash
 
-. $TS_GLOBAL
+. /etc/thinstation.global
 
 rm -rf /vbe_modes.list /firmware.list /module.list
 
@@ -16,6 +16,11 @@ firmware_loaded()
 }
 
 
+if is_enabled $FASTBOOT; then
+	echo -e "Notice!   It looks like fastboot is enabled. If any firmwares were loaded, \n\twe won't be able to detect them.\n"
+	echo -e "\t  If you need an accurate listing of loaded firmwares, rebuild the \n\timage without fastboot enabled before running this utility.\n"
+	echo -e "\t  If you intend to always build with param allfirmware true, then \n\ta firmware list should not be necessary.\n"
+fi
 for firmware in `find /lib/firmware -type f`; do
 	if firmware_loaded $firmware; then
 		firmware=`basename $firmware`

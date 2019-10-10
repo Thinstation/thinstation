@@ -1,0 +1,21 @@
+# Description: Secure Sockets Layer and Transport Layer Security tools
+# URL:         http://www.openssl.org/
+# Maintainer:  CRUX System Team, core-ports at crux dot nu
+
+name=openssl-fips
+version=2.0.16
+release=fips2016
+source=(https://www.openssl.org/source/openssl-fips-2.0.16.tar.gz)
+
+build() {
+    cd openssl-fips-$version
+
+    ./config --prefix=/usr --libdir=lib/openssl-1.0/lib  --openssldir=/etc/ssl shared
+    make INSTALL_PREFIX=$PKG MANDIR=/usr/man MANSUFFIX=ssl install -j1
+
+    mv $PKG/usr/bin $PKG/usr/lib/openssl-1.0/.
+    mv $PKG/usr/include $PKG/usr/lib/openssl-1.0/.
+
+    mkdir -p $PKG/usr/local/ssl
+    ln -sf /usr/lib/openssl-1.0 $PKG/usr/local/ssl/fips-2.0
+}

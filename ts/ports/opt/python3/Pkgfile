@@ -1,11 +1,11 @@
 # Description: Python interpreter, version 3.
 # URL: https://www.python.org/
 # Maintainer: Danny Rawlins, crux at romster dot me
-# Depends on: bzip2 expat gdbm libffi libtirpc mpdecimal sqlite3 xz zlib
+# Depends on: bzip2 expat gdbm libffi libtirpc mpdecimal sqlite3 xz
 
 name=python3
-version=3.6.5
-release=1
+version=3.7.3
+release=2
 source=(https://www.python.org/ftp/python/$version/Python-$version.tar.xz)
 
 build() {
@@ -13,19 +13,15 @@ build() {
 
     # Ensure that we are using the system copy of various libraries
     rm -r Modules/expat
-    rm -r Modules/zlib
     rm -r Modules/_ctypes/{darwin,libffi}*
     rm -r Modules/_decimal/libmpdec
 
-    # set OPT to the python default without -O3 or -g
-    # our CFLAGS are used as well
-    OPT="-Wall -Wstrict-prototypes -Wno-unused-result -Wsign-compare -fwrapv" \
     ./configure --prefix=/usr \
 		--enable-shared \
                 --enable-ipv6 \
 		--enable-loadable-sqlite-extensions \
+		--with-computed-gotos \
 		--with-threads \
-		--with-lto \
 		--with-system-expat \
 		--with-system-ffi \
 		--with-system-libmpdec \
@@ -36,9 +32,12 @@ build() {
 
     ln -s python${version%.*}        $PKG/usr/bin/python3
     ln -s python${version%.*}m-config $PKG/usr/bin/python3-config
+    ln -s python${version%.*}m-config $PKG/usr/bin/python${version%.*}-config
     ln -s idle${version%.*}          $PKG/usr/bin/idle3
     ln -s pydoc${version%.*}         $PKG/usr/bin/pydoc3
     ln -s python${version%.*}        $PKG/usr/lib/$name
+    ln -s python-${version%.*}.pc    $PKG/usr/lib/pkgconfig/python3.pc
+    ln -s python${version%.*}m       $PKG/usr/include/python${version%.*}
 
     rm $PKG/usr/lib/python${version%.*}/ctypes/macholib/README.ctypes
     rm $PKG/usr/lib/python${version%.*}/distutils/README

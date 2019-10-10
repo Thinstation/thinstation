@@ -1,0 +1,56 @@
+# Maintainer: Lukas Fleischer <lfleischer@archlinux.org>
+# Contributor: Aleksey Filippov <sarum9in@gmail.com>
+# Contributor: Bartłomiej Piotrowski <bpiotrowski@archlinux.org>
+# Contributor: Sven-Hendrik Haase <sh@lutzhaase.com>
+# Contributor: Thomas S Hatch <thatch45@gmail.com>
+# Contributor: Geoffroy Carrier <geoffroy@archlinux.org>
+# Contributor: Daniel J Griffiths <ghost1227@archlinux.us>
+
+pkgbase='protobuf'
+name=protobuf
+version=3.7.0
+_gtestver=1.8.0
+release=1
+source=("https://github.com/google/${pkgbase}/archive/v${version}.tar.gz"
+        "https://github.com/google/googletest/archive/release-${_gtestver}.tar.gz")
+
+build() {
+  cd "$pkgbase-$version"
+
+  cp -r "$SRC/googletest-release-${_gtestver}/googletest" third_party/googletest/googletest
+  cp -r "$SRC/googletest-release-${_gtestver}/googlemock" third_party/googletest/googlemock
+
+  sed -r 's|/usr/bin/env python|/usr/bin/env python2|' -i third_party/googletest/googletest/scripts/*.py
+
+  ./autogen.sh
+
+  cd "$SRC/$pkgbase-$version/third_party/googletest/googletest"
+  autoreconf -fiv
+  ./configure
+  make
+
+  cd "$SRC/$pkgbase-$version/third_party/googletest/googlemock"
+  autoreconf -fiv
+  ./configure
+  make
+
+  cd "$SRC/$pkgbase-$version"
+  ./configure --prefix=/usr
+  make
+  make DESTDIR="$PKG" install
+
+#  install -Dm644 LICENSE "$PKG/usr/share/licenses/$name/LICENSE"
+  install -Dm644 editors/protobuf-mode.el "$PKG"/usr/share/emacs/site-lisp/protobuf-mode.el
+
+  cd "$SRC/$pkgbase-$version/python"
+  python2 setup.py install --root="$PKG" --cpp_implementation
+
+  install -d "$PKG/usr/share/licenses/$name"
+  ln -s "/usr/share/licenses/$pkgbase/LICENSE" "$PKG/usr/share/licenses/$name/"
+
+  cd "$SRC/$pkgbase-$version/python"
+  python3 setup.py install --root="$PKG" --cpp_implementation
+
+#  install -d "$PKG/usr/share/licenses/$name"
+#  ln -s "/usr/share/licenses/$pkgbase/LICENSE" "$PKG/usr/share/licenses/$name/"
+}

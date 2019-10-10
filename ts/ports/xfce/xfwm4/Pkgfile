@@ -6,7 +6,7 @@
 # Group: xfce4
 
 name=xfwm4
-version=4.12.4
+version=4.14.0
 release=1
 source=(http://archive.xfce.org/src/xfce/$name/${version%.*}/$name-$version.tar.bz2)
 
@@ -27,7 +27,8 @@ build () {
 		--enable-shared \
 		--disable-static \
 		--disable-debug \
-		
+
+sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
 
   make
   make DESTDIR=$PKG install

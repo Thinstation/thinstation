@@ -1,21 +1,49 @@
-# Description: Thinstation essential package
-# URL: http://www.thinstation.org
-# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+# Maintainer: David Runge <dave@sleepmap.de>
+# Contributor: Felix Yan <felixonmars@archlinux.org>
+# Contributor: Techlive Zheng <techlivezheng at gmail dot com>
+# Contributor: peace4all <markspost at rocketmail dot com>
 
 name=dnscrypt-proxy
-version=1.7.0
-release=1
-source=(http://download.dnscrypt.org/$name/dnscrypt-proxy-$version.tar.gz)
+version=2.0.25
+release=2
+source=("https://github.com/jedisct1/${name}/archive/${version}.tar.gz"
+        "${name}.service"
+        "${name}.socket"
+        'configuration.diff')
 
 build() {
-	cd $name-$version
-
-	./configure --prefix=/usr \
-			--exec-prefix=/ \
-			--sysconfdir=/etc \
-			--mandir=/usr/man \
-			--disable-extras
-
-	make
-	make DESTDIR=$PKG install
+  cd "$name-$version"
+  patch -Np1 -i ../configuration.diff
+  # create empty ip-blacklist.txt
+  touch "${name}/ip-blacklist.txt"
+  # symlink upstream's vendor to src
+  ln -sfv vendor src
+  rm -v go.mod
+  # set GOPATH
+  export GOPATH=$(pwd)
+  cd "${name}"
+  go build -ldflags="-linkmode external -extldflags ${LDFLAGS} -s -w"
+  # executable
+  install -vDm 755 "$SRC/$name-$version/${name}/${name}" -t "${PKG}/usr/bin/"
+  # configuration
+  install -vDm 644 "$SRC/$name-$version/${name}/example-${name}.toml" \
+    "${PKG}/etc/${name}/${name}.toml"
+  install -vDm 644 "$SRC/$name-$version/${name}/example-blacklist.txt" \
+    "${PKG}/etc/${name}/blacklist.txt"
+  install -vDm 644 "$SRC/$name-$version/${name}/example-cloaking-rules.txt" \
+    "${PKG}/etc/${name}/cloaking-rules.txt"
+  install -vDm 644 "$SRC/$name-$version/${name}/example-forwarding-rules.txt" \
+    "${PKG}/etc/${name}/forwarding-rules.txt"
+  install -vDm 644 "$SRC/$name-$version/${name}/ip-blacklist.txt" \
+    "${PKG}/etc/${name}/ip-blacklist.txt"
+  install -vDm 644 "$SRC/$name-$version/${name}/example-whitelist.txt" \
+    "${PKG}/etc/${name}/whitelist.txt"
+  # systemd service/socket
+  install -vDm 644 "$SRC/${name}."{service,socket} \
+    -t "${PKG}/usr/lib/systemd/system/"
+  # license
+  install -vDm 644 $SRC/$name-$version/LICENSE -t "${PKG}/usr/share/licenses/${name}"
+  # docs
+  install -vDm 644 $SRC/$name-$version/{ChangeLog,README.md} \
+    -t "${PKG}/usr/share/doc/${name}"
 }

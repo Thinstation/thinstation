@@ -3,7 +3,7 @@
 # Maintainer:  Thomas Penteker, tek at serverop dot de 
 
 name=libiscsi
-version=1.17.0
+version=1.18.0
 release=1
 source=(https://github.com/sahlberg/libiscsi/archive/$version.tar.gz)
 
@@ -12,7 +12,7 @@ build() {
   cd $name-$version
 
   ./autogen.sh
-  ./configure --prefix=/usr --mandir=/usr/man
+  ./configure --prefix=/usr --mandir=/usr/man -disable-static --disable-werror 
 
   make
   make DESTDIR=$PKG install

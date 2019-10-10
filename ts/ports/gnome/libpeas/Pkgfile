@@ -15,13 +15,10 @@ build() {
 	./configure \
 		--prefix=/usr \
 		--mandir=/usr/man \
-		 \
-		
+
+sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
 
 	make
 	make DESTDIR=$PKG install
 
-	rm -r \
-		$PKG/usr/share/locale \
-		$PKG/usr/share/gtk-doc
 }

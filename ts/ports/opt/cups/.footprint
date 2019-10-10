@@ -4,7 +4,6 @@ drwxr-xr-x	root/lp	etc/cups/
 -rw-r-----	root/lp	etc/cups/cups-files.conf.default
 -rw-r-----	root/lp	etc/cups/cupsd.conf
 -rw-r-----	root/lp	etc/cups/cupsd.conf.default
-drwxr-xr-x	root/lp	etc/cups/interfaces/
 drwxr-xr-x	root/lp	etc/cups/ppd/
 -rw-r-----	root/lp	etc/cups/snmp.conf
 -rw-r-----	root/lp	etc/cups/snmp.conf.default
@@ -14,14 +13,17 @@ drwxr-xr-x	root/root	etc/dbus-1/system.d/
 -rw-r--r--	root/root	etc/dbus-1/system.d/cups.conf
 drwxr-xr-x	root/root	etc/modprobe.d/
 -rw-r--r--	root/root	etc/modprobe.d/cups.conf
-drwxr-xr-x	root/root	etc/rc.d/
--rwxr-xr-x	root/root	etc/rc.d/cups
+drwxr-xr-x	root/root	etc/pam.d/
+-rw-r--r--	root/root	etc/pam.d/cups
+drwxr-xr-x	root/root	run/
+drwxr-xr-x	root/root	run/cups/
+drwx--x--x	daemon/sys	run/cups/certs/
 drwxr-xr-x	root/root	usr/
 drwxr-xr-x	root/root	usr/bin/
 -rwxr-xr-x	root/root	usr/bin/cancel
 -rwxr-xr-x	root/root	usr/bin/cups-config
--rwxr-xr-x	root/root	usr/bin/cupstestdsc
 -rwxr-xr-x	root/root	usr/bin/cupstestppd
+-rwxr-xr-x	root/root	usr/bin/ippeveprinter
 -rwxr-xr-x	root/root	usr/bin/ippfind
 -rwxr-xr-x	root/root	usr/bin/ipptool
 -rwxr-xr-x	root/root	usr/bin/lp
@@ -40,17 +42,13 @@ drwxr-xr-x	root/root	usr/include/cups/
 -rw-r--r--	root/root	usr/include/cups/adminutil.h
 -rw-r--r--	root/root	usr/include/cups/array.h
 -rw-r--r--	root/root	usr/include/cups/backend.h
--rw-r--r--	root/root	usr/include/cups/cgi.h
 -rw-r--r--	root/root	usr/include/cups/cups.h
 -rw-r--r--	root/root	usr/include/cups/dir.h
 -rw-r--r--	root/root	usr/include/cups/file.h
--rw-r--r--	root/root	usr/include/cups/help-index.h
 -rw-r--r--	root/root	usr/include/cups/http.h
 -rw-r--r--	root/root	usr/include/cups/ipp.h
 -rw-r--r--	root/root	usr/include/cups/language.h
--rw-r--r--	root/root	usr/include/cups/mime.h
 -rw-r--r--	root/root	usr/include/cups/ppd.h
--rw-r--r--	root/root	usr/include/cups/ppdc.h
 -rw-r--r--	root/root	usr/include/cups/pwg.h
 -rw-r--r--	root/root	usr/include/cups/raster.h
 -rw-r--r--	root/root	usr/include/cups/sidechannel.h
@@ -74,6 +72,9 @@ drwxr-xr-x	root/root	usr/lib/cups/cgi-bin/
 -rwxr-xr-x	root/root	usr/lib/cups/cgi-bin/help.cgi
 -rwxr-xr-x	root/root	usr/lib/cups/cgi-bin/jobs.cgi
 -rwxr-xr-x	root/root	usr/lib/cups/cgi-bin/printers.cgi
+drwxr-xr-x	root/root	usr/lib/cups/command/
+-rwxr-xr-x	root/root	usr/lib/cups/command/ippevepcl
+-rwxr-xr-x	root/root	usr/lib/cups/command/ippeveps
 drwxr-xr-x	root/root	usr/lib/cups/daemon/
 -rwxr-xr-x	root/root	usr/lib/cups/daemon/cups-deviced
 -rwxr-xr-x	root/root	usr/lib/cups/daemon/cups-driverd
@@ -84,7 +85,6 @@ drwxr-xr-x	root/root	usr/lib/cups/filter/
 -rwxr-xr-x	root/root	usr/lib/cups/filter/commandtops
 -rwxr-xr-x	root/root	usr/lib/cups/filter/gziptoany
 -rwxr-xr-x	root/root	usr/lib/cups/filter/pstops
-lrwxrwxrwx	root/root	usr/lib/cups/filter/rastertodymo -> rastertolabel
 -rwxr-xr-x	root/root	usr/lib/cups/filter/rastertoepson
 -rwxr-xr-x	root/root	usr/lib/cups/filter/rastertohp
 -rwxr-xr-x	root/root	usr/lib/cups/filter/rastertolabel
@@ -98,14 +98,8 @@ drwxr-xr-x	root/root	usr/lib/cups/notifier/
 -rwxr-xr-x	root/root	usr/lib/cups/notifier/rss
 lrwxrwxrwx	root/root	usr/lib/libcups.so -> libcups.so.2
 -rwxr-xr-x	root/root	usr/lib/libcups.so.2
-lrwxrwxrwx	root/root	usr/lib/libcupscgi.so -> libcupscgi.so.1
--rwxr-xr-x	root/root	usr/lib/libcupscgi.so.1
 lrwxrwxrwx	root/root	usr/lib/libcupsimage.so -> libcupsimage.so.2
 -rwxr-xr-x	root/root	usr/lib/libcupsimage.so.2
-lrwxrwxrwx	root/root	usr/lib/libcupsmime.so -> libcupsmime.so.1
--rwxr-xr-x	root/root	usr/lib/libcupsmime.so.1
-lrwxrwxrwx	root/root	usr/lib/libcupsppdc.so -> libcupsppdc.so.1
--rwxr-xr-x	root/root	usr/lib/libcupsppdc.so.1
 drwxr-xr-x	root/root	usr/lib/systemd/
 drwxr-xr-x	root/root	usr/lib/systemd/system/
 -rw-r--r--	root/root	usr/lib/systemd/system/org.cups.cups-lpd.socket
@@ -114,9 +108,7 @@ drwxr-xr-x	root/root	usr/lib/systemd/system/
 -rw-r--r--	root/root	usr/lib/systemd/system/org.cups.cupsd.service
 -rw-r--r--	root/root	usr/lib/systemd/system/org.cups.cupsd.socket
 drwxr-xr-x	root/root	usr/sbin/
-lrwxrwxrwx	root/root	usr/sbin/accept -> cupsaccept
 -rwxr-xr-x	root/root	usr/sbin/cupsaccept
--rwxr-xr-x	root/root	usr/sbin/cupsaddsmb
 -rwxr-xr-x	root/root	usr/sbin/cupsctl
 -rwx------	root/root	usr/sbin/cupsd
 lrwxrwxrwx	root/root	usr/sbin/cupsdisable -> cupsaccept
@@ -127,10 +119,7 @@ lrwxrwxrwx	root/root	usr/sbin/cupsreject -> cupsaccept
 -rwxr-xr-x	root/root	usr/sbin/lpc
 -rwxr-xr-x	root/root	usr/sbin/lpinfo
 -rwxr-xr-x	root/root	usr/sbin/lpmove
-lrwxrwxrwx	root/root	usr/sbin/reject -> cupsaccept
 drwxr-xr-x	root/root	usr/share/
-drwxr-xr-x	root/root	usr/share/applications/
--rw-r--r--	root/root	usr/share/applications/cups.desktop
 drwxr-xr-x	root/root	usr/share/cups/
 drwxr-xr-x	root/root	usr/share/cups/doc/
 -rw-r--r--	root/root	usr/share/cups/doc/apple-touch-icon.png
@@ -138,19 +127,15 @@ drwxr-xr-x	root/root	usr/share/cups/doc/
 -rw-r--r--	root/root	usr/share/cups/doc/cups.css
 drwxr-xr-x	root/root	usr/share/cups/doc/help/
 -rw-r--r--	root/root	usr/share/cups/doc/help/accounting.html
--rw-r--r--	root/root	usr/share/cups/doc/help/api-array.html
--rw-r--r--	root/root	usr/share/cups/doc/help/api-cgi.html
--rw-r--r--	root/root	usr/share/cups/doc/help/api-cups.html
--rw-r--r--	root/root	usr/share/cups/doc/help/api-driver.html
--rw-r--r--	root/root	usr/share/cups/doc/help/api-filedir.html
+-rw-r--r--	root/root	usr/share/cups/doc/help/admin.html
+-rw-r--r--	root/root	usr/share/cups/doc/help/api-admin.html
 -rw-r--r--	root/root	usr/share/cups/doc/help/api-filter.html
--rw-r--r--	root/root	usr/share/cups/doc/help/api-httpipp.html
--rw-r--r--	root/root	usr/share/cups/doc/help/api-mime.html
--rw-r--r--	root/root	usr/share/cups/doc/help/api-overview.html
 -rw-r--r--	root/root	usr/share/cups/doc/help/api-ppd.html
--rw-r--r--	root/root	usr/share/cups/doc/help/api-ppdc.html
 -rw-r--r--	root/root	usr/share/cups/doc/help/api-raster.html
 -rw-r--r--	root/root	usr/share/cups/doc/help/cgi.html
+-rw-r--r--	root/root	usr/share/cups/doc/help/cupspm.html
+-rw-r--r--	root/root	usr/share/cups/doc/help/encryption.html
+-rw-r--r--	root/root	usr/share/cups/doc/help/firewalls.html
 -rw-r--r--	root/root	usr/share/cups/doc/help/glossary.html
 -rw-r--r--	root/root	usr/share/cups/doc/help/kerberos.html
 -rw-r--r--	root/root	usr/share/cups/doc/help/license.html
@@ -164,15 +149,16 @@ drwxr-xr-x	root/root	usr/share/cups/doc/help/
 -rw-r--r--	root/root	usr/share/cups/doc/help/man-cups-snmp.html
 -rw-r--r--	root/root	usr/share/cups/doc/help/man-cups.html
 -rw-r--r--	root/root	usr/share/cups/doc/help/man-cupsaccept.html
--rw-r--r--	root/root	usr/share/cups/doc/help/man-cupsaddsmb.html
 -rw-r--r--	root/root	usr/share/cups/doc/help/man-cupsd-helper.html
 -rw-r--r--	root/root	usr/share/cups/doc/help/man-cupsd-logs.html
 -rw-r--r--	root/root	usr/share/cups/doc/help/man-cupsd.conf.html
 -rw-r--r--	root/root	usr/share/cups/doc/help/man-cupsd.html
 -rw-r--r--	root/root	usr/share/cups/doc/help/man-cupsenable.html
--rw-r--r--	root/root	usr/share/cups/doc/help/man-cupstestdsc.html
 -rw-r--r--	root/root	usr/share/cups/doc/help/man-cupstestppd.html
 -rw-r--r--	root/root	usr/share/cups/doc/help/man-filter.html
+-rw-r--r--	root/root	usr/share/cups/doc/help/man-ippevepcl.html
+-rw-r--r--	root/root	usr/share/cups/doc/help/man-ippeveprinter.html
+-rw-r--r--	root/root	usr/share/cups/doc/help/man-ippfind.html
 -rw-r--r--	root/root	usr/share/cups/doc/help/man-ipptool.html
 -rw-r--r--	root/root	usr/share/cups/doc/help/man-ipptoolfile.html
 -rw-r--r--	root/root	usr/share/cups/doc/help/man-lp.html
@@ -206,12 +192,9 @@ drwxr-xr-x	root/root	usr/share/cups/doc/help/
 -rw-r--r--	root/root	usr/share/cups/doc/help/security.html
 -rw-r--r--	root/root	usr/share/cups/doc/help/sharing.html
 -rw-r--r--	root/root	usr/share/cups/doc/help/spec-banner.html
--rw-r--r--	root/root	usr/share/cups/doc/help/spec-cmp.html
 -rw-r--r--	root/root	usr/share/cups/doc/help/spec-command.html
 -rw-r--r--	root/root	usr/share/cups/doc/help/spec-design.html
 -rw-r--r--	root/root	usr/share/cups/doc/help/spec-ipp.html
--rw-r--r--	root/root	usr/share/cups/doc/help/spec-pdf.html
--rw-r--r--	root/root	usr/share/cups/doc/help/spec-postscript.html
 -rw-r--r--	root/root	usr/share/cups/doc/help/spec-ppd.html
 -rw-r--r--	root/root	usr/share/cups/doc/help/spec-raster.html
 -rw-r--r--	root/root	usr/share/cups/doc/help/spec-stp.html
@@ -251,30 +234,66 @@ drwxr-xr-x	root/root	usr/share/cups/examples/
 -rw-r--r--	root/root	usr/share/cups/examples/r300-colorman.drv
 -rw-r--r--	root/root	usr/share/cups/examples/r300-remote.drv
 drwxr-xr-x	root/root	usr/share/cups/ipptool/
+-rw-r--r--	root/root	usr/share/cups/ipptool/cancel-current-job.test
 -rw-r--r--	root/root	usr/share/cups/ipptool/color.jpg
+-rw-r--r--	root/root	usr/share/cups/ipptool/create-job-format.test
+-rw-r--r--	root/root	usr/share/cups/ipptool/create-job-sheets.test
+-rw-r--r--	root/root	usr/share/cups/ipptool/create-job-timeout.test
+-rw-r--r--	root/root	usr/share/cups/ipptool/create-job.test
 -rw-r--r--	root/root	usr/share/cups/ipptool/create-printer-subscription.test
+-rw-r--r--	root/root	usr/share/cups/ipptool/cups-create-local-printer.test
 -rw-r--r--	root/root	usr/share/cups/ipptool/document-a4.pdf
 -rw-r--r--	root/root	usr/share/cups/ipptool/document-a4.ps
 -rw-r--r--	root/root	usr/share/cups/ipptool/document-letter.pdf
 -rw-r--r--	root/root	usr/share/cups/ipptool/document-letter.ps
+-rw-r--r--	root/root	usr/share/cups/ipptool/fax-job.test
 -rw-r--r--	root/root	usr/share/cups/ipptool/get-completed-jobs.test
+-rw-r--r--	root/root	usr/share/cups/ipptool/get-devices.test
+-rw-r--r--	root/root	usr/share/cups/ipptool/get-job-attributes.test
+-rw-r--r--	root/root	usr/share/cups/ipptool/get-job-attributes2.test
+-rw-r--r--	root/root	usr/share/cups/ipptool/get-job-template-attributes.test
 -rw-r--r--	root/root	usr/share/cups/ipptool/get-jobs.test
 -rw-r--r--	root/root	usr/share/cups/ipptool/get-notifications.test
+-rw-r--r--	root/root	usr/share/cups/ipptool/get-ppd-printer.test
+-rw-r--r--	root/root	usr/share/cups/ipptool/get-ppd.test
+-rw-r--r--	root/root	usr/share/cups/ipptool/get-ppds-drv-only.test
+-rw-r--r--	root/root	usr/share/cups/ipptool/get-ppds-language.test
+-rw-r--r--	root/root	usr/share/cups/ipptool/get-ppds-make-and-model.test
+-rw-r--r--	root/root	usr/share/cups/ipptool/get-ppds-make.test
+-rw-r--r--	root/root	usr/share/cups/ipptool/get-ppds-product.test
+-rw-r--r--	root/root	usr/share/cups/ipptool/get-ppds-psversion.test
+-rw-r--r--	root/root	usr/share/cups/ipptool/get-ppds.test
+-rw-r--r--	root/root	usr/share/cups/ipptool/get-printer-attributes-suite.test
 -rw-r--r--	root/root	usr/share/cups/ipptool/get-printer-attributes.test
+-rw-r--r--	root/root	usr/share/cups/ipptool/get-printer-description-attributes.test
+-rw-r--r--	root/root	usr/share/cups/ipptool/get-printers-printer-id.test
+-rw-r--r--	root/root	usr/share/cups/ipptool/get-printers.test
 -rw-r--r--	root/root	usr/share/cups/ipptool/get-subscriptions.test
 -rw-r--r--	root/root	usr/share/cups/ipptool/gray.jpg
+-rw-r--r--	root/root	usr/share/cups/ipptool/identify-printer-display.test
+-rw-r--r--	root/root	usr/share/cups/ipptool/identify-printer-multiple.test
+-rw-r--r--	root/root	usr/share/cups/ipptool/identify-printer.test
 -rw-r--r--	root/root	usr/share/cups/ipptool/ipp-1.1.test
 -rw-r--r--	root/root	usr/share/cups/ipptool/ipp-2.0.test
 -rw-r--r--	root/root	usr/share/cups/ipptool/ipp-2.1.test
 -rw-r--r--	root/root	usr/share/cups/ipptool/ipp-2.2.test
+-rw-r--r--	root/root	usr/share/cups/ipptool/ipp-backend.test
 -rw-r--r--	root/root	usr/share/cups/ipptool/ipp-everywhere.test
 -rw-r--r--	root/root	usr/share/cups/ipptool/onepage-a4.pdf
 -rw-r--r--	root/root	usr/share/cups/ipptool/onepage-a4.ps
 -rw-r--r--	root/root	usr/share/cups/ipptool/onepage-letter.pdf
 -rw-r--r--	root/root	usr/share/cups/ipptool/onepage-letter.ps
+-rw-r--r--	root/root	usr/share/cups/ipptool/print-job-and-wait.test
 -rw-r--r--	root/root	usr/share/cups/ipptool/print-job-deflate.test
 -rw-r--r--	root/root	usr/share/cups/ipptool/print-job-gzip.test
+-rw-r--r--	root/root	usr/share/cups/ipptool/print-job-hold.test
+-rw-r--r--	root/root	usr/share/cups/ipptool/print-job-letter.test
+-rw-r--r--	root/root	usr/share/cups/ipptool/print-job-manual.test
+-rw-r--r--	root/root	usr/share/cups/ipptool/print-job-media-col.test
+-rw-r--r--	root/root	usr/share/cups/ipptool/print-job-password.test
 -rw-r--r--	root/root	usr/share/cups/ipptool/print-job.test
+-rw-r--r--	root/root	usr/share/cups/ipptool/print-uri.test
+-rw-r--r--	root/root	usr/share/cups/ipptool/set-attrs-hold.test
 -rw-r--r--	root/root	usr/share/cups/ipptool/testfile.jpg
 -rw-r--r--	root/root	usr/share/cups/ipptool/testfile.pcl
 -rw-r--r--	root/root	usr/share/cups/ipptool/testfile.pdf
@@ -296,7 +315,6 @@ drwxr-xr-x	root/root	usr/share/cups/profiles/
 drwxr-xr-x	root/root	usr/share/cups/templates/
 -rw-r--r--	root/root	usr/share/cups/templates/add-class.tmpl
 -rw-r--r--	root/root	usr/share/cups/templates/add-printer.tmpl
--rw-r--r--	root/root	usr/share/cups/templates/add-rss-subscription.tmpl
 -rw-r--r--	root/root	usr/share/cups/templates/admin.tmpl
 -rw-r--r--	root/root	usr/share/cups/templates/choose-device.tmpl
 -rw-r--r--	root/root	usr/share/cups/templates/choose-make.tmpl
@@ -354,39 +372,21 @@ drwxr-xr-x	root/root	usr/share/cups/templates/
 -rw-r--r--	root/root	usr/share/cups/templates/printers-header.tmpl
 -rw-r--r--	root/root	usr/share/cups/templates/printers.tmpl
 -rw-r--r--	root/root	usr/share/cups/templates/restart.tmpl
--rw-r--r--	root/root	usr/share/cups/templates/samba-export.tmpl
--rw-r--r--	root/root	usr/share/cups/templates/samba-exported.tmpl
 -rw-r--r--	root/root	usr/share/cups/templates/search.tmpl
 -rw-r--r--	root/root	usr/share/cups/templates/set-printer-options-header.tmpl
 -rw-r--r--	root/root	usr/share/cups/templates/set-printer-options-trailer.tmpl
--rw-r--r--	root/root	usr/share/cups/templates/subscription-added.tmpl
--rw-r--r--	root/root	usr/share/cups/templates/subscription-canceled.tmpl
 -rw-r--r--	root/root	usr/share/cups/templates/test-page.tmpl
 -rw-r--r--	root/root	usr/share/cups/templates/trailer.tmpl
 -rw-r--r--	root/root	usr/share/cups/templates/users.tmpl
 drwxr-xr-x	root/root	usr/share/cups/usb/
 -rw-r--r--	root/root	usr/share/cups/usb/org.cups.usb-quirks
-drwxr-xr-x	root/root	usr/share/icons/
-drwxr-xr-x	root/root	usr/share/icons/hicolor/
-drwxr-xr-x	root/root	usr/share/icons/hicolor/128x128/
-drwxr-xr-x	root/root	usr/share/icons/hicolor/128x128/apps/
--rw-r--r--	root/root	usr/share/icons/hicolor/128x128/apps/cups.png
-drwxr-xr-x	root/root	usr/share/icons/hicolor/16x16/
-drwxr-xr-x	root/root	usr/share/icons/hicolor/16x16/apps/
--rw-r--r--	root/root	usr/share/icons/hicolor/16x16/apps/cups.png
-drwxr-xr-x	root/root	usr/share/icons/hicolor/32x32/
-drwxr-xr-x	root/root	usr/share/icons/hicolor/32x32/apps/
--rw-r--r--	root/root	usr/share/icons/hicolor/32x32/apps/cups.png
-drwxr-xr-x	root/root	usr/share/icons/hicolor/64x64/
-drwxr-xr-x	root/root	usr/share/icons/hicolor/64x64/apps/
--rw-r--r--	root/root	usr/share/icons/hicolor/64x64/apps/cups.png
 drwxr-xr-x	root/root	usr/share/man/
 drwxr-xr-x	root/root	usr/share/man/man1/
 -rw-r--r--	root/root	usr/share/man/man1/cancel.1.gz
 -rw-r--r--	root/root	usr/share/man/man1/cups-config.1.gz
 -rw-r--r--	root/root	usr/share/man/man1/cups.1.gz
--rw-r--r--	root/root	usr/share/man/man1/cupstestdsc.1.gz
 -rw-r--r--	root/root	usr/share/man/man1/cupstestppd.1.gz
+-rw-r--r--	root/root	usr/share/man/man1/ippeveprinter.1.gz
 -rw-r--r--	root/root	usr/share/man/man1/ippfind.1.gz
 -rw-r--r--	root/root	usr/share/man/man1/ipptool.1.gz
 -rw-r--r--	root/root	usr/share/man/man1/lp.1.gz
@@ -417,16 +417,16 @@ drwxr-xr-x	root/root	usr/share/man/man5/
 drwxr-xr-x	root/root	usr/share/man/man7/
 -rw-r--r--	root/root	usr/share/man/man7/backend.7.gz
 -rw-r--r--	root/root	usr/share/man/man7/filter.7.gz
+-rw-r--r--	root/root	usr/share/man/man7/ippevepcl.7.gz
+lrwxrwxrwx	root/root	usr/share/man/man7/ippeveps.7.gz -> ippevepcl.7.gz
 -rw-r--r--	root/root	usr/share/man/man7/notifier.7.gz
 drwxr-xr-x	root/root	usr/share/man/man8/
-lrwxrwxrwx	root/root	usr/share/man/man8/accept.8.gz -> cupsaccept.8.gz
 lrwxrwxrwx	root/root	usr/share/man/man8/cups-deviced.8.gz -> cupsd-helper.8.gz
 lrwxrwxrwx	root/root	usr/share/man/man8/cups-driverd.8.gz -> cupsd-helper.8.gz
 lrwxrwxrwx	root/root	usr/share/man/man8/cups-exec.8.gz -> cupsd-helper.8.gz
 -rw-r--r--	root/root	usr/share/man/man8/cups-lpd.8.gz
 -rw-r--r--	root/root	usr/share/man/man8/cups-snmp.8.gz
 -rw-r--r--	root/root	usr/share/man/man8/cupsaccept.8.gz
--rw-r--r--	root/root	usr/share/man/man8/cupsaddsmb.8.gz
 -rw-r--r--	root/root	usr/share/man/man8/cupsctl.8.gz
 -rw-r--r--	root/root	usr/share/man/man8/cupsd-helper.8.gz
 -rw-r--r--	root/root	usr/share/man/man8/cupsd.8.gz
@@ -438,16 +438,12 @@ lrwxrwxrwx	root/root	usr/share/man/man8/cupsreject.8.gz -> cupsaccept.8.gz
 -rw-r--r--	root/root	usr/share/man/man8/lpc.8.gz
 -rw-r--r--	root/root	usr/share/man/man8/lpinfo.8.gz
 -rw-r--r--	root/root	usr/share/man/man8/lpmove.8.gz
-lrwxrwxrwx	root/root	usr/share/man/man8/reject.8.gz -> cupsaccept.8.gz
 drwxr-xr-x	root/root	var/
 drwxr-xr-x	root/root	var/cache/
 drwxrwx---	root/lp	var/cache/cups/
 drwxrwxr-x	root/lp	var/cache/cups/rss/
 drwxr-xr-x	root/root	var/log/
 drwxr-xr-x	root/root	var/log/cups/
-drwxr-xr-x	root/root	var/run/
-drwxr-xr-x	root/root	var/run/cups/
-drwx--x--x	daemon/sys	var/run/cups/certs/
 drwxr-xr-x	root/root	var/spool/
 drwx--x---	root/lp	var/spool/cups/
 drwxrwx--T	root/lp	var/spool/cups/tmp/

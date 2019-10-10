@@ -1,0 +1,71 @@
+From 205225994c631aa1310778c304b7ee62ee2701ef Mon Sep 17 00:00:00 2001
+From: Joerg Bornemann <joerg.bornemann@qt.io>
+Date: Wed, 31 Jul 2019 10:55:14 +0200
+Subject: [PATCH] Fix dependency_libs entry of .la files
+
+Libtool cannot cope with absolute paths in the dependency_libs entry.
+We split absolute paths into -L and -l here.
+
+Change-Id: I30bf11e490d1993d2a4d88c114e07bbae12def6d
+Fixes: QTBUG-76625
+Reviewed-by: Kai Koehne <kai.koehne@qt.io>
+---
+
+diff --git a/qmake/generators/unix/unixmake2.cpp b/qmake/generators/unix/unixmake2.cpp
+index d9bcccf..abc3714 100644
+--- a/qmake/generators/unix/unixmake2.cpp
++++ b/qmake/generators/unix/unixmake2.cpp
+@@ -1450,7 +1450,36 @@
+ void
+ UnixMakefileGenerator::writeLibtoolFile()
+ {
++    auto fixDependencyLibs
++            = [this](const ProStringList &libs)
++              {
++                  ProStringList result;
++                  for (auto lib : libs) {
++                      auto fi = fileInfo(lib.toQString());
++                      if (fi.isAbsolute()) {
++                          const QString libDirArg = "-L" + fi.path();
++                          if (!result.contains(libDirArg))
++                              result += libDirArg;
++                          QString namespec = fi.fileName();
++                          int dotPos = namespec.lastIndexOf('.');
++                          if (dotPos != -1 && namespec.startsWith("lib")) {
++                              namespec.truncate(dotPos);
++                              namespec.remove(0, 3);
++                          } else {
++                              debug_msg(1, "Ignoring dependency library %s",
++                                        lib.toLatin1().constData());
++                              continue;
++                          }
++                          result += "-l" + namespec;
++                      } else {
++                          result += lib;
++                      }
++                  }
++                  return result;
++              };
++
+     QString fname = libtoolFileName(), lname = fname;
++    debug_msg(1, "Writing libtool file %s", fname.toLatin1().constData());
+     mkdir(fileInfo(fname).path());
+     int slsh = lname.lastIndexOf(Option::dir_sep);
+     if(slsh != -1)
+@@ -1488,12 +1517,11 @@
+                          << ".a'\n\n";
+ 
+     t << "# Libraries that this one depends upon.\n";
++    static const ProKey libVars[] = { "LIBS", "QMAKE_LIBS" };
+     ProStringList libs;
+-    libs << "LIBS" << "QMAKE_LIBS";
+-    t << "dependency_libs='";
+-    for (ProStringList::ConstIterator it = libs.begin(); it != libs.end(); ++it)
+-        t << fixLibFlags((*it).toKey()).join(' ') << ' ';
+-    t << "'\n\n";
++    for (auto var : libVars)
++        libs += fixLibFlags(var);
++    t << "dependency_libs='" << fixDependencyLibs(libs).join(' ') << "'\n\n";
+ 
+     t << "# Version information for " << lname << "\n";
+     int maj = project->first("VER_MAJ").toInt();

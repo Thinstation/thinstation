@@ -4,15 +4,13 @@
 # Contributor: dorphell <dorphell@archlinux.org>
 
 name=enchant
-version=1.6.0
+version=2.2.5
 release=8
-source=("http://www.abisource.com/downloads/${name}/${version}/${name}-${version}.tar.gz"
-       hunspell14_buildfix.diff)
+source=("https://github.com/AbiWord/enchant/archive/v$version.tar.gz")
 
 build() {
-  cd "${SRC}/${name}-${version}"
-  # http://bugzilla.abisource.com/show_bug.cgi?id=13772
-  patch -Np1 -i ${SRC}/hunspell14_buildfix.diff
+  cd "${SRC}/${name}-$version"
+  ./bootstrap
   ./configure --prefix=/usr \
     --disable-static \
     --disable-ispell \

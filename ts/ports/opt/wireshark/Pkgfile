@@ -1,38 +1,28 @@
-# Description: Network Sniffer with nice GTK+ UI
-# URL: http://www.wireshark.org
+# Description: Network Sniffer
+# URL:         http://www.wireshark.org
 # Maintainer:  Thomas Penteker, tek at serverop dot de
-# Packager: Martin Opel, mo at obbl-net dot de
-# Depends on: gtk libpcap libpcre
+# Packager:    Martin Opel, mo at obbl-net dot de
+# Depends on:  qt5 libpcap libpcre hicolor-icon-theme libgcrypt
 
 name=wireshark
-version=2.0.5
+version=3.0.3
 release=1
-source=(http://www.wireshark.org/download/src/all-versions/$name-$version.tar.bz2)
+source=(https://1.eu.dl.wireshark.org/src/all-versions/wireshark-$version.tar.xz)
 
 build() {
-	cd $name-$version
+  cd $name-$version
 
-        CPPFLAGS+=" -std=c++11"
-	./autogen.sh
-	./configure --prefix=/usr \
-	            --mandir=/usr/man \
-	            --with-plugins=/usr/lib/$name/plugins \
-	             \
-	            --enable-snmp \
-	            --with-gtk2=no \
-                    --with-gtk3=yes \
-                    --with-qt=5 \
-	            --disable-gcry \
+  cmake . \
+    -DCMAKE_INSTALL_PREFIX=/usr \
+    -DCMAKE_INSTALL_LIBDIR=/usr/lib \
+    -DBUILD_dpauxmon=off
 
-	make
-	make DESTDIR=$PKG install
+  make
+  make DESTDIR=$PKG install
 
-	# install some icons
-	install -d $PKG/usr/share/$name/pixmaps
-	install -m 644 \
-		image/{hi,lo}{16,32,48}-app-$name.png \
-		$PKG/usr/share/$name/pixmaps
+  # Don't remove these files, they are read by wireshark's about box.
+  #rm -f $PKG/usr/share/$name/{AUTHORS-SHORT,COPYING}
 
-	# Don't remove these files, they are read by wireshark's about box.
-	#rm -f $PKG/usr/share/$name/{AUTHORS-SHORT,COPYING}
+  rm -r $PKG/usr/share/doc
 }
+

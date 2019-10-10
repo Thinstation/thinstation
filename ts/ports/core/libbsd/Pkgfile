@@ -1,0 +1,21 @@
+# Maintainer: Lukas Fleischer <lfleischer@archlinux.org>
+# Contributor: Sven-Hendrik Haase <sh@lutzhaase.com>
+# Contributor: Gerardo Exequiel Pozzi <vmlinuz386@yahoo.com.ar>
+
+name=libbsd
+version=0.9.1
+release=1
+source=("https://libbsd.freedesktop.org/releases/$name-$version.tar.xz")
+
+build() {
+  cd "$name-$version"
+
+  ./configure --prefix=/usr
+  make check
+  make DESTDIR="$PKG" install
+  rm "${PKG}"/usr/lib/libbsd.a
+  install -D -m644 COPYING "$PKG/usr/share/licenses/$name/LICENSE"
+
+  # included now in man-pages, FS#53351
+  rm -f "${PKG}"/usr/share/man/man3/explicit_bzero.3
+}

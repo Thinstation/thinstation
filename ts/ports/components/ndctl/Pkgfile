@@ -1,0 +1,20 @@
+# Maintainer: Felix Yan <felixonmars@archlinux.org>
+
+name=ndctl
+version=65
+release=1
+source=("https://github.com/pmem/ndctl/archive/v$version.tar.gz")
+
+build() {
+  # fix location of modprobe.d conf
+  sed -i 's|^modprobedir =.*|modprobedir = /usr/lib/modprobe.d/|' $name-$version/Makefile.am
+
+  cd $name-$version
+  ./autogen.sh
+  ./configure	--prefix=/usr \
+		--sysconfdir=/etc \
+		--disable-docs \
+		--disable-asciidoctor
+  make
+  make DESTDIR="$PKG" install
+}

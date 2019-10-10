@@ -3,9 +3,9 @@ set -x
 set -e
 
 #ISO=build/boot-images/refind-iso/thinstation-refind.iso
-#ISO=build/boot-images/systemd-boot-iso/thinstation-efi.iso
+ISO=build/boot-images/systemd-boot-iso/thinstation-efi.iso
 #ISO=build/boot-images/iso/thinstation.iso
-ISO=eboot.iso
+#ISO=eboot.iso
 #IMAGE=refind
 IMAGE=systemd-boot
 HD=thinstation.img
@@ -23,7 +23,7 @@ confirm_iso()
 confirm_hd()
 {
 	if [ ! -e $HD ]; then
-		qemu-img create -f qcow2 thinstation.img 30G
+		qemu-img create -f qcow2 thinstation.img 31G
 	fi
 }
 
@@ -37,8 +37,8 @@ bridge()
 wrap_efi()
 {
 #	cp $ISO $HD
-#	export AGREE=true; mkgptdrv -o /build/boot-images/$IMAGE -p ESP:1G:boot -l thinstation.img:2G
-	export AGREE=true; mkgptdrv -o /eb -p ESP:1G:boot -l thinstation.img:2G
+	export AGREE=true; mkgptdrv -o /build/boot-images/$IMAGE -p ESP:1G:boot -l thinstation.img:2G
+#	export AGREE=true; mkgptdrv -o /eb -p ESP:1G:boot -l thinstation.img:2G
 }
 
 VGA="-vga qxl -global qxl-vga.vram_size=132710400"

@@ -1,0 +1,82 @@
+# Maintainer: Eric Bélanger <eric@archlinux.org>
+# Maintainer: Thomas Bächler <thomas@archlinux.org>
+
+name=lvm2
+version=2.02.185
+release=1
+source=('lvm2_install'
+        'lvm2_hook'
+        'sd-lvm2_install'
+        '11-dm-initramfs.rules')
+
+build() {
+  git clone https://sourceware.org/git/lvm2.git
+  cd lvm2/
+
+  local _c
+  for _c in "${_backports[@]}"; do
+    git log --oneline -1 "${_c}"
+    git show "${_c}" -- ':(exclude)WHATS_NEW' | git apply
+  done
+
+  local _CONFIGUREOPTS=(
+    --prefix=/usr
+    --exec_prefix=/
+    --sysconfdir=/etc
+    --localstatedir=/var
+    --includedir=/usr/include
+    --enable-applib
+    --enable-cmdlib
+    --enable-dmeventd
+    --enable-lvmetad
+    --enable-lvmpolld
+    --enable-pkgconfig
+    --enable-readline
+    --enable-udev_rules
+    --enable-udev_sync
+    --enable-use-lvmetad
+    --with-cache=internal
+    --with-default-dm-run-dir=/run
+    --with-default-locking-dir=/run/lock/lvm
+    --with-default-pid-dir=/run
+    --with-default-run-dir=/run/lvm
+    --with-systemdsystemunitdir=/usr/lib/systemd/system
+    --with-thin=internal
+    --with-udev-prefix=/usr)
+
+  ./configure "${_CONFIGUREOPTS[@]}" --enable-udev-systemd-background-jobs
+  make
+
+  # Build legacy udev rule for initramfs
+  cd udev
+  make 69-dm-lvm-metad.rules
+  cd ..
+  make -j1 DESTDIR="${PKG}" install_device-mapper
+  # extra udev rule for device-mapper in initramfs
+  install -D -m644 "${SRC}/11-dm-initramfs.rules" "${PKG}/usr/lib/initcpio/udev/11-dm-initramfs.rules"
+  # Install dmeventd socket and service
+  make -j1 DESTDIR="${PKG}" install_systemd_units
+  rm -f "${PKG}/usr/lib/systemd/system/"{blk-availability.service,lvm2-*}
+  install -d -m755 "${PKG}/usr/lib/systemd/system/sockets.target.wants"
+  ln -sf ../dm-event.socket "${PKG}/usr/lib/systemd/system/sockets.target.wants/dm-event.socket"
+
+  make -j1 DESTDIR="${PKG}" install_lvm2
+  # install applib
+#  make -j1 -C liblvm DESTDIR="${PKG}" install
+  # /etc directories
+  install -d "${PKG}"/etc/lvm/{archive,backup}
+  # mkinitcpio hook
+  install -D -m644 "${SRC}/lvm2_hook" "${PKG}/usr/lib/initcpio/hooks/lvm2"
+  install -D -m644 "${SRC}/lvm2_install" "${PKG}/usr/lib/initcpio/install/lvm2"
+  install -D -m644 "${SRC}/sd-lvm2_install" "${PKG}/usr/lib/initcpio/install/sd-lvm2"
+  # extra udev rule for lvmetad in non-systemd initramfs
+#  install -D -m644 "${SRC}/lvm2-initramfs/udev/69-dm-lvm-metad.rules" "${PKG}/usr/lib/initcpio/udev/69-dm-lvm-metad.rules"
+  # systemd support
+  make -j1 DESTDIR="${PKG}" install_systemd_units
+  rm -f "${PKG}/usr/lib/systemd/system/"dm-*
+  install -d -m755 "${PKG}/usr/lib/systemd/system/sysinit.target.wants"
+  ln -sf ../lvm2-lvmetad.socket "${PKG}/usr/lib/systemd/system/sysinit.target.wants/lvm2-lvmetad.socket"
+  ln -sf ../lvm2-lvmpolld.socket "${PKG}/usr/lib/systemd/system/sysinit.target.wants/lvm2-lvmpolld.socket"
+  ln -sf ../lvm2-monitor.service "${PKG}/usr/lib/systemd/system/sysinit.target.wants/lvm2-monitor.service"
+  make -j1 DESTDIR="${PKG}" install_systemd_generators
+}

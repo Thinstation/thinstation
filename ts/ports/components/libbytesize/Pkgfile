@@ -1,0 +1,14 @@
+# Maintainer: Felix Yan <felixonmars@archlinux.org>
+
+name=libbytesize
+version=2.1
+release=1
+source=("https://github.com/rhinstaller/libbytesize/archive/$version.tar.gz")
+
+build() {
+  cd "$SRC"/$name-$version
+  ./autogen.sh
+  ./configure --prefix=/usr
+  make
+  make DESTDIR="$PKG" install
+}

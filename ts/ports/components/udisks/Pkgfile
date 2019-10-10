@@ -6,13 +6,14 @@
 
 name=udisks
 archname=udisks2
-version=2.1.8
+version=2.8.4
 release=1
-source=(http://udisks.freedesktop.org/releases/udisks-$version.tar.bz2)
+source=(https://github.com/storaged-project/udisks/archive/udisks-$version.tar.gz)
 
 build () {
-	cd $name-$version
+	cd $name-$name-$version
 
+	./autogen.sh
 	./configure	--prefix=/usr \
 			--sysconfdir=/etc \
 			--localstatedir=/var \
@@ -23,5 +24,5 @@ build () {
 	make
 	make DESTDIR=$PKG install
 
-	rm -r $PKG/usr/share/{gtk-doc,locale}
+#	rm -r $PKG/usr/share/{gtk-doc,locale}
 }

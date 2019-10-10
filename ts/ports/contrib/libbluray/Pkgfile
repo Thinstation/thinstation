@@ -3,7 +3,7 @@
 # Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 
 name=libbluray
-version=0.9.2
+version=1.1.2
 release=1
 source=()
 
@@ -12,7 +12,14 @@ git clone --depth 1 git://git.videolan.org/libbluray.git
 git clone git://git.videolan.org/git/libudfread.git $name/contrib/libudfread
 
 	cd $name
-	./bootstrap
+	for submodule in contrib/libudfread; do
+		git submodule init ${submodule}
+		git config submodule.${submodule}.url ../${submodule#*/}
+		git submodule update ${submodule}
+	done
+	autoreconf -fiv
+
+#	./bootstrap
 	./configure --prefix=/usr \
 			--disable-doxygen-doc \
 			--disable-doxygen-dot \

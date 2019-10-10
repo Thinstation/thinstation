@@ -1,0 +1,15 @@
+[Unit]
+Description=Assemble FakeRAID arrays
+DefaultDependencies=no
+Requires=systemd-udev-settle.service
+After=systemd-udev-settle.service
+Before=basic.target shutdown.target
+Conflicts=shutdown.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/dmraid --ignorelocking --activate y -Z
+RemainAfterExit=true
+
+[Install]
+WantedBy=basic.target

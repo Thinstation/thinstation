@@ -1,0 +1,22 @@
+# Description: A portable lossless data compression library written in ANSI C.
+# URL: http://www.oberhumer.com/opensource/ucl/
+# Maintainer: Danny Rawlins, crux at romster dot me
+# Packager: Younes Hafri ycrux at club-internet dot fr
+# Depends on:
+
+name=ucl
+version=1.03
+release=1
+source=(http://www.oberhumer.com/opensource/ucl/download/ucl-$version.tar.gz)
+
+build() {
+	cd ucl-$version
+CFLAGS+=" -std=gnu90 -fPIC"
+	./configure \
+		--prefix=/usr \
+		--enable-shared
+
+	make
+	make prefix=$PKG/usr install
+}
+

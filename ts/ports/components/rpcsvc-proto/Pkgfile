@@ -1,0 +1,15 @@
+# Maintainer: Bartłomiej Piotrowski <bpiotrowski@archlinux.org>
+
+name=rpcsvc-proto
+version=1.4
+release=1
+source=(https://github.com/thkukuk/rpcsvc-proto/archive/v$version.tar.gz)
+
+build() {
+  cd $name-$version
+  autoreconf -fi
+  ./configure --prefix=/usr
+  make
+  make DESTDIR="$PKG" install
+  install -Dm644 COPYING "$PKG/usr/share/licenses/$name/LICENSE"
+}

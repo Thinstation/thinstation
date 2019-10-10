@@ -1,0 +1,46 @@
+#!/bin/sh
+#
+# /etc/rc.d/samba: start/stop krb5 daemons
+#
+
+SSD=/sbin/start-stop-daemon
+KRB5KDC=/usr/sbin/krb5kdc
+KADMIND=/usr/sbin/kadmind
+KPROPD=/usr/sbin/kpropd
+
+
+print_status() {
+	$SSD --status --exec $1
+	case $? in
+	0)   echo "$1 is running with pid $(pidof $1)" ;;
+	1|3) echo "$1 is not running" ;;
+	4)   echo "Unable to determine the program status" ;;
+	esac
+}
+
+case $1 in
+start)
+	$SSD --start --exec $KRB5KDC
+	$SSD --start --exec $KADMIND
+	$SSD --start --exec $KPROPD
+	;;
+stop)
+	$SSD --stop --retry 10 --exec $KPROPD
+	$SSD --stop --retry 10 --exec $KADMIND
+	$SSD --stop --retry 10 --exec $KRB5KDC
+	;;
+restart)
+	$0 stop
+	$0 start
+	;;
+status)
+	print_status $KRB5KDC
+	print_status $KADMIND
+	print_status $KPROPD
+	;;
+*)
+	echo "usage: $0 [start|stop|restart|status]"
+	;;
+esac
+
+# End of file

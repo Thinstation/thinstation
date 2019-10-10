@@ -1,26 +1,19 @@
-# Description: A multi-platform toolkit for creating graphical user interfaces
-# URL: http://www.gtk.org/
-# Maintainer: Tilman Sauerbeck, tilman at crux dot nu
-# Depends on: atk, hicolor-icon-theme, gdk-pixbuf, pango, xorg-libsm, xorg-libxcursor, xorg-libxinerama, xorg-libxrandr, xorg-libxcomposite
+# Description:  C# bindings for GTK
+# URL:  http://www.mono-project.com/docs/gui/gtksharp/
+# Maintainer: Tim Biermann, tbier at posteo dot de
+# Depends on: libglade mono
 
 name=gtk-sharp
-version=2.12.10
+version=2.12.45
 release=1
-source=(http://download.gnome.org/sources/$name/${version%.*}/gtk-sharp-$version.tar.bz2)
+source=(https://download.mono-project.com/sources/${name}212/gtk-sharp-$version.tar.gz)
 
-build () {
-	cd ${name}-$version
-
-	./configure --prefix=/usr \
-			--mandir=/usr/man \
-			--enable-debug=no \
-			--disable-static \
-			--enable-shared \
-
-	sed -i -e 's/glib\/gslist.h/glib.h/g' glib/glue/list.c
-	sed -i -e 's/glib\/glist.h/glib.h/g' glib/glue/list.c
-	sed -i -e 's/glib\/gslist.h/glib.h/g' glib/glue/slist.c
-	sed -i -e 's/glib\/gthread.h/glib.h/g' glib/glue/thread.c
-	make
-	make DESTDIR=$PKG install
+build() {
+  cd $name-$version
+  ./configure --prefix=/usr
+  make
+  make DESTDIR=$PKG \
+    PREFIX=/usr \
+    MANDIR=/usr/share/man\
+    install
 }
