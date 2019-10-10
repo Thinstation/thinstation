@@ -113,6 +113,13 @@ do_mounts()
 				systemd-mount --no-block --bind $mtpath $MT_PATH
 			fi
 		fi
+		if [ "$PARTNAME" == "$FS_LABEL" ]; then
+			if [ ! -e $MT_PATH ] \
+			  || ! cmount $MT_PATH; then
+				mkdir -p $MT_PATH
+				systemd-mount --no-block --bind $mtpath $MT_PATH
+			fi
+		fi
 		let index+=1
 	done
 }
