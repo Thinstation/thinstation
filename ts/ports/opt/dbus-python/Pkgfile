@@ -18,5 +18,13 @@ build() {
 		PYTHON_VERSION=3
 	make
 	make DESTDIR=$PKG install
+
+	make clean
+        ./configure --prefix=/usr \
+                --disable-html-docs \
+                PYTHON_VERSION=2
+        make
+        make DESTDIR=$PKG install
+
 	rm -rf $PKG/usr/share
 }
