@@ -11,8 +11,11 @@ source=(http://dbus.freedesktop.org/releases/$name/$name-$version.tar.gz)
 
 build() {
 	cd $name-$version
+	autoreconf -fi
+
 	./configure --prefix=/usr \
-		--disable-html-docs
+		--disable-html-docs \
+		PYTHON_VERSION=3
 	make
 	make DESTDIR=$PKG install
 	rm -rf $PKG/usr/share
