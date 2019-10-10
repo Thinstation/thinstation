@@ -129,6 +129,9 @@ for cbin in $bins ; do
 		libs="$libs \n`ldd $INSTALLDIR/bin/$cbin |grep -v 'linux-vdso' |grep -v 'not a' |cut -d '>' -f2 |cut -d '(' -f1 |sed -E s/[[:space:]]//g`"
 	fi
 done
+
+ln -sf python2 $INSTALLDIR/bin/python
+
 if [ -e /bin/uname-auto ] ; then
         cp /bin/uname-auto $INSTALLDIR/bin/.
 fi
