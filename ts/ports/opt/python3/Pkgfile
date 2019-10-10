@@ -4,7 +4,7 @@
 # Depends on: bzip2 expat gdbm libffi libtirpc mpdecimal sqlite3 xz
 
 name=python3
-version=3.7.3
+version=3.7.4
 release=2
 source=(https://www.python.org/ftp/python/$version/Python-$version.tar.xz)
 
@@ -27,9 +27,10 @@ build() {
 		--with-system-libmpdec \
 		--without-ensurepip
 
-    make 
+    make
     make -j1 DESTDIR=$PKG altinstall maninstall
 
+    ln -s python${version%.*}        $PKG/usr/bin/python
     ln -s python${version%.*}        $PKG/usr/bin/python3
     ln -s python${version%.*}m-config $PKG/usr/bin/python3-config
     ln -s python${version%.*}m-config $PKG/usr/bin/python${version%.*}-config
