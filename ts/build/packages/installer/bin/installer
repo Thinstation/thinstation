@@ -2,15 +2,15 @@
 exec </dev/null >/var/log/installer.log 2>&1
 set -x
 
-tempdir=`mktemp -d 2>/dev/null`
-bootdir=/boot/boot
-GTKDIALOG="gtkdialog -c --space-expand=false --space-fill=false --program=MAIN_DIALOG"
+tempdir = `mktemp -d 2>/dev/null`
+bootdir = /boot/boot
+GTKDIALOG = "gtkdialog -c --space-expand=false --space-fill=false --program=MAIN_DIALOG"
 . /etc/thinstation.global
-ARG="--disable-server -x"
+ARG = "--disable-server -x"
 
 gen_text_widget()
 {
-cat <<EOF
+    cat <<EOF
 		<text use-markup="true" justify="2" space-expand="true" space-fill="true" wrap="true" width-chars="40">
                 	<label>"$1"</label>
 		</text>
@@ -19,140 +19,142 @@ EOF
 
 x_echo()
 {
-title="$1"
-shift
-while [ -n "$1" ]; do
-        local text_widget="$text_widget `gen_text_widget \"$1\"`"
+    title = "$1"
+    shift
+    
+    while [ -n "$1" ] ; do
+        local text_widget = "$text_widget `gen_text_widget \"$1\"`"
         shift
-done
-        export MAIN_DIALOG='
-<window title="'$title'" decorated="true" resizable="false" image-name="/lib/pixmaps/installer_32x32.xpm">
-        <vbox>
+    done
+    
+    export MAIN_DIALOG = '
+        <window title="'$title'" decorated="true" resizable="false" image-name="/lib/pixmaps/installer_32x32.xpm">
+            <vbox>
                 <hseparator></hseparator>
                 <hbox>
-                        <pixmap icon_size="6">
-	                        <input file stock="gtk-dialog-info"></input>
-                        </pixmap>
-                        <vbox>
-				'$text_widget'
-                        </vbox>
+                    <pixmap icon_size="6">
+	                    <input file stock="gtk-dialog-info"></input>
+                    </pixmap>
+                    <vbox>
+                        '$text_widget'
+                    </vbox>
                 </hbox>
                 <hseparator></hseparator>
                 <hbox>
-                        <button has-focus="true">
-                                <label>"Next"</label>
-                                <action>EXIT:ok</action>
-                        </button>
+                    <button has-focus="true">
+                        <label>"Next"</label>
+                        <action>EXIT:ok</action>
+                    </button>
                 </hbox>
-        </vbox>
-</window>
-'
-        result=`$GTKDIALOG`
+            </vbox>
+        </window>'
+    
+    result = `$GTKDIALOG`
 }
 
 x_error()
 {
-title="$1"
-shift
-while [ -n "$1" ]; do
-        local text_widget="$text_widget `gen_text_widget \"$1\"`"
+    title = "$1"
+    shift
+    
+    while [ -n "$1" ] ; do
+        local text_widget = "$text_widget `gen_text_widget \"$1\"`"
         shift
-done
-        export MAIN_DIALOG='
-<window title="'$title'" decorated="true" resizable="false" image-name="/lib/pixmaps/installer_32x32.xpm">
-        <vbox>
+    done
+    
+    export MAIN_DIALOG = '
+        <window title="'$title'" decorated="true" resizable="false" image-name="/lib/pixmaps/installer_32x32.xpm">
+            <vbox>
                 <hseparator></hseparator>
                 <hbox>
-                        <pixmap icon_size="6">
-                                <input file stock="gtk-dialog-error" has-focus="true"></input>
-                        </pixmap>
-                        <vbox>
-				'$text_widget'
-				<vseparator height-request="5"></vseparator>
-                                <text use-markup="true" xalign="1" space-expand="false" space-fill="false">
-                                        <label>"Aborting!"</label>
-                                </text>
-                        </vbox>
+                    <pixmap icon_size="6">
+                        <input file stock="gtk-dialog-error" has-focus="true"></input>
+                    </pixmap>
+                    <vbox>
+                        '$text_widget'
+                        <vseparator height-request="5"></vseparator>
+                        <text use-markup="true" xalign="1" space-expand="false" space-fill="false">
+                            <label>"Aborting!"</label>
+                        </text>
+                    </vbox>
                 </hbox>
                 <hseparator></hseparator>
                 <hbox>
-                        <button has-focus="false" can-focus="false">
-                                <label>"Exit"</label>
-                                <action>EXIT:ok</action>
-                        </button>
+                    <button has-focus="false" can-focus="false">
+                        <label>"Exit"</label>
+                        <action>EXIT:ok</action>
+                    </button>
                 </hbox>
-        </vbox>
-</window>
-'
-        result=`$GTKDIALOG`
+            </vbox>
+        </window>'
+        
+    result = `$GTKDIALOG`
 	exit 1
 }
 
 
 x_warn()
 {
-title="$1"
-shift
-while [ -n "$1" ]; do
-	local text_widget="$text_widget `gen_text_widget \"$1\"`"
-	shift
-done
-        export MAIN_DIALOG='
-<window title="'$title'" decorated="true" resizable="false" image-name="/lib/pixmaps/installer_32x32.xpm">
-        <vbox>
+    title = "$1"
+    shift
+    
+    while [ -n "$1" ] ; do
+        local text_widget = "$text_widget `gen_text_widget \"$1\"`"
+        shift
+    done
+    
+    export MAIN_DIALOG = '
+        <window title="'$title'" decorated="true" resizable="false" image-name="/lib/pixmaps/installer_32x32.xpm">
+            <vbox>
                 <hseparator></hseparator>
                 <hbox>
-                        <pixmap icon_size="6">
-                                <input file stock="gtk-dialog-warning"></input>
-                        </pixmap>
-                        <vbox>
-				'$text_widget'
-				<vseparator height-request="5"></vseparator>
-                                <text use-markup="false" xalign="1" space-expand="false" space-fill="false">
-                                        <label>"Do you wish to continue?"</label>
-                                </text>
-                        </vbox>
+                    <pixmap icon_size="6">
+                        <input file stock="gtk-dialog-warning"></input>
+                    </pixmap>
+                    <vbox>
+                        '$text_widget'
+                        <vseparator height-request="5"></vseparator>
+                        <text use-markup="false" xalign="1" space-expand="false" space-fill="false">
+                            <label>"Do you wish to continue?"</label>
+                        </text>
+                    </vbox>
                 </hbox>
                 <hseparator></hseparator>
-		<hbox>
-			<button has-focus="false" can-focus="false">
-				<label>"Exit"</label>
-			</button>
-                        <button has-focus="false" can-focus="false">
-                                <label>"Yes"</label>
-                                <action>EXIT:ok</action>
-                        </button>
+                <hbox>
+                    <button has-focus="false" can-focus="false">
+                        <label>"Exit"</label>
+                    </button>
+                    <button has-focus="false" can-focus="false">
+                        <label>"Yes"</label>
+                        <action>EXIT:ok</action>
+                    </button>
                 </hbox>
-        </vbox>
-</window>
-'
-        result=`$GTKDIALOG`
-	for statement in `echo $result`;do
+            </vbox>
+        </window>'
+        
+    result = `$GTKDIALOG`
+	
+    for statement in `echo $result` ; do
 		eval $statement
 	done
-	if [ "$EXIT" != "ok" ]; then
-                exit 1
-        fi
+	
+    if [ "$EXIT" != "ok" ] ; then
+        exit 1
+    fi
 }
 
 readme()
 {
-	zenity	--title "Install to HD" \
-		--text-info \
-		--html \
-		--no-interaction \
-		--width 750 \
-		--height 480 \
-		--filename=/README.html
-		if [ $? -gt 0 ]; then
-			exit 1
-		fi
+	zenity --title "Install to HD" --text-info --html --no-interaction --width 750 --height 480 --filename=/README.html
+	if [ $? -gt 0 ] ; then
+		exit 1
+	fi
 }
 
 mem_check()
 {
-	MEM=`cat /proc/meminfo |grep -e MemTotal |cut -d: -f2 |sed -r 's/[[:space:]]+/:/g' |cut -d: -f2`
-	if [ "$MEM" -lt "2000000" ]; then
+	MEM = `cat /proc/meminfo | grep -e MemTotal | cut -d: -f2 | sed -r 's/[[:space:]]+/:/g' | cut -d: -f2`
+	if [ "$MEM" -lt "2000000" ] ; then
 		x_error "Not Enough Memmory!" "You will need at least 2GB of RAM to use the DevStation environment."
 		exit 1
 	fi
@@ -160,49 +162,47 @@ mem_check()
 
 timezone_select()
 {
-	TIMEZONE=`tzupdate -p`
+	TIMEZONE = `tzupdate -p`
 }
 
 locale_select()
 {
-export MAIN_DIALOG='
-<window title="Localization" decorated="true" resizable="false" image-name="/lib/pixmaps/installer_32x32.xpm">
-        <vbox>
+    export MAIN_DIALOG = '
+        <window title="Localization" decorated="true" resizable="false" image-name="/lib/pixmaps/installer_32x32.xpm">
+            <vbox>
                 <hseparator></hseparator>
                 <text justify="2">
                         <label>"Please select your keyboard map."</label>
                 </text>
                 <hseparator></hseparator>
-                <table exported-column="0"
-			selected-row="4"
-			sort-function="1"
-                        column-visible="true|true"
-                        column-header-active="false|false">
-                        <label>Locale|Keyboard Map</label>
-                        <height>300</height>
-                        <width>275</width>
-                        <variable>tbl0</variable>
-                        <input file>/lib/locale.tab</input>
+                <table exported-column="0" selected-row="4" sort-function="1" column-visible="true|true" column-header-active="false|false">
+                    <label>Locale|Keyboard Map</label>
+                    <height>300</height>
+                    <width>275</width>
+                    <variable>tbl0</variable>
+                    <input file>/lib/locale.tab</input>
                 </table>
                 <hbox>
-                        <button>
-                                <label>"Cancel"</label>
-                                <action>EXIT:abort</action>
-                        </button>
-                        <button can-default="true" has-default="true">
-                                <label>"Next"</label>
-                                <action>EXIT:ok</action>
-                        </button>
+                    <button>
+                        <label>"Cancel"</label>
+                        <action>EXIT:abort</action>
+                    </button>
+                    <button can-default="true" has-default="true">
+                        <label>"Next"</label>
+                        <action>EXIT:ok</action>
+                    </button>
                 </hbox>
-        </vbox>
-</window>
-'
-	$GTKDIALOG > $tempdir/locale
-	for STATEMENT in `cat $tempdir/locale`; do
+            </vbox>
+        </window>'
+	
+    $GTKDIALOG > $tempdir/locale
+	
+    for STATEMENT in `cat $tempdir/locale` ; do
 		eval $STATEMENT
 	done
-	if [ "$EXIT" == "ok" ]; then
-		LOCALE=$tbl0
+	
+    if [ "$EXIT" == "ok" ] ; then
+		LOCALE = $tbl0
 	else
 		exit 1
 	fi
@@ -211,123 +211,125 @@ export MAIN_DIALOG='
 
 resolution_select()
 {
-        index=0
-	row=0
-        for resolution in `xrandr 2>/dev/null |grep -o '   [0-9]*x[0-9]*' |sed -r 's/ //g' |sort -u -t'x' -k1n -k2n`; do
-                res[$index]=$resolution
-                echo "$index|$resolution" >> /$tempdir/reslist
-                if [ "$resolution" == "1024x768" ]; then
-                        row=$index
-                fi
-                let index+=1
-        done
+    index = 0
+	row = 0
+    
+    for resolution in `xrandr 2>/dev/null | grep -o '   [0-9]*x[0-9]*' | sed -r 's/ //g' | sort -u -t'x' -k1n -k2n` ; do
+        res[$index] = $resolution
+        echo "$index|$resolution" >> /$tempdir/reslist
+        
+        if [ "$resolution" == "1024x768" ] ; then
+            row = $index
+        fi
+        
+        let index += 1
+    done
 
-        export MAIN_DIALOG='
-<window title="Resolution" decorated="true" resizable="false" image-name="/lib/pixmaps/installer_32x32.xpm">
-        <vbox>
+    export MAIN_DIALOG = '
+        <window title="Resolution" decorated="true" resizable="false" image-name="/lib/pixmaps/installer_32x32.xpm">
+            <vbox>
                 <hseparator></hseparator>
                 <text justify="2">
-                        <label>"What is your prefered screen resolution?"</label>
+                    <label>"What is your prefered screen resolution?"</label>
                 </text>
                 <hseparator></hseparator>
-                <table exported-column="0"
-			selected-row="'$row'"
-			sort-function="1"
-                        column-visible="false|true"
-                        column-header-active="false|false">
-                        <label>index|Resolution</label>
-                        <height>300</height>
-                        <width>275</width>
-                        <variable>tbl0</variable>
-                        <input file>'$tempdir'/reslist</input>
+                <table exported-column="0" selected-row="'$row'" sort-function="1" column-visible="false|true" column-header-active="false|false">
+                    <label>index|Resolution</label>
+                    <height>300</height>
+                    <width>275</width>
+                    <variable>tbl0</variable>
+                    <input file>'$tempdir'/reslist</input>
                 </table>
                 <hbox>
-                        <button>
-                                <label>"Cancel"</label>
-                                <action>EXIT:abort</action>
-                        </button>
-                        <button can-default="true" has-default="true">
-                                <label>"Next"</label>
-                                <action>EXIT:ok</action>
-                        </button>
+                    <button>
+                        <label>"Cancel"</label>
+                        <action>EXIT:abort</action>
+                    </button>
+                    <button can-default="true" has-default="true">
+                        <label>"Next"</label>
+                        <action>EXIT:ok</action>
+                    </button>
                 </hbox>
-        </vbox>
-</window>
-'
-        $GTKDIALOG > $tempdir/reschoice
-        for STATEMENT in `cat $tempdir/reschoice`; do
-                eval $STATEMENT
-        done
-        if [ "$EXIT" == "ok" ]; then
-                index=$tbl0
-                SCREEN_RESOLUTION=${res[$index]}
-                res="video=uvesafb:"${res[$index]}"-32,mtrr:0,ywrap"
-        else
-                exit 1
-        fi
+            </vbox>
+        </window>'
+        
+    $GTKDIALOG > $tempdir/reschoice
+        
+    for STATEMENT in `cat $tempdir/reschoice` ; do
+        eval $STATEMENT
+    done
+        
+    if [ "$EXIT" == "ok" ] ; then
+        index = $tbl0
+        SCREEN_RESOLUTION = ${res[$index]}
+        res = "video=uvesafb:"${res[$index]}"-32,mtrr:0,ywrap"
+    else
+        exit 1
+    fi
 }
 
 disk_select()
 {
-        index=0
-        for disk in `blockdev --report |sed -r 's/[[:space:]]+/:/g' |cut -d ":" -f7 |grep -e / |grep -v [0-9]`; do
-                disksize=`blockdev --report |sed -r 's/[[:space:]]+/:/g' | grep -e $disk\$ |cut -d ":" -f6`
-                disk[$index]=$disk
-                if [ "${disksize[$index]}" -gt "30000000000" ]; then
-                        gigs=$(( ${disksize}/1024/1024/1024 ))
-                        echo "$index|${disk[$index]}|$gigs" >> $tempdir/disklist
-			let index+=1
-                fi
-        done
-        if [ "$[index]" == "1" ]; then
-                index=0
-        elif [ "$index" -gt "1" ]; then
-		export MAIN_DIALOG='
-<window title="Storage" decorated="true" resizable="false" image-name="/lib/pixmaps/installer_32x32.xpm">
-        <vbox>
-                <hseparator></hseparator>
-                <text justify="2">
+    index = 0
+    
+    for disk in `blockdev --report | sed -r 's/[[:space:]]+/:/g' | cut -d ":" -f7 | grep -e / |grep -v [0-9]`; do
+        disksize = `blockdev --report | sed -r 's/[[:space:]]+/:/g' | grep -e $disk\$ | cut -d ":" -f6`
+        disk[$index] = $disk
+        if [ "${disksize[$index]}" -gt "30000000000" ] ; then
+            gigs = $(( ${disksize}/1024/1024/1024 ))
+            echo "$index|${disk[$index]}|$gigs" >> $tempdir/disklist
+            let index += 1
+        fi
+    done
+    
+    if [ "$[index]" == "1" ] ; then
+        index = 0
+    elif [ "$index" -gt "1" ] ; then
+		export MAIN_DIALOG = '
+            <window title="Storage" decorated="true" resizable="false" image-name="/lib/pixmaps/installer_32x32.xpm">
+                <vbox>
+                    <hseparator></hseparator>
+                    <text justify="2">
                         <label>"Which disk would you like to use?"</label>
-                </text>
-                <hseparator></hseparator>
-                <table exported-column="0"
-                        sort-function="1"
-                        selected-row="0"
-                        column-visible="false|true|true"
-                        column-header-active="false|false|false">
+                    </text>
+                    <hseparator></hseparator>
+                    <table exported-column="0" sort-function="1" selected-row="0" column-visible="false|true|true" column-header-active="false|false|false">
                         <label>index|Disk                     |Size in Gigabytes</label>
                         <height>300</height>
                         <width>275</width>
                         <variable>tbl0</variable>
                         <input file>'$tempdir'/disklist</input>
-                </table>
-                <hbox>
+                    </table>
+                    <hbox>
                         <button>
-                                <label>"Cancel"</label>
-                                <action>EXIT:abort</action>
+                            <label>"Cancel"</label>
+                            <action>EXIT:abort</action>
                         </button>
                         <button can-default="true" has-default="true">
-                                <label>"Next"</label>
-                                <action>EXIT:ok</action>
+                            <label>"Next"</label>
+                            <action>EXIT:ok</action>
                         </button>
-                </hbox>
-        </vbox>
-</window>
-'
-		$GTKDIALOG > $tempdir/diskchoice
-		for STATEMENT in `cat $tempdir/diskchoice`; do
+                    </hbox>
+                </vbox>
+            </window>'
+		
+        $GTKDIALOG > $tempdir/diskchoice
+		
+        for STATEMENT in `cat $tempdir/diskchoice` ; do
 			eval $STATEMENT
 		done
-		if [ "$EXIT" == "ok" ]; then
-			index=$tbl0
+		
+        if [ "$EXIT" == "ok" ] ; then
+			index = $tbl0
 		else
 			exit 1
 		fi
 	else
-                x_error "No usable disk!" "The DevStation environment requirees a disk of at least 30GB in size."
-                exit 1
+        x_error "No usable disk!" "The DevStation environment requirees a disk of at least 30GB in size."
+        exit 1
 	fi
-        disk=${disk[$index]}
+    
+    disk = ${disk[$index]}
 }
 
 install_it()
@@ -337,7 +339,7 @@ install_it()
 
 proxy_check()
 {
-	if proxy-setup --log; then
+	if [ proxy-setup --log ] ; then
 		continue
 	else
 		x_error "Broken Internet!" "No Internet Connectivity."
@@ -347,14 +349,13 @@ proxy_check()
 
 user_conf()
 {
-        cat $bootdir/syslinux/syslinux.tpl |sed -e "s/\$RES/$res/g" > $bootdir/syslinux/syslinux.cfg
-	USERDIR=/tmp-home/tsuser
-	CONF=$USERDIR/thinstation.conf.user
+	USERDIR = /tmp-home/tsuser
+	CONF = $USERDIR/thinstation.conf.user
 	mkdir -p $USERDIR
 	echo "LOCALE=$LOCALE" > $CONF
 	echo "TIME_ZONE=$TIME_ZONE" >> $CONF
 	echo "SCREEN_RESOLUTION=$SCREEN_RESOLUTION" >> $CONF
-cat <<'EOF'>> $CONF
+    cat <<'EOF'>> $CONF
 AUDIO_LEVEL=90
 #MIC_LEVEL=80
 #X_DPI=100
@@ -380,30 +381,54 @@ EOF
 
 install_check()
 {
-	for check in	$bootdir/vmlinuz \
-			$bootdir/lib.update \
+	for check in $bootdir/vmlinuz \
+            $bootdir/lib.update \
 			$bootdir/initrd \
 			$bootdir/vmlinuz-backup \
 			$bootdir/lib.squash-backup \
 			$bootdir/initrd-backup \
-			/thinstation/setup-chroot ; do
-        	if [ ! -e $check ] ; then
-			x_error "Installation Failed!" "During post install checks, we discovered" "$check: Missing" "Your installation is not likely to work"
-	        fi
+            /thinstation/setup-chroot; do
+        if [ ! -e $check ] ; then
+            if [ ! is_enabled $INSTALLER_DEV ] & [ $check == /thinstation/setup-chroot ]; then
+                continue
+            fi
+            x_error "Installation Failed!" "During post install checks, we discovered" "$check: Missing" "Your installation is not likely to work"
+	    fi
 	done
 }
 
 cd /
-readme
-mem_check
+
+if [ is_enabled $INSTALLER_DEV ] | [ is_enabled $INSTALLER_README ] ; then
+	readme
+fi
+
+if [ is_enabled $INSTALLER_DEV ] | [ is_enabled $INSTALLER_MEM_CHECK ] ; then
+	mem_check
+fi
+
 proxy_check
 disk_select
-resolution_select
-timezone_select
-locale_select
+
+if [ is_enabled $INSTALLER_DEV ] ; then
+	resolution_select
+	timezone_select
+	locale_select
+fi
+
 x_warn "Warning" "All data on the disk <span color='red' weight='bold'>$disk</span> is about to be <span color='red' weight='bold'>erased!</span>"
 install_it
-user_conf
+
+if [ is_enabled $INSTALLER_DEV ] ; then
+    cat $bootdir/syslinux/syslinux.tpl | sed -e "s/\$RES/$res/g" > $bootdir/syslinux/syslinux.cfg
+else
+    cat $bootdir/syslinux/$INSTALLER_SYSLINUX_FILENAME > $bootdir/syslinux/syslinux.cfg
+fi
+
+if [ is_enabled $INSTALLER_DEV ] ; then
+	user_conf
+fi
+
 install_check
 
 cp /var/log/installer.log /tmp-home/tsuser/.
@@ -411,13 +436,14 @@ cp /var/log/install.log /tmp-home/tsuser/.
 chmod -R 750 /tmp-home/tsuser
 chown -R 1000:1000 /tmp-home/tsuser
 
+if [ is_enabled $INSTALLER_DEV ] ; then
+	x_echo "Almost Done" "You can now make your first image by going to  <b>/thinstation</b> and running <b>./setup-chroot</b>. From there, <b>cd /build</b> and run <b>./build</b>"
+	x_echo  "PXE Booting" "This DevStation is a <b>PXE boot server</b>. You can set it's IP address as the <b>Next boot server</b> in your DHCP server client config. Also set the boot file to <b>boot/pxelinux.0</b>. This will let clients boot directly from images created in the build env of this workstation."
+	x_echo "All Done!" "Your system is now bootable with the ThinStation development environment, but the password is guessable. Please reboot and if everything is ok, <b>'Tweak your DevStation'</b> and <span color='red' weight='bold'>disable the telnet service</span>."
+fi
 
-x_echo "Almost Done" "You can now make your first image by going to  <b>/thinstation</b> and running <b>./setup-chroot</b>. From there, <b>cd /build</b> and run <b>./build</b>"
-x_echo  "PXE Booting" "This DevStation is a <b>PXE boot server</b>. You can set it's IP address as the <b>Next boot server</b> in your DHCP server client config. Also set the boot file to <b>boot/pxelinux.0</b>. This will let clients boot directly from images created in the build env of this workstation."
-x_echo "All Done!" "Your system is now bootable with the ThinStation development environment, but the password is guessable. Please reboot and if everything is ok, <b>'Tweak your DevStation'</b> and <span color='red' weight='bold'>disable the telnet service</span>."
 eject
-x_echo "Reboot!" "Please remove the CD and click <b>Next</b> to reboot."
+x_echo $INSTALLER_REBOOT_MESSAGE_BOX
 reboot
 
 exit 0
-
