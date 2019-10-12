@@ -1,5 +1,7 @@
 #!/bin/bash
 
+. /etc/thinstation.global
+
 exec </dev/null >/var/log/installer.log 2>&1
 set -x
 
@@ -98,12 +100,10 @@ x_warn()
 {
 	title="$1"
 	shift
-
-	while [ -n "$1" ] ; do
-		local text_widge="$text_widget `gen_text_widget \"$1\"`"
+	while [ -n "$1" ]; do
+		local text_widget="$text_widget `gen_text_widget \"$1\"`"
 		shift
 	done
-
 	export MAIN_DIALOG='
 	<window title="'$title'" decorated="true" resizable="false" image-name="/lib/pixmaps/installer_32x32.xpm">
 		<vbox>
@@ -132,14 +132,12 @@ x_warn()
 			</hbox>
 		</vbox>
 	</window>'
-
+	
 	result=`$GTKDIALOG`
-
-	for statement in `echo $result` ; do
+	for statement in `echo $result`;do
 		eval $statement
 	done
-
-	if [ "$EXIT" != "ok" ] ; then
+	if [ "$EXIT" != "ok" ]; then
 		exit 1
 	fi
 }
@@ -223,7 +221,7 @@ resolution_select()
 			row=$index
 		fi
 
-		let index += 1
+		let index+=1
 	done
 
 	export MAIN_DIALOG='
@@ -279,7 +277,7 @@ disk_select()
 		if [ "${disksize[$index]}" -gt "30000000000" ] ; then
 			gigs=$(( ${disksize}/1024/1024/1024 ))
 			echo "$index|${disk[$index]}|$gigs" >> $tempdir/disklist
-			let index += 1
+			let index+=1
 		fi
 	done
 
@@ -340,7 +338,7 @@ install_it()
 
 proxy_check()
 {
-	if [ proxy-setup --log ] ; then
+	if proxy-setup --log ; then
 		continue
 	else
 		x_error "Broken Internet!" "No Internet Connectivity."
@@ -391,7 +389,7 @@ install_check()
 		/thinstation/setup-chroot
 		do
 			if [ ! -e $check ] ; then
-				if [ ! is_enabled $INSTALLER_DEV ] & [ $check == /thinstation/setup-chroot ]; then
+				if is_enabled $INSTALLER_DEV && [ "$check" == "/thinstation/setup-chroot" ]; then
 					continue
 				fi
 				x_error "Installation Failed!" "During post install checks, we discovered" "$check: Missing" "Your installation is not likely to work"
@@ -401,18 +399,18 @@ install_check()
 
 cd /
 
-if [ is_enabled $INSTALLER_DEV ] | [ is_enabled $INSTALLER_README ] ; then
+if is_enabled $INSTALLER_DEV || is_enabled $INSTALLER_README ; then
 	readme
 fi
 
-if [ is_enabled $INSTALLER_DEV ] | [ is_enabled $INSTALLER_MEM_CHECK ] ; then
+if is_enabled $INSTALLER_DEV || is_enabled $INSTALLER_MEM_CHECK ; then
 	mem_check
 fi
 
 proxy_check
 disk_select
 
-if [ is_enabled $INSTALLER_DEV ] ; then
+if is_enabled $INSTALLER_DEV ; then
 	resolution_select
 	timezone_select
 	locale_select
@@ -421,13 +419,13 @@ fi
 x_warn "Warning" "All data on the disk <span color='red' weight='bold'>$disk</span> is about to be <span color='red' weight='bold'>erased!</span>"
 install_it
 
-if [ is_enabled $INSTALLER_DEV ] ; then
+if is_enabled $INSTALLER_DEV ; then
 	cat $bootdir/syslinux/syslinux.tpl | sed -e "s/\$RES/$res/g" > $bootdir/syslinux/syslinux.cfg
 else
 	cat $bootdir/syslinux/$INSTALLER_SYSLINUX_FILENAME > $bootdir/syslinux/syslinux.cfg
 fi
 
-if [ is_enabled $INSTALLER_DEV ] ; then
+if is_enabled $INSTALLER_DEV ; then
 	user_conf
 fi
 
@@ -438,14 +436,14 @@ cp /var/log/install.log /tmp-home/tsuser/.
 chmod -R 750 /tmp-home/tsuser
 chown -R 1000:1000 /tmp-home/tsuser
 
-if [ is_enabled $INSTALLER_DEV ] ; then
+if is_enabled $INSTALLER_DEV ; then
 	x_echo "Almost Done" "You can now make your first image by going to  <b>/thinstation</b> and running <b>./setup-chroot</b>. From there, <b>cd /build</b> and run <b>./build</b>"
-	x_echo  "PXE Booting" "This DevStation is a <b>PXE boot server</b>. You can set it's IP address as the <b>Next boot server</b> in your DHCP server client config. Also set the boot file to <b>boot/pxelinux.0</b>. This will let clients boot directly from images created in the build env of this workstation."
+	x_echo "PXE Booting" "This DevStation is a <b>PXE boot server</b>. You can set it's IP address as the <b>Next boot server</b> in your DHCP server client config. Also set the boot file to <b>boot/pxelinux.0</b>. This will let clients boot directly from images created in the build env of this workstation."
 	x_echo "All Done!" "Your system is now bootable with the ThinStation development environment, but the password is guessable. Please reboot and if everything is ok, <b>'Tweak your DevStation'</b> and <span color='red' weight='bold'>disable the telnet service</span>."
 fi
 
 eject
-x_echo $INSTALLER_REBOOT_MESSAGE_BOX
+x_echo "Reboot!" "$INSTALLER_REBOOT_MESSAGE_BOX"
 reboot
 
 exit 0

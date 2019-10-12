@@ -1,5 +1,7 @@
 #!/bin/bash
 . /etc/ashrc
+. /etc/thinstation.global
+
 set -x
 bootdir=/boot/boot
 tempdir=`mktemp -d 2>/dev/null`
@@ -35,7 +37,7 @@ do_mounts()
 		mount -t vfat ${disk}1 /boot
 		sleep 1
 	done
-	if [ is_enabled $INSTALLER_DEV ] ; then
+	if is_enabled $INSTALLER_DEV ; then
 		while ! mounted /tmp-home ; do
 			mount -t ext4 ${disk}2 /tmp-home
 			sleep 1
