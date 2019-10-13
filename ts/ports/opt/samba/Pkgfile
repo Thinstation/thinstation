@@ -4,7 +4,7 @@
 # Depends on:  linux-pam libarchive libcap popt tdb tevent ldb python3
 
 name=samba
-version=4.10.6
+version=4.11.0
 release=1
 source=(https://www.samba.org/samba/ftp/stable/$name-$version.tar.gz \
         samba)
@@ -21,8 +21,7 @@ build () {
                 --sysconfdir=/etc \
                 --with-privatedir=/etc/samba/private \
                 --bundled-libraries=!tdb,!talloc,!tevent,!popt,!ldb \
-                --without-{ad-dc,ads,ldap} \
-                --without-json
+                --with-{ads,ldap,systemd,winbind,acl-support,pam} \
 
     python ./buildtools/bin/waf build --jobs=${JOBS:-1}
     python ./buildtools/bin/waf install --destdir=$PKG
