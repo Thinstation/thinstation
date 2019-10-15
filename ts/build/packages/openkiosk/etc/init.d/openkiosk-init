@@ -20,7 +20,7 @@ if ! pkg_initialized $PACKAGE; then
 			OK_PROFILE=`eval echo '$SESSION_'$x'_OPENKIOSK_PROFILE'`
 			if [ -z "$OK_PROFILE" ]; then
 				OK_PROFILE='default'
-		    fi
+			fi
 			# if profile folder does not exist, copy it from the template
 			if [ ! -d $HOME/.mdg/openkiosk/$OK_PROFILE ]; then
 				cp -a $HOME/.mdg/openkiosk/profile_template $HOME/.mdg/openkiosk/$OK_PROFILE
@@ -42,40 +42,86 @@ EOF
 				OK_HOMEPAGE="http://www.google.com"
 			fi
 			echo 'user_pref("browser.startup.homepage", "'$OK_HOMEPAGE'");' >> $OK_PREFS
-			echo 'user_pref("bmakiosk.startup.homepage", "'$OK_HOMEPAGE'");' >> $OK_PREFS
+			echo 'user_pref("openkiosk.startup.homepage", "'$OK_HOMEPAGE'");' >> $OK_PREFS
 
 			# admin password
 			OK_ADMIN_PASS=`eval echo '$SESSION_'$x'_OPENKIOSK_ADMIN_PASS'`
 			if [ -n "$OK_ADMIN_PASS" ] ; then
-				echo 'user_pref("bmakiosk.admin.login", "'$OK_ADMIN_PASS'");' >> $OK_PREFS
+				echo 'user_pref("openkiosk.admin.password", "'$OK_ADMIN_PASS'");' >> $OK_PREFS
 			fi
 
-			# toolbar present
-			OK_TOOLBAR_ON=`eval echo '$SESSION_'$x'_OPENKIOSK_TOOLBAR_ON'`
-			if [ -n "$OK_TOOLBAR_ON" ] ; then
-				echo 'user_pref("bmakiosk.ui.show", '$OK_TOOLBAR_ON');' >> $OK_PREFS
+			# run fullscreen
+			OK_FULLSCREEN=`eval echo '$SESSION_'$x'_OPENKIOSK_FULLSCREEN'`
+			if [ -n "$OK_FULLSCREEN" ] ; then
+				echo 'user_pref("openkiosk.fullscreen.enabled", '$OK_FULLSCREEN');' >> $OK_PREFS
+			fi
+
+			# tabbed browsing
+			OK_TABS=`eval echo '$SESSION_'$x'_OPENKIOSK_TABS'`
+			if [ -n "$OK_TABS" ] ; then
+				echo 'user_pref("openkiosk.tabs.enabled", '$OK_TABS');' >> $OK_PREFS
+			fi
+
+			# context menu
+			OK_CONTEXTMENU=`eval echo '$SESSION_'$x'_OPENKIOSK_CONTEXTMENU'`
+			if [ -n "$OK_CONTEXTMENU" ] ; then
+				echo 'user_pref("openkiosk.ui.context.menu.enabled", '$OK_CONTEXTMENU');' >> $OK_PREFS
+			fi
+
+			# show url toolbar
+			OK_URLBAR=`eval echo '$SESSION_'$x'_OPENKIOSK_URLBAR'`
+			if [ -n "$OK_URLBAR" ] ; then
+				echo 'user_pref("openkiosk.ui.urlbar.enabled", '$OK_URLBAR');' >> $OK_PREFS
 			fi
 
 			# toolbar buttons
 			OK_TOOLBAR_BUTTONS=`eval echo '$SESSION_'$x'_OPENKIOSK_TOOLBAR_BUTTONS'`
 			if [ -n "$OK_TOOLBAR_BUTTONS" ] ; then
-				echo 'user_pref("bmakiosk.toolbar.currentset", "'$OK_TOOLBAR_BUTTONS'");' >> $OK_PREFS
+				echo 'user_pref("browser.uiCustomization.state", {\"placements\":{\"nav-bar\":[$OK_TOOLBAR_BUTTONS]},\"currentVersion\":14,\"newElementCount\":0}}");' >> $OK_PREFS
 			fi
 
+			# show personal bookmarks bar
+			OK_PERSONALBAR=`eval echo '$SESSION_'$x'_OPENKIOSK_PERSONALBAR'`
+			if [ -n "$OK_PERSONALBAR" ] ; then
+				echo 'user_pref("openkiosk.ui.personalbar.enabled", '$OK_PERSONALBAR');' >> $OK_PREFS
+				echo 'user_pref("openkiosk.ui.personalbar.bookmarks.enabled", '$OK_PERSONALBAR');' >> $OK_PREFS
+			fi
+
+			# personal bookmarks sqlite file
+			OK_PB_BOOKMARKS_URL=`eval echo '$SESSION_'$x'_OPENKIOSK_PERSONALBAR_BOOKMARKS_URL'`
+			if [ -n "$OK_PB_BOOKMARKS_URL" ] ; then
+				DB=$HOME/.mdg/openkiosk/$OK_PROFILE/places.sqlite
+				# download file
+				wget -N $OK_PB_BOOKMARKS_URL -O $DB --quiet --no-check-certificate --timeout=5
+			fi
+			
+			# personal bookmarks favicons sqlite file
+			OK_PB_FAVICONS_URL=`eval echo '$SESSION_'$x'_OPENKIOSK_PERSONALBAR_FAVICONS_URL'`
+			if [ -n "$OK_PB_FAVICONS_URL" ] ; then
+				DB=$HOME/.mdg/openkiosk/$OK_PROFILE/favicons.sqlite
+				# download file
+				wget -N $OK_PB_FAVICONS_URL -O $DB --quiet --no-check-certificate --timeout=5
+			fi
+			
 			# reset timer
 			OK_RESET_TIMER=`eval echo '$SESSION_'$x'_OPENKIOSK_RESET_TIMER'`
 			if [ -n "$OK_RESET_TIMER" ] ; then
-				echo 'user_pref("bmakiosk.reset.timer", '$OK_RESET_TIMER');' >> $OK_PREFS
+				echo 'user_pref("openkiosk.session.inactiveTerminal.minutes", $OK_RESET_TIMER);' >> $OK_PREFS
 			fi
 
-			# whitelist url
-			OK_WHITELIST_URL=`eval echo '$SESSION_'$x'_OPENKIOSK_WHITELIST_URL'`
-			if [ -n "$OK_WHITELIST_URL" ] ; then
-				echo 'user_pref("bmakiosk.filter.enabled", true);' >> $OK_PREFS
-				WL=$HOME/.mdg/openkiosk/$OK_PROFILE/whitelist.txt
-				echo 'user_pref("bmakiosk.filter.filepath", "'$WL'");' >> $OK_PREFS
-				# download whitelist file
-				wget -N $OK_WHITELIST_URL -O $WL --quiet --no-check-certificate --timeout=5
+			# filter url
+			OK_FILTER_URL=`eval echo '$SESSION_'$x'_OPENKIOSK_FILTER_URL'`
+			if [ -n "$OK_FILTER_URL" ] ; then
+				echo 'user_pref("openkiosk.filters.enabled", true);' >> $OK_PREFS
+				FILTER=$HOME/.mdg/openkiosk/$OK_PROFILE/filter.txt
+				echo 'user_pref("openkiosk.filters.file", "'$FILTER'");' >> $OK_PREFS
+				# download filter file
+				wget -N $OK_FILTER_URL -O $FILTER --quiet --no-check-certificate --timeout=5
+				# whitelist/blacklist
+				OK_FILTER_WHITELIST=`eval echo '$SESSION_'$x'_OPENKIOSK_FILTER_WHITELIST'`
+				if [ -n "$OK_FILTER_WHITELIST" ] ; then
+					echo 'user_pref("openkiosk.filters.whitelist.enabled", $OK_FILTER_WHITELIST);' >> $OK_PREFS
+				fi
 			fi
 		fi
 		let x=x+1
