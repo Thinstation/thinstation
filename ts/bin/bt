@@ -64,6 +64,8 @@ case $1 in
 	efi)	wrap_efi && $QEMU $STANDARD_MACHINE $EFI -hda $HD;;
 	bios)	$QEMU $STANDARD_MACHINE -hda build/bios.boot;;
 	image)  confirm_iso && confirm_hd && $QEMU $STANDARD_MACHINE -cdrom $ISO -hda $HD;;
+	pxe)	$QEMU $STANDARD_MACHINE $EFI;;
 	*)	confirm_iso && $QEMU $STANDARD_MACHINE -cdrom $ISO $EFI ;; #--boot menu=on;;
+
 esac
 
