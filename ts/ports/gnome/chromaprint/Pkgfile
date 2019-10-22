@@ -1,0 +1,18 @@
+# Contributor: Wieland Hoffmann <the_mineo@web.de>
+# Maintainer: Gaetan Bisson <bisson@archlinux.org>
+
+name=chromaprint
+version=1.4.3
+release=2
+source=("https://github.com/acoustid/chromaprint/releases/download/v${version}/chromaprint-${version}.tar.gz")
+
+build() {
+	cd "${SRC}/${name}-v${version}"
+	cmake \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_BUILD_TYPE=Release \
+		-DBUILD_TOOLS=ON \
+		.
+	make
+	make DESTDIR="${PKG}" install
+}

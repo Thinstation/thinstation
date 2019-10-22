@@ -5,13 +5,16 @@
 # Depends on: gtk libsigc++
 
 name=dconf
-version=0.32.0
+version=0.34.0
 release=1
-source=(http://ftp.gnome.org/pub/GNOME/sources/$name/${version%.*}/$name-$version.tar.xz)
+#source=(http://ftp.gnome.org/pub/GNOME/sources/$name/${version%.*}/$name-$version.tar.xz)
 
 build() {
-	cd $name-$version
-        meson . build -D enable_docs=true --prefix=/usr --libdir=/usr/lib
+git clone https://gitlab.gnome.org/GNOME/dconf.git # 22d49c42cc71435e1ece14a385286e1d414ff21b
+cd $name
+sed -i "s|link_whole: libdconf_common,|link_with: libdconf_common,|g" common/meson.build
+#	cd $name-$version
+        ts-meson . build --prefix=/usr --libdir=/usr/lib
         ninja -C build
         DESTDIR=$PKG ninja -C build install
 }

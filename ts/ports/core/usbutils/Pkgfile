@@ -4,13 +4,14 @@
 # Depends on:  eudev libusb
 
 name=usbutils
-version=010
+version=012
 release=2
 source=(http://www.kernel.org/pub/linux/utils/usb/$name/$name-$version.tar.xz)
 
 build() {
     wget http://www.linux-usb.org/usb.ids
     cd $name-$version
+    ./autogen.sh NOCONFIGURE=1
     ./configure --prefix=/usr --disable-zlib
     make
     make DESTDIR=$PKG install

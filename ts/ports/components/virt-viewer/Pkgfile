@@ -11,7 +11,9 @@ build() {
 	cd $name-$version
 
 	./configure --prefix=/usr \
-			--disable-update-mimedb \
+		--disable-update-mimedb \
+		--with-spice \
+		--disable-static
 
 sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
 

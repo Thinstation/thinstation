@@ -5,12 +5,16 @@
 # Depends on:  gtk
 
 name=gtk-theme-adwaita
-version=3.20
+archname=gnome-themes-extra
+version=git
 release=1
-source=(http://ftp.gnome.org/pub/gnome/sources/gnome-themes-standard/${version:0:4}/gnome-themes-standard-${version}.tar.xz)
+#source=(http://ftp.gnome.org/pub/gnome/sources/gnome-themes-standard/${version:0:4}/gnome-themes-standard-${version}.tar.xz)
 
 build() {
-	cd gnome-themes-standard-$version
+	git clone https://gitlab.gnome.org/GNOME/gnome-themes-extra.git
+	cd gnome-themes-extra
+	./autogen.sh
+#	cd gnome-themes-standard-$version
 
 	sed -i "s/HighContrast//" themes/Makefile.in
 	./configure	--prefix=/usr         \

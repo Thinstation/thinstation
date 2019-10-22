@@ -4,20 +4,21 @@
 # Depends on:  serf
 
 name=subversion
-version=1.9.12
+version=1.12.2
 release=1
 source=(https://www.apache.org/dist/$name/$name-$version.tar.bz2)
 
 build() {
     cd $name-$version
 
-    ./configure --prefix=/usr \
-                --with-apr=/usr \
-                --with-apr-util=/usr \
-                --without-swig \
-                --without-apxs \
-                --disable-mod-activation \
-                
+	./configure \
+		--prefix=/usr \
+		--disable-mod-activation \
+		--disable-static \
+		--without-apxs \
+		--without-swig \
+		--with-lz4=internal \
+		--with-utf8proc=internal
 
     make
     make -j1 DESTDIR=$PKG install

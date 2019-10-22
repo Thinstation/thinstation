@@ -1,0 +1,20 @@
+# Description: lpd client
+# URL: http://
+# Maintainer: 
+# Depends on: 
+
+name=lprng
+version=3.8.C
+release=1
+source=(http://sourceforge.net/projects/lprng/files/lprng/lprng-$version.tar.gz)
+
+build() {
+	cd lprng-$version
+	./configure --prefix=/
+	make
+	make DESTDIR=$PKG install
+
+mkdir -p $PKG/$TSCOMPROOT/$name
+mv $PKG/{etc,libexec,sbin,bin,share} $PKG/$TSCOMPROOT/$name
+}
+

@@ -2,13 +2,11 @@ drwxr-xr-x	root/root	etc/
 drwxr-xr-x	root/root	etc/xdg/
 drwxr-xr-x	root/root	etc/xdg/autostart/
 -rw-r--r--	root/root	etc/xdg/autostart/org.gnome.SettingsDaemon.A11ySettings.desktop
--rw-r--r--	root/root	etc/xdg/autostart/org.gnome.SettingsDaemon.Clipboard.desktop
 -rw-r--r--	root/root	etc/xdg/autostart/org.gnome.SettingsDaemon.Color.desktop
 -rw-r--r--	root/root	etc/xdg/autostart/org.gnome.SettingsDaemon.Datetime.desktop
 -rw-r--r--	root/root	etc/xdg/autostart/org.gnome.SettingsDaemon.Housekeeping.desktop
 -rw-r--r--	root/root	etc/xdg/autostart/org.gnome.SettingsDaemon.Keyboard.desktop
 -rw-r--r--	root/root	etc/xdg/autostart/org.gnome.SettingsDaemon.MediaKeys.desktop
--rw-r--r--	root/root	etc/xdg/autostart/org.gnome.SettingsDaemon.Mouse.desktop
 -rw-r--r--	root/root	etc/xdg/autostart/org.gnome.SettingsDaemon.Power.desktop
 -rw-r--r--	root/root	etc/xdg/autostart/org.gnome.SettingsDaemon.PrintNotifications.desktop
 -rw-r--r--	root/root	etc/xdg/autostart/org.gnome.SettingsDaemon.Rfkill.desktop
@@ -17,6 +15,7 @@ drwxr-xr-x	root/root	etc/xdg/autostart/
 -rw-r--r--	root/root	etc/xdg/autostart/org.gnome.SettingsDaemon.Smartcard.desktop
 -rw-r--r--	root/root	etc/xdg/autostart/org.gnome.SettingsDaemon.Sound.desktop
 -rw-r--r--	root/root	etc/xdg/autostart/org.gnome.SettingsDaemon.Wacom.desktop
+-rw-r--r--	root/root	etc/xdg/autostart/org.gnome.SettingsDaemon.Wwan.desktop
 -rw-r--r--	root/root	etc/xdg/autostart/org.gnome.SettingsDaemon.XSettings.desktop
 drwxr-xr-x	root/root	usr/
 drwxr-xr-x	root/root	usr/include/
@@ -28,21 +27,70 @@ drwxr-xr-x	root/root	usr/lib/gnome-settings-daemon-3.0/
 -rwxr-xr-x	root/root	usr/lib/gnome-settings-daemon-3.0/libgsd.so
 drwxr-xr-x	root/root	usr/lib/pkgconfig/
 -rw-r--r--	root/root	usr/lib/pkgconfig/gnome-settings-daemon.pc
+drwxr-xr-x	root/root	usr/lib/systemd/
+drwxr-xr-x	root/root	usr/lib/systemd/user/
+drwxr-xr-x	root/root	usr/lib/systemd/user/gnome-session-initialized.target.wants/
+lrwxrwxrwx	root/root	usr/lib/systemd/user/gnome-session-initialized.target.wants/gsd-a11y-settings.target -> ../gsd-a11y-settings.target
+lrwxrwxrwx	root/root	usr/lib/systemd/user/gnome-session-initialized.target.wants/gsd-color.target -> ../gsd-color.target
+lrwxrwxrwx	root/root	usr/lib/systemd/user/gnome-session-initialized.target.wants/gsd-datetime.target -> ../gsd-datetime.target
+lrwxrwxrwx	root/root	usr/lib/systemd/user/gnome-session-initialized.target.wants/gsd-housekeeping.target -> ../gsd-housekeeping.target
+lrwxrwxrwx	root/root	usr/lib/systemd/user/gnome-session-initialized.target.wants/gsd-keyboard.target -> ../gsd-keyboard.target
+lrwxrwxrwx	root/root	usr/lib/systemd/user/gnome-session-initialized.target.wants/gsd-media-keys.target -> ../gsd-media-keys.target
+lrwxrwxrwx	root/root	usr/lib/systemd/user/gnome-session-initialized.target.wants/gsd-power.target -> ../gsd-power.target
+lrwxrwxrwx	root/root	usr/lib/systemd/user/gnome-session-initialized.target.wants/gsd-print-notifications.target -> ../gsd-print-notifications.target
+lrwxrwxrwx	root/root	usr/lib/systemd/user/gnome-session-initialized.target.wants/gsd-rfkill.target -> ../gsd-rfkill.target
+lrwxrwxrwx	root/root	usr/lib/systemd/user/gnome-session-initialized.target.wants/gsd-screensaver-proxy.target -> ../gsd-screensaver-proxy.target
+lrwxrwxrwx	root/root	usr/lib/systemd/user/gnome-session-initialized.target.wants/gsd-sharing.target -> ../gsd-sharing.target
+lrwxrwxrwx	root/root	usr/lib/systemd/user/gnome-session-initialized.target.wants/gsd-smartcard.target -> ../gsd-smartcard.target
+lrwxrwxrwx	root/root	usr/lib/systemd/user/gnome-session-initialized.target.wants/gsd-sound.target -> ../gsd-sound.target
+lrwxrwxrwx	root/root	usr/lib/systemd/user/gnome-session-initialized.target.wants/gsd-wacom.target -> ../gsd-wacom.target
+lrwxrwxrwx	root/root	usr/lib/systemd/user/gnome-session-initialized.target.wants/gsd-wwan.target -> ../gsd-wwan.target
+drwxr-xr-x	root/root	usr/lib/systemd/user/gnome-session-x11-services.target.wants/
+lrwxrwxrwx	root/root	usr/lib/systemd/user/gnome-session-x11-services.target.wants/gsd-xsettings.target -> ../gsd-xsettings.target
+-rw-r--r--	root/root	usr/lib/systemd/user/gsd-a11y-settings.service
+-rw-r--r--	root/root	usr/lib/systemd/user/gsd-a11y-settings.target
+-rw-r--r--	root/root	usr/lib/systemd/user/gsd-color.service
+-rw-r--r--	root/root	usr/lib/systemd/user/gsd-color.target
+-rw-r--r--	root/root	usr/lib/systemd/user/gsd-datetime.service
+-rw-r--r--	root/root	usr/lib/systemd/user/gsd-datetime.target
+-rw-r--r--	root/root	usr/lib/systemd/user/gsd-housekeeping.service
+-rw-r--r--	root/root	usr/lib/systemd/user/gsd-housekeeping.target
+-rw-r--r--	root/root	usr/lib/systemd/user/gsd-keyboard.service
+-rw-r--r--	root/root	usr/lib/systemd/user/gsd-keyboard.target
+-rw-r--r--	root/root	usr/lib/systemd/user/gsd-media-keys.service
+-rw-r--r--	root/root	usr/lib/systemd/user/gsd-media-keys.target
+-rw-r--r--	root/root	usr/lib/systemd/user/gsd-power.service
+-rw-r--r--	root/root	usr/lib/systemd/user/gsd-power.target
+-rw-r--r--	root/root	usr/lib/systemd/user/gsd-print-notifications.service
+-rw-r--r--	root/root	usr/lib/systemd/user/gsd-print-notifications.target
+-rw-r--r--	root/root	usr/lib/systemd/user/gsd-rfkill.service
+-rw-r--r--	root/root	usr/lib/systemd/user/gsd-rfkill.target
+-rw-r--r--	root/root	usr/lib/systemd/user/gsd-screensaver-proxy.service
+-rw-r--r--	root/root	usr/lib/systemd/user/gsd-screensaver-proxy.target
+-rw-r--r--	root/root	usr/lib/systemd/user/gsd-sharing.service
+-rw-r--r--	root/root	usr/lib/systemd/user/gsd-sharing.target
+-rw-r--r--	root/root	usr/lib/systemd/user/gsd-smartcard.service
+-rw-r--r--	root/root	usr/lib/systemd/user/gsd-smartcard.target
+-rw-r--r--	root/root	usr/lib/systemd/user/gsd-sound.service
+-rw-r--r--	root/root	usr/lib/systemd/user/gsd-sound.target
+-rw-r--r--	root/root	usr/lib/systemd/user/gsd-wacom.service
+-rw-r--r--	root/root	usr/lib/systemd/user/gsd-wacom.target
+-rw-r--r--	root/root	usr/lib/systemd/user/gsd-wwan.service
+-rw-r--r--	root/root	usr/lib/systemd/user/gsd-wwan.target
+-rw-r--r--	root/root	usr/lib/systemd/user/gsd-xsettings.service
+-rw-r--r--	root/root	usr/lib/systemd/user/gsd-xsettings.target
 drwxr-xr-x	root/root	usr/lib/udev/
 drwxr-xr-x	root/root	usr/lib/udev/rules.d/
 -rw-r--r--	root/root	usr/lib/udev/rules.d/61-gnome-settings-daemon-rfkill.rules
 drwxr-xr-x	root/root	usr/libexec/
 -rwxr-xr-x	root/root	usr/libexec/gsd-a11y-settings
 -rwxr-xr-x	root/root	usr/libexec/gsd-backlight-helper
--rwxr-xr-x	root/root	usr/libexec/gsd-clipboard
 -rwxr-xr-x	root/root	usr/libexec/gsd-color
 -rwxr-xr-x	root/root	usr/libexec/gsd-datetime
 -rwxr-xr-x	root/root	usr/libexec/gsd-dummy
 -rwxr-xr-x	root/root	usr/libexec/gsd-housekeeping
 -rwxr-xr-x	root/root	usr/libexec/gsd-keyboard
--rwxr-xr-x	root/root	usr/libexec/gsd-locate-pointer
 -rwxr-xr-x	root/root	usr/libexec/gsd-media-keys
--rwxr-xr-x	root/root	usr/libexec/gsd-mouse
 -rwxr-xr-x	root/root	usr/libexec/gsd-power
 -rwxr-xr-x	root/root	usr/libexec/gsd-print-notifications
 -rwxr-xr-x	root/root	usr/libexec/gsd-printer
@@ -54,6 +102,7 @@ drwxr-xr-x	root/root	usr/libexec/
 -rwxr-xr-x	root/root	usr/libexec/gsd-wacom
 -rwxr-xr-x	root/root	usr/libexec/gsd-wacom-led-helper
 -rwxr-xr-x	root/root	usr/libexec/gsd-wacom-oled-helper
+-rwxr-xr-x	root/root	usr/libexec/gsd-wwan
 -rwxr-xr-x	root/root	usr/libexec/gsd-xsettings
 drwxr-xr-x	root/root	usr/share/
 drwxr-xr-x	root/root	usr/share/GConf/
@@ -70,6 +119,7 @@ drwxr-xr-x	root/root	usr/share/glib-2.0/schemas/
 -rw-r--r--	root/root	usr/share/glib-2.0/schemas/org.gnome.settings-daemon.plugins.media-keys.gschema.xml
 -rw-r--r--	root/root	usr/share/glib-2.0/schemas/org.gnome.settings-daemon.plugins.power.gschema.xml
 -rw-r--r--	root/root	usr/share/glib-2.0/schemas/org.gnome.settings-daemon.plugins.sharing.gschema.xml
+-rw-r--r--	root/root	usr/share/glib-2.0/schemas/org.gnome.settings-daemon.plugins.wwan.gschema.xml
 -rw-r--r--	root/root	usr/share/glib-2.0/schemas/org.gnome.settings-daemon.plugins.xsettings.gschema.xml
 drwxr-xr-x	root/root	usr/share/gnome-settings-daemon/
 drwxr-xr-x	root/root	usr/share/gnome-settings-daemon/datetime/

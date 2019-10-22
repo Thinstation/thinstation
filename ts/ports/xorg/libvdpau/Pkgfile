@@ -5,19 +5,16 @@
 # Depends on: xorg-libxext
 
 name=libvdpau
-version=1.2
+version=1.3
 release=1
-source=(https://gitlab.freedesktop.org/vdpau/$name/uploads/14b620084c027d546fa0b3f083b800c6/$name-$version.tar.bz2)
+#source=(https://gitlab.freedesktop.org/vdpau/$name/uploads/14b620084c027d546fa0b3f083b800c6/$name-$version.tar.bz2)
 
 build() {
-	cd $name-$version
+  git clone https://anongit.freedesktop.org/git/vdpau/libvdpau
 
-	./configure \
-		--prefix=/usr \
-		--sysconfdir=/etc \
-		--mandir=/usr/man \
-		--disable-dependency-tracking
+  ts-meson $name build
+  ninja -C build
 
-	make
-	make DESTDIR=$PKG install
+  DESTDIR="${PKG}" ninja -C build install
+  install -Dm 644 $name/COPYING -t "${PKG}/usr/share/licenses/${name}/"
 }

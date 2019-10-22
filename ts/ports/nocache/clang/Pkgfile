@@ -4,10 +4,10 @@
 # Depends on:  llvm
 
 name=clang
-version=8.0.1
+version=9.0.0
 release=2
-source=(https://github.com/llvm/llvm-project/releases/download/llvmorg-$version/llvm-$version.src.tar.xz \
-	https://github.com/llvm/llvm-project/releases/download/llvmorg-$version/cfe-$version.src.tar.xz)
+source=(https://releases.llvm.org/$version/llvm-$version.src.tar.xz \
+	https://releases.llvm.org/$version/cfe-$version.src.tar.xz)
 
 build() {
   mv cfe-$version.src llvm-$version.src/tools/clang
@@ -38,7 +38,7 @@ build() {
   rm -r $PKG/usr/lib/cmake/llvm
   rm -r $PKG/usr/share/opt-viewer
   rm $PKG/usr/bin/{bugpoint,ll*,opt,obj2yaml,sancov,sanstats,verify-uselistorder,yaml2obj,dsymutil}
-  rm $PKG/usr/lib/{libLTO.*,libOptRemarks.*,libLLVM*}
+  rm $PKG/usr/lib/{libLTO.*,libRemarks*,libLLVM*} -f
 
 
   mv $PKG/usr/libexec/{c++-analyzer,ccc-analyzer} $PKG/usr/lib/clang

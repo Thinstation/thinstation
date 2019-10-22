@@ -1,0 +1,12 @@
+# Maintainer: Jan Alexander Steffens (heftig) <jan.steffens@gmail.com>
+
+name=grilo-plugins
+version=git
+release=1
+
+build() {
+  git clone https://gitlab.gnome.org/GNOME/grilo-plugins.git
+  ts-meson $name build
+  ninja -C build
+  DESTDIR="$PKG" meson install -C build
+}

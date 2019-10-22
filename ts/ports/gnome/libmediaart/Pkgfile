@@ -1,0 +1,12 @@
+# Maintainer: Jan de Groot <jgc@archlinux.org>
+
+name=libmediaart
+version=git
+release=1
+
+build() {
+  git clone http://git.gnome.org/browse/libmediaart
+  ts-meson $name build
+  ninja -C build
+  DESTDIR="$PKG" ninja -C build install
+}

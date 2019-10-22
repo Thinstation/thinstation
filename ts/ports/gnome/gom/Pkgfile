@@ -1,0 +1,16 @@
+# Maintainer: Jan Alexander Steffens (heftig) <jan.steffens@gmail.com>
+
+name=gom
+version=git
+release=2
+
+build() {
+git clone https://git.gnome.org/browse/gom
+  mkdir build
+  cd build
+  meson setup --prefix=/usr --buildtype=release -Denable-gtk-doc=true ../$name
+  ninja
+  DESTDIR="$PKG" ninja install
+}
+
+# vim:set ts=2 sw=2 et:

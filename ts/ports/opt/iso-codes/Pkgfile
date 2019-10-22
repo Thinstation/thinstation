@@ -5,12 +5,15 @@
 # Depends on: gettext
 
 name=iso-codes
-version=1.0
+version=git
 release=1
-source=(http://crux.nu/files/$name-$version.tar.bz2)
+#source=(http://crux.nu/files/$name-$version.tar.bz2)
 
 build() {
-  cd $name-$version
+git clone https://salsa.debian.org/iso-codes-team/iso-codes
+cd $name
+#  cd $name-$version
+  autoreconf -fi
   ./configure --prefix=/usr
   make
   make pkgconfigdir=/usr/lib/pkgconfig DESTDIR=$PKG install

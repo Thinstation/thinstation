@@ -1,0 +1,20 @@
+# Maintainer: Jan de Groot <jgc@archlinux.org>
+# Contributor: Ben <ben@benmazer.net>
+
+name=gmime3
+version=git
+release=1
+
+build() {
+git clone https://github.com/jstedfast/gmime
+  cd gmime
+  NOCONFIGURE=1 ./autogen.sh
+  ./configure --prefix=/usr \
+    --program-prefix=$name \
+    --enable-gtk-doc \
+    --enable-smime \
+    --disable-static
+  sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
+  make
+  make DESTDIR="$PKG" install
+}

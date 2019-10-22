@@ -3,14 +3,12 @@
 # Contributor: Aurélien Wailly <aurelien.wailly@gmail.com>
 
 name=protobuf-c
-version=1.3.1
+version=1.3.2
 release=2
-source=("https://github.com/protobuf-c/protobuf-c/releases/download/v$version/$name-$version.tar.gz"
-        invalid-namespace.patch)
+source=("https://github.com/protobuf-c/protobuf-c/releases/download/v$version/$name-$version.tar.gz")
 
 build() {
   cd "$name-$version"
-  patch -p1 -i ../invalid-namespace.patch
   ./configure --prefix=/usr --disable-static
   make
   make DESTDIR="$PKG" install

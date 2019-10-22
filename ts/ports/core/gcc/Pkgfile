@@ -4,8 +4,8 @@
 # toolchain build order: linux-api-headers->glibc->binutils->gcc->binutils->glibc
 # NOTE: libtool requires rebuilt with each new gcc version
 
-name=('gcc' 'gcc-libs' 'gcc-fortran' 'gcc-objc' 'gcc-ada' 'gcc-go')
-version=9.1.0
+name=gcc
+version=9.2.0
 _version=7
 _islver=0.21
 release=1
@@ -24,14 +24,8 @@ CHOST=x86_64-pc-linux-gnu
 _libdir="usr/lib/gcc/$CHOST/$version"
 
 build() {
-#git clone --depth 1 --branch gcc-6-branch git://gcc.gnu.org/git/gcc.git
-#cd gcc
-#git checkout ${_commit}
   mv gcc-$version gcc
   cd ${SRC}/gcc
-
-  patch -p0 -i "$SRC/bz90397.patch"
-  patch -p0 -i "$SRC/bz90949.patch"
 
   # link isl for in-tree build
   ln -s ../isl-${_islver} isl
@@ -57,7 +51,7 @@ build() {
       --libdir=/usr/lib --libexecdir=/usr/lib \
       --mandir=/usr/share/man --infodir=/usr/share/info \
       --with-bugurl=https://www.thinstation.org/ \
-      --enable-languages=c,c++,fortran,go,lto,objc,obj-c++ \
+      --enable-languages=c,c++,fortran,lto,objc,obj-c++,go \
       --enable-shared --enable-threads=posix --enable-libmpx \
       --with-system-zlib --with-isl --enable-__cxa_atexit \
       --disable-libunwind-exceptions --enable-clocale=gnu \
@@ -77,17 +71,8 @@ build() {
   ulimit -s 32768
 
   # do not abort on error as some are "expected"
-  make -k check || true
-  ${SRC}/gcc/contrib/test_summary
-  pkgdesc="Runtime libraries shipped by GCC"
-  groups=('base')
-  depends=('glibc>=2.24')
-  options=('!emptydirs' '!strip')
-
 
   make -C $CHOST/libgcc DESTDIR=${PKG} install
-#  rm -f ${PKG}/${_libdir}/libgcc_eh.a
-#  rm -f ${PKG}/usr/lib/libmpx.spec
 
   # Install Runtime Library Exception
   install -Dm644 ${SRC}/gcc/COPYING.RUNTIME \
@@ -98,7 +83,6 @@ build() {
   install -m755 -t $PKG/${_libdir}/ gcc/{cc1,cc1plus,collect2,lto1}
 
   make -C $CHOST/libgcc DESTDIR=${PKG} install
-#  rm -f ${PKG}/usr/lib/libgcc_s.so*
 
   make -C $CHOST/libstdc++-v3/src DESTDIR=${PKG} install
   make -C $CHOST/libstdc++-v3/include DESTDIR=${PKG} install
@@ -109,7 +93,6 @@ build() {
   install -d $PKG/usr/share/gdb/auto-load/usr/lib
   mv $PKG/usr/lib/libstdc++.so.6.*-gdb.py \
     $PKG/usr/share/gdb/auto-load/usr/lib/
-#  rm -f ${PKG}/usr/lib/libstdc++.so*
 
   make DESTDIR=${PKG} install-fixincludes
   make -C gcc DESTDIR=${PKG} install-mkheaders
@@ -121,9 +104,9 @@ build() {
 
   for lib in libatomic \
              libgfortran \
-             libgo \
              libgomp \
              libitm \
+             libgo \
              libquadmath \
              libsanitizer/{a,l,ub,t}san \
              libstdc++-v3/src \
@@ -135,12 +118,7 @@ build() {
   # install PIC version of libiberty
   install -m644 ${SRC}/gcc-build/libiberty/pic/libiberty.a ${PKG}/usr/lib
 
-#  make -C gcc DESTDIR=${PKG} install-man install-info
-#  rm ${PKG}/usr/share/man/man1/{gccgo,gfortran}.1
-#  rm ${PKG}/usr/share/info/{gccgo,gfortran,gnat-style,gnat_rm,gnat_ugn}.info
-
   make -C libcpp DESTDIR=${PKG} install
-#  make -C gcc DESTDIR=${PKG} install-po
 
   # many packages expect this symlink
   ln -s gcc ${PKG}/usr/bin/cc
@@ -174,16 +152,9 @@ EOF
 
   chmod 755 $PKG/usr/bin/c{8,9}9
 
-  # install the libstdc++ man pages
-#  make -C $CHOST/libstdc++-v3/doc DESTDIR=$PKG doc-install-man
-
   # Install Runtime Library Exception
   install -d ${PKG}/usr/share/licenses/gcc/
   ln -s ../gcc-libs/RUNTIME.LIBRARY.EXCEPTION ${PKG}/usr/share/licenses/gcc/
-
-  pkgdesc="Fortran front-end for GCC"
-  depends=("gcc=$version-$release")
-  options=('!emptydirs')
 
   cd ${SRC}/gcc-build
   make -C $CHOST/libgfortran DESTDIR=$PKG install-cafexeclibLTLIBRARIES \
@@ -198,9 +169,6 @@ EOF
   install -d ${PKG}/usr/share/licenses/gcc-fortran/
   ln -s ../gcc-libs/RUNTIME.LIBRARY.EXCEPTION ${PKG}/usr/share/licenses/gcc-fortran/
 
-  pkgdesc="Objective-C front-end for GCC"
-  depends=("gcc=$version-$release")
-
   cd ${SRC}/gcc-build
   make DESTDIR=$PKG -C $CHOST/libobjc install-headers
   install -dm755 $PKG/${_libdir}
@@ -209,43 +177,4 @@ EOF
   # Install Runtime Library Exception
   install -d ${PKG}/usr/share/licenses/gcc-objc/
   ln -s ../gcc-libs/RUNTIME.LIBRARY.EXCEPTION ${PKG}/usr/share/licenses/gcc-objc/
-
-#  pkgdesc="Ada front-end for GCC (GNAT)"
-#  depends=("gcc=$version-$release")
-#  options=('staticlibs' '!emptydirs')
-#
-#  cd ${SRC}/gcc-build/gcc
-#  make DESTDIR=$PKG ada.install-{common,info}
-#  install -m755 gnat1 $PKG/${_libdir}
-
-#  ln -s gcc ${PKG}/usr/bin/gnatgcc
-
-  # insist on dynamic linking, but keep static libraries because gnatmake complains
-#  mv ${PKG}/${_libdir}/adalib/libgna{rl,t}-${_version}.so ${PKG}/usr/lib
-#  ln -s libgnarl-${_version}.so ${PKG}/usr/lib/libgnarl.so
-#  ln -s libgnat-${_version}.so ${PKG}/usr/lib/libgnat.so
-#  rm ${PKG}/${_libdir}/adalib/libgna{rl,t}.so
-
-  # Install Runtime Library Exception
-#  install -d ${PKG}/usr/share/licenses/gcc-ada/
-#  ln -s ../gcc-libs/RUNTIME.LIBRARY.EXCEPTION ${PKG}/usr/share/licenses/gcc-ada/
-
-  pkgdesc="Go front-end for GCC"
-  depends=("gcc=$version-$release")
-  conflicts=('go')
-  options=('!emptydirs')
-
-  cd ${SRC}/gcc-build
-  make -C $CHOST/libgo DESTDIR=$PKG install-exec-am
-#  rm -f ${PKG}/usr/lib/libgo.so*
-  make -C gcc DESTDIR=$PKG go.install-{common,man}
-  install -Dm755 gcc/go1 $PKG/${_libdir}/go1
-
-  make DESTDIR=${PKG} install-gotools
-
-  # Install Runtime Library Exception
-  install -d ${PKG}/usr/share/licenses/gcc-go/
-  ln -s ../gcc-libs/RUNTIME.LIBRARY.EXCEPTION ${PKG}/usr/share/licenses/gcc-go/
-
-  rm $PKG/usr/bin/{go,gofmt}
 }

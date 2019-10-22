@@ -4,14 +4,19 @@
 # Depends on: xorg-libx11 xorg-libxext
 
 name=libglvnd
-version=1.1.1
+version=1.2.0
 release=1
 source=(https://github.com/NVIDIA/$name/archive/v$version/$name-$version.tar.gz)
 
 build() {
 	cd $name-$version
-	./autogen.sh
-	./configure --prefix=/usr
+	./autogen.sh NOCONFIGURE=1
+	./configure --prefix=/usr --disable-headers
+
 	make
 	make DESTDIR=$PKG install
+
+	rm "$PKG"/usr/lib/pkgconfig/glesv1*
+	rm "$PKG"/usr/lib/pkgconfig/{egl,gl}.pc
+	rm "$PKG"/usr/lib/libGLESv1*
 }

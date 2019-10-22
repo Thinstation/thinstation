@@ -1,0 +1,19 @@
+# Maintainer: Jan Alexander Steffens (heftig) <jan.steffens@gmail.com>
+# Contributor: Ionut Biru <ibiru@archlinux.org>
+
+name=libdmapsharing
+version=git
+release=2
+
+build(){
+git clone  https://gitlab.gnome.org/GNOME/libdmapsharing.git
+  cd $name
+  git checkout b5af68774d432bbf44ffa552df26665dce1cc155
+  NOCONFIGURE=1 ./autogen.sh
+
+  ./configure --prefix=/usr --with-mdns=avahi --enable-gtk-doc --disable-tests
+  sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
+  make
+  cd $name
+  make DESTDIR="$PKG" install
+}

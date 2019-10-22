@@ -4,7 +4,7 @@
 # Contributor: peace4all <markspost at rocketmail dot com>
 
 name=dnscrypt-proxy
-version=2.0.25
+version=2.0.28
 release=2
 source=("https://github.com/jedisct1/${name}/archive/${version}.tar.gz"
         "${name}.service"
@@ -22,7 +22,7 @@ build() {
   # set GOPATH
   export GOPATH=$(pwd)
   cd "${name}"
-  go build -ldflags="-linkmode external -extldflags ${LDFLAGS} -s -w"
+  go build #-ldflags="-linkmode external -extldflags ${LDFLAGS} -s -w"
   # executable
   install -vDm 755 "$SRC/$name-$version/${name}/${name}" -t "${PKG}/usr/bin/"
   # configuration

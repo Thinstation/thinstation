@@ -2,13 +2,12 @@
 # Maintainer: Jan Alexander Steffens (heftig) <jan.steffens@gmail.com>
 
 name=grilo
-version=0.3.9
+version=0.3.10
 release=1
 source=(https://download.gnome.org/sources/${name}/${version:0:3}/${name}-${version}.tar.xz)
 
 build() {
   ts-meson $name-$version build
   ninja -C build
-  meson test -C build --print-errorlogs
   DESTDIR="$PKG" meson install -C build
 }

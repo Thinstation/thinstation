@@ -1,0 +1,15 @@
+# Maintainer : Ionut Biru <ibiru@archlinux.org>
+# Contributor: Sergej Pupykin <pupykin.s+arch@gmail.com>
+
+name=libgee
+version=git
+release=1
+
+build() {
+git clone https://gitlab.gnome.org/GNOME/libgee.git
+  cd $name
+  NOCONFIGURE=1 ./autogen.sh
+  ./configure --prefix=/usr --disable-static
+  make
+  make DESTDIR="$PKG" install
+}

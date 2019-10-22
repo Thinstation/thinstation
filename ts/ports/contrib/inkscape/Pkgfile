@@ -12,14 +12,23 @@ source=(https://media.inkscape.org/dl/resources/file/$name-$version.tar.bz2
 
 build() {
 	cd $name-$version
-
-	patch -p1 -i $SRC/inkscape-0.92.4-poppler-0.76.0.patch
-
-	CXXFLAGS+=' -std=c++11'
-
 	./autogen.sh
 
-#	export PKG_CONFIG_PATH='/usr/lib/imagemagick6/pkgconfig'
+	sed -i 's|/usr/bin/python\>|/usr/bin/python2|g' cxxtest/*.py
+	sed -i 's|/usr/bin/env python\>|/usr/bin/env python2|g' share/*/{test/,}*.py
+	sed -i 's|"python" },|"python2" },|g' src/extension/implementation/script.cpp
+	sed -i 's|python -c|python2 -c|g' configure share/extensions/uniconv*.py
+	sed -i 's|"python"|"python2"|g' src/main.cpp
+
+	sed -i 's| abs(| std::fabs(|g' src/ui/tools/flood-tool.cpp
+       # Fix build with poppler 0.71
+        sed -e 's|gTrue|true|g' -e 's|gFalse|false|g' -e 's|GBool|bool|g' -i src/extension/internal/pdfinput/pdf-parser.*
+       # Fix build with poppler 0.72
+        sed -e 's|getCString|c_str|g' -i src/extension/internal/pdfinput/*
+       # Fix build with poppler 0.76
+        sed -e 's|new Lexer(xref, obj)|obj|g' -i src/extension/internal/pdfinput/pdf-parser.cpp
+
+	export PKG_CONFIG_PATH='/usr/lib/imagemagick6/pkgconfig'
 	export FREETYPE_CONFIG="/usr/bin/pkg-config freetype2"
 
 	./configure \
@@ -27,7 +36,7 @@ build() {
 		--with-python \
 		--with-perl \
 		--enable-lcms \
-		--disable-poppler-cairo \
+		--enable-poppler-cairo \
 		--disable-strict-build \
 		--disable-dependency-tracking
 

@@ -11,17 +11,17 @@ source=(http://spice-space.org/download/gtk/spice-gtk-$version.tar.bz2)
 build() {
 	cd spice-gtk-$version
 	./configure --prefix=/usr \
-			--with-gtk=3.0 \
-			--exec-prefix=/ \
 			--sysconfdir=/etc \
-			--mandir=/usr/man \
-			--enable-celt051
+			--localstatedir=/var \
+			--enable-vala \
+			--with-coroutine=gthread \
+			--disable-static \
+			--disable-celt051
 
-sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
-
+	sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
 
 	make
 	make -j1 DESTDIR=$PKG install
-	mkdir $PKG/usr/lib
-	mv $PKG/lib/pkgconfig $PKG/usr/lib/.
+#	mkdir $PKG/usr/lib
+#	mv $PKG/lib/pkgconfig $PKG/usr/lib/.
 }

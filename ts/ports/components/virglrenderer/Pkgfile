@@ -2,12 +2,13 @@
 # Maintainer:  Anatol Pomozov <anatol@archlinux.org>
 
 name=virglrenderer
-version=0.7.0
+version=0.8.0
 release=1
-source=(https://www.freedesktop.org/software/virgl/virglrenderer-$version.tar.bz2)
+source=(https://github.com/freedesktop/virglrenderer/archive/virglrenderer-$version.zip)
 
 build() {
-  cd virglrenderer-$version
+  cd virglrenderer-$name-$version
+  ./autogen.sh NOCONFIGURE=1
   ./configure --prefix=/usr
   make
   make DESTDIR="$PKG" install

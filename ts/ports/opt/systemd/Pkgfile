@@ -4,9 +4,9 @@
 # Maintainer: Tom Gundersen <teg@jklm.no>
 
 name=systemd
-version=242
+version=243
 release=2
-source=(https://github.com/systemd/systemd/archive/v242.tar.gz
+source=(https://github.com/systemd/systemd/archive/v$version.tar.gz
 	fstab-generator.patch
         '0001-Use-Arch-Linux-device-access-groups.patch'
         'initcpio-hook-udev'
@@ -107,6 +107,7 @@ build() {
     -Dtmpfiles=true
     -Dlibcryptsetup=false
     -Dutmp=false
+    -Dman=true
   )
 
   ts-meson "$name-$version" build "${_meson_options[@]}"

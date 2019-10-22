@@ -4,7 +4,7 @@
 # Contributor: Geoffroy Carrier <geoffroy@archlinux.org>
 
 name=bluez
-version=5.50
+version=5.51
 release=2
 source=(http://www.kernel.org/pub/linux/bluetooth/${name}-${version}.tar.xz
         bluetooth.modprobe)
@@ -22,7 +22,6 @@ build() {
           --enable-library # this is deprecated
   make
   make DESTDIR=${PKG} \
-       install-libexecPROGRAMS \
        install-dbussessionbusDATA \
        install-systemdsystemunitDATA \
        install-systemduserunitDATA \
@@ -31,13 +30,14 @@ build() {
        install-man8 \
        install-binPROGRAMS \
        install-man1 \
-       install-includeHEADERS \
        install-libLTLIBRARIES \
        install-pkgconfigDATA \
        install-cupsPROGRAMS \
        install-udevPROGRAMS \
        install-rulesDATA \
-       install-pluginLTLIBRARIES
+       install-pluginLTLIBRARIES \
+       install-pkglibexecPROGRAMS \
+       install-pkgincludeHEADERS
 
   # ship upstream main config file
   install -dm755 ${PKG}/etc/bluetooth

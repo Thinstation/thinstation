@@ -3,15 +3,13 @@
 # Maintainer:  CRUX System Team, core-ports at crux dot nu
 
 name=findutils
-version=4.6.0
+version=4.7.0
 release=1
-source=(http://ftpmirror.gnu.org/gnu/$name/$name-$version.tar.gz \
-    $name-glibc-2.28.patch $name-makedev.patch)
+source=(http://ftpmirror.gnu.org/gnu/$name/$name-$version.tar.xz)
 
 build() {
     cd $name-$version
-    patch -p1 -i $SRC/$name-glibc-2.28.patch
-    patch -p1 -i $SRC/$name-makedev.patch
+
     autoreconf -if
     ./configure --prefix=/usr 
     make
