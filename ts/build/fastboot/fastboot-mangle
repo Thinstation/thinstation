@@ -40,22 +40,27 @@ if [ "$2" == "true" ] ; then
 		mv usr/$i lib/.
 		ln -sf /lib/$i usr/$i
 	done
-	for i in `cat ../fastboot/lib-boot` ; do
-		if [ -e lib/$i ]; then
-			mv lib/$i fastboot/.
-			ln -sf /fastboot/$i lib/$i
-		fi
-	done
+	rm -f fastlibneed
 	for i in `cat ../fastboot/bin-boot` ; do
 		if [ -e lib/bin/$i ]; then
 			mv lib/bin/$i fastboot/bin/.
 			ln -sf /fastboot/bin/$i lib/bin/$i
+			ldd fastboot/bin/$i 2>/dev/null >> /tmp/fastlibneed
 		fi
 		if [ -e lib/sbin/$i ]; then
 			mv lib/sbin/$i fastboot/sbin/.
 			ln -sf /fastboot/sbin/$i lib/sbin/$i
+			ldd fastboot/sbin/$i 2>/dev/null >> /tmp/fastlibneed
 		fi
 	done
+	cat /tmp/fastlibneed |grep -v "not a dyn"|sed -e 's/\t//g' |cut -d " " -f1 |sort -u  |sed -e 's|/lib64/||g' > /tmp/fastlib
+        for i in `cat ../fastboot/lib-boot; cat /tmp/fastlib` ; do
+                if [ -e lib/$i ]; then
+                        mv lib/$i fastboot/.
+                        ln -sf /fastboot/$i lib/$i
+                fi
+        done
+
 	echo -e "\tMaking lib.squash"
 	timestamp="`date +%Y%m%d`0000"
 	for file in `find lib`; do
@@ -65,7 +70,7 @@ if [ "$2" == "true" ] ; then
 		hardlink -v lib
 	fi
 	mksquashfs lib ../$INITDIR/lib.squash -always-use-fragments -no-recovery -no-xattrs -noappend $FB_COMP_EXTRA
-	for i in `ls --color=never lib/ |grep -xvf ../fastboot/lib-boot |grep -Ewv 'bin|sbin|dbus-1'` ; do
+	for i in `ls --color=never lib/ |grep -xvf ../fastboot/lib-boot |grep -xvf /tmp/fastlib |grep -Ewv 'bin|sbin|dbus-1'` ; do
 		if [ ! -z "$i" ] ; then
 			rm -rf lib/$i
 		fi

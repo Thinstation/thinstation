@@ -22,16 +22,25 @@ start)
 #	fi
 
 	while ! systemctl is-active multi-user.target > /dev/null 2>&1 \
-	 && [ ! -e /sys/devices/virtual/vtconsole/vtcon1 ]; do sleep .1; openvt -f -c 1 -- echo -e "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\t\t\t\t\t\t\t\t\t\t."; done
-
+	 && [ ! -e /sys/devices/virtual/vtconsole/vtcon1 ]; do
+		sleep .1
+		openvt -f -c 1 -- echo -e "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\t\t\t\t\t\t\t\t\t\t."
+		clear
+	done
 	if ! systemctl is-active multi-user.target > /dev/null 2>&1 \
 	&& [ -e /sys/devices/virtual/vtconsole/vtcon1 ]; then
 		mkdir -p /lib/splash/cache
 		splash
 		splash_start
-		while ! systemctl is-active multi-user.target > /dev/null 2>&1; do
+		timeout=1200
+		while ! systemctl is-active multi-user.target > /dev/null 2>&1 \
+		&& [ "$timeout" -gt "0" ] \
+		&& [ ! -e /tmp/splash.exit ]; do
 			progress=`systemctl list-units |grep -E '\.timer|\.target|\.service|\.slice|\.cups|\.device|\.mount|\.path|\.scope|\.socket' |grep -v inactive |wc -l`
-			splash_progress
+			if [ -z "`pidof wget`" ]; then
+				splash_progress
+			fi
+			let timeout-=1
 			sleep .1
 		done
 	fi

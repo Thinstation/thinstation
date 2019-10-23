@@ -1,6 +1,7 @@
 #!/bin/sh
 
 . `dirname $0`/common
+. /etc/splash.functions
 
 #set -x
 #exec </dev/null >/var/log/fastboot.log  2>&1
@@ -63,12 +64,14 @@ syslinux()
 	if [ "$BOOTABLE" == "FALSE" ]; then
 		printf "\rCould not find the storage volume!"
 		if pkg_initialized debug || is_disabled $HALTONERROR ; then
-			echo_log "Debug enabled...dropping to shell."
+			touch /tmp/splash.exit
 			force_splash_exit
+			echo_log "Debug enabled...dropping to shell."
 			/bin/sh
 		else
+			touch /tmp/splash.exit
+			force_splash_exit
 			echo_log "Debug not enabled, boot halted."
-	                force_splash_exit
         	        halt
         	fi
 	fi
@@ -83,6 +86,7 @@ pxelinux()
 	MEMORY_CONSTRAINED=TRUE
 	FILE=/tmp/lib.squash
 	cd /tmp
+	splash_total=100
 	if [ -z "$FASTBOOT_URL" ] && [ ${initrd:0:7} == "http://" ]; then
 		FASTBOOT_URL=${initrd%/*}
 	fi
@@ -90,16 +94,16 @@ pxelinux()
 		wget $FASTBOOT_URL/lib.squash 2>&1 |tee /var/log/wget_progress &
 		sleep .2
 		OLDPROGRESS=$progress
-		if [ "`readlink /bin/wget`" == "/bin/busybox" ]; then
-			while [ "$WPROGRESS" != "100" ] && [ ! -z "`pidof wget`" ]; do
+		if [ "`readlink /fastboot/bin/wget`" == "/bin/busybox" ]; then
+			while [ "$WPROGRESS" != "100" ] && [ -n "`pidof wget`" ]; do
 				sleep .5
-				WPROGRESS=`cat -v /var/log/wget_progress |sed -e 's/\^M/\n/g'|tail -n 1 |cut -c 22-24`
+				WPROGRESS=`cat -v /var/log/wget_progress |sed -e 's/\^M/\n/g'|grep -e '|'| tail -n 1 |cut -c 22-24 |sed -e 's/ //g'`
 				if [ -z "$WPROGRESS" ]; then WPROGRESS=0 ; fi
 				let progress=WPROGRESS+OLDPROGRESS
 				splash_progress
 			done
 		else
-			while [ "$WPROGRESS" != "100" ] && [ ! -z "`pidof wget`" ]; do
+			while [ "$WPROGRESS" != "100" ] && [ -n "`pidof wget`" ]; do
 				sleep .5
 				WPROGRESS=`cat -v /var/log/wget_progress |grep -e "%" |tail -n 1 |cut -c 63-65`
 				if [ -z "$WPROGRESS" ]; then WPROGRESS=0 ; fi
@@ -130,6 +134,10 @@ pxelinux()
 	fi
 	let progress=OLDPROGRESS+100
 	splash_progress
+	if [ ! -e $FILE ]; then
+		touch /tmp/splash.exit
+		force_splash_exit
+	fi
 }
 
 isolinux()
@@ -156,6 +164,8 @@ isolinux()
 			fi
 		fi
 		if [ -z $squash_location ]; then
+			touch /tmp/splash.exit
+			force_splash_exit
 			echo "Could not find the image on the CDROM!"
 		else
 			FILE=/mnt/cdrom0/"$squash_location"lib.squash
@@ -180,25 +190,13 @@ squash_loc()
 mount_squash()
 {
 	if [ "$FASTBOOT" == "lotsofmem" ] ; then
-		unsquashfs -f -d / -f $FILE |tee /var/log/expand_progress &
-#		sleep .2
-#		OLDPROGRESS=$progress
-#		while [ "$DPROGRESS" != "100" ] && [ ! -z "`pidof unsquashfs`" ] ; do
-#			sleep .5
-#			DPROGRESS=`cat -v /var/log/expand_progress |grep -e "=" |sed -e 's/\^M/\n/g' |tail -n 1 |cut -c 76-78`
-#			if [ -z "$DPROGRESS" ]; then DPROGRESS=0 ; fi
-#			let progress=DPROGRESS+OLDPROGRESS
-#			splash_progress
-#		done
-#		let progress=OLDPROGRESS+100
-#		splash_progress
-#		rm -rf /var/log/expand_progress
+		unsquashfs -f -d / -f $FILE
 		if [ -e /tmp/lib.squash ] ; then
 			rm /tmp/lib.squash
 		fi
 	else
 		if is_enabled $MEMORY_CONSTRAINED ; then
-			systemd-mount --no-block --fsck=no -o ro,loop -t squashfs $FILE /lib
+			systemd-mount --fsck=no -o ro,loop -t squashfs $FILE /lib
 		else
 			if [ ! -e /tmp/lib.squash ] ; then
 				cp $FILE /tmp/lib.squash
