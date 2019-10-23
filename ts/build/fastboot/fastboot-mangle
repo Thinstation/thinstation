@@ -68,18 +68,18 @@ if [ "$2" == "true" ] ; then
 		hardlink -v lib
 	fi
 	mksquashfs lib ../$INITDIR/lib.squash -always-use-fragments -no-recovery -no-xattrs -noappend $FB_COMP_EXTRA
-	for i in `ls --color=never lib/ |grep -xvf ../fastboot/lib-boot |grep -xvf /tmp/fastlib |grep -Ewv 'bin|sbin|dbus-1'` ; do
-		if [ ! -z "$i" ] ; then
+	for i in `ls --color=never lib/ |grep -xvf ../fastboot/lib-boot |grep -xvf /tmp/fastlib |grep -Ewv 'bin|sbin|dbus-1' |grep -Ev 'libgcc_s.so.[0-1]+|libnss_files.so.[0-9]+|libnss_dns.so.[0-9]+'` ; do
+		if [ -n "$i" ] ; then
 			rm -rf lib/$i
 		fi
 	done
 	for i in `ls --color=never lib/bin/ |grep -xvf ../fastboot/bin-boot` ; do
-		if [ ! -z "$i" ]; then
+		if [ -n "$i" ]; then
 			rm  -rf lib/bin/$i
 		fi
 	done
 	for i in `ls --color=never lib/sbin/ |grep -xvf ../fastboot/bin-boot` ; do
-		if [ ! -z "$i" ]; then
+		if [ -n "$i" ]; then
 			rm  -rf lib/sbin/$i
 		fi
 	done
@@ -111,12 +111,12 @@ if [ "$2" == "lotsofmem" ]; then
 		fi
 	done
 	for i in `ls --color=never bin/ |grep -xvf ../fastboot/bin-boot` ; do
-		if [ ! -z "$i" ] && [ "`readlink bin/$i`" != "/bin/busybox" ]; then
+		if [ -n "$i" ] && [ "`readlink bin/$i`" != "/bin/busybox" ]; then
 			mv bin/$i ../fastboot-tmp/bin/.
 		fi
 	done
 	for i in `ls --color=never sbin/ |grep -xvf ../fastboot/bin-boot` ; do
-		if [ ! -z "$i" ] && [ "`readlink sbin/$i`" != "/bin/busybox" ]; then
+		if [ -n "$i" ] && [ "`readlink sbin/$i`" != "/bin/busybox" ]; then
 			mv sbin/$i ../fastboot-tmp/sbin/.
 		fi
 	done
