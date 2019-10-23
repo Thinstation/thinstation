@@ -203,7 +203,7 @@ splash_start () {
         # Prepare the communications FIFO
         rm -f "${spl_fifo}" 2>/dev/null
         mkfifo -m 620 "${spl_fifo}"
-	chown root.users "${spl_fifo}"
+	chown 0:100 "${spl_fifo}"
 
         local options=""
         [ "${SPLASH_KDMODE}" = "GRAPHICS" ] && options="--kdgraphics"
@@ -232,7 +232,7 @@ splash_start () {
         splash_comm_send "set autoverbose ${SPLASH_AUTOVERBOSE}"
 
         splash_set_event_dev
-	chown -R root.users "${spl_cachedir}"
+	chown -R 0:100 "${spl_cachedir}"
 	chmod g+w "${spl_cachedir}"
 	chmod 660 "${spl_pidfile}"
 
