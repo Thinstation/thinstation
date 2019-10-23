@@ -459,10 +459,12 @@ is_enabled ()
 		value=$(make_caps $1)
 		for i in TRUE ON ENABLED ENABLE YES POSITIVE Y; do
 			if [ $value == $i ]; then
+				# Explicitly enabled, return true
 				return 0
 			fi
 		done
 	fi
+	# If null or not explicitly enabled, return false
 	return 1
 }
 
@@ -472,11 +474,14 @@ is_disabled ()
 		value=$(make_caps $1)
 		for i in FALSE OFF DISABLED DISABLE NO NEGATIVE N ; do
 			if [ $value == $i ]; then
+				# Explicitly disabled, return true
 				return 0
 			fi
 		done
+		# If not null, but allso not explicitly disabled, then return false
 		return 1
 	fi
+	# We don't need to be explicitly disabled to be disabled, return true
 	return 0
 }
 

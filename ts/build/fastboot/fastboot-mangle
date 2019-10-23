@@ -1,12 +1,11 @@
 #!/bin/bash
 # Fastboot by Donald A. Cupp Jr. don cupp jr at yahoo dot com
-#set -x
+
 LANG=C
 INITDIR=$1
 HARDLINK=$3
 FB_COMP_EXTRA=$4
 echo FASTBOOT=$2 >> etc/thinstation.env
-#cp --remove-destination /lib/libmount.so.1 lib/.
 cp --remove-destination /bin/mount bin/.
 
 if [ "$2" == "true" ] ; then
@@ -53,14 +52,13 @@ if [ "$2" == "true" ] ; then
 			ldd fastboot/sbin/$i 2>/dev/null >> /tmp/fastlibneed
 		fi
 	done
-	cat /tmp/fastlibneed |grep -v "not a dyn"|sed -e 's/\t//g' |cut -d " " -f1 |sort -u  |sed -e 's|/lib64/||g' > /tmp/fastlib
-        for i in `cat ../fastboot/lib-boot; cat /tmp/fastlib` ; do
-                if [ -e lib/$i ]; then
-                        mv lib/$i fastboot/.
-                        ln -sf /fastboot/$i lib/$i
-                fi
-        done
-
+	cat /tmp/fastlibneed |grep -v "not a dyn"|grep -v ":"| sed -e 's/\t//g' |cut -d " " -f1 |sort -u  |sed -e 's|/lib64/||g' > /tmp/fastlib
+	for lib in `cat ../fastboot/lib-boot; cat /tmp/fastlib; ls --color=never lib |grep -E 'libgcc_s.so.[0-1]+|libnss_files.so.[0-9]+|libnss_dns.so.[0-9]+'` ; do
+		if [ -e lib/$lib ]; then
+			mv lib/$lib fastboot/.
+			ln -sf /fastboot/$lib lib/$lib
+		fi
+	done
 	echo -e "\tMaking lib.squash"
 	timestamp="`date +%Y%m%d`0000"
 	for file in `find lib`; do
@@ -96,11 +94,9 @@ if [ "$2" == "lotsofmem" ]; then
 	mkdir -p ../fastboot-tmp/lib
 	mkdir -p ../fastboot-tmp/etc
 	mkdir -p ../fastboot-tmp/usr
-#	cp --remove-destination /lib/libz.so.1 lib/.
-#	cp --remove-destination /usr/lib/liblzma.so.5 lib/.
-        cp --remove-destination /bin/cp bin/.
-        cp --remove-destination /bin/mv bin/.
-
+	cp --remove-destination `which cp`		bin/.
+	cp --remove-destination `which mv`		bin/.
+	cp --remove-destination `which unsquashfs`	bin/.
 	for i in opt jre ; do
 		if [ -e $i ] ; then
 			mv $i ../fastboot-tmp/.
@@ -114,19 +110,22 @@ if [ "$2" == "lotsofmem" ]; then
 			mv etc/$i ../fastboot-tmp/etc/.
 		fi
 	done
-	for i in `ls --color=never lib/ |grep -xvf ../fastboot/lib-boot |grep -Ev 'libgmp|libattr|libacl|libz|libpcre|libidn|dbus-1'` ; do
-		if [ ! -z "$i" ] ; then
-			mv lib/$i ../fastboot-tmp/lib/.
-		fi
-	done
-	for i in `ls --color=never bin/ |grep -xvf ../fastboot/bin-boot |grep -Ev '^wget$|^tftp$|^expr$|^wc$|^cut$|^cat$|^sed$|^cp$|^mv$|^readlink$|^grep$|^ifconfig$'` ; do
+	for i in `ls --color=never bin/ |grep -xvf ../fastboot/bin-boot` ; do
 		if [ ! -z "$i" ] && [ "`readlink bin/$i`" != "/bin/busybox" ]; then
 			mv bin/$i ../fastboot-tmp/bin/.
 		fi
 	done
-	for i in `ls --color=never sbin/ |grep -xvf ../fastboot/bin-boot |grep -Ev '^wget$|^tftp$|^expr$|^wc$|^cut$|^cat$|^sed$|^cp$|^mv$|^readlink$|^grep$|^ifconfig$'` ; do
+	for i in `ls --color=never sbin/ |grep -xvf ../fastboot/bin-boot` ; do
 		if [ ! -z "$i" ] && [ "`readlink sbin/$i`" != "/bin/busybox" ]; then
 			mv sbin/$i ../fastboot-tmp/sbin/.
+		fi
+	done
+	ldd bin/* 2>/dev/null > /tmp/fastlibneed
+	ldd sbin/* 2>/dev/null >> /tmp/fastlibneed
+	cat /tmp/fastlibneed |grep -v "not a dyn"|grep -v ":" |sed -e 's/\t//g' |cut -d " " -f1 |sort -u  |sed -e 's|/lib64/||g' > /tmp/fastlib
+	for i in `ls --color=never lib/ |grep -xvf ../fastboot/lib-boot |grep -xvf /tmp/fastlib |grep -Ev 'libgcc_s.so.[0-1]+|libnss_files.so.[0-9]+|libnss_dns.so.[0-9]+'` ; do
+		if [ -n "$i" ] ; then
+			mv lib/$i ../fastboot-tmp/lib/.
 		fi
 	done
 	if [ "$HARDLINK" == "true" ]; then
@@ -134,10 +133,8 @@ if [ "$2" == "lotsofmem" ]; then
 	fi
 	echo -e "\tMaking lib.squash"
 	mksquashfs ../fastboot-tmp/. ../$INITDIR/lib.squash -always-use-fragments -no-recovery -no-xattrs -noappend $FB_COMP_EXTRA
-	cp `which unsquashfs` bin/.
 fi
 
 cd ..
 chmod 755 $INITDIR/lib.squash
 cd tmp-tree
-#set +x
