@@ -6,20 +6,20 @@ for i in /*; do
   fi
 done
 
-if [ "$SESSION_0_TYPE" == "sh" ]; then
-        rm /lib/systemd/system/default.target
-        ln -sf multi-user.target /lib/systemd/system/default.target
-        if is_enabled $SESSION_0_AUTOSTART; then
-		mkdir -p /etc/systemd/system/getty@tty1.service.d
-                cat <<EOF> /etc/systemd/system/getty@tty1.service.d/override.conf
-[Service]
-ExecStart=
-ExecStart=-/sbin/agetty -c --noclear --nohints --noissue --nohostname -a tsuser tty1 115200 linux
-EOF
-        fi
-else
-        rm -rf /etc/systemd/system/getty.target.wants
-fi
+#if [ "$SESSION_0_TYPE" == "sh" ]; then
+#        rm /lib/systemd/system/default.target
+#        ln -sf multi-user.target /lib/systemd/system/default.target
+#        if is_enabled $SESSION_0_AUTOSTART; then
+#		mkdir -p /etc/systemd/system/getty@tty1.service.d
+#                cat <<EOF> /etc/systemd/system/getty@tty1.service.d/override.conf
+#[Service]
+#ExecStart=
+#ExecStart=-/sbin/agetty -a tsuser tty1 115200 linux
+#EOF
+#        fi
+#else
+#rm -rf /etc/systemd/system/getty.target.wants
+#fi
 
 sed -i -e "s/tsuser/$TSUSER/g" /etc/group
 sed -i -e "s/\-a tsuser/\-a $TSUSER/g" /etc/inittab
