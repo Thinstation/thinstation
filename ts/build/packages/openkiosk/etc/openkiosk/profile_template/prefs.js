@@ -65,5 +65,5 @@ user_pref("xpinstall.whitelist.add.36", "");
 user_pref("plugins.hide_infobar_for_missing_plugin", true);
 user_pref("plugins.hide_infobar_for_outdated_plugin", true);
 user_pref("plugins.click_to_play", true);
-user_pref("openkiosk.admin.password", "00e2687659f98b7eaa7e490fc5b8fa1c,be5af360be3cd6dcaa6e104827e1df25);
+user_pref("openkiosk.admin.password", "00e2687659f98b7eaa7e490fc5b8fa1c,be5af360be3cd6dcaa6e104827e1df25");
 
