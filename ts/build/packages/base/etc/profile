@@ -2,18 +2,10 @@
 
 trap "" INT QUIT TSTP
 . /etc/thinstation.global
-. /etc/splash.functions
-
-#mkdir -p /mnt/downloads
-#vmhgfs-fuse .host:/Downloads /mnt/downloads
-#mkdir -p /mnt/downloads/debug
-#openvt bash
-
-#journalctl -b > /var/log/journal.log
-#cp -a /var/log/* /mnt/downloads/debug/.
-
 umask 022
+
 if [ "`tty`" == "$CONSOLE" ]; then
+	. /etc/splash.functions
 	if [ -e $WKDIR/consoleapps ]; then
 		show_cursor
 		splash_exit
@@ -24,7 +16,7 @@ if [ "`tty`" == "$CONSOLE" ]; then
 			clear
 			splash_exit
 			exec /bin/xinit /etc/xinitrc -- /etc/xserverrc > $APPLOGDIR/session.$$ 2>&1
-		elif ! is_enabled $HALTONERROR; then
+		elif is_disabled $HALTONERROR; then
 			chvt 1
 			echo "The system was not able to go graphical. This could indicate a problem with missing kernel modules or Xorg drivers."
 			echo ""
@@ -33,7 +25,17 @@ if [ "`tty`" == "$CONSOLE" ]; then
                         exec $NO_XORG_CMD
 		fi
 	fi
+	splash_exit
+	chvt 1
+	echo "There are no autostarted sessions!"
+	echo ""
+	show_cursor
+        if is_disabled $HALTONERROR; then
+		echo "Dropping to shell."
+		echo ""
+	else
+		echo "Full Stop."
+		halt
+	fi
 fi
 trap - INT QUIT TSTP
-splash_exit
-show_cursor
