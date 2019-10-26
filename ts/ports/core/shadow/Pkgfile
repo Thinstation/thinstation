@@ -28,5 +28,6 @@ build() {
     install -m 755 $SRC/pwck $PKG/etc/cron/daily
     mv $PKG/bin/{su,groups} $PKG/usr/bin
     touch $PKG/var/log/{lastlog,faillog}
-
+    sed -i -e '/MAIL/d' $PKG/etc/default/useradd
+    sed -i -e '/GROUP/d' $PKG/etc/default/useradd
 }
