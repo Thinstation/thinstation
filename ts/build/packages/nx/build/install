@@ -3,18 +3,21 @@
 tarname=`basename $1`
 filename=`basename $1 .tar.gz`
 LIBDIR=./packages/nx/usr/NX/lib
-INSTALLDIR=./packages/nx/usr
+INSTALLDIR=./packages/nx
 
 tar -C wget_tmp -zxf ./wget_tmp/$tarname
 let returnval=returnval+$?
 mkdir -p $INSTALLDIR
 cp -rf ./wget_tmp/NX $INSTALLDIR/.
+tar -C $INSTALLDIR/lib -xvf $INSTALLDIR/NX/etc/NX/server/packages/nxclient.tar.gz
+rm -rf $INSTALLDIR/usr
 
 #mv $INSTALLDIR/NX/lib/* $LIBDIR/.
 #rmdir $INSTALLDIR/NX/lib
 #rm $LIBDIR/libjpeg*
 #rm $LIBDIR/libcrypto.so
-rm $LIBDIR/libz.*
-rm $LIBDIR/libpng*
+#rm $LIBDIR/libz.*
+#rm $LIBDIR/libpng*
 #ln -sf /lib $INSTALLDIR/NX/lib
+
 exit $returnval
