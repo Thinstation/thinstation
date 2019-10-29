@@ -1,0 +1,55 @@
+From e2e519730c33de4503ac5dda28863d029e3cf578 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Thomas=20B=C3=A4chler?= <thomas@archlinux.org>
+Date: Fri, 21 Feb 2014 20:15:32 +0100
+Subject: [PATCH] Makefile: Link libreg.so against the crypto library.
+
+---
+ Makefile | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/Makefile b/Makefile
+index 1f25509..80f4946 100644
+--- a/Makefile
++++ b/Makefile
+@@ -33,6 +33,7 @@ LDLIBS += $(LDLIBREG)
+ LDLIBS += -lm
+ LIBREG += libreg.so
+ LDFLAGS += -L ./
++LIBREG_LDFLAGS += -lm
+ 
+ all: all_noverify verify
+ 
+@@ -40,17 +41,19 @@ all_noverify: $(LIBREG) crda intersect regdbdump db2rd optimize
+ 
+ ifeq ($(USE_OPENSSL),1)
+ CFLAGS += -DUSE_OPENSSL -DPUBKEY_DIR=\"$(RUNTIME_PUBKEY_DIR)\" `pkg-config --cflags openssl`
+-LDLIBS += `pkg-config --libs openssl`
++LDCRYPTOLIB := `pkg-config --libs openssl`
+ 
+ $(LIBREG): keys-ssl.c
+ 
+ else
+ CFLAGS += -DUSE_GCRYPT
+-LDLIBS += -lgcrypt
++LDCRYPTOLIB := -lgcrypt
+ 
+ $(LIBREG): keys-gcrypt.c
+ 
+ endif
++LDLIBS += $(LDCRYPTOLIB)
++LIBREG_LDFLAGS += $(LDCRYPTOLIB)
+ MKDIR ?= mkdir -p
+ INSTALL ?= install
+ 
+@@ -116,7 +119,7 @@ keys-%.c: utils/key2pub.py $(wildcard $(PUBKEY_DIR)/*.pem)
+ 
+ $(LIBREG): regdb.h reglib.h reglib.c
+ 	$(NQ) '  CC  ' $@
+-	$(Q)$(CC) $(CFLAGS) $(CPPFLAGS) -o $@ -shared -Wl,-soname,$(LIBREG) $^
++	$(Q)$(CC) $(CFLAGS) $(CPPFLAGS) -o $@ -shared -Wl,-soname,$(LIBREG) $^ $(LIBREG_LDFLAGS)
+ 
+ install-libreg-headers:
+ 	$(NQ) '  INSTALL  libreg-headers'
+-- 
+1.9.0
+

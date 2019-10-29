@@ -1,0 +1,25 @@
+# Maintainer: Thomas Bächler <thomas@archlinux.org>
+
+name=crda
+version=4.14
+release=2
+install=crda.install
+source=("https://git.kernel.org/pub/scm/linux/kernel/git/mcgrof/crda.git/snapshot/crda-$version.tar.gz"
+        set-wireless-regdom
+        0001-Makefile-Link-libreg.so-against-the-crypto-library.patch
+        0001-Makefile-Don-t-run-ldconfig.patch)
+build() {
+  cd "${SRC}"/${name}-${version}
+  sed 's|^#!/usr/bin/env python|#!/usr/bin/python2|' -i utils/key2pub.py
+  patch -p1 -i "${SRC}"/0001-Makefile-Link-libreg.so-against-the-crypto-library.patch
+  patch -p1 -i "${SRC}"/0001-Makefile-Don-t-run-ldconfig.patch
+  make
+  make DESTDIR="${PKG}" UDEV_RULE_DIR=/usr/lib/udev/rules.d/ SBINDIR=/usr/bin/ install
+  # Adjust paths in udev rule file
+  sed 's|/sbin/crda|/usr/bin/crda|' -i "${PKG}"/usr/lib/udev/rules.d/85-regulatory.rules
+  # This rule automatically sets the regulatory domain when cfg80211 is loaded
+  echo 'ACTION=="add", SUBSYSTEM=="module", DEVPATH=="/module/cfg80211", RUN+="/usr/bin/set-wireless-regdom"' >> "${PKG}"/usr/lib/udev/rules.d/85-regulatory.rules
+
+  install -D -m644 "${SRC}"/${name}-${version}/LICENSE "${PKG}"/usr/share/licenses/crda/LICENSE
+  install -D -m755 "${SRC}"/set-wireless-regdom "${PKG}"/usr/bin/set-wireless-regdom
+}

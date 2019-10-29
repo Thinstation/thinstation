@@ -1,0 +1,52 @@
+From fefefdb2c52c8fbedbb339b4badb8226cad7e7e0 Mon Sep 17 00:00:00 2001
+From: Krishna Chaitanya <chaitanya.mgit@gmail.com>
+Date: Mon, 16 Dec 2013 21:57:39 +0530
+Subject: [PATCH] crda: Fix the linking order to avoid compilation error
+
+While linking the crda.o and libreg.so, first put crda.o
+and then -lreg. This fixed the below error:
+
+  GEN  keys-gcrypt.c
+  Trusted pubkeys: pubkeys/linville.key.pub.pem
+  CC   libreg.so
+  CC   crda.o
+  LD   crda
+crda.o: In function `main':
+crda/crda.c:196: undefined reference to `reglib_get_rd_alpha2'
+collect2: ld returned 1 exit status
+make: *** [crda] Error 1
+
+Note: This still doesn't fix the below error (will send another mail)
+
+  CHK  /usr/lib/crda/regulatory.bin
+Database signature verification failed.
+Invalid or empty regulatory file, note: a binary regulatory file should be used.
+make: *** [verify] Error 234
+
+Signed-off-by: Luis R. Rodriguez <mcgrof@do-not-panic.com>
+Signed-off-by: Chaitanya T K <chaitanya.mgit@gmail.com>
+---
+ Makefile | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/Makefile b/Makefile
+index 4a351c6..0b2f0d7 100644
+--- a/Makefile
++++ b/Makefile
+@@ -28,10 +28,11 @@ RUNTIME_PUBKEY_DIR?=/etc/wireless-regdb/pubkeys
+ CFLAGS += -O2 -fpic
+ CFLAGS += -std=gnu99 -Wall -Werror -pedantic
+ CFLAGS += -Wall -g
+-LDLIBS += -lm
+ LDLIBREG += -lreg
++LDLIBS += $(LDLIBREG)
++LDLIBS += -lm
+ LIBREG += libreg.so
+-LDFLAGS += -L ./ $(LDLIBREG)
++LDFLAGS += -L ./
+ 
+ all: all_noverify verify
+ 
+-- 
+1.9.0
+

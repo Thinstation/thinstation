@@ -14,5 +14,10 @@ build() {
     meson build --prefix /usr --sysconfdir /etc
     DESTDIR=$PKG ninja -C build -j ${JOBS:-1} install
 
+  rm -r ${PKG}/etc/init.d
+  rm -r ${PKG}/etc/fuse.conf
+
+  # static device nodes are handled by udev
+
     rm -r $PKG/dev
 }
