@@ -364,10 +364,10 @@ module_package_dependencies()
 							fi
 						;;
 						firmware)
-							if ! is_enabled $ALLMODULES; then
+							if is_enabled $ts_allfirmware; then
 								if [ -z "`find ./tmp-tree/lib/firmware -name ${name}`" ]; then
 									if ! is_enabled $DISPLAYED; then
-										echo "Adding module dependencies for $module"
+										echo "Adding firmware dependencies for $module"
 										DISPLAYED=true
 									fi
 									copy_firmware ${name}
@@ -379,7 +379,7 @@ module_package_dependencies()
 							   [ ! -e $PACDIR/$name.pkg ]; then
 								if find_package $name ; then
 									if ! is_enabled $DISPLAYED; then
-										echo "Adding module dependencies for $module"
+										echo "Adding package dependencies for $module"
 										DISPLAYED=true
 									fi
 									echo "cp -Rp --remove-destination $pkgpath/* ./tmp-tree > /dev/null 2>&1">>\
