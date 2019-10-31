@@ -3,20 +3,27 @@
 # Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 
 name=avahi
-version=0.7
+version=git
 release=1
-source=(https://github.com/lathiat/avahi/releases/download/v$version/avahi-$version.tar.gz)
+#source=(https://github.com/lathiat/avahi/releases/download/v$version/avahi-$version.tar.gz)
 
 build() {
-	cd $name-$version
+git clone https://github.com/lathiat/avahi.git
+cd avahi
+git cherry-pick -n e111def44a7df4624a4aa3f85fe98054bffb6b4f
+NOCONFIGURE=1 ./autogen.sh
+
+	export PYTHON=/usr/bin/python3
+
+#	cd $name-$version
 	./configure --prefix=/usr \
 		--sysconfdir=/etc \
 		--with-distro=lfs \
 		--disable-qt3 \
 		--disable-qt4 \
-		--disable-gdbm \
 		--disable-monodoc \
-		--enable-compat-libdns_sd
+		--enable-compat-libdns_sd \
+		--disable-nls
 
 sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
 
