@@ -42,7 +42,7 @@ check_reconnect()
 							--title "Reconnect/Shutdown?" \
 							--clear \
 							--no-cancel \
-							--combobox "The session has ended. How would you like to continue?" 10 60 Reconnect Shutdown)
+							--combobox "The session has ended. How would you like to continue?" 10 70 Reconnect Shutdown)
 				choice_error=$?
 			done
 			if [ "$choice" = "Shutdown" ] ; then
@@ -60,14 +60,14 @@ check_reconnect()
 			Xdialog --title "No Server Response" \
 				--clear \
 				--timeout $prompt_time \
-				--msgbox "Server not responding - waiting $prompt_time seconds" 10 60
+				--msgbox "Server not responding - waiting $prompt_time seconds" 10 70
 			reconnect=0
 		elif [ "$prompt" == "FORC" ]; then
 			reconnect=0
 		elif [ "$prompt" != "OFF" ] ; then
 			Xdialog --title "Reconnect?" \
 				--clear \
-				--yesno "Click yes to reconnect." 10 60
+				--yesno "Click yes to reconnect." 10 70
 			reconnect=$?
 		else
 			reconnect=1
@@ -77,21 +77,21 @@ check_reconnect()
 
 confirm_exit()
 {
-	Xdialog --title "Logout" --clear --yesno "Click yes to Confirm Exit?" 10 60
+	Xdialog --title "Logout" --clear --yesno "Click yes to Confirm Exit?" 10 70
 }
 
 dialog_no_value()
 {
 	Xdialog --title "$1 Client" \
 		--clear \
-		--msgbox "You must enter value, aborted" 10 60 10000
+		--msgbox "You must enter value, aborted" 10 70 10000
 }
 
 dialog_get_value()
 {
 	Xdialog --title "$1 Client" \
 		--clear \
-		--inputbox "Enter $2:" 10 60 2>&1 1>/dev/null \
+		--inputbox "Enter $2:" 10 70 2>&1 1>/dev/null \
 	|grep -Ev '&|;|\(|`'
 }
 
@@ -183,7 +183,7 @@ dialog_no_value()
 {
 		Xdialog --title "$1 Client" \
 			--clear \
-			--msgbox "You must enter value for $2." 10 60 10000
+			--msgbox "You must enter value for $2." 10 70 10000
 }
 
 create_dialog()
