@@ -1,0 +1,229 @@
+#!/bin/bash
+export WM_ICON_NAME=/usr/share/icons/hicolor/32x32/apps/qemu.png
+GTKDIALOG="gtkdialog -c --space-expand=false --space-fill=false --program=MAIN_DIALOG"
+PACKAGE=ThinStation
+APPLOG=/build.log
+DIALOG_TITLE=$PACKAGE
+set -x
+
+dialog_no_value()
+{
+	Xdialog --title "$1 Client" --clear --msgbox "You must enter value for $2." 10 70 10000
+}
+
+gen_text_widget()
+{
+cat <<EOF
+		<text use-markup="true" justify="2" space-expand="false" space-fill="false" wrap="true" width-chars="$1">
+			<label>"$2"</label>
+		</text>
+EOF
+}
+
+check_log()
+{
+	STATUS=33
+	Xdialog --title $PACKAGE \
+		--ok-label "View Log" \
+		--cancel-label "OK" \
+		--icon /lib/pixmaps/${PACKAGE}_32x32.xpm \
+		--yesno "Application $PACKAGE failed with an error ($STATUS)\nWould you like to review the command output log?" 10 80
+}
+
+x_echo()
+{
+	width="$1"
+	shift
+	title="$1"
+	shift
+
+	while [ -n "$1" ] ; do
+		local text_widget="$text_widget `gen_text_widget \"$width\" \"$1\"`"
+		shift
+	done
+
+	export MAIN_DIALOG='
+	<window title="'$title'" decorated="true" resizable="false" icon-name="ThinStation">
+		<vbox>
+			<hseparator></hseparator>
+			<hbox>
+				<pixmap icon_size="6">
+					<input file stock="gtk-dialog-info"></input>
+				</pixmap>
+				<vbox>
+					'$text_widget'
+					<vseparator height-request="5"></vseparator>
+				</vbox>
+			</hbox>
+			<hseparator></hseparator>
+			<hbox>
+				<button ok>
+					<action>EXIT:ok</action>
+				</button>
+			</hbox>
+		</vbox>
+	</window>'
+
+	result=`$GTKDIALOG`
+}
+
+x_error()
+{
+	width="$1"
+	shift
+	title="$1"
+	shift
+
+	while [ -n "$1" ] ; do
+		local text_widget="$text_widget `gen_text_widget \"$width\" \"$1\"`"
+		shift
+	done
+
+	export MAIN_DIALOG='
+	<window title="'$title'" decorated="true" resizable="false" icon-name="ThinStation">
+		<vbox>
+			<hseparator></hseparator>
+			<hbox>
+				<pixmap icon_size="6">
+					<input file stock="gtk-dialog-error" has-focus="true"></input>
+				</pixmap>
+				<vbox>
+					'$text_widget'
+					<vseparator height-request="5"></vseparator>
+				</vbox>
+			</hbox>
+			<hseparator></hseparator>
+			<hbox>
+				<button cancel>
+					<action>EXIT:ok</action>
+				</button>
+			</hbox>
+		</vbox>
+	</window>'
+
+	result=`$GTKDIALOG`
+	exit 1
+}
+
+
+x_warn()
+{
+	width=$1
+	shift
+	title="$1"
+	shift
+	while [ -n "$1" ]; do
+		local text_widget="$text_widget `gen_text_widget \"$width\" \"$1\"`"
+		shift
+	done
+	export MAIN_DIALOG='
+	<window title="'$title'" decorated="true" resizable="false" icon-name="ThinStation">
+		<vbox>
+			<hseparator></hseparator>
+			<hbox>
+				<pixmap icon_size="6">
+					<input file stock="gtk-dialog-warning"></input>
+				</pixmap>
+				<vbox>
+					'$text_widget'
+				</vbox>
+			</hbox>
+			<hseparator></hseparator>
+			<hbox>
+				<button ok>
+					<action>EXIT:ok</action>
+				</button>
+			</hbox>
+		</vbox>
+	</window>'
+
+	result=`$GTKDIALOG`
+	for statement in `echo $result`;do
+		eval $statement
+	done
+	if [ "$EXIT" != "ok" ]; then
+		exit 1
+	fi
+}
+
+show_log()
+{
+	export MAIN_DIALOG='
+	<window title="'"$DIALOG_TITLE"'" decorated="true" width-request="600" height-request="520" allow-grow="false" allow-shrink="false" skip_taskbar_hint="true" icon-name="'$DIALOG_TITLE'">
+		<vbox>
+                        <hseparator></hseparator>
+			<vbox space-fill="true" space-expand="true">
+				<vbox scrollable="true" space-fill="true" space-expand="true">
+					<text space-expand="true" space-fill="true">
+						<input file>'$APPLOG'</input>
+					</text>
+				</vbox>
+			</vbox>
+                        <hseparator space-fill="false" space-expand="false"></hseparator>
+			<hbox space-expand="false" space-fill="false">
+				<button>
+					<label>Done</label>
+					<input file stock="gtk-ok"></input>
+					<action>EXIT:ok</action>
+				</button>
+			</hbox>
+		</vbox>
+	</window>
+	'
+
+        result=`$GTKDIALOG`
+        for statement in `echo $result`;do
+                eval $statement
+        done
+        if [ "$EXIT" != "ok" ]; then
+                exit 1
+        fi
+}
+
+check_logs()
+{
+        title="Application Failed"
+        export MAIN_DIALOG='
+        <window title="'$title'" decorated="true" resizable="false" allow-grow="false" allow-shrink="false" skip_taskbar_hint="true" icon-name="'$DIALOG_TITLE'">
+                <vbox>
+                        <hseparator></hseparator>
+                        <hbox>
+                                <pixmap icon_size="6">
+                                        <input file stock="gtk-dialog-warning" has-focus="true"></input>
+                                </pixmap>
+                                <vbox>
+                                        '`gen_text_widget 50 "Application $PACKAGE failed with an error ($STATUS)"`'
+					'`gen_text_widget 50 "Would you like to review the command output log?"`'
+                                </vbox>
+                        </hbox>
+                        <hseparator></hseparator>
+                        <hbox>
+				<button has-focus="false" can-focus="false" can-default="false" has-default="false">
+					<label>View Log</label>
+					<input file stock="gtk-index"></input>
+					<action>EXIT:view_log</action>
+				</button>
+                                <button has-focus="false" can-focus="false" can-default="false" has-default="false">
+					<label>Done</label>
+					<input file stock="gtk-ok"></input>
+					<action>EXIT:ok</action>
+                                </button>
+                        </hbox>
+                </vbox>
+        </window>'
+
+        result=`$GTKDIALOG`
+        for statement in `echo $result`;do
+                eval $statement
+        done
+        if [ "$EXIT" != "ok" ]; then
+                exit 1
+        fi
+}
+
+dialog_no_value FreeRDP "Username and Server" &
+#x_error FreeRDP "You must specify a value for" "Username and Server" &
+#wait
+#check_log
+check_logs
+#show_log
