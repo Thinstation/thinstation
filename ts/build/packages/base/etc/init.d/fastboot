@@ -48,7 +48,7 @@ syslinux()
 	fi
 	FILE=/boot/"$squash_location"$lib_file
 	UPDATE=/boot/"$squash_location"lib.update
-	local timeout=10
+	local timeout=15
 	while [ "$BOOTABLE" != "TRUE" ] && [ "$timeout" -ne "0" ]; do 
 		if search $FILE || search $UPDATE ; then
 			BOOTABLE=TRUE
@@ -143,7 +143,7 @@ pxelinux()
 isolinux()
 {
 	FILE=/mnt/cdrom0/"$squash_location"lib.squash
-	timeout=100
+	timeout=150
 	while ! mountpoint /mnt/cdrom0 && [ $timeout -ne 0 ]; do
 		sleep .1
 		let timeout-=1
