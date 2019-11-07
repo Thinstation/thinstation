@@ -60,7 +60,7 @@ transport()
 		echo "tftp -g -r $spath -l $cpath $server > /dev/null 2>&1"
 	;;
 	SCP)
-		echo "scp -BC $NET_FILE_USER@$server:$spath $cpath"
+		echo "scp -BC -i /etc/skel/.ssh/id_rsa -o UserKnownHostsFile=/etc/skel/.ssh/known_hosts $NET_FILE_USER@$server:$spath $cpath"
 	;;
 	WGET|HTTP)
 		echo "wget -O $cpath $BASEURL/$spath"
