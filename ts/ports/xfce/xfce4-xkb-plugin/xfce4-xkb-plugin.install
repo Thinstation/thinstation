@@ -1,0 +1,20 @@
+post_upgrade() {
+  if (($(vercmp $2 0.7.1-2) < 0)); then
+    echo ':: Keyboard layouts are now configured through xfce4-keyboard-settings'
+    echo '   and managed by xfsettingsd. This plugin now only acts as a layout'
+    echo '   indicator and manages per window/application layout preferences.'
+    echo
+    echo '   You will need to reconfigure the keyboard layouts on your next login.'
+  fi
+
+  if (($(vercmp $2 0.8.0-1) < 0)); then
+    echo ':: Starting with version 0.8.0, xfce4-xkb-plugin stores its settings'
+    echo '   in Xfconf instead of a configuration file. Settings from previous'
+    echo '   versions are not migrated over, and the panel plugin itself might'
+    echo '   disappear upon restarting the panel.'
+    echo
+    echo '   You need to re-add the xkb plugin to your panel and reconfigure it.'
+  fi
+}
+
+# vim:set ts=2 sw=2 et:
