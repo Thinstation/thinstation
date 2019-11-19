@@ -90,6 +90,10 @@ xfconf_settings()
 		xfconf-query -c xfwm4 -p /general/workspace_count -t int -s 1 -n
 		xfconf-query -c xfwm4 -p /general/workspace_names --reset
 	fi
+        if [ -e /lib/xfce4/panel/plugins/libxkb.so ]; then
+		PANEL="$PANEL -t int -s 22"
+        	xfconf-query -c xfce4-panel -p /plugins/plugin-22 -t string -s xkb -n
+	fi
 	if is_disabled $MENU_SHOWCLOCK; then
 		xfconf-query -c xfce4-panel -p /plugins/plugin-5 --reset
 		PANEL="$PANEL -t int -s 6"
@@ -103,6 +107,7 @@ xfconf_settings()
 	else
 		xfconf-query -c xfce4-panel -p /plugins/plugin-2 --reset
 	fi
+
 	xfconf-query -c xfce4-panel -p /plugins/plugin-6/show-frame -t bool -s false -n
 
 	if [ -d /etc/xfwm4.d ]; then
