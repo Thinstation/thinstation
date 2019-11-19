@@ -13,7 +13,7 @@ Work To Do / Work in Progress: mail to developer List if you can help
 
 New:
 
-- Moved to kernel 5.3.6
+- Moved to kernel 5.3.10
 - Added a new cache loading feature for faster app launching.
 - Enabled compositing by default.
 - Horizon 5.2 support.
