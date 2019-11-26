@@ -77,7 +77,7 @@ EOF
 			# toolbar buttons
 			OK_TOOLBAR_BUTTONS=`eval echo '$SESSION_'$x'_OPENKIOSK_TOOLBAR_BUTTONS'`
 			if [ -n "$OK_TOOLBAR_BUTTONS" ] ; then
-				echo 'user_pref("browser.uiCustomization.state", {\"placements\":{\"nav-bar\":[$OK_TOOLBAR_BUTTONS]},\"currentVersion\":14,\"newElementCount\":0}}");' >> $OK_PREFS
+				echo 'user_pref("browser.uiCustomization.state", {\"placements\":{\"nav-bar\":['$OK_TOOLBAR_BUTTONS']},\"currentVersion\":14,\"newElementCount\":0}}");' >> $OK_PREFS
 			fi
 
 			# show personal bookmarks bar
@@ -106,7 +106,7 @@ EOF
 			# reset timer
 			OK_RESET_TIMER=`eval echo '$SESSION_'$x'_OPENKIOSK_RESET_TIMER'`
 			if [ -n "$OK_RESET_TIMER" ] ; then
-				echo 'user_pref("openkiosk.session.inactiveTerminal.minutes", $OK_RESET_TIMER);' >> $OK_PREFS
+				echo 'user_pref("openkiosk.session.inactiveTerminal.minutes", '$OK_RESET_TIMER');' >> $OK_PREFS
 			fi
 
 			# filter url
@@ -120,7 +120,7 @@ EOF
 				# whitelist/blacklist
 				OK_FILTER_WHITELIST=`eval echo '$SESSION_'$x'_OPENKIOSK_FILTER_WHITELIST'`
 				if [ -n "$OK_FILTER_WHITELIST" ] ; then
-					echo 'user_pref("openkiosk.filters.whitelist.enabled", $OK_FILTER_WHITELIST);' >> $OK_PREFS
+					echo 'user_pref("openkiosk.filters.whitelist.enabled", '$OK_FILTER_WHITELIST');' >> $OK_PREFS
 				fi
 			fi
 		fi
