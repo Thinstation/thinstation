@@ -27,7 +27,11 @@ if [ "`tty`" == "$CONSOLE" ]; then
 	fi
 	splash_exit
 	chvt 1
-	echo "There are no autostarted sessions!"
+	if ! is_disabled $FASTBOOT && ! mountpoint /lib; then
+		echo "Fastboot was enabled, but something went wrong with the transfer or mount."
+	else
+		echo "There are no autostarted sessions!"
+	fi
 	echo ""
 	show_cursor
         if is_disabled $HALTONERROR; then
