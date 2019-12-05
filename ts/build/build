@@ -18,6 +18,7 @@ MAXIMAGE=786432
 TOOLSDIR=./utils/tools
 KERNEL_PARAMETERS=""
 CONFDIR=./conf
+DEF_SQUASHOPT="-always-use-fragments -no-recovery -no-exports -no-xattrs"
 export TOOLSDIR
 
 ignore_libs='libcrypto.so.1.0.2|libssl.so.1.0.2|libcrypto.so.1.0.0|libssl.so.1.0.0'
@@ -434,7 +435,7 @@ make_initrd()
    cd tmp-tree
 	if [ "$ts_fastboot" == "true" ] || [ "$ts_fastboot" == "lotsofmem" ] ;then
 		echo -e "\nMaking initramfs - Fastboot Enabled"
-		../fastboot/fastboot-mangle "$INITDIR" "$ts_fastboot" "$ts_hardlinkfs" "$ts_fb_comp_extra"
+		../fastboot/fastboot-mangle "$INITDIR" "$ts_fastboot" "$ts_hardlinkfs" "$ts_squashopt"
 	else
 		if [ -e $INITDIR/lib.squash ] ; then
 			rm $INITDIR/lib.squash
@@ -466,7 +467,7 @@ make_initrd()
 		done
 	fi
 	if [ "$ts_initrdcmd" == "squashfs" ]; then
-		mksquashfs . ../$INITDIR/initrd $ts_squashopt -always-use-fragments -no-recovery -no-exports -no-xattrs -noappend
+		mksquashfs . ../$INITDIR/initrd $ts_squashopt $DEF_SQAUSHOPT
 	elif [ "$ts_initrdcmd" == "none" -o "$ts_initrdcmd" == "" ]; then
 		find . -print0 | cpio --null -oV --format=newc > ../$INITDIR/initrd
 	else find . -print0 | cpio --null -oV --format=newc | $ts_initrdcmd > ../$INITDIR/initrd
@@ -1995,7 +1996,7 @@ else
 		busybox dos2unix ../tmp-tree/thinstation.buildtime
 		. ../$INITDIR/kernel_parameters
 		if [ "$ts_initrdcmd" == "squashfs" ]; then
-		    mksquashfs . ../$INITDIR/initrd $ts_squashopt -always-use-fragments -no-recovery -no-exports -no-xattrs
+		    mksquashfs . ../$INITDIR/initrd $ts_squashopt $DEF_SQUASHOPT
 		elif [ "$ts_initrdcmd" == "none" -o "$ts_initrdcmd" == "" ]; then
 			find . -print0 | cpio --null -oV --format=newc > ../$INITDIR/initrd
 		else
