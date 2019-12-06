@@ -5,16 +5,15 @@ JAVAHOME=/opt/jre
 INSTALLDIR=./packages/java$JAVAHOME
 EXTRADIR=./packages/java/build/extra
 
-mkdir -p $INSTALLDIR
-cd ./wget_tmp
-if [ -n "`file $gzname | grep 'gzip compressed'`" ]; then
-  tar xf $gzname
-else
-  chmod 755 ./$gzname
-  ./$gzname
-fi
-cd ..
-cp -Rp ./wget_tmp/jre1*/* $INSTALLDIR
+tar -C wget_tmp -xf wget_tmp/$gzname
+returnval=$?
+
+while read mod; do
+if [ -n "$modules" ]; then modules="$modules,"; fi
+modules="$modules$mod"
+done < <(./wget_tmp/jdk-*/bin/java --list-modules | cut -d@ -f1)
+
+./wget_tmp/jdk-*/bin/jlink --no-header-files --no-man-pages --compress=2 --add-modules $modules --output $INSTALLDIR
 let returnval=returnval+$?
 
 mkdir -p ./packages/java/bin
@@ -24,46 +23,8 @@ for bin in $INSTALLDIR/bin/*; do
   let returnval=returnval+$?
 done
 
-ln -s ../$JAVAHOME/LICENSE ./packages/java/build/license
-let returnval=returnval+$?
-
 mkdir -p ./packages/java/lib/licenses/java
-ln -s $JAVAHOME/LICENSE ./packages/java/lib/licenses/java
-let returnval=returnval+$?
-
-mkdir -p ./packages/java/lib/mozilla/plugins
-rm -f $JAVAHOME/lib/amd64/libnpjp2.so
-let returnval=returnval+$?
-
-rm -rf $INSTALLDIR/plugin
-let returnval=returnval+$?
-
-rm -rf $INSTALLDIR/man
-let returnval=returnval+$?
-
-mv $INSTALLDIR/lib/desktop/* ./packages/java/lib
-let returnval=returnval+$?
-
-rmdir $INSTALLDIR/lib/desktop
-
-rm -rf ./packages/java/lib/icons/*Contrast*
-rm -f $INSTALLDIR/lib/amd64/fxavcodecplugin-52.so
-rm -f $INSTALLDIR/lib/amd64/libavplugin-{53,54,55,ffmpeg-56}.so
-
-cp -Prfd $EXTRADIR/* ./packages/java/.
-
-JWS=`$INSTALLDIR/bin/javaws | head -1 | sed -e 's,.*Start \(.*\)-fcs,\1,' | cut -d. -f1-3`
-JV=`$INSTALLDIR/bin/java -version 2>&1 | head -1 | sed -e 's,.*version.*\"1\.\(.*\)\..*_\(.*\)\",\1.\2,'`
-
-mkdir -p ./packages/java/etc/skel/.java/deployment/
-cat > ./packages/java/etc/skel/.java/deployment/deployment.properties <<EOF
-#deployment.properties
-#Mon Jan 1 12:00:00 EDT 2013
-deployment.expiration.decision.timestamp.$JWS=1/1/2020 12\:00\:00
-java.deployment.version=$JV
-deployment.expiration.decision.suppression.$JWS=true
-deployment.expiration.decision.$JWS=later
-EOF
-cp ./packages/java/etc/skel/.java/deployment/deployment.properties ./packages/java/etc/skel/.java/deployment/config.cache
+ln -s ../$JAVAHOME/legal/java.base/LICENSE ./packages/java/build/license
+ln -s ../$JAVAHOME/legal/java.base ./packages/java/lib/licenses/java
 
 exit $returnval
