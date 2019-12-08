@@ -599,7 +599,7 @@ case "$1" in
 
 
         # Extract the device name into a variable, e.g. if INSTALL_DISK is "/dev/sda" INSTALL_DISK_NAME will be "sda"
-        INSTALL_DISK_NAME="$(find $INSTALL_DISK -printf ""%f"")"
+        INSTALL_DISK_NAME="$(basename $INSTALL_DISK)"
 
         #echo "INSTALL_DISK = '$INSTALL_DISK'"
         #echo "INSTALL_DISK_NAME = '$INSTALL_DISK_NAME'"
@@ -676,6 +676,8 @@ case "$1" in
 
         # Check what the new partition name is
         # It the disk is mmcblk0 the partition is namned mmcblk0p1 (adding a p before the partition number)
+	sleep 3
+	blockdev --rereadpt $INSTALL_DISK
         if cat /proc/partitions | egrep -wq "${INSTALL_DISK_NAME}p1"; then
             INSTALL_PARTITION_1="${INSTALL_DISK_NAME}p1"
             INSTALL_PARTITION_1_DEVICE="${INSTALL_DISK}p1"
