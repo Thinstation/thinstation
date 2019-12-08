@@ -13,7 +13,7 @@ TMP_DIR="/tmp/local-install"
 ##
 
 if [ -z ${LOCAL_INSTALL_DEVICEREGEX} ]; then
-	deviceRegEx='(sd[a-z]$)|(mmcblk[0-9]$)'
+	deviceRegEx='(sd[a-z]$)|(mmcblk[0-9]$)|(nvme[0-9]n[0-9]$)'
 	#logger --stderr --tag $LOGGERTAG "LOCAL_INSTALL_DEVICEREGEX is not set, setting it to '$deviceRegEx'"
 else
     deviceRegEx=${LOCAL_INSTALL_DEVICEREGEX}
