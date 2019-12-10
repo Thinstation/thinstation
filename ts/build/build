@@ -2326,9 +2326,9 @@ wrap_efi()
 	umount temp-efi
 	losetup -d $lodev
 	rmdir temp-efi
-	mkdir -p $ESP/../source/EFI/BOOT
-	mv $INITDIR/boot.efi $ESP/../source/EFI/BOOT/.
-	echo $ESP/../source/EFI/BOOT/boot.efi >> boot-images/initrd/added.files
+	mkdir -p $ESP/EFI/BOOT
+	mv $INITDIR/boot.efi $ESP/EFI/BOOT/.
+	echo $ESP/EFI/BOOT/boot.efi >> boot-images/initrd/added.files
 }
 
 # Skips Images if NOIMAGES is set, useful for TS-O-Matic
@@ -2435,7 +2435,12 @@ if [ -z "$NOIMAGES" ]; then
 				add_image efi
 				wrap_efi
 
-				ESP=boot-images/refind-iso/source
+				# For isohybrid efi, change the LM method, so that as an HD image the correct
+				# continuation method is selected. Only for EFI, BIOS is still ISO
+				for file in `find $configdir -type f |sed -e "s|$configdir||g"`; do
+					sed -i -e "s/LM=4/LM=2/g" $ESP/$file
+				done
+
 				BDIR=/syslinux
 				CONFIGFILE=isolinux.cfg
 				LOADER=isolinux.bin
@@ -2509,7 +2514,11 @@ if [ -z "$NOIMAGES" ]; then
 					add_overlay
 					wrap_efi
 
-					ESP=boot-images/systemd-boot-iso/source
+					# For isohybrid efi, change the LM method, so that as an HD image the correct
+					# continuation method is selected. Only for EFI, BIOS is still ISO
+					for file in `find $configdir -type f |sed -e "s|$configdir||g"`; do
+						sed -i -e "s/LM=4/LM=2/g" $ESP/$file
+					done
 
 					BDIR=/syslinux
 					CONFIGFILE=isolinux.cfg
