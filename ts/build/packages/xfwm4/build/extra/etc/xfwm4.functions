@@ -132,10 +132,18 @@ xfconf_settings()
 	fi
 	if [ -e /etc/background.svg ]; then
 		background=/etc/background.svg
-		bg_mode=4
+		if is_enabled $WALLPAPER_STRETCH; then
+			bg_mode=3
+		else
+			bg_mode=4
+		fi
 	elif [ -e /etc/background.jpg ]; then
 		background=/etc/background.jpg
-		bg_mode=3
+		if is_disabled $WALLPAPER_STRETCH; then
+			bg_mode=4
+		else
+			bg_mode=3
+		fi
 	fi
 	for display in `xrandr |grep -e " connected" |cut -f1 -d " "`; do
 		if [ -n "$background" ]; then
@@ -198,6 +206,9 @@ xfconf_settings()
 	fi
 	if [ -n "$XFWM4_SHOW_SUSPEND" ]; then
 		xfconf-query -c xfce4-session -p /shutdown/ShowSuspend -t bool -s $XFWM4_SHOW_SUSPEND -n
+	fi
+	if [ -e /sys/class/power_supply/BAT0 ]; then
+		xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/show-tray-icon -t bool -s true -n
 	fi
 }
 
