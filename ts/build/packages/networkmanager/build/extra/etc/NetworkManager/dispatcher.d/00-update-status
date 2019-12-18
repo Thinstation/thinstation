@@ -8,20 +8,8 @@ ACTION=$2
 if [ "$INTERFACE" != "lo" ]; then
 
 	case $ACTION in
-	up|dhcp4-change)
-
-		if [ -e /var/log/net/$INTERFACE ]; then
-			. /var/log/net/$INTERFACE
-		fi
-		NETWORKUP=TRUE
-		gw=`echo $IP4_ADDRESS_0 | cut -d/ -f2 | cut -d' ' -f2`
-		ip=`echo $IP4_ADDRESS_0 | cut -d/ -f1`
-
-		# Base the hostname on the first real network device that comes up,
-		# and only that one.
+	pre-up)
 		if [ "$HOSTNAME" == "thinstation-linux" ]; then
-			sed -i -e "s/NET_DEVICE=.*/NET_DEVICE=$INTERFACE/" $TS_RUNTIME
-
 			CLIENT_MAC=`cat /sys/class/net/$INTERFACE/address | sed 's/://g'`
 			if [ -n "`echo \"$NET_HOSTNAME\" | sed -n '/\*/p'`" ]; then
 				CLIENT_NAME=`echo "$NET_HOSTNAME" | sed "s/\*/$CLIENT_MAC/"`
@@ -36,13 +24,23 @@ if [ "$INTERFACE" != "lo" ]; then
 			fi
 			if [ "$CLIENT_NAME" == "(none)" ]; then
 				unset CLIENT_NAME
-				hostname localhost
 			else
 				hostname $CLIENT_NAME
 			fi
-			sed -i -e '/127.0.0.1/d' /etc/hosts
-			echo "127.0.0.1 $CLIENT_NAME localhost" >> /etc/hosts
 		fi
+	;;
+	up|dhcp4-change)
+
+		if [ -e /var/log/net/$INTERFACE ]; then
+			. /var/log/net/$INTERFACE
+		fi
+		NETWORKUP=TRUE
+		gw=`echo $IP4_ADDRESS_0 | cut -d/ -f2 | cut -d' ' -f2`
+		ip=`echo $IP4_ADDRESS_0 | cut -d/ -f1`
+
+		sed -i -e "s/NET_DEVICE=.*/NET_DEVICE=$INTERFACE/" $TS_RUNTIME
+		sed -i -e '/127.0.0.1/d' /etc/hosts
+		echo "127.0.0.1 $CLIENT_NAME localhost" >> /etc/hosts
 	;;
 	down)
 		if [ -e /var/log/net/$INTERFACE ]; then
