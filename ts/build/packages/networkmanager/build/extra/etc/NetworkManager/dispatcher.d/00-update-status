@@ -1,6 +1,6 @@
 #!/bin/sh
 
-. /etc/thinstation.env
+. /etc/thinstation.global
 
 INTERFACE=$1
 ACTION=$2
@@ -17,7 +17,32 @@ if [ "$INTERFACE" != "lo" ]; then
 		gw=`echo $IP4_ADDRESS_0 | cut -d/ -f2 | cut -d' ' -f2`
 		ip=`echo $IP4_ADDRESS_0 | cut -d/ -f1`
 
-		sed -i -e "s/NET_DEVICE=.*/NET_DEVICE=$INTERFACE/" $TS_RUNTIME
+		# Base the hostname on the first real network device that comes up,
+		# and only that one.
+		if [ "$HOSTNAME" == "thinstation-linux" ]; then
+			sed -i -e "s/NET_DEVICE=.*/NET_DEVICE=$INTERFACE/" $TS_RUNTIME
+
+			CLIENT_MAC=`cat /sys/class/net/$INTERFACE/address | sed 's/://g'`
+			if [ -n "`echo \"$NET_HOSTNAME\" | sed -n '/\*/p'`" ]; then
+				CLIENT_NAME=`echo "$NET_HOSTNAME" | sed "s/\*/$CLIENT_MAC/"`
+			else
+				CLIENT_NAME=$NET_HOSTNAME
+			fi
+			if [ -e /etc/thinstation.hosts ] ; then
+				clientname=`cat /etc/thinstation.hosts | grep -i $CLIENT_MAC | cut -d" " -f 1`
+				if [ -n "$clientname" ] ; then
+					CLIENT_NAME=$clientname
+				fi
+			fi
+			if [ "$CLIENT_NAME" == "(none)" ]; then
+				unset CLIENT_NAME
+				hostname localhost
+			else
+				hostname $CLIENT_NAME
+			fi
+			sed -i -e '/127.0.0.1/d' /etc/hosts
+			echo "127.0.0.1 $CLIENT_NAME localhost" >> /etc/hosts
+		fi
 	;;
 	down)
 		if [ -e /var/log/net/$INTERFACE ]; then
