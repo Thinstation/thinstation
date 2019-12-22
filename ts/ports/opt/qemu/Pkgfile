@@ -6,12 +6,14 @@
 # Nice to have: libseccomp libiscsi libusb usbredir
  
 name=qemu
-version=4.1.0
+version=4.2.0
 release=1
 source=(http://wiki.qemu.org/download/qemu-$version.tar.bz2)
 
 build() {
   cd $name-$version
+  sed -i net/slirp.c -e "s/0x0a000203/0x08080808/g"
+
   ./configure --prefix=/usr \
       --cc="${CC:=gcc}" \
       --host-cc="${CC:=gcc}" \

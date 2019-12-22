@@ -38,7 +38,8 @@ if [ "$INTERFACE" != "lo" ]; then
 		gw=`echo $IP4_ADDRESS_0 | cut -d/ -f2 | cut -d' ' -f2`
 		ip=`echo $IP4_ADDRESS_0 | cut -d/ -f1`
 
-		sed -i -e "s/NET_DEVICE=.*/NET_DEVICE=$INTERFACE/" $TS_RUNTIME
+		sed -i -e "/NET_DEVICE=/d" $TS_RUNTIME
+		echo "NET_DEVICE=$INTERFACE" >> $TS_RUNTIME
 		sed -i -e '/127.0.0.1/d' /etc/hosts
 		echo "127.0.0.1 $CLIENT_NAME localhost" >> /etc/hosts
 	;;

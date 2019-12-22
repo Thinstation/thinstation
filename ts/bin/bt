@@ -30,7 +30,7 @@ confirm_hd()
 bridge()
 {
 	if [ -n "`ifconfig |grep -e br0`" ]; then
-		echo "-net bridge,br=br0 -net nic,macaddr=52:54:00:12F:34f:56"
+		echo "-net bridge,br=br0 -net nic,macaddr=52:54:00:12F:34f:56 -netdev user,dns=8.8.8.8"
 	fi
 }
 
@@ -60,7 +60,7 @@ QEMU=qemu-system-x86_64
 STANDARD_MACHINE="$SOUND $RNG $VGA $CPU $MEMORY $MOUSE $KVM $NETWORK"
 
 case $1 in
-	cd)	confirm_iso && confirm_hd && $QEMU $STANDARD_MACHINE -cdrom /$ISO -hda $HD --boot d ;;
+	cd)	confirm_iso && confirm_hd && $QEMU $STANDARD_MACHINE -cdrom $ISO -hda $HD --boot d ;;
 	efi)	wrap_efi && $QEMU $STANDARD_MACHINE $EFI -hda $HD;;
 	bios)	$QEMU $STANDARD_MACHINE -hda build/bios.boot;;
 	image)  confirm_iso && confirm_hd && $QEMU $STANDARD_MACHINE -cdrom $ISO -hda $HD;;
