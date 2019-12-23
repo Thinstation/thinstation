@@ -41,7 +41,7 @@ mv wget_tmp/vbox/other/98vboxadd-xclient $INSTALLDIR/bin/VBoxClient-all
 rm -f wget_tmp/vbox/sbin/vbox-greeter
 
 # Copy lib, bin, and sbin into the package INSTALLDIR
-cp -a wget_tmp/vbox/{bin,lib,sbin} $INSTALLDIR
+cp -a wget_tmp/vbox/{bin,sbin} $INSTALLDIR
 let returnval=returnval+$?
 
 mkdir -p $INSTALLDIR/etc/init.d
@@ -65,11 +65,11 @@ do_module() {
 }
 
 # Install the modules
-for kernel in ${release}TS; do
-  mkdir -p $INSTALLDIR/lib/modules/$kernel/misc
+#for kernel in ${release}TS; do
+#  mkdir -p $INSTALLDIR/lib/modules/$kernel/misc
 #  do_module $kernel vboxguest vbox
-  do_module $kernel vboxsf vbox
-done
+#  do_module $kernel vboxsf vbox
+#done
 
 sed -e 's/   notify.*/:/g' -i $INSTALLDIR/bin/VBoxClient-all
 cp -a $INSTALLDIR/build/extra/* $INSTALLDIR

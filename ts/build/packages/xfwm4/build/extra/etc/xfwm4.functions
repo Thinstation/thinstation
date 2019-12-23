@@ -139,10 +139,10 @@ xfconf_settings()
 		fi
 	elif [ -e /etc/background.jpg ]; then
 		background=/etc/background.jpg
-		if is_disabled $WALLPAPER_STRETCH; then
-			bg_mode=4
-		else
+		if is_enabled $WALLPAPER_STRETCH || [ -z "$WALLPAPER_STRETCH" ]; then
 			bg_mode=3
+		else
+			bg_mode=4
 		fi
 	fi
 	for display in `xrandr |grep -e " connected" |cut -f1 -d " "`; do
