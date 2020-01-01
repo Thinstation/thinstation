@@ -13,7 +13,7 @@ Work To Do / Work in Progress: mail to developer List if you can help
 
 New:
 
-- Moved to kernel 5.3.10
+- Moved to kernel 5.4.6
 - Added a new cache loading feature for faster app launching.
 - Enabled compositing by default.
 - Horizon 5.2 support.
@@ -24,7 +24,7 @@ Fixes:
 - remade logo svg to render more accuretly.
 - fix background colors not being set correctly.
 
-**Note that Several modules have been moved inside the kernel**
+**Note that several modules have been moved inside the kernel**
 
 ## Installation
 Just run `./setup_chroot`. The first time this is run, it will expand all binary packages into the right place. It will then populate all the packages that build will use to make images. Afterwards, it will just start the chroot session.
