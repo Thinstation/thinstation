@@ -273,9 +273,9 @@ reduce_libs()
 			if [ `echo $linkdest | grep -E '/'` ]; then
 				continue
 			fi
-			# Ignore TCL, it doesn't ever declare an SONAME
+			# Ignore TCL/TK, it doesn't ever declare an SONAME
 			# ncurses has some wierd scripts named .so ??
-			if [ -n "`basename $link |grep -E 'libtcl.so$|libncurses.so$|libcurses.so$|libform.so$|libmenu.so$|libpanel.so$|libcursesw.so$'`" ]; then
+			if [ -n "`basename $link |grep -E 'libtcl.so$|libtk.so$|libncurses.so$|libcurses.so$|libform.so$|libmenu.so$|libpanel.so$|libcursesw.so$'`" ]; then
 				continue
 			fi
 			soname=`objdump -p $linkdir/$linkdest | grep SONAME | awk '{print $2}'`
@@ -294,9 +294,9 @@ reduce_libs()
 		for lib in `find $pkgpath/lib -mindepth 1 -maxdepth 1 -type f \
 		| grep -E 'lib\/lib' \
 		| grep -E '\.so' |sort -u`; do
-			# Ignore TCL, it doesn't ever declare an SONAME
+			# Ignore TCL/TK, it doesn't ever declare an SONAME
 			# ncurses has some wierd scripts named .so ??
-			if [ -n "`basename $lib |grep -E 'libtcl8.6.so$|libncurses.so$|libcurses.so$|libform.so$|libmenu.so$|libpanel.so$|libcursesw.so'`" ]; then
+			if [ -n "`basename $lib |grep -E 'libtcl8.6.so$|libtk8.6.so$|libncurses.so$|libcurses.so$|libform.so$|libmenu.so$|libpanel.so$|libcursesw.so'`" ]; then
 				continue
 			fi
 			soname=`objdump -p $lib | grep SONAME | awk '{print $2}'`
