@@ -12,25 +12,24 @@ if ! pkg_initialized $PACKAGE; then
 
 	if [ ! -e $HOME/.mozilla ] && [ -e /etc/FF.tar.gz ]; then
 		tar -C $HOME -zxvf /etc/FF.tar.gz
-	fi
-
-	# If no site FF profile archive was found, fall back to some useful defaults.
-	FFPREFS=/etc/TS.default/prefs.js
-	if [ -z "$FF_HOMEPAGE" ]; then
-		FF_HOMEPAGE="http://www.thinstation.org"
-	fi
-	let x=0
-	# Add any configuration parameters
-	while [ -n "`eval echo '$SESSION_'$x'_TYPE'`" ] ; do
-		FFTYPE=`eval echo '$SESSION_'$x'_TYPE'`
-		if [ "`make_caps $FFTYPE`" = "FIREFOX" ] ; then
-			FFHP=`eval echo '$SESSION_'$x'_FIREFOX_HOMEPAGE'`
+	else
+		# If no site FF profile archive was found, fall back to some useful defaults.
+		FFPREFS=/etc/TS.default/prefs.js
+		if [ -z "$FF_HOMEPAGE" ]; then
+			FF_HOMEPAGE="http://www.thinstation.org"
 		fi
-		let x=x+1
-	done
-	if [ -n "$FFHP" ] ; then
-		FF_HOMEPAGE=$FFHP
-	fi
+		# Add any configuration parameters
+		let x=0
+		while [ -n "`eval echo '$SESSION_'$x'_TYPE'`" ] ; do
+			FFTYPE=`eval echo '$SESSION_'$x'_TYPE'`
+			if [ "`make_caps $FFTYPE`" = "FIREFOX" ] ; then
+				FFHP=`eval echo '$SESSION_'$x'_FIREFOX_HOMEPAGE'`
+			fi
+			let x=x+1
+		done
+		if [ -n "$FFHP" ] ; then
+			FF_HOMEPAGE=$FFHP
+		fi
 		cp /etc/TS.default/prefs.tpl $FFPREFS
 		echo 'user_pref("browser.startup.homepage", "'$FF_HOMEPAGE'");' >>$FFPREFS
 	fi
