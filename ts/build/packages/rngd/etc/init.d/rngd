@@ -29,7 +29,13 @@ init)
     if ! is_disabled $RNGD ; then
 		# Add hardware random number generator as an entropy source,
 		# or fallback to urandom for a seed.
-		/sbin/rngd -W 50% || urandom_fallback
+		if [ "`cat /sys/devices/virtual/misc/hw_random/rng_current`" != "none" ]; then
+			/sbin/rngd -W 50%
+		elif [ -e /usr/sbin/haveged ]; then
+			/usr/sbin/haveged -w 1024 -v 1 --Foreground
+		else
+			urandom_fallback
+		fi
     fi
     pkg_set_init_flag $PACKAGE
   fi
