@@ -2,8 +2,8 @@
 
 . `dirname $0`/common
 
-#set -x
-#exec </dev/null >/var/log/rngd.log  2>&1
+set -x
+exec </dev/null >/var/log/rngd.log  2>&1
 
 urandom_fallback()
 {
@@ -29,10 +29,10 @@ init)
     if ! is_disabled $RNGD ; then
 		# Add hardware random number generator as an entropy source,
 		# or fallback to urandom for a seed.
-		if [ "`cat /sys/devices/virtual/misc/hw_random/rng_current`" != "none" ]; then
+		if [ -n "`rngd -l 2>&1 |cut -c 1 |grep -E '2|5|6'`" ] ; then
 			/sbin/rngd -W 50%
 		elif [ -e /usr/sbin/haveged ]; then
-			/usr/sbin/haveged -w 1024 -v 1 --Foreground
+			/usr/sbin/haveged -w 1024 -v 1
 		else
 			urandom_fallback
 		fi
