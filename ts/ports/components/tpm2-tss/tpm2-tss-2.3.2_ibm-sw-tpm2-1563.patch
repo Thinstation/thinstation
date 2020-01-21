@@ -1,0 +1,37 @@
+From 6ff9ad43cafa6aeebd264c78ea56e97b2a98e14b Mon Sep 17 00:00:00 2001
+From: Jonas Witschel <diabonas@gmx.de>
+Date: Sat, 21 Dec 2019 00:31:51 +0100
+Subject: [PATCH] test/tpmclient: retry Tss2_Sys_NV_Write upon TPM2_RC_RETRY
+
+Version 1563 of IBM's Software TPM 2.0 returns TPM2_RC_RETRY on the
+first invocation of Tss2_Sys_NV_Write, causing the test to fail. Repeat
+the write attempt until we get a non-transient response code.
+
+Signed-off-by: Jonas Witschel <diabonas@gmx.de>
+---
+ test/tpmclient/tpmclient.int.c | 12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
+
+diff --git a/test/tpmclient/tpmclient.int.c b/test/tpmclient/tpmclient.int.c
+index f21bdbcf3..7558ab082 100644
+--- a/test/tpmclient/tpmclient.int.c
++++ b/test/tpmclient/tpmclient.int.c
+@@ -1700,11 +1700,13 @@ static void PasswordTest()
+      * Attempt write with the correct password.
+      * It should pass.
+      */
+-    rval = Tss2_Sys_NV_Write( sysContext,
+-            TPM20_INDEX_PASSWORD_TEST,
+-            TPM20_INDEX_PASSWORD_TEST,
+-            &sessionsData, &nvWriteData, 0,
+-            &sessionsDataOut );
++    do {
++        rval = Tss2_Sys_NV_Write( sysContext,
++                TPM20_INDEX_PASSWORD_TEST,
++                TPM20_INDEX_PASSWORD_TEST,
++                &sessionsData, &nvWriteData, 0,
++                &sessionsDataOut );
++    } while (rval == TPM2_RC_RETRY);
+     /*
+      * Check that the function passed as
+      * expected.  Otherwise, exit.

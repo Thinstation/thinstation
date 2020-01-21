@@ -1,0 +1,65 @@
+diff -up openssl-1.1.1/crypto/x509/x509_vfy.c.seclevel openssl-1.1.1/crypto/x509/x509_vfy.c
+--- openssl-1.1.1/crypto/x509/x509_vfy.c.seclevel	2018-09-11 14:48:22.000000000 +0200
++++ openssl-1.1.1/crypto/x509/x509_vfy.c	2018-10-01 09:52:23.535298908 +0200
+@@ -3220,6 +3220,7 @@ static int build_chain(X509_STORE_CTX *c
+ }
+ 
+ static const int minbits_table[] = { 80, 112, 128, 192, 256 };
++static const int minbits_digest_table[] = { 80, 80, 128, 192, 256 };
+ static const int NUM_AUTH_LEVELS = OSSL_NELEM(minbits_table);
+ 
+ /*
+@@ -3264,6 +3265,8 @@ static int check_sig_level(X509_STORE_CT
+ 
+     if (!X509_get_signature_info(cert, NULL, NULL, &secbits, NULL))
+         return 0;
+-
+-    return secbits >= minbits_table[level - 1];
++    /* Allow SHA1 in SECLEVEL 2 in non-FIPS mode */
++    if (FIPS_mode())
++        return secbits >= minbits_table[level - 1];
++    return secbits >= minbits_digest_table[level - 1];
+ }
+diff -up openssl-1.1.1/doc/man3/SSL_CTX_set_security_level.pod.seclevel openssl-1.1.1/doc/man3/SSL_CTX_set_security_level.pod
+--- openssl-1.1.1/doc/man3/SSL_CTX_set_security_level.pod.seclevel	2018-09-11 14:48:22.000000000 +0200
++++ openssl-1.1.1/doc/man3/SSL_CTX_set_security_level.pod	2018-10-01 09:52:23.535298908 +0200
+@@ -81,8 +81,10 @@ using MD5 for the MAC is also prohibited
+ 
+ =item B<Level 2>
+ 
+-Security level set to 112 bits of security. As a result RSA, DSA and DH keys
+-shorter than 2048 bits and ECC keys shorter than 224 bits are prohibited.
++Security level set to 112 bits of security with the exception of SHA1 allowed
++for signatures.
++As a result RSA, DSA and DH keys shorter than 2048 bits and ECC keys
++shorter than 224 bits are prohibited.
+ In addition to the level 1 exclusions any cipher suite using RC4 is also
+ prohibited. SSL version 3 is also not allowed. Compression is disabled.
+ 
+diff -up openssl-1.1.1/ssl/ssl_cert.c.seclevel openssl-1.1.1/ssl/ssl_cert.c
+--- openssl-1.1.1/ssl/ssl_cert.c.seclevel	2018-09-11 14:48:23.000000000 +0200
++++ openssl-1.1.1/ssl/ssl_cert.c	2018-10-12 15:29:12.673799305 +0200
+@@ -983,6 +983,9 @@ static int ssl_security_default_callback
+             return 0;
+         break;
+     default:
++        /* allow SHA1 in SECLEVEL 2 in non FIPS mode */
++        if (nid == NID_sha1 && minbits == 112 && !FIPS_mode())
++            break;
+         if (bits < minbits)
+             return 0;
+     }
+diff -up openssl-1.1.1/test/recipes/25-test_verify.t.seclevel openssl-1.1.1/test/recipes/25-test_verify.t
+--- openssl-1.1.1/test/recipes/25-test_verify.t.seclevel	2018-09-11 14:48:24.000000000 +0200
++++ openssl-1.1.1/test/recipes/25-test_verify.t	2018-10-01 09:52:23.535298908 +0200
+@@ -342,8 +342,8 @@ ok(verify("ee-pss-sha1-cert", "sslserver
+ ok(verify("ee-pss-sha256-cert", "sslserver", ["root-cert"], ["ca-cert"], ),
+     "CA with PSS signature using SHA256");
+ 
+-ok(!verify("ee-pss-sha1-cert", "sslserver", ["root-cert"], ["ca-cert"], "-auth_level", "2"),
+-    "Reject PSS signature using SHA1 and auth level 2");
++ok(!verify("ee-pss-sha1-cert", "sslserver", ["root-cert"], ["ca-cert"], "-auth_level", "3"),
++    "Reject PSS signature using SHA1 and auth level 3");
+ 
+ ok(verify("ee-pss-sha256-cert", "sslserver", ["root-cert"], ["ca-cert"], "-auth_level", "2"),
+     "PSS signature using SHA256 and auth level 2");

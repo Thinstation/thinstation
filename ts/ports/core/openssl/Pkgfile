@@ -7,10 +7,70 @@ version=1.1.1d
 release=1
 source=(http://www.openssl.org/source/$name-$version.tar.gz \
 	openssl.config \
-        mksslcert.sh)
+        mksslcert.sh \
+	openssl-1.1.0-issuer-hash.patch \
+	openssl-1.1.1-aes-asm.patch \
+	openssl-1.1.1-apps-dgst.patch \
+	openssl-1.1.1-build.patch \
+	openssl-1.1.1-conf-paths.patch \
+	openssl-1.1.1-defaults.patch \
+	openssl-1.1.1-disable-ssl3.patch \
+	openssl-1.1.1-ec-curves.patch \
+	openssl-1.1.1-evp-kdf.patch \
+	openssl-1.1.1-fips-crng-test.patch \
+	openssl-1.1.1-fips-post-rand.patch \
+	openssl-1.1.1-fips.patch \
+	openssl-1.1.1-ignore-bound.patch \
+	openssl-1.1.1-krb5-kdf.patch \
+	openssl-1.1.1-man-rename.patch \
+	openssl-1.1.1-no-brainpool.patch \
+	openssl-1.1.1-no-html.patch \
+	openssl-1.1.1-no-weak-verify.patch \
+	openssl-1.1.1-regression-fixes.patch \
+	openssl-1.1.1-s390x-update.patch \
+	openssl-1.1.1-seclevel.patch \
+	openssl-1.1.1-ssh-kdf.patch \
+	openssl-1.1.1-status-request.patch \
+	openssl-1.1.1-system-cipherlist.patch \
+	openssl-1.1.1-ts-sha256-default.patch \
+	openssl-1.1.1-upstream-sync.patch \
+	openssl-1.1.1-version-add-engines.patch \
+	openssl-1.1.1-version-override.patch \
+	openssl-1.1.1-weak-ciphers.patch \
+)
 
 build() {
     cd $name-$version
+	for patch in	openssl-1.1.1-build.patch \
+			openssl-1.1.1-defaults.patch\
+			openssl-1.1.1-no-html.patch \
+			openssl-1.1.1-man-rename.patch\
+			openssl-1.1.0-issuer-hash.patch \
+			openssl-1.1.1-conf-paths.patch \
+			openssl-1.1.1-version-add-engines.patch \
+			openssl-1.1.1-apps-dgst.patch \
+			openssl-1.1.1-no-brainpool.patch\
+			openssl-1.1.1-ec-curves.patch \
+			openssl-1.1.1-no-weak-verify.patch \
+			openssl-1.1.1-disable-ssl3.patch \
+			openssl-1.1.1-system-cipherlist.patch \
+			openssl-1.1.1-fips.patch \
+			openssl-1.1.1-ignore-bound.patch \
+			openssl-1.1.1-version-override.patch \
+			openssl-1.1.1-weak-ciphers.patch \
+			openssl-1.1.1-seclevel.patch \
+			openssl-1.1.1-ts-sha256-default.patch \
+			openssl-1.1.1-fips-post-rand.patch \
+			openssl-1.1.1-evp-kdf.patch \
+			openssl-1.1.1-ssh-kdf.patch \
+			openssl-1.1.1-krb5-kdf.patch \
+			openssl-1.1.1-upstream-sync.patch \
+			openssl-1.1.1-s390x-update.patch \
+			openssl-1.1.1-fips-crng-test.patch \
+			openssl-1.1.1-regression-fixes.patch \
+			openssl-1.1.1-aes-asm.patch; do
+		patch -p1 -i ../$patch
+	done
 
 
     ./Configure --prefix=/usr --openssldir=/etc/ssl --libdir=lib \

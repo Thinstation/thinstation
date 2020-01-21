@@ -1,0 +1,18 @@
+# Maintainer: Jonas Witschel <diabonas@archlinux.org>
+name=tpm2-pkcs11
+version=1.0.1
+release=1
+source=(https://github.com/tpm2-software/tpm2-pkcs11/releases/download/$version/$name-$version.tar.gz)
+
+build() {
+	cd "$name-$version"
+	./configure --prefix=/usr $( ((CHECKFUNC)) && echo --enable-unit --enable-integration)
+	make
+	cd tools
+	python setup.py build
+	cd ..
+	make DESTDIR="$PKG" install
+	install -Dm644 LICENSE -t "$PKG/usr/share/licenses/$name"
+	cd tools
+	python setup.py install --root="$PKG" --optimize=1 --skip-build
+}

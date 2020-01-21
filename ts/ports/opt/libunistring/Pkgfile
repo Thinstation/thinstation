@@ -1,0 +1,19 @@
+# Description: Functions for manipulating Unicode strings and C strings.
+# URL: https://www.gnu.org/software/libunistring/
+# Maintainer: Danny Rawlins, crux at romster dot me
+
+name=libunistring
+version=0.9.10
+release=1
+source=(https://ftp.gnu.org/gnu/$name/$name-$version.tar.xz)
+
+build() {
+	cd $name-$version
+
+	./configure --prefix=/usr
+
+	make
+	make DESTDIR=$PKG install
+
+	rm -r $PKG/usr/share/{doc,info}
+}

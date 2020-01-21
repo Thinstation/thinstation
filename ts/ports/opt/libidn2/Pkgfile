@@ -1,0 +1,22 @@
+# Description: Provides support for IETF Internationalized Domain Names (IDN).
+# URL: http://www.gnu.org/software/libidn/
+# Maintainer: Danny Rawlins, crux at romster dot me
+# Depends on: libunistring
+
+name=libidn2
+version=2.2.0
+release=1
+source=(https://ftp.gnu.org/gnu/libidn/$name-$version.tar.lz)
+
+build() {
+	cd $name-$version
+
+	./configure \
+		--prefix=/usr \
+		--disable-nls
+
+	make
+	make DESTDIR=$PKG install
+
+	rm -r $PKG/usr/share/{gtk-doc,info}
+}

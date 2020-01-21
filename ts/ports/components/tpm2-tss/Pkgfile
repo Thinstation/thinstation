@@ -1,0 +1,22 @@
+# Maintainer: Jonas Witschel <diabonas@archlinux.org>
+
+name=tpm2-tss
+version=2.3.2
+release=1
+source=(https://github.com/tpm2-software/tpm2-tss/releases/download/${version}/${name}-${version}.tar.gz
+        tpm2-tss-2.3.2_ibm-sw-tpm2-1563.patch)
+
+build() {
+	cd ${name}-${version}
+	# Fix test failure with ibm-sw-tpm2 1563, see https://github.com/tpm2-software/tpm2-tss/pull/1585
+	patch --strip=1 --input="${SRC}/tpm2-tss-2.3.2_ibm-sw-tpm2-1563.patch"
+
+    ./configure --prefix=/usr --with-udevrulesprefix=60- --disable-doxygen-doc
+
+    make
+    make check
+    make DESTDIR="${PKG}" install
+    install -Dm644 LICENSE -t "${PKG}"/usr/share/licenses/${name}/
+    echo 'u tss - "tss user for tpm2"' | install -Dm644 /dev/stdin "${PKG}"/usr/lib/sysusers.d/${name}.conf
+    rm "${PKG}"/usr/lib/libtss2-tcti-default.so # https://github.com/tpm2-software/tpm2-tss/issues/1482#issuecomment-516363966
+}

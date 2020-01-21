@@ -1,0 +1,21 @@
+# Maintainer: Darshit Shah <darnir@gmail.com>
+# Contributor: speps <speps at aur dot archlinux dot org>
+
+name=libmetalink
+version=0.1.3
+release=1
+source=("https://launchpad.net/libmetalink/trunk/$name-$version/+download/$name-$version.tar.bz2")
+
+build() {
+  cd "$SRC/$name-$version"
+  ./configure --prefix=/usr \
+              --enable-static=no
+  make
+  make DESTDIR="$PKG/" install
+
+  # license
+  install -Dm644 COPYING \
+    "$PKG/usr/share/licenses/$name/LICENSE"
+}
+
+# vim:set ts=2 sw=2 et:

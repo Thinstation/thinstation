@@ -1,0 +1,19 @@
+# Maintainer: Bruno Pagani <archange@archlinux.org>
+# Maintainer: Jonas Witschel <diabonas@archlinux.org>
+
+name=tpm2-tools
+version=4.1
+release=1
+checkdepends=(cmocka ibm-sw-tpm2 iproute2 python-yaml tpm2-abrmd xxd)
+source=(https://github.com/tpm2-software/tpm2-tools/releases/download/${version}/${name}-${version}.tar.gz)
+
+build() {
+    cd ${name}-${version}
+    ./configure \
+        --sysconfdir=/etc \
+        --prefix=/usr $( ((CHECKFUNC)) && echo --enable-unit)
+    make
+    make check
+    make DESTDIR="${PKG}" install
+    install -Dm644 LICENSE -t "${PKG}"/usr/share/licenses/${name}/
+}

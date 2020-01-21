@@ -1,0 +1,17 @@
+# Description: Programmers Solid 3D CAD Modeller
+# URL:         http://www.openscad.org/
+# Maintainer:  Joe M, joe9mail at gmail dot com
+# Depends on:  qt4 cgal opencsg gmp mpfr boost cmake gcc bison flex eigen2
+
+name=openscad
+version=2011.12
+release=1
+source=(https://github.com/downloads/$name/$name/$name-$version.src.tar.gz)
+
+build () {
+   cd $name-$version
+
+   qmake PREFIX=/usr
+   make
+   make DESTDIR=$PKG INSTALL_ROOT=$PKG install
+}

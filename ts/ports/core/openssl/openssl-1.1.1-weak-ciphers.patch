@@ -1,0 +1,57 @@
+diff -up openssl-1.1.1/ssl/s3_lib.c.weak-ciphers openssl-1.1.1/ssl/s3_lib.c
+--- openssl-1.1.1/ssl/s3_lib.c.weak-ciphers	2018-09-11 14:48:23.000000000 +0200
++++ openssl-1.1.1/ssl/s3_lib.c	2018-09-17 12:53:33.850637181 +0200
+@@ -2612,7 +2612,7 @@ static SSL_CIPHER ssl3_ciphers[] = {
+      SSL_GOST89MAC,
+      TLS1_VERSION, TLS1_2_VERSION,
+      0, 0,
+-     SSL_HIGH,
++     SSL_MEDIUM,
+      SSL_HANDSHAKE_MAC_GOST94 | TLS1_PRF_GOST94 | TLS1_STREAM_MAC,
+      256,
+      256,
+@@ -2644,7 +2644,7 @@ static SSL_CIPHER ssl3_ciphers[] = {
+      SSL_GOST89MAC12,
+      TLS1_VERSION, TLS1_2_VERSION,
+      0, 0,
+-     SSL_HIGH,
++     SSL_MEDIUM,
+      SSL_HANDSHAKE_MAC_GOST12_256 | TLS1_PRF_GOST12_256 | TLS1_STREAM_MAC,
+      256,
+      256,
+@@ -2753,7 +2753,7 @@ static SSL_CIPHER ssl3_ciphers[] = {
+      },
+ #endif                          /* OPENSSL_NO_SEED */
+ 
+-#ifndef OPENSSL_NO_WEAK_SSL_CIPHERS
++#if 0 /* No MD5 ciphersuites */
+     {
+      1,
+      SSL3_TXT_RSA_RC4_128_MD5,
+@@ -2770,6 +2770,8 @@ static SSL_CIPHER ssl3_ciphers[] = {
+      128,
+      128,
+      },
++#endif
++#ifndef OPENSSL_NO_WEAK_SSL_CIPHERS
+     {
+      1,
+      SSL3_TXT_RSA_RC4_128_SHA,
+@@ -2786,6 +2788,8 @@ static SSL_CIPHER ssl3_ciphers[] = {
+      128,
+      128,
+      },
++#endif
++#if 0
+     {
+      1,
+      SSL3_TXT_ADH_RC4_128_MD5,
+@@ -2802,6 +2806,8 @@ static SSL_CIPHER ssl3_ciphers[] = {
+      128,
+      128,
+      },
++#endif
++#ifndef OPENSSL_NO_WEAK_SSL_CIPHERS
+     {
+      1,
+      TLS1_TXT_ECDHE_PSK_WITH_RC4_128_SHA,

@@ -1,0 +1,22 @@
+# Maintainer: Anatol Pomozov
+# Contributor: Zhuoyun Wei <wzyboy@wzyboy.org>
+
+name=nghttp2
+version=1.39.2
+release=2
+source=(https://github.com/nghttp2/nghttp2/releases/download/v$version/nghttp2-$version.tar.xz)
+
+build() {
+  cd nghttp2-$version
+
+  autoreconf -i
+  ./configure \
+    --prefix=/usr \
+    --disable-examples \
+    --disable-python-bindings \
+    --enable-lib-only
+  make
+  make check
+
+  make DESTDIR="$PKG" install
+}

@@ -1,0 +1,40 @@
+diff -up openssl-1.1.1-pre8/Configurations/unix-Makefile.tmpl.build openssl-1.1.1-pre8/Configurations/unix-Makefile.tmpl
+--- openssl-1.1.1-pre8/Configurations/unix-Makefile.tmpl.build	2018-06-20 16:48:09.000000000 +0200
++++ openssl-1.1.1-pre8/Configurations/unix-Makefile.tmpl	2018-07-16 17:15:38.108831031 +0200
+@@ -680,7 +680,7 @@ uninstall_runtime:
+ install_man_docs:
+ 	@[ -n "$(INSTALLTOP)" ] || (echo INSTALLTOP should not be empty; exit 1)
+ 	@$(ECHO) "*** Installing manpages"
+-	$(PERL) $(SRCDIR)/util/process_docs.pl \
++	TZ=UTC $(PERL) $(SRCDIR)/util/process_docs.pl \
+ 		--destdir=$(DESTDIR)$(MANDIR) --type=man --suffix=$(MANSUFFIX)
+ 
+ uninstall_man_docs:
+@@ -692,7 +692,7 @@ uninstall_man_docs:
+ install_html_docs:
+ 	@[ -n "$(INSTALLTOP)" ] || (echo INSTALLTOP should not be empty; exit 1)
+ 	@$(ECHO) "*** Installing HTML manpages"
+-	$(PERL) $(SRCDIR)/util/process_docs.pl \
++	TZ=UTC $(PERL) $(SRCDIR)/util/process_docs.pl \
+ 		--destdir=$(DESTDIR)$(HTMLDIR) --type=html
+ 
+ uninstall_html_docs:
+diff -up openssl-1.1.1-pre8/Configurations/10-main.conf.build openssl-1.1.1-pre8/Configurations/10-main.conf
+--- openssl-1.1.1-pre8/Configurations/10-main.conf.build	2018-06-20 16:48:09.000000000 +0200
++++ openssl-1.1.1-pre8/Configurations/10-main.conf	2018-07-16 17:17:10.312045203 +0200
+@@ -693,6 +693,7 @@ my %targets = (
+         cxxflags         => add("-m64"),
+         lib_cppflags     => add("-DL_ENDIAN"),
+         perlasm_scheme   => "linux64le",
++        multilib         => "64",
+     },
+ 
+     "linux-armv4" => {
+@@ -733,6 +734,7 @@ my %targets = (
+     "linux-aarch64" => {
+         inherit_from     => [ "linux-generic64", asm("aarch64_asm") ],
+         perlasm_scheme   => "linux64",
++        multilib         => "64",
+     },
+     "linux-arm64ilp32" => {  # https://wiki.linaro.org/Platform/arm64-ilp32
+         inherit_from     => [ "linux-generic32", asm("aarch64_asm") ],

@@ -1,0 +1,24 @@
+# Maintainer: Massimiliano Torromeo <massimiliano.torromeo@gmail.com
+# Contributor: Timothy Redaelli <timothy.redaelli+aur@gmail.com>
+
+name=jitterentropy
+_name=$name-library
+version=2.2.0
+release=1
+source=(https://www.chronox.de/jent/$_name-$version.tar.xz{,.asc})
+
+build() {
+  cd "$_name-$version"
+
+  # Disable man page compression on install
+  sed -e '/\tgzip .*\/man\// d' -i Makefile
+  # Let the package manager handle stripping
+  sed -e '/\tinstall.*-s / s/-s //g' -i Makefile
+  make jitterentropy
+  install -dm755 "$PKG/usr/include"
+  make PREFIX=/usr DESTDIR="$PKG/" install
+  install -Dm644 COPYING "$PKG/usr/share/licenses/$name/COPYING"
+  install -Dm644 COPYING.bsd "$PKG/usr/share/licenses/$name/COPYING.bsd"
+}
+
+# vim:set ts=2 sw=2 et:

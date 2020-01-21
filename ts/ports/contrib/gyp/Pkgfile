@@ -1,0 +1,26 @@
+# Maintainer: Jan Alexander Steffens (heftig) <jan.steffens@gmail.com>
+
+name=gyp
+version=20190716.fcd686f1
+release=3
+_commit=fcd686f1880fa52a1ee78d3e98af1b88cb334528  # changes/82/1701782/5
+source=(gyp-fix-cmake.patch gyp-python38.patch)
+
+version() {
+  cd $name
+
+  # Commit date + short rev
+  echo $(TZ=UTC git show -s --pretty=%cd --date=format-local:%Y%m%d HEAD).$(git rev-parse --short HEAD)
+}
+
+build() {
+git clone https://chromium.googlesource.com/external/gyp
+  cd $name
+
+  # Python 3 fixes from Fedora
+  patch -Np1 -i ../gyp-fix-cmake.patch
+  patch -Np1 -i ../gyp-python38.patch
+  python setup.py build
+  python setup.py install --root="$PKG" --optimize=1 --skip-build
+  install -Dt "$PKG/usr/share/licenses/$name" -m644 LICENSE
+}

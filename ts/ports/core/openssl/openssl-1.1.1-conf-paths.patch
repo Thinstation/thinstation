@@ -1,0 +1,56 @@
+diff -up openssl-1.1.1-pre8/apps/CA.pl.in.conf-paths openssl-1.1.1-pre8/apps/CA.pl.in
+--- openssl-1.1.1-pre8/apps/CA.pl.in.conf-paths	2018-06-20 16:48:09.000000000 +0200
++++ openssl-1.1.1-pre8/apps/CA.pl.in	2018-07-25 17:26:58.388624296 +0200
+@@ -33,7 +33,7 @@ my $X509 = "$openssl x509";
+ my $PKCS12 = "$openssl pkcs12";
+ 
+ # default openssl.cnf file has setup as per the following
+-my $CATOP = "./demoCA";
++my $CATOP = "/etc/pki/CA";
+ my $CAKEY = "cakey.pem";
+ my $CAREQ = "careq.pem";
+ my $CACERT = "cacert.pem";
+diff -up openssl-1.1.1-pre8/apps/openssl.cnf.conf-paths openssl-1.1.1-pre8/apps/openssl.cnf
+--- openssl-1.1.1-pre8/apps/openssl.cnf.conf-paths	2018-07-25 17:26:58.378624057 +0200
++++ openssl-1.1.1-pre8/apps/openssl.cnf	2018-07-27 13:20:08.198513471 +0200
+@@ -23,6 +23,22 @@ oid_section		= new_oids
+ # (Alternatively, use a configuration file that has only
+ # X.509v3 extensions in its main [= default] section.)
+ 
++# Load default TLS policy configuration
++
++openssl_conf = default_modules
++
++[ default_modules ]
++
++ssl_conf = ssl_module
++
++[ ssl_module ]
++
++system_default = crypto_policy
++
++[ crypto_policy ]
++
++.include = /etc/crypto-policies/back-ends/opensslcnf.config
++
+ [ new_oids ]
+ 
+ # We can add new OIDs in here for use by 'ca', 'req' and 'ts'.
+@@ -43,7 +59,7 @@ default_ca	= CA_default		# The default c
+ ####################################################################
+ [ CA_default ]
+ 
+-dir		= ./demoCA		# Where everything is kept
++dir		= /etc/pki/CA		# Where everything is kept
+ certs		= $dir/certs		# Where the issued certs are kept
+ crl_dir		= $dir/crl		# Where the issued crl are kept
+ database	= $dir/index.txt	# database index file.
+@@ -329,7 +345,7 @@ default_tsa = tsa_config1	# the default
+ [ tsa_config1 ]
+ 
+ # These are used by the TSA reply generation only.
+-dir		= ./demoCA		# TSA root directory
++dir		= /etc/pki/CA		# TSA root directory
+ serial		= $dir/tsaserial	# The current serial number (mandatory)
+ crypto_device	= builtin		# OpenSSL engine to use for signing
+ signer_cert	= $dir/tsacert.pem 	# The TSA signing certificate

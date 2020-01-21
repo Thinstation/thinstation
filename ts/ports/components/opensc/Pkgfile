@@ -1,0 +1,33 @@
+# Maintainer:
+# Contributor: Timothy Redaelli <timothy.redaelli@gmail.com>
+# Contributor: Sébastien Luttringer
+# Contributor: kevku <kevku@msn.com>
+
+name=opensc
+version=0.20.0
+release=2
+source=("https://github.com/OpenSC/OpenSC/releases/download/$version/opensc-$version.tar.gz")
+
+build() {
+  cd $name-$version
+  _sheetdir=(/usr/share/xml/docbook/xsl-stylesheets-*)
+  ./bootstrap
+  ./configure \
+    --prefix=/usr \
+    --sysconfdir=/etc \
+    --with-completiondir=/usr/share/bash-completion/completions \
+    --enable-man \
+    --enable-doc \
+    --enable-readline \
+    --enable-openssl \
+    --enable-pcsc \
+    --enable-zlib \
+    --enable-sm \
+    --with-xsl-stylesheetsdir="$_sheetdir"
+  sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
+  make
+  make DESTDIR="$PKG" install
+  install -D -m644 etc/opensc.conf "$PKG/etc/opensc.conf"
+}
+
+# vim:set ts=2 sw=2 et:

@@ -11,49 +11,50 @@ source=(http://ftp.mozilla.org/pub/security/nss/releases/NSS_${_version}_RTM/src
         nss-config.in nss.pc.in)
 
 build() {
-	cd $name-$version/
+	cd $name-$version/nss
 
-	sed -i nss/coreconf/Linux.mk \
-		-e 's|^CC.*=.*gcc$|#&|' \
-		-e 's|^CCC.*=.*g++$|#&|'
+	./build.sh -v --opt --system-sqlite --system-nspr --enable-libpkix --disable-tests --enable-fips
 
-	export NSPR_INCLUDE_DIR=/usr/include/nspr
-	export NSPR_LIB_DIR=/usr/lib
-	export NSS_USE_SYSTEM_SQLITE=1
-	export NSS_ENABLE_ECC=1
-	export NSS_ENABLE_TLS_1_3=1
-	export BUILD_OPT=1
-	export XCFLAGS="${CFLAGS}"
-	export NSS_DISABLE_GTESTS=1
+  local vmajor vminor vpatch
+  cd ..
 
-	make -j1 USE_64=1 -C nss
+  { read vmajor; read vminor; read vpatch; } \
+    < <(awk '/#define.*NSS_V(MAJOR|MINOR|PATCH)/ {print $3}' nss/lib/nss/nss.h)
 
-	install -d $PKG/usr/{bin,lib/pkgconfig,include/nss}
+  sed nss/pkg/pkg-config/nss.pc.in \
+    -e "s,%libdir%,/usr/lib,g" \
+    -e "s,%prefix%,/usr,g" \
+    -e "s,%exec_prefix%,/usr/bin,g" \
+    -e "s,%includedir%,/usr/include/nss,g" \
+    -e "s,%NSPR_VERSION%,$_nsprver,g" \
+    -e "s,%NSS_VERSION%,$version,g" |
+    install -Dm644 /dev/stdin "$PKG/usr/lib/pkgconfig/nss.pc"
 
-	cd dist/*.OBJ/bin
-	install -t "$PKG/usr/bin" *util shlibsign signtool signver ssltap
-	cd ../lib
-	install -t "$PKG/usr/lib" *.so
-	install -t "$PKG/usr/lib" -m644 libcrmf.a *.chk
-	cd ../../public/nss
-	install -t "$PKG/usr/include/nss" -m644 *.h
-	install -m 0755 $SRC/nss-config.in $PKG/usr/bin/nss-config
+  ln -s nss.pc "$PKG/usr/lib/pkgconfig/mozilla-nss.pc"
 
-	_version=$(printf "%i.%i.%i" ${version//./ })
-	sed -i "s/@VERSION@/$_version/" $PKG/usr/bin/nss-config
+  sed nss/pkg/pkg-config/nss-config.in \
+    -e "s,@libdir@,/usr/lib,g" \
+    -e "s,@prefix@,/usr/bin,g" \
+    -e "s,@exec_prefix@,/usr/bin,g" \
+    -e "s,@includedir@,/usr/include/nss,g" \
+    -e "s,@MOD_MAJOR_VERSION@,$vmajor,g" \
+    -e "s,@MOD_MINOR_VERSION@,$vminor,g" \
+    -e "s,@MOD_PATCH_VERSION@,$vpatch,g" |
+    install -D /dev/stdin "$PKG/usr/bin/nss-config"
 
-	NSS_LIBS=`$PKG/usr/bin/nss-config --libs`
-	NSS_CFLAGS=`$PKG/usr/bin/nss-config --cflags`
-	NSPR_VERSION=`pkg-config --modversion nspr`
-	sed $SRC/nss.pc.in \
-		-e "s,%libdir%,/usr/lib," \
-		-e "s,%prefix%,/usr," \
-		-e "s,%exec_prefix%,/usr/bin," \
-		-e "s,%includedir%,/usr/include/nss," \
-		-e "s,%NSS_VERSION%,$version," \
-		-e "s,%NSPR_VERSION%,$NSPR_VERSION," \
-		-e "s,%FULL_NSS_LIBS%,$NSS_LIBS," \
-		-e "s,%FULL_NSS_CFLAGS%,$NSS_CFLAGS," > \
-	$PKG/usr/lib/pkgconfig/nss.pc
+  cd nss/doc/nroff
+  install -Dt "$PKG/usr/share/man/man1" -m644 *util.1 signtool.1 signver.1 ssltap.1
 
+  cd ../../../dist
+  install -Dt "$PKG/usr/include/nss" -m644 public/nss/*.h
+
+  cd Release/bin
+  install -Dt "$PKG/usr/bin" *util shlibsign signtool signver ssltap
+
+  cd ../lib
+  install -Dt "$PKG/usr/lib" *.so
+  install -Dt "$PKG/usr/lib" -m644 *.chk
+
+  # Replace built-in trust with p11-kit connection
+#  ln -sf libnssckbi-p11-kit.so "$PKG/usr/lib/libnssckbi.so"
 }
