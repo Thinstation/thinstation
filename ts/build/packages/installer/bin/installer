@@ -273,10 +273,10 @@ disk_select()
 
 	for disk in `blockdev --report | sed -r 's/[[:space:]]+/:/g' | cut -d ":" -f7 | grep -e / |grep -v [0-9]`; do
 		disksize=`blockdev --report | sed -r 's/[[:space:]]+/:/g' | grep -e $disk\$ | cut -d ":" -f6`
-		disk[$index]=$disk
+		disks[$index]=$disk
 		if [ "${disksize[$index]}" -gt "30000000000" ] ; then
 			gigs=$(( ${disksize}/1024/1024/1024 ))
-			echo "$index|${disk[$index]}|$gigs" >> $tempdir/disklist
+			echo "$index|${disks[$index]}|$gigs" >> $tempdir/disklist
 			let index+=1
 		fi
 	done
@@ -328,7 +328,7 @@ disk_select()
 		exit 1
 	fi
 
-	disk=${disk[$index]}
+	disks=${disk[$index]}
 }
 
 install_it()
