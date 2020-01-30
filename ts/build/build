@@ -2280,6 +2280,16 @@ refind_copy_files()
 	done
 }
 
+rufus_copy_files()
+{
+	if find /usr/share/rufus -type f >/dev/null 2>&1 ; then
+		mkdir -p $ESP/rufus/rufus_files/syslinux-6.04/pre2-11-gbf6db5b4
+		cp /usr/share/syslinux/bios/ldlinux.sys $ESP/rufus/rufus_files/syslinux-6.04/pre2-11-gbf6db5b4/.
+		cp /usr/share/syslinux/bios/ldlinux.bss $ESP/rufus/rufus_files/syslinux-6.04/pre2-11-gbf6db5b4/.
+		cp /usr/share/rufus/rufus-*.exe $ESP/rufus/.
+	fi
+}
+
 sys_link()
 {
 	if [ ! -e "$3" ]; then
@@ -2393,6 +2403,7 @@ if [ -z "$NOIMAGES" ]; then
 
 				addpkgs $ESP
 				syslinux_copy_files_bios
+				rufus_copy_files
 				add_image
 				add_overlay
 
@@ -2445,6 +2456,7 @@ if [ -z "$NOIMAGES" ]; then
 				CONFIGFILE=isolinux.cfg
 				LOADER=isolinux.bin
 				syslinux_copy_files_bios
+				rufus_copy_files
 
 				add_image
 				addpkgs $ESP
@@ -2524,6 +2536,7 @@ if [ -z "$NOIMAGES" ]; then
 					CONFIGFILE=isolinux.cfg
 					LOADER=isolinux.bin
 					syslinux_copy_files_bios
+					rufus_copy_files
 
 					add_image
 					addpkgs $ESP
