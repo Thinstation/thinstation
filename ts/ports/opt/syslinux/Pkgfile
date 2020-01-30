@@ -12,7 +12,8 @@ source=(ifmem.c \
         0002-gfxboot-menu-label.patch \
         0017-single-load-segment.patch \
         0016-strip-gnu-property.patch \
-        0018-prevent-pow-optimization.patch)
+        0018-prevent-pow-optimization.patch \
+	syslinux.exe syslinux64.exe)
 
 _targets='bios efi32 efi64'
 
@@ -49,4 +50,7 @@ build() {
 
 	make -j1 INSTALLROOT=$PKG install efi32 PYTHON=python3 || make -j1 INSTALLROOT=$PKG install efi32 PYTHON=python3
 	make -j1 INSTALLROOT=$PKG install efi64 PYTHON=python3 || make -j1 INSTALLROOT=$PKG install efi64 PYTHON=python3
+	install $SRC/syslinux.exe $PKG/usr/share/syslinux/bios/syslinux.exe
+        install $SRC/syslinux64.exe $PKG/usr/share/syslinux/bios/syslinux64.exe
+
 }
