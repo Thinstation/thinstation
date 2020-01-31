@@ -2283,9 +2283,11 @@ refind_copy_files()
 rufus_copy_files()
 {
 	if find /usr/share/rufus -type f >/dev/null 2>&1 ; then
-		mkdir -p $ESP/rufus/rufus_files/syslinux-6.04/pre2-11-gbf6db5b4
-		cp /usr/share/syslinux/bios/ldlinux.sys $ESP/rufus/rufus_files/syslinux-6.04/pre2-11-gbf6db5b4/.
-		cp /usr/share/syslinux/bios/ldlinux.bss $ESP/rufus/rufus_files/syslinux-6.04/pre2-11-gbf6db5b4/.
+		sysrelease=`hexdump -s 64 -n 8192 -C /usr/share/syslinux/bios/ldlinux.sys |grep -e SYSLINUX -A2 |cut -d '|' -f2 |sed -e ':a;N;$!ba;s/\n//g' |cut -d "-" -f2- |sed -e 's/\*//g' |sed -e 's/\.//g'`
+		sysversion=`hexdump -s 64 -n 8192 -C /usr/share/syslinux/bios/ldlinux.sys |grep -e SYSLINUX -A2 |cut -d '|' -f2 |sed -e ':a;N;$!ba;s/\n//g' |cut -d " " -f2`
+		mkdir -p $ESP/rufus/rufus_files/syslinux-$sysversion/$sysrelease
+		cp /usr/share/syslinux/bios/ldlinux.sys $ESP/rufus/rufus_files/syslinux-$sysversion/$sysrelease/.
+		cp /usr/share/syslinux/bios/ldlinux.bss $ESP/rufus/rufus_files/syslinux-$sysversion/$sysrelease/.
 		cp /usr/share/rufus/rufus-*.exe $ESP/rufus/.
 	fi
 }
