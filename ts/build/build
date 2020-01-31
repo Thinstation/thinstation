@@ -2096,7 +2096,7 @@ add_image()
 			sys_copy $INITDIR/$KERN64 $ESP/boot/$KERN64
 			# Because HashTool.efi is dumb and cant deal with a folder named boot on CD.
 			# Also makes it easier for the user to enroll the kernel hash.
-#			sys_copy $INITDIR/$KERN64 $ESP/EFI/BOOT/enroll-$KERN64
+			sys_copy $INITDIR/$KERN64 $ESP/EFI/BOOT/enroll-$KERN64
 #		else
 #			sys_copy $INITDIR/vmlinuz $ESP/boot/vmlinuz
 #			sys_copy $INITDIR/vmlinuz $ESP/EFI/BOOT/enroll-vmlinuz
@@ -2104,6 +2104,7 @@ add_image()
 	else
 		for kernel in `find $INITDIR -maxdepth 1 -type f -name vmlinuz\* -printf '%f '`; do
 			sys_copy $INITDIR/$kernel $ESP/boot/$kernel
+			sys_copy $INITDIR/$kernel $ESP/EFI/BOOT/enroll-$kernel
 			if [ -e $INITDIR/lib.squash ]; then
 				sys_link hard $INITDIR/lib.squash $ESP/boot/lib.squash
 			fi
@@ -2534,10 +2535,17 @@ if [ -z "$NOIMAGES" ]; then
 						sed -i -e "s/LM=4/LM=2/g" $ESP/$file
 					done
 
-					BDIR=/syslinux
+					BDIR=/isolinux
 					CONFIGFILE=isolinux.cfg
 					LOADER=isolinux.bin
 					syslinux_copy_files_bios
+
+					BDIR=/syslinux
+					CONFIGFILE=syslinux.cfg
+					LOADER=syslinux
+					LM=2
+					syslinux_copy_files_bios
+
 					rufus_copy_files
 
 					add_image
@@ -2545,8 +2553,8 @@ if [ -z "$NOIMAGES" ]; then
 
 					mkisofs	-V "$ts_cdvolname" \
 						-o $ESP/../thinstation-efi.iso \
-						-b boot/syslinux/isolinux.bin \
-						-c boot/syslinux/boot.cat \
+						-b boot/isolinux/isolinux.bin \
+						-c boot/isolinux/boot.cat \
 						-no-emul-boot \
 						-boot-load-size 4 \
 						-boot-info-table \
