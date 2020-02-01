@@ -421,8 +421,11 @@ install_it
 
 if is_enabled $INSTALLER_DEV ; then
 	cat $bootdir/syslinux/syslinux.tpl | sed -e "s/\$RES/$res/g" > $bootdir/syslinux/syslinux.cfg
+	cat $bootdir/syslinux/syslinux.tpl | sed -e "s/\$RES/$res/g" > /boot/EFI/BOOT/syslinux.cfg
+
 else
 	cat $bootdir/syslinux/$INSTALLER_SYSLINUX_FILENAME > $bootdir/syslinux/syslinux.cfg
+	cat $bootdir/syslinux/$INSTALLER_SYSLINUX_FILENAME > /boot/EFI/BOOT/syslinux.cfg
 fi
 
 if is_enabled $INSTALLER_DEV ; then

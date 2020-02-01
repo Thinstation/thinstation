@@ -132,6 +132,13 @@ cd $bootdir/syslinux
 cp /install/* .
 cp /install/bios/* .
 ./extlinux -i /boot/boot/syslinux
+
+cd /boot
+mkdir -p EFI/BOOT
+cp /install/efi64/* /boot/EFI/BOOT/.
+mv /boot/EFI/BOOT/syslinux.efi /boot/EFI/BOOT/bootx64.efi
+cp /install/* /boot/EFI/BOOT/.
+
 cd $bootdir
 
 # Setup proxy for wget and git
