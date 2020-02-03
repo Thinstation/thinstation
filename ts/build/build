@@ -2070,7 +2070,7 @@ image_fastboot()
 }
 
 if [ -z "$ts_bootimages" ]; then
-	ts_bootimages="syslinux refind pxe systemd-boot refind-iso systemd-boot-iso iso"
+	ts_bootimages="syslinux syslinux-sb-iso refind pxe systemd-boot refind-iso systemd-boot-iso iso"
 fi
 if [ -z "$ts_syslinuxtheme" ]; then
 	ts_syslinuxtheme="default"
@@ -2230,6 +2230,19 @@ syslinux_copy_files_efi()
 		sys_copy ${configdir}${file} "$EFI32DIR/$file"
 		sys_copy ${configdir}${file} "$EFI64DIR/$file"
 	done
+
+	for file in `find $ESP -name \*.tpl |sed -e "s|$ESP||g"`; do
+                endfile=`dirname $file`/`basename $file .tpl`
+                cat $ESP/$file |sed -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS LM=$LM/g" > $ESP/$endfile
+                rm $ESP/$file
+                sed -i -e "s/\$LM/$LM/g" $ESP/$endfile
+                if [ "$LOADER" == "lpxelinux.0" ]; then
+                        sed -i -e "s|/boot|http://$ts_bootserver/boot|g" $ESP/$endfile
+                elif [ "$LOADER" == "pxelinux.0" ]; then
+                        sed -i -e "s|/boot|::/boot|g" $ESP/$endfile
+                fi
+                echo $ESP/$endfile >> boot-images/initrd/added.files
+        done
 	find $ESP -name syslinux.cfg.tpl -delete
 
 	if [ "$LOADER" == "lpxelinux.0" ]; then
@@ -2373,6 +2386,64 @@ if [ -z "$NOIMAGES" ]; then
 				syslinux_copy_files_efi
 				add_image
 				add_overlay
+			;;
+			syslinux-sb-iso)
+				ESP=boot-images/syslinux-sb-iso/source
+				EFI32DIR=$ESP/EFI/BOOT
+				EFI64DIR=$ESP/EFI/BOOT
+				BDIR=/syslinux
+				CONFIGFILE=syslinux.cfg
+				LOADER=syslinux
+				LM=4
+				syslinux_copy_files_efi
+
+				mv $ESP/EFI/BOOT/bootx64.efi $ESP/EFI/BOOT/loader.efi
+				echo $ESP/EFI/BOOT/loader.efi >> boot-images/initrd/added.files
+				sys_copy /usr/lib/prebootloader/PreLoader.efi $ESP/EFI/BOOT/bootx64.efi
+				sys_copy /usr/lib/prebootloader/HashTool.efi $ESP/EFI/BOOT/HashTool.efi
+
+				add_image efi
+				wrap_efi
+
+				for file in `find $configdir -type f ! -name \*.tpl|sed -e "s|$configdir||g"`; do
+					sed -i -e "s/LM=4/LM=2/g" $EFI64DIR/$file
+				done
+
+				BDIR=/isolinux
+				CONFIGFILE=isolinux.cfg
+				LOADER=isolinux.bin
+				syslinux_copy_files_bios
+
+				BDIR=/syslinux
+				CONFIGFILE=syslinux.cfg
+				LOADER=syslinux
+				LM=2
+				syslinux_copy_files_bios
+
+				rufus_copy_files
+				add_image
+				add_overlay
+				addpkgs $ESP
+
+				mkisofs -V "$ts_cdvolname" \
+					-o $ESP/../thinstation-efi.iso \
+					-b boot/isolinux/isolinux.bin \
+					-c boot/isolinux/boot.cat \
+					-no-emul-boot \
+					-boot-load-size 4 \
+					-boot-info-table \
+					-joliet \
+					-ucs-level 3 \
+					-rock \
+					-eltorito-alt-boot \
+					-eltorito-platform efi \
+					-b EFI/BOOT/boot.efi \
+					-hard-disk-boot \
+					-f \
+					-quiet \
+					$ESP
+				isohybrid --uefi $ESP/../thinstation-efi.iso
+				echo $ESP/../thinstation-efi.iso >> boot-images/initrd/added.files
 			;;
 			pxe)
 				ESP=boot-images/pxe
