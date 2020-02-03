@@ -6,10 +6,14 @@
 name=opensc
 version=0.20.0
 release=2
-source=("https://github.com/OpenSC/OpenSC/releases/download/$version/opensc-$version.tar.gz")
+source=("https://github.com/OpenSC/OpenSC/releases/download/$version/opensc-$version.tar.gz"
+	opensc-skey.patch
+	opensc-conf.patch)
 
 build() {
   cd $name-$version
+  patch -Np1 < ../opensc-conf.patch
+  patch -Np1 < ../opensc-skey.patch
   _sheetdir=(/usr/share/xml/docbook/xsl-stylesheets-*)
   ./bootstrap
   ./configure \
