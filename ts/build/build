@@ -2283,7 +2283,7 @@ refind_copy_files()
 	done
 
 	sys_copy $refdir/refind_ia32.efi $EFIDIR/bootia32.efi
-	sys_copy $refdir/refind_x64.efi $EFIDIR/bootx64.efi
+	sys_copy $refdir/refind_x64.efi $EFIDIR/loader.efi
 
 	for file in `find $configdir -type f |sed -e "s|$configdir||g"`; do
 		sys_copy ${configdir}${file} "$EFIDIR/$file"
@@ -2406,6 +2406,7 @@ if [ -z "$NOIMAGES" ]; then
 				add_image efi
 				wrap_efi
 				configdir=boot-images/templates/syslinux/$ts_syslinuxtheme
+
 				LM=2
 				syslinux_copy_files_efi
 				mv $ESP/EFI/BOOT/bootx64.efi $ESP/EFI/BOOT/loader.efi
@@ -2414,6 +2415,7 @@ if [ -z "$NOIMAGES" ]; then
 				BDIR=/isolinux
 				CONFIGFILE=isolinux.cfg
 				LOADER=isolinux.bin
+				LM=4
 				syslinux_copy_files_bios
 
 				BDIR=/syslinux
@@ -2518,6 +2520,8 @@ if [ -z "$NOIMAGES" ]; then
 
 				CONFIGFILE=refind.conf
 				refind_copy_files
+				sys_copy /usr/lib/prebootloader/PreLoader.efi $ESP/EFI/BOOT/bootx64.efi
+				sys_copy /usr/lib/prebootloader/HashTool.efi $ESP/EFI/BOOT/HashTool.efi
 				add_overlay
 				add_image efi
 				wrap_efi
@@ -2528,10 +2532,17 @@ if [ -z "$NOIMAGES" ]; then
 					sed -i -e "s/LM=4/LM=2/g" $EFIDIR/$file
 				done
 
-				BDIR=/syslinux
+				BDIR=/isolinux
 				CONFIGFILE=isolinux.cfg
 				LOADER=isolinux.bin
 				syslinux_copy_files_bios
+
+				BDIR=/syslinux
+				CONFIGFILE=syslinux.cfg
+				LOADER=syslinux
+				LM=2
+				syslinux_copy_files_bios
+
 				rufus_copy_files
 
 				add_image
@@ -2539,8 +2550,8 @@ if [ -z "$NOIMAGES" ]; then
 
 				mkisofs	-V "$ts_cdvolname" \
 					-o $ESP/../thinstation-refind.iso \
-					-b boot/syslinux/isolinux.bin \
-					-c boot/syslinux/boot.cat \
+					-b boot/isolinux/isolinux.bin \
+					-c boot/isolinux/boot.cat \
 					-no-emul-boot \
 					-boot-load-size 4 \
 					-boot-info-table \
