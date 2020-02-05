@@ -2283,7 +2283,7 @@ refind_copy_files()
 	done
 
 	sys_copy $refdir/refind_ia32.efi $EFIDIR/bootia32.efi
-	sys_copy $refdir/refind_x64.efi $EFIDIR/loader.efi
+	sys_copy $refdir/refind_x64.efi $EFIDIR/bootx64.efi
 
 	for file in `find $configdir -type f |sed -e "s|$configdir||g"`; do
 		sys_copy ${configdir}${file} "$EFIDIR/$file"
@@ -2296,13 +2296,14 @@ refind_copy_files()
 
 rufus_copy_files()
 {
-	if find /usr/share/rufus -type f >/dev/null 2>&1 ; then
+	rufus_exe=`find /usr/share/rufus -type f`
+	if [ -n $rufus_exe ]; then
 		sysrelease=`hexdump -s 64 -n 8192 -C /usr/share/syslinux/bios/ldlinux.sys |grep -e SYSLINUX -A2 |cut -d '|' -f2 |sed -e ':a;N;$!ba;s/\n//g' |cut -d "-" -f2- |sed -e 's/\*//g' |sed -e 's/\.//g'`
 		sysversion=`hexdump -s 64 -n 8192 -C /usr/share/syslinux/bios/ldlinux.sys |grep -e SYSLINUX -A2 |cut -d '|' -f2 |sed -e ':a;N;$!ba;s/\n//g' |cut -d " " -f2`
 		mkdir -p $ESP/rufus/rufus_files/syslinux-$sysversion/$sysrelease
-		sys_copy /usr/share/syslinux/bios/ldlinux.sys $ESP/rufus/rufus_files/syslinux-$sysversion/$sysrelease/.
-		sys_copy /usr/share/syslinux/bios/ldlinux.bss $ESP/rufus/rufus_files/syslinux-$sysversion/$sysrelease/.
-		sys_copy /usr/share/rufus/rufus-*.exe $ESP/rufus/.
+		sys_copy /usr/share/syslinux/bios/ldlinux.sys $ESP/rufus/rufus_files/syslinux-$sysversion/$sysrelease/ldlinux.sys
+		sys_copy /usr/share/syslinux/bios/ldlinux.bss $ESP/rufus/rufus_files/syslinux-$sysversion/$sysrelease/ldlinux.bss
+		sys_copy $rufus_exe $ESP/rufus/`basename $rufus_exe`
 	fi
 }
 
@@ -2520,8 +2521,6 @@ if [ -z "$NOIMAGES" ]; then
 
 				CONFIGFILE=refind.conf
 				refind_copy_files
-				sys_copy /usr/lib/prebootloader/PreLoader.efi $ESP/EFI/BOOT/bootx64.efi
-				sys_copy /usr/lib/prebootloader/HashTool.efi $ESP/EFI/BOOT/HashTool.efi
 				add_overlay
 				add_image efi
 				wrap_efi
