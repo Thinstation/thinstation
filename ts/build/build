@@ -2296,8 +2296,8 @@ refind_copy_files()
 
 rufus_copy_files()
 {
-	rufus_exe=`find /usr/share/rufus -type f`
-	if [ -n $rufus_exe ]; then
+	rufus_exe=`find /usr/share/rufus -type f 2>/dev/null`
+	if [ -n "$rufus_exe" ]; then
 		sysrelease=`hexdump -s 64 -n 8192 -C /usr/share/syslinux/bios/ldlinux.sys |grep -e SYSLINUX -A2 |cut -d '|' -f2 |sed -e ':a;N;$!ba;s/\n//g' |cut -d "-" -f2- |sed -e 's/\*//g' |sed -e 's/\.//g'`
 		sysversion=`hexdump -s 64 -n 8192 -C /usr/share/syslinux/bios/ldlinux.sys |grep -e SYSLINUX -A2 |cut -d '|' -f2 |sed -e ':a;N;$!ba;s/\n//g' |cut -d " " -f2`
 		mkdir -p $ESP/rufus/rufus_files/syslinux-$sysversion/$sysrelease
