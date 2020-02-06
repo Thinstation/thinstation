@@ -113,12 +113,12 @@ pxelinux()
 		fi
 		rm -rf /var/log/wget_progress
 	else
-		squash_server=`dirname $boot_file`
-		if [ "$squash_server" == "." -o "$squash_server" == "/." ]; then
-			unset squash_server
-		else
-			squash_server="`basename $squash_server`"/
-		fi
+#		squash_server=`dirname $boot_file`
+#		if [ "$squash_server" == "." -o "$squash_server" == "/." ]; then
+#			unset squash_server
+#		else
+#			squash_server="`basename $squash_server`"/
+#		fi
 		FILE_NET="$squash_server$squash_location"lib.squash
 		tftp -g -l $FILE -r $FILE_NET -b $TFTP_BLOCKSIZE $SERVER_IP 2>&1 |tee /var/log/tftp_progress &
 		sleep .2
