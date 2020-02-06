@@ -3,8 +3,8 @@
 . `dirname $0`/common
 . /etc/splash.functions
 
-#set -x
-#exec </dev/null >/var/log/fastboot.log  2>&1
+set -x
+exec </dev/null >/var/log/fastboot.log  2>&1
 
 search()
 {
@@ -175,7 +175,7 @@ isolinux()
 
 squash_loc()
 {
-	squash_location=`dirname $initrd`
+	squash_location=`dirname $initrd |sed -e 's|::/boot|/boot|g'`
 	if [ "$squash_location" == "." -o "$squash_location" == "/." ]; then
 		unset squash_location
 	elif [ "`echo $squash_location |cut -c 1`" == "/" ]; then
