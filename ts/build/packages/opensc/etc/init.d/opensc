@@ -1,0 +1,10 @@
+#!/bin/sh
+. `dirname $0`/common
+
+if ! pkg_initialized $PACKAGE ; then
+   pkg_set_init_flag $PACKAGE
+   if [ -n "$OPENSC_CARD_DRIVERS" ] ; then
+     sed -i -e "s/[# ]*card_drivers = .*;/card_drivers = $OPENSC_CARD_DRIVERS;/g" /etc/opensc.conf
+   fi
+fi
+

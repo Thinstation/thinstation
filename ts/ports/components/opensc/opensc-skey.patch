@@ -1,0 +1,16 @@
+Description: Java does not set CKA_TOKEN so it can be expected that attr_find
+	will fail. Reverting behavior to 0.13.0.
+
+--- a/src/pkcs11/framework-pkcs15.c	2018-09-13 11:52:42.000000000 +0000
++++ b/src/pkcs11/framework-pkcs15.c	2019-10-10 15:56:08.645481641 +0000
+@@ -2206,9 +2206,7 @@
+ 		return rv;
+ 
+ 	/* CKA_TOKEN defaults to false */
+-	rv = attr_find(pTemplate, ulCount, CKA_TOKEN, &_token, NULL);
+-	if (rv != CKR_OK)
+-		return rv;
++	attr_find(pTemplate, ulCount, CKA_TOKEN, &_token, NULL);
+ 
+ 	switch (key_type) {
+ 		/* Only support GENERIC_SECRET for now */

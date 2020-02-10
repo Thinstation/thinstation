@@ -1,26 +1,26 @@
 #systemd 30
 
 cat << EOF >> /etc/passwd
-systemd-journal-gateway:x:191:191::/:/usr/bin/nologin
-systemd-timesync:x:192:192::/:/usr/bin/nologin
-systemd-network:x:193:193::/:/usr/bin/nologin
-systemd-bus-proxy:x:194:194::/:/usr/bin/nologin
-systemd-resolve:x:195:195::/:/usr/bin/nologin
-systemd-coredump:x:997:997::/:/sbin/nologin
-systemd-journal-remote:x:998:998::/:/sbin/nologin
-systemd-journal-upload:x:999:999::/:/sbin/nologin
+systemd-journal-gateway:!!:191:191::/:/bin/false
+systemd-timesync:!!:192:192::/:/bin/false
+systemd-network:!!:193:193::/:/bin/false
+systemd-bus-proxy:!!:194:194::/:/bin/false
+systemd-resolve:!!:195:195::/:/bin/false
+systemd-coredump:!!:997:997::/:/bin/false
+systemd-journal-remote:!!:998:998::/:/bin/false
+systemd-journal-upload:!!:999:999::/:/bin/false
 EOF
 
 cat << EOF >> /etc/group
-systemd-journal:x:190:
-systemd-journal-gateway:x:191:
-systemd-timesync:x:192:
-systemd-network:x:193:
-systemd-bus-proxy:x:194:
-systemd-resolve:x:195:
-systemd-coredump:x:997:
-systemd-journal-remote:x:998:
-systemd-journal-upload:x:999:
+systemd-journal:!:190:
+systemd-journal-gateway:!:191:
+systemd-timesync:!:192:
+systemd-network:!:193:
+systemd-bus-proxy:!:194:
+systemd-resolve:!:195:
+systemd-coredump:!:997:
+systemd-journal-remote:!:998:
+systemd-journal-upload:!:999:
 EOF
 
 mkdir -p /var/log/journal/remote/
