@@ -10,3 +10,15 @@ if [ -d /lib/firefox/browser ]; then
 		ln -s browser/extensions /lib/firefox/extensions
 	fi
 fi
+
+if [ -d /etc/pkcs11/nss ]; then
+	for pkcs in /etc/pkcs11/nss/*.pkcs11; do
+		cat $pkcs >> /etc/TS.default/pkcs11.txt
+	done
+fi
+
+if [ ! -d /etc/pki/nssdb ]; then
+	mkdir -m 755 -p /etc/pki/nssdb
+	modutil -create -force -dbdir /etc/pki/nssdb
+	chmod 644 /etc/pki/nssdb/*
+fi
