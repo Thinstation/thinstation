@@ -37,7 +37,7 @@ start)
 		&& [ "$timeout" -gt "0" ] \
 		&& [ ! -e /tmp/splash.exit ]; do
 			progress=`systemctl list-units |grep -E '\.timer|\.target|\.service|\.slice|\.cups|\.device|\.mount|\.path|\.scope|\.socket' |grep -v inactive |wc -l`
-			if [ -z "`pidof wget`" ]; then
+			if [ -z "`pidof wget`" ] && [ -z "`pidof tftp`" ]; then
 				splash_progress
 			fi
 			let timeout-=1
