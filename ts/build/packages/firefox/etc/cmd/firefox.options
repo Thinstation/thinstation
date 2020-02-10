@@ -2,7 +2,9 @@ if [ ! -e ~/.mozilla/firefox/profiles.ini ]; then
 	firefox --CreateProfile default-esr
 	eval `cat ~/.mozilla/firefox/profiles.ini |grep -e Path |grep -e \.default-esr`
 	cp /etc/TS.default/* ~/.mozilla/firefox/$Path -r
-	cp /etc/pki/nssdb/* ~/.mozilla/firefox/$Path
+	if [ -e /etc/pki/nssdb ]; then
+		cp /etc/pki/nssdb/* ~/.mozilla/firefox/$Path
+	fi
 	if [ -n "`find ~/.mozilla/firefox/$Path/extensions -type f -name \*.json`" ]; then
 		cat ~/.mozilla/firefox/$Path/e.head.tpl > ~/.mozilla/firefox/$Path/extensions.json
 		for file in `find ~/.mozilla/firefox/$Path/extensions -type f -name \*.json`; do
