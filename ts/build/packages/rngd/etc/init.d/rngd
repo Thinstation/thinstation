@@ -20,7 +20,7 @@ urandom_fallback()
 	# will only have system generated entropy to choose from, but
 	# that's what's supposed to be the most secure.
 	dd if=/dev/urandom of=/tmp/.urandom-seed bs=1M count=2
-	/sbin/rngd -r /tmp/.urandom-seed
+	/sbin/rngd -r /tmp/.urandom-seed -p /run/rngd.pid
 }
 
 case "$1" in
@@ -30,9 +30,9 @@ init)
 		# Add hardware random number generator as an entropy source,
 		# or fallback to urandom for a seed.
 		if [ -n "`rngd -l 2>&1 |cut -c 1 |grep -E '2|5|6'`" ] ; then
-			/sbin/rngd -W 50%
+			/sbin/rngd -W 50% -p /run/rngd.pid
 		elif [ -e /usr/sbin/haveged ]; then
-			/usr/sbin/haveged -w 1024 -v 1
+			/usr/sbin/haveged -w 1024 -v 1 -p /run/rngd.pid
 		else
 			urandom_fallback
 		fi
