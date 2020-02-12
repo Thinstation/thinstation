@@ -22,11 +22,19 @@ if [ ! -d /etc/pki/nssdb ]; then
 	modutil -create -force -dbdir /etc/pki/nssdb
 	chmod 644 /etc/pki/nssdb/*
 fi
-mkdir -p /lib/firefox/distribution
-cat <<EOF>> /lib/firefox/distribution/policies.json
+if [ ! -e /lib/firefox/distribution ]; then
+	mkdir -p /lib/firefox/distribution
+	cat <<EOF>> /lib/firefox/distribution/policies.json
 {
   "policies": {
-    "DisableAppUpdate": true
+    "DisableAppUpdate": true,
+    "DisablePocket": true,
+    "DisableTelemetry": true,
+    "ExtensionUpdate": false,
+    "Preferences": {
+      "browser.search.update": false
+    }
   }
 }
 EOF
+fi
