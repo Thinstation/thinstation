@@ -13,6 +13,7 @@ source=(http://archive.xfce.org/src/xfce/$name/${version%.*}/$name-$version.tar.
 build () {
   cd $name-$version
 #  patch -Np1 < ../clock_timezone.patch
+  sed -i -e 's/button == 3/button == 500/g' libxfce4panel/xfce-panel-plugin.c
 
   ./configure --prefix=/usr \
               --sysconfdir=/etc \
