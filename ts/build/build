@@ -2163,7 +2163,7 @@ syslinux_copy_files_bios()
 		ts_bootserver=`ip addr show $inet_dev |grep -e "inet " |cut -d " " -f6 |cut -d "/" -f1| head -n1`
 	fi
 	biosdir=/usr/share/syslinux/bios
-	configdir=boot-images/templates/syslinux/$ts_syslinuxtheme
+	configdir=boot-images/templates/syslinux/"$ts_syslinuxtheme"
 	BIOSDIR=${ESP}/boot$BDIR
 	CONFIGDIR=`dirname $CONFIGFILE`
 
@@ -2274,7 +2274,7 @@ syslinux_copy_files_efi()
 refind_copy_files()
 {
 	refdir=/boot/efi/EFI/refind
-	configdir=boot-images/templates/refind/$ts_refindtheme
+	configdir=boot-images/templates/refind/"$ts_refindtheme"
 	KDIR=${ESP}/boot
 	EFIDIR=$ESP/EFI/BOOT
 
@@ -2361,7 +2361,7 @@ wrap_efi()
 # Skips Images if NOIMAGES is set, useful for TS-O-Matic
 if [ -z "$NOIMAGES" ]; then
 	remove_old_boot_files
-	configdir=boot-images/templates/syslinux/$ts_syslinuxtheme
+	configdir=boot-images/templates/syslinux/"$ts_syslinuxtheme"
 	# Any text file is a potential config, and there are plenty of ways to get one in there,
 	# so lets look at all of them in the config folder.
 	for file in `find $configdir -type f`;do
@@ -2406,7 +2406,7 @@ if [ -z "$NOIMAGES" ]; then
 
 				add_image efi
 				wrap_efi
-				configdir=boot-images/templates/syslinux/$ts_syslinuxtheme
+				configdir=boot-images/templates/syslinux/"$ts_syslinuxtheme"
 
 				LM=2
 				syslinux_copy_files_efi
@@ -2574,7 +2574,7 @@ if [ -z "$NOIMAGES" ]; then
 					ESP=boot-images/systemd-boot
 					EFIOVERLAY="$ESP/EFI $ESP/loader"
 					LM=2
-					configdir=boot-images/templates/systemd-boot/$ts_gummitheme
+					configdir=boot-images/templates/systemd-boot/"$ts_gummitheme"
 					sys_copy /usr/lib/prebootloader/PreLoader.efi $ESP/EFI/BOOT/bootx64.efi
 					sys_copy /usr/lib/prebootloader/HashTool.efi $ESP/EFI/BOOT/HashTool.efi
 					sys_copy /usr/lib/systemd/boot/efi/systemd-bootx64.efi $ESP/EFI/BOOT/loader.efi
@@ -2598,7 +2598,7 @@ if [ -z "$NOIMAGES" ]; then
 
 					LM=4
 
-					configdir=boot-images/templates/systemd-boot/$ts_gummitheme
+					configdir=boot-images/templates/systemd-boot/"$ts_gummitheme"
 					sys_copy /usr/lib/prebootloader/PreLoader.efi $ESP/EFI/BOOT/bootx64.efi
 					sys_copy /usr/lib/prebootloader/HashTool.efi $ESP/EFI/BOOT/HashTool.efi
 					sys_copy /usr/lib/systemd/boot/efi/systemd-bootx64.efi $ESP/EFI/BOOT/loader.efi
