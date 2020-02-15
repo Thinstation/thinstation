@@ -8,10 +8,12 @@
 name=xfdesktop
 version=4.14.1
 release=1
-source=(http://archive.xfce.org/src/xfce/$name/${version%.*}/$name-$version.tar.bz2)
+source=(http://archive.xfce.org/src/xfce/$name/${version%.*}/$name-$version.tar.bz2 \
+	quiet-tooltip.patch)
 
 build () {
   cd $name-$version
+  patch -p0 -i $SRC/quiet-tooltip.patch
   sed -i -e 's/button == 3/button == 500/g' src/*
   ./configure --prefix=/usr \
               --mandir=/usr/man \
