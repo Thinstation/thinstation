@@ -4,18 +4,13 @@
 
 name=rngd
 archname=rng-tools
-version=6.7
+version=6.9
 release=1
-source=(https://github.com/nhorman/rng-tools/archive/v$version/$name-$version.tar.gz \
-	rngd-test-signal-in-loop.patch \
-	rngd-exit-code.patch
-	0001-If-device-is-not-found-exit-immediately.patch)
+source=(https://github.com/nhorman/rng-tools/archive/v$version/$name-$version.tar.gz)
 
 build() {
-	cd rng-tools-6.7
-#	patch -p1 -i $SRC/rngd-test-signal-in-loop.patch
-#	patch -p1 -i $SRC/0001-If-device-is-not-found-exit-immediately.patch
-#	patch -p1 -i $SRC/rngd-exit-code.patch
+	cd rng-tools-$version
+
 	./autogen.sh
 	./configure	--prefix=/usr \
 			--disable-dependency-tracking \
