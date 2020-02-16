@@ -353,7 +353,9 @@ user_conf()
 	mkdir -p $USERDIR
 	echo "LOCALE=$LOCALE" > $CONF
 	echo "TIME_ZONE=$TIME_ZONE" >> $CONF
-	echo "SCREEN_RESOLUTION=$SCREEN_RESOLUTION" >> $CONF
+	if ! vmware-checkvm >/dev/null 2>&1; then
+		echo "SCREEN_RESOLUTION=$SCREEN_RESOLUTION" >> $CONF
+	fi
     cat <<'EOF'>> $CONF
 AUDIO_LEVEL=90
 #MIC_LEVEL=80
@@ -408,12 +410,14 @@ if is_enabled $INSTALLER_DEV || is_enabled $INSTALLER_MEM_CHECK ; then
 fi
 
 if is_enabled $INSTALLER_DEV || is_enabled $INSTALLER_PROXY_CHECK ; then
+	export INSTALLER_PROXY_CHECK
 	proxy_check
 fi
 
 disk_select
 
 if is_enabled $INSTALLER_DEV ; then
+	export INSTALLER_DEV
 	resolution_select
 	timezone_select
 	locale_select

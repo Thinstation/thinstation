@@ -141,6 +141,12 @@ cp /install/* /boot/EFI/BOOT/.
 
 cd $bootdir
 
+if is_enabled $INSTALLER_DEV || is_enabled $INSTALLER_PROXY_CHECK ; then
+	# Setup proxy for wget and git
+	proxy-setup
+	. /tmp/.proxy
+fi
+
 # Install a default boot and backup-boot image into the boot partition
 if [ -e /mnt/cdrom0/$INSTALLER_ARCHIVE_NAME ]; then
 	tar -xvf /mnt/cdrom0/$INSTALLER_ARCHIVE_NAME

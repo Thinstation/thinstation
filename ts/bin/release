@@ -37,12 +37,21 @@ mk_installer()
 	name=TS-${ver}-Installer-`date +%m%d`.iso
 	cp conf/installer/* .
 	stb --allmodules
-	cp /build/boot-images/iso/thinstation.iso /tmp/$name
+	cp /build/boot-images/systemd-boot-iso/thinstation-efi.iso /tmp/$name
 	scp /tmp/$name ${user}@frs.sourceforge.net:/home/frs/project/thinstation/thinstation/thinstation-6/.
+}
+
+mk_livecd(){
+        # Make LiveCD
+	cd /build
+        cp conf/LiveCD/* .
+        stb --allmodules
+        scp /build/boot-images/systemd-boot-iso/thinstation-efi.iso ${user}@frs.sourceforge.net:/home/frs/project/thinstation/LiveCD/TS-Multiclient-Desktop-LiveCD-Demo.iso
 }
 
 case $3 in
 	-d) mk_devstat;;
 	-i) mk_installer;;
+	-l) mk_livecd;;
 	*) mk_devstat; mk_installer;;
 esac
