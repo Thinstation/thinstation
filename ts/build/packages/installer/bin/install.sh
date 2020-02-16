@@ -141,15 +141,11 @@ cp /install/* /boot/EFI/BOOT/.
 
 cd $bootdir
 
-# Setup proxy for wget and git
-proxy-setup
-. /tmp/.proxy
-
 # Install a default boot and backup-boot image into the boot partition
 if [ -e /mnt/cdrom0/$INSTALLER_ARCHIVE_NAME ]; then
 	tar -xvf /mnt/cdrom0/$INSTALLER_ARCHIVE_NAME
 else
-	echo "Downloading a Default Image"
+	echo "Downloading Image"
 	if ! wget -t 3 -T 30 "$INSTALLER_WEB_ADDRESS/$INSTALLER_ARCHIVE_NAME"; then
 		exit 2
 	fi
