@@ -46,10 +46,11 @@ case $METHOD in
 				cp /thinstation/build/boot-images/initrd/lib.squash $bootdir/lib.update
 			fi
 			echo "Update Complete"
-			exit 0
+			echo UPDATE_STATUS=0 > /tmp/update.tmp
 		else
 			echo "Everything is Up to Date"
-			exit 1
+			echo UPDATE_STATUS=1 > /tmp/update.tmp
+
 		fi
 	;;
 	SERVER)
@@ -64,10 +65,10 @@ case $METHOD in
 			tftp -g -l vmlinuz -r boot/vmlinuz -b $TFTP_BLOCKSIZE $SERVER_IP
 			tftp -g -l lib.update -r boot/lib.squash -b $TFTP_BLOCKSIZE $SERVER_IP
 			echo "Update Complete"
-			exit 0
+			echo UPDATE_STATUS=0 > /tmp/update.tmp
 		else
 			echo "Everything is Up to Date"
-			exit 1
+			echo UPDATE_STATUS=1 > /tmp/update.tmp
 		fi
 	;;
         SH)
@@ -82,10 +83,10 @@ case $METHOD in
                         wget http://$SERVER_IP/boot/vmlinuz
                         wget http://$SERVER_IP/boot/lib.squash lib.update
                         echo "Update Complete"
-                        exit 0
+                        echo UPDATE_STATUS=0 > /tmp/update.tmp
                 else
                         echo "Everything is Up to Date"
-                        exit 1
+                        echo UPDATE_STATUS=1 > /tmp/update.tmp
                 fi
 
 	;;
@@ -101,10 +102,10 @@ case $METHOD in
 			tar -xvf /tmp/thindev-default-$TS_VERSION.tar.xz
 			rm /tmp/thindev-default-$TS_VERSION.tar.xz
 			echo "Update Complete"
-			exit 0
+			echo UPDATE_STATUS=0 > /tmp/update.tmp
 		else
 			echo "Everything is up to date"
-			exit 1
+			echo UPDATE_STATUS=1 > /tmp/update.tmp
 		fi
 	;;
 	PATH)
@@ -119,18 +120,18 @@ case $METHOD in
 	                			cp $LPATH/lib.squash $bootdir/lib.update
 					fi
 					echo "Update Complete"
-					exit 0
+					echo UPDATE_STATUS=0 > /tmp/update.tmp
 				else
 					echo "Invalid Path or missing vmlinuz and initrd"
-					exit 3
+					echo UPDATE_STATUS=3 > /tmp/update.tmp
 				fi
 			else
 				echo "Everything is up to date"
-				exit 1
+				echo UPDATE_STATUS=1 > /tmp/update.tmp
 			fi
 		else
 			echo "Could not check md5"
-			exit 2
+			echo UPDATE_STATUS=2 > /tmp/update.tmp
 		fi
 	;;
 esac

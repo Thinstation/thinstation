@@ -27,12 +27,16 @@ x_echo()
 do_update()
 {
 	$XTERM_CMD -T "Update initrd" $ARG update-initrd -w
-	case $? in
-		0) x_echo Update "Update Complete" ;;
-		1) x_echo Update "No Update Needed" ;;
-		2) x_echo Update "Error! Could not check md5" ;;
-		3) x_echo Update "Error! No initrd or vmlinuz found" ;;
-	esac
+	if [ -e /tmp/update.tmp ]; then
+		. /tmp/update.tmp
+		case $UPDATE_STATUS in
+			0) x_echo Update "Update Complete, Click OK to reboot" ;reboot;;
+			1) x_echo Update "No Update Needed" ;;
+			2) x_echo Update "Error! Could not check md5" ;;
+			3) x_echo Update "Error! No initrd or vmlinuz found" ;;
+		esac
+		rm /tmp/update.tmp
+	fi
 }
 
 toggle_con()
