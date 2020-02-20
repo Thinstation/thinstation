@@ -38,3 +38,11 @@ if [ ! -e /lib/firefox/distribution ]; then
 }
 EOF
 fi
+
+for i in /lib/firefox/*.so /lib/firefox/*.chk; do
+	file=`basename $i`
+	if [ -e /lib/$file ]; then
+		rm $i
+		ln /lib/$file $i
+	fi
+done

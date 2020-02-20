@@ -4,17 +4,19 @@
 # Depends on:  ncurses, readline
 
 name=sqlite3
-version=3.9.1
+version=3.29.0
 release=1
 _version=$(printf "%i%.2i%.2i%.2i" ${version//./ })
 
-source=(http://www.sqlite.org/2015/sqlite-autoconf-${_version}.tar.gz)
+source=(http://www.sqlite.org/2019/sqlite-autoconf-${_version}.tar.gz)
 
 build () {
     cd sqlite-autoconf-${_version}
     
     CFLAGS="-DSQLITE_SECURE_DELETE=1 -DSQLITE_ENABLE_COLUMN_METADATA=1 \
             -DSQLITE_ENABLE_UNLOCK_NOTIFY=1 -DSQLITE_ENABLE_DBSTAT_VTAB=1 \
+            -DSQLITE_ENABLE_FTS3=1 -DSQLITE_ENABLE_FTS4=1 \
+            -DSQLITE_ENABLE_FTS3_TOKENIZER=1 \
              $CFLAGS" \
     ./configure --prefix=/usr --mandir=/usr/man --disable-static
     
