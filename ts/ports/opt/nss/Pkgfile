@@ -8,10 +8,12 @@ version=3.46.1
 release=1
 _version=$(echo $version |sed 's/\./_/g')
 source=(http://ftp.mozilla.org/pub/security/nss/releases/NSS_${_version}_RTM/src/$name-$version.tar.gz \
+	revert-proc-fips.patch
         nss-config.in nss.pc.in)
 
 build() {
 	cd $name-$version/nss
+	patch -Np2 < ../../revert-proc-fips.patch
 
 	./build.sh -v --opt --system-sqlite --system-nspr --enable-libpkix --disable-tests --enable-fips
 
