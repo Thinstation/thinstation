@@ -45,7 +45,6 @@ _unmount()
 		while mounted /dev/$devpath; do
 			mtdpath=`cat /proc/mounts |grep -e /dev/$devpath |tail -n 1 |cut -d ' ' -f 2`
 			systemd-mount -u $mtdpath
-			rmdir $mtdpath
 		done
 	fi
 }
