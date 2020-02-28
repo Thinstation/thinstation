@@ -35,7 +35,11 @@ mkdir -p /var/log/applications
 chmod -R g+w,o+w /var/log/applications
 chmod -R o-r /var/log/applications
 chmod +t /var/log/applications
-ln -sf /run /var/run
+#if [ -e /var/run ]; then
+#	cp -a /var/run/* /run/.
+#	rm -rf /var/run
+#fi
+#ln -sf /run /var/run
 if [ "`readlink /bin/su`" == "/bin/busybox" ]; then
 	chmod u+s /bin/busybox
 else
