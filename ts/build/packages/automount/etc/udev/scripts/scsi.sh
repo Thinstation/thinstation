@@ -45,11 +45,11 @@ _unmount()
 		while mounted /dev/$devpath; do
 			mtdpath=`cat /proc/mounts |grep -e /dev/$devpath |tail -n 1 |cut -d ' ' -f 2`
 			systemd-mount -u $mtdpath
+			if is_enabled $CLEAN_UMOUNT; then
+				rm -f $mtdpath/"Not Mounted"
+				rmdir $mtdpath
+			fi
 		done
-		if is_enabled $CLEAN_UMOUNT; then
-			rm -f $mtdpath/"Not Mounted"
-			rmdir $mtdpath
-		fi
 	fi
 }
 
