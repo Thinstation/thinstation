@@ -46,6 +46,10 @@ _unmount()
 			mtdpath=`cat /proc/mounts |grep -e /dev/$devpath |tail -n 1 |cut -d ' ' -f 2`
 			systemd-mount -u $mtdpath
 		done
+		if is_enabled $CLEAN_UMOUNT; then
+			rm -f $mtdpath/"Not Mounted"
+			rmdir $mtdpath
+		fi
 	fi
 }
 
@@ -75,7 +79,7 @@ fi
 cmount()
 {
 	if [ "`busybox mountpoint -n $1`" == "/dev/$devpath $1" ] \
-	&& [ -n "`ls -A $1`" ]; then
+	&& [ -n "`ls -A $1|grep -v 'Not Mounted'`" ]; then
 		return 0
 	fi
 	return 1
@@ -87,6 +91,7 @@ do_mounts()
 	  || ! cmount $mtpath; then
 		_unmount
 		mkdir -p $mtpath
+		touch $mtpath/"Not Mounted"
 		if [ -n "$mount_opts" ]; then
 			systemd-mount --type=$ID_FS_TYPE --no-block --fsck=no -o $mount_opts /dev/$devpath $mtpath
 		else
@@ -103,6 +108,7 @@ do_mounts()
 			if [ ! -e $MT_PATH ] \
 			  || ! cmount $MT_PATH; then
 				mkdir -p $MT_PATH
+				touch $mtpath/"Not Mounted"
 				systemd-mount --no-block --bind $mtpath $MT_PATH
 			fi
 		fi
@@ -110,6 +116,7 @@ do_mounts()
 			if [ ! -e $MT_PATH ] \
 			  || ! cmount $MT_PATH; then
 				mkdir -p $MT_PATH
+				touch $mtpath/"Not Mounted"
 				systemd-mount --no-block --bind $mtpath $MT_PATH
 			fi
 		fi
