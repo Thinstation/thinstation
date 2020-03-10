@@ -14,7 +14,8 @@ source=(http://archive.xfce.org/src/xfce/$name/${version%.*}/$name-$version.tar.
 build () {
   cd $name-$version
   patch -p0 -i $SRC/quiet-tooltip.patch
-  sed -i -e 's/button == 3/button == 500/g' src/*
+#  Disables the right click menu on the desktop while keeping the icons
+#  sed -i -e 's/button == 3/button == 500/g' src/*
   ./configure --prefix=/usr \
               --mandir=/usr/man \
               --libexecdir=/usr/libexec \
