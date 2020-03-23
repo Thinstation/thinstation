@@ -5,7 +5,7 @@ fi
 
 if [ ! -f /etc/resolv.conf.orig ]; then
   cp /etc/resolv.conf /etc/resolv.conf.orig
-  dnscrypt-proxy --daemonize
+  systemctl start dnscrypt-proxy
   sed 's/[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}/127.0.0.1/g' /etc/resolv.conf > /etc/resolv.conf.dnscrypt
   cp /etc/resolv.conf.dnscrypt /etc/resolv.conf
   if [ -d $HOME/.icewm ]; then
@@ -16,7 +16,7 @@ if [ ! -f /etc/resolv.conf.orig ]; then
 else
   cp /etc/resolv.conf.orig /etc/resolv.conf
   rm /etc/resolv.conf.orig
-  killall dnscrypt-proxy
+  systemctl stop dnscrypt-proxy
   if [ -d $HOME/.icewm ]; then
     sed -i 's/Disable DNS/Enable DNS/' $HOME/.icewm/menu
   elif [ -d $HOME/.local ]; then
