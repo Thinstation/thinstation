@@ -7,13 +7,13 @@ name=nss
 version=3.46.1
 release=1
 _version=$(echo $version |sed 's/\./_/g')
-_nsprver=$(pkg-config --modversion nspr)
 
 source=(http://ftp.mozilla.org/pub/security/nss/releases/NSS_${_version}_RTM/src/$name-$version.tar.gz \
 	revert-proc-fips.patch
         nss-config.in nss.pc.in)
 
 build() {
+_nsprver=$(pkg-config --modversion nspr)
 	cd $name-$version/nss
 	patch -Np2 < ../../revert-proc-fips.patch
 
