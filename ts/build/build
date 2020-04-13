@@ -2601,6 +2601,8 @@ if [ -z "$NOIMAGES" ]; then
 					configdir=boot-images/templates/systemd-boot/"$ts_gummitheme"
 					sys_copy /boot/efi/EFI/fedora/shimx64.efi $ESP/EFI/BOOT/bootx64.efi
 					sys_copy /boot/efi/EFI/fedora/MokManager.efi $ESP/EFI/BOOT/MokManager.efi
+					sys_copy /boot/efi/EFI/ThinStation/shimx64.efi $ESP/EFI/BOOT/grubx64.efi
+					sys_copy /boot/efi/EFI/ThinStation/mmx64.efi $ESP/EFI/BOOT/mmx64.efi
 					sys_copy /etc/ssl/certs/kernel.crt $ESP/ThinStation.der
 #					echo "loader.efi,ThinStation,,ThinStation default boot entry" > boot.csv
 #					iconv -t UTF-16 < boot.csv > $ESP/EFI/BOOT/BOOT.CSV
@@ -2608,7 +2610,7 @@ if [ -z "$NOIMAGES" ]; then
 #					rm boot.csv
 #					sys_copy /usr/lib/prebootloader/PreLoader.efi $ESP/EFI/BOOT/bootx64.efi
 #					sys_copy /usr/lib/prebootloader/HashTool.efi $ESP/EFI/BOOT/HashTool.efi
-					sys_copy /usr/lib/systemd/boot/efi/systemd-bootx64.efi $ESP/EFI/BOOT/grubx64.efi
+					sys_copy /usr/lib/systemd/boot/efi/systemd-bootx64.efi $ESP/EFI/BOOT/loader.efi
 #					sys_copy /usr/lib/prebootloader/PreLoader.efi $ESP/EFI/Microsoft/Boot/bootmgr.efi
 					for file in `find $configdir -type f |sed -e "s|$configdir||g"`; do
 						sys_copy ${configdir}${file} $ESP/$file

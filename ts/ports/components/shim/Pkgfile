@@ -1,0 +1,31 @@
+# Maintainer : Daniel Bermond < gmail-com: danielbermond >
+# Contributor: Taylor Smock <vorpalblade77@gmail.com>
+# Contributor: Keshav Amburay <the.ridikulus.rat@gmail.com>
+
+name=shim
+version=15
+release=3
+source=(https://github.com/rhboot/shim/releases/download/${version}/shim-${version}.tar.bz2
+	https://patch-diff.githubusercontent.com/raw/rhboot/shim/pull/183.patch)
+
+build() {
+    cd "shim-${version}"
+
+    # gcc9 fix
+    # https://github.com/rhboot/shim/pull/183
+    patch -Np1 -i "${SRC}/183.patch"
+    sed -i -e 's/EFI_WARN_UNKOWN_GLYPH/EFI_WARN_UNKNOWN_GLYPH/g' lib/console.c
+
+    export VENDOR_CERT_FILE='/etc/ssl/certs/kernel.crt'
+    export ENABLE_SHIM_CERT='1'
+    export EFI_PATH='/usr/lib'
+    export ENABLE_HTTPBOOT='1'
+    export OSLABEL='ThinStation'
+    export DEFAULT_LOADER='loader.efi'
+
+    make -j1
+    make EFIDIR=ThinStation DESTDIR="$PKG" install
+
+    make DESTDIR="$PKG" install-as-data
+    install -D -m644 COPYRIGHT "${PKG}/usr/share/licenses/${name}/LICENSE"
+}

@@ -1,3 +1,5 @@
 echo "Installing Kernel Headers"
 cp -a /usr/src/kernels/`cat /boot/KERNEL_VERSION`/usr/include/* /usr/include/.
+echo "Signing Kernel"
+sbsign --key /etc/ssl/keys/kernel.key --cert /etc/ssl/keys/kernel.key --output /boot/vmlinuz-`cat /boot/KERNEL_VERSION` /boot/vmlinuz-`cat /boot/KERNEL_VERSION`
 #cp -a /usr/src/kernels/`cat /boot/KERNEL_VERSION`_SMP/include/* /usr/include/.
