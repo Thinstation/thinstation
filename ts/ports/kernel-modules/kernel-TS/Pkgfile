@@ -43,6 +43,7 @@ build() {
 
 	cd $PKG
 	mkdir boot
+	sbsign --key /etc/ssl/keys/kernel.key --cert /etc/ssl/keys/kernel.key --output vmlinuz vmlinuz
 	mv vmlinuz $PKG/boot/vmlinuz-${kernel}
 	mv System.map $PKG/boot/System.map-${kernel}
 	rm lib/modules/${kernel}/{source,build}
