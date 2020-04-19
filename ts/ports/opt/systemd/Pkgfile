@@ -116,5 +116,9 @@ build() {
   install -d -o root -g systemd-journal -m 2755 "$PKG"/var/log/journal
   install -d -o root -g 102 -m 0750 "$PKG"/usr/share/polkit-1/rules.d
 
-  sbsign --key /etc/ssl/keys/kernel.key --cert /etc/ssl/keys/kernel.key --output $PKG/usr/lib/systemd/boot/efi/systemd-bootx64.efi $PKG/usr/lib/systemd/boot/efi/systemd-bootx64.efi
+    if [ -e /mnt/Certs\ and\ Keys/thinstation/TS-UEFI/UEFI.pem ]; then
+        for efi in usr/lib/systemd/boot/efi/systemd-bootx64.efi; do
+		sbsign --key /mnt/Certs\ and\ Keys/thinstation/TS-UEFI/UEFI.pem --cert /mnt/Certs\ and\ Keys/thinstation/TS-UEFI/UEFI.pem --output $PKG/$efi $PKG/$efi
+        done
+    fi
 }

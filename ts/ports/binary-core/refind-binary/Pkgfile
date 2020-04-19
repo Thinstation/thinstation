@@ -1,0 +1,17 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=refind-binary
+version=0.11.4
+release=1
+source=(http://sourceforge.net/projects/refind/files/$version/refind-bin-$version.zip)
+
+build() {
+	cd refind-bin-$version
+
+	mkdir -p $PKG/boot/efi/EFI/refind
+	mv refind/* $PKG/boot/efi/EFI/refind/.
+	mv {keys,docs,fonts,banners} $PKG/boot/efi/EFI/refind/.
+	rm -rf $PKG/boot/efi/EFI/refind/drivers_aa64
+}

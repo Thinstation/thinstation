@@ -59,8 +59,8 @@
 #machine NT-A3500			# Foxconn AMD E-350 Barebone
 #machine NT-535				# Foxconn Intel D525 Barebone
 #machine Dell-FX170			# Dell FX170 D525 Atom Machine
-#machine VMWare				# A good set of modules for a VmWare Virtual Machine
-#machine Virtualbox-4.1			# A good set of modules for a Virtualbox Virtual Machine
+machine VMWare				# A good set of modules for a VmWare Virtual Machine
+machine Virtualbox-4.1			# A good set of modules for a Virtualbox Virtual Machine
 machine qemu
 #machine VIA-Epia-CLE266		# VIA Epia/Eden based on the the CLE266 chip. Rather common in thin clients a few years old
 #machine classic_generic		# Big list of modules that you can choose by unremarking them
@@ -121,7 +121,7 @@ package udisks
 package automount
 package networkmanager
 #package udisks-glue
-#package ntp			# Utility to obtain date & time from network
+package ntp			# Utility to obtain date & time from network
 #package sound-esd		# Enable sound-esd or sound-nasd if you want to be able to control
 #package sound-nasd		#  sound on your thin client from another computer or
                         	#  your remote session.
@@ -135,17 +135,18 @@ package volumeicon
 #package crystalhd
 #package libva
 #package iptables		# IP Tables support
-#package cpufreq
+package cpufreq
 #package cpuspeed
 #package wine			# Windows Application Execution Platform
 
 #!!X related
 # --- XOrg 7.7
 #package xorg7-v4l
-#package xorg7-vesa		#A fallback driver that works with almost everything. Does allow resolution changes
-#package xorg7-vmware
+package xorg7-vesa		#A fallback driver that works with almost everything. Does allow resolution changes
+package xorg7-vmware
 package xorg7-qxl
 #package xorg7-ati		#ATI video driver for most modern ATI chipsets. Usually requires several firmwares
+#package xorg7-amdgpu
 #package xorg7-nouveau		#New opensource nvidia driver
 #package xorg7_nvidia		#Proprietary nvidia driver
 #package xorg7-openchrome	#Via Video Chipsets driver
@@ -193,6 +194,7 @@ package locale-en_US  # English-US
 #package thinlinc		# Cendio ThinLinc client support
 #package nx              	# No Machine NX client
 #package 2x			# 2X client
+#package spice			# Redhat Spice Client
 #package java			# Java runtime
 #package firefox		# Firefox current Web Browser
 #package chrome			# Google Chrome Web Browser
@@ -202,13 +204,15 @@ package locale-en_US  # English-US
 #package filezilla		# FileZilla FTP Client for X
 #package git			# GIT Version Control System
 #package gparted		# Gnome Partition Manager
-#package open-vm-tools
-#package vboxguest
+package open-vm-tools
+package vboxguest
 #package medit			# Notepad
 #package mplayer		# DVD and video player
 #package vmview            # VMware Open-View Client, PCOIP
 #package xbmc			# XBMC Media Center for X
 #package evince			# X PDF Viewer
+#package openkiosk		# OpenKiosk is a cross platform kiosk web browser based on Mozilla Firefox
+#package xdmcp-connect		# Simple connection to XDMCP server
 
 #!!Window Managers. Choose no more than 1 window manager.
 # Not needed if you don t want to manage windows.
@@ -253,12 +257,16 @@ package thunar			# File Manager for xfwm4 -- Pulls in xfwm4
                         	#  adds some networking based options for downloading configuration files or
                         	#  in using hdupdate package.
 #package openvpn                # OpenVPN Client Support
+#package vhusbip		# The VirtualHere USB Server enables remote access to USB devices over a network.
+				# Install the Generic Build of the VirtualHere Server on an unlimited number of computers
+				# and share a single USB device per computer server, with no payment required.
+				# To share more than one USB device simultaneously from a single server you must purchase an "Unlimited Device License".
 
 
 #!!PCSCD Card Readers
 #package gemplus410             # Card reader Gemplus 410 (Serial) and Gemplus 430 (USB)
 #package ccidreader             # Generic USB card reader
-
+#package asedriveiiie-usb	# Drivers for smart cards of readers of AseIIIeUSB and AseIIIeUSB KB
 
 #!!Miscellaneous
 package gtk-2.0			# Full gtk-2.0 plus clearlooks theme
@@ -277,10 +285,10 @@ package icons-adwaita
 #package fonts-Speedo-Bitstream
 package fonts-TTF-BH		# This one works nicely most of the time and is small.
 package fonts-TTF-vera
-#package fonts-TTF-MS		# Fonts for rendering documents developed on the MS Platform.
+package fonts-TTF-MS		# Fonts for rendering documents developed on the MS Platform.
                             # Might want to talk to a lawyer before using these.
-package fonts-TTF-liberation
-package fonts-TTF-noto
+#package fonts-TTF-liberation
+#package fonts-TTF-noto
 #package fonts-75dpi-Adobe
 #package fonts-75dpi-Adobe-Utopia
 #package fonts-75dpi-BH
@@ -413,9 +421,10 @@ param syslinuxtheme     "default"
 
 #param bootfssize     50%                               # Modify the size of the tmpfs filesystem
 
-#package alltimezone
+package alltimezone
 param allres		true		# Includes a lot of resolution splash images for live-cd s
 #param allfirmware	true		# Includes a lot of firmwares for live-cd s
-param earlymicrocode	false		# Builds microcode initramfs for early loading
+#param earlymicrocode	false		# Builds microcode initramfs for early loading
 					# by kernel. Needs kernel with MICROCODE_EARLY=y.
 param blacklist "snd-pcsp.ko pcspkr.ko"
+#param mesa_3d disable			# The Mesa 3D Graphics Library disable
