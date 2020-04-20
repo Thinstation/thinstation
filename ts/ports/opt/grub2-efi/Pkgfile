@@ -21,9 +21,24 @@ build() {
     do
         mkdir $ARCH
         cd $ARCH
-        ../grub-$version/configure --prefix=/usr \
-            --with-platform=efi --target=$ARCH \
-            --program-prefix=""
+        ../grub-$version/configure \
+		--prefix=/usr \
+		--with-platform=efi \
+		--target=$ARCH \
+		--program-prefix="" \
+		--enable-mm-debug \
+		--enable-nls \
+		--enable-device-mapper \
+		--enable-cache-stats \
+		--enable-grub-mkfont \
+		--enable-grub-mount \
+		--with-bootdir="/boot" \
+		--with-grubdir="grub" \
+		--disable-silent-rules \
+		--disable-werror \
+		--disable-efiemu \
+		--enable-boot-time
+
         make
         make DESTDIR=$PKG install
         cd grub-core
