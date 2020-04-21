@@ -13,8 +13,43 @@ if ! pkg_initialized $PACKAGE; then
 	if [ ! -e $HOME/.mozilla ] && [ -e /etc/FF.tar.gz ]; then
 		tar -C $HOME -zxvf /etc/FF.tar.gz
 	else
-		# If no site FF profile archive was found, fall back to some useful defaults.
-		FFPREFS=/etc/TS.default/prefs.js
+		# If no site FF profile archive was found, fall back to some useful defaults.a
+
+		# Generate a random profile path
+		Path=`tr -cd "a-z0-9" < /dev/urandom | head -c8`
+		Path=$Path.default-esr
+
+		# This is a hash of the install path of Firefox
+		Install=DEB35E2C70B80298
+
+		mkdir -p $HOME/.mozilla/firefox/$Path
+		cp /etc/TS.default/* $HOME/.mozilla/firefox/$Path -r
+
+		cat <<EOF>$HOME/.mozilla/firefox/profiles.ini
+[General]
+StartWithLastProfile=1
+Version=2
+
+[Profile0]
+Name=default-esr
+IsRelative=1
+Path=$Path
+Default=1
+
+[Install$Install]
+Default=$Path
+Locked=1
+EOF
+
+		if [ -n "`find $HOME/.mozilla/firefox/$Path/extensions -type f -name \*.json` 2>/dev/null" ]; then
+			cat $HOME/.mozilla/firefox/$Path/e.head.tpl > $HOME/.mozilla/firefox/$Path/extensions.json
+			for file in `find $HOME/.mozilla/firefox/$Path/extensions -type f -name \*.json`; do
+				cat $file |sed -e "s/TS.default/$Path/g" >> $HOME/.mozilla/firefox/$Path/extensions.json
+			done
+			cat $HOME/.mozilla/firefox/$Path/e.tail.tpl >> $HOME/.mozilla/firefox/$Path/extensions.json
+		fi
+
+		FFPREFS=$HOME/.mozilla/firefox/$Path/prefs.js
 		if [ -z "$FF_HOMEPAGE" ]; then
 			FF_HOMEPAGE="http://www.thinstation.org"
 		fi
