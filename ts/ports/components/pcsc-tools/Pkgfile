@@ -5,12 +5,14 @@
 # Depends on:  opensc
 
 name=pcsc-tools
-version=1.5.4
+version=1.5.6
 release=0
-source=(http://ludovic.rousseau.free.fr/softwares/$name/$name-$version.tar.bz2)
+source=(http://ludovic.rousseau.free.fr/softwares/$name/$name-$version.tar.bz2
+	ttyredirect.patch)
 
 build() {
     cd $name-$version
+    patch -Np1 < ../ttyredirect.patch
     ./configure --prefix=/usr
 
     make
