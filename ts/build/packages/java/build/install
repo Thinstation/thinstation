@@ -8,6 +8,8 @@ EXTRADIR=./packages/java/build/extra
 tar -C wget_tmp -xf wget_tmp/$gzname
 returnval=$?
 
+if [ -f wget_tmp/jdk-*/bin/jlink ]; then
+
 while read mod; do
 if [ -n "$modules" ]; then modules="$modules,"; fi
 modules="$modules$mod"
@@ -16,15 +18,28 @@ done < <(./wget_tmp/jdk-*/bin/java --list-modules | cut -d@ -f1)
 ./wget_tmp/jdk-*/bin/jlink --no-header-files --no-man-pages --compress=2 --add-modules $modules --output $INSTALLDIR
 let returnval=returnval+$?
 
+mkdir -p ./packages/java/lib/licenses/java
+ln -s ../$JAVAHOME/legal/java.base/LICENSE ./packages/java/build/license
+ln -s ../$JAVAHOME/legal/java.base ./packages/java/lib/licenses/java
+
+else
+
+mkdir -p `dirname $INSTALLDIR`
+mv wget_tmp/jdk* $INSTALLDIR
+
+ln -s ../$JAVAHOME/LICENSE ./packages/java/build/license
+mkdir -p ./packages/java/lib/licenses/java
+ln -s ../$JAVAHOME/LICENSE ./packages/java/lib/licenses/java/
+
+rm -rf $INSTALLDIR/man
+
+fi
+
 mkdir -p ./packages/java/bin
 for bin in $INSTALLDIR/bin/*; do
   link=`basename $bin`
   ln -s $JAVAHOME/bin/$link ./packages/java/bin
   let returnval=returnval+$?
 done
-
-mkdir -p ./packages/java/lib/licenses/java
-ln -s ../$JAVAHOME/legal/java.base/LICENSE ./packages/java/build/license
-ln -s ../$JAVAHOME/legal/java.base ./packages/java/lib/licenses/java
 
 exit $returnval
