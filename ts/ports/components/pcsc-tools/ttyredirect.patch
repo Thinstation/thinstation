@@ -1,0 +1,46 @@
+--- a/pcsc_scan.c	2020-04-15 13:32:50.612477016 +0000
++++ b/pcsc_scan.c	2020-04-15 13:38:08.822913797 +0000
+@@ -114,6 +114,7 @@
+ const char *cub2 = "";
+ const char *cub3 = "";
+ const char *cpl = "";
++int istty = 1;
+ 
+ static Boolean is_member(const char *  item, const char * list[])
+ {
+@@ -131,7 +132,11 @@
+ 		"Eterm", "rxvt", "rxvt-unicode", "cygwin", 0};
+ 	const char *no_ansi_cursor_terms[] = {"dumb", "emacs", 0};
+ 	const char *term = getenv("TERM");
+-	if (term == 0)
++	if (!isatty(STDOUT_FILENO))
++	{
++		istty = 0;
++	}
++	if (term == 0 || !istty)
+ 	{
+ 		term = "dumb";
+ 	}
+@@ -171,14 +176,18 @@
+ 	spin_state++;
+ 	if (spin_state >= sizeof patterns)
+ 		spin_state = 0;
+-	printf("%s %c ", cub3, c);
+-	fflush(stdout);
++	if (istty) {
++		printf("%s %c ", cub3, c);
++		fflush(stdout);
++	}
+ }
+ 
+ static void spin_suspend(void)
+ {
+-	printf("%s %s", cub2, cub2);
+-	fflush(stdout);
++	if (istty) {
++		printf("%s %s", cub2, cub2);
++		fflush(stdout);
++	}
+ 	if (spinning_interrupted)
+ 	{
+ 		printf("\n");
