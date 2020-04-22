@@ -1,6 +1,4 @@
-# Maintainer : Daniel Bermond < gmail-com: danielbermond >
-# Contributor: Taylor Smock <vorpalblade77@gmail.com>
-# Contributor: Keshav Amburay <the.ridikulus.rat@gmail.com>
+# Maintainer : Donald A. Cupp Jr., don cupp jr at yahoo dot com
 
 name=shim
 version=15
@@ -31,6 +29,8 @@ build() {
     make DESTDIR="$PKG" install-as-data
     install -D -m644 COPYRIGHT "${PKG}/usr/share/licenses/${name}/LICENSE"
 
+    sha256sum $PKG/boot/efi/EFI/ThinStation/shimx64.efi
+
     if [ -e /mnt/Certs\ and\ Keys/thinstation/TS-SB-UEFI/UEFI.pem ]; then
 	for efi in boot/efi/EFI/ThinStation/shimx64.efi; do
 		sbsign --key /mnt/Certs\ and\ Keys/thinstation/TS-SB-UEFI/UEFI.pem --cert /mnt/Certs\ and\ Keys/thinstation/TS-SB-UEFI/UEFI.pem --output $PKG/$efi $PKG/$efi
@@ -41,5 +41,4 @@ build() {
 		sbsign --key /mnt/Certs\ and\ Keys/thinstation/TS-UEFI/UEFI.pem --cert /mnt/Certs\ and\ Keys/thinstation/TS-UEFI/UEFI.pem --output $PKG/$efi $PKG/$efi
 	done
     fi
-
 }
