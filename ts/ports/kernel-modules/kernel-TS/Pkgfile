@@ -43,6 +43,11 @@ build() {
 
 	cd $PKG
 	mkdir boot
+	if [ -e /mnt/Certs\ and\ Keys/thinstation/TS-UEFI/UEFI.pem ]; then
+		for efi in vmlinuz; do
+			sbsign --key /mnt/Certs\ and\ Keys/thinstation/TS-UEFI/UEFI.pem --cert /mnt/Certs\ and\ Keys/thinstation/TS-UEFI/UEFI.pem --output vmlinuz vmlinuz
+		done
+	fi
 	mv vmlinuz $PKG/boot/vmlinuz-${kernel}
 	mv System.map $PKG/boot/System.map-${kernel}
 	rm lib/modules/${kernel}/{source,build}

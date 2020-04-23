@@ -1,0 +1,22 @@
+# Maintainer: nl6720 <nl6720@gmail.com>
+
+name='shim-fedora'
+version='15.f8'
+release='2'
+#source=(https://kojipkgs.fedoraproject.org/packages/shim/${version//.f/\/}/x86_64/shim-x64-${version//.f/-}.x86_64.rpm
+#	https://kojipkgs.fedoraproject.org/packages/shim-signed/13/4/x86_64/shim-x64-13-4.x86_64.rpm)
+#source=(https://kojipkgs.fedoraproject.org/packages/shim/${version//.f/\/}/x86_64/shim-x64-${version//.f/-}.x86_64.rpm)
+source=(https://kojipkgs.fedoraproject.org/packages/shim-signed/13/4/x86_64/shim-x64-13-4.x86_64.rpm)
+
+
+build() {
+	mv $SRC/* $PKG/.
+	# Use old MokManager from Fedora's shim-signed 13-4, https://github.com/rhboot/shim/issues/143
+	#bsdtar -f shim-x64-13-4.x86_64.rpm -x boot/efi/EFI/fedora/mmx64.efi
+
+	# EFI binaries for x86_64 UEFI
+#	install -D -m0644 -t "${PKG}/usr/share/${name}/" "${SRC}/boot/efi/EFI/fedora/shimx64.efi"
+#	install -D -m0644 -t "${PKG}/usr/share/${name}/" "${SRC}/boot/efi/EFI/fedora/mmx64.efi"
+#	install -D -m0644 -t "${PKG}/usr/share/${name}/" "${SRC}/boot/efi/EFI/BOOT/fbx64.efi"
+rm -rf $PKG/boot/efi/EFI/BOOT/
+}
