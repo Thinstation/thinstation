@@ -218,7 +218,9 @@ https://src.fedoraproject.org/rpms/grub2/raw/master/f/0206-grub-switch-to-blscfg
 https://src.fedoraproject.org/rpms/grub2/raw/master/f/0207-10_linux.in-Merge-logic-from-10_linux_bls-and-drop-t.patch
 https://src.fedoraproject.org/rpms/grub2/raw/master/f/0208-grub-switch-to-blscfg-Use-install-to-copy-GRUB-binar.patch
 https://src.fedoraproject.org/rpms/grub2/raw/master/f/0209-10_linux.in-Enable-BLS-configuration-if-new-kernel-p.patch
-https://src.fedoraproject.org/rpms/grub2/raw/master/f/0210-efi-Set-image-base-address-before-jumping-to-the-PE-.patch)
+https://src.fedoraproject.org/rpms/grub2/raw/master/f/0210-efi-Set-image-base-address-before-jumping-to-the-PE-.patch
+https://src.fedoraproject.org/rpms/grub2/raw/master/f/0211-blscfg-Lookup-default_kernelopts-variable-as-fallbac.patch
+https://src.fedoraproject.org/rpms/grub2/raw/master/f/0212-10_linux.in-fix-early-exit-due-error-when-reading-pe.patch)
 
 build() {
         unset CFLAGS
@@ -231,7 +233,7 @@ build() {
         cp $SRC/gitignore .gitignore
         cp $SRC/bootstrap.conf .
 
-        for patch in `seq -f %04g 1 210`; do
+        for patch in `seq -f %04g 1 212`; do
                 if [ -e $SRC/$patch*.patch ]; then
                         patch -i $SRC/$patch*.patch -p1
                 fi
