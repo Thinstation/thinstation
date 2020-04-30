@@ -1,0 +1,48 @@
+# Maintainer: Anatol Pomozov <anatol pomozov at gmail>
+# Contributor: Johannes Dewender  arch at JonnyJD dot net
+# Contributor: Konrad <konrad AT knauber DOT name>
+# Contributor: Luka Perkov <archlinux <at> lukaperkov <dOt> net>
+# Contributor: Fernando M <f <at> beford.net>
+# Author: Wintershade <Wintershade AT google mail DOT com>
+
+name=rpm-tools
+version=4.15.1
+release=2
+
+source=(http://ftp.rpm.org/releases/rpm-4.15.x/rpm-$version.tar.bz2
+	rpmextract.sh
+        rpmlib-filesystem-check.patch)
+
+build() {
+	cd rpm-${version}
+	patch -p1 < ../rpmlib-filesystem-check.patch
+
+	./configure \
+		--prefix=/usr  \
+		--sysconfdir=/etc  \
+		--localstatedir=/var \
+		--enable-python \
+		--with-external-db \
+		--with-lua \
+		--with-cap \
+		CPPFLAGS="`pkg-config --cflags nss`" \
+		PYTHON=python
+	make
+	make prefix=${PKG}/usr localstatedir=${PKG}/var install
+	rmdir ${PKG}/var/tmp
+	rmdir ${PKG}/var
+	# rpmextract using bsdtar, needs libarchive
+	install -m755 ${SRC}/rpmextract.sh ${PKG}/usr/bin/
+
+	# move rpm from /bin to /usr/bin
+	rm ${PKG}/usr/bin/rpm{query,verify}
+	cd ${PKG}/usr/bin
+	ln -s rpm rpmquery
+	ln -s rpm rpmverify
+
+	# also install python 3 files
+	# building with python 3 files as default doesn't seem to work
+	cd ${SRC}/rpm-${version}
+	cd python
+	python setup.py install --root="$PKG/" --optimize=1
+}

@@ -34,11 +34,13 @@ build() {
     if [ -e /mnt/Certs\ and\ Keys/thinstation/TS-SB-UEFI/UEFI.pem ]; then
 	for efi in boot/efi/EFI/ThinStation/shimx64.efi; do
 		sbsign --key /mnt/Certs\ and\ Keys/thinstation/TS-SB-UEFI/UEFI.pem --cert /mnt/Certs\ and\ Keys/thinstation/TS-SB-UEFI/UEFI.pem --output $PKG/$efi $PKG/$efi
+		sha256sum $PKG/$efi
 	done
     fi
     if [ -e /mnt/Certs\ and\ Keys/thinstation/TS-UEFI/UEFI.pem ]; then
         for efi in boot/efi/EFI/ThinStation/mmx64.efi; do
 		sbsign --key /mnt/Certs\ and\ Keys/thinstation/TS-UEFI/UEFI.pem --cert /mnt/Certs\ and\ Keys/thinstation/TS-UEFI/UEFI.pem --output $PKG/$efi $PKG/$efi
+		sha256sum $PKG/$efi
 	done
     fi
 }

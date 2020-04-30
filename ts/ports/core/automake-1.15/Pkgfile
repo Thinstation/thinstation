@@ -1,0 +1,25 @@
+# Maintainer: dracorp aka Piotr Rogoza <piotr.r.public at gmail.com>
+
+name=automake-1.15
+_name=automake
+version=1.15.1
+_version=1.15
+release=2
+groups=('base-devel')
+provides=("automake=1.15")
+options=(!emptydirs)
+source=("ftp://ftp.gnu.org/gnu/${_name}/${_name}-${version}.tar.gz")
+
+build() {
+  cd "$SRC"/${_name}-$version
+  ./configure --build=$CHOST --prefix=/usr
+  make
+  make DESTDIR="$PKG" install
+
+  rm -f "$PKG"/usr/bin/{automake,aclocal}
+  rm -rf "$PKG"/usr/share/aclocal
+  rm -fv "$PKG"/usr/share/man/man1/{automake,aclocal}.1*
+
+  rm -rf "$PKG"/usr/share/info
+  rm -rf "$PKG"/usr/share/doc
+}
