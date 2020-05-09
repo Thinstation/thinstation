@@ -1,4 +1,6 @@
-# Maintainer : Donald A. Cupp Jr., don cupp jr at yahoo dot com
+# Maintainer : Daniel Bermond < gmail-com: danielbermond >
+# Contributor: Taylor Smock <vorpalblade77@gmail.com>
+# Contributor: Keshav Amburay <the.ridikulus.rat@gmail.com>
 
 name=shim
 version=15
@@ -29,18 +31,15 @@ build() {
     make DESTDIR="$PKG" install-as-data
     install -D -m644 COPYRIGHT "${PKG}/usr/share/licenses/${name}/LICENSE"
 
-    sha256sum $PKG/boot/efi/EFI/ThinStation/shimx64.efi
-
-    if [ -e /mnt/Certs\ and\ Keys/thinstation/TS-SB-UEFI/UEFI.pem ]; then
+    if [ -e /mnt/Certs/thinstation/TS-SB-UEFI/UEFI.pem ]; then
 	for efi in boot/efi/EFI/ThinStation/shimx64.efi; do
-		sbsign --key /mnt/Certs\ and\ Keys/thinstation/TS-SB-UEFI/UEFI.pem --cert /mnt/Certs\ and\ Keys/thinstation/TS-SB-UEFI/UEFI.pem --output $PKG/$efi $PKG/$efi
-		sha256sum $PKG/$efi
+		sbsign --key /mnt/Certs/thinstation/TS-SB-UEFI/UEFI.pem --cert /mnt/Certs/thinstation/TS-SB-UEFI/UEFI.pem --output $PKG/$efi $PKG/$efi
 	done
     fi
-    if [ -e /mnt/Certs\ and\ Keys/thinstation/TS-UEFI/UEFI.pem ]; then
+    if [ -e /mnt/Certs/thinstation/TS-UEFI/UEFI.pem ]; then
         for efi in boot/efi/EFI/ThinStation/mmx64.efi; do
-		sbsign --key /mnt/Certs\ and\ Keys/thinstation/TS-UEFI/UEFI.pem --cert /mnt/Certs\ and\ Keys/thinstation/TS-UEFI/UEFI.pem --output $PKG/$efi $PKG/$efi
-		sha256sum $PKG/$efi
+		sbsign --key /mnt/Certs/thinstation/TS-UEFI/UEFI.pem --cert /mnt/Certs/thinstation/TS-UEFI/UEFI.pem --output $PKG/$efi $PKG/$efi
 	done
     fi
+    sha256sum $PKG/usr/share/shim/15/x64/shimx64.efi
 }
