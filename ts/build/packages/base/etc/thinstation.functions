@@ -649,11 +649,11 @@ dconf_proxy_configure ()
 			unset IFS
 			hosts="[`echo $hosts |cut -c3-`]"
 
-			dconf write /org/gnome/system/proxy/ignore-hosts "$hosts"
+			dconf write /system/proxy/ignore-hosts "$hosts"
 		fi
 	if [ -n "$PROXY_HOST" ] && [ -n "$PROXY_PORT" ] ; then
-			dconf write /org/gnome/system/proxy/http/host "'$PROXY_HOST'"
-			dconf write /org/gnome/system/proxy/http/port "$PROXY_PORT"
+			dconf write /system/proxy/http/host "'$PROXY_HOST'"
+			dconf write /system/proxy/http/port "$PROXY_PORT"
 
 			if [ -z "$PROXY_USE_SAME$PROXY_SECURE_HOST$PROXY_SOCKS_HOST$PROXY_FTP_HOST" ]; then
 				PROXY_USE_SAME=true
@@ -670,30 +670,30 @@ dconf_proxy_configure ()
 		fi
 
 		if [ -n "$PROXY_SECURE_HOST" ] && [ -n "$PROXY_SECURE_PORT" ]; then
-			dconf write /org/gnome/system/proxy/https/host "'$PROXY_SECURE_HOST'"
-			dconf write /org/gnome/system/proxy/https/port "$PROXY_SECURE_PORT"
+			dconf write /system/proxy/https/host "'$PROXY_SECURE_HOST'"
+			dconf write /system/proxy/https/port "$PROXY_SECURE_PORT"
 		fi
 		if [ -n "$PROXY_SOCKS_HOST" ] && [ -n "$PROXY_SOCKS_PORT" ]; then
-			dconf write /org/gnome/system/proxy/socks/host "'$PROXY_SOCKS_HOST'"
-			dconf write /org/gnome/system/proxy/socks/port "$PROXY_SOCKS_PORT"
+			dconf write /system/proxy/socks/host "'$PROXY_SOCKS_HOST'"
+			dconf write /system/proxy/socks/port "$PROXY_SOCKS_PORT"
 		fi
 		if [ -n "$PROXY_FTP_HOST" ] && [ -n "$PROXY_FTP_PORT" ]; then
-			dconf write /org/gnome/system/proxy/ftp/host "'$PROXY_FTP_HOST'"
-			dconf write /org/gnome/system/proxy/ftp/port "$PROXY_FTP_PORT"
+			dconf write /system/proxy/ftp/host "'$PROXY_FTP_HOST'"
+			dconf write /system/proxy/ftp/port "$PROXY_FTP_PORT"
 		fi
 		if [ -n "$PROXY_AUTOCONFIG" ]; then
-			dconf write /org/gnome/system/proxy/autoconfig-url "'$PROXY_AUTOCONFIG'"
+			dconf write /system/proxy/autoconfig-url "'$PROXY_AUTOCONFIG'"
 		fi
 
 		if [ "$PROXY_MODE" == "none" ] \
 		|| [ -z "$PROXY_MODE$PROXY_HOST$PROXY_SECURE_HOST$PROXY_FTP_HOST$PROXY_SOCKS_HOST$PROXY_AUTOCONFIG" ]; then
-			dconf write /org/gnome/system/proxy/mode "'none'"
+			dconf write /system/proxy/mode "'none'"
 		elif [ "$PROXY_MODE" == "auto" ] \
 		|| [ -z "$PROXY_MODE" ] \
 		&& [ -n "$PROXY_AUTOCONFIG" ]; then
-			dconf write /org/gnome/system/proxy/mode "'auto'"
+			dconf write /system/proxy/mode "'auto'"
 		else
-			dconf write /org/gnome/system/proxy/mode "'manual'"
+			dconf write /system/proxy/mode "'manual'"
 		fi
 	fi
 }

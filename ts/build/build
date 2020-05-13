@@ -2283,7 +2283,7 @@ refind_copy_files()
 	done
 
 #	sys_copy $refdir/refind_ia32.efi $EFIDIR/bootia32.efi
-	sys_copy $refdir/refind_x64.efi $EFIDIR/loader.efi
+	sys_copy $refdir/refind_x64.efi $EFIDIR/bootx64.efi
 
 	for file in `find $configdir -type f |sed -e "s|$configdir||g"`; do
 		sys_copy ${configdir}${file} "$EFIDIR/$file"
@@ -2520,6 +2520,8 @@ if [ -z "$NOIMAGES" ]; then
 				LM=4
 
 				CONFIGFILE=refind.conf
+				refind_copy_files
+				mv $ESP/EFI/BOOT/bootx64.efi $ESP/EFI/BOOT/loader.efi
                         #        sys_copy /boot/efi/EFI/fedora/shimx64.efi $ESP/EFI/BOOT/bootx64.efi
 				sys_copy /usr/lib/prebootloader/KeyTool.efi $ESP/EFI/BOOT/KeyTool.efi
 				sys_copy /boot/efi/EFI/ThinStation/shimx64.efi $ESP/EFI/BOOT/bootx64.efi
@@ -2530,7 +2532,6 @@ if [ -z "$NOIMAGES" ]; then
 				sys_copy /ts/certs/ThinStation-KEK-CA.cer $ESP/ThinStation-KEK-CA.cer
 				sys_copy /ts/certs/ThinStation-SB-UEFI-CA.cer $ESP/ThinStation-SB-UEFI-CA.cer
 				sys_copy /ts/certs/ThinStation-SB-UEFI-Signing.cer $ESP/ThinStation-SB-UEFI-Signing.cer
-				refind_copy_files
 				add_overlay
 				add_image efi
 				wrap_efi
