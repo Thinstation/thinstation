@@ -1,0 +1,60 @@
+#!/bin/sh
+
+gzname=`basename $1`
+dir=AdobeReader
+installdir=./packages/adobereader
+
+mkdir -p $installdir/{bin,opt32}
+mkdir -p $installdir/lib/{icons,mime/packages,applications}
+
+tar -C wget_tmp -jxf wget_tmp/$gzname
+let returnval=returnval+$?
+
+for file in wget_tmp/$dir/*.TAR
+do
+  tar -C $installdir/opt32 -xf $file
+  let returnval=returnval+$?
+done
+
+mv $installdir/opt32/Adobe/Reader9/Resource/Icons $installdir/lib/icons/hicolor
+for i in $installdir/lib/icons/hicolor/*
+do
+  mkdir $i/apps
+  mv $i/*.png $i/apps
+  mkdir $i/mimetypes
+  for j in $i/apps/vnd.*
+  do
+    k=`basename $j`
+    cp $i/apps/$k $i/mimetypes/application-$k
+    ln -s application-$k $i/mimetypes/gnome-mime-application-$k
+  done
+  cp $i/apps/adobe.pdf.png $i/mimetypes/application-pdf.png
+  ln -s application-pdf.png $i/mimetypes/gnome-mime-application-pdf.png
+done
+
+mv $installdir/opt32/Adobe/Reader9/Resource/Support/*.desktop $installdir/lib/applications
+mv $installdir/opt32/Adobe/Reader9/Resource/Support/AdobeReader.xml $installdir/lib/mime/packages
+
+rm $installdir/opt32/Adobe/Reader9/bin/UNINSTALL
+rm -r $installdir/opt32/Adobe/Reader9/Browser
+rm -r $installdir/opt32/Adobe/Reader9/Resource/Support
+
+ln -s ../opt32/Adobe/Reader9/Reader/Legal/en_US/License.txt $installdir/build/license
+mkdir -p $installdir/lib/licenses/adobereader
+ln -s /opt32/AdobeReader9/Reader/Legal/en_US/License.txt $installdir/lib/licenses/adobereader
+
+pushd $installdir
+	patch -p0 -i build/acroread-dirname.patch
+popd
+
+pushd $installdir
+	mkdir -p opt32/{etc,proc,dev,sys,share,root,bin,var,sbin}
+	ln -sf . opt32/usr
+	unsquashfs -f -d . build/32bit-base.squashfs
+	chroot opt32 /bin/busybox --install -s
+	mksquashfs opt32/ lib/adobereader.squashfs -comp xz
+	rm -rf opt32/*
+popd
+
+
+exit $returnval

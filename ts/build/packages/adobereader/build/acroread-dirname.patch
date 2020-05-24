@@ -1,0 +1,27 @@
+--- opt32/Adobe/Reader9/bin/acroread.orig	2013-10-20 20:37:39.725415602 +0000
++++ opt32/Adobe/Reader9/bin/acroread	2013-10-20 20:37:57.281869336 +0000
+@@ -526,7 +526,7 @@
+ if [ -z "$mozillaPath" ]; then
+   MozPath="`gconftool-2 -g /desktop/gnome/url-handlers/http/command 2>/dev/null | cut -d ' ' -f1 2>/dev/null`"
+   [ -x "${MozPath}" ] || MozPath="`Which "$MozPath"`"
+-  [ -n "${MozPath}" ] || mozillaPath="`readlink "$MozPath" | xargs dirname`"
++  [ -n "${MozPath}" ] || mozillaPath="`readlink "$MozPath" | xargs dirname 2>/dev/null`"
+   if [ -n "$mozillaPath" ] &&  $TestCmd $TestCmdOption "$mozillaPath/libgtkembedmoz.so" || $TestCmd $TestCmdOption "$mozillaPath/libxul.so" ; then
+     MOZILLA_COMP_PATH="$mozillaPath"
+     export MOZILLA_COMP_PATH
+
+--- opt32/Adobe/Reader9/bin/acroread.orig	2020-05-23 23:38:22.255108898 +0000
++++ opt32/Adobe/Reader9/bin/acroread	2020-05-23 23:39:09.809558382 +0000
+@@ -327,12 +327,6 @@
+ }
+ 
+ 
+-# Do not allow launch using 'sudo'.
+-if [ "${ACRO_ALLOW_SUDO+set}" != "set" -a \( "${SUDO_USER+set}" = "set" -o "${SUDO_UID+set}" = "set" -o "${SUDO_GID}" = "set" \) ]; then
+-  printf "%s\n" "Adobe Reader does not need to be run as a privileged user. Please remove 'sudo' from the beginning of the command."
+-  exit 1
+-fi
+-
+ #
+ # Get the current working directory.
+ # Try to avoid automounter directories by checking
