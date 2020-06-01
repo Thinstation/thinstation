@@ -9,6 +9,9 @@ if ! pkg_initialized $PACKAGE; then
         # Requirement for cups printing to /dev/usb/lp0 and /dev/lp0 (filedevices)
         echo "FileDevice yes" >> /etc/cups/cups-files.conf
 
+        # restart after configure FileDevice
+        systemctl restart org.cups.cupsd.service
+
         #  cups printers
         let x=0
         CUPS_PRINTER_X_NAME=$CUPS_PRINTER_0_NAME
