@@ -15,7 +15,11 @@ if ! pkg_initialized $PACKAGE; then
 	fi
 
 	if [ -n "$FREERDP_SMARTCARD" ]; then
-		FRDPOPTIONS="$FRDPOPTIONS /smartcard:$FREERDP_SMARTCARD"
+		if is_enabled $FREERDP_SMARTCARD; then
+ 			FRDPOPTIONS="$FRDPOPTIONS /smartcard"
+		elif ! is_disabled $FREERDP_SMARTCARD; then
+ 			FRDPOPTIONS="$FRDPOPTIONS /smartcard:$FREERDP_SMARTCARD"
+		fi
 	fi
 
 	if [ -n "$FREERDP_SOUND" ]; then

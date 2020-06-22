@@ -47,8 +47,11 @@ if [ "`tty`" == "$CONSOLE" ]; then
 			if ! module_available isofs && ! module_available udf; then
 				echo "isolinux: No CD Rom modules available"
 			else
+				echo "isolinux: /mnt/cdrom0 was not mounted, maybe"
 				echo "isolinux: /mnt/cdrom0 was not mounted, maybe check your mount declarations"
 			fi
+		elif [ -z "$LM" ]; then
+			echo "Fastboot enabled, but no loader method was defined, what are you doing?"
 		fi
 	else
 		echo "There are no autostarted sessions!"
