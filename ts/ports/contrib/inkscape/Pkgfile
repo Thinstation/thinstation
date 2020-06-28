@@ -5,52 +5,50 @@
 # Optional: rtmpdump openldap libexif openjade gtk-doc gtkspell brotli imagemagick-compat
 
 name=inkscape
-version=0.92.4
-release=1
-source=(https://media.inkscape.org/dl/resources/file/$name-$version.tar.bz2
+version=1.0
+release=2020-05-01_4035a4fb49
+source=(https://media.inkscape.org/dl/resources/file/inkscape-$version.tar.xz
 	inkscape-0.92.4-poppler-0.76.0.patch)
 
 build() {
-	cd $name-$version
-	./autogen.sh
+	mv $name-${version}_$release $name
 
-	sed -i 's|/usr/bin/python\>|/usr/bin/python2|g' cxxtest/*.py
-	sed -i 's|/usr/bin/env python\>|/usr/bin/env python2|g' share/*/{test/,}*.py
-	sed -i 's|"python" },|"python2" },|g' src/extension/implementation/script.cpp
-	sed -i 's|python -c|python2 -c|g' configure share/extensions/uniconv*.py
-	sed -i 's|"python"|"python2"|g' src/main.cpp
+#	sed -i 's|/usr/bin/python\>|/usr/bin/python2|g' cxxtest/*.py
+#	sed -i 's|/usr/bin/env python\>|/usr/bin/env python2|g' share/*/{test/,}*.py
+#	sed -i 's|"python" },|"python2" },|g' src/extension/implementation/script.cpp
+#	sed -i 's|python -c|python2 -c|g' configure share/extensions/uniconv*.py
+#	sed -i 's|"python"|"python2"|g' src/main.cpp
 
-	sed -i 's| abs(| std::fabs(|g' src/ui/tools/flood-tool.cpp
+#	sed -i 's| abs(| std::fabs(|g' src/ui/tools/flood-tool.cpp
        # Fix build with poppler 0.71
-        sed -e 's|gTrue|true|g' -e 's|gFalse|false|g' -e 's|GBool|bool|g' -i src/extension/internal/pdfinput/pdf-parser.*
+#        sed -e 's|gTrue|true|g' -e 's|gFalse|false|g' -e 's|GBool|bool|g' -i src/extension/internal/pdfinput/pdf-parser.*
        # Fix build with poppler 0.72
-        sed -e 's|getCString|c_str|g' -i src/extension/internal/pdfinput/*
+#        sed -e 's|getCString|c_str|g' -i src/extension/internal/pdfinput/*
        # Fix build with poppler 0.76
-        sed -e 's|new Lexer(xref, obj)|obj|g' -i src/extension/internal/pdfinput/pdf-parser.cpp
+#        sed -e 's|new Lexer(xref, obj)|obj|g' -i src/extension/internal/pdfinput/pdf-parser.cpp
 
-	export PKG_CONFIG_PATH='/usr/lib/imagemagick6/pkgconfig'
-	export FREETYPE_CONFIG="/usr/bin/pkg-config freetype2"
+#	export PKG_CONFIG_PATH='/usr/lib/imagemagick6/pkgconfig'
+#	export FREETYPE_CONFIG="/usr/bin/pkg-config freetype2"
 
-	./configure \
-		--prefix=/usr \
-		--with-python \
-		--with-perl \
-		--enable-lcms \
-		--enable-poppler-cairo \
-		--disable-strict-build \
-		--disable-dependency-tracking
+	mkdir -p build
+	cmake -H${name} -Bbuild \
+		-DCMAKE_BUILD_TYPE=Release \
+		-DCMAKE_INSTALL_PREFIX:PATH=/usr \
+		-DWITH_DBUS=ON \
 
-	make
-	make DESTDIR=$PKG install
+	cmake --build build
 
-	rm \
-		$PKG/usr/share/man/man1/inkscape.??.1 \
-		$PKG/usr/share/man/man1/inkscape.zh_TW.1
+	cd "${SRC}"
+	DESTDIR="${PKG}" cmake --build build --target install
 
-	rm -r \
-		$PKG/usr/share/man/?? \
-		$PKG/usr/share/man/zh_TW
-
-	find $PKG/usr/share/inkscape -name README -exec rm -f {} +
-	/usr/bin/python -mcompileall $PKG
+#	rm \
+#		$PKG/usr/share/man/man1/inkscape.??.1 \
+#		$PKG/usr/share/man/man1/inkscape.zh_TW.1
+#
+#	rm -r \
+#		$PKG/usr/share/man/?? \
+#		$PKG/usr/share/man/zh_TW
+#
+#	find $PKG/usr/share/inkscape -name README -exec rm -f {} +
+#	/usr/bin/python -mcompileall $PKG
 }

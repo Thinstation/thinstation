@@ -1,0 +1,22 @@
+# Maintainer: Anatol Pomozov <anatol.pomozov@gmail.com>
+# Contributor: Joel Teichroeb <joel@teichroeb.net>
+# Contributor: Jonas Heinrich <onny@project-insanity.org>
+
+name=double-conversion
+version=3.1.5
+release=2
+source=(https://github.com/google/double-conversion/archive/v$version.tar.gz)
+
+build() {
+  mkdir -p build
+
+  cd build
+  cmake ../$name-$version \
+      -DCMAKE_INSTALL_PREFIX=/usr \
+      -DCMAKE_INSTALL_LIBDIR=lib \
+      -DBUILD_SHARED_LIBS=ON
+  make
+  make DESTDIR="$PKG" install
+
+  install -Dm644 "$SRC"/$name-$version/LICENSE -t "$PKG"/usr/share/licenses/double-conversion
+}

@@ -4,7 +4,7 @@
 # Depends on:  dbus-python libnotify iso-codes gtk
 
 name=ibus
-version=1.5.21
+version=1.5.22
 release=1
 source=(
 	https://github.com/$name/$name/releases/download/$version/$name-$version.tar.gz
@@ -39,12 +39,14 @@ build() {
 		--libexecdir=/usr/lib/$name \
 		--enable-dconf \
 		--enable-wayland \
-		--enable-gtk-doc \
+		--disable-gtk-doc \
 		--disable-memconf \
 		--enable-ui \
 		--enable-python-library \
 		--with-python=python3 \
 		--with-ucd-dir=/usr/share/unicode/
+
+	sed -i 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
 
 	make
 	make DESTDIR=$PKG install

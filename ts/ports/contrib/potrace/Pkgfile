@@ -1,0 +1,19 @@
+# Maintainer: Gaetan Bisson <bisson@archlinux.org>
+# Contributor: Damir Perisa <damir@archlinux.org>
+
+name=potrace
+version=1.16
+release=2
+source=("http://potrace.sourceforge.net/download/${version}/${name}-${version}.tar.gz")
+
+build() {
+	cd "${SRC}/${name}-${version}"
+
+	./configure \
+		--prefix=/usr \
+		--mandir=/usr/share/man \
+		--with-libpotrace \
+
+	make
+	make DESTDIR="${PKG}" install
+}

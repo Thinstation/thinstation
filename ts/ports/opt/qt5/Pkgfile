@@ -7,13 +7,14 @@ name=qt5
 version=5.12.4
 release=2
 source=(https://download.qt.io/official_releases/qt/${version::4}/$version/single/qt-everywhere-src-$version.tar.xz
-	qt5-logo.png QTBUG-76625.patch)
+	qt5-logo.png QTBUG-76625.patch gcc.patch)
 
 build() {
 	cd qt-everywhere-src-$version
 
 	# https://bugreports.qt.io/browse/QTBUG-76625
 	patch -p1 -d qtbase -i $SRC/QTBUG-76625.patch
+	patch -p1 -i $SRC/gcc.patch
 
 	# Respect system CXX
 	[ "$CXX" ] || CXX=g++

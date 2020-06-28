@@ -19,8 +19,9 @@ build() {
 			--enable-vala=no
 
 sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
+#sed -i -e "s/line = line.decode('UTF-8')/line = line.encode('UTF-8').decode('UTF-8')/g" eek/gen-keysym-entries.py
 
 
-	make
+	make PYTHON=/usr/bin/python2 V=1
 	make DESTDIR=$PKG install
 }
