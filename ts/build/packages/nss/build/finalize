@@ -1,0 +1,13 @@
+#nss 15
+if [ ! -d /etc/pki/nssdb ]; then
+	mkdir -m 755 -p /etc/pki/nssdb
+	modutil -create -force -dbdir /etc/pki/nssdb
+	chmod 644 /etc/pki/nssdb/*
+fi
+
+if [ -d /etc/pkcs11/nss ]; then
+	for pkcs in /etc/pkcs11/nss/*.pkcs11; do
+		cat $pkcs >> /etc/pki/nssdb/pkcs11.txt
+		cat $pkcs >> /etc/skel/.pki/nssdb/pkcs11.txt
+	done
+fi
