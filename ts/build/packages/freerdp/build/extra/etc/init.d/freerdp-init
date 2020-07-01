@@ -27,7 +27,9 @@ if ! pkg_initialized $PACKAGE; then
 	fi
 
 	if is_enabled "$FREERDP_CERTIGNORE"; then
-		FRDPOPTIONS="$FRDPOPTIONS /cert-ignore"
+		FRDPOPTIONS="$FRDPOPTIONS /cert:ignore"
+	elif [ -n "$FREERDP_CERT" ]; then
+		FRDPOPTIONS="$FRDPOPTIONS /cert:$FREERDP_CERT"
 	fi
 
 	if [ -n "$FRDPOPTIONS" ]; then
