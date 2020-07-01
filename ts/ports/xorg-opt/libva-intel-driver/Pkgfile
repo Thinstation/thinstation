@@ -4,12 +4,13 @@
 # Depends on:  libva mesa3d libvdpau glu ffmpeg\
 
 name=libva-intel-driver
-version=2.3.0
+version=git
 release=1
-source=(https://github.com/intel/intel-vaapi-driver/archive/$version.tar.gz)
+#source=(https://github.com/intel/intel-vaapi-driver/archive/$version.tar.gz)
 
 build() {
-	cd intel-vaapi-driver-$version
+	git clone --depth 1 https://github.com/intel/intel-vaapi-driver.git
+	cd intel-vaapi-driver
 
 	./autogen.sh
 	./configure --prefix=/usr \

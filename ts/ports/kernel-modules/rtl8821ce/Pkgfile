@@ -1,0 +1,24 @@
+name=rtl8821ce
+version=git
+release=1
+kver=`cat /ts/ports/kernel-modules/VERSION`
+source=()
+
+build() {
+git clone --depth 1 https://github.com/tomaspinho/rtl8821ce.git
+    for KERNELTYPE in TS; do
+       export REPORT_KERNEL=${kver}$KERNELTYPE
+
+       cd $SRC/rtl8821ce
+       make
+	/usr/src/kernels/$REPORT_KERNEL/scripts/sign-file \
+		sha256 \
+		/etc/ssl/keys/kernel.key \
+		/etc/ssl/certs/kernel.crt \
+		8821ce.ko
+
+	mkdir -p $PKG/lib/modules/$REPORT_KERNEL/kernel/drivers/net/wireless/
+	cp 8821ce.ko $PKG/lib/modules/$REPORT_KERNEL/kernel/drivers/net/wireless/.
+    done
+}
+
