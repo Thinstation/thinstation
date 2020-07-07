@@ -67,9 +67,9 @@ diff -up openssl-1.1.1d/crypto/evp/kdf_lib.c.krb5-kdf openssl-1.1.1d/crypto/evp/
  };
  
  DECLARE_OBJ_BSEARCH_CMP_FN(const EVP_KDF_METHOD *, const EVP_KDF_METHOD *,
-diff -up openssl-1.1.1d/crypto/include/internal/evp_int.h.krb5-kdf openssl-1.1.1d/crypto/include/internal/evp_int.h
---- openssl-1.1.1d/crypto/include/internal/evp_int.h.krb5-kdf	2019-11-14 15:07:05.320094521 +0100
-+++ openssl-1.1.1d/crypto/include/internal/evp_int.h	2019-11-14 15:07:05.342094129 +0100
+diff -up openssl-1.1.1d/include/crypto/evp.h.krb5-kdf openssl-1.1.1d/include/crypto/evp.h
+--- openssl-1.1.1d/include/crypto/evp.h.krb5-kdf	2019-11-14 15:07:05.320094521 +0100
++++ openssl-1.1.1d/include/crypto/evp.h	2019-11-14 15:07:05.342094129 +0100
 @@ -130,6 +130,9 @@ extern const EVP_KDF_METHOD scrypt_kdf_m
  extern const EVP_KDF_METHOD tls1_prf_kdf_meth;
  extern const EVP_KDF_METHOD hkdf_kdf_meth;
@@ -129,7 +129,7 @@ diff -up openssl-1.1.1d/crypto/kdf/kbkdf.c.krb5-kdf openssl-1.1.1d/crypto/kdf/kb
 +
 +#include "internal/numbers.h"
 +#include "internal/cryptlib.h"
-+#include "internal/evp_int.h"
++#include "crypto/evp.h"
 +#include "kdf_local.h"
 +
 +#include "e_os.h"
@@ -741,7 +741,7 @@ diff -up openssl-1.1.1d/crypto/kdf/krb5kdf.c.krb5-kdf openssl-1.1.1d/crypto/kdf/
 +#include <openssl/kdf.h>
 +
 +#include "internal/cryptlib.h"
-+#include "internal/evp_int.h"
++#include "crypto/evp.h"
 +#include "kdf_local.h"
 +
 +/* KRB5 KDF defined in RFC 3961, Section 5.1 */
@@ -1155,7 +1155,7 @@ diff -up openssl-1.1.1d/crypto/kdf/sshkdf.c.krb5-kdf openssl-1.1.1d/crypto/kdf/s
  #include <openssl/kdf.h>
 +#include "internal/numbers.h"
  #include "internal/cryptlib.h"
- #include "internal/evp_int.h"
+ #include "crypto/evp.h"
  #include "kdf_local.h"
 @@ -68,6 +69,12 @@ static int kdf_sshkdf_parse_buffer_arg(u
      p = va_arg(args, const unsigned char *);
@@ -1218,7 +1218,7 @@ diff -up openssl-1.1.1d/crypto/kdf/sskdf.c.krb5-kdf openssl-1.1.1d/crypto/kdf/ss
 +#include <openssl/evp.h>
 +#include <openssl/kdf.h>
 +#include "internal/cryptlib.h"
-+#include "internal/evp_int.h"
++#include "crypto/evp.h"
 +#include "kdf_local.h"
 +
 +struct evp_kdf_impl_st {
