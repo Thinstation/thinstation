@@ -4,9 +4,9 @@
 # Depends on:  openssl zlib
 
 name=bindutils
-version=9.14.9
+version=9.16.4
 release=1
-source=(https://ftp.isc.org/isc/bind9/$version/bind-$version.tar.gz)
+source=(https://ftp.isc.org/isc/bind9/$version/bind-$version.tar.xz)
 
 build() {
     cd bind-$version
@@ -20,9 +20,10 @@ build() {
 
     make -C lib
     make -C bin/dig
+    make -C doc/man
 
     install -D -m 755 bin/dig/host $PKG/usr/bin/host
-    install -D -m 644 bin/dig/host.1 $PKG/usr/share/man/man1/host.1
+    install -D -m 644 doc/man/host.1 $PKG/usr/share/man/man1/host.1
     install -D -m 755 bin/dig/dig $PKG/usr/bin/dig
-    install -D -m 644 bin/dig/dig.1 $PKG/usr/share/man/man1/dig.1
+    install -D -m 644 doc/man/dig.1 $PKG/usr/share/man/man1/dig.1
 }
