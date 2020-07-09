@@ -1,0 +1,27 @@
+commit 9e885a707d604e9528b5491b78fb9c00f41193fc
+Author: Tomas Mraz <tmraz@fedoraproject.org>
+Date:   Thu Mar 26 15:59:00 2020 +0100
+
+    s_server: Properly indicate ALPN protocol mismatch
+    
+    Return SSL_TLSEXT_ERR_ALERT_FATAL from alpn_select_cb so that
+    an alert is sent to the client on ALPN protocol mismatch.
+    
+    Fixes: #2708
+    
+    Reviewed-by: Matt Caswell <matt@openssl.org>
+    (Merged from https://github.com/openssl/openssl/pull/11415)
+
+diff --git a/apps/s_server.c b/apps/s_server.c
+index bcc83e562c..591c6c19c5 100644
+--- a/apps/s_server.c
++++ b/apps/s_server.c
+@@ -707,7 +707,7 @@ static int alpn_cb(SSL *s, const unsigned char **out, unsigned char *outlen,
+     if (SSL_select_next_proto
+         ((unsigned char **)out, outlen, alpn_ctx->data, alpn_ctx->len, in,
+          inlen) != OPENSSL_NPN_NEGOTIATED) {
+-        return SSL_TLSEXT_ERR_NOACK;
++        return SSL_TLSEXT_ERR_ALERT_FATAL;
+     }
+ 
+     if (!s_quiet) {

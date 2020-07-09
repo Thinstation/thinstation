@@ -1,11 +1,11 @@
-diff -up openssl-1.1.1d/crypto/fips/fips.c.fips-post-rand openssl-1.1.1d/crypto/fips/fips.c
---- openssl-1.1.1d/crypto/fips/fips.c.fips-post-rand	2019-09-13 16:15:52.656716089 +0200
-+++ openssl-1.1.1d/crypto/fips/fips.c	2019-09-13 16:44:33.217852364 +0200
+diff -up openssl-1.1.1e/crypto/fips/fips.c.fips-post-rand openssl-1.1.1e/crypto/fips/fips.c
+--- openssl-1.1.1e/crypto/fips/fips.c.fips-post-rand	2020-03-17 18:06:16.822418854 +0100
++++ openssl-1.1.1e/crypto/fips/fips.c	2020-03-17 18:06:16.861418172 +0100
 @@ -68,6 +68,7 @@
  
  # include <openssl/fips.h>
  # include "internal/thread_once.h"
-+# include "internal/rand_int.h"
++# include "crypto/rand.h"
  
  # ifndef PATH_MAX
  #  define PATH_MAX 1024
@@ -51,32 +51,9 @@ diff -up openssl-1.1.1d/crypto/fips/fips.c.fips-post-rand openssl-1.1.1d/crypto/
          ret = 1;
          goto end;
      }
-diff -up openssl-1.1.1d/crypto/include/internal/fips_int.h.fips-post-rand openssl-1.1.1d/crypto/include/internal/fips_int.h
---- openssl-1.1.1d/crypto/include/internal/fips_int.h.fips-post-rand	2019-09-13 16:15:52.666715914 +0200
-+++ openssl-1.1.1d/crypto/include/internal/fips_int.h	2019-09-13 16:15:52.690715496 +0200
-@@ -77,6 +77,8 @@ int FIPS_selftest_hmac(void);
- int FIPS_selftest_drbg(void);
- int FIPS_selftest_cmac(void);
- 
-+int fips_in_post(void);
-+
- int fips_pkey_signature_test(EVP_PKEY *pkey,
-                                  const unsigned char *tbs, int tbslen,
-                                  const unsigned char *kat,
-diff -up openssl-1.1.1d/crypto/include/internal/rand_int.h.fips-post-rand openssl-1.1.1d/crypto/include/internal/rand_int.h
---- openssl-1.1.1d/crypto/include/internal/rand_int.h.fips-post-rand	2019-09-13 16:15:52.307722175 +0200
-+++ openssl-1.1.1d/crypto/include/internal/rand_int.h	2019-09-13 16:41:47.133736023 +0200
-@@ -24,6 +24,7 @@
- typedef struct rand_pool_st RAND_POOL;
- 
- void rand_cleanup_int(void);
-+void rand_force_reseed(void);
- void rand_drbg_cleanup_int(void);
- void drbg_delete_thread_state(void);
- 
-diff -up openssl-1.1.1d/crypto/rand/drbg_lib.c.fips-post-rand openssl-1.1.1d/crypto/rand/drbg_lib.c
---- openssl-1.1.1d/crypto/rand/drbg_lib.c.fips-post-rand	2019-09-10 15:13:07.000000000 +0200
-+++ openssl-1.1.1d/crypto/rand/drbg_lib.c	2019-09-13 16:44:04.808345620 +0200
+diff -up openssl-1.1.1e/crypto/rand/drbg_lib.c.fips-post-rand openssl-1.1.1e/crypto/rand/drbg_lib.c
+--- openssl-1.1.1e/crypto/rand/drbg_lib.c.fips-post-rand	2020-03-17 15:31:17.000000000 +0100
++++ openssl-1.1.1e/crypto/rand/drbg_lib.c	2020-03-17 18:07:35.305045521 +0100
 @@ -1009,6 +1009,20 @@ size_t rand_drbg_seedlen(RAND_DRBG *drbg
      return min_entropy > min_entropylen ? min_entropy : min_entropylen;
  }
@@ -98,14 +75,14 @@ diff -up openssl-1.1.1d/crypto/rand/drbg_lib.c.fips-post-rand openssl-1.1.1d/cry
  /* Implements the default OpenSSL RAND_add() method */
  static int drbg_add(const void *buf, int num, double randomness)
  {
-diff -up openssl-1.1.1d/crypto/rand/rand_unix.c.fips-post-rand openssl-1.1.1d/crypto/rand/rand_unix.c
---- openssl-1.1.1d/crypto/rand/rand_unix.c.fips-post-rand	2019-09-10 15:13:07.000000000 +0200
-+++ openssl-1.1.1d/crypto/rand/rand_unix.c	2019-09-13 16:15:52.690715496 +0200
+diff -up openssl-1.1.1e/crypto/rand/rand_unix.c.fips-post-rand openssl-1.1.1e/crypto/rand/rand_unix.c
+--- openssl-1.1.1e/crypto/rand/rand_unix.c.fips-post-rand	2020-03-17 15:31:17.000000000 +0100
++++ openssl-1.1.1e/crypto/rand/rand_unix.c	2020-03-17 18:09:01.503537189 +0100
 @@ -17,10 +17,12 @@
  #include <openssl/crypto.h>
- #include "rand_lcl.h"
- #include "internal/rand_int.h"
-+#include "internal/fips_int.h"
+ #include "rand_local.h"
+ #include "crypto/rand.h"
++#include "crypto/fips.h"
  #include <stdio.h>
  #include "internal/dso.h"
  #ifdef __linux
@@ -114,7 +91,7 @@ diff -up openssl-1.1.1d/crypto/rand/rand_unix.c.fips-post-rand openssl-1.1.1d/cr
  # ifdef DEVRANDOM_WAIT
  #  include <sys/shm.h>
  #  include <sys/utsname.h>
-@@ -295,7 +297,7 @@ static ssize_t sysctl_random(char *buf,
+@@ -342,7 +344,7 @@ static ssize_t sysctl_random(char *buf,
   * syscall_random(): Try to get random data using a system call
   * returns the number of bytes returned in buf, or < 0 on error.
   */
@@ -123,7 +100,7 @@ diff -up openssl-1.1.1d/crypto/rand/rand_unix.c.fips-post-rand openssl-1.1.1d/cr
  {
      /*
       * Note: 'buflen' equals the size of the buffer which is used by the
-@@ -317,6 +319,7 @@ static ssize_t syscall_random(void *buf,
+@@ -364,6 +366,7 @@ static ssize_t syscall_random(void *buf,
       * - Linux since 3.17 with glibc 2.25
       * - FreeBSD since 12.0 (1200061)
       */
@@ -131,7 +108,7 @@ diff -up openssl-1.1.1d/crypto/rand/rand_unix.c.fips-post-rand openssl-1.1.1d/cr
  #  if defined(__GNUC__) && __GNUC__>=2 && defined(__ELF__) && !defined(__hpux)
      extern int getentropy(void *buffer, size_t length) __attribute__((weak));
  
-@@ -338,10 +341,10 @@ static ssize_t syscall_random(void *buf,
+@@ -385,10 +388,10 @@ static ssize_t syscall_random(void *buf,
      if (p_getentropy.p != NULL)
          return p_getentropy.f(buf, buflen) == 0 ? (ssize_t)buflen : -1;
  #  endif
@@ -145,7 +122,7 @@ diff -up openssl-1.1.1d/crypto/rand/rand_unix.c.fips-post-rand openssl-1.1.1d/cr
  #  elif (defined(__FreeBSD__) || defined(__NetBSD__)) && defined(KERN_ARND)
      return sysctl_random(buf, buflen);
  #  else
-@@ -576,6 +579,9 @@ size_t rand_pool_acquire_entropy(RAND_PO
+@@ -623,6 +626,9 @@ size_t rand_pool_acquire_entropy(RAND_PO
      size_t entropy_available;
  
  #   if defined(OPENSSL_RAND_SEED_GETRANDOM)
@@ -155,7 +132,7 @@ diff -up openssl-1.1.1d/crypto/rand/rand_unix.c.fips-post-rand openssl-1.1.1d/cr
      {
          size_t bytes_needed;
          unsigned char *buffer;
-@@ -586,7 +592,7 @@ size_t rand_pool_acquire_entropy(RAND_PO
+@@ -633,7 +639,7 @@ size_t rand_pool_acquire_entropy(RAND_PO
          bytes_needed = rand_pool_bytes_needed(pool, 1 /*entropy_factor*/);
          while (bytes_needed != 0 && attempts-- > 0) {
              buffer = rand_pool_add_begin(pool, bytes_needed);
@@ -164,7 +141,7 @@ diff -up openssl-1.1.1d/crypto/rand/rand_unix.c.fips-post-rand openssl-1.1.1d/cr
              if (bytes > 0) {
                  rand_pool_add_end(pool, bytes, 8 * bytes);
                  bytes_needed -= bytes;
-@@ -621,8 +627,10 @@ size_t rand_pool_acquire_entropy(RAND_PO
+@@ -668,8 +674,10 @@ size_t rand_pool_acquire_entropy(RAND_PO
              int attempts = 3;
              const int fd = get_random_device(i);
  
@@ -176,7 +153,7 @@ diff -up openssl-1.1.1d/crypto/rand/rand_unix.c.fips-post-rand openssl-1.1.1d/cr
  
              while (bytes_needed != 0 && attempts-- > 0) {
                  buffer = rand_pool_add_begin(pool, bytes_needed);
-@@ -685,7 +693,9 @@ size_t rand_pool_acquire_entropy(RAND_PO
+@@ -732,7 +740,9 @@ size_t rand_pool_acquire_entropy(RAND_PO
              return entropy_available;
      }
  #   endif
@@ -187,3 +164,26 @@ diff -up openssl-1.1.1d/crypto/rand/rand_unix.c.fips-post-rand openssl-1.1.1d/cr
      return rand_pool_entropy_available(pool);
  #  endif
  }
+diff -up openssl-1.1.1e/include/crypto/fips.h.fips-post-rand openssl-1.1.1e/include/crypto/fips.h
+--- openssl-1.1.1e/include/crypto/fips.h.fips-post-rand	2020-03-17 18:06:16.831418696 +0100
++++ openssl-1.1.1e/include/crypto/fips.h	2020-03-17 18:06:16.861418172 +0100
+@@ -77,6 +77,8 @@ int FIPS_selftest_hmac(void);
+ int FIPS_selftest_drbg(void);
+ int FIPS_selftest_cmac(void);
+ 
++int fips_in_post(void);
++
+ int fips_pkey_signature_test(EVP_PKEY *pkey,
+                                  const unsigned char *tbs, int tbslen,
+                                  const unsigned char *kat,
+diff -up openssl-1.1.1e/include/crypto/rand.h.fips-post-rand openssl-1.1.1e/include/crypto/rand.h
+--- openssl-1.1.1e/include/crypto/rand.h.fips-post-rand	2020-03-17 15:31:17.000000000 +0100
++++ openssl-1.1.1e/include/crypto/rand.h	2020-03-17 18:07:35.303045555 +0100
+@@ -24,6 +24,7 @@
+ typedef struct rand_pool_st RAND_POOL;
+ 
+ void rand_cleanup_int(void);
++void rand_force_reseed(void);
+ void rand_drbg_cleanup_int(void);
+ void drbg_delete_thread_state(void);
+ 

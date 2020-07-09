@@ -1,0 +1,500 @@
+diff -up openssl-1.1.1e/crypto/aes/asm/aesni-x86_64.pl.intel-cet openssl-1.1.1e/crypto/aes/asm/aesni-x86_64.pl
+--- openssl-1.1.1e/crypto/aes/asm/aesni-x86_64.pl.intel-cet	2020-03-17 15:31:17.000000000 +0100
++++ openssl-1.1.1e/crypto/aes/asm/aesni-x86_64.pl	2020-03-19 17:07:02.626522694 +0100
+@@ -275,6 +275,7 @@ $code.=<<___;
+ .align	16
+ ${PREFIX}_encrypt:
+ .cfi_startproc
++	endbranch
+ 	movups	($inp),$inout0		# load input
+ 	mov	240($key),$rounds	# key->rounds
+ ___
+@@ -293,6 +294,7 @@ $code.=<<___;
+ .align	16
+ ${PREFIX}_decrypt:
+ .cfi_startproc
++	endbranch
+ 	movups	($inp),$inout0		# load input
+ 	mov	240($key),$rounds	# key->rounds
+ ___
+@@ -613,6 +615,7 @@ $code.=<<___;
+ .align	16
+ aesni_ecb_encrypt:
+ .cfi_startproc
++	endbranch
+ ___
+ $code.=<<___ if ($win64);
+ 	lea	-0x58(%rsp),%rsp
+@@ -985,6 +988,7 @@ $code.=<<___;
+ .align	16
+ aesni_ccm64_encrypt_blocks:
+ .cfi_startproc
++	endbranch
+ ___
+ $code.=<<___ if ($win64);
+ 	lea	-0x58(%rsp),%rsp
+@@ -1077,6 +1081,7 @@ $code.=<<___;
+ .align	16
+ aesni_ccm64_decrypt_blocks:
+ .cfi_startproc
++	endbranch
+ ___
+ $code.=<<___ if ($win64);
+ 	lea	-0x58(%rsp),%rsp
+@@ -1203,6 +1208,7 @@ $code.=<<___;
+ .align	16
+ aesni_ctr32_encrypt_blocks:
+ .cfi_startproc
++	endbranch
+ 	cmp	\$1,$len
+ 	jne	.Lctr32_bulk
+ 
+@@ -1775,6 +1781,7 @@ $code.=<<___;
+ .align	16
+ aesni_xts_encrypt:
+ .cfi_startproc
++	endbranch
+ 	lea	(%rsp),%r11			# frame pointer
+ .cfi_def_cfa_register	%r11
+ 	push	%rbp
+@@ -2258,6 +2265,7 @@ $code.=<<___;
+ .align	16
+ aesni_xts_decrypt:
+ .cfi_startproc
++	endbranch
+ 	lea	(%rsp),%r11			# frame pointer
+ .cfi_def_cfa_register	%r11
+ 	push	%rbp
+@@ -2783,6 +2791,7 @@ $code.=<<___;
+ .align	32
+ aesni_ocb_encrypt:
+ .cfi_startproc
++	endbranch
+ 	lea	(%rsp),%rax
+ 	push	%rbx
+ .cfi_push	%rbx
+@@ -3249,6 +3258,7 @@ __ocb_encrypt1:
+ .align	32
+ aesni_ocb_decrypt:
+ .cfi_startproc
++	endbranch
+ 	lea	(%rsp),%rax
+ 	push	%rbx
+ .cfi_push	%rbx
+@@ -3737,6 +3747,7 @@ $code.=<<___;
+ .align	16
+ ${PREFIX}_cbc_encrypt:
+ .cfi_startproc
++	endbranch
+ 	test	$len,$len		# check length
+ 	jz	.Lcbc_ret
+ 
+diff -up openssl-1.1.1e/crypto/aes/asm/vpaes-x86_64.pl.intel-cet openssl-1.1.1e/crypto/aes/asm/vpaes-x86_64.pl
+--- openssl-1.1.1e/crypto/aes/asm/vpaes-x86_64.pl.intel-cet	2020-03-17 15:31:17.000000000 +0100
++++ openssl-1.1.1e/crypto/aes/asm/vpaes-x86_64.pl	2020-03-19 17:00:15.974621757 +0100
+@@ -696,6 +696,7 @@ _vpaes_schedule_mangle:
+ .align	16
+ ${PREFIX}_set_encrypt_key:
+ .cfi_startproc
++	endbranch
+ ___
+ $code.=<<___ if ($win64);
+ 	lea	-0xb8(%rsp),%rsp
+@@ -746,6 +747,7 @@ $code.=<<___;
+ .align	16
+ ${PREFIX}_set_decrypt_key:
+ .cfi_startproc
++	endbranch
+ ___
+ $code.=<<___ if ($win64);
+ 	lea	-0xb8(%rsp),%rsp
+@@ -801,6 +803,7 @@ $code.=<<___;
+ .align	16
+ ${PREFIX}_encrypt:
+ .cfi_startproc
++	endbranch
+ ___
+ $code.=<<___ if ($win64);
+ 	lea	-0xb8(%rsp),%rsp
+@@ -846,6 +849,7 @@ $code.=<<___;
+ .align	16
+ ${PREFIX}_decrypt:
+ .cfi_startproc
++	endbranch
+ ___
+ $code.=<<___ if ($win64);
+ 	lea	-0xb8(%rsp),%rsp
+@@ -897,6 +901,7 @@ $code.=<<___;
+ .align	16
+ ${PREFIX}_cbc_encrypt:
+ .cfi_startproc
++	endbranch
+ 	xchg	$key,$len
+ ___
+ ($len,$key)=($key,$len);
+diff -up openssl-1.1.1e/crypto/async/arch/async_posix.c.intel-cet openssl-1.1.1e/crypto/async/arch/async_posix.c
+--- openssl-1.1.1e/crypto/async/arch/async_posix.c.intel-cet	2020-03-17 15:31:17.000000000 +0100
++++ openssl-1.1.1e/crypto/async/arch/async_posix.c	2020-03-19 17:00:15.974621757 +0100
+@@ -34,7 +34,9 @@ void async_local_cleanup(void)
+ 
+ int async_fibre_makecontext(async_fibre *fibre)
+ {
++#ifndef USE_SWAPCONTEXT
+     fibre->env_init = 0;
++#endif
+     if (getcontext(&fibre->fibre) == 0) {
+         fibre->fibre.uc_stack.ss_sp = OPENSSL_malloc(STACKSIZE);
+         if (fibre->fibre.uc_stack.ss_sp != NULL) {
+diff -up openssl-1.1.1e/crypto/async/arch/async_posix.h.intel-cet openssl-1.1.1e/crypto/async/arch/async_posix.h
+--- openssl-1.1.1e/crypto/async/arch/async_posix.h.intel-cet	2020-03-19 17:00:15.435631166 +0100
++++ openssl-1.1.1e/crypto/async/arch/async_posix.h	2020-03-19 17:00:15.975621739 +0100
+@@ -25,17 +25,33 @@
+ #  define ASYNC_POSIX
+ #  define ASYNC_ARCH
+ 
++#  ifdef __CET__
++/*
++ * When Intel CET is enabled, makecontext will create a different
++ * shadow stack for each context.  async_fibre_swapcontext cannot
++ * use _longjmp.  It must call swapcontext to swap shadow stack as
++ * well as normal stack.
++ */
++#   define USE_SWAPCONTEXT
++#  endif
+ #  include <ucontext.h>
+-#  include <setjmp.h>
++#  ifndef USE_SWAPCONTEXT
++#   include <setjmp.h>
++#  endif
+ 
+ typedef struct async_fibre_st {
+     ucontext_t fibre;
++#  ifndef USE_SWAPCONTEXT
+     jmp_buf env;
+     int env_init;
++#  endif
+ } async_fibre;
+ 
+ static ossl_inline int async_fibre_swapcontext(async_fibre *o, async_fibre *n, int r)
+ {
++#  ifdef USE_SWAPCONTEXT
++    swapcontext(&o->fibre, &n->fibre);
++#  else
+     o->env_init = 1;
+ 
+     if (!r || !_setjmp(o->env)) {
+@@ -44,6 +60,7 @@ static ossl_inline int async_fibre_swapc
+         else
+             setcontext(&n->fibre);
+     }
++#  endif
+ 
+     return 1;
+ }
+diff -up openssl-1.1.1e/crypto/camellia/asm/cmll-x86_64.pl.intel-cet openssl-1.1.1e/crypto/camellia/asm/cmll-x86_64.pl
+--- openssl-1.1.1e/crypto/camellia/asm/cmll-x86_64.pl.intel-cet	2020-03-17 15:31:17.000000000 +0100
++++ openssl-1.1.1e/crypto/camellia/asm/cmll-x86_64.pl	2020-03-19 17:00:15.975621739 +0100
+@@ -685,6 +685,7 @@ $code.=<<___;
+ .align	16
+ Camellia_cbc_encrypt:
+ .cfi_startproc
++	endbranch
+ 	cmp	\$0,%rdx
+ 	je	.Lcbc_abort
+ 	push	%rbx
+diff -up openssl-1.1.1e/crypto/modes/asm/ghash-x86_64.pl.intel-cet openssl-1.1.1e/crypto/modes/asm/ghash-x86_64.pl
+--- openssl-1.1.1e/crypto/modes/asm/ghash-x86_64.pl.intel-cet	2020-03-17 15:31:17.000000000 +0100
++++ openssl-1.1.1e/crypto/modes/asm/ghash-x86_64.pl	2020-03-19 17:00:15.975621739 +0100
+@@ -239,6 +239,7 @@ $code=<<___;
+ .align	16
+ gcm_gmult_4bit:
+ .cfi_startproc
++	endbranch
+ 	push	%rbx
+ .cfi_push	%rbx
+ 	push	%rbp		# %rbp and others are pushed exclusively in
+@@ -286,6 +287,7 @@ $code.=<<___;
+ .align	16
+ gcm_ghash_4bit:
+ .cfi_startproc
++	endbranch
+ 	push	%rbx
+ .cfi_push	%rbx
+ 	push	%rbp
+@@ -612,6 +614,7 @@ $code.=<<___;
+ .align	16
+ gcm_gmult_clmul:
+ .cfi_startproc
++	endbranch
+ .L_gmult_clmul:
+ 	movdqu		($Xip),$Xi
+ 	movdqa		.Lbswap_mask(%rip),$T3
+@@ -663,6 +666,7 @@ $code.=<<___;
+ .align	32
+ gcm_ghash_clmul:
+ .cfi_startproc
++	endbranch
+ .L_ghash_clmul:
+ ___
+ $code.=<<___ if ($win64);
+@@ -1166,6 +1170,7 @@ $code.=<<___;
+ .align	32
+ gcm_gmult_avx:
+ .cfi_startproc
++	endbranch
+ 	jmp	.L_gmult_clmul
+ .cfi_endproc
+ .size	gcm_gmult_avx,.-gcm_gmult_avx
+@@ -1177,6 +1182,7 @@ $code.=<<___;
+ .align	32
+ gcm_ghash_avx:
+ .cfi_startproc
++	endbranch
+ ___
+ if ($avx) {
+ my ($Xip,$Htbl,$inp,$len)=@_4args;
+diff -up openssl-1.1.1e/crypto/perlasm/cbc.pl.intel-cet openssl-1.1.1e/crypto/perlasm/cbc.pl
+--- openssl-1.1.1e/crypto/perlasm/cbc.pl.intel-cet	2020-03-17 15:31:17.000000000 +0100
++++ openssl-1.1.1e/crypto/perlasm/cbc.pl	2020-03-19 17:00:15.976621722 +0100
+@@ -165,21 +165,28 @@ sub cbc
+ 	&jmp_ptr($count);
+ 
+ &set_label("ej7");
++	&endbranch()
+ 	&movb(&HB("edx"),	&BP(6,$in,"",0));
+ 	&shl("edx",8);
+ &set_label("ej6");
++	&endbranch()
+ 	&movb(&HB("edx"),	&BP(5,$in,"",0));
+ &set_label("ej5");
++	&endbranch()
+ 	&movb(&LB("edx"),	&BP(4,$in,"",0));
+ &set_label("ej4");
++	&endbranch()
+ 	&mov("ecx",		&DWP(0,$in,"",0));
+ 	&jmp(&label("ejend"));
+ &set_label("ej3");
++	&endbranch()
+ 	&movb(&HB("ecx"),	&BP(2,$in,"",0));
+ 	&shl("ecx",8);
+ &set_label("ej2");
++	&endbranch()
+ 	&movb(&HB("ecx"),	&BP(1,$in,"",0));
+ &set_label("ej1");
++	&endbranch()
+ 	&movb(&LB("ecx"),	&BP(0,$in,"",0));
+ &set_label("ejend");
+ 
+diff -up openssl-1.1.1e/crypto/perlasm/x86_64-xlate.pl.intel-cet openssl-1.1.1e/crypto/perlasm/x86_64-xlate.pl
+--- openssl-1.1.1e/crypto/perlasm/x86_64-xlate.pl.intel-cet	2020-03-17 15:31:17.000000000 +0100
++++ openssl-1.1.1e/crypto/perlasm/x86_64-xlate.pl	2020-03-19 17:00:15.984621582 +0100
+@@ -101,6 +101,33 @@ elsif (!$gas)
+     $decor="\$L\$";
+ }
+ 
++my $cet_property;
++if ($flavour =~ /elf/) {
++	# Always generate .note.gnu.property section for ELF outputs to
++	# mark Intel CET support since all input files must be marked
++	# with Intel CET support in order for linker to mark output with
++	# Intel CET support.
++	my $p2align=3; $p2align=2 if ($flavour eq "elf32");
++	$cet_property = <<_____;
++	.section ".note.gnu.property", "a"
++	.p2align $p2align
++	.long 1f - 0f
++	.long 4f - 1f
++	.long 5
++0:
++	.asciz "GNU"
++1:
++	.p2align $p2align
++	.long 0xc0000002
++	.long 3f - 2f
++2:
++	.long 3
++3:
++	.p2align $p2align
++4:
++_____
++}
++
+ my $current_segment;
+ my $current_function;
+ my %globals;
+@@ -1213,6 +1240,7 @@ while(defined(my $line=<>)) {
+     print $line,"\n";
+ }
+ 
++print "$cet_property"			if ($cet_property);
+ print "\n$current_segment\tENDS\n"	if ($current_segment && $masm);
+ print "END\n"				if ($masm);
+ 
+diff -up openssl-1.1.1e/crypto/perlasm/x86gas.pl.intel-cet openssl-1.1.1e/crypto/perlasm/x86gas.pl
+--- openssl-1.1.1e/crypto/perlasm/x86gas.pl.intel-cet	2020-03-17 15:31:17.000000000 +0100
++++ openssl-1.1.1e/crypto/perlasm/x86gas.pl	2020-03-19 17:00:15.985621565 +0100
+@@ -124,6 +124,7 @@ sub ::function_begin_B
+     push(@out,".align\t$align\n");
+     push(@out,"$func:\n");
+     push(@out,"$begin:\n")		if ($global);
++    &::endbranch();
+     $::stack=4;
+ }
+ 
+@@ -172,6 +173,26 @@ sub ::file_end
+ 	else		{ push (@out,"$tmp\n"); }
+     }
+     push(@out,$initseg) if ($initseg);
++    if ($::elf) {
++	push(@out,"
++	.section \".note.gnu.property\", \"a\"
++	.p2align 2
++	.long 1f - 0f
++	.long 4f - 1f
++	.long 5
++0:
++	.asciz \"GNU\"
++1:
++	.p2align 2
++	.long 0xc0000002
++	.long 3f - 2f
++2:
++	.long 3
++3:
++	.p2align 2
++4:
++");
++    }
+ }
+ 
+ sub ::data_byte	{   push(@out,".byte\t".join(',',@_)."\n");   }
+diff -up openssl-1.1.1e/crypto/poly1305/asm/poly1305-x86_64.pl.intel-cet openssl-1.1.1e/crypto/poly1305/asm/poly1305-x86_64.pl
+--- openssl-1.1.1e/crypto/poly1305/asm/poly1305-x86_64.pl.intel-cet	2020-03-19 17:00:38.185234015 +0100
++++ openssl-1.1.1e/crypto/poly1305/asm/poly1305-x86_64.pl	2020-03-19 17:05:46.575850341 +0100
+@@ -2806,6 +2806,7 @@ $code.=<<___;
+ .align	32
+ poly1305_blocks_vpmadd52:
+ .cfi_startproc
++	endbranch
+ 	shr	\$4,$len
+ 	jz	.Lno_data_vpmadd52		# too short
+ 
+@@ -3739,6 +3740,7 @@ $code.=<<___;
+ .align	32
+ poly1305_emit_base2_44:
+ .cfi_startproc
++	endbranch
+ 	mov	0($ctx),%r8	# load hash value
+ 	mov	8($ctx),%r9
+ 	mov	16($ctx),%r10
+diff -up openssl-1.1.1e/crypto/rc4/asm/rc4-x86_64.pl.intel-cet openssl-1.1.1e/crypto/rc4/asm/rc4-x86_64.pl
+--- openssl-1.1.1e/crypto/rc4/asm/rc4-x86_64.pl.intel-cet	2020-03-19 17:00:38.190233928 +0100
++++ openssl-1.1.1e/crypto/rc4/asm/rc4-x86_64.pl	2020-03-19 17:05:02.598618064 +0100
+@@ -140,6 +140,7 @@ $code=<<___;
+ .align	16
+ RC4:
+ .cfi_startproc
++	endbranch
+ 	or	$len,$len
+ 	jne	.Lentry
+ 	ret
+@@ -455,6 +456,7 @@ $code.=<<___;
+ .align	16
+ RC4_set_key:
+ .cfi_startproc
++	endbranch
+ 	lea	8($dat),$dat
+ 	lea	($inp,$len),$inp
+ 	neg	$len
+@@ -529,6 +531,7 @@ RC4_set_key:
+ .align	16
+ RC4_options:
+ .cfi_startproc
++	endbranch
+ 	lea	.Lopts(%rip),%rax
+ 	mov	OPENSSL_ia32cap_P(%rip),%edx
+ 	bt	\$20,%edx
+diff -up openssl-1.1.1e/crypto/x86_64cpuid.pl.intel-cet openssl-1.1.1e/crypto/x86_64cpuid.pl
+--- openssl-1.1.1e/crypto/x86_64cpuid.pl.intel-cet	2020-03-17 15:31:17.000000000 +0100
++++ openssl-1.1.1e/crypto/x86_64cpuid.pl	2020-03-19 17:03:58.172742775 +0100
+@@ -40,6 +40,7 @@ print<<___;
+ .align	16
+ OPENSSL_atomic_add:
+ .cfi_startproc
++	endbranch
+ 	movl	($arg1),%eax
+ .Lspin:	leaq	($arg2,%rax),%r8
+ 	.byte	0xf0		# lock
+@@ -56,6 +57,7 @@ OPENSSL_atomic_add:
+ .align	16
+ OPENSSL_rdtsc:
+ .cfi_startproc
++	endbranch
+ 	rdtsc
+ 	shl	\$32,%rdx
+ 	or	%rdx,%rax
+@@ -68,6 +70,7 @@ OPENSSL_rdtsc:
+ .align	16
+ OPENSSL_ia32_cpuid:
+ .cfi_startproc
++	endbranch
+ 	mov	%rbx,%r8		# save %rbx
+ .cfi_register	%rbx,%r8
+ 
+@@ -237,6 +240,7 @@ OPENSSL_ia32_cpuid:
+ .align  16
+ OPENSSL_cleanse:
+ .cfi_startproc
++	endbranch
+ 	xor	%rax,%rax
+ 	cmp	\$15,$arg2
+ 	jae	.Lot
+@@ -274,6 +278,7 @@ OPENSSL_cleanse:
+ .align  16
+ CRYPTO_memcmp:
+ .cfi_startproc
++	endbranch
+ 	xor	%rax,%rax
+ 	xor	%r10,%r10
+ 	cmp	\$0,$arg3
+@@ -312,6 +317,7 @@ print<<___ if (!$win64);
+ .align	16
+ OPENSSL_wipe_cpu:
+ .cfi_startproc
++	endbranch
+ 	pxor	%xmm0,%xmm0
+ 	pxor	%xmm1,%xmm1
+ 	pxor	%xmm2,%xmm2
+@@ -346,6 +352,8 @@ print<<___ if ($win64);
+ .type	OPENSSL_wipe_cpu,\@abi-omnipotent
+ .align	16
+ OPENSSL_wipe_cpu:
++.cfi_startproc
++	endbranch
+ 	pxor	%xmm0,%xmm0
+ 	pxor	%xmm1,%xmm1
+ 	pxor	%xmm2,%xmm2
+@@ -376,6 +384,7 @@ print<<___;
+ .align	16
+ OPENSSL_instrument_bus:
+ .cfi_startproc
++	endbranch
+ 	mov	$arg1,$out	# tribute to Win64
+ 	mov	$arg2,$cnt
+ 	mov	$arg2,$max
+@@ -410,6 +419,7 @@ OPENSSL_instrument_bus:
+ .align	16
+ OPENSSL_instrument_bus2:
+ .cfi_startproc
++	endbranch
+ 	mov	$arg1,$out	# tribute to Win64
+ 	mov	$arg2,$cnt
+ 	mov	$arg3,$max
+@@ -465,6 +475,7 @@ print<<___;
+ .align	16
+ OPENSSL_ia32_${rdop}_bytes:
+ .cfi_startproc
++	endbranch
+ 	xor	%rax, %rax	# return value
+ 	cmp	\$0,$arg2
+ 	je	.Ldone_${rdop}_bytes

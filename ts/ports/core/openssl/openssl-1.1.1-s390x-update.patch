@@ -1,13 +1,6 @@
-diff -up openssl-1.1.1b/crypto/chacha/asm/chacha-s390x.pl.s390x-update openssl-1.1.1b/crypto/chacha/asm/chacha-s390x.pl
---- openssl-1.1.1b/crypto/chacha/asm/chacha-s390x.pl.s390x-update	2019-02-26 15:15:30.000000000 +0100
-+++ openssl-1.1.1b/crypto/chacha/asm/chacha-s390x.pl	2019-05-06 10:54:00.035367605 +0200
-@@ -1,5 +1,5 @@
- #! /usr/bin/env perl
--# Copyright 2016 The OpenSSL Project Authors. All Rights Reserved.
-+# Copyright 2016-2019 The OpenSSL Project Authors. All Rights Reserved.
- #
- # Licensed under the OpenSSL license (the "License").  You may not use
- # this file except in compliance with the License.  You can obtain a copy
+diff -up openssl-1.1.1e/crypto/chacha/asm/chacha-s390x.pl.s390x-update openssl-1.1.1e/crypto/chacha/asm/chacha-s390x.pl
+--- openssl-1.1.1e/crypto/chacha/asm/chacha-s390x.pl.s390x-update	2020-03-17 15:31:17.000000000 +0100
++++ openssl-1.1.1e/crypto/chacha/asm/chacha-s390x.pl	2020-03-19 16:45:05.483440129 +0100
 @@ -20,41 +20,53 @@
  #
  # 3 times faster than compiler-generated code.
@@ -472,7 +465,7 @@ diff -up openssl-1.1.1b/crypto/chacha/asm/chacha-s390x.pl.s390x-update openssl-1
 +	vsldb		(@b[$_],@b[$_],@b[$_],$odd?12:4) for (0..5);
 +	vsldb		(@d[$_],@d[$_],@d[$_],$odd?4:12) for (0..5);
  }
--close STDOUT;
+-close STDOUT or die "error closing STDOUT: $!";
 +
 +PERLASM_BEGIN($output);
 +
@@ -1290,9 +1283,9 @@ diff -up openssl-1.1.1b/crypto/chacha/asm/chacha-s390x.pl.s390x-update openssl-1
 +ALIGN	(4);
 +
 +PERLASM_END();
-diff -up openssl-1.1.1b/crypto/perlasm/s390x.pm.s390x-update openssl-1.1.1b/crypto/perlasm/s390x.pm
---- openssl-1.1.1b/crypto/perlasm/s390x.pm.s390x-update	2019-05-06 10:54:00.037367571 +0200
-+++ openssl-1.1.1b/crypto/perlasm/s390x.pm	2019-05-06 10:54:00.038367554 +0200
+diff -up openssl-1.1.1e/crypto/perlasm/s390x.pm.s390x-update openssl-1.1.1e/crypto/perlasm/s390x.pm
+--- openssl-1.1.1e/crypto/perlasm/s390x.pm.s390x-update	2020-03-19 16:20:22.039227394 +0100
++++ openssl-1.1.1e/crypto/perlasm/s390x.pm	2020-03-19 16:20:22.039227394 +0100
 @@ -0,0 +1,3060 @@
 +#!/usr/bin/env perl
 +# Copyright 2018 The OpenSSL Project Authors. All Rights Reserved.
@@ -4354,9 +4347,9 @@ diff -up openssl-1.1.1b/crypto/perlasm/s390x.pm.s390x-update openssl-1.1.1b/cryp
 +}
 +
 +1;
-diff -up openssl-1.1.1b/crypto/poly1305/asm/poly1305-s390x.pl.s390x-update openssl-1.1.1b/crypto/poly1305/asm/poly1305-s390x.pl
---- openssl-1.1.1b/crypto/poly1305/asm/poly1305-s390x.pl.s390x-update	2019-02-26 15:15:30.000000000 +0100
-+++ openssl-1.1.1b/crypto/poly1305/asm/poly1305-s390x.pl	2019-05-06 10:54:00.036367588 +0200
+diff -up openssl-1.1.1e/crypto/poly1305/asm/poly1305-s390x.pl.s390x-update openssl-1.1.1e/crypto/poly1305/asm/poly1305-s390x.pl
+--- openssl-1.1.1e/crypto/poly1305/asm/poly1305-s390x.pl.s390x-update	2020-03-19 16:20:22.041227359 +0100
++++ openssl-1.1.1e/crypto/poly1305/asm/poly1305-s390x.pl	2020-03-19 16:23:22.364098257 +0100
 @@ -24,204 +24,961 @@
  #
  # On side note, z13 enables vector base 2^26 implementation...
@@ -5494,11 +5487,11 @@ diff -up openssl-1.1.1b/crypto/poly1305/asm/poly1305-s390x.pl.s390x-update opens
 +STRING	("\"Poly1305 for s390x, CRYPTOGAMS by <appro\@openssl.org>\"");
  
 -print $code;
--close STDOUT;
+-close STDOUT or die "error closing STDOUT: $!";
 +PERLASM_END();
-diff -up openssl-1.1.1b/crypto/poly1305/build.info.s390x-update openssl-1.1.1b/crypto/poly1305/build.info
---- openssl-1.1.1b/crypto/poly1305/build.info.s390x-update	2019-05-06 10:54:00.036367588 +0200
-+++ openssl-1.1.1b/crypto/poly1305/build.info	2019-05-06 10:56:14.964105164 +0200
+diff -up openssl-1.1.1e/crypto/poly1305/build.info.s390x-update openssl-1.1.1e/crypto/poly1305/build.info
+--- openssl-1.1.1e/crypto/poly1305/build.info.s390x-update	2020-03-17 15:31:17.000000000 +0100
++++ openssl-1.1.1e/crypto/poly1305/build.info	2020-03-19 16:20:22.042227342 +0100
 @@ -18,6 +18,7 @@ INCLUDE[poly1305-armv8.o]=..
  GENERATE[poly1305-mips.S]=asm/poly1305-mips.pl $(PERLASM_SCHEME)
  INCLUDE[poly1305-mips.o]=..

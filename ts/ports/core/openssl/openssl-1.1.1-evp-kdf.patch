@@ -1,6 +1,6 @@
-diff -up openssl-1.1.1d/crypto/err/openssl.txt.evp-kdf openssl-1.1.1d/crypto/err/openssl.txt
---- openssl-1.1.1d/crypto/err/openssl.txt.evp-kdf	2019-09-10 15:13:07.000000000 +0200
-+++ openssl-1.1.1d/crypto/err/openssl.txt	2019-09-13 15:45:01.723001323 +0200
+diff -up openssl-1.1.1e/crypto/err/openssl.txt.evp-kdf openssl-1.1.1e/crypto/err/openssl.txt
+--- openssl-1.1.1e/crypto/err/openssl.txt.evp-kdf	2020-03-17 15:31:17.000000000 +0100
++++ openssl-1.1.1e/crypto/err/openssl.txt	2020-03-19 16:04:11.299063517 +0100
 @@ -747,6 +747,9 @@ EVP_F_EVP_DIGESTINIT_EX:128:EVP_DigestIn
  EVP_F_EVP_ENCRYPTDECRYPTUPDATE:219:evp_EncryptDecryptUpdate
  EVP_F_EVP_ENCRYPTFINAL_EX:127:EVP_EncryptFinal_ex
@@ -51,7 +51,7 @@ diff -up openssl-1.1.1d/crypto/err/openssl.txt.evp-kdf openssl-1.1.1d/crypto/err
  KDF_F_TLS1_PRF_ALG:111:tls1_prf_alg
  OBJ_F_OBJ_ADD_OBJECT:105:OBJ_add_object
  OBJ_F_OBJ_ADD_SIGID:107:OBJ_add_sigid
-@@ -2273,6 +2296,7 @@ EVP_R_ONLY_ONESHOT_SUPPORTED:177:only on
+@@ -2277,6 +2300,7 @@ EVP_R_ONLY_ONESHOT_SUPPORTED:177:only on
  EVP_R_OPERATION_NOT_SUPPORTED_FOR_THIS_KEYTYPE:150:\
  	operation not supported for this keytype
  EVP_R_OPERATON_NOT_INITIALIZED:151:operaton not initialized
@@ -59,7 +59,7 @@ diff -up openssl-1.1.1d/crypto/err/openssl.txt.evp-kdf openssl-1.1.1d/crypto/err
  EVP_R_PARTIALLY_OVERLAPPING:162:partially overlapping buffers
  EVP_R_PBKDF2_ERROR:181:pbkdf2 error
  EVP_R_PKEY_APPLICATION_ASN1_METHOD_ALREADY_REGISTERED:179:\
-@@ -2309,6 +2333,7 @@ KDF_R_MISSING_SEED:106:missing seed
+@@ -2313,6 +2337,7 @@ KDF_R_MISSING_SEED:106:missing seed
  KDF_R_UNKNOWN_PARAMETER_TYPE:103:unknown parameter type
  KDF_R_VALUE_ERROR:108:value error
  KDF_R_VALUE_MISSING:102:value missing
@@ -67,9 +67,9 @@ diff -up openssl-1.1.1d/crypto/err/openssl.txt.evp-kdf openssl-1.1.1d/crypto/err
  OBJ_R_OID_EXISTS:102:oid exists
  OBJ_R_UNKNOWN_NID:101:unknown nid
  OCSP_R_CERTIFICATE_VERIFY_ERROR:101:certificate verify error
-diff -up openssl-1.1.1d/crypto/evp/build.info.evp-kdf openssl-1.1.1d/crypto/evp/build.info
---- openssl-1.1.1d/crypto/evp/build.info.evp-kdf	2019-09-10 15:13:07.000000000 +0200
-+++ openssl-1.1.1d/crypto/evp/build.info	2019-09-13 15:39:20.268982830 +0200
+diff -up openssl-1.1.1e/crypto/evp/build.info.evp-kdf openssl-1.1.1e/crypto/evp/build.info
+--- openssl-1.1.1e/crypto/evp/build.info.evp-kdf	2020-03-17 15:31:17.000000000 +0100
++++ openssl-1.1.1e/crypto/evp/build.info	2020-03-19 16:04:11.300063500 +0100
 @@ -9,7 +9,8 @@ SOURCE[../../libcrypto]=\
          p_open.c p_seal.c p_sign.c p_verify.c p_lib.c p_enc.c p_dec.c \
          bio_md.c bio_b64.c bio_enc.c evp_err.c e_null.c \
@@ -80,35 +80,36 @@ diff -up openssl-1.1.1d/crypto/evp/build.info.evp-kdf openssl-1.1.1d/crypto/evp/
          e_old.c pmeth_lib.c pmeth_fn.c pmeth_gn.c m_sigver.c \
          e_aes_cbc_hmac_sha1.c e_aes_cbc_hmac_sha256.c e_rc4_hmac_md5.c \
          e_chacha20_poly1305.c cmeth_lib.c
-diff -up openssl-1.1.1d/crypto/evp/e_chacha20_poly1305.c.evp-kdf openssl-1.1.1d/crypto/evp/e_chacha20_poly1305.c
---- openssl-1.1.1d/crypto/evp/e_chacha20_poly1305.c.evp-kdf	2019-09-10 15:13:07.000000000 +0200
-+++ openssl-1.1.1d/crypto/evp/e_chacha20_poly1305.c	2019-09-13 15:39:20.268982830 +0200
-@@ -14,8 +14,8 @@
+diff -up openssl-1.1.1e/crypto/evp/e_chacha20_poly1305.c.evp-kdf openssl-1.1.1e/crypto/evp/e_chacha20_poly1305.c
+--- openssl-1.1.1e/crypto/evp/e_chacha20_poly1305.c.evp-kdf	2020-03-19 16:04:11.300063500 +0100
++++ openssl-1.1.1e/crypto/evp/e_chacha20_poly1305.c	2020-03-19 16:16:46.497967633 +0100
+@@ -14,9 +14,9 @@
  
  # include <openssl/evp.h>
  # include <openssl/objects.h>
--# include "evp_locl.h"
- # include "internal/evp_int.h"
-+# include "evp_locl.h"
- # include "internal/chacha.h"
+-# include "evp_local.h"
+ # include "crypto/evp.h"
+ # include "crypto/chacha.h"
++# include "evp_local.h"
  
  typedef struct {
-diff -up openssl-1.1.1d/crypto/evp/encode.c.evp-kdf openssl-1.1.1d/crypto/evp/encode.c
---- openssl-1.1.1d/crypto/evp/encode.c.evp-kdf	2019-09-10 15:13:07.000000000 +0200
-+++ openssl-1.1.1d/crypto/evp/encode.c	2019-09-13 15:39:20.268982830 +0200
+     union {
+diff -up openssl-1.1.1e/crypto/evp/encode.c.evp-kdf openssl-1.1.1e/crypto/evp/encode.c
+--- openssl-1.1.1e/crypto/evp/encode.c.evp-kdf	2020-03-19 16:04:11.301063483 +0100
++++ openssl-1.1.1e/crypto/evp/encode.c	2020-03-19 16:14:13.147628683 +0100
 @@ -11,8 +11,8 @@
  #include <limits.h>
  #include "internal/cryptlib.h"
  #include <openssl/evp.h>
--#include "evp_locl.h"
- #include "internal/evp_int.h"
-+#include "evp_locl.h"
+-#include "evp_local.h"
+ #include "crypto/evp.h"
++#include "evp_local.h"
  
  static unsigned char conv_ascii2bin(unsigned char a,
                                      const unsigned char *table);
-diff -up openssl-1.1.1d/crypto/evp/evp_err.c.evp-kdf openssl-1.1.1d/crypto/evp/evp_err.c
---- openssl-1.1.1d/crypto/evp/evp_err.c.evp-kdf	2019-09-13 15:39:20.226983569 +0200
-+++ openssl-1.1.1d/crypto/evp/evp_err.c	2019-09-13 15:44:00.070076961 +0200
+diff -up openssl-1.1.1e/crypto/evp/evp_err.c.evp-kdf openssl-1.1.1e/crypto/evp/evp_err.c
+--- openssl-1.1.1e/crypto/evp/evp_err.c.evp-kdf	2020-03-19 16:04:11.218064919 +0100
++++ openssl-1.1.1e/crypto/evp/evp_err.c	2020-03-19 16:04:11.302063465 +0100
 @@ -60,6 +60,9 @@ static const ERR_STRING_DATA EVP_str_fun
      {ERR_PACK(ERR_LIB_EVP, EVP_F_EVP_ENCRYPTFINAL_EX, 0),
       "EVP_EncryptFinal_ex"},
@@ -134,7 +135,7 @@ diff -up openssl-1.1.1d/crypto/evp/evp_err.c.evp-kdf openssl-1.1.1d/crypto/evp/e
      {ERR_PACK(ERR_LIB_EVP, EVP_F_UPDATE, 0), "update"},
      {0, NULL}
  };
-@@ -240,6 +245,8 @@ static const ERR_STRING_DATA EVP_str_rea
+@@ -241,6 +246,8 @@ static const ERR_STRING_DATA EVP_str_rea
      "operation not supported for this keytype"},
      {ERR_PACK(ERR_LIB_EVP, 0, EVP_R_OPERATON_NOT_INITIALIZED),
      "operaton not initialized"},
@@ -143,9 +144,9 @@ diff -up openssl-1.1.1d/crypto/evp/evp_err.c.evp-kdf openssl-1.1.1d/crypto/evp/e
      {ERR_PACK(ERR_LIB_EVP, 0, EVP_R_PARTIALLY_OVERLAPPING),
      "partially overlapping buffers"},
      {ERR_PACK(ERR_LIB_EVP, 0, EVP_R_PBKDF2_ERROR), "pbkdf2 error"},
-diff -up openssl-1.1.1d/crypto/evp/evp_locl.h.evp-kdf openssl-1.1.1d/crypto/evp/evp_locl.h
---- openssl-1.1.1d/crypto/evp/evp_locl.h.evp-kdf	2019-09-13 15:39:19.820990718 +0200
-+++ openssl-1.1.1d/crypto/evp/evp_locl.h	2019-09-13 15:39:24.144914578 +0200
+diff -up openssl-1.1.1e/crypto/evp/evp_local.h.evp-kdf openssl-1.1.1e/crypto/evp/evp_local.h
+--- openssl-1.1.1e/crypto/evp/evp_local.h.evp-kdf	2020-03-19 16:04:10.657074629 +0100
++++ openssl-1.1.1e/crypto/evp/evp_local.h	2020-03-19 16:04:20.722900404 +0100
 @@ -41,6 +41,11 @@ struct evp_cipher_ctx_st {
      unsigned char final[EVP_MAX_BLOCK_LENGTH]; /* possible final block */
  } /* EVP_CIPHER_CTX */ ;
@@ -158,20 +159,20 @@ diff -up openssl-1.1.1d/crypto/evp/evp_locl.h.evp-kdf openssl-1.1.1d/crypto/evp/
  int PKCS5_v2_PBKDF2_keyivgen(EVP_CIPHER_CTX *ctx, const char *pass,
                               int passlen, ASN1_TYPE *param,
                               const EVP_CIPHER *c, const EVP_MD *md,
-diff -up openssl-1.1.1d/crypto/evp/evp_pbe.c.evp-kdf openssl-1.1.1d/crypto/evp/evp_pbe.c
---- openssl-1.1.1d/crypto/evp/evp_pbe.c.evp-kdf	2019-09-10 15:13:07.000000000 +0200
-+++ openssl-1.1.1d/crypto/evp/evp_pbe.c	2019-09-13 15:39:24.145914561 +0200
+diff -up openssl-1.1.1e/crypto/evp/evp_pbe.c.evp-kdf openssl-1.1.1e/crypto/evp/evp_pbe.c
+--- openssl-1.1.1e/crypto/evp/evp_pbe.c.evp-kdf	2020-03-19 16:04:20.723900386 +0100
++++ openssl-1.1.1e/crypto/evp/evp_pbe.c	2020-03-19 16:11:56.425001210 +0100
 @@ -12,6 +12,7 @@
  #include <openssl/evp.h>
  #include <openssl/pkcs12.h>
  #include <openssl/x509.h>
-+#include "internal/evp_int.h"
- #include "evp_locl.h"
++#include "crypto/evp.h"
+ #include "evp_local.h"
  
  /* Password based encryption (PBE) functions */
-diff -up openssl-1.1.1d/crypto/evp/kdf_lib.c.evp-kdf openssl-1.1.1d/crypto/evp/kdf_lib.c
---- openssl-1.1.1d/crypto/evp/kdf_lib.c.evp-kdf	2019-09-13 15:39:24.146914543 +0200
-+++ openssl-1.1.1d/crypto/evp/kdf_lib.c	2019-09-13 15:39:24.146914543 +0200
+diff -up openssl-1.1.1e/crypto/evp/kdf_lib.c.evp-kdf openssl-1.1.1e/crypto/evp/kdf_lib.c
+--- openssl-1.1.1e/crypto/evp/kdf_lib.c.evp-kdf	2020-03-19 16:04:20.723900386 +0100
++++ openssl-1.1.1e/crypto/evp/kdf_lib.c	2020-03-19 16:04:20.723900386 +0100
 @@ -0,0 +1,165 @@
 +/*
 + * Copyright 2018 The OpenSSL Project Authors. All Rights Reserved.
@@ -190,10 +191,10 @@ diff -up openssl-1.1.1d/crypto/evp/kdf_lib.c.evp-kdf openssl-1.1.1d/crypto/evp/k
 +#include <openssl/evp.h>
 +#include <openssl/x509v3.h>
 +#include <openssl/kdf.h>
-+#include "internal/asn1_int.h"
-+#include "internal/evp_int.h"
++#include "crypto/asn1.h"
++#include "crypto/evp.h"
 +#include "internal/numbers.h"
-+#include "evp_locl.h"
++#include "evp_local.h"
 +
 +typedef int sk_cmp_fn_type(const char *const *a, const char *const *b);
 +
@@ -338,9 +339,9 @@ diff -up openssl-1.1.1d/crypto/evp/kdf_lib.c.evp-kdf openssl-1.1.1d/crypto/evp/k
 +    return ctx->kmeth->derive(ctx->impl, key, keylen);
 +}
 +
-diff -up openssl-1.1.1d/crypto/evp/p5_crpt2.c.evp-kdf openssl-1.1.1d/crypto/evp/p5_crpt2.c
---- openssl-1.1.1d/crypto/evp/p5_crpt2.c.evp-kdf	2019-09-10 15:13:07.000000000 +0200
-+++ openssl-1.1.1d/crypto/evp/p5_crpt2.c	2019-09-13 15:39:24.147914525 +0200
+diff -up openssl-1.1.1e/crypto/evp/p5_crpt2.c.evp-kdf openssl-1.1.1e/crypto/evp/p5_crpt2.c
+--- openssl-1.1.1e/crypto/evp/p5_crpt2.c.evp-kdf	2020-03-17 15:31:17.000000000 +0100
++++ openssl-1.1.1e/crypto/evp/p5_crpt2.c	2020-03-19 16:17:48.822886126 +0100
 @@ -1,5 +1,5 @@
  /*
 - * Copyright 1999-2016 The OpenSSL Project Authors. All Rights Reserved.
@@ -355,13 +356,13 @@ diff -up openssl-1.1.1d/crypto/evp/p5_crpt2.c.evp-kdf openssl-1.1.1d/crypto/evp/
 -# include <openssl/x509.h>
 -# include <openssl/evp.h>
 -# include <openssl/hmac.h>
--# include "evp_locl.h"
+-# include "evp_local.h"
 +#include <openssl/x509.h>
 +#include <openssl/evp.h>
 +#include <openssl/kdf.h>
 +#include <openssl/hmac.h>
-+#include "internal/evp_int.h"
-+#include "evp_locl.h"
++#include "crypto/evp.h"
++#include "evp_local.h"
  
  /* set this to print out info about the keygen algorithm */
  /* #define OPENSSL_DEBUG_PKCS5V2 */
@@ -489,9 +490,9 @@ diff -up openssl-1.1.1d/crypto/evp/p5_crpt2.c.evp-kdf openssl-1.1.1d/crypto/evp/
  }
  
  int PKCS5_PBKDF2_HMAC_SHA1(const char *pass, int passlen,
-diff -up openssl-1.1.1d/crypto/evp/pbe_scrypt.c.evp-kdf openssl-1.1.1d/crypto/evp/pbe_scrypt.c
---- openssl-1.1.1d/crypto/evp/pbe_scrypt.c.evp-kdf	2019-09-10 15:13:07.000000000 +0200
-+++ openssl-1.1.1d/crypto/evp/pbe_scrypt.c	2019-09-13 15:39:24.150914473 +0200
+diff -up openssl-1.1.1e/crypto/evp/pbe_scrypt.c.evp-kdf openssl-1.1.1e/crypto/evp/pbe_scrypt.c
+--- openssl-1.1.1e/crypto/evp/pbe_scrypt.c.evp-kdf	2020-03-17 15:31:17.000000000 +0100
++++ openssl-1.1.1e/crypto/evp/pbe_scrypt.c	2020-03-19 16:04:20.725900352 +0100
 @@ -7,135 +7,12 @@
   * https://www.openssl.org/source/license.html
   */
@@ -762,9 +763,9 @@ diff -up openssl-1.1.1d/crypto/evp/pbe_scrypt.c.evp-kdf openssl-1.1.1d/crypto/ev
  }
 +
  #endif
-diff -up openssl-1.1.1d/crypto/evp/pkey_kdf.c.evp-kdf openssl-1.1.1d/crypto/evp/pkey_kdf.c
---- openssl-1.1.1d/crypto/evp/pkey_kdf.c.evp-kdf	2019-09-13 15:39:24.154914402 +0200
-+++ openssl-1.1.1d/crypto/evp/pkey_kdf.c	2019-09-13 15:39:24.154914402 +0200
+diff -up openssl-1.1.1e/crypto/evp/pkey_kdf.c.evp-kdf openssl-1.1.1e/crypto/evp/pkey_kdf.c
+--- openssl-1.1.1e/crypto/evp/pkey_kdf.c.evp-kdf	2020-03-19 16:04:20.726900334 +0100
++++ openssl-1.1.1e/crypto/evp/pkey_kdf.c	2020-03-19 16:04:20.725900352 +0100
 @@ -0,0 +1,255 @@
 +/*
 + * Copyright 2018 The OpenSSL Project Authors. All Rights Reserved.
@@ -780,7 +781,7 @@ diff -up openssl-1.1.1d/crypto/evp/pkey_kdf.c.evp-kdf openssl-1.1.1d/crypto/evp/
 +#include <openssl/evp.h>
 +#include <openssl/err.h>
 +#include <openssl/kdf.h>
-+#include "internal/evp_int.h"
++#include "crypto/evp.h"
 +
 +static int pkey_kdf_init(EVP_PKEY_CTX *ctx)
 +{
@@ -1021,45 +1022,17 @@ diff -up openssl-1.1.1d/crypto/evp/pkey_kdf.c.evp-kdf openssl-1.1.1d/crypto/evp/
 +    pkey_kdf_ctrl_str
 +};
 +
-diff -up openssl-1.1.1d/crypto/include/internal/evp_int.h.evp-kdf openssl-1.1.1d/crypto/include/internal/evp_int.h
---- openssl-1.1.1d/crypto/include/internal/evp_int.h.evp-kdf	2019-09-13 15:39:19.873989785 +0200
-+++ openssl-1.1.1d/crypto/include/internal/evp_int.h	2019-09-13 15:39:24.155914384 +0200
-@@ -112,6 +112,24 @@ extern const EVP_PKEY_METHOD hkdf_pkey_m
- extern const EVP_PKEY_METHOD poly1305_pkey_meth;
- extern const EVP_PKEY_METHOD siphash_pkey_meth;
- 
-+/* struct evp_kdf_impl_st is defined by the implementation */
-+typedef struct evp_kdf_impl_st EVP_KDF_IMPL;
-+typedef struct {
-+    int type;
-+    EVP_KDF_IMPL *(*new) (void);
-+    void (*free) (EVP_KDF_IMPL *impl);
-+    void (*reset) (EVP_KDF_IMPL *impl);
-+    int (*ctrl) (EVP_KDF_IMPL *impl, int cmd, va_list args);
-+    int (*ctrl_str) (EVP_KDF_IMPL *impl, const char *type, const char *value);
-+    size_t (*size) (EVP_KDF_IMPL *impl);
-+    int (*derive) (EVP_KDF_IMPL *impl, unsigned char *key, size_t keylen);
-+} EVP_KDF_METHOD;
-+
-+extern const EVP_KDF_METHOD pbkdf2_kdf_meth;
-+extern const EVP_KDF_METHOD scrypt_kdf_meth;
-+extern const EVP_KDF_METHOD tls1_prf_kdf_meth;
-+extern const EVP_KDF_METHOD hkdf_kdf_meth;
-+
- struct evp_md_st {
-     int type;
-     int pkey_type;
-diff -up openssl-1.1.1d/crypto/kdf/build.info.evp-kdf openssl-1.1.1d/crypto/kdf/build.info
---- openssl-1.1.1d/crypto/kdf/build.info.evp-kdf	2019-09-10 15:13:07.000000000 +0200
-+++ openssl-1.1.1d/crypto/kdf/build.info	2019-09-13 15:39:24.156914367 +0200
+diff -up openssl-1.1.1e/crypto/kdf/build.info.evp-kdf openssl-1.1.1e/crypto/kdf/build.info
+--- openssl-1.1.1e/crypto/kdf/build.info.evp-kdf	2020-03-17 15:31:17.000000000 +0100
++++ openssl-1.1.1e/crypto/kdf/build.info	2020-03-19 16:04:32.347699194 +0100
 @@ -1,3 +1,3 @@
  LIBS=../../libcrypto
  SOURCE[../../libcrypto]=\
 -        tls1_prf.c kdf_err.c hkdf.c scrypt.c
 +        tls1_prf.c kdf_err.c kdf_util.c hkdf.c scrypt.c pbkdf2.c
-diff -up openssl-1.1.1d/crypto/kdf/hkdf.c.evp-kdf openssl-1.1.1d/crypto/kdf/hkdf.c
---- openssl-1.1.1d/crypto/kdf/hkdf.c.evp-kdf	2019-09-10 15:13:07.000000000 +0200
-+++ openssl-1.1.1d/crypto/kdf/hkdf.c	2019-09-13 15:39:24.158914332 +0200
+diff -up openssl-1.1.1e/crypto/kdf/hkdf.c.evp-kdf openssl-1.1.1e/crypto/kdf/hkdf.c
+--- openssl-1.1.1e/crypto/kdf/hkdf.c.evp-kdf	2020-03-17 15:31:17.000000000 +0100
++++ openssl-1.1.1e/crypto/kdf/hkdf.c	2020-03-19 16:06:59.757147720 +0100
 @@ -8,32 +8,33 @@
   */
  
@@ -1067,11 +1040,10 @@ diff -up openssl-1.1.1d/crypto/kdf/hkdf.c.evp-kdf openssl-1.1.1d/crypto/kdf/hkdf
 +#include <stdarg.h>
  #include <string.h>
  #include <openssl/hmac.h>
--#include <openssl/kdf.h>
+ #include <openssl/kdf.h>
  #include <openssl/evp.h>
-+#include <openssl/kdf.h>
  #include "internal/cryptlib.h"
- #include "internal/evp_int.h"
+ #include "crypto/evp.h"
 +#include "kdf_local.h"
  
  #define HKDF_MAXBUF 1024
@@ -1192,18 +1164,18 @@ diff -up openssl-1.1.1d/crypto/kdf/hkdf.c.evp-kdf openssl-1.1.1d/crypto/kdf/hkdf
              return 1;
  
 -        if (p1 < 0)
--            return 0;
--
--        if (kctx->salt != NULL)
--            OPENSSL_clear_free(kctx->salt, kctx->salt_len);
--
--        kctx->salt = OPENSSL_memdup(p2, p1);
--        if (kctx->salt == NULL)
 +        OPENSSL_free(impl->salt);
 +        impl->salt = OPENSSL_memdup(p, len);
 +        if (impl->salt == NULL)
              return 0;
  
+-        if (kctx->salt != NULL)
+-            OPENSSL_clear_free(kctx->salt, kctx->salt_len);
+-
+-        kctx->salt = OPENSSL_memdup(p2, p1);
+-        if (kctx->salt == NULL)
+-            return 0;
+-
 -        kctx->salt_len = p1;
 +        impl->salt_len = len;
          return 1;
@@ -1321,14 +1293,14 @@ diff -up openssl-1.1.1d/crypto/kdf/hkdf.c.evp-kdf openssl-1.1.1d/crypto/kdf/hkdf
 +static size_t kdf_hkdf_size(EVP_KDF_IMPL *impl)
  {
 -    HKDF_PKEY_CTX *kctx = ctx->data;
--
++    if (impl->mode != EVP_KDF_HKDF_MODE_EXTRACT_ONLY)
++        return SIZE_MAX;
+ 
 -    OPENSSL_clear_free(kctx->key, kctx->key_len);
 -    OPENSSL_clear_free(kctx->salt, kctx->salt_len);
 -    OPENSSL_cleanse(kctx->info, kctx->info_len);
 -    memset(kctx, 0, sizeof(*kctx));
-+    if (impl->mode != EVP_KDF_HKDF_MODE_EXTRACT_ONLY)
-+        return SIZE_MAX;
- 
+-
 -    return 1;
 +    if (impl->md == NULL) {
 +        KDFerr(KDF_F_KDF_HKDF_SIZE, KDF_R_MISSING_MESSAGE_DIGEST);
@@ -1526,9 +1498,9 @@ diff -up openssl-1.1.1d/crypto/kdf/hkdf.c.evp-kdf openssl-1.1.1d/crypto/kdf/hkdf
  
   err:
      OPENSSL_cleanse(prev, sizeof(prev));
-diff -up openssl-1.1.1d/crypto/kdf/kdf_err.c.evp-kdf openssl-1.1.1d/crypto/kdf/kdf_err.c
---- openssl-1.1.1d/crypto/kdf/kdf_err.c.evp-kdf	2019-09-10 15:13:07.000000000 +0200
-+++ openssl-1.1.1d/crypto/kdf/kdf_err.c	2019-09-13 15:39:24.159914314 +0200
+diff -up openssl-1.1.1e/crypto/kdf/kdf_err.c.evp-kdf openssl-1.1.1e/crypto/kdf/kdf_err.c
+--- openssl-1.1.1e/crypto/kdf/kdf_err.c.evp-kdf	2020-03-17 15:31:17.000000000 +0100
++++ openssl-1.1.1e/crypto/kdf/kdf_err.c	2020-03-19 16:04:32.349699159 +0100
 @@ -1,6 +1,6 @@
  /*
   * Generated by util/mkerr.pl DO NOT EDIT
@@ -1584,9 +1556,9 @@ diff -up openssl-1.1.1d/crypto/kdf/kdf_err.c.evp-kdf openssl-1.1.1d/crypto/kdf/k
      {0, NULL}
  };
  
-diff -up openssl-1.1.1d/crypto/kdf/kdf_local.h.evp-kdf openssl-1.1.1d/crypto/kdf/kdf_local.h
---- openssl-1.1.1d/crypto/kdf/kdf_local.h.evp-kdf	2019-09-13 15:39:24.160914297 +0200
-+++ openssl-1.1.1d/crypto/kdf/kdf_local.h	2019-09-13 15:39:24.160914297 +0200
+diff -up openssl-1.1.1e/crypto/kdf/kdf_local.h.evp-kdf openssl-1.1.1e/crypto/kdf/kdf_local.h
+--- openssl-1.1.1e/crypto/kdf/kdf_local.h.evp-kdf	2020-03-19 16:04:32.349699159 +0100
++++ openssl-1.1.1e/crypto/kdf/kdf_local.h	2020-03-19 16:04:32.349699159 +0100
 @@ -0,0 +1,22 @@
 +/*
 + * Copyright 2018 The OpenSSL Project Authors. All Rights Reserved.
@@ -1610,9 +1582,9 @@ diff -up openssl-1.1.1d/crypto/kdf/kdf_local.h.evp-kdf openssl-1.1.1d/crypto/kdf
 +                int (*ctrl)(EVP_KDF_IMPL *impl, int cmd, va_list args),
 +                int cmd, const char *md_name);
 +
-diff -up openssl-1.1.1d/crypto/kdf/kdf_util.c.evp-kdf openssl-1.1.1d/crypto/kdf/kdf_util.c
---- openssl-1.1.1d/crypto/kdf/kdf_util.c.evp-kdf	2019-09-13 15:39:24.161914279 +0200
-+++ openssl-1.1.1d/crypto/kdf/kdf_util.c	2019-09-13 15:39:24.160914297 +0200
+diff -up openssl-1.1.1e/crypto/kdf/kdf_util.c.evp-kdf openssl-1.1.1e/crypto/kdf/kdf_util.c
+--- openssl-1.1.1e/crypto/kdf/kdf_util.c.evp-kdf	2020-03-19 16:04:32.350699142 +0100
++++ openssl-1.1.1e/crypto/kdf/kdf_util.c	2020-03-19 16:04:32.350699142 +0100
 @@ -0,0 +1,73 @@
 +/*
 + * Copyright 2018 The OpenSSL Project Authors. All Rights Reserved.
@@ -1629,7 +1601,7 @@ diff -up openssl-1.1.1d/crypto/kdf/kdf_util.c.evp-kdf openssl-1.1.1d/crypto/kdf/
 +#include <openssl/kdf.h>
 +#include <openssl/evp.h>
 +#include "internal/cryptlib.h"
-+#include "internal/evp_int.h"
++#include "crypto/evp.h"
 +#include "internal/numbers.h"
 +#include "kdf_local.h"
 +
@@ -1687,9 +1659,9 @@ diff -up openssl-1.1.1d/crypto/kdf/kdf_util.c.evp-kdf openssl-1.1.1d/crypto/kdf/
 +    return call_ctrl(ctrl, impl, cmd, md);
 +}
 +
-diff -up openssl-1.1.1d/crypto/kdf/pbkdf2.c.evp-kdf openssl-1.1.1d/crypto/kdf/pbkdf2.c
---- openssl-1.1.1d/crypto/kdf/pbkdf2.c.evp-kdf	2019-09-13 15:39:24.162914261 +0200
-+++ openssl-1.1.1d/crypto/kdf/pbkdf2.c	2019-09-13 15:39:24.162914261 +0200
+diff -up openssl-1.1.1e/crypto/kdf/pbkdf2.c.evp-kdf openssl-1.1.1e/crypto/kdf/pbkdf2.c
+--- openssl-1.1.1e/crypto/kdf/pbkdf2.c.evp-kdf	2020-03-19 16:04:32.374698727 +0100
++++ openssl-1.1.1e/crypto/kdf/pbkdf2.c	2020-03-19 16:04:32.374698727 +0100
 @@ -0,0 +1,264 @@
 +/*
 + * Copyright 2018 The OpenSSL Project Authors. All Rights Reserved.
@@ -1707,7 +1679,7 @@ diff -up openssl-1.1.1d/crypto/kdf/pbkdf2.c.evp-kdf openssl-1.1.1d/crypto/kdf/pb
 +#include <openssl/evp.h>
 +#include <openssl/kdf.h>
 +#include "internal/cryptlib.h"
-+#include "internal/evp_int.h"
++#include "crypto/evp.h"
 +#include "kdf_local.h"
 +
 +static void kdf_pbkdf2_reset(EVP_KDF_IMPL *impl);
@@ -1955,22 +1927,21 @@ diff -up openssl-1.1.1d/crypto/kdf/pbkdf2.c.evp-kdf openssl-1.1.1d/crypto/kdf/pb
 +    HMAC_CTX_free(hctx_tpl);
 +    return ret;
 +}
-diff -up openssl-1.1.1d/crypto/kdf/scrypt.c.evp-kdf openssl-1.1.1d/crypto/kdf/scrypt.c
---- openssl-1.1.1d/crypto/kdf/scrypt.c.evp-kdf	2019-09-10 15:13:07.000000000 +0200
-+++ openssl-1.1.1d/crypto/kdf/scrypt.c	2019-09-13 15:39:24.164914226 +0200
-@@ -8,25 +8,34 @@
+diff -up openssl-1.1.1e/crypto/kdf/scrypt.c.evp-kdf openssl-1.1.1e/crypto/kdf/scrypt.c
+--- openssl-1.1.1e/crypto/kdf/scrypt.c.evp-kdf	2020-03-17 15:31:17.000000000 +0100
++++ openssl-1.1.1e/crypto/kdf/scrypt.c	2020-03-19 16:11:06.215872475 +0100
+@@ -8,25 +8,35 @@
   */
  
  #include <stdlib.h>
 +#include <stdarg.h>
  #include <string.h>
--#include <openssl/hmac.h>
--#include <openssl/kdf.h>
+ #include <openssl/hmac.h>
+ #include <openssl/kdf.h>
  #include <openssl/evp.h>
 -#include "internal/cryptlib.h"
-+#include <openssl/kdf.h>
 +#include <openssl/err.h>
- #include "internal/evp_int.h"
+ #include "crypto/evp.h"
 +#include "internal/numbers.h"
 +#include "kdf_local.h"
  
@@ -1999,7 +1970,7 @@ diff -up openssl-1.1.1d/crypto/kdf/scrypt.c.evp-kdf openssl-1.1.1d/crypto/kdf/sc
  
  /* Custom uint64_t parser since we do not have strtoull */
  static int atou64(const char *nptr, uint64_t *result)
-@@ -53,51 +62,53 @@ static int atou64(const char *nptr, uint
+@@ -53,51 +63,53 @@ static int atou64(const char *nptr, uint
      return 1;
  }
  
@@ -2084,7 +2055,7 @@ diff -up openssl-1.1.1d/crypto/kdf/scrypt.c.evp-kdf openssl-1.1.1d/crypto/kdf/sc
  
      if (new_buflen > 0) {
          *buffer = OPENSSL_memdup(new_buffer, new_buflen);
-@@ -105,7 +116,7 @@ static int pkey_scrypt_set_membuf(unsign
+@@ -105,7 +117,7 @@ static int pkey_scrypt_set_membuf(unsign
          *buffer = OPENSSL_malloc(1);
      }
      if (*buffer == NULL) {
@@ -2093,7 +2064,7 @@ diff -up openssl-1.1.1d/crypto/kdf/scrypt.c.evp-kdf openssl-1.1.1d/crypto/kdf/sc
          return 0;
      }
  
-@@ -118,149 +129,378 @@ static int is_power_of_two(uint64_t valu
+@@ -118,149 +130,378 @@ static int is_power_of_two(uint64_t valu
      return (value != 0) && ((value & (value - 1)) == 0);
  }
  
@@ -2546,9 +2517,9 @@ diff -up openssl-1.1.1d/crypto/kdf/scrypt.c.evp-kdf openssl-1.1.1d/crypto/kdf/sc
 +}
  
  #endif
-diff -up openssl-1.1.1d/crypto/kdf/tls1_prf.c.evp-kdf openssl-1.1.1d/crypto/kdf/tls1_prf.c
---- openssl-1.1.1d/crypto/kdf/tls1_prf.c.evp-kdf	2019-09-10 15:13:07.000000000 +0200
-+++ openssl-1.1.1d/crypto/kdf/tls1_prf.c	2019-09-13 15:39:24.167914173 +0200
+diff -up openssl-1.1.1e/crypto/kdf/tls1_prf.c.evp-kdf openssl-1.1.1e/crypto/kdf/tls1_prf.c
+--- openssl-1.1.1e/crypto/kdf/tls1_prf.c.evp-kdf	2020-03-17 15:31:17.000000000 +0100
++++ openssl-1.1.1e/crypto/kdf/tls1_prf.c	2020-03-19 16:10:32.317460707 +0100
 @@ -8,11 +8,15 @@
   */
  
@@ -2556,10 +2527,9 @@ diff -up openssl-1.1.1d/crypto/kdf/tls1_prf.c.evp-kdf openssl-1.1.1d/crypto/kdf/
 +#include <stdarg.h>
 +#include <string.h>
  #include "internal/cryptlib.h"
--#include <openssl/kdf.h>
+ #include <openssl/kdf.h>
  #include <openssl/evp.h>
-+#include <openssl/kdf.h>
- #include "internal/evp_int.h"
+ #include "crypto/evp.h"
 +#include "kdf_local.h"
  
 +static void kdf_tls1_prf_reset(EVP_KDF_IMPL *impl);
@@ -2659,15 +2629,15 @@ diff -up openssl-1.1.1d/crypto/kdf/tls1_prf.c.evp-kdf openssl-1.1.1d/crypto/kdf/
 -        kctx->seclen  = p1;
 +
 +        impl->seclen  = len;
++        return 1;
++
++    case EVP_KDF_CTRL_RESET_TLS_SEED:
++        OPENSSL_cleanse(impl->seed, impl->seedlen);
++        impl->seedlen = 0;
          return 1;
  
 -    case EVP_PKEY_CTRL_TLS_SEED:
 -        if (p1 == 0 || p2 == NULL)
-+    case EVP_KDF_CTRL_RESET_TLS_SEED:
-+        OPENSSL_cleanse(impl->seed, impl->seedlen);
-+        impl->seedlen = 0;
-+        return 1;
-+
 +    case EVP_KDF_CTRL_ADD_TLS_SEED:
 +        p = va_arg(args, const unsigned char *);
 +        len = va_arg(args, size_t);
@@ -2832,9 +2802,9 @@ diff -up openssl-1.1.1d/crypto/kdf/tls1_prf.c.evp-kdf openssl-1.1.1d/crypto/kdf/
              OPENSSL_clear_free(tmp, olen);
              return 0;
          }
-diff -up openssl-1.1.1d/doc/man3/EVP_KDF_CTX.pod.evp-kdf openssl-1.1.1d/doc/man3/EVP_KDF_CTX.pod
---- openssl-1.1.1d/doc/man3/EVP_KDF_CTX.pod.evp-kdf	2019-09-13 15:39:24.169914138 +0200
-+++ openssl-1.1.1d/doc/man3/EVP_KDF_CTX.pod	2019-09-13 15:39:24.169914138 +0200
+diff -up openssl-1.1.1e/doc/man3/EVP_KDF_CTX.pod.evp-kdf openssl-1.1.1e/doc/man3/EVP_KDF_CTX.pod
+--- openssl-1.1.1e/doc/man3/EVP_KDF_CTX.pod.evp-kdf	2020-03-19 16:04:32.377698675 +0100
++++ openssl-1.1.1e/doc/man3/EVP_KDF_CTX.pod	2020-03-19 16:04:32.377698675 +0100
 @@ -0,0 +1,217 @@
 +=pod
 +
@@ -3053,9 +3023,9 @@ diff -up openssl-1.1.1d/doc/man3/EVP_KDF_CTX.pod.evp-kdf openssl-1.1.1d/doc/man3
 +L<https://www.openssl.org/source/license.html>.
 +
 +=cut
-diff -up openssl-1.1.1d/doc/man7/EVP_KDF_HKDF.pod.evp-kdf openssl-1.1.1d/doc/man7/EVP_KDF_HKDF.pod
---- openssl-1.1.1d/doc/man7/EVP_KDF_HKDF.pod.evp-kdf	2019-09-13 15:39:24.171914103 +0200
-+++ openssl-1.1.1d/doc/man7/EVP_KDF_HKDF.pod	2019-09-13 15:39:24.171914103 +0200
+diff -up openssl-1.1.1e/doc/man7/EVP_KDF_HKDF.pod.evp-kdf openssl-1.1.1e/doc/man7/EVP_KDF_HKDF.pod
+--- openssl-1.1.1e/doc/man7/EVP_KDF_HKDF.pod.evp-kdf	2020-03-19 16:04:32.377698675 +0100
++++ openssl-1.1.1e/doc/man7/EVP_KDF_HKDF.pod	2020-03-19 16:04:32.377698675 +0100
 @@ -0,0 +1,180 @@
 +=pod
 +
@@ -3237,9 +3207,9 @@ diff -up openssl-1.1.1d/doc/man7/EVP_KDF_HKDF.pod.evp-kdf openssl-1.1.1d/doc/man
 +L<https://www.openssl.org/source/license.html>.
 +
 +=cut
-diff -up openssl-1.1.1d/doc/man7/EVP_KDF_PBKDF2.pod.evp-kdf openssl-1.1.1d/doc/man7/EVP_KDF_PBKDF2.pod
---- openssl-1.1.1d/doc/man7/EVP_KDF_PBKDF2.pod.evp-kdf	2019-09-13 15:39:24.172914085 +0200
-+++ openssl-1.1.1d/doc/man7/EVP_KDF_PBKDF2.pod	2019-09-13 15:39:24.172914085 +0200
+diff -up openssl-1.1.1e/doc/man7/EVP_KDF_PBKDF2.pod.evp-kdf openssl-1.1.1e/doc/man7/EVP_KDF_PBKDF2.pod
+--- openssl-1.1.1e/doc/man7/EVP_KDF_PBKDF2.pod.evp-kdf	2020-03-19 16:04:32.378698658 +0100
++++ openssl-1.1.1e/doc/man7/EVP_KDF_PBKDF2.pod	2020-03-19 16:04:32.378698658 +0100
 @@ -0,0 +1,78 @@
 +=pod
 +
@@ -3319,9 +3289,9 @@ diff -up openssl-1.1.1d/doc/man7/EVP_KDF_PBKDF2.pod.evp-kdf openssl-1.1.1d/doc/m
 +L<https://www.openssl.org/source/license.html>.
 +
 +=cut
-diff -up openssl-1.1.1d/doc/man7/EVP_KDF_SCRYPT.pod.evp-kdf openssl-1.1.1d/doc/man7/EVP_KDF_SCRYPT.pod
---- openssl-1.1.1d/doc/man7/EVP_KDF_SCRYPT.pod.evp-kdf	2019-09-13 15:39:24.173914068 +0200
-+++ openssl-1.1.1d/doc/man7/EVP_KDF_SCRYPT.pod	2019-09-13 15:39:24.173914068 +0200
+diff -up openssl-1.1.1e/doc/man7/EVP_KDF_SCRYPT.pod.evp-kdf openssl-1.1.1e/doc/man7/EVP_KDF_SCRYPT.pod
+--- openssl-1.1.1e/doc/man7/EVP_KDF_SCRYPT.pod.evp-kdf	2020-03-19 16:04:32.378698658 +0100
++++ openssl-1.1.1e/doc/man7/EVP_KDF_SCRYPT.pod	2020-03-19 16:04:32.378698658 +0100
 @@ -0,0 +1,149 @@
 +=pod
 +
@@ -3472,9 +3442,9 @@ diff -up openssl-1.1.1d/doc/man7/EVP_KDF_SCRYPT.pod.evp-kdf openssl-1.1.1d/doc/m
 +L<https://www.openssl.org/source/license.html>.
 +
 +=cut
-diff -up openssl-1.1.1d/doc/man7/EVP_KDF_TLS1_PRF.pod.evp-kdf openssl-1.1.1d/doc/man7/EVP_KDF_TLS1_PRF.pod
---- openssl-1.1.1d/doc/man7/EVP_KDF_TLS1_PRF.pod.evp-kdf	2019-09-13 15:39:24.174914050 +0200
-+++ openssl-1.1.1d/doc/man7/EVP_KDF_TLS1_PRF.pod	2019-09-13 15:39:24.174914050 +0200
+diff -up openssl-1.1.1e/doc/man7/EVP_KDF_TLS1_PRF.pod.evp-kdf openssl-1.1.1e/doc/man7/EVP_KDF_TLS1_PRF.pod
+--- openssl-1.1.1e/doc/man7/EVP_KDF_TLS1_PRF.pod.evp-kdf	2020-03-19 16:04:32.378698658 +0100
++++ openssl-1.1.1e/doc/man7/EVP_KDF_TLS1_PRF.pod	2020-03-19 16:04:32.378698658 +0100
 @@ -0,0 +1,142 @@
 +=pod
 +
@@ -3618,9 +3588,37 @@ diff -up openssl-1.1.1d/doc/man7/EVP_KDF_TLS1_PRF.pod.evp-kdf openssl-1.1.1d/doc
 +L<https://www.openssl.org/source/license.html>.
 +
 +=cut
-diff -up openssl-1.1.1d/include/openssl/evperr.h.evp-kdf openssl-1.1.1d/include/openssl/evperr.h
---- openssl-1.1.1d/include/openssl/evperr.h.evp-kdf	2019-09-13 15:39:20.242983287 +0200
-+++ openssl-1.1.1d/include/openssl/evperr.h	2019-09-13 15:42:42.818424742 +0200
+diff -up openssl-1.1.1e/include/crypto/evp.h.evp-kdf openssl-1.1.1e/include/crypto/evp.h
+--- openssl-1.1.1e/include/crypto/evp.h.evp-kdf	2020-03-17 15:31:17.000000000 +0100
++++ openssl-1.1.1e/include/crypto/evp.h	2020-03-19 16:04:32.347699194 +0100
+@@ -112,6 +112,24 @@ extern const EVP_PKEY_METHOD hkdf_pkey_m
+ extern const EVP_PKEY_METHOD poly1305_pkey_meth;
+ extern const EVP_PKEY_METHOD siphash_pkey_meth;
+ 
++/* struct evp_kdf_impl_st is defined by the implementation */
++typedef struct evp_kdf_impl_st EVP_KDF_IMPL;
++typedef struct {
++    int type;
++    EVP_KDF_IMPL *(*new) (void);
++    void (*free) (EVP_KDF_IMPL *impl);
++    void (*reset) (EVP_KDF_IMPL *impl);
++    int (*ctrl) (EVP_KDF_IMPL *impl, int cmd, va_list args);
++    int (*ctrl_str) (EVP_KDF_IMPL *impl, const char *type, const char *value);
++    size_t (*size) (EVP_KDF_IMPL *impl);
++    int (*derive) (EVP_KDF_IMPL *impl, unsigned char *key, size_t keylen);
++} EVP_KDF_METHOD;
++
++extern const EVP_KDF_METHOD pbkdf2_kdf_meth;
++extern const EVP_KDF_METHOD scrypt_kdf_meth;
++extern const EVP_KDF_METHOD tls1_prf_kdf_meth;
++extern const EVP_KDF_METHOD hkdf_kdf_meth;
++
+ struct evp_md_st {
+     int type;
+     int pkey_type;
+diff -up openssl-1.1.1e/include/openssl/evperr.h.evp-kdf openssl-1.1.1e/include/openssl/evperr.h
+--- openssl-1.1.1e/include/openssl/evperr.h.evp-kdf	2020-03-19 16:04:11.250064365 +0100
++++ openssl-1.1.1e/include/openssl/evperr.h	2020-03-19 16:04:32.379698640 +0100
 @@ -58,6 +58,9 @@ int ERR_load_EVP_strings(void);
  # define EVP_F_EVP_ENCRYPTDECRYPTUPDATE                   219
  # define EVP_F_EVP_ENCRYPTFINAL_EX                        127
@@ -3645,7 +3643,7 @@ diff -up openssl-1.1.1d/include/openssl/evperr.h.evp-kdf openssl-1.1.1d/include/
  # define EVP_F_UPDATE                                     173
  
  /*
-@@ -180,6 +185,7 @@ int ERR_load_EVP_strings(void);
+@@ -181,6 +186,7 @@ int ERR_load_EVP_strings(void);
  # define EVP_R_ONLY_ONESHOT_SUPPORTED                     177
  # define EVP_R_OPERATION_NOT_SUPPORTED_FOR_THIS_KEYTYPE   150
  # define EVP_R_OPERATON_NOT_INITIALIZED                   151
@@ -3653,9 +3651,9 @@ diff -up openssl-1.1.1d/include/openssl/evperr.h.evp-kdf openssl-1.1.1d/include/
  # define EVP_R_PARTIALLY_OVERLAPPING                      162
  # define EVP_R_PBKDF2_ERROR                               181
  # define EVP_R_PKEY_APPLICATION_ASN1_METHOD_ALREADY_REGISTERED 179
-diff -up openssl-1.1.1d/include/openssl/kdferr.h.evp-kdf openssl-1.1.1d/include/openssl/kdferr.h
---- openssl-1.1.1d/include/openssl/kdferr.h.evp-kdf	2019-09-10 15:13:07.000000000 +0200
-+++ openssl-1.1.1d/include/openssl/kdferr.h	2019-09-13 15:39:34.856725957 +0200
+diff -up openssl-1.1.1e/include/openssl/kdferr.h.evp-kdf openssl-1.1.1e/include/openssl/kdferr.h
+--- openssl-1.1.1e/include/openssl/kdferr.h.evp-kdf	2020-03-17 15:31:17.000000000 +0100
++++ openssl-1.1.1e/include/openssl/kdferr.h	2020-03-19 16:04:32.379698640 +0100
 @@ -23,6 +23,23 @@ int ERR_load_KDF_strings(void);
  /*
   * KDF function codes.
@@ -3695,9 +3693,9 @@ diff -up openssl-1.1.1d/include/openssl/kdferr.h.evp-kdf openssl-1.1.1d/include/
 +# define KDF_R_WRONG_OUTPUT_BUFFER_SIZE                   112
  
  #endif
-diff -up openssl-1.1.1d/include/openssl/kdf.h.evp-kdf openssl-1.1.1d/include/openssl/kdf.h
---- openssl-1.1.1d/include/openssl/kdf.h.evp-kdf	2019-09-10 15:13:07.000000000 +0200
-+++ openssl-1.1.1d/include/openssl/kdf.h	2019-09-13 15:39:34.857725939 +0200
+diff -up openssl-1.1.1e/include/openssl/kdf.h.evp-kdf openssl-1.1.1e/include/openssl/kdf.h
+--- openssl-1.1.1e/include/openssl/kdf.h.evp-kdf	2020-03-17 15:31:17.000000000 +0100
++++ openssl-1.1.1e/include/openssl/kdf.h	2020-03-19 16:04:32.380698623 +0100
 @@ -10,10 +10,50 @@
  #ifndef HEADER_KDF_H
  # define HEADER_KDF_H
@@ -3776,9 +3774,9 @@ diff -up openssl-1.1.1d/include/openssl/kdf.h.evp-kdf openssl-1.1.1d/include/ope
  }
  # endif
  #endif
-diff -up openssl-1.1.1d/include/openssl/ossl_typ.h.evp-kdf openssl-1.1.1d/include/openssl/ossl_typ.h
---- openssl-1.1.1d/include/openssl/ossl_typ.h.evp-kdf	2019-09-10 15:13:07.000000000 +0200
-+++ openssl-1.1.1d/include/openssl/ossl_typ.h	2019-09-13 15:39:34.858725922 +0200
+diff -up openssl-1.1.1e/include/openssl/ossl_typ.h.evp-kdf openssl-1.1.1e/include/openssl/ossl_typ.h
+--- openssl-1.1.1e/include/openssl/ossl_typ.h.evp-kdf	2020-03-17 15:31:17.000000000 +0100
++++ openssl-1.1.1e/include/openssl/ossl_typ.h	2020-03-19 16:04:32.381698606 +0100
 @@ -97,6 +97,8 @@ typedef struct evp_pkey_asn1_method_st E
  typedef struct evp_pkey_method_st EVP_PKEY_METHOD;
  typedef struct evp_pkey_ctx_st EVP_PKEY_CTX;
@@ -3788,9 +3786,9 @@ diff -up openssl-1.1.1d/include/openssl/ossl_typ.h.evp-kdf openssl-1.1.1d/includ
  typedef struct evp_Encode_Ctx_st EVP_ENCODE_CTX;
  
  typedef struct hmac_ctx_st HMAC_CTX;
-diff -up openssl-1.1.1d/test/build.info.evp-kdf openssl-1.1.1d/test/build.info
---- openssl-1.1.1d/test/build.info.evp-kdf	2019-09-10 15:13:07.000000000 +0200
-+++ openssl-1.1.1d/test/build.info	2019-09-13 15:39:34.861725869 +0200
+diff -up openssl-1.1.1e/test/build.info.evp-kdf openssl-1.1.1e/test/build.info
+--- openssl-1.1.1e/test/build.info.evp-kdf	2020-03-17 15:31:17.000000000 +0100
++++ openssl-1.1.1e/test/build.info	2020-03-19 16:04:32.381698606 +0100
 @@ -44,7 +44,8 @@ INCLUDE_MAIN___test_libtestutil_OLB = /I
            ssl_test_ctx_test ssl_test x509aux cipherlist_test asynciotest \
            bio_callback_test bio_memleak_test \
@@ -3812,9 +3810,9 @@ diff -up openssl-1.1.1d/test/build.info.evp-kdf openssl-1.1.1d/test/build.info
    SOURCE[x509_time_test]=x509_time_test.c
    INCLUDE[x509_time_test]=../include
    DEPEND[x509_time_test]=../libcrypto libtestutil.a
-diff -up openssl-1.1.1d/test/evp_kdf_test.c.evp-kdf openssl-1.1.1d/test/evp_kdf_test.c
---- openssl-1.1.1d/test/evp_kdf_test.c.evp-kdf	2019-09-13 15:39:34.862725851 +0200
-+++ openssl-1.1.1d/test/evp_kdf_test.c	2019-09-13 15:39:34.862725851 +0200
+diff -up openssl-1.1.1e/test/evp_kdf_test.c.evp-kdf openssl-1.1.1e/test/evp_kdf_test.c
+--- openssl-1.1.1e/test/evp_kdf_test.c.evp-kdf	2020-03-19 16:04:32.382698588 +0100
++++ openssl-1.1.1e/test/evp_kdf_test.c	2020-03-19 16:04:32.382698588 +0100
 @@ -0,0 +1,237 @@
 +/*
 + * Copyright 2018-2019 The OpenSSL Project Authors. All Rights Reserved.
@@ -4053,9 +4051,9 @@ diff -up openssl-1.1.1d/test/evp_kdf_test.c.evp-kdf openssl-1.1.1d/test/evp_kdf_
 +#endif
 +    return 1;
 +}
-diff -up openssl-1.1.1d/test/evp_test.c.evp-kdf openssl-1.1.1d/test/evp_test.c
---- openssl-1.1.1d/test/evp_test.c.evp-kdf	2019-09-10 15:13:07.000000000 +0200
-+++ openssl-1.1.1d/test/evp_test.c	2019-09-13 15:39:34.865725798 +0200
+diff -up openssl-1.1.1e/test/evp_test.c.evp-kdf openssl-1.1.1e/test/evp_test.c
+--- openssl-1.1.1e/test/evp_test.c.evp-kdf	2020-03-17 15:31:17.000000000 +0100
++++ openssl-1.1.1e/test/evp_test.c	2020-03-19 16:04:32.383698571 +0100
 @@ -1705,13 +1705,14 @@ static const EVP_TEST_METHOD encode_test
      encode_test_run,
  };
@@ -4267,9 +4265,9 @@ diff -up openssl-1.1.1d/test/evp_test.c.evp-kdf openssl-1.1.1d/test/evp_test.c
      &keypair_test_method,
      &keygen_test_method,
      &mac_test_method,
-diff -up openssl-1.1.1d/test/pkey_meth_kdf_test.c.evp-kdf openssl-1.1.1d/test/pkey_meth_kdf_test.c
---- openssl-1.1.1d/test/pkey_meth_kdf_test.c.evp-kdf	2019-09-10 15:13:07.000000000 +0200
-+++ openssl-1.1.1d/test/pkey_meth_kdf_test.c	2019-09-13 15:39:34.867725763 +0200
+diff -up openssl-1.1.1e/test/pkey_meth_kdf_test.c.evp-kdf openssl-1.1.1e/test/pkey_meth_kdf_test.c
+--- openssl-1.1.1e/test/pkey_meth_kdf_test.c.evp-kdf	2020-03-17 15:31:17.000000000 +0100
++++ openssl-1.1.1e/test/pkey_meth_kdf_test.c	2020-03-19 16:04:32.386698519 +0100
 @@ -1,5 +1,5 @@
  /*
 - * Copyright 2017-2018 The OpenSSL Project Authors. All Rights Reserved.
@@ -4473,9 +4471,9 @@ diff -up openssl-1.1.1d/test/pkey_meth_kdf_test.c.evp-kdf openssl-1.1.1d/test/pk
  }
  #endif
  
-diff -up openssl-1.1.1d/test/recipes/30-test_evp_data/evpkdf.txt.evp-kdf openssl-1.1.1d/test/recipes/30-test_evp_data/evpkdf.txt
---- openssl-1.1.1d/test/recipes/30-test_evp_data/evpkdf.txt.evp-kdf	2019-09-10 15:13:07.000000000 +0200
-+++ openssl-1.1.1d/test/recipes/30-test_evp_data/evpkdf.txt	2019-09-13 15:39:34.870725710 +0200
+diff -up openssl-1.1.1e/test/recipes/30-test_evp_data/evpkdf.txt.evp-kdf openssl-1.1.1e/test/recipes/30-test_evp_data/evpkdf.txt
+--- openssl-1.1.1e/test/recipes/30-test_evp_data/evpkdf.txt.evp-kdf	2020-03-17 15:31:17.000000000 +0100
++++ openssl-1.1.1e/test/recipes/30-test_evp_data/evpkdf.txt	2020-03-19 16:04:32.388698484 +0100
 @@ -1,5 +1,5 @@
  #
 -# Copyright 2001-2017 The OpenSSL Project Authors. All Rights Reserved.
@@ -4874,9 +4872,9 @@ diff -up openssl-1.1.1d/test/recipes/30-test_evp_data/evpkdf.txt.evp-kdf openssl
 +Ctrl.digest = digest:sha512
 +Output = 00ef42cdbfc98d29db20976608e455567fdddf14
 +
-diff -up openssl-1.1.1d/test/recipes/30-test_evp_data/evppkey_kdf.txt.evp-kdf openssl-1.1.1d/test/recipes/30-test_evp_data/evppkey_kdf.txt
---- openssl-1.1.1d/test/recipes/30-test_evp_data/evppkey_kdf.txt.evp-kdf	2019-09-13 15:39:34.873725658 +0200
-+++ openssl-1.1.1d/test/recipes/30-test_evp_data/evppkey_kdf.txt	2019-09-13 15:39:34.872725675 +0200
+diff -up openssl-1.1.1e/test/recipes/30-test_evp_data/evppkey_kdf.txt.evp-kdf openssl-1.1.1e/test/recipes/30-test_evp_data/evppkey_kdf.txt
+--- openssl-1.1.1e/test/recipes/30-test_evp_data/evppkey_kdf.txt.evp-kdf	2020-03-19 16:04:32.389698467 +0100
++++ openssl-1.1.1e/test/recipes/30-test_evp_data/evppkey_kdf.txt	2020-03-19 16:04:32.389698467 +0100
 @@ -0,0 +1,305 @@
 +#
 +# Copyright 2001-2018 The OpenSSL Project Authors. All Rights Reserved.
@@ -5183,9 +5181,9 @@ diff -up openssl-1.1.1d/test/recipes/30-test_evp_data/evppkey_kdf.txt.evp-kdf op
 +Ctrl.p = p:1
 +Result = INTERNAL_ERROR
 +
-diff -up openssl-1.1.1d/test/recipes/30-test_evp_kdf.t.evp-kdf openssl-1.1.1d/test/recipes/30-test_evp_kdf.t
---- openssl-1.1.1d/test/recipes/30-test_evp_kdf.t.evp-kdf	2019-09-13 15:39:34.875725622 +0200
-+++ openssl-1.1.1d/test/recipes/30-test_evp_kdf.t	2019-09-13 15:39:34.875725622 +0200
+diff -up openssl-1.1.1e/test/recipes/30-test_evp_kdf.t.evp-kdf openssl-1.1.1e/test/recipes/30-test_evp_kdf.t
+--- openssl-1.1.1e/test/recipes/30-test_evp_kdf.t.evp-kdf	2020-03-19 16:04:32.390698450 +0100
++++ openssl-1.1.1e/test/recipes/30-test_evp_kdf.t	2020-03-19 16:04:32.390698450 +0100
 @@ -0,0 +1,13 @@
 +#! /usr/bin/env perl
 +# Copyright 2018 The OpenSSL Project Authors. All Rights Reserved.
@@ -5200,9 +5198,9 @@ diff -up openssl-1.1.1d/test/recipes/30-test_evp_kdf.t.evp-kdf openssl-1.1.1d/te
 +use OpenSSL::Test::Simple;
 +
 +simple_test("test_evp_kdf", "evp_kdf_test");
-diff -up openssl-1.1.1d/test/recipes/30-test_evp.t.evp-kdf openssl-1.1.1d/test/recipes/30-test_evp.t
---- openssl-1.1.1d/test/recipes/30-test_evp.t.evp-kdf	2019-09-10 15:13:07.000000000 +0200
-+++ openssl-1.1.1d/test/recipes/30-test_evp.t	2019-09-13 15:39:34.876725605 +0200
+diff -up openssl-1.1.1e/test/recipes/30-test_evp.t.evp-kdf openssl-1.1.1e/test/recipes/30-test_evp.t
+--- openssl-1.1.1e/test/recipes/30-test_evp.t.evp-kdf	2020-03-17 15:31:17.000000000 +0100
++++ openssl-1.1.1e/test/recipes/30-test_evp.t	2020-03-19 16:04:32.390698450 +0100
 @@ -15,7 +15,7 @@ use OpenSSL::Test qw/:DEFAULT data_file/
  setup("test_evp");
  
@@ -5212,10 +5210,10 @@ diff -up openssl-1.1.1d/test/recipes/30-test_evp.t.evp-kdf openssl-1.1.1d/test/r
      "evpcase.txt", "evpccmcavs.txt" );
  
  plan tests => scalar(@files);
-diff -up openssl-1.1.1d/util/libcrypto.num.evp-kdf openssl-1.1.1d/util/libcrypto.num
---- openssl-1.1.1d/util/libcrypto.num.evp-kdf	2019-09-13 15:39:20.248983182 +0200
-+++ openssl-1.1.1d/util/libcrypto.num	2019-09-13 15:39:34.881725517 +0200
-@@ -4617,3 +4617,11 @@ FIPS_drbg_get_strength
+diff -up openssl-1.1.1e/util/libcrypto.num.evp-kdf openssl-1.1.1e/util/libcrypto.num
+--- openssl-1.1.1e/util/libcrypto.num.evp-kdf	2020-03-19 16:04:11.263064140 +0100
++++ openssl-1.1.1e/util/libcrypto.num	2020-03-19 16:04:32.392698415 +0100
+@@ -4622,3 +4622,11 @@ FIPS_drbg_get_strength
  FIPS_rand_strength                      6380	1_1_0g	EXIST::FUNCTION:
  FIPS_drbg_get_blocklength               6381	1_1_0g	EXIST::FUNCTION:
  FIPS_drbg_init                          6382	1_1_0g	EXIST::FUNCTION:
@@ -5227,9 +5225,9 @@ diff -up openssl-1.1.1d/util/libcrypto.num.evp-kdf openssl-1.1.1d/util/libcrypto
 +EVP_KDF_ctrl_str                        6595	1_1_1b	EXIST::FUNCTION:
 +EVP_KDF_size                            6596	1_1_1b	EXIST::FUNCTION:
 +EVP_KDF_derive                          6597	1_1_1b	EXIST::FUNCTION:
-diff -up openssl-1.1.1d/util/private.num.evp-kdf openssl-1.1.1d/util/private.num
---- openssl-1.1.1d/util/private.num.evp-kdf	2019-09-10 15:13:07.000000000 +0200
-+++ openssl-1.1.1d/util/private.num	2019-09-13 15:39:34.883725481 +0200
+diff -up openssl-1.1.1e/util/private.num.evp-kdf openssl-1.1.1e/util/private.num
+--- openssl-1.1.1e/util/private.num.evp-kdf	2020-03-17 15:31:17.000000000 +0100
++++ openssl-1.1.1e/util/private.num	2020-03-19 16:04:32.393698398 +0100
 @@ -21,6 +21,7 @@ CRYPTO_EX_dup
  CRYPTO_EX_free                          datatype
  CRYPTO_EX_new                           datatype
