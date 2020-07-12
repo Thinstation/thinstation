@@ -13,7 +13,7 @@ Work To Do / Work in Progress: mail to developer List if you can help
 
 New:
 
-- Moved to kernel 5.4.33
+- Moved to kernel 5.4.51
 - Secure boot basic support. Working on getting it signed.
 - Added a new cache loading feature for faster app launching.
 - Enabled compositing by default.
