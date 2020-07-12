@@ -1,0 +1,13 @@
+# Contributor: Ionut Biru <ibiru@archlinux.org>
+# Contributor: William Díaz <wdiaz@archlinux.us>
+
+name=libnice
+version=git
+release=1
+
+build() {
+git clone https://gitlab.freedesktop.org/libnice/libnice.git
+  ts-meson $name build -D gtk_doc=enabled -D tests=disabled
+  meson compile -C build
+  DESTDIR="$PKG" meson install -C build
+}

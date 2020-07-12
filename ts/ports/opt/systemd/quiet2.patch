@@ -1,0 +1,39 @@
+--- src/core/main.c.orig	2020-07-05 23:33:08.050896173 +0000
++++ src/core/main.c	2020-07-05 23:33:55.790410398 +0000
+@@ -1847,14 +1847,14 @@
+         if (arg_system) {
+                 int v;
+ 
+-                log_info("systemd " GIT_VERSION " running in %ssystem mode. (" SYSTEMD_FEATURES ")",
++                log_debug("systemd " GIT_VERSION " running in %ssystem mode. (" SYSTEMD_FEATURES ")",
+                          arg_action == ACTION_TEST ? "test " : "" );
+ 
+                 v = detect_virtualization();
+                 if (v > 0)
+-                        log_info("Detected virtualization %s.", virtualization_to_string(v));
++                        log_debug("Detected virtualization %s.", virtualization_to_string(v));
+ 
+-                log_info("Detected architecture %s.", architecture_to_string(uname_architecture()));
++                log_debug("Detected architecture %s.", architecture_to_string(uname_architecture()));
+ 
+                 if (in_initrd()) {
+                         *ret_first_boot = false;
+--- src/core/hostname-setup.c.orig	2020-07-05 23:40:43.561835257 +0000
++++ src/core/hostname-setup.c	2020-07-05 23:41:16.976197822 +0000
+@@ -37,7 +37,7 @@
+                         return 0;
+ 
+                 if (enoent)
+-                        log_info("No hostname configured.");
++                        log_debug("No hostname configured.");
+ 
+                 hn = FALLBACK_HOSTNAME;
+         }
+@@ -46,6 +46,6 @@
+         if (r < 0)
+                 return log_warning_errno(r, "Failed to set hostname to <%s>: %m", hn);
+ 
+-        log_info("Set hostname to <%s>.", hn);
++        log_debug("Set hostname to <%s>.", hn);
+         return 0;
+ }

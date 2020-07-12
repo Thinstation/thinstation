@@ -1,0 +1,13 @@
+# Maintainer: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
+# Contributor: György Balló <ballogy@freestart.hu>
+
+name=gupnp
+version=git
+release=1
+
+build() {
+  git clone https://gitlab.gnome.org/GNOME/gupnp.git
+  ts-meson $name build -D gtk_doc=true
+  meson compile -C build
+  DESTDIR="$PKG" meson install -C build
+}

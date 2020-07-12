@@ -10,7 +10,7 @@ source=(http://download.gnome.org/sources/$name/${version%.*}/$name-$version.tar
 
 build() {
 	cd $name-$version
-        meson . build -D enable_docs=true --prefix=/usr --libdir=/usr/lib
+        meson . build -D enable_docs=true --prefix=/usr --libdir=/usr/lib -D sftp=false
         ninja -C build
         DESTDIR=$PKG ninja -C build install
 

@@ -1,0 +1,15 @@
+# Maintainer: Eric Bélanger <eric@archlinux.org>
+
+name=gupnp-igd
+version=git
+release=3
+
+build() {
+  git clone https://gitlab.gnome.org/GNOME/gupnp-igd.git
+
+#  ./configure --prefix=/usr --enable-gtk-doc
+  ts-meson $name build
+  meson compile -C build
+  DESTDIR="$PKG" meson install -C build
+}
+

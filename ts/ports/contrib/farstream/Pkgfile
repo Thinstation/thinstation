@@ -1,0 +1,21 @@
+# Maintainer:
+
+name=farstream
+version=0.2.9
+release=2
+source=(https://freedesktop.org/software/$name/releases/$name/$name-$version.tar.gz{,.asc}
+        farstream-make-4.3.patch)
+
+build() {
+  cd $name-$version
+  patch -p1 -i ../farstream-make-4.3.patch # Fix build with make 4.3
+  ./autogen.sh
+  ./configure --prefix=/usr \
+    --enable-gtk-doc \
+    --with-package-name='Arch Linux farstream package' \
+    --with-package-origin='http://archlinux.org'
+  make
+  make DESTDIR="$PKG" install
+}
+
+# vim:set ts=2 sw=2 et:

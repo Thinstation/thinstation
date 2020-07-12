@@ -4,14 +4,17 @@
 # Packager:    Lucas Hazel, lucas at die dot net dot au
 # Depends on:  libsdl
 # Nice to have: libseccomp libiscsi libusb usbredir
- 
+
 name=qemu
-version=4.2.0
+version=git
 release=1
-source=(http://wiki.qemu.org/download/qemu-$version.tar.bz2)
+#source=(http://wiki.qemu.org/download/qemu-$version.tar.bz2)
 
 build() {
-  cd $name-$version
+#  cd $name-$version
+git clone https://git.qemu.org/git/qemu.git
+cd qemu
+
   sed -i net/slirp.c -e "s/0x0a000203/0x08080808/g"
 
   ./configure --prefix=/usr \
@@ -27,16 +30,15 @@ build() {
       --enable-vnc-sasl \
       --enable-libnfs \
       --enable-libiscsi \
-      --enable-virglrenderer \
-      --enable-bluez
+      --enable-virglrenderer
 
   make ${MAKEFLAGS:=}
   make DESTDIR=$PKG install
 
-  make qemu.1 qemu-img.1 qemu-nbd.8
-  install -D -m 644 qemu.1 $PKG/usr/man/man1/qemu.1
-  install -D -m 644 qemu-img.1 $PKG/usr/man/man1/qemu-img.1
-  install -D -m 644 qemu-nbd.8 $PKG/usr/man/man8/qemu-nbd.8
+#  make qemu.1 qemu-img.1 qemu-nbd.8
+#  install -D -m 644 qemu.1 $PKG/usr/man/man1/qemu.1
+#  install -D -m 644 qemu-img.1 $PKG/usr/man/man1/qemu-img.1
+#  install -D -m 644 qemu-nbd.8 $PKG/usr/man/man8/qemu-nbd.8
 
 #  rm -rf $PKG/usr/share/locale
 

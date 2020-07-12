@@ -5,18 +5,19 @@
 # Depends on:  ncurses
 
 name=gdb
-version=8.3.1
+version=9.2
 release=1
 source=(ftp://ftp.gnu.org/gnu/$name/$name-$version.tar.xz)
 
 build() {
 unset CPPFLAGS
     cd $name-$version
-    ./configure --prefix=/usr
+    mkdir -p build && cd build
+    ../configure --prefix=/usr
     make
 
     # ...
-    sed -i 's/^exit $st/exit 0/g' missing
+#    sed -i 's/^exit $st/exit 0/g' missing
 
     make DESTDIR=$PKG install
     rm -rf $PKG/usr/{lib,include,share/info,share/locale}

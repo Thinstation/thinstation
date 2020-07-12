@@ -5,13 +5,14 @@
 # Depends on: python
 
 name=talloc
-version=2.2.0
+version=2.3.1
 release=1
 source=(https://www.samba.org/ftp/$name/$name-$version.tar.gz
         talloc.3)
 
 build() {
 	cd $name-$version
+#	sed -i 's/conf\.check_python_headers()/conf.check_python_headers(features="pyext")/' buildtools/wafsamba/samba_python.py
 
 	./configure --prefix=/usr --mandir=/usr/man \
 	            --enable-talloc-compat1

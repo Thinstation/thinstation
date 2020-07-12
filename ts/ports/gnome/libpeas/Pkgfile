@@ -5,13 +5,13 @@
 # Depends on: gtk3 hicolor-icon-theme gobject-introspection intltool pygobject pygobject3 glade xorg-libxdamage
 
 name=libpeas
-version=1.24.0
+version=1.26.0
 release=1
 source=(http://ftp.gnome.org/pub/gnome/sources/$name/${version:0:4}/$name-$version.tar.xz)
 
 build() {
 	ts-meson libpeas-$version build \
-	-D vapi=true -D gtk_doc=true
+	-D vapi=true -D gtk_doc=true -D demos=false -D python3=false
 
 	ninja -C build
 	meson test -C build
