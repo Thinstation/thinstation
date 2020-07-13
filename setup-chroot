@@ -64,52 +64,55 @@ first_or_last()
 get_gnome_proxy()
 {
 	if which gconftool-2 &>/dev/null; then
-	        mode=`gconftool-2 -g /system/proxy/mode 2>/dev/null`
-        	use_http_proxy=`gconftool-2 -g /system/http_proxy/use_http_proxy 2>/dev/null`
-	        use_same_proxy=`gconftool-2 -g /system/http_proxy/use_same_proxy 2>/dev/null`
-	        use_authentication=`gconftool-2 -g /system/http_proxy/use_authentication 2>/dev/null`
-	        authentication_user=`gconftool-2 -g /system/http_proxy/authentication_user 2>/dev/null`
-	        authentication_password=`gconftool-2 -g /system/http_proxy/authentication_password 2>/dev/null`
-	        host=`gconftool-2 -g /system/http_proxy/host 2>/dev/null`
-	        port=`gconftool-2 -g /system/http_proxy/port 2>/dev/null`
-	        ignore_hosts=`gconftool-2 -g /system/http_proxy/ignore_hosts 2>/dev/null`
-	        socks_host=`gconftool-2 -g /system/proxy/socks_host 2>/dev/null`
-	        socks_port=`gconftool-2 -g /system/proxy/socks_port 2>/dev/null`
-	        secure_host=`gconftool-2 -g /system/proxy/secure_host 2>/dev/null`
-	        secure_port=`gconftool-2 -g /system/proxy/secure_port 2>/dev/null`
-	        ftp_host=`gconftool-2 -g /system/proxy/ftp_host 2>/dev/null`
-	        ftp_port=`gconftool-2 -g /system/proxy/ftp_port 2>/dev/null`
+		mode=`gconftool-2 -g /system/proxy/mode 2>/dev/null`
+		use_http_proxy=`gconftool-2 -g /system/http_proxy/use_http_proxy 2>/dev/null`
+		use_same_proxy=`gconftool-2 -g /system/http_proxy/use_same_proxy 2>/dev/null`
+		use_authentication=`gconftool-2 -g /system/http_proxy/use_authentication 2>/dev/null`
+		authentication_user=`gconftool-2 -g /system/http_proxy/authentication_user 2>/dev/null`
+		authentication_password=`gconftool-2 -g /system/http_proxy/authentication_password 2>/dev/null`
+		host=`gconftool-2 -g /system/http_proxy/host 2>/dev/null`
+		port=`gconftool-2 -g /system/http_proxy/port 2>/dev/null`
+		ignore_hosts=`gconftool-2 -g /system/http_proxy/ignore_hosts 2>/dev/null`
+		socks_host=`gconftool-2 -g /system/proxy/socks_host 2>/dev/null`
+		socks_port=`gconftool-2 -g /system/proxy/socks_port 2>/dev/null`
+		secure_host=`gconftool-2 -g /system/proxy/secure_host 2>/dev/null`
+		secure_port=`gconftool-2 -g /system/proxy/secure_port 2>/dev/null`
+		ftp_host=`gconftool-2 -g /system/proxy/ftp_host 2>/dev/null`
+		ftp_port=`gconftool-2 -g /system/proxy/ftp_port 2>/dev/null`
 	fi
         if [ -z "$use_authentication" ]; then use_authentication=false ; fi
 }
 
 set_proxy()
 {
-        if [ "$mode" == "manual" ]; then
-                if $use_http_proxy && [ -n "$host" ] && [ -n "$port" ] ; then
+	if [ "$mode" == "manual" ]; then
+		if $use_http_proxy && [ -n "$host" ] && [ -n "$port" ] ; then
 			no_proxy=`echo "$ignore_hosts" |sed -e 's/\[//g' |sed -e 's/\]//g'`
 			export no_proxy
-                        if $use_authentication; then
-                                if [ -n "$authentication_user" ] && [ -n "$authentication_password" ]; then
-                                        PROXY_AUTH="$authentication_user:$authentication_password"
-                                elif [ -n "$authentication_user" ]; then
-                                        PROXY_AUTH="$authentication_user"
-                                fi
-                                export http_proxy=http://${PROXY_AUTH}@$host:$port
-                                if [ -n "$ftp_host" ] && [ -n "$ftp_port" ]; then
-                                        export ftp_proxy=http://${PROXY_AUTH}@$ftp_host:$ftp_port
-                                fi
-                        else
-                            	if [ -n "$ftp_host" ] && [ -n "$ftp_port" ]; then
-                                        export ftp_proxy=http://$ftp_host:$ftp_port
-                                fi
-                                export http_proxy=http://$host:$port
-                        fi
-                        if [ -n "$secure_host" ] && [ -n "$secure_port" ]; then
-                                export https_proxy=https://$secure_host:$secure_port
-                        fi
-                fi
-        fi
+			if $use_authentication; then
+				if [ -n "$authentication_user" ] && [ -n "$authentication_password" ]; then
+					PROXY_AUTH="$authentication_user:$authentication_password"
+				elif [ -n "$authentication_user" ]; then
+					PROXY_AUTH="$authentication_user"
+				fi
+				export http_proxy=http://${PROXY_AUTH}@$host:$port
+				if [ -n "$ftp_host" ] && [ -n "$ftp_port" ]; then
+					export ftp_proxy=http://${PROXY_AUTH}@$ftp_host:$ftp_port
+				fi
+				if [ -n "$secure_host" ] && [ -n "$secure_port" ]; then
+					export https_proxy=https://${PROXY_AUTH}@$secure_host:$secure_port
+				fi
+			else
+				if [ -n "$ftp_host" ] && [ -n "$ftp_port" ]; then
+					export ftp_proxy=http://$ftp_host:$ftp_port
+				fi
+				export http_proxy=http://$host:$port
+				if [ -n "$secure_host" ] && [ -n "$secure_port" ]; then
+					export https_proxy=https://$secure_host:$secure_port
+				fi
+			fi
+		fi
+	fi
 }
 
 mounted()
@@ -163,8 +166,8 @@ launch_chroot()
 		do_unmounts
 		secure_keys
 		if [ -e cleanstage2 ] ; then
-                	ts/bin/clean_chroot
-        	fi
+			ts/bin/clean_chroot
+		fi
 	fi
 }
 
@@ -186,7 +189,7 @@ secure_keys()
 do_unmounts()
 {
 	for mount in dev/pts dev tmp proc sys ; do
-	        fuser -k "$PWD"/$mount > /dev/null 2>&1
+		fuser -k "$PWD"/$mount > /dev/null 2>&1
 		while mounted $mount ; do
 			umount $mount
 		done
