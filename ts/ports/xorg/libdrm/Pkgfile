@@ -4,18 +4,14 @@
 # Depends on: libpthread-stubs xorg-libpciaccess 
 
 name=libdrm
-version=2.4.99
+version=2.4.102
 release=1
-source=(http://dri.freedesktop.org/libdrm/libdrm-$version.tar.bz2)
+source=(http://dri.freedesktop.org/libdrm/libdrm-$version.tar.xz)
 
 build() {
-    cd $name-$version
-
-    ./configure --prefix=/usr \
-		--mandir=/usr/man \
-		--disable-valgrind \
-		--disable-cairo-tests
-
-    make
-    make DESTDIR=$PKG install
+ts-meson $name-$version build \
+    -Dudev=false \
+    -Dvalgrind=false
+  ninja -C build
+  DESTDIR="$PKG" meson install -C build
 }
