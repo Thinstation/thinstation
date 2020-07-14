@@ -1763,6 +1763,13 @@ filesystem_fixups()
 	echo -e "\tLinking BusyBox\n"
 	chroot ./tmp-tree /bin/busybox --install -s
 
+	if [ -e ./tmp-tree/lib/libcrypto.so.1.1 ]; then
+		cp /usr/lib/.libcrypto.so.1.1.hmac ./tmp-tree/lib
+	fi
+	if [ -e ./tmp-tree/lib/libssl.so.1.1 ]; then
+		cp /usr/lib/.libssl.so.1.1.hmac ./tmp-tree/lib
+	fi
+
 	if [ -e ./tmp-tree/finalize ]; then
 		echo -e "\tRunning Finalize\n"
 		mount --bind /dev ./tmp-tree/dev

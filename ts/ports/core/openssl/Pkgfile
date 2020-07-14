@@ -95,6 +95,13 @@ build() {
     make depend
     make DESTDIR=$PKG LIBDIR=lib MANDIR=/usr/share/man MANSUFFIX=ssl install_sw install_ssldirs install_man_docs -j1
 
+    strip --strip-unneeded $PKG/usr/lib/libcrypto.so.1.1
+    crypto/fips/fips_standalone_hmac $PKG/usr/lib/libcrypto.so.1.1 > $PKG/usr/lib/.libcrypto.so.1.1.hmac
+    ln -s .libcrypto.so.1.1.hmac $PKG/usr/lib/.libcrypto.so.hmac
+    strip --strip-unneeded $PKG/usr/lib/libssl.so.1.1
+    crypto/fips/fips_standalone_hmac $PKG/usr/lib/libssl.so.1.1 > $PKG/usr/lib/.libssl.so.1.1.hmac
+    ln -s .libssl.so.1.1.hmac $PKG/usr/lib/.libssl.so.hmac
+
 #    find $PKG -name "*fips*" -delete
     chmod -R +w $PKG
     install -D -m 755 $SRC/mksslcert.sh $PKG/usr/bin/mksslcert
