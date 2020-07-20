@@ -6,10 +6,13 @@
 name=xorg-xf86-video-nouveau
 version=1.0.16
 release=1
-source=(http://xorg.freedesktop.org/archive/individual/driver/xf86-video-nouveau-$version.tar.bz2)
+source=(http://xorg.freedesktop.org/archive/individual/driver/xf86-video-nouveau-$version.tar.bz2 \
+	1-2-drmmode-fix-screen-resize-without-acceleration.patch)
 
 build() {
     cd xf86-video-nouveau-$version
+    patch -p1 -i $SRC/1-2-drmmode-fix-screen-resize-without-acceleration.patch
+
     ./configure --prefix=/usr --mandir=/usr/man
     make
     make DESTDIR=$PKG install

@@ -1,0 +1,13 @@
+diff --git a/src/drmmode_display.c b/src/drmmode_display.c
+index 89927a4..69421e1 100644
+--- a/src/drmmode_display.c
++++ b/src/drmmode_display.c
+@@ -1561,7 +1561,7 @@ drmmode_xf86crtc_resize(ScrnInfoPtr scrn, int width, int height)
+ 	}
+ 
+ 	ppix = screen->GetScreenPixmap(screen);
+-	if (pNv->AccelMethod >= NONE)
++	if (pNv->AccelMethod > NONE)
+ 		nouveau_bo_ref(pNv->scanout, &drmmode_pixmap(ppix)->bo);
+ 	screen->ModifyPixmapHeader(ppix, width, height, -1, -1, pitch,
+ 				   (pNv->AccelMethod > NONE || pNv->ShadowPtr) ?
