@@ -16,24 +16,21 @@ firmware_loaded()
 }
 
 
-if is_enabled $FASTBOOT; then
-	echo -e "Notice!   It looks like fastboot is enabled. If any firmwares were loaded, \n\twe won't be able to detect them.\n"
-	echo -e "\t  If you need an accurate listing of loaded firmwares, rebuild the \n\timage without fastboot enabled before running this utility.\n"
-	echo -e "\t  If you intend to always build with param allfirmware true, then \n\ta firmware list should not be necessary.\n"
-	echo -e "\t  Verify hardware firmware support with your new profile by running \n \`journalctl -xe |grep -ie firm\`.\n"
+if [ -e /fastboot/firmware ]; then
+	fdir=/fastboot/firmware
+else
+	fdir=/lib/firmware
 fi
-for firmware in `find /lib/firmware -type f`; do
+for firmware in `find $fdir -type f`; do
 	if firmware_loaded "$firmware"; then
-		IFS=$'\n'
-		firmware=$(basename "$firmware")
+		firmware=`echo $firmware |cut -d "/" -f4-`
 		echo "firmware $firmware" >> /firmware.list
-		unset IFS
 	fi
 done
 
 IFS=$'\n'
 for firm in `journalctl -xe |grep -e "Direct firmware load" |sed -E 's/[[:alnum:][:punct:][:space:]]+Direct firmware load for //g' |sed -E 's/ failed [[:alnum:][:punct:][:space:]]+//g'`; do
-	firm=$(basename "$firm")
+	firm=`echo "$firm" |cut -d "/" -f4-`
 	echo "firmware $firm" >> /firmware.list
 done
 unset IFS

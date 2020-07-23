@@ -165,7 +165,6 @@ mounted()
 
 lib_in_path()
 {
-#set -x
 	for lpath in `cat lpaths.tmp` $filepath; do
 		if [ -e ./tmp-tree$lpath/$1 ] || [ -e $pkgname$lpath/$1 ]; then
 			return 0
@@ -177,7 +176,6 @@ lib_in_path()
 			return 0
 		fi
 	fi
-#set +x
 	return 1
 }
 export -f lib_in_path
@@ -372,7 +370,7 @@ module_package_dependencies()
 						;;
 						firmware)
 							if is_enabled $ts_allfirmware; then
-								if [ -z "`find ./tmp-tree/lib/firmware -name ${name}`" ]; then
+								if [ -e "./tmp-tree/lib/firmware/$name" ]; then
 									if ! is_enabled $DISPLAYED; then
 										echo "Adding firmware dependencies for $module"
 										DISPLAYED=true
@@ -853,33 +851,22 @@ allfirm()
 	if is_enabled $ts_allfirmware; then
 		local fmodule=`find /lib/modules/$KERNVER -name $1`
 		local module=`basename $fmodule`
-		if [ -e /ts/firmware_notfound/$module.oops ]; then
-			WRITE_CACHE=false
-		fi
-		if [ -e /ts/firmware_cache/$module.turbo ]; then
-			if [ -e /ts/firmware_notfound/$module.oops ]; then
-				echo -e "\tModule $module has missing firmware!"
-				firmlist=`cat /ts/firmware_cache/$module.turbo |grep -v -f /ts/firmware_notfound/$module.oops`
-			else
-				firmlist=`cat /ts/firmware_cache/$module.turbo`
-			fi
-			WRITE_CACHE=false
-		else
-			firmlist=`modinfo -F firmware $fmodule`
-			WRITE_CACHE=true
-			mkdir -p /ts/firmware_cache
-			mkdir -p /ts/firmware_notfound
-			touch /ts/firmware_cache/$module.turbo
-		fi
+		firmlist=`modinfo -F firmware $fmodule`
+
+		mkdir -p /ts/firmware_found
+		mkdir -p /ts/firmware_notfound
+		rm -rf /ts/firmware_cache/$module
+		rm -rf /ts/firmware_notfound/$module
+
 		if [ -n "$firmlist" ]; then
 			echo "Adding extra module firmware for $module"
 			for firmware in $firmlist; do
-				copy_firmware `basename $firmware`
+				copy_firmware $firmware
 				result=$?
-				if [ "$result" == "0" ] && $WRITE_CACHE; then
-					echo "$firmware" >> /ts/firmware_cache/$module.turbo
-				elif [ "$result" == "2" ] && $WRITE_CACHE; then
-					echo "$firmware" >> /ts/firmware_notfound/$module.oops
+				if [ "$result" == "0" ]; then
+					echo "$firmware" >> /ts/firmware_found/$module
+				elif [ "$result" == "2" ]; then
+					echo "$firmware" >> /ts/firmware_notfound/$module
 				fi
 			done
 		fi
@@ -952,23 +939,34 @@ copy_firmware()
 	if [ -n "$2" ]; then
 		firmfiles=`find -L /lib/firmware/ -name $1\* | grep $2`
 	else
-		firmfiles=`find -L /lib/firmware/ -name $1\*`
+		firmfiles=/lib/firmware/$1
 	fi
 	if [ -n "$firmfiles" ]; then
 		for firmfile in $firmfiles; do
-			firmpath=./tmp-tree/lib/firmware/`echo $firmfile |cut -d '/' -f4-`
-			if [ ! -e $firmpath ]; then
-				echo "Firmware: `basename $firmfile`"
-				if [ ! -d ${firmpath%/*} ] ;then
-					mkdir -p ${firmpath%/*}
+			firmpath=./tmp-tree${firmfile}
+			if [ -e $firmfile ]; then
+				if [ -n `readlink $firmfile` ]; then
+					ffile=`readlink -e $firmfile`
 				fi
-				ln $firmfile ${firmpath%/*}/. 2>/dev/null
-				return 0
+				if [ -e $ffile ]; then
+					if [ ! -e $firmpath ]; then
+						echo "Firmware: $firmfile"
+						if [ ! -d `dirname ${firmpath}` ] ;then
+							mkdir -p `dirname ${firmpath}`
+						fi
+						ln $ffile ${firmpath} #|| return 2
+					fi
+				else
+					echo -e "\tNotice, Firmware $1 not found"
+					return 2
+				fi
+			else
+				echo -e "\tNotice, Firmware $1 not found"
+				return 2
 			fi
 		done
 	else
 		echo -e "\tNotice, Firmware $1 not found"
-#		echo "$1" >> /missing
 		return 2
 	fi
 }
@@ -1188,12 +1186,12 @@ if is_enabled $ts_earlymicrocode ; then
 elif is_enabled $ts_allfirmware ; then
 	echo "Doing an All Firmware Build!"
 	if [ -e /lib/firmware/amd-ucode ]; then
-	    for microcode in `find /lib/firmware/amd-ucode -type f -printf '%f '`; do
+	    for microcode in `find /lib/firmware/amd-ucode -type f |cut -d "/" -f4-`; do
 		copy_firmware $microcode
 	    done
 	fi
 	if [ -e /lib/firmware/intel-ucode ]; then
-	    for microcode in `find /lib/firmware/intel-ucode -type f -printf '%f '`; do
+	    for microcode in `find /lib/firmware/intel-ucode -type f |cut -d "/" -f4-`; do
 		copy_firmware $microcode
 	    done
 	fi
