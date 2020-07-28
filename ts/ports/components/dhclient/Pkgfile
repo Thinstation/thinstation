@@ -4,7 +4,7 @@
 # Depends on:
 
 name=dhclient
-version=4.3.1
+version=4.4.2
 release=1
 source=(ftp://ftp.isc.org/isc/dhcp/$version/dhcp-$version.tar.gz)
 
@@ -12,7 +12,7 @@ build()
 {
     cd dhcp-$version
 
-    ./configure --prefix=/usr 
-    make
-    make DESTDIR=$PKG install
+    ./configure --prefix=/usr
+    make -j1
+    make -C client install DESTDIR=$PKG
 }
