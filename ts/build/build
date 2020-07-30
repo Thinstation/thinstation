@@ -2532,17 +2532,18 @@ if [ -z "$NOIMAGES" ]; then
 
 				CONFIGFILE=refind.conf
 				refind_copy_files
-				mv $ESP/EFI/BOOT/bootx64.efi $ESP/EFI/BOOT/loader.efi
-                        #        sys_copy /boot/efi/EFI/fedora/shimx64.efi $ESP/EFI/BOOT/bootx64.efi
-				sys_copy /usr/lib/prebootloader/KeyTool.efi $ESP/EFI/BOOT/KeyTool.efi
-				sys_copy /boot/efi/EFI/ThinStation/shimx64.efi $ESP/EFI/BOOT/bootx64.efi
-                         #       sys_copy /boot/efi/EFI/fedora/MokManager.efi $ESP/EFI/BOOT/MokManager.efi
-                         #       sys_copy /boot/efi/EFI/ThinStation/shimx64.efi $ESP/EFI/BOOT/grubx64.efi
-                                sys_copy /boot/efi/EFI/ThinStation/mmx64.efi $ESP/EFI/BOOT/mmx64.efi
-                                sys_copy /ts/certs/'ThinStation Platform Key'.cer $ESP/ThinStation-PK.cer
-				sys_copy /ts/certs/ThinStation-KEK-CA.cer $ESP/ThinStation-KEK-CA.cer
+#				mv $ESP/EFI/BOOT/bootx64.efi $ESP/EFI/BOOT/loader.efi
+				mv $ESP/EFI/BOOT/bootx64.efi $ESP/EFI/BOOT/grubx64.efi
+				sys_copy /boot/efi/EFI/fedora/shimx64.efi $ESP/EFI/BOOT/bootx64.efi
+				sys_copy /boot/efi/EFI/fedora/MokManager.efi $ESP/EFI/BOOT/MokManager.efi
+				sys_copy /boot/efi/EFI/fedora/mmx64.efi $ESP/EFI/BOOT/mmx64.efi
+#				sys_copy /boot/efi/EFI/ThinStation/shimx64.efi $ESP/EFI/BOOT/bootx64.efi
+#				sys_copy /boot/efi/EFI/ThinStation/shimx64.efi $ESP/EFI/BOOT/grubx64.efi
+#				sys_copy /boot/efi/EFI/ThinStation/mmx64.efi $ESP/EFI/BOOT/mmx64.efi
+#                                sys_copy /ts/certs/'ThinStation Platform Key'.cer $ESP/ThinStation-PK.cer
+#				sys_copy /ts/certs/ThinStation-KEK-CA.cer $ESP/ThinStation-KEK-CA.cer
 				sys_copy /ts/certs/ThinStation-SB-UEFI-CA.cer $ESP/ThinStation-SB-UEFI-CA.cer
-				sys_copy /ts/certs/ThinStation-SB-UEFI-Signing.cer $ESP/ThinStation-SB-UEFI-Signing.cer
+#				sys_copy /ts/certs/ThinStation-SB-UEFI-Signing.cer $ESP/ThinStation-SB-UEFI-Signing.cer
 				add_overlay
 				add_image efi
 				wrap_efi
@@ -2623,20 +2624,19 @@ if [ -z "$NOIMAGES" ]; then
 					configdir=boot-images/templates/systemd-boot/"$ts_gummitheme"
 					sys_copy /boot/efi/EFI/fedora/shimx64.efi $ESP/EFI/BOOT/bootx64.efi
 					sys_copy /boot/efi/EFI/fedora/MokManager.efi $ESP/EFI/BOOT/MokManager.efi
-					sys_copy /boot/efi/EFI/ThinStation/shimx64.efi $ESP/EFI/BOOT/grubx64.efi
-					sys_copy /boot/efi/EFI/ThinStation/mmx64.efi $ESP/EFI/BOOT/mmx64.efi
-	                                sys_copy /ts/certs/'ThinStation Platform Key'.cer $ESP/ThinStation-PK.cer
-        	                        sys_copy /ts/certs/ThinStation-KEK-CA.cer $ESP/ThinStation-KEK-CA.cer
+					sys_copy /boot/efi/EFI/fedora/mmx64.efi $ESP/EFI/BOOT/mmx64.efi
+#					sys_copy /boot/efi/EFI/ThinStation/shimx64.efi $ESP/EFI/BOOT/grubx64.efi
+#					sys_copy /boot/efi/EFI/ThinStation/mmx64.efi $ESP/EFI/BOOT/mmx64.efi
+#	                                sys_copy /ts/certs/'ThinStation Platform Key'.cer $ESP/ThinStation-PK.cer
+#        	                        sys_copy /ts/certs/ThinStation-KEK-CA.cer $ESP/ThinStation-KEK-CA.cer
                 	                sys_copy /ts/certs/ThinStation-SB-UEFI-CA.cer $ESP/ThinStation-SB-UEFI-CA.cer
-                        	        sys_copy /ts/certs/ThinStation-SB-UEFI-Signing.cer $ESP/ThinStation-SB-UEFI-Signing.cer
+#                        	        sys_copy /ts/certs/ThinStation-SB-UEFI-Signing.cer $ESP/ThinStation-SB-UEFI-Signing.cer
 #					echo "loader.efi,ThinStation,,ThinStation default boot entry" > boot.csv
 #					iconv -t UTF-16 < boot.csv > $ESP/EFI/BOOT/BOOT.CSV
 #					iconv -t UTF-16 < boot.csv > $ESP/EFI/BOOT/BOOTX64.CSV
 #					rm boot.csv
-#					sys_copy /usr/lib/prebootloader/PreLoader.efi $ESP/EFI/BOOT/bootx64.efi
-#					sys_copy /usr/lib/prebootloader/HashTool.efi $ESP/EFI/BOOT/HashTool.efi
-					sys_copy /usr/lib/systemd/boot/efi/systemd-bootx64.efi $ESP/EFI/BOOT/loader.efi
-#					sys_copy /usr/lib/prebootloader/PreLoader.efi $ESP/EFI/Microsoft/Boot/bootmgr.efi
+#					sys_copy /usr/lib/systemd/boot/efi/systemd-bootx64.efi $ESP/EFI/BOOT/loader.efi
+					sys_copy /usr/lib/systemd/boot/efi/systemd-bootx64.efi $ESP/EFI/BOOT/grubx64.efi
 					for file in `find $configdir -type f |sed -e "s|$configdir||g"`; do
 						sys_copy ${configdir}${file} $ESP/$file
 						sed -i -e "s|/boot/vmlinuz|/boot/$KERN64|g" $ESP/$file
