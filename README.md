@@ -1,6 +1,7 @@
 # ThinStation
+Visit the ThinStation Wiki.
+[Wiki]: https://github.com/Thinstation/thinstation/wiki/Getting-Started-with-ThinStation
 
-[Wiki]https://github.com/Thinstation/thinstation/wiki/Getting-Started-with-ThinStation
 README - Displaying of this file can be disabled by touching `/ts/etc/READ`
 
 This env was created for you by Donald A. Cupp Jr. from Crux and ThinStation
