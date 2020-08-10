@@ -2486,21 +2486,27 @@ if [ -z "$NOIMAGES" ]; then
 			;;
 			iso)
 				ESP=boot-images/iso/source
-				BDIR=/syslinux
-				CONFIGFILE=isolinux.cfg
-				LOADER=isolinux.bin
-				LM=4
+
+                                BDIR=/isolinux
+                                CONFIGFILE=isolinux.cfg
+                                LOADER=isolinux.bin
+                                syslinux_copy_files_bios
+
+                                BDIR=/syslinux
+                                CONFIGFILE=syslinux.cfg
+                                LOADER=syslinux
+                                LM=2
+                                syslinux_copy_files_bios
 
 				addpkgs $ESP
-				syslinux_copy_files_bios
 				rufus_copy_files
 				add_image
 				add_overlay
 
 				mkisofs	-V "$ts_cdvolname" \
 					-o $ESP/../thinstation.iso \
-					-b boot/syslinux/isolinux.bin \
-					-c boot/syslinux/boot.cat \
+					-b boot/isolinux/isolinux.bin \
+					-c boot/isolinux/boot.cat \
 					-no-emul-boot \
 					-boot-load-size 4 \
 					-boot-info-table \
