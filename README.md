@@ -71,4 +71,4 @@ This will also work with the components directory.
 
 Never edit the ports in `/usr/ports/`. You will likely lose your work. 
 If you need to edit a port, bring it into the `/ts/ports/(something appt)` directory and make your own package.
-Everything else you might need is in `/ts/TS_ENV`
+Everything else you might need is in `/ts/TS_ENV`and `/ts/bin`
