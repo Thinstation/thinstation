@@ -18,7 +18,7 @@ Work To Do / Work in Progress: mail to developer List if you can help
 New:
 
 - FIRMWARE routine updated. You will need to be more specific about the folder and file you need. Update your machine profile.
-- Moved to kernel 5.4.54
+- Moved to kernel 5.4.55
 - Secure boot basic support. Working on getting it signed.
 - Added a new cache loading feature for faster app launching.
 - Enabled compositing by default.
@@ -71,4 +71,4 @@ This will also work with the components directory.
 
 Never edit the ports in `/usr/ports/`. You will likely lose your work. 
 If you need to edit a port, bring it into the `/ts/ports/(something appt)` directory and make your own package.
-Everything else you might need is in `/ts/TS_ENV`
+Everything else you might need is in `/ts/TS_ENV`and `/ts/bin`
