@@ -6,18 +6,9 @@ LIBDIR=./packages/nx/usr/NX/lib
 INSTALLDIR=./packages/nx
 
 tar -C wget_tmp -zxf ./wget_tmp/$tarname
-let returnval=returnval+$?
-#mkdir -p $INSTALLDIR
-#cp -rf ./wget_tmp/NX $INSTALLDIR/.
-tar -C $INSTALLDIR/lib -xvf ./wget_tmp/NX/etc/NX/server/packages/nxclient.tar.gz
-#rm -rf $INSTALLDIR/usr
 
-#mv $INSTALLDIR/NX/lib/* $LIBDIR/.
-#rmdir $INSTALLDIR/NX/lib
-#rm $LIBDIR/libjpeg*
-#rm $LIBDIR/libcrypto.so
-#rm $LIBDIR/libz.*
-#rm $LIBDIR/libpng*
-#ln -sf /lib $INSTALLDIR/NX/lib
+NX_INSTALL_PREFIX=/build/packages/nx/lib wget_tmp/NX/nxclient --install slackware
+
+let returnval=returnval+$?
 
 exit $returnval
