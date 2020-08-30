@@ -2,12 +2,15 @@
 
 . /etc/thinstation.global
 
+NXPLAYERBIN=/lib/NX/bin/nxplayer
+NXCLIENTBIN=/lib/NX/bin/nxclient
+
 case $1 in
 "--admin")
-	nxclient --admin
+	$NXCLIENTBIN --admin
 ;;
 "--wizard")
-	nxclient --wizard
+	$NXPLAYERBIN --wizard
 
 	. /etc/nx.functions
 	nx_menu
@@ -27,10 +30,9 @@ case $1 in
 	fi
 	;;
 "")
-	/lib/NX/bin/nxplayer
+	$NXPLAYERBIN
 ;;
 *)
-	/lib/NX/bin/nxplayer --session ~/.nx/config/$1.nxs
+	$NXPLAYERBIN --session ~/.nx/config/$1.nxs
 ;;
 esac
-
