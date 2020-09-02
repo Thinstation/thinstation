@@ -12,8 +12,9 @@ if is_enabled $FREERDP_SELECT_SERVER; then
 	SERVER_LIST=""
 	CNT=0
 	while [[ ! -z "`eval echo '$FREERDP_SERVER_'$CNT`" ]]; do
-		SERVER_LIST="$SERVER_LIST `eval echo '$FREERDP_SERVER_'$CNT` status"
-		let CNT=CNT+1
+		let tag=CNT+1
+		SERVER_LIST="$SERVER_LIST `eval echo '$tag $FREERDP_SERVER_'$CNT` status"
+		let CNT+=1
 	done
 	SELECTED_SERVER=""
 	SELECTED_SERVER=`Xdialog	--stdout \
