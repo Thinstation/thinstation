@@ -12,7 +12,11 @@ if is_enabled $FREERDP_SELECT_SERVER; then
 	SERVER_LIST=""
 	CNT=0
 	while [[ ! -z "`eval echo '$FREERDP_SERVER_'$CNT`" ]]; do
-		let tag=CNT+1
+		unset tag
+		SERVERPART=`eval echo '$FREERDP_SERVER_'$CNT |cut -s -d ' ' -f2`
+		if [ -z "$SERVERPART" ]; then
+			let tag=CNT+1
+		fi
 		SERVER_LIST="$SERVER_LIST `eval echo '$tag $FREERDP_SERVER_'$CNT` status"
 		let CNT+=1
 	done
