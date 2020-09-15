@@ -5,15 +5,13 @@
 # Group: gnome
 
 name=shared-mime-info
-version=1.14
+version=git
 release=1
-source=(https://gitlab.freedesktop.org/xdg/shared-mime-info/uploads/aee9ae9646cbef724bbb1bd2ba146556/shared-mime-info-$version.tar.xz)
+source=(https://gitlab.freedesktop.org/xdg/shared-mime-info/-/archive/master/shared-mime-info-master.tar.bz2)
 
 build() {
-	cd $name-$version
-
-	./configure --prefix=/usr --mandir=/usr/man
-	make
-	make DESTDIR=$PKG install
-
+	cd $name-master
+	meson _build -Dprefix=/usr
+	DESTDIR=$PKG ninja -v -C _build install
+	update-mime-database $PKG/usr/share/mime
 }

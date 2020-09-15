@@ -1,0 +1,34 @@
+# Maintainer: Sven-Hendrik Haase <svenstaro@gmail.com>
+# Contributor: Rémy Oudompheng <remy@archlinux.org>
+# Contributor: Daniel J Griffiths <ghost1227@archlinux.us>
+# Contributor: Roman Kyrylych <Roman.Kyrylych@gmail.com>
+
+name=zziplib
+version=0.13.71
+release=1
+source=("https://github.com/gdraheim/zziplib/archive/v$version.tar.gz"
+        https://github.com/gdraheim/zziplib/commit/75e22f3c365b62acbad8d8645d5404242800dfba.patch
+        https://patch-diff.githubusercontent.com/raw/gdraheim/zziplib/pull/89.patch)
+
+build() {
+  cd ${name}-${version}
+
+  patch -Np1 -i "${SRC}/75e22f3c365b62acbad8d8645d5404242800dfba.patch"
+  patch -Np1 -i "${SRC}/89.patch"
+
+  mkdir build
+  cd build
+  cmake .. \
+    -GNinja \
+    -DZZIPDOCS=OFF \
+    -DZZIPTEST=OFF \
+    -DCMAKE_INSTALL_PREFIX=/usr
+  ninja
+  DESTDIR="${PKG}" ninja install
+
+  # Fix permissions
+  # chmod 644 "${PKG}/usr/share/man/man3/"*
+  # chown -R root:root "${PKG}/usr/share/man/man3"
+}
+
+# vim: set ts=2 sw=2 et:

@@ -1,0 +1,21 @@
+# Maintainer: Gaetan Bisson <bisson@archlinux.org>
+# Maintainer: Jan de Groot <jgc@archlinux.org>
+# Contributor: mgushee
+
+name=djvulibre
+version=3.5.27
+release=6
+source=("https://downloads.sourceforge.net/project/djvu/DjVuLibre/${version}/djvulibre-${version}.tar.gz"
+        '0001-always-assume-that-cpuid-works-on-x86_64.patch')
+
+build() {
+	cd "${SRC}/${name}-${version}"
+	patch -p1 -i ../0001-always-assume-that-cpuid-works-on-x86_64.patch
+	./autogen.sh
+	./configure --prefix=/usr --disable-desktopfiles
+	make
+	make DESTDIR="${PKG}" install
+	for sz in 22 32 48 64; do
+		install -Dm644 desktopfiles/prebuilt-hi${sz}-djvu.png "${PKG}/usr/share/icons/hicolor/${sz}x${sz}/mimetypes/image-vnd.djvu.mime.png"
+	done
+}

@@ -1,0 +1,36 @@
+From 8407dd3421f720ab2e1a61e3f1e60e08967f98db Mon Sep 17 00:00:00 2001
+From: Leon Bottou <leon@bottou.org>
+Date: Sun, 7 Oct 2018 18:04:48 -0400
+Subject: [PATCH] always assume that cpuid works on x86_64
+
+---
+ libdjvu/MMX.cpp | 12 +++---------
+ 1 file changed, 3 insertions(+), 9 deletions(-)
+
+diff --git a/libdjvu/MMX.cpp b/libdjvu/MMX.cpp
+index e70fdd8..c0d1a34 100644
+--- a/libdjvu/MMX.cpp
++++ b/libdjvu/MMX.cpp
+@@ -169,16 +169,10 @@ MMXControl::enable_mmx()
+ #endif
+ #if defined(MMX) && defined(__GNUC__) && defined(__x86_64__)
+   // Detection of MMX for GCC
+-  __asm__ volatile (// Check that CR0:EM is clear
+-                    "xorl %%edx,%%edx\n\t"
+-                    "smsw %%ax\n\t"
+-                    "andl $4,%%eax\n\t"
+-                    "jnz 1f\n\t"
+-                    // Execute CPUID
++  __asm__ volatile (// Execute CPUID
+                     "movl $1,%%eax\n\t"
+-                    "cpuid\n"
+-                    // Finish
+-		    "1:\tmovl %%edx, %0"
++                    "cpuid\n\t"
++		    "movl %%edx, %0"
+                     : "=m" (cpuflags) :
+                     : "eax","ebx","ecx","edx");
+ #endif
+-- 
+2.24.0
+

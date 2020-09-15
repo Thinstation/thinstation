@@ -1,0 +1,21 @@
+# Description: Library to build foreign function call interfaces in embedded interpreters
+# URL:         https://www.gnu.org/software/libffcall/
+# Maintainer:  Juergen Daubert, jue at crux dot nu
+
+name=libffcall
+version=2.2
+release=1
+source=(https://ftp.gnu.org/gnu/$name/$name-$version.tar.gz)
+
+build() {
+	cd $name-$version
+
+	./configure \
+		--prefix=/usr \
+		--with-pic
+
+	make -j1
+	make DESTDIR=$PKG install
+
+	rm -r $PKG/usr/share/html
+}

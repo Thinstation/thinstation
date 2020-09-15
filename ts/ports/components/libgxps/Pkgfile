@@ -1,0 +1,16 @@
+# Maintainer: Jan de Groot <jgc@archlinux.org>
+# Contributor: Ionut Biru <ibiru@archlinux.org>
+
+name=libgxps
+version=0.3.1
+release=2
+_commit=1e508695c38ede224464ab3117777a2e65cf17ae  # tags/0.3.1^0
+
+build() {
+git clone https://gitlab.gnome.org/GNOME/libgxps.git
+  ts-meson $name build -D enable-man=true -D enable-gtk-doc=true
+  ninja -C build
+  DESTDIR="$PKG" meson install -C build
+}
+
+# vim:set ts=2 sw=2 et:

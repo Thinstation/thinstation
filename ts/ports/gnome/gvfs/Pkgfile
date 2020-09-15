@@ -4,13 +4,13 @@
 # Depends on: e2fsprogs eudev fuse glibc gtk3 libarchive libsecret libsoup lzo samba xorg-libxdamage docbook-xsl udisks2 gcr
 
 name=gvfs
-version=1.42.1
+version=1.46.0
 release=1
 source=(http://download.gnome.org/sources/$name/${version%.*}/$name-$version.tar.xz)
 
 build() {
 	cd $name-$version
-        meson . build -D enable_docs=true --prefix=/usr --libdir=/usr/lib -D sftp=false
+        meson . build -D enable_docs=true --prefix=/usr --libdir=/usr/lib -D sftp=true
         ninja -C build
         DESTDIR=$PKG ninja -C build install
 

@@ -4,9 +4,9 @@
 # Depends on:  util-linux-ng, cups, fontconfig, xorg-libxt, xorg-libxext
 
 name=ghostscript
-version=9.50
+version=9.53.1
 release=1
-source=(https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs${version/./}/${name}-${version}.tar.xz
+source=(https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs${version//./}/${name}-${version}.tar.xz
         http://downloads.sourceforge.net/sourceforge/gs-fonts/$name-fonts-std-8.11.tar.gz)
 
 build () {
@@ -18,20 +18,20 @@ build () {
               --with-jbig2dec \
               --with-x \
               --with-drivers=ALL \
-              --with-experimental=false \
+              --with-fontpath=/usr/share/fonts/gsfonts \
               --enable-fontconfig \
               --enable-freetype \
               --enable-openjpeg \
               --without-luratech \
-              --with-system-libtiff \
               --with-libpaper \
-              --disable-compile-inits #--help # needed for linking with system-zlib
+              --disable-compile-inits
 
 #sed -e 's/$(GPDL_TARGET)-so-loader//g' base/unix-dll.mak
 
      make
      make so-only-subtarget || true
      make DESTDIR=$PKG install
+     make DESTDIR=$PKG soinstall
 
     cp -r $SRC/fonts $PKG/usr/share/ghostscript
 

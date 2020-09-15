@@ -5,17 +5,19 @@
 # Depends on: gnupg gtk3 p11-kit util-linux vala xorg-libxcomposite xorg-libxcursor xorg-libxinerama xorg-libxrandr
 
 name=gcr
-version=3.34.0
+version=3.36.0
 release=1
 source=(http://download.gnome.org/sources/$name/${version:0:4}/$name-$version.tar.xz)
 
 build() {
 	cd $name-$version
 
+	./autogen.sh
 	./configure \
 		--prefix=/usr \
 		--disable-update-icon-cache \
-		--disable-update-mime
+		--disable-update-mime \
+		--disable-nls 
 
 sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
 

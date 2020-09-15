@@ -5,7 +5,7 @@
 
 name=glib
 archname=glib2
-version=2.62.1
+version=2.66.0
 release=1
 source=(http://download.gnome.org/sources/$name/${version:0:4}/$name-$version.tar.xz \
 	gschemas.compiled)
@@ -13,7 +13,7 @@ source=(http://download.gnome.org/sources/$name/${version:0:4}/$name-$version.ta
 build () {
 	cd $name-$version
 
-	ts-meson build --prefix=/usr
+	ts-meson build --prefix=/usr -Dselinux=disabled
 
 	DESTDIR=$PKG ninja -C build -j ${JOBS:-1} install
 

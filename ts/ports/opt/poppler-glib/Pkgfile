@@ -1,0 +1,33 @@
+# Description: glib wrapper for poppler
+# URL:         https://poppler.freedesktop.org/
+# Maintainer:  Juergen Daubert, jue at crux dot nu
+# Depends on:  gobject-introspection poppler 
+
+name=poppler-glib
+version=20.09.0
+release=1
+source=(https://poppler.freedesktop.org/poppler-$version.tar.xz)
+
+build() {
+    cmake -S poppler-$version -B build\
+        -DCMAKE_INSTALL_PREFIX=/usr \
+        -DCMAKE_INSTALL_LIBDIR=/usr/lib \
+        -DENABLE_UNSTABLE_API_ABI_HEADERS=OFF \
+        -DENABLE_UTILS=OFF \
+        -DENABLE_SPLASH=ON \
+        -DENABLE_CPP=OFF \
+        -DENABLE_GLIB=ON \
+        -DENABLE_QT5=OFF \
+        -DENABLE_ZLIB=ON \
+        -DENABLE_CMS=lcms2 \
+        -DENABLE_LIBOPENJPEG=none \
+        -DWITH_NSS3=OFF
+
+    cmake --build build
+    DESTDIR=$PKG cmake --install build
+
+    rm $PKG/usr/lib/libpoppler.so*
+    rm $PKG/usr/lib/pkgconfig/poppler.pc
+    rm $PKG/usr/lib/pkgconfig/poppler-splash.pc
+    rm $PKG/usr/lib/pkgconfig/poppler-cairo.pc
+}

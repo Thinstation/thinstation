@@ -1,0 +1,13 @@
+# Maintainer: Jan de Groot <jgc@archlinux.org>
+
+name=libspectre
+version=0.2.9
+release=1
+source=(https://libspectre.freedesktop.org/releases/${name}-${version}.tar.gz)
+
+build() {
+  cd "${SRC}/${name}-${version}"
+  ./configure --prefix=/usr --disable-static
+  make
+  make DESTDIR="${PKG}" install
+}
