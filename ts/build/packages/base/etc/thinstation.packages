@@ -17,6 +17,12 @@ pkg_set_init_flag $PACKAGE
 
 if [ "$SERVER" == "." ] ; then SERVER="" ; fi
 if [ "$OPTIONS" == "." ] ; then OPTIONS="" ; fi
+if [ -n "$2" ] ; then SERVER="$2" ; fi
+if [ -n "$3" ] ; then OPTIONS="$3" ; fi
+if [ -n "$5" ]; then REMUSER="$5"; fi
+if [ -n "$6" ]; then GET_PASS="$6"; fi
+if [ -n "$7" ]; then GATEWAY="$7"; fi
+if [ -n "$8" ]; then GATEWAY_USER="$8";fi
 
 # getfreescreen must be called before $PACKAGE.* because XNEST_NUMBER has to be defined before
 if [ "$PACKAGE" == "xnest" ]; then getfreescreen; fi
@@ -28,9 +34,12 @@ if [ -e /etc/cmd/$PACKAGE.fullscreen ] ; then . /etc/cmd/$PACKAGE.fullscreen ; f
 if [ -e /etc/cmd/$PACKAGE.global ] ; then . /etc/cmd/$PACKAGE.global ; fi
 
 if [ -e /etc/cmd/$PACKAGE.extra ] ; then . /etc/cmd/$PACKAGE.extra ; fi
+if [ -e /etc/cmd/$PACKAGE.server_first ] ; then REVERSE_ORDER=true ; else REVERSE_ORDER=false; fi
 
-if [ -e /etc/cmd/$PACKAGE.getpass ]; then GET_PASSWORD=true ; else GET_PASSWORD=false; fi
+
+if [ -e /etc/cmd/$PACKAGE.getpass ] || is_enabled $GET_PASS; then GET_PASSWORD=true ; else GET_PASSWORD=false; fi
 if [ -e /etc/cmd/$PACKAGE.getuser ]; then GET_USER=true ; else GET_USER=false ; fi
+if [ -e /etc/cmd/$PACKAGE.getip ] ; then CMD_GETIP=true ; else CMD_GETIP=false ; fi
 
 
 if [ -z "$CMD_CONSOLE" ] ; then CMD_CONSOLE=$CMD_GLOBAL ; fi
@@ -38,11 +47,7 @@ if [ -z "$CMD_WINDOW" ] ; then CMD_WINDOW=$CMD_GLOBAL ; fi
 if [ -z "$CMD_MENU" ] ; then CMD_MENU=$CMD_GLOBAL ; fi
 if [ -z "$CMD_FULLSCREEN" ] ; then CMD_FULLSCREEN=$CMD_GLOBAL ; fi
 
-if [ -e /etc/cmd/$PACKAGE.getip ] ; then CMD_GETIP=true ; else CMD_GETIP=false ; fi
 
-if [ -n "$2" ] ; then SERVER="$2" ; fi
-if [ -n "$3" ] ; then OPTIONS="$3" ; fi
-if [ -e /etc/cmd/$PACKAGE.server_first ] ; then	REVERSE_ORDER=true ; else REVERSE_ORDER=false; fi
 
 APPLOG=$APPLOGDIR/$PACKAGE.$$
 export APPLOG
