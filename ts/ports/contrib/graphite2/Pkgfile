@@ -1,0 +1,28 @@
+# Description: reimplementation of the SIL Graphite text processing engine.
+# URL: https://github.com/silnrsi/graphite
+# Maintainer: Tim Biermann, tbier at posteo dot de
+# Packager: John Vogel, jvogel4 at stny dot rr dot com
+# Depends on: cmake freetype python3
+# Optional: asciidoc dblatex doxygen graphviz
+
+name=graphite2
+version=1.3.14
+release=1
+source=(https://github.com/silnrsi/graphite/releases/download/$version/$name-$version.tgz)
+
+build() {
+  mkdir build
+  cd build
+
+  cmake -G "Unix Makefiles" $SRC/$name-$version \
+    -DCMAKE_C_FLAGS:STRING="$CFLAGS" \
+    -DCMAKE_CXX_FLAGS:STRING="$CXXFLAGS" \
+    -DCMAKE_INSTALL_PREFIX=/usr \
+    -DCMAKE_BUILD_TYPE:STRING=Release \
+    -DGRAPHITE2_COMPARE_RENDERER=OFF
+
+  find . -type f ! -name "rules" ! -name "changelog" -exec sed -i -e 's/\-03//g' {} \;
+
+  make
+  make DESTDIR=$PKG install
+}

@@ -1,0 +1,16 @@
+# Description: Library for the dynamic creation of images
+# URL:         https://libgd.github.io/
+# Maintainer:  Juergen Daubert, jue at crux dot nu
+# Depends on:  xorg-libxpm libjpeg-turbo freetype
+
+name=libgd
+version=2.3.0
+release=1
+source=(https://github.com/libgd/libgd/releases/download/gd-$version/$name-$version.tar.xz)
+
+build () {
+    cd $name-$version
+
+    ./configure --prefix=/usr
+    make DESTDIR=$PKG install
+}

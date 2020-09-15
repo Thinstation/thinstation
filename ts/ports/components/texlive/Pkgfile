@@ -7,16 +7,16 @@ release=5
 _commit=8e5e0e89d413d09cca133c8966d1a3af8a2ac440 # svn://tug.org/texlive/trunk/Build/source@54586
 
 build() {
-    git clone https://github.com/Tex-Live/texlive-source.git
+    git clone --depth 1 https://github.com/Tex-Live/texlive-source.git
     cd "$SRC/texlive-source"
-    git checkout -f ${_commit}
+#    git checkout -f ${_commit}
 
     # t4ht expects to be un /usr/share/texmf/bin/t4ht (FS#27251)
     sed -i s/SELFAUTOPARENT/TEXMFROOT/ texk/tex4htk/t4ht.c
 
     # pdftex poppler compatibility
-    cp -pv texk/web2c/pdftexdir/pdftoepdf{-poppler0.86.0,}.cc
-    cp -pv texk/web2c/pdftexdir/pdftosrc{-poppler0.83.0,}.cc
+#    cp -pv texk/web2c/pdftexdir/pdftoepdf{-poppler0.86.0,}.cc
+#    cp -pv texk/web2c/pdftexdir/pdftosrc{-poppler0.83.0,}.cc
 
    #############################################################
    ### configure
@@ -39,8 +39,22 @@ build() {
      --disable-bibtexu \
      --disable-xz \
      --enable-shared \
-	--with-pic \
-	--with-system-xpdf \
+     --with-system-zlib \
+     --with-system-zziplib \
+     --with-system-pnglib \
+     --with-system-ncurses \
+     --with-system-t1lib \
+     --with-system-poppler \
+     --with-system-gd \
+     --with-system-paper \
+     --with-system-freetype2 \
+     --with-system-pixman \
+     --with-system-cairo \
+     --with-system-harfbuzz \
+     --with-system-icu \
+     --with-system-gmp \
+     --with-system-mpfr \
+     --with-system-potrace \
      --disable-static \
      --with-freetype2-libdir=/usr/lib \
      --with-freetype2-include=/usr/include/freetype2 \
