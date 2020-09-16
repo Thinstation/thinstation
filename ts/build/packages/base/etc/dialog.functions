@@ -102,10 +102,12 @@ read_options()
 			echo "$REMUSER" > /tmp/.dialog_${client}_user
 			REMOTEUSER="`cat /tmp/.dialog_${client}_user`"
 		fi
-
-		if [ -z "$REMOTEUSER" ] || $GET_PASSWORD; then
+		if [ -z "$REMOTEUSER" ]; then
 			SHOW_USER=true
 		fi
+	fi
+	if $GET_PASSWORD; then
+		SHOW_USER=true
 	fi
 	if $CMD_GETIP; then
 		if [ -n "$SERVER" ]; then
@@ -113,7 +115,6 @@ read_options()
 		else
 			ALLOW_SERVER_EDITS=true
 		fi
-
 		if is_enabled $ALWAYS_ENTER_SERVER; then
 			ALLOW_SERVER_EDITS=true
 		fi
@@ -194,10 +195,10 @@ create_dialog()
 	<notebook labels="User|Server">
 		<vbox visible="'"$SHOW_USER"'">
 			<vseparator height-request="1"></vseparator>
-			<text space-expand="false" space-fill="false" use-markup="true" xalign="0">
+			<text visible="'"$GET_USER"'" space-expand="false" space-fill="false" use-markup="true" xalign="0">
 				<label>Username</label>
 			</text>
-			<entry activates_default="true" has-focus="'$USER_FOCUS'">
+			<entry visible="'"$GET_USER"'" activates_default="true" has-focus="'$USER_FOCUS'">
 				'$(set_default $DIALOG_USER)'
 				<variable>DIALOG_USER</variable>
 				<input>echo "$DIALOG_USER" |sed -e "s|[\$\&\;\`\(\)\|]||g"</input>
