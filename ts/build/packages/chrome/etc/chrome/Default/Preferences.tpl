@@ -32,7 +32,7 @@
          "use_system": true
       }
    },
-   "homepage": "http://www.thinstation.org",
+   "homepage": "https://www.thinstation.org",
    "homepage_is_newtabpage": false,
    "net": {
       "http_server_properties": {
@@ -196,7 +196,7 @@
    "session": {
       "restore_on_startup": 4,
       "restore_on_startup_migrated": true,
-      "startup_urls": [ "http://www.thinstation.org" ],
+      "startup_urls": [ "https://www.thinstation.org" ],
       "startup_urls_migration_time": "13051410575284688"
    },
    "translate_whitelists": {
