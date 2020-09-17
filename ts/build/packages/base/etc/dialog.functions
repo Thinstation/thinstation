@@ -99,11 +99,12 @@ read_options()
 {
 	if $GET_USER; then
 		if [ -n "$REMUSER" ]; then
-			echo "$REMUSER" > /tmp/.dialog_${client}_user
-			REMOTEUSER="`cat /tmp/.dialog_${client}_user`"
+			REMOTEUSER="$REMUSER"
 		fi
 		if [ -z "$REMOTEUSER" ]; then
 			SHOW_USER=true
+		else
+			echo "$REMOTEUSER" > /tmp/.dialog_${client}_user
 		fi
 	fi
 	if $GET_PASSWORD; then
@@ -118,7 +119,6 @@ read_options()
 		if is_enabled $ALWAYS_ENTER_SERVER; then
 			ALLOW_SERVER_EDITS=true
 		fi
-
 		if [ -n "$OPTIONS" ]; then
 			echo "$OPTIONS" > /tmp/.dialog_${client}_options
 		fi

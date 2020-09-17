@@ -4,48 +4,44 @@
 . /etc/ashrc
 
 set -x
-#exec </dev/null >/var/log/packages.log  2>&1
+#exec </dev/null >>/var/log/packages.log  2>&1
 
 PID=$$
 DISPLAY_NUMBER=0
 
-if [ -e /etc/dialog.functions ]; then . /etc/dialog.functions; fi
-if [ -e /etc/$PACKAGE.functions ] ; then . /etc/$PACKAGE.functions ; fi
-if [ ! -e /etc/cmd/$PACKAGE.wm ] ; then if [ -n "$WMNAME" ] ; then . /etc/$WMNAME.functions ;fi ;fi
+if [ -e /etc/dialog.functions ]		; then . /etc/dialog.functions		; fi
+if [ -e /etc/$PACKAGE.functions ]	; then . /etc/$PACKAGE.functions	; fi
+if [ ! -e /etc/cmd/$PACKAGE.wm ]	; then	if [ -n "$WMNAME" ]		; then . /etc/$WMNAME.functions	; fi	;fi
 
 pkg_set_init_flag $PACKAGE
 
 # getfreescreen must be called before $PACKAGE.* because XNEST_NUMBER has to be defined before
-if [ "$PACKAGE" == "xnest" ]; then getfreescreen; fi
+if [ "$PACKAGE" == "xnest" ]		; then getfreescreen			; fi
+if [ -e /etc/cmd/$PACKAGE.console ]	; then . /etc/cmd/$PACKAGE.console	; fi
+if [ -e /etc/cmd/$PACKAGE.window ]	; then . /etc/cmd/$PACKAGE.window	; fi
+if [ -e /etc/cmd/$PACKAGE.menu ]	; then . /etc/cmd/$PACKAGE.menu		; fi
+if [ -e /etc/cmd/$PACKAGE.fullscreen ]	; then . /etc/cmd/$PACKAGE.fullscreen	; fi
+if [ -e /etc/cmd/$PACKAGE.global ]	; then . /etc/cmd/$PACKAGE.global	; fi
+if [ -e /etc/cmd/$PACKAGE.extra ]	; then . /etc/cmd/$PACKAGE.extra	; fi
+if [ -e /etc/cmd/$PACKAGE.server_first ]; then REVERSE_ORDER=true		; else REVERSE_ORDER=false 	; fi
+if [ -e /etc/cmd/$PACKAGE.getpass ]	; then GET_PASSWORD=true		; else GET_PASSWORD=false	; fi
+if [ -e /etc/cmd/$PACKAGE.getuser ]	; then GET_USER=true			; else GET_USER=false		; fi
+if [ -e /etc/cmd/$PACKAGE.getip ]	; then CMD_GETIP=true			; else CMD_GETIP=false		; fi
 
-if [ -e /etc/cmd/$PACKAGE.console ] ; then . /etc/cmd/$PACKAGE.console ; fi
-if [ -e /etc/cmd/$PACKAGE.window ] ; then . /etc/cmd/$PACKAGE.window ; fi
-if [ -e /etc/cmd/$PACKAGE.menu ] ; then . /etc/cmd/$PACKAGE.menu ; fi
-if [ -e /etc/cmd/$PACKAGE.fullscreen ] ; then . /etc/cmd/$PACKAGE.fullscreen ; fi
-if [ -e /etc/cmd/$PACKAGE.global ] ; then . /etc/cmd/$PACKAGE.global ; fi
-
-if [ -e /etc/cmd/$PACKAGE.extra ] ; then . /etc/cmd/$PACKAGE.extra ; fi
-if [ -e /etc/cmd/$PACKAGE.server_first ] ; then REVERSE_ORDER=true ; else REVERSE_ORDER=false; fi
-
-
-if [ -e /etc/cmd/$PACKAGE.getpass ]; then GET_PASSWORD=true ; else GET_PASSWORD=false; fi
-if [ -e /etc/cmd/$PACKAGE.getuser ]; then GET_USER=true ; else GET_USER=false ; fi
-if [ -e /etc/cmd/$PACKAGE.getip ] ; then CMD_GETIP=true ; else CMD_GETIP=false ; fi
-
-if [ "$SERVER" == "." ] ; then SERVER="" ; fi
-if [ "$OPTIONS" == "." ] ; then OPTIONS="" ; fi
-if [ -n "$2" ] ; then SERVER="$2" ; fi
-if [ -n "$3" ] ; then OPTIONS="$3" ; fi
-if [ -n "$5" ]; then REMOTEUSER="$5"; fi
-if [ -n "$6" ]; then GET_PASSWORD="$6"; fi
-if [ -n "$7" ]; then GATEWAY="$7"; fi
-if [ -n "$8" ]; then GATEWAY_USER="$8";fi
+if  [ "$SERVER" == "." ]	; then         SERVER="" ; fi
+if [ "$OPTIONS" == "." ]	; then 	      OPTIONS="" ; fi
+if [ -n "$2" ]			; then       SERVER="$2" ; fi
+if [ -n "$3" ]			; then      OPTIONS="$3" ; fi
+if [ -n "$5" ]			; then   REMOTEUSER="$5" ; fi
+if [ -n "$6" ]			; then GET_PASSWORD="$6" ; fi
+if [ -n "$7" ]			; then      GATEWAY="$7" ; fi
+if [ -n "$8" ]			; then GATEWAY_USER="$8" ; fi
 
 
-if [ -z "$CMD_CONSOLE" ] ; then CMD_CONSOLE=$CMD_GLOBAL ; fi
-if [ -z "$CMD_WINDOW" ] ; then CMD_WINDOW=$CMD_GLOBAL ; fi
-if [ -z "$CMD_MENU" ] ; then CMD_MENU=$CMD_GLOBAL ; fi
-if [ -z "$CMD_FULLSCREEN" ] ; then CMD_FULLSCREEN=$CMD_GLOBAL ; fi
+if [ -z "$CMD_CONSOLE" ]	; then    CMD_CONSOLE=$CMD_GLOBAL	; fi
+if [ -z "$CMD_WINDOW" ]		; then     CMD_WINDOW=$CMD_GLOBAL	; fi
+if [ -z "$CMD_MENU" ]		; then       CMD_MENU=$CMD_GLOBAL	; fi
+if [ -z "$CMD_FULLSCREEN" ]	; then CMD_FULLSCREEN=$CMD_GLOBAL	; fi
 
 
 
@@ -78,20 +74,20 @@ package_input()
 
 order_command()
 {
-	if [ -z "$SERVER" ]; then
+	if [ -z "$SERVER" ]		; then
 		unset SERVER_ARG
 	fi
-	if [ -n "$PASSWORD" ]; then
+	if [ -n "$PASSWORD" ]		; then
 		PASSWORD="'$PASSWORD'"
 	else
 		unset PASSWORD_ARG
 	fi
-	if [ -n "$REMOTEUSER" ]; then
+	if [ -n "$REMOTEUSER" ]		; then
 		REMOTEUSER="'$REMOTEUSER'"
 	else
 		unset USER_ARG
 	fi
-	if is_enabled $REVERSE_ORDER ; then
+	if is_enabled $REVERSE_ORDER	; then
 		ORDERED_COMMAND="${SERVER_ARG}$SERVER $OPTIONS ${USER_ARG}$REMOTEUSER ${PASSWORD_ARG}$PASSWORD $MISC_OPTIONS"
 	else
 		ORDERED_COMMAND="$OPTIONS ${USER_ARG}$REMOTEUSER ${PASSWORD_ARG}$PASSWORD $MISC_OPTIONS ${SERVER_ARG}$SERVER"
@@ -101,37 +97,32 @@ order_command()
 
 xterm_wrapper()
 {
-	if [ -e /etc/console/$PACKAGE ]; then
+	if [ -e /etc/console/$PACKAGE ]	; then
 		if [ "`basename $XTERM_CMD`" == "xfce4-terminal" ]; then
 			arg="--disable-server -x"
 		else
 			arg="-e"
 		fi
 		CMD="$XTERM_CMD $arg $CMD"
-#	elif x_wm && [ "$CMD_CONSOLE" == "$XTERM_CMD" ]; then
-#		#Rewrite the Xterm CMD to fullscreen like a WM would.
-#		if ! echo $CMD |grep -qe "-geometry"; then
-#			CMD="$CMD_CONSOLE -geometry `get_res` $ORDERED_COMMAND"
-#		fi
 	fi
 }
 
 eula_()
 {
-	if [ -e /bin/eula_startup ]; then
+	if [ -e /bin/eula_startup ]	; then
 		/bin/eula_startup
 	fi
 }
 
 run_command()
 {
-	if is_enabled $LOG_COMMANDS && [ -z $PASSWORD ]; then
+	if is_enabled $LOG_COMMANDS && [ -z $PASSWORD ]	; then
 		echo "$CMD" >> $APPLOG
 	fi
 	eval $CMD >> $APPLOG 2>&1
 	STATUS=$?
 	unset PASSWORD ORDERED_CMD CMD
-	if x_wm ;then
+	if x_wm	; then
 		chvt 4
 		exit $STATUS
 	fi
@@ -140,16 +131,16 @@ run_command()
 mode=$1
 case "$mode" in
 auto)
-  while [ "$reconnect" != "1" ]; do
+  while [ "$reconnect" != "1" ]	; do
     echo "Running Auto $PACKAGE" >> $APPLOG
     package_input
-    if [ -z "$MODE" ]; then
+    if [ -z "$MODE" ]	; then
         MODE=CONSOLE
     fi
     order_command
     wm_workspaces "$CMD" "$4"
     xterm_wrapper
-    if find_network; then
+    if find_network	; then
 	    run_command
     fi
     wait
@@ -170,13 +161,13 @@ console)
     dconf_proxy_configure
     use_xrandr
     use_wallpaper
-    while [ -e /tmp/.X11-unix/X$DISPLAY_NUMBER ] && [ "$reconnect" != "1" ] ; do
+    while [ -e /tmp/.X11-unix/X$DISPLAY_NUMBER ] && [ "$reconnect" != "1" ]	; do
 	package_input
 	MODE=CONSOLE
 	order_command
 	xterm_wrapper
 	eula_
-	if find_network; then
+	if find_network	; then
 	        run_command
 	fi
 	wait
@@ -190,19 +181,19 @@ console)
 window|fullscreen)
     echo "Running $mode $PACKAGE" >> $APPLOG
     ALLOW_EXIT=TRUE
-    if ! is_disabled $ALWAYS_ENTER_SERVER ; then
+    if ! is_disabled $ALWAYS_ENTER_SERVER	; then
 	ALWAYS_ENTER_SERVER=TRUE
     fi
-    if ! is_disabled $ALLOW_SERVER_EDITS ; then
+    if ! is_disabled $ALLOW_SERVER_EDITS	; then
 	ALLOW_SERVER_EDITS=TRUE
     fi
     package_input
-    if [ -z "$MODE" ]; then
+    if [ -z "$MODE" ]	; then
 	    MODE=`make_caps "$mode"`
     fi
     order_command
     xterm_wrapper
-    if find_network; then
+    if find_network	; then
 	    run_command
     fi
     x_check_status
