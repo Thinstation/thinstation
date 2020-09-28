@@ -68,11 +68,10 @@ STANDARD_MACHINE="$SOUND $RNG $VGA $CPU $MEMORY $MOUSE $KVM $NETWORK"
 
 case $1 in
 	cd)	confirm_iso && confirm_hd && $QEMU $STANDARD_MACHINE $CDROM $HDD --boot d ;;
-	efi)	wrap_efi && $QEMU $STANDARD_MACHINE $EFI $HDD;;
-	bios)	wrap_bios && $QEMU $STANDARD_MACHINE $HDD;;
+	hd-efi)	wrap_efi && $QEMU $STANDARD_MACHINE $EFI $HDD;;
+	hd)	wrap_bios && $QEMU $STANDARD_MACHINE $HDD;;
 	image)  confirm_iso && confirm_hd && $QEMU $STANDARD_MACHINE $CDROM $HDD;;
-	pxe)	$QEMU $STANDARD_MACHINE $EFI;;
-	*)	confirm_iso && $QEMU $STANDARD_MACHINE $CDROM $EFI ;; #--boot menu=on;;
-
+	net)	$QEMU $STANDARD_MACHINE $EFI;;
+	cd-efi)	confirm_iso && $QEMU $STANDARD_MACHINE $CDROM $EFI ;; #--boot menu=on;;
 esac
 

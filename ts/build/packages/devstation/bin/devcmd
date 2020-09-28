@@ -125,6 +125,34 @@ Are you really sure?" 20 100
 	x_echo "Done" "You build env has been reset and updated"
 }
 
+do_test_cd()
+{
+	cd /thinstation
+	$XTERM_CMD -T Build $ARG script -c "./setup-chroot -e bt cd"
+}
+
+do_test_cd_efi()
+{
+        cd /thinstation
+        $XTERM_CMD -T Build $ARG script -c "./setup-chroot -e bt cd-efi"
+}
+do_test_hd()
+{
+        cd /thinstation
+        $XTERM_CMD -T Build $ARG script -c "./setup-chroot -e bt hd"
+}
+do_test_hd_efi()
+{
+        cd /thinstation
+        $XTERM_CMD -T Build $ARG script -c "./setup-chroot -e bt hd-efi"
+}
+do_test_net()
+{
+        cd /thinstation
+        $XTERM_CMD -T Build $ARG script -c "./setup-chroot -e bt net"
+}
+
+
 terminal_arg()
 {
 	if [ "`basename $XTERM_CMD`" == "xfce4-terminal" ]; then
@@ -163,6 +191,21 @@ case $1 in
 		;;
 	terminal)
 		do_term
+		;;
+	test-cd)
+		do_test_cd
+		;;
+	test-cd-efi)
+                do_test_cd-efi
+		;;
+	test-hd)
+                do_test_hd
+		;;
+	test-hd-efi)
+                do_test_hd-efi
+		;;
+	test-net)
+                do_test_net
 		;;
 esac
 exit 0
