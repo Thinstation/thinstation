@@ -4,7 +4,7 @@
 # Depends on:  nspr sqlite3
 
 name=nss
-version=3.46.1
+version=3.57
 release=1
 _version=$(echo $version |sed 's/\./_/g')
 
@@ -15,7 +15,7 @@ source=(http://ftp.mozilla.org/pub/security/nss/releases/NSS_${_version}_RTM/src
 build() {
 _nsprver=$(pkg-config --modversion nspr)
 	cd $name-$version/nss
-	patch -Np2 < ../../revert-proc-fips.patch
+#	patch -Np2 < ../../revert-proc-fips.patch
 
 	./build.sh -v --opt --system-sqlite --system-nspr --enable-libpkix --disable-tests --enable-fips
 
