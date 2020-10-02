@@ -17,8 +17,6 @@ drwxr-xr-x	root/root	usr/include/
 drwxr-xr-x	root/root	usr/include/wireshark/
 -rw-r--r--	root/root	usr/include/wireshark/cfile.h
 -rw-r--r--	root/root	usr/include/wireshark/cli_main.h
-drwxr-xr-x	root/root	usr/include/wireshark/codecs/
--rw-r--r--	root/root	usr/include/wireshark/codecs/codecs.h
 drwxr-xr-x	root/root	usr/include/wireshark/epan/
 -rw-r--r--	root/root	usr/include/wireshark/epan/addr_and_mask.h
 -rw-r--r--	root/root	usr/include/wireshark/epan/addr_resolv.h
@@ -42,6 +40,7 @@ drwxr-xr-x	root/root	usr/include/wireshark/epan/
 -rw-r--r--	root/root	usr/include/wireshark/epan/conv_id.h
 -rw-r--r--	root/root	usr/include/wireshark/epan/conversation.h
 -rw-r--r--	root/root	usr/include/wireshark/epan/conversation_debug.h
+-rw-r--r--	root/root	usr/include/wireshark/epan/conversation_filter.h
 -rw-r--r--	root/root	usr/include/wireshark/epan/conversation_table.h
 -rw-r--r--	root/root	usr/include/wireshark/epan/crc10-tvb.h
 -rw-r--r--	root/root	usr/include/wireshark/epan/crc16-tvb.h
@@ -54,7 +53,6 @@ drwxr-xr-x	root/root	usr/include/wireshark/epan/dfilter/
 -rw-r--r--	root/root	usr/include/wireshark/epan/dfilter/drange.h
 -rw-r--r--	root/root	usr/include/wireshark/epan/diam_dict.h
 -rw-r--r--	root/root	usr/include/wireshark/epan/disabled_protos.h
--rw-r--r--	root/root	usr/include/wireshark/epan/dissector_filters.h
 drwxr-xr-x	root/root	usr/include/wireshark/epan/dissectors/
 -rw-r--r--	root/root	usr/include/wireshark/epan/dissectors/file-rbm.h
 -rw-r--r--	root/root	usr/include/wireshark/epan/dissectors/packet-6lowpan.h
@@ -77,6 +75,7 @@ drwxr-xr-x	root/root	usr/include/wireshark/epan/dissectors/
 -rw-r--r--	root/root	usr/include/wireshark/epan/dissectors/packet-ber.h
 -rw-r--r--	root/root	usr/include/wireshark/epan/dissectors/packet-bfd.h
 -rw-r--r--	root/root	usr/include/wireshark/epan/dissectors/packet-bgp.h
+-rw-r--r--	root/root	usr/include/wireshark/epan/dissectors/packet-bicc_mst.h
 -rw-r--r--	root/root	usr/include/wireshark/epan/dissectors/packet-bluetooth.h
 -rw-r--r--	root/root	usr/include/wireshark/epan/dissectors/packet-bssap.h
 -rw-r--r--	root/root	usr/include/wireshark/epan/dissectors/packet-bssgp.h
@@ -114,7 +113,6 @@ drwxr-xr-x	root/root	usr/include/wireshark/epan/dissectors/
 -rw-r--r--	root/root	usr/include/wireshark/epan/dissectors/packet-dcerpc-budb.h
 -rw-r--r--	root/root	usr/include/wireshark/epan/dissectors/packet-dcerpc-butc.h
 -rw-r--r--	root/root	usr/include/wireshark/epan/dissectors/packet-dcerpc-dce122.h
--rw-r--r--	root/root	usr/include/wireshark/epan/dissectors/packet-dcerpc-dcom.h
 -rw-r--r--	root/root	usr/include/wireshark/epan/dissectors/packet-dcerpc-dnsserver.h
 -rw-r--r--	root/root	usr/include/wireshark/epan/dissectors/packet-dcerpc-frsapi.h
 -rw-r--r--	root/root	usr/include/wireshark/epan/dissectors/packet-dcerpc-frsrpc.h
@@ -141,6 +139,7 @@ drwxr-xr-x	root/root	usr/include/wireshark/epan/dissectors/
 -rw-r--r--	root/root	usr/include/wireshark/epan/dissectors/packet-dtn.h
 -rw-r--r--	root/root	usr/include/wireshark/epan/dissectors/packet-dvbci.h
 -rw-r--r--	root/root	usr/include/wireshark/epan/dissectors/packet-e164.h
+-rw-r--r--	root/root	usr/include/wireshark/epan/dissectors/packet-e1ap.h
 -rw-r--r--	root/root	usr/include/wireshark/epan/dissectors/packet-e212.h
 -rw-r--r--	root/root	usr/include/wireshark/epan/dissectors/packet-eapol.h
 -rw-r--r--	root/root	usr/include/wireshark/epan/dissectors/packet-edonkey.h
@@ -313,6 +312,7 @@ drwxr-xr-x	root/root	usr/include/wireshark/epan/dissectors/
 -rw-r--r--	root/root	usr/include/wireshark/epan/dissectors/packet-q931.h
 -rw-r--r--	root/root	usr/include/wireshark/epan/dissectors/packet-q932.h
 -rw-r--r--	root/root	usr/include/wireshark/epan/dissectors/packet-qsig.h
+-rw-r--r--	root/root	usr/include/wireshark/epan/dissectors/packet-quic.h
 -rw-r--r--	root/root	usr/include/wireshark/epan/dissectors/packet-radius.h
 -rw-r--r--	root/root	usr/include/wireshark/epan/dissectors/packet-raknet.h
 -rw-r--r--	root/root	usr/include/wireshark/epan/dissectors/packet-ranap.h
@@ -379,6 +379,7 @@ drwxr-xr-x	root/root	usr/include/wireshark/epan/dissectors/
 -rw-r--r--	root/root	usr/include/wireshark/epan/dissectors/packet-tcap.h
 -rw-r--r--	root/root	usr/include/wireshark/epan/dissectors/packet-tcp.h
 -rw-r--r--	root/root	usr/include/wireshark/epan/dissectors/packet-tetra.h
+-rw-r--r--	root/root	usr/include/wireshark/epan/dissectors/packet-thrift.h
 -rw-r--r--	root/root	usr/include/wireshark/epan/dissectors/packet-tls-utils.h
 -rw-r--r--	root/root	usr/include/wireshark/epan/dissectors/packet-tls.h
 -rw-r--r--	root/root	usr/include/wireshark/epan/dissectors/packet-tn3270.h
@@ -559,6 +560,7 @@ drwxr-xr-x	root/root	usr/include/wireshark/wsutil/
 -rw-r--r--	root/root	usr/include/wireshark/wsutil/bits_ctz.h
 -rw-r--r--	root/root	usr/include/wireshark/wsutil/bitswap.h
 -rw-r--r--	root/root	usr/include/wireshark/wsutil/buffer.h
+-rw-r--r--	root/root	usr/include/wireshark/wsutil/codecs.h
 -rw-r--r--	root/root	usr/include/wireshark/wsutil/color.h
 -rw-r--r--	root/root	usr/include/wireshark/wsutil/copyright_info.h
 -rw-r--r--	root/root	usr/include/wireshark/wsutil/cpu_info.h
@@ -568,6 +570,7 @@ drwxr-xr-x	root/root	usr/include/wireshark/wsutil/
 -rw-r--r--	root/root	usr/include/wireshark/wsutil/crc16-plain.h
 -rw-r--r--	root/root	usr/include/wireshark/wsutil/crc16.h
 -rw-r--r--	root/root	usr/include/wireshark/wsutil/crc32.h
+-rw-r--r--	root/root	usr/include/wireshark/wsutil/crc5.h
 -rw-r--r--	root/root	usr/include/wireshark/wsutil/crc6.h
 -rw-r--r--	root/root	usr/include/wireshark/wsutil/crc7.h
 -rw-r--r--	root/root	usr/include/wireshark/wsutil/crc8.h
@@ -587,6 +590,7 @@ drwxr-xr-x	root/root	usr/include/wireshark/wsutil/
 -rw-r--r--	root/root	usr/include/wireshark/wsutil/nstime.h
 -rw-r--r--	root/root	usr/include/wireshark/wsutil/os_version_info.h
 -rw-r--r--	root/root	usr/include/wireshark/wsutil/pint.h
+-rw-r--r--	root/root	usr/include/wireshark/wsutil/please_report_bug.h
 -rw-r--r--	root/root	usr/include/wireshark/wsutil/plugins.h
 -rw-r--r--	root/root	usr/include/wireshark/wsutil/pow2.h
 -rw-r--r--	root/root	usr/include/wireshark/wsutil/privileges.h
@@ -611,23 +615,21 @@ drwxr-xr-x	root/root	usr/include/wireshark/wsutil/
 -rw-r--r--	root/root	usr/include/wireshark/wsutil/wsjson.h
 -rw-r--r--	root/root	usr/include/wireshark/wsutil/xtea.h
 drwxr-xr-x	root/root	usr/lib/
-lrwxrwxrwx	root/root	usr/lib/libwireshark.so -> libwireshark.so.12
-lrwxrwxrwx	root/root	usr/lib/libwireshark.so.12 -> libwireshark.so.12.0.5
--rwxr-xr-x	root/root	usr/lib/libwireshark.so.12.0.5
-lrwxrwxrwx	root/root	usr/lib/libwiretap.so -> libwiretap.so.9
-lrwxrwxrwx	root/root	usr/lib/libwiretap.so.9 -> libwiretap.so.9.0.5
--rwxr-xr-x	root/root	usr/lib/libwiretap.so.9.0.5
-lrwxrwxrwx	root/root	usr/lib/libwscodecs.so -> libwscodecs.so.2
-lrwxrwxrwx	root/root	usr/lib/libwscodecs.so.2 -> libwscodecs.so.2.0.0
--rwxr-xr-x	root/root	usr/lib/libwscodecs.so.2.0.0
-lrwxrwxrwx	root/root	usr/lib/libwsutil.so -> libwsutil.so.10
-lrwxrwxrwx	root/root	usr/lib/libwsutil.so.10 -> libwsutil.so.10.0.0
--rwxr-xr-x	root/root	usr/lib/libwsutil.so.10.0.0
+lrwxrwxrwx	root/root	usr/lib/libwireshark.so -> libwireshark.so.13
+lrwxrwxrwx	root/root	usr/lib/libwireshark.so.13 -> libwireshark.so.13.0.7
+-rwxr-xr-x	root/root	usr/lib/libwireshark.so.13.0.7
+lrwxrwxrwx	root/root	usr/lib/libwiretap.so -> libwiretap.so.10
+lrwxrwxrwx	root/root	usr/lib/libwiretap.so.10 -> libwiretap.so.10.0.7
+-rwxr-xr-x	root/root	usr/lib/libwiretap.so.10.0.7
+lrwxrwxrwx	root/root	usr/lib/libwsutil.so -> libwsutil.so.11
+lrwxrwxrwx	root/root	usr/lib/libwsutil.so.11 -> libwsutil.so.11.0.0
+-rwxr-xr-x	root/root	usr/lib/libwsutil.so.11.0.0
 drwxr-xr-x	root/root	usr/lib/pkgconfig/
 -rw-r--r--	root/root	usr/lib/pkgconfig/wireshark.pc
 drwxr-xr-x	root/root	usr/lib/wireshark/
 drwxr-xr-x	root/root	usr/lib/wireshark/cmake/
 -rw-r--r--	root/root	usr/lib/wireshark/cmake/FindGLIB2.cmake
+-rw-r--r--	root/root	usr/lib/wireshark/cmake/FindWSLibrary.cmake
 -rw-r--r--	root/root	usr/lib/wireshark/cmake/FindWSWinLibs.cmake
 -rw-r--r--	root/root	usr/lib/wireshark/cmake/LocatePythonModule.cmake
 -rw-r--r--	root/root	usr/lib/wireshark/cmake/UseAsn2Wrs.cmake
@@ -642,24 +644,25 @@ drwxr-xr-x	root/root	usr/lib/wireshark/extcap/
 -rwxr-xr-x	root/root	usr/lib/wireshark/extcap/sdjournal
 -rwxr-xr-x	root/root	usr/lib/wireshark/extcap/udpdump
 drwxr-xr-x	root/root	usr/lib/wireshark/plugins/
-drwxr-xr-x	root/root	usr/lib/wireshark/plugins/3.0/
-drwxr-xr-x	root/root	usr/lib/wireshark/plugins/3.0/codecs/
--rwxr-xr-x	root/root	usr/lib/wireshark/plugins/3.0/codecs/l16mono.so
-drwxr-xr-x	root/root	usr/lib/wireshark/plugins/3.0/epan/
--rwxr-xr-x	root/root	usr/lib/wireshark/plugins/3.0/epan/ethercat.so
--rwxr-xr-x	root/root	usr/lib/wireshark/plugins/3.0/epan/gryphon.so
--rwxr-xr-x	root/root	usr/lib/wireshark/plugins/3.0/epan/irda.so
--rwxr-xr-x	root/root	usr/lib/wireshark/plugins/3.0/epan/mate.so
--rwxr-xr-x	root/root	usr/lib/wireshark/plugins/3.0/epan/opcua.so
--rwxr-xr-x	root/root	usr/lib/wireshark/plugins/3.0/epan/profinet.so
--rwxr-xr-x	root/root	usr/lib/wireshark/plugins/3.0/epan/stats_tree.so
--rwxr-xr-x	root/root	usr/lib/wireshark/plugins/3.0/epan/transum.so
--rwxr-xr-x	root/root	usr/lib/wireshark/plugins/3.0/epan/unistim.so
--rwxr-xr-x	root/root	usr/lib/wireshark/plugins/3.0/epan/wimax.so
--rwxr-xr-x	root/root	usr/lib/wireshark/plugins/3.0/epan/wimaxasncp.so
--rwxr-xr-x	root/root	usr/lib/wireshark/plugins/3.0/epan/wimaxmacphy.so
-drwxr-xr-x	root/root	usr/lib/wireshark/plugins/3.0/wiretap/
--rwxr-xr-x	root/root	usr/lib/wireshark/plugins/3.0/wiretap/usbdump.so
+drwxr-xr-x	root/root	usr/lib/wireshark/plugins/3.2/
+drwxr-xr-x	root/root	usr/lib/wireshark/plugins/3.2/codecs/
+-rwxr-xr-x	root/root	usr/lib/wireshark/plugins/3.2/codecs/g711.so
+-rwxr-xr-x	root/root	usr/lib/wireshark/plugins/3.2/codecs/l16mono.so
+drwxr-xr-x	root/root	usr/lib/wireshark/plugins/3.2/epan/
+-rwxr-xr-x	root/root	usr/lib/wireshark/plugins/3.2/epan/ethercat.so
+-rwxr-xr-x	root/root	usr/lib/wireshark/plugins/3.2/epan/gryphon.so
+-rwxr-xr-x	root/root	usr/lib/wireshark/plugins/3.2/epan/irda.so
+-rwxr-xr-x	root/root	usr/lib/wireshark/plugins/3.2/epan/mate.so
+-rwxr-xr-x	root/root	usr/lib/wireshark/plugins/3.2/epan/opcua.so
+-rwxr-xr-x	root/root	usr/lib/wireshark/plugins/3.2/epan/profinet.so
+-rwxr-xr-x	root/root	usr/lib/wireshark/plugins/3.2/epan/stats_tree.so
+-rwxr-xr-x	root/root	usr/lib/wireshark/plugins/3.2/epan/transum.so
+-rwxr-xr-x	root/root	usr/lib/wireshark/plugins/3.2/epan/unistim.so
+-rwxr-xr-x	root/root	usr/lib/wireshark/plugins/3.2/epan/wimax.so
+-rwxr-xr-x	root/root	usr/lib/wireshark/plugins/3.2/epan/wimaxasncp.so
+-rwxr-xr-x	root/root	usr/lib/wireshark/plugins/3.2/epan/wimaxmacphy.so
+drwxr-xr-x	root/root	usr/lib/wireshark/plugins/3.2/wiretap/
+-rwxr-xr-x	root/root	usr/lib/wireshark/plugins/3.2/wiretap/usbdump.so
 drwxr-xr-x	root/root	usr/share/
 drwxr-xr-x	root/root	usr/share/appdata/
 -rw-r--r--	root/root	usr/share/appdata/wireshark.appdata.xml
@@ -720,7 +723,6 @@ drwxr-xr-x	root/root	usr/share/man/man1/
 -rw-r--r--	root/root	usr/share/man/man1/rawshark.1.gz
 -rw-r--r--	root/root	usr/share/man/man1/reordercap.1.gz
 -rw-r--r--	root/root	usr/share/man/man1/sdjournal.1.gz
--rw-r--r--	root/root	usr/share/man/man1/sdjournal.html.gz
 -rw-r--r--	root/root	usr/share/man/man1/sshdump.1.gz
 -rw-r--r--	root/root	usr/share/man/man1/text2pcap.1.gz
 -rw-r--r--	root/root	usr/share/man/man1/tshark.1.gz
@@ -741,6 +743,7 @@ drwxr-xr-x	root/root	usr/share/wireshark/
 -rw-r--r--	root/root	usr/share/wireshark/cfilters
 -rw-r--r--	root/root	usr/share/wireshark/ciscodump.html
 -rw-r--r--	root/root	usr/share/wireshark/colorfilters
+-rw-r--r--	root/root	usr/share/wireshark/dfilter_macros
 -rw-r--r--	root/root	usr/share/wireshark/dfilters
 -rw-r--r--	root/root	usr/share/wireshark/dftest.html
 drwxr-xr-x	root/root	usr/share/wireshark/diameter/
@@ -753,12 +756,15 @@ drwxr-xr-x	root/root	usr/share/wireshark/diameter/
 -rw-r--r--	root/root	usr/share/wireshark/diameter/Huawei.xml
 -rw-r--r--	root/root	usr/share/wireshark/diameter/Inovar.xml
 -rw-r--r--	root/root	usr/share/wireshark/diameter/Juniper.xml
+-rw-r--r--	root/root	usr/share/wireshark/diameter/Microsoft.xml
 -rw-r--r--	root/root	usr/share/wireshark/diameter/Nokia.xml
 -rw-r--r--	root/root	usr/share/wireshark/diameter/NokiaSolutionsAndNetworks.xml
 -rw-r--r--	root/root	usr/share/wireshark/diameter/Oracle.xml
+-rw-r--r--	root/root	usr/share/wireshark/diameter/Siemens.xml
 -rw-r--r--	root/root	usr/share/wireshark/diameter/Starent.xml
 -rw-r--r--	root/root	usr/share/wireshark/diameter/TGPP.xml
 -rw-r--r--	root/root	usr/share/wireshark/diameter/TGPP2.xml
+-rw-r--r--	root/root	usr/share/wireshark/diameter/Telefonica.xml
 -rw-r--r--	root/root	usr/share/wireshark/diameter/VerizonWireless.xml
 -rw-r--r--	root/root	usr/share/wireshark/diameter/Vodafone.xml
 -rw-r--r--	root/root	usr/share/wireshark/diameter/chargecontrol.xml
@@ -788,14 +794,6 @@ drwxr-xr-x	root/root	usr/share/wireshark/dtds/
 -rw-r--r--	root/root	usr/share/wireshark/editcap.html
 -rw-r--r--	root/root	usr/share/wireshark/enterprises.tsv
 -rw-r--r--	root/root	usr/share/wireshark/extcap.html
-drwxr-xr-x	root/root	usr/share/wireshark/help/
--rw-r--r--	root/root	usr/share/wireshark/help/capture_filters.txt
--rw-r--r--	root/root	usr/share/wireshark/help/capturing.txt
--rw-r--r--	root/root	usr/share/wireshark/help/display_filters.txt
--rw-r--r--	root/root	usr/share/wireshark/help/faq.txt
--rw-r--r--	root/root	usr/share/wireshark/help/getting_started.txt
--rw-r--r--	root/root	usr/share/wireshark/help/overview.txt
--rw-r--r--	root/root	usr/share/wireshark/help/toc
 -rw-r--r--	root/root	usr/share/wireshark/ipmap.html
 -rw-r--r--	root/root	usr/share/wireshark/manuf
 -rw-r--r--	root/root	usr/share/wireshark/mergecap.html
@@ -829,6 +827,7 @@ drwxr-xr-x	root/root	usr/share/wireshark/radius/
 -rw-r--r--	root/root	usr/share/wireshark/radius/dictionary.alvarion
 -rw-r--r--	root/root	usr/share/wireshark/radius/dictionary.alvarion.wimax.v2_2
 -rw-r--r--	root/root	usr/share/wireshark/radius/dictionary.apc
+-rw-r--r--	root/root	usr/share/wireshark/radius/dictionary.aptilo
 -rw-r--r--	root/root	usr/share/wireshark/radius/dictionary.aptis
 -rw-r--r--	root/root	usr/share/wireshark/radius/dictionary.arbor
 -rw-r--r--	root/root	usr/share/wireshark/radius/dictionary.aruba
@@ -907,6 +906,7 @@ drwxr-xr-x	root/root	usr/share/wireshark/radius/
 -rw-r--r--	root/root	usr/share/wireshark/radius/dictionary.lucent
 -rw-r--r--	root/root	usr/share/wireshark/radius/dictionary.manzara
 -rw-r--r--	root/root	usr/share/wireshark/radius/dictionary.meinberg
+-rw-r--r--	root/root	usr/share/wireshark/radius/dictionary.meraki
 -rw-r--r--	root/root	usr/share/wireshark/radius/dictionary.merit
 -rw-r--r--	root/root	usr/share/wireshark/radius/dictionary.meru
 -rw-r--r--	root/root	usr/share/wireshark/radius/dictionary.microsemi

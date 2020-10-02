@@ -1,8 +1,8 @@
 #!/bin/bash
 
-. $TS_GLOBAL
+. /etc/thinstation.global
 bootdir=/boot/boot
-
+set -x
 show_help()
 {
 echo "
@@ -14,6 +14,49 @@ echo "
 		-p --path	Copy from a user specified path
 "
                 exit 255
+}
+
+exit_everything_already_current()
+{
+	echo "Everything is Up to Date"
+	exit 0
+}
+
+exit_update_completed()
+{
+        echo "Update Complete"
+        exit 1
+}
+
+exit_failed_no_md5()
+{
+	echo "Could not check md5"
+	exit 2
+}
+
+exit_invalid_path()
+{
+	echo "Invalid Path or missing vmlinuz and initrd"
+        exit 3
+
+}
+
+exit_copy_failed()
+{
+	echo "Something went wrong a file copy. Either permissions or space."
+	exit 4
+}
+
+exit_transfer_failed()
+{
+	echo "Something went wrong with a download from the internet. Are you connected?"
+	exit 5
+}
+
+exit_unwind_failed()
+{
+	echo "Something went wrong with the unwind of the update archive. Possibly a space problem or lack of memory"
+	exit 6
 }
 
 init()
@@ -38,100 +81,110 @@ init $@
 case $METHOD in
 	LOCAL)
 		cd $bootdir
-		cp /thinstation/build/boot-images/initrd/image.md5 check.md5
+		cp --update /thinstation/build/boot-images/initrd/image.md5 check.md5 || \
+		exit_failed_no_md5
 		if ! md5sum -c check.md5 ; then
-			cp /thinstation/build/boot-images/initrd/initrd $bootdir/initrd
-			cp /thinstation/build/boot-images/initrd/vmlinuz $bootdir/vmlinuz
+			echo "Your installation is out of date. Performing the update"
+			cp -f /thinstation/build/boot-images/initrd/initrd initrd || \
+				exit_copy_failed
+			cp -f /thinstation/build/boot-images/initrd/vmlinuz vmlinuz || \
+				exit_copy_failed
 			if [ -e /thinstation/build/boot-images/initrd/lib.squash ]; then
-				cp /thinstation/build/boot-images/initrd/lib.squash $bootdir/lib.update
+				cp -f /thinstation/build/boot-images/initrd/lib.squash lib.update || \
+				exit_copy_failed
 			fi
-			echo "Update Complete"
-			echo UPDATE_STATUS=0 > /tmp/update.tmp
+			exit_update_completed
 		else
-			echo "Everything is Up to Date"
-			echo UPDATE_STATUS=1 > /tmp/update.tmp
-
+			exit_everything_already_current
 		fi
 	;;
 	SERVER)
 		cd $bootdir
-		tftp -g -l check.md5 -r boot/image.md5 -b $TFTP_BLOCKSIZE $SERVER_IP
+		tftp -g -l check.md5 -r boot/image.md5 -b $TFTP_BLOCKSIZE $SERVER_IP || \
+		exit_failed_no_md5
 		if ! md5sum -c check.md5 ; then
+                        echo "Your installation is out of date. Performing the update"
 			if [ -e initrd ]; then
 				rm -f initrd
 				rm -f vmlinuz
 			fi
-			tftp -g -l initrd -r boot/initrd -b $TFTP_BLOCKSIZE $SERVER_IP
-			tftp -g -l vmlinuz -r boot/vmlinuz -b $TFTP_BLOCKSIZE $SERVER_IP
-			tftp -g -l lib.update -r boot/lib.squash -b $TFTP_BLOCKSIZE $SERVER_IP
-			echo "Update Complete"
-			echo UPDATE_STATUS=0 > /tmp/update.tmp
+			tftp -g -l initrd -r boot/initrd -b $TFTP_BLOCKSIZE $SERVER_IP || \
+				exit_transfer_failed
+			tftp -g -l vmlinuz -r boot/vmlinuz -b $TFTP_BLOCKSIZE $SERVER_IP || \
+				exit_transfer_failed
+			tftp -g -l lib.update -r boot/lib.squash -b $TFTP_BLOCKSIZE $SERVER_IP || \
+				exit_transfer_failed
+			exit_update_completed
 		else
-			echo "Everything is Up to Date"
-			echo UPDATE_STATUS=1 > /tmp/update.tmp
+			exit_everything_already_current
 		fi
 	;;
         SH)
                 cd $bootdir
-                wget http://$SERVER_IP/boot/image.md5
+                wget http://$SERVER_IP/boot/image.md5 || \
+		exit_failed_no_md5
                 if ! md5sum -c check.md5 ; then
+			echo "Your installation is out of date. Performing the update"
                         if [ -e initrd ]; then
                                 rm -f initrd
                                 rm -f vmlinuz
                         fi
-                        wget http://$SERVER_IP/boot/initrd
-                        wget http://$SERVER_IP/boot/vmlinuz
-                        wget http://$SERVER_IP/boot/lib.squash lib.update
-                        echo "Update Complete"
-                        echo UPDATE_STATUS=0 > /tmp/update.tmp
+                        wget http://$SERVER_IP/boot/initrd || \
+				exit_transfer_failed
+                        wget http://$SERVER_IP/boot/vmlinuz || \
+				exit_transfer_failed
+                        wget http://$SERVER_IP/boot/lib.squash lib.update || \
+				exit_transfer_failed
+			exit_update_completed
                 else
-                        echo "Everything is Up to Date"
-                        echo UPDATE_STATUS=1 > /tmp/update.tmp
+			exit_everything_already_current
                 fi
 
 	;;
 	WEB)
 		cd /tmp
-		wget ${WEBUPDATEROOT}/image-$TS_VERSION.md5 -O check.md5
+		wget ${WEBUPDATEROOT}/image-$TS_VERSION.md5 -O check.md5 || \
+		exit_failed_no_md5
 		cd $bootdir
 		if ! md5sum -c /tmp/check.md5 ; then
+			echo "Your installation is out of date. Performing the update"
 			cd /tmp
 			echo "Downloading a Default Image"
-			wget ${WEBUPDATEROOT}/thindev-default-$TS_VERSION.tar.xz
+			wget ${WEBUPDATEROOT}/thindev-default-$TS_VERSION.tar.xz || \
+				exit_transfer_failed
 			cd $bootdir
-			tar -xvf /tmp/thindev-default-$TS_VERSION.tar.xz
+			tar -xvf /tmp/thindev-default-$TS_VERSION.tar.xz || \
+				exit_unwind_failed
 			rm /tmp/thindev-default-$TS_VERSION.tar.xz
-			echo "Update Complete"
-			echo UPDATE_STATUS=0 > /tmp/update.tmp
+			exit_update_completed
 		else
-			echo "Everything is up to date"
-			echo UPDATE_STATUS=1 > /tmp/update.tmp
+			exit_everything_already_current
 		fi
 	;;
 	PATH)
 		if [ -e $LPATH/image.md5 ] ;then
-			cp $LPATH/image.md5 $bootdir/check.md5
 			cd $bootdir
+			cp --update $LPATH/image.md5 check.md5
 			if ! md5sum -c check.md5 ; then
+				echo "Your installation is out of date. Performing the update"
 				if [ -e $LPATH/initrd ] && [ -e $LPATH/vmlinuz ]; then
-	       	 			cp $LPATH/initrd $bootdir/initrd
-	        			cp $LPATH/vmlinuz $bootdir/vmlinuz
+	       	 			cp --update $LPATH/initrd initrd || \
+						exit_copy_failed
+	        			cp --update $LPATH/vmlinuz vmlinuz || \
+						exit_copy_failed
 	  		      		if [ -e $LPATH/lib.squash ]; then
-	                			cp $LPATH/lib.squash $bootdir/lib.update
+	                			cp --update $LPATH/lib.squash lib.update || \
+						exit_copy_failed
 					fi
-					echo "Update Complete"
-					echo UPDATE_STATUS=0 > /tmp/update.tmp
+					exit_update_completed
 				else
-					echo "Invalid Path or missing vmlinuz and initrd"
-					echo UPDATE_STATUS=3 > /tmp/update.tmp
+					exit_invalid_path
 				fi
 			else
-				echo "Everything is up to date"
-				echo UPDATE_STATUS=1 > /tmp/update.tmp
+				exit_everything_already_current
 			fi
 		else
-			echo "Could not check md5"
-			echo UPDATE_STATUS=2 > /tmp/update.tmp
+			exit_failed_no_md5
 		fi
 	;;
 esac

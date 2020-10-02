@@ -1,22 +1,35 @@
 #!/bin/bash
 set -x
-set -e
+#set -e
 
-#ISO=build/boot-images/refind-iso/thinstation-refind.iso
-ISO=build/boot-images/systemd-boot-iso/thinstation-efi.iso
-#ISO=build/boot-images/iso/thinstation.iso
-#ISO=eboot.iso
-#IMAGE=refind
-IMAGE=systemd-boot
-HD=thinstation.img
 procs=`nproc`
 let procs=procs/2
 
+confirm_edk2()
+{
+	if [ ! -e "usr/share/edk2.git/ovmf-x64/OVMF-pure-efi.fd" ]; then
+		echo "edk2 is not installed"
+		echo 'Please do a `prt-get install edk2 -im -if` inside the chroot environment and try again'
+		exit 1
+	fi
+}
+
 confirm_iso()
 {
+	case $1 in
+		systemd) ISO=build/boot-images/systemd-boot-iso/thinstation-efi.iso ;;
+		refind) ISO=build/boot-images/refind-iso/thinstation-refind.iso ;;
+	esac
+	if [ ! = $ISO ]; then
+		"$1 ISO $ISO"
+		"Not Found!"
+		exit 1
+	fi
+	CDROM="-drive file=$ISO,if=ide,media=cdrom,readonly"
 	if [ ! -e $ISO ]; then
 		echo "ISO not found: $ISO"
-		exit 1
+		echo "Did you build and ISO image?"
+		exit 2
 	fi
 }
 
@@ -24,6 +37,11 @@ confirm_hd()
 {
 	if [ ! -e $HD ]; then
 		qemu-img create -f qcow2 thinstation.img 31G
+	        if [ "$?" != "0" ]; then
+
+			echo "Likely not enought space to create hd image."
+			exit 3
+	fi
 	fi
 }
 
@@ -31,47 +49,151 @@ bridge()
 {
 	if [ -n "`ifconfig |grep -e br0`" ]; then
 		echo "-net bridge,br=br0 -net nic,macaddr=52:54:00:12F:34f:56 -netdev user,dns=8.8.8.8"
+#	else
+#		echo "-netdev user,id=n1 -device e1000,netdev=n1 -netdev tap,id=n2 -device virtio-net,netdev=n2"
 	fi
 }
 
-wrap_efi()
+wrap_systemd_efi()
 {
-#	cp $ISO $HD
-	export AGREE=true; mkgptdrv -o /build/boot-images/$IMAGE -p ESP:1G:boot -l thinstation.img:2G
-#	export AGREE=true; mkgptdrv -o /eb -p ESP:1G:boot -l thinstation.img:2G
+	if [ ! -e build/boot-images/systemd-boot ]; then
+		echo "$IMAGE not found?"
+		echo "Did you build an systemd image."
+		exit 1
+	fi
+	export AGREE=true
+	ts/bin/mkgptdrv -o build/boot-images/systemd-boot -p ESP:1G:boot -l thinstation.img:2G
+        if [ "$?" != "0" ]; then
+		echo "Likely not enough space to create systemd EFI hd qemu image."
+		exit 4
+	fi
+}
+
+wrap_refind_efi()
+{
+	if [ ! -e build/boot-images/refind ]; then
+                echo "refind image not found?"
+                echo "Did you build an refind image."
+                exit 1
+        fi
+        export AGREE=true
+	ts/bin/mkgptdrv -o build/boot-images/refind -p ESP:1G:boot -l thinstation.img:2G
+	if [ "$?" != "0" ]; then
+		echo "Likely not enough space to create refind EFI hd qemu image."
+		exit 5
+	fi
 }
 
 wrap_bios()
 {
-	export AGREE=true; mkmbrdrv -o /build/boot-images/syslinux -p d:1G:boot -l thinstation.img:2G
+	if [ ! -e build/boot-images/syslinux ]; then
+                echo "syslinux image not found."
+                echo "Did you build and image?"
+                exit 1
+        fi
+	export AGREE=true
+	ts/bin/mkmbrdrv -o build/boot-images/syslinux -p d:1G:boot -l thinstation.img:2G
+	if [ "$?" != "0" ]; then
+		echo "Likely not enought space to create syslinux qemu hd image."
+		exit 6
+	fi
 }
 
-VGA="-vga qxl -global qxl-vga.vram_size=132710400"
-CDROM="-drive file=$ISO,if=ide,index=1,media=cdrom"
+setup_qemu()
+{
+HD=thinstation.img
 HDD="-drive file=$HD,index=0,media=disk,format=raw"
+VGA="-vga qxl -global qxl-vga.vram_size=132710400"
 #VGA="-vga virtio"
 #VGA="-vga std"
 #VGA="-vga cirrus"
 #VGA="-vga vmware"
 SOUND="-soundhw ac97"
 CPU="-smp cores=$procs,threads=1,sockets=1"
-MEMORY="-m 4096"
+MEMORY="-m 2048"
 #RNG="-object rng-random,id=RNG"
 MOUSE="-usb -device usb-tablet"
 KVM="-enable-kvm"
-EFI="-L . --bios /usr/share/edk2.git/ovmf-x64/OVMF-pure-efi.fd"
+EFI="-L . --bios usr/share/edk2.git/ovmf-x64/OVMF_CODE-pure-efi.fd"
 NETWORK=`bridge`
 #QEMU=qemu-system-i386
 QEMU=qemu-system-x86_64
 
 STANDARD_MACHINE="$SOUND $RNG $VGA $CPU $MEMORY $MOUSE $KVM $NETWORK"
+}
 
 case $1 in
-	cd)	confirm_iso && confirm_hd && $QEMU $STANDARD_MACHINE $CDROM $HDD --boot d ;;
-	hd-efi)	wrap_efi && $QEMU $STANDARD_MACHINE $EFI $HDD;;
-	hd)	wrap_bios && $QEMU $STANDARD_MACHINE $HDD;;
-	image)  confirm_iso && confirm_hd && $QEMU $STANDARD_MACHINE $CDROM $HDD;;
-	net)	$QEMU $STANDARD_MACHINE $EFI;;
-	cd-efi)	confirm_iso && $QEMU $STANDARD_MACHINE $CDROM $EFI ;; #--boot menu=on;;
+        hd)
+		wrap_bios && \
+		setup_qemu && \
+                $QEMU $STANDARD_MACHINE $HDD
+                echo "Exit code $?"
+	;;
+	hd-systemd)
+		confirm_edk2 && \
+		wrap_systemd_efi && \
+                setup_qemu && \
+		$QEMU $STANDARD_MACHINE $EFI $HDD
+		echo "Exit code $?"
+	;;
+	hd-refind)
+		confirm_edk2 && \
+		wrap_refind_efi && \
+                setup_qemu && \
+		$QEMU $STANDARD_MACHINE $EFI $HDD
+                echo "Exit code $?"
+	;;
+	net)
+                setup_qemu && \
+		$QEMU $STANDARD_MACHINE
+		echo "Exit code $?"
+	;;
+        net-efi)
+                setup_qemu && \
+                $QEMU $STANDARD_MACHINE $EFI
+		echo "Exit code $?"
+	;;
+        cd)
+		confirm_iso systemd && \
+                setup_qemu && \
+                $QEMU $STANDARD_MACHINE $CDROM --boot d,menu=on
+                echo "Exit code $?"
+	;;
+	cd-systemd)
+		confirm_edk2 && \
+		confirm_iso systemd && \
+                setup_qemu && \
+		$QEMU $STANDARD_MACHINE $CDROM $EFI --boot c,menu=on
+		echo "Exit code $?"
+	;;
+	cd-refind)
+		confirm_edk2 && \
+		confirm_iso refind && \
+                setup_qemu && \
+		$QEMU $STANDARD_MACHINE $CDROM $EFI --boot c,menu=on
+                echo "Exit code $?"
+	;;
+	image)
+                confirm hd && \
+                confirm_iso systemd && \
+                setup_qemu && \
+                $QEMU $STANDARD_MACHINE $CDROM $HDD --boot c,menu=on
+                echo "Exit code $?"
+	;;
+	image-systemd)
+		confirm_edk2 && \
+		confirm_hd && \
+		confirm_iso systemd && \
+                setup_qemu && \
+                $QEMU $STANDARD_MACHINE $CDROM $HDD $EFI --boot d,menu=on
+                echo "Exit code $?"
+	;;
+	image-refind)
+		confirm_edk2 && \
+		confirm_hd && \
+		confirm_iso systemd && \
+                setup_qemu && \
+                $QEMU $STANDARD_MACHINE $CDROM $HDD $EFI --boot d,menu=on
+                echo "Exit code $?"
+	;;
 esac
-

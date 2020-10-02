@@ -1,6 +1,5 @@
 #!/bin/bash
 . /etc/thinstation.global
-export SESSION_MANAGER
 
 mounted()
 {
@@ -27,17 +26,12 @@ x_echo()
 
 do_update()
 {
-	$XTERM_CMD -T "Update initrd" $ARG update-initrd -w
-	if [ -e /tmp/update.tmp ]; then
-		. /tmp/update.tmp
-		case $UPDATE_STATUS in
-			0) x_echo Update "Update Complete, Click OK to reboot" ;reboot;;
-			1) x_echo Update "No Update Needed" ;;
-			2) x_echo Update "Error! Could not check md5" ;;
-			3) x_echo Update "Error! No initrd or vmlinuz found" ;;
-		esac
-		rm /tmp/update.tmp
-	fi
+	$XTERM_CMD -T "Update initrd" $ARG script -c "update-initrd -l" -e /home/$TSUSER/Desktop/update.log
+	case $? in
+                0) x_echo Update "No Update Needed" ;;
+		1) x_echo Update "Update Complete, Click OK to reboot" ;reboot;;
+		*) x_echo Update "Something went wrong with the update. Check the log." ;;
+	esac
 }
 
 toggle_con()
@@ -128,36 +122,31 @@ Are you really sure?" 20 100
 
 do_test_cd()
 {
-	cd /thinstation
-	ts/bin/bt cd
+        $XTERM_CMD -T Test-CD --working-directory=/thinstation $ARG script -c "./setup-chroot -e bt cd" -e /home/$TSUSER/Desktop/test.log
 }
 
-do_test_cd_efi()
+do_test_cd_refind_efi()
 {
-        cd /thinstation
-	ts/bin/bt cd-efi
+        $XTERM_CMD -T Test-CD-EFI --working-directory=/thinstation $ARG script -c "./setup-chroot -e bt cd-efi" -e /home/$TSUSER/Desktop/test.log
 }
 do_test_hd()
 {
-        cd /thinstation
-        ts/bin/bt hd
+        $XTERM_CMD -T Test-HD --working-directory=/thinstation $ARG script -c "./setup-chroot -e bt hd" -e /home/$TSUSER/Desktop/test.log
 }
-do_test_hd_efi()
+do_test_hd_systmed_efi()
 {
-        cd /thinstation
-        ts/bin/bt hd-efi
+        $XTERM_CMD -T Test-HD-EFI --working-directory=/thinstation $ARG script -c "./setup-chroot -e bt hd-efi" -e /home/$TSUSER/Desktop/test.log
 }
 do_test_net()
 {
         cd /thinstation
-        ts/bin/bt net
+        $XTERM_CMD -T Test-Network --working-directory=/thinstation $ARG script -c "./setup-chroot -e bt net" -e /home/$TSUSER/Desktop/test.log
 }
-
 
 terminal_arg()
 {
 	if [ "`basename $XTERM_CMD`" == "xfce4-terminal" ]; then
-		ARG="--disable-server -x"
+		ARG="-x"
 	else
 		ARG="-e"
 	fi
@@ -197,13 +186,16 @@ case $1 in
 		do_test_cd
 		;;
 	test-cd-efi)
-                do_test_cd-efi
+                do_test_cd_efi
 		;;
 	test-hd)
                 do_test_hd
 		;;
-	test-hd-efi)
-                do_test_hd-efi
+	test-hd-systemd-efi)
+                do_test_hd_systemd_efi
+		;;
+	test-hd-refind-efi)
+                do_test_hd_refind_efi
 		;;
 	test-net)
                 do_test_net

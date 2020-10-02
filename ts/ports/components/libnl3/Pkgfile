@@ -1,19 +1,20 @@
-# Description: library for applications dealing with netlink sockets
+# Description: Library providing APIs to netlink protocol based Linux kernel interfaces
 # URL:         http://www.infradead.org/~tgr/libnl/
-# Maintainer:  Bartlomiej Palmowski, rotwang at crux dot org dot pl
-# Packager:    Hannes Mayer, kontakt at ecarux dot de
+# Maintainer:  Juergen Daubert, jue at crux dot nu
 
 name=libnl3
-version=3.2.25
+version=3.5.0
 release=1
-source=(http://www.infradead.org/~tgr/libnl/files/libnl-$version.tar.gz)
+source=(https://github.com/thom311/libnl/releases/download/libnl${version//./_}/libnl-$version.tar.gz)
 
-build()
-{
-#git clone git://git.infradead.org/users/tgr/libnl.git
+build() {
     cd libnl-$version
-#    ./autogen.sh
-    ./configure --prefix=/usr --sysconfdir=/etc --disable-static
+
+    YACC="bison -y -Wnone" \
+    ./configure --prefix=/usr \
+                --sysconfdir=/etc \
+                --disable-cli
+
     make
     make DESTDIR=$PKG install
 }

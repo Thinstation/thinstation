@@ -1,0 +1,53 @@
+diff -Nru dnsmasq-2.80.orig/dnsmasq.conf.example dnsmasq-2.80/dnsmasq.conf.example
+--- dnsmasq-2.80.orig/dnsmasq.conf.example	2019-06-27 16:28:48.474960428 +0200
++++ dnsmasq-2.80/dnsmasq.conf.example	2019-06-27 16:29:07.744482075 +0200
+@@ -22,7 +22,7 @@
+ 
+ # Uncomment these to enable DNSSEC validation and caching:
+ # (Requires dnsmasq to be built with DNSSEC option.)
+-#conf-file=%%PREFIX%%/share/dnsmasq/trust-anchors.conf
++#conf-file=/usr/share/dnsmasq/trust-anchors.conf
+ #dnssec
+ 
+ # Replies which are not DNSSEC signed may be legitimate, because the domain
+@@ -96,8 +96,8 @@
+ 
+ # If you want dnsmasq to change uid and gid to something other
+ # than the default, edit the following lines.
+-#user=
+-#group=
++#user=nobody
++#group=nobody
+ 
+ # If you want dnsmasq to listen for DHCP and DNS requests only on
+ # specified interfaces (and the loopback) give the name of the
+@@ -535,7 +535,7 @@
+ # The DHCP server needs somewhere on disk to keep its lease database.
+ # This defaults to a sane location, but if you want to change it, use
+ # the line below.
+-#dhcp-leasefile=/var/lib/misc/dnsmasq.leases
++#dhcp-leasefile=/var/lib/dhcp/dnsmasq.leases
+ 
+ # Set the DHCP server to authoritative mode. In this mode it will barge in
+ # and take over the lease for any client which broadcasts on the network,
+diff -Nru dnsmasq-2.80.orig/src/config.h dnsmasq-2.80/src/config.h
+--- dnsmasq-2.80.orig/src/config.h	2019-06-27 16:28:48.474960428 +0200
++++ dnsmasq-2.80/src/config.h	2019-06-27 16:29:07.744482075 +0200
+@@ -44,7 +44,7 @@
+ #define ETHERSFILE "/etc/ethers"
+ #define DEFLEASE 3600 /* default lease time, 1 hour */
+ #define CHUSER "nobody"
+-#define CHGRP "dip"
++#define CHGRP "nobody"
+ #define TFTP_MAX_CONNECTIONS 50 /* max simultaneous connections */
+ #define LOG_MAX 5 /* log-queue length */
+ #define RANDFILE "/dev/urandom"
+@@ -198,7 +198,7 @@
+ #   elif defined(__ANDROID__)
+ #      define LEASEFILE "/data/misc/dhcp/dnsmasq.leases"
+ #   else
+-#      define LEASEFILE "/var/lib/misc/dnsmasq.leases"
++#      define LEASEFILE "/var/lib/dhcp/dnsmasq.leases"
+ #   endif
+ #endif
+ 

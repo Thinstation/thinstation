@@ -1,0 +1,30 @@
+# Description: A firewalling tool to transparently filter network traffic passing a bridge
+# URL:         https://netfilter.org/index.html
+# Maintainer:  Thomas Penteker, tek at serverop dot de
+# Packager:    Mikhail Kolesnik, mike at openbunker dot org
+
+name=ebtables
+version=2.0.11
+release=1
+source=(http://distfiles.exherbo.org/distfiles/$name-$version.tar.gz
+  # https://gitweb.gentoo.org/repo/gentoo.git/tree/net-firewall/ebtables/files
+  ebtables-2.0.11-ebt-save.patch ebtables-2.0.11-makefile.patch
+  ebtables-2.0.11-remove-stray-atsign.patch)
+
+build() {
+  cd $name-$version
+  patch -Np1 -i $SRC/ebtables-2.0.11-ebt-save.patch
+  patch -Np1 -i $SRC/ebtables-2.0.11-makefile.patch
+  patch -Np1 -i $SRC/ebtables-2.0.11-remove-stray-atsign.patch
+
+  ./autogen.sh
+  ./configure --prefix=/usr \
+    --sysconfdir=/etc
+
+  mkdir -p $PKG/usr/sbin
+
+  make
+  make DESTDIR=$PKG install
+
+  rm -rf $PKG/etc/{rc.d,sysconfig}
+}
