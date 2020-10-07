@@ -33,7 +33,12 @@ if [ "$OPTIONS" == "." ]	; then 	      OPTIONS="" ; fi
 if [ -n "$2" ]			; then       SERVER="$2" ; fi
 if [ -n "$3" ]			; then      OPTIONS="$3" ; fi
 if [ -n "$5" ]			; then   REMOTEUSER="$5" ; fi
-if [ -n "$6" ]			; then GET_PASSWORD="$6" ; fi
+# Allow GET_PASSWORD to be disabled, but not enabled through session variables.
+if is_enabled $GET_PASSWORD; then
+	if [ -n "$6" ]; then
+		GET_PASSWORD="$6"
+	fi
+fi
 if [ -n "$7" ]			; then      GATEWAY="$7" ; fi
 if [ -n "$8" ]			; then GATEWAY_USER="$8" ; fi
 
