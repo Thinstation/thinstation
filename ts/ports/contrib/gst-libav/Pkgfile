@@ -1,23 +1,23 @@
 # Description: Gstreamer libav Plugin.
-# URL: http://gstreamer.freedesktop.org/modules/gst-libav.html
+# URL: https://gstreamer.freedesktop.org/modules/gst-libav.html
 # Maintainer: Danny Rawlins, crux at romster dot me
-# Packager: Danny Rawlins, crux at romster dot me
 # Depends on: ffmpeg gst-plugins-base
 
 name=gst-libav
-version=1.16.1
+version=1.18.0
 release=1
-source=(http://gstreamer.freedesktop.org/src/$name/$name-$version.tar.xz)
+source=(https://gstreamer.freedesktop.org/src/$name/$name-$version.tar.xz)
 
 build() {
 	cd $name-$version
 
-	./configure \
-		--prefix=/usr \
-		--with-system-libav
+	meson build \
+		--prefix /usr \
+		-D buildtype=release \
+		-D package-name="GStreamer (ThinStation Linux)" \
+		-D package-origin="https://www.thinstation.org/"
 
-	make
-	make DESTDIR=$PKG install
-
-	rm -r $PKG/usr/share
+	ninja -C build -j ${JOBS:-1}
+	DESTDIR=$PKG ninja -C build install
 }
+

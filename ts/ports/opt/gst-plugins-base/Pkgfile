@@ -1,33 +1,25 @@
 # Description: An essential exemplary set of plugins for gstreamer.
-# URL: http://gstreamer.freedesktop.org/modules/gst-plugins-base.html
-# Maintainer: Jose V Beneyto, sepen at crux dot nu
-# Packager: Matt Housh, jaeger at morpheus dot net
-# Depends on: alsa-lib e2fsprogs glibc gstreamer liboil libvorbis pango xorg-libxv xorg-libxcomposite
+# URL: https://gstreamer.freedesktop.org/modules/gst-plugins-base.html
+# Maintainer: Danny Rawlins, crux at romster dot me
+# Depends on: alsa-lib gstreamer libgudev libjpeg-turbo libtheora libvisual mesa3d opus orc pango
+# Optional: cdparanoia
 
 name=gst-plugins-base
-version=1.16.1
+version=1.18.0
 release=1
-source=(http://gstreamer.freedesktop.org/src/$name/$name-$version.tar.xz)
+source=(https://gstreamer.freedesktop.org/src/$name/$name-$version.tar.xz)
 
 build() {
-  cd $name-$version
+	cd $name-$version
 
-  ./configure --prefix=/usr \
-              --mandir=/usr/man \
-              --disable-debug \
-               \
-              --disable-dependency-tracking \
-              --disable-valgrind \
-              --disable-examples \
-	      --enable-experimental \
-	       \
-	      --enable-shared \
-	      --disable-static
+	meson build \
+		--prefix=/usr \
+		-D buildtype=release \
+		-D gtk_doc=disabled \
+		-D package-name="GStreamer (ThinStation Linux)" \
+		-D package-origin="https://www.thinstation.org/"
 
-sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
-
-
-  make
-  make DESTDIR=$PKG install
-  rm -r $PKG/usr/share/gtk-doc
+	ninja -C build -j ${JOBS:-1}
+	DESTDIR=$PKG ninja -C build install
 }
+

@@ -1,35 +1,24 @@
 # Description: A set of good-quality plugins for gstreamer under the LGPL.
-# URL: http://gstreamer.freedesktop.org/modules/gst-plugins-good.html
-# Maintainer: Danny Rawlins, monster dot romster at gmail dot com
-# Packager: Matt Housh, jaeger at morpheus dot net
-# Depends on: flac gst-plugins-base gtk hal libdv libshout libsoup libtheora speex taglib wavpack
+# URL: https://gstreamer.freedesktop.org/modules/gst-plugins-good.html
+# Maintainer: Danny Rawlins, crux at romster dot me
+# Depends on: flac gst-plugins-base gtk3 lame libdv libshout libsoup libvpx mpg123 taglib wavpack xorg-libxcomposite xorg-libxcursor xorg-libxinerama
+# Optional: qt5 icu krb5 v4l-utils dbus
 
 name=gst-plugins-good
-version=1.16.1
+version=1.18.0
 release=1
-source=(http://gstreamer.freedesktop.org/src/$name/$name-$version.tar.xz \
-	linux36.patch \
-	pantilt.patch)
+source=(https://gstreamer.freedesktop.org/src/$name/$name-$version.tar.xz)
 
 build() {
 	cd $name-$version
-#	patch -p1 -i $SRC/linux36.patch
-#	patch -p1 -i $SRC/pantilt.patch
 
-	./configure \
+	meson build \
 		--prefix=/usr \
-		--mandir=/usr/man \
-		--disable-debug \
-		 \
-		--disable-dependency-tracking \
-		--disable-valgrind \
-		--disable-examples \
-		--disable-esd \
-		--disable-oss \
-		--disable-oss4 \
-		--enable-shared \
-		--disable-static
+		-D buildtype=release \
+		-D package-name="GStreamer (ThinStation Linux)" \
+		-D package-origin="https://www.thinstation.org/"
 
-	make
-	make DESTDIR=$PKG install
+	ninja -C build -j ${JOBS:-1}
+	DESTDIR=$PKG ninja -C build install
 }
+

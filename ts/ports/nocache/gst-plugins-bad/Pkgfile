@@ -1,30 +1,25 @@
 # Description: A set of plugins for gstreamer that may pose distribution problems.
 # URL: https://gstreamer.freedesktop.org/modules/gst-plugins-bad.html
 # Maintainer: Danny Rawlins, crux at romster dot me
-# Depends on: brotli chromaprint e2fsprogs faac faad2 gst-plugins-base ladspa lame libass libdca libdvdnav libmms libmodplug libmpcdec librsvg libsndfile libsrtp libusb libva libvpx libwebp mjpegtools neon nettle openal openjpeg openldap rtmpdump x264 x265
+# Depends on: brotli chromaprint e2fsprogs faac faad2 gst-plugins-base ladspa lame libass libdca libdvdnav libmms libmodplug libmpcdec librsvg libsndfile libsrtp libusb libva libvpx libwebp mjpegtools neon openal openjpeg openldap rtmpdump x264 x265
 # Optional: krb5
 
 name=gst-plugins-bad
-version=1.16.0
+version=1.18.0
 release=1
 source=(https://gstreamer.freedesktop.org/src/$name/$name-$version.tar.xz)
 
 build() {
 	cd $name-$version
 
-	./configure \
+	meson build \
 		--prefix=/usr \
-		--disable-debug \
-		 \
-		--disable-dependency-tracking \
-		--disable-valgrind \
-		--disable-examples
+		-D buildtype=release \
+		-D gtk_doc=disabled \
+		-D package-name="GStreamer (ThinStation Linux)" \
+		-D package-origin="https://www.thinstation.org/"
 
-	# fight unused direct deps
-	sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
-
-	make
-	make DESTDIR=$PKG install
-
-	rm -r $PKG/usr/share/gtk-doc
+	ninja -C build -j ${JOBS:-1}
+	DESTDIR=$PKG ninja -C build install
 }
+

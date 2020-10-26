@@ -1,29 +1,22 @@
-# Description: Gstreamer is a library that allows the construction of graphs of media-handling components.
-# URL: https://gstreamer.freedesktop.org/
-# Maintainer: Danny Rawlins, crux at romster dot me
-# Depends on: gobject-introspection libcap
+# Maintainer: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
+# Contributor: Jan de Groot <jgc@archlinux.org>
 
 name=gstreamer
-version=1.16.1
+version=1.18.0
 release=1
-source=(https://gstreamer.freedesktop.org/src/$name/$name-$version.tar.xz)
+source=(https://gstreamer.freedesktop.org/src/gstreamer/gstreamer-$version.tar.xz)
 
-build() {
-	cd $name-$version
+build(){
+  cd $name-*
 
-	./configure \
-		--prefix=/usr \
-		--libexecdir=/usr/lib \
-		--disable-debug \
-		--disable-dependency-tracking \
-		--disable-valgrind \
-		--disable-examples
+  ts-meson . build \
+    -D doc=disabled \
+    -D ptp-helper-permissions=capabilities \
+    -D dbghelp=disabled \
+    -D gobject-cast-checks=disabled \
+    -D package-name="GStreamer (ThinStation Linux)" \
+    -D package-origin="https://www.thinstation.org/"
+  meson compile -C build
 
-	# fight unused direct deps
-	sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
-  
-	make
-	make DESTDIR=$PKG install
-
-	rm -r $PKG/usr/share/gtk-doc
+  DESTDIR="$PKG" meson install -C build
 }
