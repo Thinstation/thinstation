@@ -4,13 +4,14 @@
 # Depends on:  cmake libffi python
 
 name=llvm
-version=9.0.0
+version=11.0.0
 release=2
-source=(https://releases.llvm.org/$version/$name-$version.src.tar.xz
+source=(https://github.com/llvm/llvm-project/archive/llvmorg-$version.tar.gz
 	llvm-config.h)
 
 build() {
-  cd $name-$version.src
+#  cd $name-$version
+  cd llvm-project-llvmorg-$version/llvm
 
   mkdir build
   cd build
@@ -30,6 +31,7 @@ build() {
     -DLLVM_BUILD_DOCS=ON \
     -DLLVM_ENABLE_SPHINX=ON \
     -DLLVM_ENABLE_DOXYGEN=OFF \
+    -DLLVM_ENABLE_PROJECTS="libcxx;libcxxabi" \
     -DSPHINX_WARNINGS_AS_ERRORS=OFF \
     -DFFI_INCLUDE_DIR=$(pkg-config --variable=includedir libffi) \
     -DLLVM_BINUTILS_INCDIR=/usr/include
