@@ -1,0 +1,53 @@
+#!/bin/sh
+#
+# /etc/rc.d/sshd: start/stop ssh daemon
+#
+
+SSD=/sbin/start-stop-daemon
+PROG=/usr/sbin/sshd
+PID=/var/run/sshd.pid
+KEYGEN=/usr/bin/ssh-keygen
+SSHDIR=/etc/ssh
+
+create_keys() {
+	if [ ! -f $SSHDIR/ssh_host_rsa_key ]; then
+		$KEYGEN -q -t rsa -b 2048 -N "" -f $SSHDIR/ssh_host_rsa_key
+	fi
+	if [ ! -f $SSHDIR/ssh_host_dsa_key ]; then
+		$KEYGEN -q -t dsa -N "" -f $SSHDIR/ssh_host_dsa_key
+	fi
+	if [ ! -f $SSHDIR/ssh_host_ecdsa_key ]; then
+		$KEYGEN -q -t ecdsa -b 521 -N "" -f $SSHDIR/ssh_host_ecdsa_key
+	fi
+	if [ ! -f $SSHDIR/ssh_host_ed25519_key ]; then
+		$KEYGEN -q -t ed25519 -N "" -f $SSHDIR/ssh_host_ed25519_key
+	fi
+}
+
+case $1 in
+start|init)
+	create_keys
+	$SSD --start --pidfile $PID --exec $PROG
+	;;
+stop)
+	$SSD --stop --retry 10 --pidfile $PID
+	;;
+restart)
+	$0 stop
+	$0 start
+	;;
+status)
+	$SSD --status --pidfile $PID
+	case $? in
+	0) echo "$PROG is running with pid $(cat $PID)" ;;
+	1) echo "$PROG is not running but the pid file $PID exists" ;;
+	3) echo "$PROG is not running" ;;
+	4) echo "Unable to determine the program status" ;;
+	esac
+	;;
+*)
+	echo "usage: $0 [start|stop|restart|status]"
+	;;
+esac
+
+# End of file
