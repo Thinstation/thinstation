@@ -1,6 +1,14 @@
 #!/bin/bash
 dependency=$1
 
+fdump()
+{
+	if objdump -x "$1" 2>/dev/null |grep -e NEEDED |grep -e $dependency >/dev/null; then
+                echo "$1"
+        fi
+
+}
+
 if [ ! -e /tmp/binlist ] || [ -n "$2" ]; then
 	rm -f /tmp/binlist
 	if [ -n "$2" ]; then
@@ -12,14 +20,12 @@ if [ ! -e /tmp/binlist ] || [ -n "$2" ]; then
 	fi
 	eval find $location -type f > /tmp/filelist
 	>&2 echo "Determining which files are ELF"
-	for file in `file -f /tmp/filelist |grep -e ELF |grep -E "shared|executable" |cut -d: -f1`; do
-		echo $file >> /tmp/binlist
-	done
+	file -m /ts/etc/elf.mgc -f /tmp/filelist |grep -e ELF |grep -E "shared|executable" |cut -d: -f1 >> /tmp/binlist
 fi
 
 >&2 echo "Looking for dependent binaries on $dependency"
-for bin in `cat /tmp/binlist`; do
-	if objdump -x $bin 2>/dev/null |grep -e NEEDED |grep -e $dependency >/dev/null; then
-		echo $bin
-	fi
-done
+export dependency
+export procs=`nproc`
+export -f fdump
+
+cat /tmp/binlist | xargs -n 1 -P $procs -I {} bash -c 'fdump "$@"' _ {}

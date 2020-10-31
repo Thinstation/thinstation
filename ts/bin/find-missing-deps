@@ -1,21 +1,32 @@
 #!/bin/sh
+
+rm -f /tmp/filelist
+rm -f /tmp/binlist
+
+check_bin_dep()
+{
+	if ldd "$1" 2>/dev/null |grep -e "not found" >/dev/null; then
+                echo "$1"
+        fi
+}
+
 export LD_LIBRARY_PATH=/usr/lib/samba:/usr/share/syslinux/efi64
-if [ ! -e /tmp/binlist ]; then
-	echo "Finding all files"
-	if [ -n "$1" ]; then
-		location=$1
-	else
-		location=/{bin,boot,etc,home,lib,opt,root,sbin,share,usr,var,www}
-	fi
-	eval find $location -type f > /tmp/filelist
-	echo "Determining which files are ELF"
-	for file in `file -f /tmp/filelist |grep -e ELF |grep -E "shared|executable" |cut -d: -f1`; do
-		echo $file >> /tmp/binlist
-	done
+export -f check_bin_dep
+export procs=48
+
+if [ -n "$1" ]; then
+	location=$1
+	rm -f /tmp/binlist
+else
+	location=/{bin,boot,etc,home,lib,opt,root,sbin,share,usr,var,www}
 fi
+if [ ! -e /tmp/binlist ]; then
+        echo "Finding all files"
+	eval find $location -type f > /tmp/filelist
+fi
+
+echo "Determining which files are ELF"
+file -m /ts/etc/elf.mgc -f /tmp/filelist |grep -e ELF |grep -E "shared|executable" |cut -d: -f1 >> /tmp/binlist
+
 echo "Looking for missing dependencies"
-for bin in `cat /tmp/binlist`; do
-	if ldd $bin 2>/dev/null |grep -e "not found" >/dev/null; then
-		echo $bin
-	fi
-done
+cat /tmp/binlist |xargs -n 1 -P $procs -I {} bash -c 'check_bin_dep "$@"' _ {}
