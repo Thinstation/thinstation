@@ -4,9 +4,10 @@
 # Contributor: judd <jvinet@zeroflux.org>
 
 name=openssh
-version=8.1p1
+version=8.4p1
 release=1
 source=("https://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable/${name}-${version}.tar.gz"
+	openssh-8.0p1-gssapi-keyex.patch
         'sshdgenkeys.service'
         'sshd@.service'
         'sshd.service'
@@ -17,6 +18,8 @@ source=("https://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable/${name}-${version}
 
 build() {
 	cd "${SRC}/${name}-${version}"
+	patch -p1 -i $SRC/openssh-8.0p1-gssapi-keyex.patch
+	autoreconf
 
 	./configure \
 		--prefix=/usr \
@@ -24,15 +27,23 @@ build() {
 		--sysconfdir=/etc/ssh \
 		--with-ldns \
 		--with-libedit \
-		--with-ssl-engine \
-		--with-pam \
+		--with-gss \
+	--disable-strip \
+	--without-zlib-version-check \
+	--with-ssl-engine \
+	--with-ipaddr-display \
+	--with-pie=no \
+	--without-hardening \
+	--with-systemd \
+	--with-default-pkcs11-provider=yes \
+	--with-security-key-builtin=yes \
+	--with-pam \
 		--with-privsep-user=nobody \
 		--with-kerberos5=/usr \
 		--with-xauth=/usr/bin/xauth \
-		--with-md5-passwords \
 		--with-pid-dir=/run \
 
-	make
+	make -j1
 
 	# Connectivity tests will fail with makechrootpkg since
 	# it runs as nobody which has /bin/false as login shell.

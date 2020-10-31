@@ -1,0 +1,26 @@
+# Maintainer: Levente Polyak <anthraxx[at]archlinux[dot]org>
+# Contributor: Moritz Kiefer <moritz.kiefer@purelyfunctional.org>
+
+name=libcbor
+version=0.8.0
+release=1
+source=(https://github.com/PJK/libcbor/archive/v${version}/${name}-${version}.tar.gz)
+
+build() {
+  cd ${name}-${version}
+  cmake . \
+    -Bbuild \
+    -DCMAKE_INSTALL_PREFIX=/usr \
+    -DCMAKE_INSTALL_LIBDIR=lib \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_C_FLAGS="${CFLAGS} ${CPPFLAGS}" \
+    -DBUILD_SHARED_LIBS=ON \
+    -DWITH_TESTS=1
+  make -C build VERBOSE=1
+  make -C build/test VERBOSE=1
+  make -C build DESTDIR="${PKG}" install
+  install -Dm 644 README.md CHANGELOG.md -t "${PKG}/usr/share/doc/${name}"
+  install -Dm 644 LICENSE.md -t "${PKG}/usr/share/licenses/${name}"
+}
+
+# vim: ts=2 sw=2 et:

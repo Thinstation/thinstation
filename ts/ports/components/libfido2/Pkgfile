@@ -1,0 +1,22 @@
+# Maintainer: Levente Polyak <anthraxx[at]archlinux[dot]org>
+# Contributor: Karol Babioch <karol@babioch.de>
+
+name=libfido2
+version=1.5.0
+release=2
+source=(https://developers.yubico.com/libfido2/Releases/libfido2-${version}.tar.gz)
+
+build() {
+  cd ${name}-${version}
+  cmake -B build \
+    -DCMAKE_INSTALL_PREFIX=/usr \
+    -DCMAKE_INSTALL_LIBDIR=lib \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_C_FLAGS="${CFLAGS} ${CPPFLAGS}"
+  make -C build VERBOSE=1
+  make -C build DESTDIR="${PKG}" install
+  install -Dm 644 NEWS README.adoc -t "${PKG}/usr/share/doc/${name}"
+  install -Dm 644 LICENSE -t "${PKG}/usr/share/licenses/${name}"
+}
+
+# vim: ts=2 sw=2 et:

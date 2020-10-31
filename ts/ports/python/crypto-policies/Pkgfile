@@ -1,0 +1,16 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=crypto-policies
+version=git
+release=1
+
+build() {
+	git clone --depth 1 https://gitlab.com/redhat-crypto/fedora-crypto-policies.git
+	cd fedora-crypto-policies
+	sed -i -e '/LibreswanGenerator/d' python/policygenerators/__init__.py
+	make
+	make DESTDIR=$PKG install
+}
+

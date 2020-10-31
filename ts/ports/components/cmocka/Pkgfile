@@ -1,0 +1,22 @@
+# Maintainer: Levente Polyak <anthraxx[at]archlinux[dot]org>
+# Contributor: Anatol Pomozov <anatol.pomozov@gmail.com>
+
+name=cmocka
+version=1.1.5
+release=2
+source=(https://cmocka.org/files/1.1/cmocka-${version}.tar.xz{,.asc})
+
+build() {
+  cd ${name}-${version}
+  mkdir build
+  cd build
+  cmake .. \
+    -DCMAKE_INSTALL_PREFIX=/usr \
+    -DCMAKE_INSTALL_LIBDIR=lib \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DUNIT_TESTING=ON
+  make
+  make install DESTDIR="${PKG}"
+}
+
+# vim: ts=2 sw=2 et:
