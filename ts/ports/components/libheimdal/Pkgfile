@@ -1,0 +1,33 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=libheimdal
+version=7.7.0
+release=1
+source=(https://github.com/heimdal/heimdal/archive/heimdal-$version.tar.gz \
+	link.patch)
+
+build() {
+	cd heimdal-heimdal-$version
+
+	./autogen.sh
+	patch -p0 -i $SRC/link.patch
+	./configure --prefix=/usr \
+        --enable-static \
+        --enable-shared \
+        --enable-pthread-support \
+        --without-x \
+        --without-hesiod \
+        --with-ipv6 \
+        --enable-kcm \
+        --enable-pk-init \
+
+	make
+	make DESTDIR=$PKG install
+
+	rm -rf $PKG/usr/{bin,sbin,include,share,lib/pkgconfig,libexec}
+	rm $PKG/usr/lib/{libkadm5clnt,libkadm5srv,libkrb5}.so
+	find $PKG -type f -name \*.la -delete
+	find $PKG -type f -name \*.a -delete
+}

@@ -1,0 +1,25 @@
+# Maintainer: Maxime Gauduin <alucryd@archlinux.org>
+# Contributor: Mikael Eriksson <mikael_eriksson@miffe.org>
+
+name=libjpeg6-turbo
+version=1.5.3
+release=2
+source=("https://downloads.sourceforge.net/project/libjpeg-turbo/${version}/libjpeg-turbo-${version}.tar.gz")
+
+build() {
+  cd libjpeg-turbo-${version}
+
+  ./configure \
+    --prefix='/usr' \
+    --mandir='/usr/share/man' \
+    --without-simd \
+    --with-build-date="$(date --utc --date="@${SOURCE_DATE_EPOCH:-$(date +%s)}" +%Y%m%d)"
+
+  make
+  make DESTDIR="${PKG}" install
+
+  rm -rf "${PKG}"/usr/{bin,include,lib/pkgconfig,share}
+  rm "${PKG}"/usr/lib/lib{jpeg.{a,so,la},turbojpeg.{a,so*,la}}
+
+  install -Dm 644 LICENSE.md -t "${PKG}"/usr/share/licenses/libjpeg6-turbo/
+}
