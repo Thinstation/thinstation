@@ -2,24 +2,39 @@
 
 new_file()
 {
-        if [ -n "`stat -c '%Y' $1 | grep -v \"$bday\"`" ]; then
-                return 0
-        else
-                return 1
+        if [ -n "`stat -c '%Y' "$1" | grep -v \"$bday\"`" ]; then
+                echo "$1"
         fi
 }
 
+stamp()
+{
+	touch -c -h -t "$timestamp" "$1"
+}
+
+procs=`nproc`
 timestamp="`date +%Y%m%d`0000.00"
-for file in `find /usr` `find /lib` `find /bin` `find /sbin` `find /build/packages` `find /opt` `find /etc` `find /share` `find /var`; do
-        touch -c -h -t $timestamp $file
+
+export timestamp
+export procs
+export -f new_file
+export -f stamp
+export scan_dirs="usr lib bin sbin build/packages opt etc share var"
+
+for dir in $scan_dirs; do
+	export IFS=$'\n'
+        find /$dir ! -type d |xargs -n 1 -P $procs -I {} bash -c 'stamp "$@"' _ {}
+	unset IFS
 done
+
 bday=`stat -c %Y /bin/busybox`
+export bday
 
 $@
 
-for file in `find /usr` `find /lib` `find /bin` `find /sbin` `find /build/packages`; do
-	if new_file $file; then
-		echo $file
-	fi
+for dir in $scan_dirs; do
+	export IFS=$'\n'
+	find /$dir ! -type d |xargs -n 1 -P $procs -I {} bash -c 'new_file "$@"' _ {}
+	unset IFS
 done
 
