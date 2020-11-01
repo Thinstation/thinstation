@@ -1,0 +1,55 @@
+# Maintainer: Fredy García <frealgagu at gmail.com>
+# Contributor: Chih-Hsuan Yen <yan12125@archlinux.org>
+# Contributor: foutrelis
+# Contributor: Andreas Radke <andyrtr@archlinux.org>
+
+name=webkitgtk1
+version=2.4.11
+release=19
+source=(
+  "https://${name%1}.org/releases/${name%1}-${version}.tar.xz"
+  "${name%1}-2.4.9-abs.patch"
+  "enchant-2.x.patch"
+  "icu59.patch"
+  "pkgconfig-enchant-2.patch"
+)
+
+build() {
+  mkdir -p "${SRC}/build-gtk2" "${SRC}/path"
+  ln -rTsf "/usr/bin/python2" "${SRC}/path/python"
+
+  cd "${SRC}/${name%1}-${version}"
+  patch -Np1 -i "${SRC}/${name%1}-2.4.9-abs.patch"
+  patch -Np1 -i "${SRC}/enchant-2.x.patch"
+  patch -Np1 -i "${SRC}/icu59.patch"
+  # https://www.archlinux.org/todo/enchant-221-rebuild/
+  patch -Np1 -i "${SRC}/pkgconfig-enchant-2.patch"
+
+  # Needed as autotools-related files are patched
+  autoreconf -ifv
+
+  cd "${SRC}/build-gtk2"
+  PATH="${SRC}/path:${PATH}"
+
+  CXXFLAGS+=" -fno-delete-null-pointer-checks"
+  CFLAGS+=" -fno-delete-null-pointer-checks"
+
+  CFLAGS+=" -Wno-expansion-to-defined -Wno-class-memaccess"
+  CXXFLAGS+=" -Wno-expansion-to-defined -Wno-class-memaccess -DUPRV_BLOCK_MACRO_BEGIN=\"\" -DUPRV_BLOCK_MACRO_END=\"\""
+
+  "${SRC}/${name%1}-${version}/configure" \
+    --prefix=/usr \
+    --libexecdir=/usr/lib/${name} \
+    --enable-introspection \
+    --with-gtk=2.0 \
+    --disable-webkit2 \
+    --disable-gtk-doc
+
+  # https://bugzilla.gnome.org/show_bug.cgi?id=655517
+  sed -i "s/ -shared / -Wl,-O1,--as-needed\0/g" "${SRC}/build-gtk2/libtool"
+
+  make all stamp-po
+
+  make -C "${SRC}/build-gtk2" DESTDIR="${PKG}" install
+  install -Dm644 "${SRC}/${name%1}-${version}/Source/WebKit/LICENSE" "${PKG}/usr/share/licenses/${name}/LICENSE"
+}
