@@ -15,6 +15,7 @@ drwxr-xr-x	root/root	usr/bin/
 -rwxr-xr-x	root/root	usr/bin/gentest
 -rwxr-xr-x	root/root	usr/bin/locktest
 -rwxr-xr-x	root/root	usr/bin/masktest
+-rwxr-xr-x	root/root	usr/bin/mdfind
 -rwxr-xr-x	root/root	usr/bin/mvxattr
 -rwxr-xr-x	root/root	usr/bin/ndrdump
 -rwxr-xr-x	root/root	usr/bin/net
@@ -42,7 +43,6 @@ drwxr-xr-x	root/root	usr/bin/
 -rwxr-xr-x	root/root	usr/bin/smbtar
 -rwxr-xr-x	root/root	usr/bin/smbtorture
 -rwxr-xr-x	root/root	usr/bin/smbtree
--rwxr-xr-x	root/root	usr/bin/test_util_paths
 -rwxr-xr-x	root/root	usr/bin/testparm
 -rwxr-xr-x	root/root	usr/bin/wbinfo
 drwxr-xr-x	root/root	usr/include/
@@ -59,6 +59,7 @@ drwxr-xr-x	root/root	usr/include/samba-4.0/core/
 -rw-r--r--	root/root	usr/include/samba-4.0/credentials.h
 -rw-r--r--	root/root	usr/include/samba-4.0/dcerpc.h
 -rw-r--r--	root/root	usr/include/samba-4.0/dcerpc_server.h
+-rw-r--r--	root/root	usr/include/samba-4.0/dcesrv_core.h
 -rw-r--r--	root/root	usr/include/samba-4.0/domain_credentials.h
 drwxr-xr-x	root/root	usr/include/samba-4.0/gen_ndr/
 -rw-r--r--	root/root	usr/include/samba-4.0/gen_ndr/atsvc.h
@@ -117,7 +118,6 @@ drwxr-xr-x	root/root	usr/include/samba-4.0/samba/
 drwxr-xr-x	root/root	usr/include/samba-4.0/util/
 -rw-r--r--	root/root	usr/include/samba-4.0/util/attr.h
 -rw-r--r--	root/root	usr/include/samba-4.0/util/blocking.h
--rw-r--r--	root/root	usr/include/samba-4.0/util/byteorder.h
 -rw-r--r--	root/root	usr/include/samba-4.0/util/data_blob.h
 -rw-r--r--	root/root	usr/include/samba-4.0/util/debug.h
 -rw-r--r--	root/root	usr/include/samba-4.0/util/discard.h
@@ -142,6 +142,9 @@ lrwxrwxrwx	root/root	usr/lib/libdcerpc-binding.so.0 -> libdcerpc-binding.so.0.0.
 lrwxrwxrwx	root/root	usr/lib/libdcerpc-samr.so -> libdcerpc-samr.so.0.0.1
 lrwxrwxrwx	root/root	usr/lib/libdcerpc-samr.so.0 -> libdcerpc-samr.so.0.0.1
 -rwxr-xr-x	root/root	usr/lib/libdcerpc-samr.so.0.0.1
+lrwxrwxrwx	root/root	usr/lib/libdcerpc-server-core.so -> libdcerpc-server-core.so.0.0.1
+lrwxrwxrwx	root/root	usr/lib/libdcerpc-server-core.so.0 -> libdcerpc-server-core.so.0.0.1
+-rwxr-xr-x	root/root	usr/lib/libdcerpc-server-core.so.0.0.1
 lrwxrwxrwx	root/root	usr/lib/libdcerpc-server.so -> libdcerpc-server.so.0.0.1
 lrwxrwxrwx	root/root	usr/lib/libdcerpc-server.so.0 -> libdcerpc-server.so.0.0.1
 -rwxr-xr-x	root/root	usr/lib/libdcerpc-server.so.0.0.1
@@ -157,9 +160,9 @@ lrwxrwxrwx	root/root	usr/lib/libndr-nbt.so.0 -> libndr-nbt.so.0.0.1
 lrwxrwxrwx	root/root	usr/lib/libndr-standard.so -> libndr-standard.so.0.0.1
 lrwxrwxrwx	root/root	usr/lib/libndr-standard.so.0 -> libndr-standard.so.0.0.1
 -rwxr-xr-x	root/root	usr/lib/libndr-standard.so.0.0.1
-lrwxrwxrwx	root/root	usr/lib/libndr.so -> libndr.so.0.2.0
-lrwxrwxrwx	root/root	usr/lib/libndr.so.0 -> libndr.so.0.2.0
--rwxr-xr-x	root/root	usr/lib/libndr.so.0.2.0
+lrwxrwxrwx	root/root	usr/lib/libndr.so -> libndr.so.1.0.0
+lrwxrwxrwx	root/root	usr/lib/libndr.so.1 -> libndr.so.1.0.0
+-rwxr-xr-x	root/root	usr/lib/libndr.so.1.0.0
 lrwxrwxrwx	root/root	usr/lib/libnetapi.so -> libnetapi.so.0
 -rwxr-xr-x	root/root	usr/lib/libnetapi.so.0
 lrwxrwxrwx	root/root	usr/lib/libnss_winbind.so -> libnss_winbind.so.2
@@ -186,9 +189,9 @@ lrwxrwxrwx	root/root	usr/lib/libsamba-util.so.0 -> libsamba-util.so.0.0.1
 lrwxrwxrwx	root/root	usr/lib/libsamdb.so -> libsamdb.so.0.0.1
 lrwxrwxrwx	root/root	usr/lib/libsamdb.so.0 -> libsamdb.so.0.0.1
 -rwxr-xr-x	root/root	usr/lib/libsamdb.so.0.0.1
-lrwxrwxrwx	root/root	usr/lib/libsmbclient.so -> libsmbclient.so.0.5.0
-lrwxrwxrwx	root/root	usr/lib/libsmbclient.so.0 -> libsmbclient.so.0.5.0
--rwxr-xr-x	root/root	usr/lib/libsmbclient.so.0.5.0
+lrwxrwxrwx	root/root	usr/lib/libsmbclient.so -> libsmbclient.so.0.6.0
+lrwxrwxrwx	root/root	usr/lib/libsmbclient.so.0 -> libsmbclient.so.0.6.0
+-rwxr-xr-x	root/root	usr/lib/libsmbclient.so.0.6.0
 lrwxrwxrwx	root/root	usr/lib/libsmbconf.so -> libsmbconf.so.0
 -rwxr-xr-x	root/root	usr/lib/libsmbconf.so.0
 lrwxrwxrwx	root/root	usr/lib/libsmbldap.so -> libsmbldap.so.2
@@ -216,8 +219,6 @@ drwxr-xr-x	root/root	usr/lib/pkgconfig/
 -rw-r--r--	root/root	usr/lib/pkgconfig/smbclient.pc
 -rw-r--r--	root/root	usr/lib/pkgconfig/wbclient.pc
 drwxr-xr-x	root/root	usr/lib/samba/
-drwxr-xr-x	root/root	usr/lib/samba/auth/
--rwxr-xr-x	root/root	usr/lib/samba/auth/script.so
 drwxr-xr-x	root/root	usr/lib/samba/bind9/
 -rwxr-xr-x	root/root	usr/lib/samba/bind9/dlz_bind9.so
 -rwxr-xr-x	root/root	usr/lib/samba/bind9/dlz_bind9_10.so
@@ -256,7 +257,6 @@ drwxr-xr-x	root/root	usr/lib/samba/ldb/
 -rwxr-xr-x	root/root	usr/lib/samba/ldb/lazy_commit.so
 -rwxr-xr-x	root/root	usr/lib/samba/ldb/ldbsamba_extensions.so
 -rwxr-xr-x	root/root	usr/lib/samba/ldb/linked_attributes.so
--rwxr-xr-x	root/root	usr/lib/samba/ldb/local_password.so
 -rwxr-xr-x	root/root	usr/lib/samba/ldb/new_partition.so
 -rwxr-xr-x	root/root	usr/lib/samba/ldb/objectclass.so
 -rwxr-xr-x	root/root	usr/lib/samba/ldb/objectclass_attrs.so
@@ -278,8 +278,6 @@ drwxr-xr-x	root/root	usr/lib/samba/ldb/
 -rwxr-xr-x	root/root	usr/lib/samba/ldb/schema_load.so
 -rwxr-xr-x	root/root	usr/lib/samba/ldb/secrets_tdb_sync.so
 -rwxr-xr-x	root/root	usr/lib/samba/ldb/show_deleted.so
--rwxr-xr-x	root/root	usr/lib/samba/ldb/simple_dn.so
--rwxr-xr-x	root/root	usr/lib/samba/ldb/simple_ldap_map.so
 -rwxr-xr-x	root/root	usr/lib/samba/ldb/subtree_delete.so
 -rwxr-xr-x	root/root	usr/lib/samba/ldb/subtree_rename.so
 -rwxr-xr-x	root/root	usr/lib/samba/ldb/tombstone_reanimate.so
@@ -312,7 +310,6 @@ lrwxrwxrwx	root/root	usr/lib/samba/libasn1-samba4.so.8 -> libasn1-samba4.so.8.0.
 -rwxr-xr-x	root/root	usr/lib/samba/libcluster-samba4.so
 -rwxr-xr-x	root/root	usr/lib/samba/libcmdline-contexts-samba4.so
 -rwxr-xr-x	root/root	usr/lib/samba/libcmdline-credentials-samba4.so
--rwxr-xr-x	root/root	usr/lib/samba/libcmocka-samba4.so
 lrwxrwxrwx	root/root	usr/lib/samba/libcom_err-samba4.so.0 -> libcom_err-samba4.so.0.25
 -rwxr-xr-x	root/root	usr/lib/samba/libcom_err-samba4.so.0.25
 -rwxr-xr-x	root/root	usr/lib/samba/libcommon-auth-samba4.so
@@ -403,6 +400,7 @@ lrwxrwxrwx	root/root	usr/lib/samba/libroken-samba4.so.19 -> libroken-samba4.so.1
 -rwxr-xr-x	root/root	usr/lib/samba/libsmbpasswdparser-samba4.so
 -rwxr-xr-x	root/root	usr/lib/samba/libsocket-blocking-samba4.so
 -rwxr-xr-x	root/root	usr/lib/samba/libsys-rw-samba4.so
+-rwxr-xr-x	root/root	usr/lib/samba/libtalloc-report-printf-samba4.so
 -rwxr-xr-x	root/root	usr/lib/samba/libtalloc-report-samba4.so
 -rwxr-xr-x	root/root	usr/lib/samba/libtdb-wrap-samba4.so
 -rwxr-xr-x	root/root	usr/lib/samba/libtime-basic-samba4.so
@@ -462,7 +460,6 @@ drwxr-xr-x	root/root	usr/lib/samba/vfs/
 -rwxr-xr-x	root/root	usr/lib/samba/vfs/gpfs.so
 -rwxr-xr-x	root/root	usr/lib/samba/vfs/linux_xfs_sgid.so
 -rwxr-xr-x	root/root	usr/lib/samba/vfs/media_harmony.so
--rwxr-xr-x	root/root	usr/lib/samba/vfs/netatalk.so
 -rwxr-xr-x	root/root	usr/lib/samba/vfs/offline.so
 -rwxr-xr-x	root/root	usr/lib/samba/vfs/posix_eadb.so
 -rwxr-xr-x	root/root	usr/lib/samba/vfs/preopen.so
@@ -479,6 +476,7 @@ drwxr-xr-x	root/root	usr/lib/samba/vfs/
 -rwxr-xr-x	root/root	usr/lib/samba/vfs/time_audit.so
 -rwxr-xr-x	root/root	usr/lib/samba/vfs/unityed_media.so
 -rwxr-xr-x	root/root	usr/lib/samba/vfs/virusfilter.so
+-rwxr-xr-x	root/root	usr/lib/samba/vfs/widelinks.so
 -rwxr-xr-x	root/root	usr/lib/samba/vfs/worm.so
 -rwxr-xr-x	root/root	usr/lib/samba/vfs/xattr_tdb.so
 drwxr-xr-x	root/root	usr/lib/security/
@@ -504,6 +502,7 @@ drwxr-xr-x	root/root	usr/share/man/man1/
 -rw-r--r--	root/root	usr/share/man/man1/locktest.1.gz
 -rw-r--r--	root/root	usr/share/man/man1/log2pcap.1.gz
 -rw-r--r--	root/root	usr/share/man/man1/masktest.1.gz
+-rw-r--r--	root/root	usr/share/man/man1/mdfind.1.gz
 -rw-r--r--	root/root	usr/share/man/man1/mvxattr.1.gz
 -rw-r--r--	root/root	usr/share/man/man1/ndrdump.1.gz
 -rw-r--r--	root/root	usr/share/man/man1/nmblookup.1.gz
@@ -528,6 +527,7 @@ drwxr-xr-x	root/root	usr/share/man/man1/
 -rw-r--r--	root/root	usr/share/man/man1/testparm.1.gz
 -rw-r--r--	root/root	usr/share/man/man1/vfstest.1.gz
 -rw-r--r--	root/root	usr/share/man/man1/wbinfo.1.gz
+-rw-r--r--	root/root	usr/share/man/man1/winexe.1.gz
 drwxr-xr-x	root/root	usr/share/man/man5/
 -rw-r--r--	root/root	usr/share/man/man5/lmhosts.5.gz
 -rw-r--r--	root/root	usr/share/man/man5/pam_winbind.conf.5.gz
@@ -588,9 +588,9 @@ drwxr-xr-x	root/root	usr/share/man/man8/
 -rw-r--r--	root/root	usr/share/man/man8/vfs_glusterfs.8.gz
 -rw-r--r--	root/root	usr/share/man/man8/vfs_glusterfs_fuse.8.gz
 -rw-r--r--	root/root	usr/share/man/man8/vfs_gpfs.8.gz
+-rw-r--r--	root/root	usr/share/man/man8/vfs_io_uring.8.gz
 -rw-r--r--	root/root	usr/share/man/man8/vfs_linux_xfs_sgid.8.gz
 -rw-r--r--	root/root	usr/share/man/man8/vfs_media_harmony.8.gz
--rw-r--r--	root/root	usr/share/man/man8/vfs_netatalk.8.gz
 -rw-r--r--	root/root	usr/share/man/man8/vfs_nfs4acl_xattr.8.gz
 -rw-r--r--	root/root	usr/share/man/man8/vfs_offline.8.gz
 -rw-r--r--	root/root	usr/share/man/man8/vfs_prealloc.8.gz
@@ -609,6 +609,7 @@ drwxr-xr-x	root/root	usr/share/man/man8/
 -rw-r--r--	root/root	usr/share/man/man8/vfs_tsmsm.8.gz
 -rw-r--r--	root/root	usr/share/man/man8/vfs_unityed_media.8.gz
 -rw-r--r--	root/root	usr/share/man/man8/vfs_virusfilter.8.gz
+-rw-r--r--	root/root	usr/share/man/man8/vfs_widelinks.8.gz
 -rw-r--r--	root/root	usr/share/man/man8/vfs_worm.8.gz
 -rw-r--r--	root/root	usr/share/man/man8/vfs_xattr_tdb.8.gz
 -rw-r--r--	root/root	usr/share/man/man8/vfs_zfsacl.8.gz
@@ -616,8 +617,13 @@ drwxr-xr-x	root/root	usr/share/man/man8/
 -rw-r--r--	root/root	usr/share/man/man8/winbind_krb5_locator.8.gz
 -rw-r--r--	root/root	usr/share/man/man8/winbindd.8.gz
 drwxr-xr-x	root/root	usr/share/samba/
+drwxr-xr-x	root/root	usr/share/samba/admx/
+drwxr-xr-x	root/root	usr/share/samba/admx/en-US/
+-rw-r--r--	root/root	usr/share/samba/admx/en-US/samba.adml
+-rw-r--r--	root/root	usr/share/samba/admx/samba.admx
+drwxr-xr-x	root/root	usr/share/samba/mdssvc/
+-rw-r--r--	root/root	usr/share/samba/mdssvc/elasticsearch_mappings.json
 drwxr-xr-x	root/root	usr/share/samba/setup/
--rw-r--r--	root/root	usr/share/samba/setup/DB_CONFIG
 drwxr-xr-x	root/root	usr/share/samba/setup/ad-schema/
 -rw-r--r--	root/root	usr/share/samba/setup/ad-schema/AD_DS_Attributes__Windows_Server_2012_R2.ldf
 -rw-r--r--	root/root	usr/share/samba/setup/ad-schema/AD_DS_Attributes__Windows_Server_2016.ldf
@@ -643,7 +649,6 @@ drwxr-xr-x	root/root	usr/share/samba/setup/adprep/WindowsServerDocs/
 -rw-r--r--	root/root	usr/share/samba/setup/adprep/WindowsServerDocs/Schema-Updates.md
 -rw-r--r--	root/root	usr/share/samba/setup/adprep/fix-forest-rev.ldf
 -rw-r--r--	root/root	usr/share/samba/setup/aggregate_schema.ldif
--rw-r--r--	root/root	usr/share/samba/setup/cn=samba.ldif
 drwxr-xr-x	root/root	usr/share/samba/setup/display-specifiers/
 -rw-r--r--	root/root	usr/share/samba/setup/display-specifiers/DisplaySpecifiers-Win2k0.txt
 -rw-r--r--	root/root	usr/share/samba/setup/display-specifiers/DisplaySpecifiers-Win2k3.txt
@@ -652,32 +657,12 @@ drwxr-xr-x	root/root	usr/share/samba/setup/display-specifiers/
 -rw-r--r--	root/root	usr/share/samba/setup/display-specifiers/DisplaySpecifiers-Win2k8R2.txt
 -rw-r--r--	root/root	usr/share/samba/setup/dns_update_list
 -rw-r--r--	root/root	usr/share/samba/setup/extended-rights.ldif
--rw-r--r--	root/root	usr/share/samba/setup/fedora-ds-init.ldif
--rw-r--r--	root/root	usr/share/samba/setup/fedorads-dna.ldif
--rw-r--r--	root/root	usr/share/samba/setup/fedorads-index.ldif
--rw-r--r--	root/root	usr/share/samba/setup/fedorads-linked-attributes.ldif
--rw-r--r--	root/root	usr/share/samba/setup/fedorads-pam.ldif
--rw-r--r--	root/root	usr/share/samba/setup/fedorads-partitions.ldif
--rw-r--r--	root/root	usr/share/samba/setup/fedorads-refint-add.ldif
--rw-r--r--	root/root	usr/share/samba/setup/fedorads-refint-delete.ldif
--rw-r--r--	root/root	usr/share/samba/setup/fedorads-samba.ldif
--rw-r--r--	root/root	usr/share/samba/setup/fedorads-sasl.ldif
--rw-r--r--	root/root	usr/share/samba/setup/fedorads.inf
 -rw-r--r--	root/root	usr/share/samba/setup/idmap_init.ldif
 -rw-r--r--	root/root	usr/share/samba/setup/krb5.conf
--rw-r--r--	root/root	usr/share/samba/setup/memberof.conf
--rw-r--r--	root/root	usr/share/samba/setup/mmr_serverids.conf
--rw-r--r--	root/root	usr/share/samba/setup/mmr_syncrepl.conf
--rw-r--r--	root/root	usr/share/samba/setup/modules.conf
 -rw-r--r--	root/root	usr/share/samba/setup/named.conf
 -rw-r--r--	root/root	usr/share/samba/setup/named.conf.dlz
 -rw-r--r--	root/root	usr/share/samba/setup/named.conf.update
 -rw-r--r--	root/root	usr/share/samba/setup/named.txt
--rw-r--r--	root/root	usr/share/samba/setup/olc_mmr.conf
--rw-r--r--	root/root	usr/share/samba/setup/olc_seed.ldif
--rw-r--r--	root/root	usr/share/samba/setup/olc_serverid.conf
--rw-r--r--	root/root	usr/share/samba/setup/olc_syncrepl.conf
--rw-r--r--	root/root	usr/share/samba/setup/olc_syncrepl_seed.conf
 -rw-r--r--	root/root	usr/share/samba/setup/prefixMap.txt
 -rw-r--r--	root/root	usr/share/samba/setup/provision.ldif
 -rw-r--r--	root/root	usr/share/samba/setup/provision.reg
@@ -714,17 +699,11 @@ drwxr-xr-x	root/root	usr/share/samba/setup/display-specifiers/
 -rw-r--r--	root/root	usr/share/samba/setup/provision_users_add.ldif
 -rw-r--r--	root/root	usr/share/samba/setup/provision_users_modify.ldif
 -rw-r--r--	root/root	usr/share/samba/setup/provision_well_known_sec_princ.ldif
--rw-r--r--	root/root	usr/share/samba/setup/refint.conf
--rw-r--r--	root/root	usr/share/samba/setup/schema-map-fedora-ds-1.0
--rw-r--r--	root/root	usr/share/samba/setup/schema-map-openldap-2.3
 -rw-r--r--	root/root	usr/share/samba/setup/schema_samba4.ldif
 -rw-r--r--	root/root	usr/share/samba/setup/secrets.ldif
 -rw-r--r--	root/root	usr/share/samba/setup/secrets_dns.ldif
 -rw-r--r--	root/root	usr/share/samba/setup/secrets_init.ldif
--rw-r--r--	root/root	usr/share/samba/setup/secrets_sasl_ldap.ldif
--rw-r--r--	root/root	usr/share/samba/setup/secrets_simple_ldap.ldif
 -rw-r--r--	root/root	usr/share/samba/setup/share.ldif
--rw-r--r--	root/root	usr/share/samba/setup/slapd.conf
 -rw-r--r--	root/root	usr/share/samba/setup/spn_update_list
 -rw-r--r--	root/root	usr/share/samba/setup/ypServ30.ldif
 drwxr-xr-x	root/root	var/
