@@ -1,0 +1,26 @@
+# Description: Video Acceleration API to enable hardware accelerated video decode/encode.
+# URL: http://freedesktop.org/wiki/Software/vaapi
+# Maintainer: Danny Rawlins, monster dot romster at gmail dot com
+# Packager: Tilman Sauerbeck, tilman at crux dot nu
+# Depends on: mesa3d xorg-libpciaccess
+
+name=libva1
+version=1.8.3
+release=1
+source=(https://github.com/intel/libva/archive/$version.tar.gz)
+
+build() {
+
+	cd libva-$version
+
+	./autogen.sh
+	./configure \
+		--prefix=/usr \
+        	--enable-glx \
+		--disable-dependency-tracking \
+		--disable-static 
+
+	make
+	make DESTDIR=$PKG install
+	rm -rf $PKG/usr/{include,lib/pkgconfig,lib/*.so,lib/*.la}
+}
