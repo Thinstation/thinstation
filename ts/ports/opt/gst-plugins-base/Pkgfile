@@ -5,12 +5,14 @@
 # Optional: cdparanoia
 
 name=gst-plugins-base
-version=1.18.0
+version=1.18.1
 release=1
-source=(https://gstreamer.freedesktop.org/src/$name/$name-$version.tar.xz)
+source=(https://gstreamer.freedesktop.org/src/$name/$name-$version.tar.xz 
+	ica.patch)
 
 build() {
 	cd $name-$version
+	patch -p1 -i $SRC/ica.patch
 
 	meson build \
 		--prefix=/usr \

@@ -2,12 +2,15 @@
 # Contributor: Jan de Groot <jgc@archlinux.org>
 
 name=gstreamer
-version=1.18.0
+version=1.18.1
 release=1
-source=(https://gstreamer.freedesktop.org/src/gstreamer/gstreamer-$version.tar.xz)
+source=(https://gstreamer.freedesktop.org/src/gstreamer/gstreamer-$version.tar.xz \
+	memopt.patch)
 
 build(){
   cd $name-*
+
+#  patch -p1 -R -i $SRC/memopt.patch
 
   ts-meson . build \
     -D doc=disabled \
