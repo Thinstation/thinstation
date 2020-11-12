@@ -115,6 +115,7 @@ if ! pkg_initialized $PACKAGE; then
       line=`echo $session | cut -f1 -d"="`
       icagroup=`echo $line | cut -f5 -d"_"`
       echo "$icagroup=$default" >> $APPSRV_CUSTOM
+      echo "/^$icagroup =/d" >> /tmp/script
       echo "/^$icagroup=/d" >> /tmp/script
     done
 
@@ -326,7 +327,8 @@ if ! pkg_initialized $PACKAGE; then
       line=`echo $session | cut -f1 -d"="`
       icagroup=`echo $line | cut -f3 -d"_"`
       echo "$icagroup=$icavalue" >> $WFCLIENT_CUSTOM
-      echo "/^$icagroup *=/d" >> /tmp/script
+      echo "/^$icagroup =/d" >> /tmp/script
+      echo "/^$icagroup=/d" >> /tmp/script
   done
 
   let line=line+1
