@@ -289,7 +289,7 @@ if ! pkg_initialized $PACKAGE; then
   if [ "`make_caps "$ICA_BROWSER_PROTOCOL"`" == "UDP" ]; then
      ICA_WFCLIENT_BrowserProtocol="UDP"
      ICA_WFCLIENT_SSLEnable="Off"
-  elif [ "`make_caps "$ICA_BROWSER_PROTOCOL"`" == "HTTPSonSSL" ]; then
+  elif [ "`make_caps "$ICA_BROWSER_PROTOCOL"`" == "HTTPSONSSL" ]; then
      ICA_WFCLIENT_BrowserProtocol="HTTPonTCP"
      ICA_WFCLIENT_SSLEnable="On"
   else
@@ -305,7 +305,8 @@ if ! pkg_initialized $PACKAGE; then
       line=`echo $session | cut -f1 -d"="`
       icagroup=`echo $line | cut -f3 -d"_"`
       echo "$icagroup=$icavalue" >> $WFCLIENT_CUSTOM
-      echo "/^$icagroup *=/d" >> /tmp/script
+      echo "/^$icagroup =/d" >> /tmp/script
+      echo "/^$icagroup=/d" >> /tmp/script
   done
 
   let line=line-1
