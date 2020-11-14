@@ -125,7 +125,7 @@ stage4()
         # Fix for db access violations
         if [ -e /var/log/pkgbuild ]; then
                 for prt in `ls /var/log/pkgbuild -1`; do
-                        prt-get install `basename $prt .log` -if -im > /dev/null 2>&1
+                        prt-get install `basename $prt .log` -if -im -ns > /dev/null 2>&1
                 done
         fi
 	add_to_db
@@ -153,13 +153,13 @@ install_binary_port()
 				printf "Would you like to try and build it now? Y/N:"
 				read -n 1 answer
 				case $answer in
-					Y|y) prt-get install -fr -if -im -is $port_name;answered=true;;
+					Y|y) prt-get install -fr -if -im -is -ns $port_name;answered=true;;
 					n|n) answered=true;;
 					*) answered=false;;
 				esac
 			done
 		else
-			prt-get install -fr -if -im -is $port_name
+			prt-get install -fr -if -im -is -ns $port_name
 		fi
 		printf "\n"
 	fi
