@@ -9,12 +9,13 @@ mv wget_tmp/firefox $INSTALLDIR
 returnval=$?
 
 #patchelf --set-rpath /lib/firefox $INSTALLDIR/firefox/libnss3.so
-for nsslib in $INSTALLDIR/lib/firefox/*.lib; do
-	if [ -e /usr/lib/$nsslib ]; then
-		rm $INSTALLDIR/lib/firefox/$nsslib
-		ln /usr/lib/$nsslib $INSTALLDIR/lib/firefox/.
-	fi
-done
+
+#for nsslib in `find $INSTALLDIR/firefox/ -mindepth 1 -maxdepth 1 -type f -printf '%f\n'` ; do
+#	if [ -e /usr/lib/$nsslib ]; then
+#		rm $INSTALLDIR/firefox/$nsslib
+#		ln /usr/lib/$nsslib $INSTALLDIR/firefox/.
+#	fi
+#done
 
 let returnval=returnval+$?
 
