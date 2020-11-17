@@ -1,0 +1,28 @@
+# Description: The Rust programming language compiler and utilities.
+# URL:         https://www.rust-lang.org
+# Maintainer:  6c37 Team, https://github.com/6c37/crux-ports/issues
+# Depends on:  cmake
+
+name=rust
+version=1.46.0
+release=1
+source=(
+	https://static.rust-lang.org/dist/rustc-$version-src.tar.gz
+)
+
+build() {
+	cd rustc-$version-src
+
+	./configure --prefix=/usr --enable-extended --disable-docs
+
+	procs=`nproc`
+	let procs-=1
+	python3 ./x.py build -j $procs
+	DESTDIR=$PKG python3 ./x.py install
+
+	rm -rf $PKG/usr/share/doc
+	rm -rf $PKG/usr/share/zsh
+	rm -rf $PKG/etc
+	rm -rf $PKG/usr/lib/rustlib/{components,manifest-rustc,rust-installer-version,uninstall.sh}
+	rm -rf $PKG/ts
+}
