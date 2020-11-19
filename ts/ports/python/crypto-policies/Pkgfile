@@ -12,5 +12,6 @@ build() {
 	sed -i -e '/LibreswanGenerator/d' python/policygenerators/__init__.py
 	make
 	make DESTDIR=$PKG install
+	sed -i -e 's|/usr/bin/sh|/bin/bash|g' $PKG/usr/bin/update-crypto-policies
 }
 
