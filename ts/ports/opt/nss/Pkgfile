@@ -21,16 +21,23 @@ export USE_64=1
 export POLICY_FILE="nss.config"
 export POLICY_PATH="/etc/crypto-policies/back-ends"
 export NSS_FORCE_FIPS=1
+export NSS_IGNORE_SYSTEM_POLICY=1
 export BUILD_OPT=1
-
+export PKG_CONFIG_ALLOW_SYSTEM_LIBS=1
+export PKG_CONFIG_ALLOW_SYSTEM_CFLAGS=1
+export NSS_USE_SYSTEM_SQLITE=1
+export NSS_ALLOW_SSLKEYLOGFILE=1
+export NSPR_INCLUDE_DIR=/usr/include/nspr
+export NSS_DISABLE_DBM=1
 
 _nsprver=$(pkg-config --modversion nspr)
-	cd $name-$version/nss
+	cd $name-$version
 
-	./build.sh -v --opt --system-sqlite --system-nspr --enable-libpkix --enable-fips
+#	./build.sh -v --opt --system-sqlite --system-nspr --enable-libpkix --enable-fips
+	make -C ./nss all
 
   local vmajor vminor vpatch
-  cd ..
+#  cd ..
 
   { read vmajor; read vminor; read vpatch; } \
     < <(awk '/#define.*NSS_V(MAJOR|MINOR|PATCH)/ {print $3}' nss/lib/nss/nss.h)
@@ -62,12 +69,21 @@ _nsprver=$(pkg-config --modversion nspr)
   cd ../../../dist
   install -Dt "$PKG/usr/include/nss" -m644 public/nss/*.h
 
-  cd Release/bin
+  cd Linux*/bin
   install -Dt "$PKG/usr/bin" *util shlibsign signtool signver ssltap
 
   cd ../lib
   install -Dt "$PKG/usr/lib" *.so
-  install -Dt "$PKG/usr/lib" -m644 *.chk
+
+cd $PKG/usr/
+for FILE in `ls -1 lib/*.so`; do
+	strip --strip-unneeded "$FILE"
+	strip --strip-debug "$FILE"
+done
+
+./bin/shlibsign -i lib/libfreebl3.so
+./bin/shlibsign -i lib/libfreeblpriv3.so
+./bin/shlibsign -i lib/libsoftokn3.so
 
   # Replace built-in trust with p11-kit connection
 #  ln -sf libnssckbi-p11-kit.so "$PKG/usr/lib/libnssckbi.so"
