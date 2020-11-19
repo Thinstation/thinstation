@@ -10,12 +10,15 @@ returnval=$?
 
 #patchelf --set-rpath /lib/firefox $INSTALLDIR/firefox/libnss3.so
 
-#for nsslib in `find $INSTALLDIR/firefox/ -mindepth 1 -maxdepth 1 -type f -printf '%f\n'` ; do
-#	if [ -e /usr/lib/$nsslib ]; then
-#		rm $INSTALLDIR/firefox/$nsslib
-#		ln /usr/lib/$nsslib $INSTALLDIR/firefox/.
-#	fi
-#done
+for nsslib in `find $INSTALLDIR/firefox/ -mindepth 1 -maxdepth 1 -type f -name \*.so -printf '%f\n'` ; do
+	if [ -e /usr/lib/$nsslib ]; then
+		rm $INSTALLDIR/firefox/$nsslib
+		ln /usr/lib/$nsslib $INSTALLDIR/firefox/.
+		if [ -e /usr/lib/`basename $nsslib .so`.chk ]; then
+			ln /usr/lib/`basename $nsslib .so`.chk $INSTALLDIR/firefox/.
+		fi
+	fi
+done
 
 let returnval=returnval+$?
 
