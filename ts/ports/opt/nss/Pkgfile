@@ -9,15 +9,25 @@ release=1
 _version=$(echo $version |sed 's/\./_/g')
 
 source=(http://ftp.mozilla.org/pub/security/nss/releases/NSS_${_version}_RTM/src/$name-$version.tar.gz \
-	revert-proc-fips.patch
         nss-config.in nss.pc.in)
 
 build() {
+# Fedora
+CFLAGS=`echo $CFLAGS |sed -e 's/-O2/-O0/g'|sed -e 's/-D_FORTIFY_SOURCE=2//g'`
+export CFLAGS
+export CXXFLAGS="$CFLAGS"
+export XCFLAGS="$CFLAGS"
+export USE_64=1
+export POLICY_FILE="nss.config"
+export POLICY_PATH="/etc/crypto-policies/back-ends"
+export NSS_FORCE_FIPS=1
+export BUILD_OPT=1
+
+
 _nsprver=$(pkg-config --modversion nspr)
 	cd $name-$version/nss
-#	patch -Np2 < ../../revert-proc-fips.patch
 
-	./build.sh -v --opt --system-sqlite --system-nspr --enable-libpkix --disable-tests --enable-fips
+	./build.sh -v --opt --system-sqlite --system-nspr --enable-libpkix --enable-fips
 
   local vmajor vminor vpatch
   cd ..
