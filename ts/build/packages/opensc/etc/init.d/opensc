@@ -6,5 +6,16 @@ if ! pkg_initialized $PACKAGE ; then
    if [ -n "$OPENSC_CARD_DRIVERS" ] ; then
      sed -i -e "s/[# ]*card_drivers = .*;/card_drivers = $OPENSC_CARD_DRIVERS;/g" /etc/opensc.conf
    fi
+   if [ -e /etc/TS.default/pkcs11.txt ]; then
+
+cat << EOF >> /etc/TS.default/pkcs11.txt
+library=/usr/lib/pkcs11/opensc-pkcs11.so
+name=OpenSC smartcard framework (0.20)
+
+library=/usr/lib/onepin-opensc-pkcs11.so
+name=OpenSC smartcard framework (0.20)
+EOF
+
+   fi
 fi
 
