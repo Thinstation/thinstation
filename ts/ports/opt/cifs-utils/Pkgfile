@@ -4,13 +4,13 @@
 # Depends on:  samba keyutils
 
 name=cifs-utils
-version=6.8
+version=6.11
 release=1
 source=(https://www.samba.org/ftp/linux-cifs/$name/$name-$version.tar.bz2)
 
 build () {
     cd $name-$version
-    ./configure --prefix=/usr --mandir=/usr/man
+    ./configure --prefix=/usr --mandir=/usr/man --disable-dependency-tracking
     make
     make DESTDIR=$PKG install
 }

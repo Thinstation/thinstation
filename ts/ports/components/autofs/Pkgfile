@@ -5,16 +5,12 @@
 # Contributor: Leonid Isaev
 
 name=autofs
-version=5.1.4
+version=5.1.6
 release=3
-source=("https://www.kernel.org/pub/linux/daemons/${name}/v5/${name}-${version}.tar."{xz,sign}
-        "0001-autofs-5.1.4-account-for-recent-libnsl-changes.patch")
+source=(https://www.kernel.org/pub/linux/daemons/${name}/v5/${name}-${version}.tar.xz)
 
 build() {
   cd "${SRC}/${name}-${version}"
-
-  # FS#58241
-  patch -p1 -i ../0001-autofs-5.1.4-account-for-recent-libnsl-changes.patch
 
   sed -i -e 's|/etc/auto.misc|/etc/autofs/auto.misc|' \
          -e 's|/etc/auto.master.d|/etc/autofs/auto.master.d|' samples/auto.master
@@ -27,10 +23,9 @@ build() {
 	--enable-ignore-busy \
 	--with-libtirpc \
 	--with-systemd
-  make
 
+  make
   make INSTALLROOT="${PKG}" install
 
-  rm -r "$PKG/run"
   install -dm755 "$PKG/etc/autofs/auto.master.d"
 }

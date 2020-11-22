@@ -8,6 +8,7 @@ version=8.4p1
 release=1
 source=("https://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable/${name}-${version}.tar.gz"
 	openssh-8.0p1-gssapi-keyex.patch
+	openssh-8.0p1-crypto-policies.patch
         'sshdgenkeys.service'
         'sshd@.service'
         'sshd.service'
@@ -19,6 +20,7 @@ source=("https://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable/${name}-${version}
 build() {
 	cd "${SRC}/${name}-${version}"
 	patch -p1 -i $SRC/openssh-8.0p1-gssapi-keyex.patch
+	patch -p1 -i $SRC/openssh-8.0p1-crypto-policies.patch
 	autoreconf
 
 	./configure \
@@ -33,7 +35,6 @@ build() {
 	--with-ssl-engine \
 	--with-ipaddr-display \
 	--with-pie=no \
-	--without-hardening \
 	--with-systemd \
 	--with-default-pkcs11-provider=yes \
 	--with-security-key-builtin=yes \

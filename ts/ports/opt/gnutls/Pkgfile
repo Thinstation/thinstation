@@ -14,8 +14,13 @@ build() {
 
   ./configure --prefix=/usr \
               --with-included-libtasn1 \
-              --disable-guile \
-		--with-included-unistring
+		 --enable-cryptodev \
+		--with-included-unistring \
+		--with-system-priority-file=/etc/crypto-policies/back-ends/gnutls.config \
+		--enable-fips140-mode \
+		--enable-openssl-compatibility \
+		--enable-guile --with-guile-site-dir=no \
+		--with-default-trust-store-pkcs11="pkcs11:model=p11-kit-trust;manufacturer=PKCS%2311%20Kit"
 
   make
 

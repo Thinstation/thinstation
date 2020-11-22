@@ -4,7 +4,7 @@
 # Depends on:  util-linux eudev libcap rpcbind libnfsidmap libevent keyutils sqlite3
 
 name=nfs-utils
-version=2.4.1
+version=2.5.2
 release=1
 source=(http://downloads.sourceforge.net/project/nfs/$name/$version/$name-$version.tar.bz2
         exports idmapd.conf
@@ -19,7 +19,9 @@ build () {
                 --with-statedir=/var/lib/nfs \
                 --without-tcp-wrappers \
                 --disable-gss \
-                --enable-libmount-mount 
+                --enable-libmount-mount \
+		--with-systemd
+
     make
     make DESTDIR=$PKG install
 

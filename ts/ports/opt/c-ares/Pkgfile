@@ -1,0 +1,24 @@
+# Maintainer: David Runge <dvzrv@archlinux.org>
+# Contributor: Dave Reisner <dreisner@archlinux.org>
+# Contributor: Daniel J Griffiths <ghost1227@archlinux.us>
+# Contributor: Jeff Mickey <jeff@archlinux.org>
+# Contributor: Alexander Fehr <pizzapunk gmail com>
+
+name=c-ares
+version=1.17.1
+release=1
+source=(https://github.com/c-ares/c-ares/archive/cares-${version//./_}.tar.gz)
+
+build() {
+  cd "c-ares-cares-${version//./_}"
+  cmake -DCMAKE_INSTALL_PREFIX=/usr \
+        -DCMAKE_BUILD_TYPE='None' \
+        -Wno-dev \
+        -B build \
+        -S .
+  make VERBOSE=1 -C build
+  make DESTDIR="${PKG}" install -C build
+  install -vDm 644 "LICENSE.md" -t "${PKG}/usr/share/licenses/c-ares/"
+  install -vDm 644 {AUTHORS,CHANGES,{CONTRIBUTING,README}.md,RELEASE-NOTES} \
+    -t "${PKG}/usr/share/doc/c-ares/"
+}

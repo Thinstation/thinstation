@@ -7,7 +7,7 @@ pkgbase=('cyrus-sasl')
 name=(cyrus-sasl)
 version=2.1.27
 release=1
-source=(https://www.cyrusimap.org/releases/cyrus-sasl-${version}.tar.gz
+source=(https://github.com/cyrusimap/cyrus-sasl/archive/cyrus-sasl-$version.tar.gz
         0003-Update-saslauthd.conf-location-in-documentation.patch
 	0006-Enable-autoconf-maintainer-mode.patch
         0010-Update-required-libraries-when-ld-as-needed-is-used.patch
@@ -21,7 +21,7 @@ source=(https://www.cyrusimap.org/releases/cyrus-sasl-${version}.tar.gz
         tmpfiles.conf)
 
 build() {
-  cd cyrus-sasl-$version
+  cd cyrus-sasl-cyrus-sasl-$version
   patch -Np1 -i ../0003-Update-saslauthd.conf-location-in-documentation.patch
   patch -Np1 -i ../0006-Enable-autoconf-maintainer-mode.patch
   patch -Np1 -i ../0010-Update-required-libraries-when-ld-as-needed-is-used.patch
@@ -38,9 +38,10 @@ build() {
   rm -fr autom4te.cache
   libtoolize -c
   aclocal -I config
-  automake -a -c
-  autoheader
-  autoconf
+#  automake -a -c
+#  autoheader
+#  autoconf
+  ./autogen.sh
 
   ./configure --prefix=/usr \
       --mandir=/usr/share/man \
@@ -82,7 +83,7 @@ build() {
   install -m755 -d "${PKG}/usr/share/licenses/libsasl"
   install -m644 COPYING "${PKG}/usr/share/licenses/libsasl/"
 
-  cd $SRC/cyrus-sasl-$version/saslauthd
+  cd $SRC/cyrus-sasl-cyrus-sasl-$version/saslauthd
   make DESTDIR="${PKG}" install
   install -Dm644 "${SRC}/saslauthd.conf.d" "${PKG}/etc/conf.d/saslauthd"
   install -Dm644 "${SRC}/saslauthd.service" "${PKG}/usr/lib/systemd/system/saslauthd.service"
@@ -91,7 +92,7 @@ build() {
   install -m755 -d "${PKG}/usr/share/licenses/cyrus-sasl"
   ln -sf ../libsasl/COPYING "${PKG}/usr/share/licenses/cyrus-sasl/"
 
-  cd $SRC/cyrus-sasl-$version/plugins
+  cd $SRC/cyrus-sasl-cyrus-sasl-$version/plugins
   install -m755 -d "${PKG}/usr/lib/sasl2"
   cp -a .libs/libgssapiv2.so* "${PKG}/usr/lib/sasl2/"
   cp -a .libs/libgs2.so* "${PKG}/usr/lib/sasl2/"
@@ -99,7 +100,7 @@ build() {
   install -m755 -d "${PKG}/usr/share/licenses/cyrus-sasl-gssapi"
   ln -sf ../libsasl/COPYING "${PKG}/usr/share/licenses/cyrus-sasl-gssapi/"
 
-  cd $SRC/cyrus-sasl-$version/plugins
+  cd $SRC/cyrus-sasl-cyrus-sasl-$version/plugins
   install -m755 -d "${PKG}/usr/lib/sasl2"
   cp -a .libs/libldapdb.so* "${PKG}/usr/lib/sasl2/"
 
