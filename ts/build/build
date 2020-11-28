@@ -2083,7 +2083,7 @@ image_fastboot()
 }
 
 if [ -z "$ts_bootimages" ]; then
-	ts_bootimages="syslinux syslinux-sb-iso refind pxe systemd-boot refind-iso systemd-boot-iso iso"
+	ts_bootimages="syslinux iso pxe refind-iso systemd-boot-iso"
 fi
 if [ -z "$ts_syslinuxtheme" ]; then
 	ts_syslinuxtheme="default"
@@ -2343,6 +2343,11 @@ sys_copy()
 
 wrap_efi()
 {
+	if ! is_disabled ${ts_isohybrid:=enabled}; then
+	ELTORITO="-eltorito-alt-boot \
+                  -eltorito-platform efi \
+                  -b EFI/BOOT/boot.efi \
+                  -hard-disk-boot"
 	lsize=`du -s $ESP |cut -f1`
 	let lsize+=4096
 	dd if=/dev/zero of=$INITDIR/boot.efi bs=1K count=$lsize
@@ -2369,6 +2374,7 @@ wrap_efi()
 	mkdir -p $ESP/EFI/BOOT
 	mv $INITDIR/boot.efi $ESP/EFI/BOOT/.
 	echo $ESP/EFI/BOOT/boot.efi >> boot-images/initrd/added.files
+	fi
 }
 
 # Skips Images if NOIMAGES is set, useful for TS-O-Matic
@@ -2401,68 +2407,6 @@ if [ -z "$NOIMAGES" ]; then
 				add_image
 				add_overlay
 			;;
-			syslinux-sb-iso)
-				ESP=boot-images/syslinux-sb-iso/source
-				EFI32DIR=$ESP/EFI/BOOT
-				EFI64DIR=$ESP/EFI/BOOT
-				BDIR=/syslinux
-				CONFIGFILE=syslinux.cfg
-				LOADER=syslinux
-				LM=4
-				configdir=boot-images/templates/syslinux/default
-				syslinux_copy_files_efi
-
-				mv $ESP/EFI/BOOT/bootx64.efi $ESP/EFI/BOOT/loader.efi
-				echo $ESP/EFI/BOOT/loader.efi >> boot-images/initrd/added.files
-				sys_copy /usr/lib/prebootloader/PreLoader.efi $ESP/EFI/BOOT/bootx64.efi
-				sys_copy /usr/lib/prebootloader/HashTool.efi $ESP/EFI/BOOT/HashTool.efi
-
-				add_image efi
-				wrap_efi
-				configdir=boot-images/templates/syslinux/"$ts_syslinuxtheme"
-
-				LM=2
-				syslinux_copy_files_efi
-				mv $ESP/EFI/BOOT/bootx64.efi $ESP/EFI/BOOT/loader.efi
-				sys_copy /usr/lib/prebootloader/PreLoader.efi $ESP/EFI/BOOT/bootx64.efi
-
-				BDIR=/isolinux
-				CONFIGFILE=isolinux.cfg
-				LOADER=isolinux.bin
-				LM=4
-				syslinux_copy_files_bios
-
-				BDIR=/syslinux
-				CONFIGFILE=syslinux.cfg
-				LOADER=syslinux
-				LM=2
-				syslinux_copy_files_bios
-
-				rufus_copy_files
-				add_image
-				add_overlay
-				addpkgs $ESP
-
-				mkisofs -V "$ts_cdvolname" \
-					-o $ESP/../thinstation-efi.iso \
-					-b boot/isolinux/isolinux.bin \
-					-c boot/isolinux/boot.cat \
-					-no-emul-boot \
-					-boot-load-size 4 \
-					-boot-info-table \
-					-joliet \
-					-ucs-level 3 \
-					-rock \
-					-eltorito-alt-boot \
-					-eltorito-platform efi \
-					-b EFI/BOOT/boot.efi \
-					-hard-disk-boot \
-					-f \
-					-quiet \
-					$ESP
-				isohybrid --uefi $ESP/../thinstation-efi.iso
-				echo $ESP/../thinstation-efi.iso >> boot-images/initrd/added.files
-			;;
 			pxe)
 				ESP=boot-images/pxe
 				EFI32DIR=$ESP/boot/efi32
@@ -2484,7 +2428,6 @@ if [ -z "$NOIMAGES" ]; then
 
 				add_image
 				add_overlay
-#				sys_copy `prt-get fsearch index.cgi |grep -v Found |cut -d " " -f3` $ESP/cgi-bin/index.cgi
 			;;
 			iso)
 				ESP=boot-images/iso/source
@@ -2521,18 +2464,6 @@ if [ -z "$NOIMAGES" ]; then
 					$ESP
 				echo $ESP/../thinstation.iso >> boot-images/initrd/added.files
 			;;
-			refind)
-				ESP=boot-images/refind
-				EFIOVERLAY=$ESP/EFI
-
-				LM=2
-
-				CONFIGFILE=refind.conf
-				refind_copy_files
-				add_overlay
-				add_image
-				addpkgs $ESP
-			;;
 			refind-iso)
 				ESP=boot-images/refind-iso/efi-source
 				EFIOVERLAY=$ESP/EFI
@@ -2541,18 +2472,11 @@ if [ -z "$NOIMAGES" ]; then
 
 				CONFIGFILE=refind.conf
 				refind_copy_files
-#				mv $ESP/EFI/BOOT/bootx64.efi $ESP/EFI/BOOT/loader.efi
 				mv $ESP/EFI/BOOT/bootx64.efi $ESP/EFI/BOOT/grubx64.efi
 				sys_copy /boot/efi/EFI/fedora/shimx64.efi $ESP/EFI/BOOT/bootx64.efi
 				sys_copy /boot/efi/EFI/fedora/MokManager.efi $ESP/EFI/BOOT/MokManager.efi
 				sys_copy /boot/efi/EFI/fedora/mmx64.efi $ESP/EFI/BOOT/mmx64.efi
-#				sys_copy /boot/efi/EFI/ThinStation/shimx64.efi $ESP/EFI/BOOT/bootx64.efi
-#				sys_copy /boot/efi/EFI/ThinStation/shimx64.efi $ESP/EFI/BOOT/grubx64.efi
-#				sys_copy /boot/efi/EFI/ThinStation/mmx64.efi $ESP/EFI/BOOT/mmx64.efi
-#                                sys_copy /ts/certs/'ThinStation Platform Key'.cer $ESP/ThinStation-PK.cer
-#				sys_copy /ts/certs/ThinStation-KEK-CA.cer $ESP/ThinStation-KEK-CA.cer
-				sys_copy /ts/certs/ThinStation-SB-UEFI-CA.cer $ESP/ThinStation-SB-UEFI-CA.cer
-#				sys_copy /ts/certs/ThinStation-SB-UEFI-Signing.cer $ESP/ThinStation-SB-UEFI-Signing.cer
+				sys_copy /ts/certs/${ts_sb_cert:=ThinStation-SB-UEFI-CA.cer} $ESP/${ts_sb_cert:=ThinStation-SB-UEFI-CA.cer}
 				add_overlay
 				add_image efi
 				wrap_efi
@@ -2589,37 +2513,14 @@ if [ -z "$NOIMAGES" ]; then
 					-joliet \
 					-ucs-level 3 \
 					-rock \
-					-eltorito-alt-boot \
-					-eltorito-platform efi \
-					-b EFI/BOOT/boot.efi \
-					-hard-disk-boot \
+					$ELTORITO \
 					-f \
 					-quiet \
 					$ESP
-				isohybrid --uefi $ESP/../thinstation-refind.iso
-				echo $ESP/../thinstation-refind.iso >> boot-images/initrd/added.files
-			;;
-			systemd-boot)
-				if ! prt-get isinst preloader > /dev/null; then
-					echo "Port binary-opt/preloader not installed - Skipping"
-				else
-					ESP=boot-images/systemd-boot
-					EFIOVERLAY="$ESP/EFI $ESP/loader"
-					LM=2
-					configdir=boot-images/templates/systemd-boot/"$ts_gummitheme"
-					sys_copy /usr/lib/prebootloader/PreLoader.efi $ESP/EFI/BOOT/bootx64.efi
-					sys_copy /usr/lib/prebootloader/HashTool.efi $ESP/EFI/BOOT/HashTool.efi
-					sys_copy /usr/lib/systemd/boot/efi/systemd-bootx64.efi $ESP/EFI/BOOT/loader.efi
-					sys_copy /usr/lib/prebootloader/PreLoader.efi $ESP/EFI/Microsoft/Boot/bootmgr.efi
-					for file in `find $configdir -type f |sed -e "s|$configdir||g"`; do
-						sys_copy ${configdir}${file} $ESP/$file
-						sed -i -e "s|/boot/vmlinuz|/boot/$KERN64|g" $ESP/$file
-						sed -i -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS LM=$LM/g" $ESP/$file
-					done
-					add_overlay
-					add_image
-					addpkgs $ESP
+				if ! is_disabled ${ts_isohybrid:=enabled}; then
+					isohybrid --uefi $ESP/../thinstation-refind.iso
 				fi
+				echo $ESP/../thinstation-refind.iso >> boot-images/initrd/added.files
 			;;
 			systemd-boot-iso)
 				if ! prt-get isinst preloader > /dev/null; then
@@ -2634,17 +2535,7 @@ if [ -z "$NOIMAGES" ]; then
 					sys_copy /boot/efi/EFI/fedora/shimx64.efi $ESP/EFI/BOOT/bootx64.efi
 					sys_copy /boot/efi/EFI/fedora/MokManager.efi $ESP/EFI/BOOT/MokManager.efi
 					sys_copy /boot/efi/EFI/fedora/mmx64.efi $ESP/EFI/BOOT/mmx64.efi
-#					sys_copy /boot/efi/EFI/ThinStation/shimx64.efi $ESP/EFI/BOOT/grubx64.efi
-#					sys_copy /boot/efi/EFI/ThinStation/mmx64.efi $ESP/EFI/BOOT/mmx64.efi
-#	                                sys_copy /ts/certs/'ThinStation Platform Key'.cer $ESP/ThinStation-PK.cer
-#        	                        sys_copy /ts/certs/ThinStation-KEK-CA.cer $ESP/ThinStation-KEK-CA.cer
-                	                sys_copy /ts/certs/ThinStation-SB-UEFI-CA.cer $ESP/ThinStation-SB-UEFI-CA.cer
-#                        	        sys_copy /ts/certs/ThinStation-SB-UEFI-Signing.cer $ESP/ThinStation-SB-UEFI-Signing.cer
-#					echo "loader.efi,ThinStation,,ThinStation default boot entry" > boot.csv
-#					iconv -t UTF-16 < boot.csv > $ESP/EFI/BOOT/BOOT.CSV
-#					iconv -t UTF-16 < boot.csv > $ESP/EFI/BOOT/BOOTX64.CSV
-#					rm boot.csv
-#					sys_copy /usr/lib/systemd/boot/efi/systemd-bootx64.efi $ESP/EFI/BOOT/loader.efi
+                	                sys_copy /ts/certs/${ts_sb_cert:=ThinStation-SB-UEFI-CA.cer} $ESP/${ts_sb_cert:=ThinStation-SB-UEFI-CA.cer}
 					sys_copy /usr/lib/systemd/boot/efi/systemd-bootx64.efi $ESP/EFI/BOOT/grubx64.efi
 					for file in `find $configdir -type f |sed -e "s|$configdir||g"`; do
 						sys_copy ${configdir}${file} $ESP/$file
@@ -2687,14 +2578,13 @@ if [ -z "$NOIMAGES" ]; then
 						-joliet \
 						-ucs-level 3 \
 						-rock \
-						-eltorito-alt-boot \
-						-eltorito-platform efi \
-						-b EFI/BOOT/boot.efi \
-						-hard-disk-boot \
+						$ELTORITO \
 						-f \
 						-quiet \
 						$ESP
-					isohybrid --uefi $ESP/../thinstation-efi.iso
+					if ! is_disabled ${ts_isohybrid:=enabled}; then
+						isohybrid --uefi $ESP/../thinstation-efi.iso
+					fi
 					echo $ESP/../thinstation-efi.iso >> boot-images/initrd/added.files
 				fi
 			;;
