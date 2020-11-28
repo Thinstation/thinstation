@@ -1307,7 +1307,7 @@ if [ -e $PACDIR/tsuser.param ]; then
 		elif is_enabled $ts_sha512passwd; then
 			GETPASSWD=`mkpasswd -m sha512crypt $ts_tsuserpasswd`
 		else
-			GETPASSWD=`mkpasswd -m md5 $ts_tsuserpasswd`
+			GETPASSWD=`mkpasswd -m md5 $ts_tsuserpasswd 2>/dev/null || mkpasswd -m sha512crypt $ts_tsuserpasswd`
 		fi
 	fi
     echo "$ts_tsuser:$GETPASSWD:1000:1000:$ts_tsuser:/home/$ts_tsuser:/bin/sh" >> ./tmp-tree/etc/passwd
@@ -1325,7 +1325,7 @@ if [  -e $PACDIR/tsadminpasswd.param ]; then
     elif is_enabled $ts_sha512passwd; then
         GETPASSWD=`mkpasswd -m sha512crypt $ts_tsadminpasswd`
     else
-        GETPASSWD=`mkpasswd -m md5 $ts_tsadminpasswd`
+        GETPASSWD=`mkpasswd -m md5 $ts_tsadminpasswd 2>/dev/null || mkpasswd -m sha512crypt $ts_tsadminpasswd`
     fi
     cp ./tmp-tree/etc/passwd ./tmp-tree/etc/passwd.tmp
     echo "tsadmin:$GETPASSWD:42:42:tsadmin:/home/tsadmin:/bin/sh" >./tmp-tree/etc/passwd
@@ -1340,7 +1340,7 @@ if [  -e $PACDIR/rootpasswd.param ]; then
     elif is_enabled $ts_sha512passwd; then
         GETPASSWD=`mkpasswd -m sha512crypt $ts_rootpasswd`
     else
-        GETPASSWD=`mkpasswd -m md5 $ts_rootpasswd`
+        GETPASSWD=`mkpasswd -m md5 $ts_rootpasswd 2>/dev/null || mkpasswd -m sha512crypt $ts_rootpasswd`
     fi
     cp ./tmp-tree/etc/passwd ./tmp-tree/etc/passwd.tmp
     echo "root:$GETPASSWD:0:0:root:/root:/bin/sh" >./tmp-tree/etc/passwd
@@ -2343,7 +2343,7 @@ sys_copy()
 
 wrap_efi()
 {
-	if ! is_disabled ${ts_isohybrid:=enabled}; then
+	if ! is_disabled ${ts_wrap_efi:=enabled}; then
 	ELTORITO="-eltorito-alt-boot \
                   -eltorito-platform efi \
                   -b EFI/BOOT/boot.efi \
@@ -2462,6 +2462,7 @@ if [ -z "$NOIMAGES" ]; then
 					-f \
 					-quiet \
 					$ESP
+				isohybrid $ESP/../thinstation.iso
 				echo $ESP/../thinstation.iso >> boot-images/initrd/added.files
 			;;
 			refind-iso)
@@ -2517,9 +2518,7 @@ if [ -z "$NOIMAGES" ]; then
 					-f \
 					-quiet \
 					$ESP
-				if ! is_disabled ${ts_isohybrid:=enabled}; then
-					isohybrid --uefi $ESP/../thinstation-refind.iso
-				fi
+				isohybrid --uefi $ESP/../thinstation-refind.iso
 				echo $ESP/../thinstation-refind.iso >> boot-images/initrd/added.files
 			;;
 			systemd-boot-iso)
@@ -2582,9 +2581,7 @@ if [ -z "$NOIMAGES" ]; then
 						-f \
 						-quiet \
 						$ESP
-					if ! is_disabled ${ts_isohybrid:=enabled}; then
-						isohybrid --uefi $ESP/../thinstation-efi.iso
-					fi
+					isohybrid --uefi $ESP/../thinstation-efi.iso
 					echo $ESP/../thinstation-efi.iso >> boot-images/initrd/added.files
 				fi
 			;;
