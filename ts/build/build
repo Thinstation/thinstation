@@ -2295,8 +2295,7 @@ refind_copy_files()
 		sys_copy $refdir/$file $EFIDIR/$file
 	done
 
-#	sys_copy $refdir/refind_ia32.efi $EFIDIR/bootia32.efi
-	sys_copy $refdir/refind_x64.efi $EFIDIR/bootx64.efi
+	sys_copy $refdir/refind_x64.efi $EFIDIR/grubx64.efi
 
 	for file in `find $configdir -type f |sed -e "s|$configdir||g"`; do
 		sys_copy ${configdir}${file} "$EFIDIR/$file"
@@ -2473,7 +2472,6 @@ if [ -z "$NOIMAGES" ]; then
 
 				CONFIGFILE=refind.conf
 				refind_copy_files
-				mv $ESP/EFI/BOOT/bootx64.efi $ESP/EFI/BOOT/grubx64.efi
 				sys_copy /boot/efi/EFI/fedora/shimx64.efi $ESP/EFI/BOOT/bootx64.efi
 				sys_copy /boot/efi/EFI/fedora/MokManager.efi $ESP/EFI/BOOT/MokManager.efi
 				sys_copy /boot/efi/EFI/fedora/mmx64.efi $ESP/EFI/BOOT/mmx64.efi
@@ -2522,68 +2520,64 @@ if [ -z "$NOIMAGES" ]; then
 				echo $ESP/../thinstation-refind.iso >> boot-images/initrd/added.files
 			;;
 			systemd-boot-iso)
-				if ! prt-get isinst preloader > /dev/null; then
-					echo "Port binary-opt/preloader not installed - Skipping"
-				else
-					ESP=boot-images/systemd-boot-iso/efi-source
-					EFIOVERLAY="$ESP/EFI $ESP/loader"
+				ESP=boot-images/systemd-boot-iso/efi-source
+				EFIOVERLAY="$ESP/EFI $ESP/loader"
 
-					LM=4
+				LM=4
 
-					configdir=boot-images/templates/systemd-boot/"$ts_gummitheme"
-					sys_copy /boot/efi/EFI/fedora/shimx64.efi $ESP/EFI/BOOT/bootx64.efi
-					sys_copy /boot/efi/EFI/fedora/MokManager.efi $ESP/EFI/BOOT/MokManager.efi
-					sys_copy /boot/efi/EFI/fedora/mmx64.efi $ESP/EFI/BOOT/mmx64.efi
-                	                sys_copy /ts/certs/${ts_sb_cert:=ThinStation-SB-UEFI-CA.cer} $ESP/${ts_sb_cert:=ThinStation-SB-UEFI-CA.cer}
-					sys_copy /usr/lib/systemd/boot/efi/systemd-bootx64.efi $ESP/EFI/BOOT/grubx64.efi
-					for file in `find $configdir -type f |sed -e "s|$configdir||g"`; do
-						sys_copy ${configdir}${file} $ESP/$file
-						sed -i -e "s|/boot/vmlinuz|/boot/$KERN64|g" $ESP/$file
-						sed -i -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS LM=$LM/g" $ESP/$file
-					done
-					add_image efi
-					add_overlay
-					wrap_efi
+				configdir=boot-images/templates/systemd-boot/"$ts_gummitheme"
+				sys_copy /boot/efi/EFI/fedora/shimx64.efi $ESP/EFI/BOOT/bootx64.efi
+				sys_copy /boot/efi/EFI/fedora/MokManager.efi $ESP/EFI/BOOT/MokManager.efi
+				sys_copy /boot/efi/EFI/fedora/mmx64.efi $ESP/EFI/BOOT/mmx64.efi
+               	                sys_copy /ts/certs/${ts_sb_cert:=ThinStation-SB-UEFI-CA.cer} $ESP/${ts_sb_cert:=ThinStation-SB-UEFI-CA.cer}
+				sys_copy /usr/lib/systemd/boot/efi/systemd-bootx64.efi $ESP/EFI/BOOT/grubx64.efi
+				for file in `find $configdir -type f |sed -e "s|$configdir||g"`; do
+					sys_copy ${configdir}${file} $ESP/$file
+					sed -i -e "s|/boot/vmlinuz|/boot/$KERN64|g" $ESP/$file
+					sed -i -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS LM=$LM/g" $ESP/$file
+				done
+				add_image efi
+				add_overlay
+				wrap_efi
 
-					# For isohybrid efi, change the LM method, so that as an HD image the correct
-					# continuation method is selected. Only for EFI, BIOS is still ISO
-					for file in `find $configdir -type f |sed -e "s|$configdir||g"`; do
-						sed -i -e "s/LM=4/LM=2/g" $ESP/$file
-					done
+				# For isohybrid efi, change the LM method, so that as an HD image the correct
+				# continuation method is selected. Only for EFI, BIOS is still ISO
+				for file in `find $configdir -type f |sed -e "s|$configdir||g"`; do
+					sed -i -e "s/LM=4/LM=2/g" $ESP/$file
+				done
 
-					BDIR=/isolinux
-					CONFIGFILE=isolinux.cfg
-					LOADER=isolinux.bin
-					syslinux_copy_files_bios
+				BDIR=/isolinux
+				CONFIGFILE=isolinux.cfg
+				LOADER=isolinux.bin
+				syslinux_copy_files_bios
 
-					BDIR=/syslinux
-					CONFIGFILE=syslinux.cfg
-					LOADER=syslinux
-					LM=2
-					syslinux_copy_files_bios
+				BDIR=/syslinux
+				CONFIGFILE=syslinux.cfg
+				LOADER=syslinux
+				LM=2
+				syslinux_copy_files_bios
 
-					rufus_copy_files
+				rufus_copy_files
 
-					add_image
-					addpkgs $ESP
+				add_image
+				addpkgs $ESP
 
-					mkisofs	-V "$ts_cdvolname" \
-						-o $ESP/../thinstation-efi.iso \
-						-b boot/isolinux/isolinux.bin \
-						-c boot/isolinux/boot.cat \
-						-no-emul-boot \
-						-boot-load-size 4 \
-						-boot-info-table \
-						-joliet \
-						-ucs-level 3 \
-						-rock \
-						$ELTORITO \
-						-f \
-						-quiet \
-						$ESP
-					isohybrid --uefi $ESP/../thinstation-efi.iso
-					echo $ESP/../thinstation-efi.iso >> boot-images/initrd/added.files
-				fi
+				mkisofs	-V "$ts_cdvolname" \
+					-o $ESP/../thinstation-efi.iso \
+					-b boot/isolinux/isolinux.bin \
+					-c boot/isolinux/boot.cat \
+					-no-emul-boot \
+					-boot-load-size 4 \
+					-boot-info-table \
+					-joliet \
+					-ucs-level 3 \
+					-rock \
+					$ELTORITO \
+					-f \
+					-quiet \
+					$ESP
+				isohybrid --uefi $ESP/../thinstation-efi.iso
+				echo $ESP/../thinstation-efi.iso >> boot-images/initrd/added.files
 			;;
 		esac
 	done
