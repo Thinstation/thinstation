@@ -2324,11 +2324,12 @@ sys_copy()
 
 wrap_efi()
 {
-	if ! is_disabled ${ts_wrap_efi:=enabled}; then
+	if ! is_disabled ${ts_wrap_efi}; then
 		ELTORITO="-eltorito-alt-boot \
 				-eltorito-platform efi \
 				-b EFI/BOOT/boot.efi \
 				-hard-disk-boot"
+		HYBRID_EFI="--uefi"
 		lsize=`du -s $ESP |cut -f1`
 		let lsize+=4096
 		dd if=/dev/zero of=$INITDIR/boot.efi bs=1K count=$lsize
@@ -2500,7 +2501,7 @@ if [ -z "$NOIMAGES" ]; then
 					-f \
 					-quiet \
 					$ESP
-				isohybrid --uefi $ESP/../thinstation-refind.iso
+				isohybrid $HYBRID_EFI $ESP/../thinstation-refind.iso
 				echo $ESP/../thinstation-refind.iso >> boot-images/initrd/added.files
 			;;
 			systemd-boot-iso)
@@ -2562,7 +2563,7 @@ if [ -z "$NOIMAGES" ]; then
 					-f \
 					-quiet \
 					$ESP
-				isohybrid --uefi $ESP/../thinstation-efi.iso
+				isohybrid $HYBRID_EFI $ESP/../thinstation-efi.iso
 				echo $ESP/../thinstation-efi.iso >> boot-images/initrd/added.files
 			;;
 		esac
