@@ -26,11 +26,6 @@ confirm_iso()
 		exit 1
 	fi
 	CDROM="-drive file=$ISO,if=ide,media=cdrom,readonly"
-	if [ ! -e $ISO ]; then
-		echo "ISO not found: $ISO"
-		echo "Did you build and ISO image?"
-		exit 2
-	fi
 }
 
 confirm_hd()
@@ -63,7 +58,7 @@ wrap_systemd_efi()
 	fi
 	export AGREE=true
 	rm thinstation.img
-	ln build/boot-images/systemd-boot-iso/thinstation-efi.iso thinstation.img
+	mkgptdrv -p ESP:4g:boot -p l:0:home -o /build/boot-images/systemd-boot-iso/efi-source -l /thinstation.img:8g
 }
 
 wrap_refind_efi()
@@ -75,7 +70,7 @@ wrap_refind_efi()
         fi
         export AGREE=true
 	rm thinstation.img
-	ln build/boot-images/refind-iso/thinstation-refind.iso thinstation.img
+	mkgptdrv -p ESP:4g:boot -p l:0:home -o /build/boot-images/refind-iso/efi-source -l /thinstation.img:8g
 }
 
 wrap_bios()
@@ -87,7 +82,7 @@ wrap_bios()
         fi
 	export AGREE=true
 	rm thinstation.img
-	ln build/boot-images/iso/thinstation.iso thinstation.img
+	mkmbrdrv -p d:4g:boot -p l:0:home -o /build/boot-images/iso/source -l /thinstation.img:8g
 }
 
 setup_qemu()
@@ -105,7 +100,7 @@ MEMORY="-m 4096"
 #RNG="-object rng-random,id=RNG"
 MOUSE="-usb -device usb-tablet"
 KVM="-enable-kvm"
-EFI="-L . --bios usr/share/edk2.git/ovmf-x64/OVMF-with-csm.fd"
+EFI="-L . --bios usr/share/edk2.git/ovmf-x64/OVMF-pure-efi.fd"
 #NETWORK=`bridge`
 #QEMU=qemu-system-i386
 QEMU=qemu-system-x86_64
@@ -154,14 +149,14 @@ case $1 in
 		confirm_edk2 && \
 		confirm_iso systemd && \
                 setup_qemu && \
-		$QEMU $STANDARD_MACHINE $CDROM $EFI --boot c,menu=on
+		$QEMU $STANDARD_MACHINE $CDROM $EFI --boot d,menu=on
 		echo "Exit code $?"
 	;;
 	cd-refind)
 		confirm_edk2 && \
 		confirm_iso refind && \
                 setup_qemu && \
-		$QEMU $STANDARD_MACHINE $CDROM $EFI --boot c,menu=on
+		$QEMU $STANDARD_MACHINE $CDROM $EFI --boot d,menu=on
                 echo "Exit code $?"
 	;;
 	image)
@@ -176,7 +171,7 @@ case $1 in
 		confirm_hd && \
 		confirm_iso systemd && \
                 setup_qemu && \
-                $QEMU $STANDARD_MACHINE $CDROM $HDD $EFI --boot d,menu=on
+                $QEMU $STANDARD_MACHINE $CDROM $HDD $EFI --boot c,menu=on
                 echo "Exit code $?"
 	;;
 	image-refind)
@@ -184,7 +179,7 @@ case $1 in
 		confirm_hd && \
 		confirm_iso systemd && \
                 setup_qemu && \
-                $QEMU $STANDARD_MACHINE $CDROM $HDD $EFI --boot d,menu=on
+                $QEMU $STANDARD_MACHINE $CDROM $HDD $EFI --boot c,menu=on
                 echo "Exit code $?"
 	;;
 esac
