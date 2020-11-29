@@ -2168,7 +2168,7 @@ syslinux_copy_files_bios()
 
 	mkdir -p `dirname $BIOSDIR/$CONFIGFILE`
 	cat $BIOSDIR/syslinux.cfg.tpl |sed -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS LM=$LM/g"> $BIOSDIR/$CONFIGFILE
-        sed -i -e "s/\$LM/$LM/g" $BIOSDIR/$CONFIGFILE
+	sed -i -e "s/\$LM/$LM/g" $BIOSDIR/$CONFIGFILE
 	if is_enabled $ts_earlymicrocode ; then
 		sed -i -e "s:/boot/initrd:/boot/ucode,/boot/initrd:" $BIOSDIR/$CONFIGFILE
 	fi
@@ -2227,17 +2227,17 @@ syslinux_copy_files_efi()
 	done
 
 	for file in `find $ESP -name \*.tpl |sed -e "s|$ESP||g"`; do
-                endfile=`dirname $file`/`basename $file .tpl`
-                cat $ESP/$file |sed -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS LM=$LM/g" > $ESP/$endfile
-                rm $ESP/$file
-                sed -i -e "s/\$LM/$LM/g" $ESP/$endfile
-                if [ "$LOADER" == "lpxelinux.0" ]; then
-                        sed -i -e "s|/boot|http://$ts_bootserver/boot|g" $ESP/$endfile
-                elif [ "$LOADER" == "pxelinux.0" ]; then
-                        sed -i -e "s|/boot|::/boot|g" $ESP/$endfile
-                fi
-                echo $ESP/$endfile >> boot-images/initrd/added.files
-        done
+		endfile=`dirname $file`/`basename $file .tpl`
+		cat $ESP/$file |sed -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS LM=$LM/g" > $ESP/$endfile
+		rm $ESP/$file
+		sed -i -e "s/\$LM/$LM/g" $ESP/$endfile
+		if [ "$LOADER" == "lpxelinux.0" ]; then
+			sed -i -e "s|/boot|http://$ts_bootserver/boot|g" $ESP/$endfile
+		elif [ "$LOADER" == "pxelinux.0" ]; then
+			sed -i -e "s|/boot|::/boot|g" $ESP/$endfile
+		fi
+		echo $ESP/$endfile >> boot-images/initrd/added.files
+	done
 	find $ESP -name syslinux.cfg.tpl -delete
 
 	if [ "$LOADER" == "lpxelinux.0" ]; then
@@ -2325,35 +2325,35 @@ sys_copy()
 wrap_efi()
 {
 	if ! is_disabled ${ts_wrap_efi:=enabled}; then
-	ELTORITO="-eltorito-alt-boot \
-                  -eltorito-platform efi \
-                  -b EFI/BOOT/boot.efi \
-                  -hard-disk-boot"
-	lsize=`du -s $ESP |cut -f1`
-	let lsize+=4096
-	dd if=/dev/zero of=$INITDIR/boot.efi bs=1K count=$lsize
-	lodev=`losetup -f`
-	losetup -P $lodev $INITDIR/boot.efi
-	sgdisk -o $lodev
-	sgdisk -n 1:2048:-1s -t 1:ef00 -c '1:EFI' $lodev
-	sgdisk $lodev --attributes=1:set:2
-	mkfs.vfat -I ${lodev}p1 -n 'EFI'
-	mkdir -p temp-efi
-	mount ${lodev}p1 temp-efi
-	cp -a $ESP/* temp-efi
-	rm -rf temp-efi/EFI/BOOT/drivers_x64
-	rm -rf temp-efi/EFI/BOOT/drivers_ia32
-	if [ -e temp-efi/EFI/boot/*.conf ]; then
-		sed -i -e 's/LM=2/LM=4/g' temp-efi/EFI/boot/*.conf
-	fi
-	if [ -e temp-efi/loader/entries ]; then
-		sed -i -e 's/LM=2/LM=4/g' temp-efi/loader/entries/*
-	fi
-	umount temp-efi
-	losetup -d $lodev
-	rmdir temp-efi
-	mkdir -p $ESP/EFI/BOOT
-	sys_copy $INITDIR/boot.efi $ESP/EFI/BOOT/boot.efi
+		ELTORITO="-eltorito-alt-boot \
+				-eltorito-platform efi \
+				-b EFI/BOOT/boot.efi \
+				-hard-disk-boot"
+		lsize=`du -s $ESP |cut -f1`
+		let lsize+=4096
+		dd if=/dev/zero of=$INITDIR/boot.efi bs=1K count=$lsize
+		lodev=`losetup -f`
+		losetup -P $lodev $INITDIR/boot.efi
+		sgdisk -o $lodev
+		sgdisk -n 1:2048:-1s -t 1:ef00 -c '1:EFI' $lodev
+		sgdisk $lodev --attributes=1:set:2
+		mkfs.vfat -I ${lodev}p1 -n 'EFI'
+		mkdir -p temp-efi
+		mount ${lodev}p1 temp-efi
+		cp -a $ESP/* temp-efi
+		rm -rf temp-efi/EFI/BOOT/drivers_x64
+		rm -rf temp-efi/EFI/BOOT/drivers_ia32
+		if [ -e temp-efi/EFI/boot/*.conf ]; then
+			sed -i -e 's/LM=2/LM=4/g' temp-efi/EFI/boot/*.conf
+		fi
+		if [ -e temp-efi/loader/entries ]; then
+			sed -i -e 's/LM=2/LM=4/g' temp-efi/loader/entries/*
+		fi
+		umount temp-efi
+		losetup -d $lodev
+		rmdir temp-efi
+		mkdir -p $ESP/EFI/BOOT
+		sys_copy $INITDIR/boot.efi $ESP/EFI/BOOT/boot.efi
 	fi
 }
 
@@ -2412,17 +2412,17 @@ if [ -z "$NOIMAGES" ]; then
 			iso)
 				ESP=boot-images/iso/source
 
-                                BDIR=/isolinux
-                                CONFIGFILE=isolinux.cfg
-                                LOADER=isolinux.bin
+				BDIR=/isolinux
+				CONFIGFILE=isolinux.cfg
+				LOADER=isolinux.bin
 				LM=4
-                                syslinux_copy_files_bios
+				syslinux_copy_files_bios
 
-                                BDIR=/syslinux
-                                CONFIGFILE=syslinux.cfg
-                                LOADER=syslinux
-                                LM=2
-                                syslinux_copy_files_bios
+				BDIR=/syslinux
+				CONFIGFILE=syslinux.cfg
+				LOADER=syslinux
+				LM=2
+				syslinux_copy_files_bios
 
 				addpkgs $ESP
 				rufus_copy_files
@@ -2519,7 +2519,7 @@ if [ -z "$NOIMAGES" ]; then
 				sys_copy /boot/efi/EFI/fedora/shimx64.efi $ESP/EFI/BOOT/bootx64.efi
 				sys_copy /boot/efi/EFI/fedora/MokManager.efi $ESP/EFI/BOOT/MokManager.efi
 				sys_copy /boot/efi/EFI/fedora/mmx64.efi $ESP/EFI/BOOT/mmx64.efi
-               	                sys_copy /ts/certs/${ts_sb_cert:=ThinStation-SB-UEFI-CA.cer} $ESP/${ts_sb_cert:=ThinStation-SB-UEFI-CA.cer}
+				sys_copy /ts/certs/${ts_sb_cert:=ThinStation-SB-UEFI-CA.cer} $ESP/${ts_sb_cert:=ThinStation-SB-UEFI-CA.cer}
 
 				add_overlay
 				add_image
