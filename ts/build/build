@@ -2371,8 +2371,7 @@ wrap_efi()
 	losetup -d $lodev
 	rmdir temp-efi
 	mkdir -p $ESP/EFI/BOOT
-	mv $INITDIR/boot.efi $ESP/EFI/BOOT/.
-	echo $ESP/EFI/BOOT/boot.efi >> boot-images/initrd/added.files
+	sys_copy $INITDIR/boot.efi $ESP/EFI/BOOT/boot.efi
 	fi
 }
 
@@ -2489,6 +2488,7 @@ if [ -z "$NOIMAGES" ]; then
 				BDIR=/isolinux
 				CONFIGFILE=isolinux.cfg
 				LOADER=isolinux.bin
+				LM=4
 				syslinux_copy_files_bios
 
 				BDIR=/syslinux
@@ -2549,6 +2549,7 @@ if [ -z "$NOIMAGES" ]; then
 				BDIR=/isolinux
 				CONFIGFILE=isolinux.cfg
 				LOADER=isolinux.bin
+				LM=4
 				syslinux_copy_files_bios
 
 				BDIR=/syslinux

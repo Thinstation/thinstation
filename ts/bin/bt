@@ -47,8 +47,8 @@ confirm_hd()
 
 bridge()
 {
-	if [ -n "`ifconfig |grep -e br0`" ]; then
-		echo "-net bridge,br=br0 -net nic,macaddr=52:54:00:12F:34f:56 -netdev user,dns=8.8.8.8"
+	if [ -n "`ifconfig |grep -e ens33`" ]; then
+		echo "-net bridge,br=ens33"
 #	else
 #		echo "-netdev user,id=n1 -device e1000,netdev=n1 -netdev tap,id=n2 -device virtio-net,netdev=n2"
 	fi
@@ -56,47 +56,38 @@ bridge()
 
 wrap_systemd_efi()
 {
-	if [ ! -e build/boot-images/systemd-boot ]; then
+	if [ ! -e build/boot-images/systemd-boot-iso ]; then
 		echo "$IMAGE not found?"
 		echo "Did you build an systemd image."
 		exit 1
 	fi
 	export AGREE=true
-	ts/bin/mkgptdrv -o build/boot-images/systemd-boot -p ESP:1G:boot -l thinstation.img:2G
-        if [ "$?" != "0" ]; then
-		echo "Likely not enough space to create systemd EFI hd qemu image."
-		exit 4
-	fi
+	rm thinstation.img
+	ln build/boot-images/systemd-boot-iso/thinstation-efi.iso thinstation.img
 }
 
 wrap_refind_efi()
 {
-	if [ ! -e build/boot-images/refind ]; then
+	if [ ! -e build/boot-images/refind-iso ]; then
                 echo "refind image not found?"
                 echo "Did you build an refind image."
                 exit 1
         fi
         export AGREE=true
-	ts/bin/mkgptdrv -o build/boot-images/refind -p ESP:1G:boot -l thinstation.img:2G
-	if [ "$?" != "0" ]; then
-		echo "Likely not enough space to create refind EFI hd qemu image."
-		exit 5
-	fi
+	rm thinstation.img
+	ln build/boot-images/refind-iso/thinstation-refind.iso thinstation.img
 }
 
 wrap_bios()
 {
-	if [ ! -e build/boot-images/syslinux ]; then
+	if [ ! -e build/boot-images/iso ]; then
                 echo "syslinux image not found."
                 echo "Did you build and image?"
                 exit 1
         fi
 	export AGREE=true
-	ts/bin/mkmbrdrv -o build/boot-images/syslinux -p d:1G:boot -l thinstation.img:2G
-	if [ "$?" != "0" ]; then
-		echo "Likely not enought space to create syslinux qemu hd image."
-		exit 6
-	fi
+	rm thinstation.img
+	ln build/boot-images/iso/thinstation.iso thinstation.img
 }
 
 setup_qemu()
@@ -108,13 +99,13 @@ VGA="-vga qxl -global qxl-vga.vram_size=132710400"
 #VGA="-vga std"
 #VGA="-vga cirrus"
 #VGA="-vga vmware"
-SOUND="-soundhw ac97"
+SOUND="-device AC97"
 CPU="-smp cores=$procs,threads=1,sockets=1"
 MEMORY="-m 4096"
 #RNG="-object rng-random,id=RNG"
 MOUSE="-usb -device usb-tablet"
 KVM="-enable-kvm"
-EFI="-L . --bios usr/share/edk2.git/ovmf-x64/OVMF_CODE-pure-efi.fd"
+EFI="-L . --bios usr/share/edk2.git/ovmf-x64/OVMF-with-csm.fd"
 #NETWORK=`bridge`
 #QEMU=qemu-system-i386
 QEMU=qemu-system-x86_64
