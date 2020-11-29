@@ -2061,10 +2061,6 @@ fi
 for KERNVER in $KERNVERS; do
 	ln /boot/vmlinuz-$KERNVER ./vmlinuz$k
 	md5sum vmlinuz$k >> image.md5
-	# Remove the 'if' test, as all kernels should now be 64
-#	if [ -n "`echo $KERNVER |grep -e 'TS_64'`" ]; then
-		KERN64=vmlinuz$k
-#	fi
 	let k=k+1
 done
 
@@ -2103,26 +2099,12 @@ fi
 
 add_image()
 {
-	if [ "$1" == "efi" ]; then
-#		if [ -n "$KERN64" ]; then
-			# What we will actually boot with
-			sys_copy $INITDIR/$KERN64 $ESP/boot/$KERN64
-			# Because HashTool.efi is dumb and cant deal with a folder named boot on CD.
-			# Also makes it easier for the user to enroll the kernel hash.
-#			sys_copy $INITDIR/$KERN64 $ESP/EFI/BOOT/enroll-$KERN64
-#		else
-#			sys_copy $INITDIR/vmlinuz $ESP/boot/vmlinuz
-#			sys_copy $INITDIR/vmlinuz $ESP/EFI/BOOT/enroll-vmlinuz
-#		fi
-	else
-		for kernel in `find $INITDIR -maxdepth 1 -type f -name vmlinuz\* -printf '%f '`; do
-			sys_copy $INITDIR/$kernel $ESP/boot/$kernel
-#			sys_copy $INITDIR/$kernel $ESP/EFI/BOOT/enroll-$kernel
-			if [ -e $INITDIR/lib.squash ]; then
-				sys_link hard $INITDIR/lib.squash $ESP/boot/lib.squash
-			fi
-		done
-	fi
+	for kernel in `find $INITDIR -maxdepth 1 -type f -name vmlinuz\* -printf '%f '`; do
+		sys_copy $INITDIR/$kernel $ESP/boot/$kernel
+		if [ -e $INITDIR/lib.squash ]; then
+			sys_link hard $INITDIR/lib.squash $ESP/boot/lib.squash
+		fi
+	done
 
 	sys_link hard $INITDIR/initrd $ESP/boot/initrd
 	sys_link hard $INITDIR/image.md5 $ESP/boot/image.md5
@@ -2471,12 +2453,14 @@ if [ -z "$NOIMAGES" ]; then
 
 				CONFIGFILE=refind.conf
 				refind_copy_files
+
 				sys_copy /boot/efi/EFI/fedora/shimx64.efi $ESP/EFI/BOOT/bootx64.efi
 				sys_copy /boot/efi/EFI/fedora/MokManager.efi $ESP/EFI/BOOT/MokManager.efi
 				sys_copy /boot/efi/EFI/fedora/mmx64.efi $ESP/EFI/BOOT/mmx64.efi
 				sys_copy /ts/certs/${ts_sb_cert:=ThinStation-SB-UEFI-CA.cer} $ESP/${ts_sb_cert:=ThinStation-SB-UEFI-CA.cer}
+
 				add_overlay
-				add_image efi
+				add_image
 				wrap_efi
 
 				# For isohybrid efi, change the LM method, so that as an HD image, the correct
@@ -2526,18 +2510,19 @@ if [ -z "$NOIMAGES" ]; then
 				LM=4
 
 				configdir=boot-images/templates/systemd-boot/"$ts_gummitheme"
+				sys_copy /usr/lib/systemd/boot/efi/systemd-bootx64.efi $ESP/EFI/BOOT/grubx64.efi
+				for file in `find $configdir -type f |sed -e "s|$configdir||g"`; do
+					sys_copy ${configdir}${file} $ESP/$file
+					sed -i -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS LM=$LM/g" $ESP/$file
+				done
+
 				sys_copy /boot/efi/EFI/fedora/shimx64.efi $ESP/EFI/BOOT/bootx64.efi
 				sys_copy /boot/efi/EFI/fedora/MokManager.efi $ESP/EFI/BOOT/MokManager.efi
 				sys_copy /boot/efi/EFI/fedora/mmx64.efi $ESP/EFI/BOOT/mmx64.efi
                	                sys_copy /ts/certs/${ts_sb_cert:=ThinStation-SB-UEFI-CA.cer} $ESP/${ts_sb_cert:=ThinStation-SB-UEFI-CA.cer}
-				sys_copy /usr/lib/systemd/boot/efi/systemd-bootx64.efi $ESP/EFI/BOOT/grubx64.efi
-				for file in `find $configdir -type f |sed -e "s|$configdir||g"`; do
-					sys_copy ${configdir}${file} $ESP/$file
-					sed -i -e "s|/boot/vmlinuz|/boot/$KERN64|g" $ESP/$file
-					sed -i -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS LM=$LM/g" $ESP/$file
-				done
-				add_image efi
+
 				add_overlay
+				add_image
 				wrap_efi
 
 				# For isohybrid efi, change the LM method, so that as an HD image the correct
