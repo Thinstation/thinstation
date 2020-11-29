@@ -112,21 +112,21 @@ case $1 in
         hd)
 		wrap_bios && \
 		setup_qemu && \
-                $QEMU $STANDARD_MACHINE $HDD
+                $QEMU $STANDARD_MACHINE $HDD --boot c
                 echo "Exit code $?"
 	;;
 	hd-systemd)
 		confirm_edk2 && \
 		wrap_systemd_efi && \
                 setup_qemu && \
-		$QEMU $STANDARD_MACHINE $EFI $HDD
+		$QEMU $STANDARD_MACHINE $EFI $HDD --boot c
 		echo "Exit code $?"
 	;;
 	hd-refind)
 		confirm_edk2 && \
 		wrap_refind_efi && \
                 setup_qemu && \
-		$QEMU $STANDARD_MACHINE $EFI $HDD
+		$QEMU $STANDARD_MACHINE $EFI $HDD --boot c
                 echo "Exit code $?"
 	;;
 	net)
@@ -142,21 +142,21 @@ case $1 in
         cd)
 		confirm_iso systemd && \
                 setup_qemu && \
-                $QEMU $STANDARD_MACHINE $CDROM --boot d,menu=on
+                $QEMU $STANDARD_MACHINE $CDROM --boot d
                 echo "Exit code $?"
 	;;
 	cd-systemd)
 		confirm_edk2 && \
 		confirm_iso systemd && \
                 setup_qemu && \
-		$QEMU $STANDARD_MACHINE $CDROM $EFI --boot d,menu=on
+		$QEMU $STANDARD_MACHINE $CDROM $EFI --boot d
 		echo "Exit code $?"
 	;;
 	cd-refind)
 		confirm_edk2 && \
 		confirm_iso refind && \
                 setup_qemu && \
-		$QEMU $STANDARD_MACHINE $CDROM $EFI --boot d,menu=on
+		$QEMU $STANDARD_MACHINE $CDROM $EFI --boot d
                 echo "Exit code $?"
 	;;
 	image)
