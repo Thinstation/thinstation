@@ -18,7 +18,8 @@ Work To Do / Work in Progress: mail to developer List if you can help
 New:
 
 - FIRMWARE routine updated. You will need to be more specific about the folder and file you need. Update your machine profile.
-- Moved to kernel 5.4.68
+- Basic GRUB2 EFI support.
+- Moved to kernel 5.4.83
 - Secure boot basic support. Working on getting it signed.
 - Added a new cache loading feature for faster app launching.
 - Enabled compositing by default.
