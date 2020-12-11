@@ -2,9 +2,6 @@
 set -x
 #set -e
 
-procs=`nproc`
-let procs=procs/2
-
 confirm_iso()
 {
 	case $1 in
@@ -22,12 +19,11 @@ confirm_iso()
 confirm_hd()
 {
 	if [ ! -e $HD ]; then
-		qemu-img create -f qcow2 thinstation.img 31G
+		qemu-img create -f qcow2 $HD 31G
 	        if [ "$?" != "0" ]; then
-
 			echo "Likely not enought space to create hd image."
 			exit 3
-	fi
+		fi
 	fi
 }
 
@@ -78,93 +74,85 @@ wrap_bios()
 
 setup_qemu()
 {
-HD=thinstation.img
-HDD="-drive file=$HD,index=0,media=disk,format=raw"
-VGA="-vga qxl -global qxl-vga.vram_size=132710400"
-#VGA="-vga virtio"
-#VGA="-vga std"
-#VGA="-vga cirrus"
-#VGA="-vga vmware"
-SOUND="-device AC97"
-CPU="-smp cores=$procs,threads=1,sockets=1"
-MEMORY="-m 4096"
-#RNG="-object rng-random,id=RNG"
-MOUSE="-usb -device usb-tablet"
-KVM="-enable-kvm"
-EFI="-L . --bios usr/share/edk2.git/ovmf-x64/OVMF-pure-efi.fd"
-#NETWORK=`bridge`
-#QEMU=qemu-system-i386
-QEMU=qemu-system-x86_64
+	procs=`nproc`
+	let procs=procs/2
+	HD=thinstation.img
+	HDD="-drive file=$HD,index=0,media=disk,format=raw"
+	VGA="-vga qxl -global qxl-vga.vram_size=132710400"
+#	VGA="-vga virtio"
+#	VGA="-vga std"
+#	VGA="-vga cirrus"
+#	VGA="-vga vmware"
+	SOUND="-device AC97"
+	CPU="-smp cores=$procs,threads=1,sockets=1"
+	MEMORY="-m 4096"
+#	RNG="-object rng-random,id=RNG"
+	MOUSE="-usb -device usb-tablet"
+	KVM="-enable-kvm"
+	EFI="-L . --bios usr/share/edk2.git/ovmf-x64/OVMF-pure-efi.fd"
+#	NETWORK=`bridge`
+#	QEMU=qemu-system-i386
+	QEMU=qemu-system-x86_64
 
-STANDARD_MACHINE="$SOUND $RNG $VGA $CPU $MEMORY $MOUSE $KVM $NETWORK"
+	STANDARD_MACHINE="$SOUND $RNG $VGA $CPU $MEMORY $MOUSE $KVM $NETWORK"
 }
 
+setup_qemu
 case $1 in
         hd)
 		wrap_bios && \
-		setup_qemu && \
                 $QEMU $STANDARD_MACHINE $HDD --boot c
                 echo "Exit code $?"
 	;;
 	hd-systemd)
 		wrap_systemd_efi && \
-                setup_qemu && \
 		$QEMU $STANDARD_MACHINE $EFI $HDD --boot c
 		echo "Exit code $?"
 	;;
 	hd-refind)
 		wrap_refind_efi && \
-                setup_qemu && \
 		$QEMU $STANDARD_MACHINE $EFI $HDD --boot c
                 echo "Exit code $?"
 	;;
 	net)
-                setup_qemu && \
 		$QEMU $STANDARD_MACHINE
 		echo "Exit code $?"
 	;;
         net-efi)
-                setup_qemu && \
                 $QEMU $STANDARD_MACHINE $EFI
 		echo "Exit code $?"
 	;;
         cd)
 		confirm_iso systemd && \
-                setup_qemu && \
                 $QEMU $STANDARD_MACHINE $CDROM --boot d
                 echo "Exit code $?"
 	;;
 	cd-systemd)
 		confirm_iso systemd && \
-                setup_qemu && \
 		$QEMU $STANDARD_MACHINE $CDROM $EFI --boot d
 		echo "Exit code $?"
 	;;
 	cd-refind)
 		confirm_iso refind && \
-                setup_qemu && \
-		$QEMU $STANDARD_MACHINE $CDROM $EFI --boot d,menu=on
+		$QEMU $STANDARD_MACHINE $CDROM $EFI --boot d
                 echo "Exit code $?"
 	;;
 	image)
                 confirm hd && \
                 confirm_iso systemd && \
-                setup_qemu && \
-                $QEMU $STANDARD_MACHINE $CDROM $HDD --boot c,menu=on
+                $QEMU $STANDARD_MACHINE $HDD $CDROM--boot c,menu=on
                 echo "Exit code $?"
 	;;
 	image-systemd)
 		confirm_hd && \
 		confirm_iso systemd && \
-                setup_qemu && \
-                $QEMU $STANDARD_MACHINE $CDROM $HDD $EFI --boot c,menu=on
+                $QEMU $STANDARD_MACHINE $HDD $CDROM $EFI --boot c,menu=on
                 echo "Exit code $?"
 	;;
 	image-refind)
 		confirm_hd && \
 		confirm_iso systemd && \
-                setup_qemu && \
-                $QEMU $STANDARD_MACHINE $CDROM $HDD $EFI --boot c,menu=on
+                $QEMU $STANDARD_MACHINE $HDD $CDROM $EFI --boot c,menu=on
                 echo "Exit code $?"
 	;;
 esac
