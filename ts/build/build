@@ -240,8 +240,12 @@ lib_dependencies()
 		|cut -d: -f1 > liblist.final 2>/dev/null
 		rm filelist
 		while [ -s liblist.final ]; do
-			procs=`nproc`
-			let procs=( procs * 2 )
+			if is_enabled $ts_singlethread; then
+				procs=1
+			else
+				procs=`nproc`
+				let procs=( procs * 2 )
+			fi
 			cat liblist.final |sort -u|sort -R | \
 			xargs -n 1 -P $procs -I {} bash -c 'calculate_lib_dependencies "$@"' _ {}
 			rm liblist.final
@@ -1221,8 +1225,12 @@ for KERNVER in $KERNVERS; do
 				find $gdir -name \*.ko -printf '%f ' >> /tmp/blacklist.modules
 			done
 		done
-		procs=`nproc`
-		let procs=(procs * 8 )
+		if is_enabled $ts_singlethread; then
+			procs=1
+		else
+			procs=`nproc`
+			let procs=(procs * 8 )
+		fi
 		export -f pre_copy copy_module allfirm make_caps copy_firmware
 		export ts_allfirmware KERNVER
 		find /lib/modules/$KERNVER -name \*.ko -printf '%f\n' | \
