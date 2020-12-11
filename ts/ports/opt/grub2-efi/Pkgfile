@@ -241,7 +241,7 @@ build() {
 	cd ..
 
 
-    MODLIST="boot chain configfile fat ext2 linux normal ntfs part_gpt part_msdos"
+	MODULES="configfile ext2 fat part_gpt normal linux ls boot echo reboot search search_fs_file search_fs_uuid search_label help font efi_gop efi_uga gfxterm video_bochs video_cirrus all_video gzio iso9660"
 
     for ARCH in i386 x86_64
     do
@@ -269,7 +269,7 @@ build() {
         make
         make DESTDIR=$PKG install
         cd grub-core
-        ../grub-mkimage -O $ARCH-efi -d . -o grub2-$ARCH.efi -p "" $MODLIST
+        ../grub-mkimage -O $ARCH-efi -d . -o grub2-$ARCH.efi -p "" $MODULES
         cp grub2-$ARCH.efi $PKG/usr/lib/grub/
         cd ../..
     done

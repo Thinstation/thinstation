@@ -4,18 +4,15 @@
 # Contributor: David Runge <dvzrv@archlinux.org>
 
 name='refind'
-version=0.12.0.r692.g4a84fce
+version=git
 release=2
-#options=('!makeflags')
-#conflicts=("${name%-efi-git}" "${name%-git}")
-#provides=("${name%-efi-git}=${version}" "${name%-git}=${version}")
-#source=('refind::git+https://git.code.sf.net/p/refind/code#branch=master')
 _arch='x64'
 
 build() {
+	unset CFLAGS CXXFLAGS
 	git clone https://git.code.sf.net/p/refind/code
 	cd "${SRC}/code/"
-
+	git checkout df5e38aac2a0478d147597934ee80ca279b775c4^
 	# removing the path prefix from the css reference, so that the css can live in the same directory
 	sed -e 's|../Styles/||g' -i "docs/${name%-efi-git}/"*.html
 	# hardcode RefindDir, so that refind-install can find refind_x64.efi

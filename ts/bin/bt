@@ -5,15 +5,6 @@ set -x
 procs=`nproc`
 let procs=procs/2
 
-confirm_edk2()
-{
-	if [ ! -e "usr/share/edk2.git/ovmf-x64/OVMF-pure-efi.fd" ]; then
-		echo "edk2 is not installed"
-		echo 'Please do a `prt-get install edk2 -im -if -is` inside the chroot environment and try again'
-		exit 1
-	fi
-}
-
 confirm_iso()
 {
 	case $1 in
@@ -116,14 +107,12 @@ case $1 in
                 echo "Exit code $?"
 	;;
 	hd-systemd)
-		confirm_edk2 && \
 		wrap_systemd_efi && \
                 setup_qemu && \
 		$QEMU $STANDARD_MACHINE $EFI $HDD --boot c
 		echo "Exit code $?"
 	;;
 	hd-refind)
-		confirm_edk2 && \
 		wrap_refind_efi && \
                 setup_qemu && \
 		$QEMU $STANDARD_MACHINE $EFI $HDD --boot c
@@ -146,17 +135,15 @@ case $1 in
                 echo "Exit code $?"
 	;;
 	cd-systemd)
-		confirm_edk2 && \
 		confirm_iso systemd && \
                 setup_qemu && \
 		$QEMU $STANDARD_MACHINE $CDROM $EFI --boot d
 		echo "Exit code $?"
 	;;
 	cd-refind)
-		confirm_edk2 && \
 		confirm_iso refind && \
                 setup_qemu && \
-		$QEMU $STANDARD_MACHINE $CDROM $EFI --boot d
+		$QEMU $STANDARD_MACHINE $CDROM $EFI --boot d,menu=on
                 echo "Exit code $?"
 	;;
 	image)
@@ -167,7 +154,6 @@ case $1 in
                 echo "Exit code $?"
 	;;
 	image-systemd)
-		confirm_edk2 && \
 		confirm_hd && \
 		confirm_iso systemd && \
                 setup_qemu && \
@@ -175,7 +161,6 @@ case $1 in
                 echo "Exit code $?"
 	;;
 	image-refind)
-		confirm_edk2 && \
 		confirm_hd && \
 		confirm_iso systemd && \
                 setup_qemu && \

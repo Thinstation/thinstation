@@ -2193,13 +2193,13 @@ syslinux_copy_files_bios()
 		endfile=`dirname $file`/`basename $file .tpl`
 		cat $ESP/$file |sed -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS LM=$LM/g" > $ESP/$endfile
 		rm $ESP/$file
-	        sed -i -e "s/\$LM/$LM/g" $ESP/$endfile
+		sed -i -e "s/\$LM/$LM/g" $ESP/$endfile
 		if [ "$LOADER" == "lpxelinux.0" ]; then
 			sed -i -e "s|/boot|http://$ts_bootserver/boot|g" $ESP/$endfile
 		elif [ "$LOADER" == "pxelinux.0" ]; then
 			sed -i -e "s|/boot|::/boot|g" $ESP/$endfile
 		fi
-        	echo $ESP/$endfile >> boot-images/initrd/added.files
+		echo $ESP/$endfile >> boot-images/initrd/added.files
 	done
 
 	for com in `cat /tmp/syslinux-com32`; do
@@ -2325,31 +2325,41 @@ sys_copy()
 wrap_efi()
 {
 	if is_enabled ${ts_wrap_efi:=enabled}; then
+		LM=4
+		sys_copy /boot/efi/EFI/fedora/shimx64.efi $ESP/EFI/BOOT/bootx64.efi
+		sys_copy /boot/efi/EFI/fedora/MokManager.efi $ESP/EFI/BOOT/MokManager.efi
+		sys_copy /boot/efi/EFI/fedora/mmx64.efi $ESP/EFI/BOOT/mmx64.efi
+		sys_copy /ts/certs/${ts_sb_cert:=ThinStation-SB-UEFI-CA.cer} $ESP/${ts_sb_cert:=ThinStation-SB-UEFI-CA.cer}
+		sys_copy /usr/lib/grub/grub2-x86_64.efi $ESP/EFI/BOOT/grubx64.efi
+		sys_copy boot-images/templates/grub/"$ts_gummitheme"/grub.cfg $ESP/EFI/BOOT/grub.cfg
+		sys_copy /usr/lib/grub/grub2-x86_64.efi $ESP/EFI/BOOT/grubx64.efi
+		sys_copy /usr/lib/grub/fonts/unifont.pf2 $ESP/EFI/BOOT/fonts/unifont.pf2
+		sed -i -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS LM=$LM/g" $ESP/EFI/BOOT/grub.cfg
 		ELTORITO="-eltorito-alt-boot \
 				-eltorito-platform efi \
 				-b EFI/BOOT/boot.efi \
-				-hard-disk-boot"
+				-no-emul-boot"
 		HYBRID_EFI="--uefi"
 		lsize=`du -s $ESP |cut -f1`
 		let lsize+=4096
 		dd if=/dev/zero of=$INITDIR/boot.efi bs=1K count=$lsize
 		lodev=`losetup -f`
-		losetup -P $lodev $INITDIR/boot.efi
-		sgdisk -o $lodev
-		sgdisk -n 1:2048:-1s -t 1:ef00 -c '1:EFI' $lodev
-		sgdisk $lodev --attributes=1:set:2
-		mkfs.vfat -I ${lodev}p1 -n 'EFI'
+		losetup $lodev $INITDIR/boot.efi
+#		sgdisk -o $lodev
+#		sgdisk -n 1:2048:-1s -t 1:ef00 -c '1:EFI' $lodev
+#		sgdisk $lodev --attributes=1:set:2
+		mkfs.vfat -I ${lodev} -n 'EFI'
 		mkdir -p temp-efi
-		mount ${lodev}p1 temp-efi
+		mount ${lodev} temp-efi
 		cp -a $ESP/* temp-efi
-		rm -rf temp-efi/EFI/BOOT/drivers_x64
-		rm -rf temp-efi/EFI/BOOT/drivers_ia32
-		if [ -e temp-efi/EFI/boot/*.conf ]; then
-			sed -i -e 's/LM=2/LM=4/g' temp-efi/EFI/boot/*.conf
-		fi
-		if [ -e temp-efi/loader/entries ]; then
-			sed -i -e 's/LM=2/LM=4/g' temp-efi/loader/entries/*
-		fi
+#		rm -rf temp-efi/EFI/BOOT/drivers_x64
+#		rm -rf temp-efi/EFI/BOOT/drivers_ia32
+#		if [ -e temp-efi/EFI/boot/*.conf ]; then
+#			sed -i -e 's/LM=2/LM=4/g' temp-efi/EFI/boot/*.conf
+#		fi
+#		if [ -e temp-efi/loader/entries ]; then
+#			sed -i -e 's/LM=2/LM=4/g' temp-efi/loader/entries/*
+#		fi
 		umount temp-efi
 		losetup -d $lodev
 		rmdir temp-efi
@@ -2450,25 +2460,15 @@ if [ -z "$NOIMAGES" ]; then
 				ESP=boot-images/refind-iso/efi-source
 				EFIOVERLAY=$ESP/EFI
 
-				LM=4
+				wrap_efi
 
+				LM=2
 				CONFIGFILE=refind.conf
 				refind_copy_files
 
-				sys_copy /boot/efi/EFI/fedora/shimx64.efi $ESP/EFI/BOOT/bootx64.efi
-				sys_copy /boot/efi/EFI/fedora/MokManager.efi $ESP/EFI/BOOT/MokManager.efi
-				sys_copy /boot/efi/EFI/fedora/mmx64.efi $ESP/EFI/BOOT/mmx64.efi
-				sys_copy /ts/certs/${ts_sb_cert:=ThinStation-SB-UEFI-CA.cer} $ESP/${ts_sb_cert:=ThinStation-SB-UEFI-CA.cer}
-
 				add_overlay
 				add_image
-				wrap_efi
 
-				# For isohybrid efi, change the LM method, so that as an HD image, the correct
-				# continuation method is selected. Only for EFI, BIOS is still ISO
-				for file in `find $configdir -type f |sed -e "s|$configdir||g"`; do
-					sed -i -e "s/LM=4/LM=2/g" $EFIDIR/$file
-				done
 
 				BDIR=/isolinux
 				CONFIGFILE=isolinux.cfg
@@ -2508,8 +2508,9 @@ if [ -z "$NOIMAGES" ]; then
 				ESP=boot-images/systemd-boot-iso/efi-source
 				EFIOVERLAY="$ESP/EFI $ESP/loader"
 
-				LM=4
+				wrap_efi
 
+				LM=2
 				configdir=boot-images/templates/systemd-boot/"$ts_gummitheme"
 				sys_copy /usr/lib/systemd/boot/efi/systemd-bootx64.efi $ESP/EFI/BOOT/grubx64.efi
 				for file in `find $configdir -type f |sed -e "s|$configdir||g"`; do
@@ -2517,20 +2518,8 @@ if [ -z "$NOIMAGES" ]; then
 					sed -i -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS LM=$LM/g" $ESP/$file
 				done
 
-				sys_copy /boot/efi/EFI/fedora/shimx64.efi $ESP/EFI/BOOT/bootx64.efi
-				sys_copy /boot/efi/EFI/fedora/MokManager.efi $ESP/EFI/BOOT/MokManager.efi
-				sys_copy /boot/efi/EFI/fedora/mmx64.efi $ESP/EFI/BOOT/mmx64.efi
-				sys_copy /ts/certs/${ts_sb_cert:=ThinStation-SB-UEFI-CA.cer} $ESP/${ts_sb_cert:=ThinStation-SB-UEFI-CA.cer}
-
 				add_overlay
 				add_image
-				wrap_efi
-
-				# For isohybrid efi, change the LM method, so that as an HD image the correct
-				# continuation method is selected. Only for EFI, BIOS is still ISO
-				for file in `find $configdir -type f |sed -e "s|$configdir||g"`; do
-					sed -i -e "s/LM=4/LM=2/g" $ESP/$file
-				done
 
 				BDIR=/isolinux
 				CONFIGFILE=isolinux.cfg
@@ -2566,6 +2555,7 @@ if [ -z "$NOIMAGES" ]; then
 				isohybrid $HYBRID_EFI $ESP/../thinstation-efi.iso
 				echo $ESP/../thinstation-efi.iso >> boot-images/initrd/added.files
 			;;
+
 		esac
 	done
 fi
