@@ -206,6 +206,7 @@ mount_squash()
 		else
 			if [ ! -e /tmp/lib.squash ] ; then
 				cp $FILE /tmp/lib.squash
+				systemctl start --no-block vmtouch.service
 			fi
 			systemd-mount --fsck=no -o ro,loop -t squashfs /tmp/lib.squash /lib
 			systemctl start --no-block vmtouch.service

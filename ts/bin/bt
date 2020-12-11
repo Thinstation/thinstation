@@ -19,7 +19,7 @@ confirm_iso()
 confirm_hd()
 {
 	if [ ! -e $HD ]; then
-		qemu-img create -f qcow2 $HD 31G
+		qemu-img create -f raw $HD 31G
 	        if [ "$?" != "0" ]; then
 			echo "Likely not enought space to create hd image."
 			exit 3
@@ -85,7 +85,7 @@ setup_qemu()
 #	VGA="-vga vmware"
 	SOUND="-device AC97"
 	CPU="-smp cores=$procs,threads=1,sockets=1"
-	MEMORY="-m 4096"
+	MEMORY="-m 2048"
 #	RNG="-object rng-random,id=RNG"
 	MOUSE="-usb -device usb-tablet"
 	KVM="-enable-kvm"

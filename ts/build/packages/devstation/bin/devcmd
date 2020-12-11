@@ -125,17 +125,17 @@ do_test_cd()
         $XTERM_CMD -T Test-CD --working-directory=/thinstation $ARG script -c "./setup-chroot -e bt cd" -e /home/$TSUSER/Desktop/test.log
 }
 
-do_test_cd_refind_efi()
+do_test_cd_efi()
 {
-        $XTERM_CMD -T Test-CD-EFI --working-directory=/thinstation $ARG script -c "./setup-chroot -e bt cd-efi" -e /home/$TSUSER/Desktop/test.log
+        $XTERM_CMD -T Test-CD-EFI --working-directory=/thinstation $ARG script -c "./setup-chroot -e bt cd-refind" -e /home/$TSUSER/Desktop/test.log
 }
 do_test_hd()
 {
         $XTERM_CMD -T Test-HD --working-directory=/thinstation $ARG script -c "./setup-chroot -e bt hd" -e /home/$TSUSER/Desktop/test.log
 }
-do_test_hd_systmed_efi()
+do_test_hd_efi()
 {
-        $XTERM_CMD -T Test-HD-EFI --working-directory=/thinstation $ARG script -c "./setup-chroot -e bt hd-efi" -e /home/$TSUSER/Desktop/test.log
+        $XTERM_CMD -T Test-HD-EFI --working-directory=/thinstation $ARG script -c "./setup-chroot -e bt hd-refind" -e /home/$TSUSER/Desktop/test.log
 }
 do_test_net()
 {
@@ -191,11 +191,8 @@ case $1 in
 	test-hd)
                 do_test_hd
 		;;
-	test-hd-systemd-efi)
-                do_test_hd_systemd_efi
-		;;
-	test-hd-refind-efi)
-                do_test_hd_refind_efi
+	test-hd-efi)
+                do_test_hd_efi
 		;;
 	test-net)
                 do_test_net
