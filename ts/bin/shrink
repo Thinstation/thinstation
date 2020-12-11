@@ -37,7 +37,7 @@ mount -t tmpfs -o size=1G tmpfs /tmp/shrink
 tar -xf $sarchive -C /tmp/shrink 2>/dev/null || exit 1
 oldsize=`du -sb $sarchive |cut -f1`
 cd /tmp/shrink
-tar -c * |xz -9 > $darchive.new
+tar -c * |xz -9 --lzma2=dict=max > $darchive.new
 newsize=`du -sb $darchive.new |cut -f1`
 if [ "$oldsize" -gt "$newsize" ]; then
 	cp $darchive.new $darchive
