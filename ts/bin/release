@@ -18,7 +18,7 @@ mk_devstat()
 	cp /build/boot-images/initrd/image.md5 /tmp/image-$TSVER.md5
 	cd /tmp/thindev
 	mv lib.squash lib.update
-	tar -c * |xz -9 > ../thindev-default-$TSVER.tar.xz
+	tar -c * |xz > ../thindev-default-$TSVER.tar.xz
 	cd ..
 	scp image-*.md5 ${user}@frs.sourceforge.net:/home/frs/project/thinstation/DevStation-Source/
 	scp thindev-default-*.tar.xz ${user}@frs.sourceforge.net:/home/frs/project/thinstation/DevStation-Source/
@@ -29,7 +29,10 @@ mk_installer()
 	# Make HW lister
 	cd /build
 	cp conf/hwlister/* .
+	sed -i -e 's/^usermode/#usermode/g' /build/packages/switchuser/dependencies
 	stb --allmodules
+	sed -i -e 's/^#usermode/usermode/g' /build/packages/switchuser/dependencies
+
 	mkdir -p /build/boot-images/hw/boot/hwlister/
 	cp /build/boot-images/initrd/{vmlinuz,initrd} /build/boot-images/hw/boot/hwlister/.
 
