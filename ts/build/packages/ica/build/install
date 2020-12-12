@@ -135,7 +135,7 @@ bday=`stat -c %Y $INSTALLDIR/linuxx64/linuxx64.psf`
 # Start the installer in a chroot session.
 mount -t proc proc $INSTALLDIR/proc
 # Pipe the answers
-(for answer in 1 '\n' y n y y 3; do
+(for answer in 1 '\n' y n n y y 3; do
 		sleep .2
 		echo -e "$answer"
 done)|chroot $INSTALLDIR ./setupwfc
@@ -161,6 +161,7 @@ done
 for dir in $clean_dirs ; do
 	rm -rf $INSTALLDIR/$dir
 done
+rm $INSTALLDIR/etc/ld.so.preload
 rm $INSTALLDIR/lib64
 
 # Remove library versions that we don't have the dependencies for
