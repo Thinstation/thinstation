@@ -1,0 +1,18 @@
+# Description: A toolset for manipulating ISO 9660 file systems.
+# URL:         https://www.gnu.org/software/xorriso/
+# Maintainer:  Jan-Michael Franz, jmf at mesecons dot net
+# Depends on:  
+
+name=xorriso
+version=1.4.8
+release=1
+source=(https://www.gnu.org/software/xorriso/$name-$version.tar.gz)
+
+build(){
+	cd $name-$version
+
+	./configure --prefix=/usr
+	make
+	make DESTDIR=$PKG install
+	rm -R $PKG/usr/share/info
+}

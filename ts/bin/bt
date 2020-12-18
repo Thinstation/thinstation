@@ -6,7 +6,8 @@ confirm_iso()
 {
 	case $1 in
 		systemd) ISO=build/boot-images/systemd-boot-iso/thinstation-efi.iso ;;
-		refind) ISO=build/boot-images/refind-iso/thinstation-refind.iso ;;
+		refind) ISO=build/boot-images/refind-iso/thinstation-efi.iso ;;
+		grub) ISO=build/boot-images/grub/thinstation-efi.iso;;
 	esac
 	if [ ! = $ISO ]; then
 		"$1 ISO $ISO"
@@ -45,7 +46,7 @@ wrap_systemd_efi()
 	fi
 	export AGREE=true
 	rm thinstation.img
-	mkgptdrv -p ESP:4g:boot -p l:0:home -o /build/boot-images/systemd-boot-iso/efi-source -l thinstation.img:8g
+	mkgptdrv -p ESP:4g:boot -p l:0:home -o /build/boot-images/grub/efi-source -l thinstation.img:8g
 }
 
 wrap_refind_efi()
@@ -123,7 +124,7 @@ case $1 in
 		echo "Exit code $?"
 	;;
         cd)
-		confirm_iso systemd && \
+		confirm_iso grub && \
                 $QEMU $STANDARD_MACHINE $CDROM --boot d
                 echo "Exit code $?"
 	;;
@@ -154,5 +155,41 @@ case $1 in
 		confirm_iso systemd && \
                 $QEMU $STANDARD_MACHINE $HDD $CDROM $EFI --boot c,menu=on
                 echo "Exit code $?"
+	;;
+	cd-image-grub)
+		confirm_iso grub
+		HDD="-drive file=$ISO,index=0,media=disk,format=raw"
+		$QEMU $STANDARD_MACHINE $HDD --boot c,menu=on
+		echo "Exit code $?"
+	;;
+	cd-image-refind)
+		confirm_iso refind
+		HDD="-drive file=$ISO,index=0,media=disk,format=raw"
+		$QEMU $STANDARD_MACHINE $HDD --boot c,menu=on
+		echo "Exit code $?"
+	;;
+	cd-image-systemd)
+		confirm_iso systemd
+		HDD="-drive file=$ISO,index=0,media=disk,format=raw"
+		$QEMU $STANDARD_MACHINE $HDD --boot c,menu=on
+		echo "Exit code $?"
+	;;
+	cd-image-grub-efi)
+		confirm_iso grub
+		HDD="-drive file=$ISO,index=0,media=disk,format=raw"
+		$QEMU $STANDARD_MACHINE $HDD $EFI --boot c,menu=on
+		echo "Exit code $?"
+	;;
+	cd-image-refind-efi)
+		confirm_iso refind
+		HDD="-drive file=$ISO,index=0,media=disk,format=raw"
+		$QEMU $STANDARD_MACHINE $HDD $EFI --boot c,menu=on
+		echo "Exit code $?"
+	;;
+	cd-image-systemd-efi)
+		confirm_iso systemd
+		HDD="-drive file=$ISO,index=0,media=disk,format=raw"
+		$QEMU $STANDARD_MACHINE $HDD $EFI --boot c,menu=on
+		echo "Exit code $?"
 	;;
 esac

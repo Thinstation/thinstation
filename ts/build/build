@@ -2087,7 +2087,7 @@ image_fastboot()
 }
 
 if [ -z "$ts_bootimages" ]; then
-	ts_bootimages="syslinux iso pxe refind-iso systemd-boot-iso"
+	ts_bootimages="syslinux iso pxe refind-iso systemd-boot-iso grub"
 fi
 if [ -z "$ts_syslinuxtheme" ]; then
 	ts_syslinuxtheme="default"
@@ -2299,13 +2299,13 @@ refind_copy_files()
 rufus_copy_files()
 {
 	rufus_exe=`find /usr/share/rufus -type f 2>/dev/null`
-	if [ -n "$rufus_exe" ]; then
+        sys_copy $rufus_exe $ESP/rufus/`basename $rufus_exe`
+	if [ "$1" == "-s" ]; then
 		sysrelease=`hexdump -s 64 -n 8192 -C /usr/share/syslinux/bios/ldlinux.sys |grep -e SYSLINUX -A2 |cut -d '|' -f2 |sed -e ':a;N;$!ba;s/\n//g' |cut -d "-" -f2- |sed -e 's/\*//g' |sed -e 's/\.//g'`
 		sysversion=`hexdump -s 64 -n 8192 -C /usr/share/syslinux/bios/ldlinux.sys |grep -e SYSLINUX -A2 |cut -d '|' -f2 |sed -e ':a;N;$!ba;s/\n//g' |cut -d " " -f2`
 		mkdir -p $ESP/rufus/rufus_files/syslinux-$sysversion/$sysrelease
 		sys_copy /usr/share/syslinux/bios/ldlinux.sys $ESP/rufus/rufus_files/syslinux-$sysversion/$sysrelease/ldlinux.sys
 		sys_copy /usr/share/syslinux/bios/ldlinux.bss $ESP/rufus/rufus_files/syslinux-$sysversion/$sysrelease/ldlinux.bss
-		sys_copy $rufus_exe $ESP/rufus/`basename $rufus_exe`
 	fi
 }
 
@@ -2333,46 +2333,37 @@ sys_copy()
 wrap_efi()
 {
 	if is_enabled ${ts_wrap_efi:=enabled}; then
-		LM=4
 		sys_copy /boot/efi/EFI/fedora/shimx64.efi $ESP/EFI/BOOT/bootx64.efi
-		sys_copy /boot/efi/EFI/fedora/MokManager.efi $ESP/EFI/BOOT/MokManager.efi
+#		sys_copy /boot/efi/EFI/fedora/MokManager.efi $ESP/EFI/BOOT/MokManager.efi
 		sys_copy /boot/efi/EFI/fedora/mmx64.efi $ESP/EFI/BOOT/mmx64.efi
 		sys_copy /ts/certs/${ts_sb_cert:=ThinStation-SB-UEFI-CA.cer} $ESP/${ts_sb_cert:=ThinStation-SB-UEFI-CA.cer}
 		sys_copy /usr/lib/grub/grub2-x86_64.efi $ESP/EFI/BOOT/grubx64.efi
 		sys_copy boot-images/templates/grub/"$ts_gummitheme"/grub.cfg $ESP/EFI/BOOT/grub.cfg
+		sys_copy /usr/lib/grub/fonts/unifont.pf2 $ESP/boot/grub/unifont.pf2
+		MODULES="configfile ext2 fat part_gpt part_msdos normal linux ls boot echo reboot search search_fs_file search_fs_uuid search_label help font efi_gop efi_uga gfxterm video_bochs video_cirrus all_video gzio iso9660"
+		grub-mkimage -p "/EFI/BOOT" -c boot-images/templates/grub/"$ts_gummitheme"/cd.cfg -O x86_64-efi -o	$ESP/EFI/BOOT/grubx64.efi $MODULES
 		sys_copy /usr/lib/grub/grub2-x86_64.efi $ESP/EFI/BOOT/grubx64.efi
-		sys_copy /usr/lib/grub/fonts/unifont.pf2 $ESP/EFI/BOOT/fonts/unifont.pf2
-		sed -i -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS LM=$LM/g" $ESP/EFI/BOOT/grub.cfg
+		sed -i -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS/g" $ESP/EFI/BOOT/grub.cfg
 		ELTORITO="-eltorito-alt-boot \
 				-eltorito-platform efi \
 				-b EFI/BOOT/boot.efi \
 				-no-emul-boot"
 		HYBRID_EFI="--uefi"
 		lsize=`du -s $ESP |cut -f1`
-		let lsize+=4096
+		let lsize+=128
 		dd if=/dev/zero of=$INITDIR/boot.efi bs=1K count=$lsize
 		lodev=`losetup -f`
 		losetup $lodev $INITDIR/boot.efi
-#		sgdisk -o $lodev
-#		sgdisk -n 1:2048:-1s -t 1:ef00 -c '1:EFI' $lodev
-#		sgdisk $lodev --attributes=1:set:2
 		mkfs.vfat -I ${lodev} -n 'EFI'
 		mkdir -p temp-efi
 		mount ${lodev} temp-efi
 		cp -a $ESP/* temp-efi
-#		rm -rf temp-efi/EFI/BOOT/drivers_x64
-#		rm -rf temp-efi/EFI/BOOT/drivers_ia32
-#		if [ -e temp-efi/EFI/boot/*.conf ]; then
-#			sed -i -e 's/LM=2/LM=4/g' temp-efi/EFI/boot/*.conf
-#		fi
-#		if [ -e temp-efi/loader/entries ]; then
-#			sed -i -e 's/LM=2/LM=4/g' temp-efi/loader/entries/*
-#		fi
 		umount temp-efi
 		losetup -d $lodev
 		rmdir temp-efi
 		mkdir -p $ESP/EFI/BOOT
 		sys_copy $INITDIR/boot.efi $ESP/EFI/BOOT/boot.efi
+		grub-mkimage -p "/EFI/BOOT" -c boot-images/templates/grub/"$ts_gummitheme"/hd.cfg -O x86_64-efi -o	$ESP/EFI/BOOT/grubx64.efi $MODULES
 	fi
 }
 
@@ -2444,7 +2435,9 @@ if [ -z "$NOIMAGES" ]; then
 				syslinux_copy_files_bios
 
 				addpkgs $ESP
-				rufus_copy_files
+
+				rufus_copy_files -s
+
 				add_image
 				add_overlay
 
@@ -2491,13 +2484,13 @@ if [ -z "$NOIMAGES" ]; then
 				LM=2
 				syslinux_copy_files_bios
 
-				rufus_copy_files
+				rufus_copy_files -s
 
 				add_image
 				addpkgs $ESP
 
 				mkisofs	-V "$ts_cdvolname" \
-					-o $ESP/../thinstation-refind.iso \
+					-o $ESP/../thinstation-efi.iso \
 					-b boot/isolinux/isolinux.bin \
 					-c boot/isolinux/boot.cat \
 					-no-emul-boot \
@@ -2510,8 +2503,8 @@ if [ -z "$NOIMAGES" ]; then
 					-f \
 					-quiet \
 					$ESP
-				isohybrid $HYBRID_EFI $ESP/../thinstation-refind.iso
-				echo $ESP/../thinstation-refind.iso >> boot-images/initrd/added.files
+				isohybrid $HYBRID_EFI $ESP/../thinstation-efi.iso
+				echo $ESP/../thinstation-efi.iso >> boot-images/initrd/added.files
 			;;
 			systemd-boot-iso)
 				ESP=boot-images/systemd-boot-iso/efi-source
@@ -2543,7 +2536,7 @@ if [ -z "$NOIMAGES" ]; then
 				LM=2
 				syslinux_copy_files_bios
 
-				rufus_copy_files
+				rufus_copy_files -s
 
 				add_image
 				addpkgs $ESP
@@ -2564,6 +2557,51 @@ if [ -z "$NOIMAGES" ]; then
 					$ESP
 				isohybrid $HYBRID_EFI $ESP/../thinstation-efi.iso
 				echo $ESP/../thinstation-efi.iso >> boot-images/initrd/added.files
+			;;
+			grub)
+                                ESP=boot-images/grub/efi-source
+                                EFIOVERLAY="$ESP/EFI $ESP/loader"
+
+                                wrap_efi
+
+				mkdir -p $ESP/boot/grub
+
+                                add_overlay
+                                add_image
+
+				rufus_exe=`find /usr/share/rufus -type f 2>/dev/null`
+				sys_copy $rufus_exe $ESP/rufus/`basename $rufus_exe`
+
+                                addpkgs $ESP
+
+				sys_copy $ESP/EFI/BOOT/grub.cfg				$ESP/boot/grub/grub.cfg
+                                sed -i -e 's/linuxefi/linux/g'				$ESP/boot/grub/grub.cfg
+                                sed -i -e 's/initrdefi/initrd/g'			$ESP/boot/grub/grub.cfg
+
+				export MODULES="biosdisk configfile part_msdos ext2 fat normal linux ls boot echo reboot search search_fs_file search_label help font udf gfxterm video_bochs video_cirrus all_video gzio iso9660"
+				grub-mkimage -p "/boot/grub" -c boot-images/templates/grub/"$ts_gummitheme"/cd.cfg -O i386-pc-eltorito -o	$ESP/boot/grub/cdboot.img $MODULES
+				echo $ESP/boot/grub/cdboot.img >> boot-images/initrd/added.files
+
+				grub-mkimage -p\(hd0,msdos1\)/boot/grub -c boot-images/templates/grub/"$ts_gummitheme"/hd.cfg -O i386-pc -o	/tmp/core.img $MODULES
+				sys_copy /usr/lib/grub/i386-pc/normal.mod $ESP/boot/grub/i386-pc/normal.mod
+
+                                xorriso -as mkisofs -V "$ts_cdvolname" \
+                                        -o $ESP/../thinstation-efi.iso \
+                                        -eltorito-boot boot/grub/cdboot.img \
+                                        -c boot/boot.cat \
+                                        -no-emul-boot \
+                                        -boot-load-size 4 \
+                                        -boot-info-table \
+					--grub2-boot-info /tmp/core.img \
+					--grub2-mbr /usr/lib/grub/i386-pc/boot_hybrid.img \
+					--protective-msdos-label \
+                                        -joliet \
+                                        -rock \
+                                        $ELTORITO \
+                                        -f \
+                                        -quiet \
+                                        $ESP
+                                echo $ESP/../thinstation-efi.iso >> boot-images/initrd/added.files
 			;;
 
 		esac
