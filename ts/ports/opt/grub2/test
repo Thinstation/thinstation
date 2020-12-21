@@ -1,0 +1,5 @@
+#!/bin/bash
+MODULES="sysmem lsmmap oemid configfile ext2 fat part_gpt normal linux ls boot echo reboot search search_fs_file search_fs_uuid search_label help font gfxterm video_bochs video_cirrus all_video gzio iso9660"
+cd /ts/ports/opt/grub2/work/src/grub-2.04/grub-core
+../grub-mkimage -O i386-pc -d . -o /boot/grub/core.img -p "" $MODULES
+qemu-system-x86_64 -kernel /boot/grub/core.img

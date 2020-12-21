@@ -1,0 +1,97 @@
+diff -urN grub-extras.orig/lua/grub_lib.c grub-extras/lua/grub_lib.c
+--- grub-extras.orig/lua/grub_lib.c	2020-12-20 02:30:31.888871110 +0000
++++ grub-extras/lua/grub_lib.c	2020-12-20 02:31:26.987369235 +0000
+@@ -163,14 +163,14 @@
+ 	  lua_pushvalue (state, 1);
+ 	  lua_pushstring (state, name);
+ 	  lua_pushstring (state, fs->name);
+-	  if (! fs->uuid)
++	  if (! fs->fs_uuid)
+ 	    lua_pushnil (state);
+ 	  else
+ 	    {
+ 	      int err;
+ 	      char *uuid;
+ 
+-	      err = fs->uuid (dev, &uuid);
++	      err = fs->fs_uuid (dev, &uuid);
+ 	      if (err)
+ 		{
+ 		  grub_errno = 0;
+@@ -183,14 +183,14 @@
+ 		}
+ 	    }
+ 
+-	  if (! fs->label)
++	  if (! fs->fs_label)
+ 	    lua_pushnil (state);
+ 	  else
+ 	    {
+ 	      int err;
+ 	      char *label = NULL;
+ 
+-	      err = fs->label (dev, &label);
++	      err = fs->fs_label (dev, &label);
+ 	      if (err)
+ 		{
+ 		  grub_errno = 0;
+@@ -274,7 +274,7 @@
+ 
+       if (fs)
+ 	{
+-	  (fs->dir) (dev, path, enum_file, state);
++	  (fs->fs_dir) (dev, path, enum_file, state);
+ 	}
+ 
+       grub_device_close (dev);
+@@ -328,7 +328,7 @@
+   const char *name;
+ 
+   name = luaL_checkstring (state, 1);
+-  file = grub_file_open (name);
++  file = grub_file_open (name, 0);
+   save_errno (state);
+ 
+   if (! file)
+@@ -465,7 +465,7 @@
+ 
+   result = 0;
+   name = luaL_checkstring (state, 1);
+-  file = grub_file_open (name);
++  file = grub_file_open (name, 0);
+   if (file)
+     {
+       result++;
+@@ -502,7 +502,7 @@
+       if (! p)
+ 	return push_result (state);
+ 
+-      grub_normal_add_menu_entry (n, args, NULL, NULL, NULL, NULL, NULL, p, 0);
++      grub_normal_add_menu_entry (n, args, NULL, NULL, NULL, NULL, NULL, p, 0, NULL, NULL);
+     }
+   else
+     {
+diff -urN grub-extras.orig/lua/grub_lua.h grub-extras/lua/grub_lua.h
+--- grub-extras.orig/lua/grub_lua.h	2020-12-20 02:30:31.888871110 +0000
++++ grub-extras/lua/grub_lua.h	2020-12-20 02:31:26.987369235 +0000
+@@ -37,7 +37,7 @@
+ #define strtoul		grub_strtoul
+ #define strtod(s,e)	grub_strtoul(s,e,0)
+ 
+-#define exit(a)		grub_exit()
++#define exit(a)		grub_exit(0)
+ #define jmp_buf		grub_jmp_buf
+ #define setjmp		grub_setjmp
+ #define longjmp		grub_longjmp
+diff -urN grub-extras.orig/lua/lauxlib.c grub-extras/lua/lauxlib.c
+--- grub-extras.orig/lua/lauxlib.c	2020-12-20 02:30:31.888871110 +0000
++++ grub-extras/lua/lauxlib.c	2020-12-20 02:31:26.987369235 +0000
+@@ -591,7 +591,7 @@
+   }
+   else {
+     lua_pushfstring(L, "@%s", filename);
+-    lf.f = grub_file_open(filename);
++    lf.f = grub_file_open(filename, 0);
+     if (lf.f == NULL) return errfile(L, "open", fnameindex);
+   }
+ 

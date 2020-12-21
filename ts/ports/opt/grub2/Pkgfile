@@ -221,7 +221,13 @@ https://src.fedoraproject.org/rpms/grub2/raw/master/f/0208-grub-switch-to-blscfg
 https://src.fedoraproject.org/rpms/grub2/raw/master/f/0209-10_linux.in-Enable-BLS-configuration-if-new-kernel-p.patch
 https://src.fedoraproject.org/rpms/grub2/raw/master/f/0210-efi-Set-image-base-address-before-jumping-to-the-PE-.patch
 https://src.fedoraproject.org/rpms/grub2/raw/master/f/0211-blscfg-Lookup-default_kernelopts-variable-as-fallbac.patch
-https://src.fedoraproject.org/rpms/grub2/raw/master/f/0212-10_linux.in-fix-early-exit-due-error-when-reading-pe.patch)
+https://src.fedoraproject.org/rpms/grub2/raw/master/f/0212-10_linux.in-fix-early-exit-due-error-when-reading-pe.patch
+grub-2.04-grub-extras-lua-fix.patch
+oemid.c
+Makefile.oemid
+sysmem.c
+Makefile.sysmem
+test)
 
 build() {
 	unset CFLAGS
@@ -229,10 +235,23 @@ build() {
 	unset CXXFLAGS
 	unset LDFLAGS
 	unset MAKEFLAGS
+	git clone git://git.sv.gnu.org/grub-extras.git
+        export GRUB_CONTRIB=$SRC/grub-extras
+        cd grub-extras
+        mkdir oemid
+        cp $SRC/oemid.c oemid/.
+        cp $SRC/Makefile.oemid oemid/Makefile.core.def
+	mkdir sysmem
+	cp $SRC/sysmem.c sysmem/.
+	cp $SRC/Makefile.sysmem sysmem/Makefile.core.def
 
-	cd grub-$version
-	cp $SRC/gitignore .gitignore
-	cp $SRC/bootstrap.conf .
+        patch -p1 -i $SRC/grub-2.04-grub-extras-lua-fix.patch
+        cd ..
+        cd grub-$version
+#       cp $SRC/oemid.c grub-core/commands/.
+        ln -sf $SRC/grub-extras contrib
+        cp $SRC/gitignore .gitignore
+        cp $SRC/bootstrap.conf .
 
 	for patch in `seq -f %04g 1 212`; do
 		if [ -e $SRC/$patch*.patch ]; then
