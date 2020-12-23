@@ -29,66 +29,6 @@
 
 GRUB_MOD_LICENSE ("GPLv3+");
 
-inline unsigned char inportb(unsigned int port)
-{
-   unsigned char ret;
-   asm volatile ("inb %%dx,%%al":"=a" (ret):"d" (port));
-   return ret;
-}
-
-
-/* Output a byte to a port */
-/* July 6, 2001 added space between :: to make code compatible with gpp */
-
-inline void outportb(unsigned int port,unsigned char value)
-{
-   asm volatile ("outb %%al,%%dx": :"d" (port), "a" (value));
-}
-
-
-/* Stop Interrupts */
-inline void stopints()
-{
-  asm ("cli");
-}
-
-unsigned char highmem, lowmem;
-unsigned int mem;
-
-int dos_memory()
-{
-
-/* need to stop ints before accessing the CMOS chip */
-  stopints();
-
-/* write to port 0x70 with the CMOS register we want to read */
-/* 0x30 is the CMOS reg that hold the low byte of the mem count */
-  outportb(0x70,0x30);
-
-
-/* read CMOS values from port 0x71 */
-  lowmem = inportb(0x71);
-
-
-/* write to port 0x70 with the CMOS register we want to read */
-/* 0x31 is the CMOS reg that hold the high byte of the mem count */
-  outportb(0x70,0x31);
-
-
-/* read CMOS values from port 0x71 */
-  highmem = inportb(0x71);
-
-
-/* fix the low and high bytes into one value */
-  mem = highmem;
-  mem = mem<<8;
-  mem += lowmem;
-  grub_printf ("ram", mem);
-  grub_printf ("lowmem", lowmem);
-  grub_printf ("highme", highmem);
-  grub_env_set ("RAM", mem);
-}
-
 static void
 disp_acpi_rsdpv1 (struct grub_acpi_rsdp_v10 *rsdp)
 {
@@ -105,7 +45,6 @@ grub_cmd_oemid (struct grub_extcmd_context *ctxt,
 	grub_printf ("No RSDPv1\n");
       else
 	{
-	  dos_memory ();
 	  disp_acpi_rsdpv1 (rsdp1);
 	}
   return GRUB_ERR_NONE;
