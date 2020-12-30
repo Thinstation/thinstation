@@ -33,14 +33,15 @@ mk_installer()
 	stb --allmodules
 	sed -i -e 's/^#usermode/usermode/g' /build/packages/switchuser/dependencies
 
-	mkdir -p /build/boot-images/hw/boot/hwlister/
+	mkdir -p /build/boot-images/hw/boot/hwlister
+	mkdir -p /build/boot-images/hw/boot/grub
 	cp /build/boot-images/initrd/{vmlinuz,initrd} /build/boot-images/hw/boot/hwlister/.
-
+	cp -a  /build/boot-images/templates/grub/devstation /build/boot-images/hw/boot/grub/.
 	# Make Installer
 	name=TS-${ver}-Installer-`date +%m%d`.iso
 	cp conf/installer/* .
 	stb --allmodules
-	cp /build/boot-images/systemd-boot-iso/thinstation-efi.iso /tmp/$name
+	cp /build/boot-images/grub/thinstation-efi.iso /tmp/$name
 	scp /tmp/$name ${user}@frs.sourceforge.net:/home/frs/project/thinstation/thinstation/thinstation-6/.
 }
 

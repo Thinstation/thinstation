@@ -6,7 +6,7 @@ exec </dev/null >/var/log/installer.log 2>&1
 set -x
 
 tempdir=`mktemp -d 2>/dev/null`
-bootdir=/boot/boot
+bootdir=/tmp-boot
 GTKDIALOG="gtkdialog -c --space-expand=false --space-fill=false --program=MAIN_DIALOG"
 . /etc/thinstation.global
 ARG="--disable-server -x"
@@ -210,19 +210,20 @@ locale_select()
 
 resolution_select()
 {
-	index=0
-	row=0
+	if lsmod |grep -qe uvesafb; then
+		index=0
+		row=0
 
-	for resolution in `xrandr 2>/dev/null | grep -o '   [0-9]*x[0-9]*' | sed -r 's/ //g' | sort -u -t'x' -k1n -k2n` ; do
-		res[$index]=$resolution
-		echo "$index|$resolution" >> /$tempdir/reslist
+		for resolution in `xrandr 2>/dev/null | grep -o '   [0-9]*x[0-9]*' | sed -r 's/ //g' | sort -u -t'x' -k1n -k2n` ; do
+			res[$index]=$resolution
+			echo "$index|$resolution" >> /$tempdir/reslist
 
-		if [ "$resolution" == "1024x768" ] ; then
-			row=$index
-		fi
+			if [ "$resolution" == "1024x768" ] ; then
+				row=$index
+			fi
 
-		let index+=1
-	done
+			let index+=1
+		done
 
 	export MAIN_DIALOG='
 	<window title="Resolution" decorated="true" resizable="false" image-name="/lib/pixmaps/installer_32x32.xpm">
@@ -252,18 +253,19 @@ resolution_select()
 		</vbox>
 	</window>'
 
-	$GTKDIALOG > $tempdir/reschoice
+		$GTKDIALOG > $tempdir/reschoice
 
-	for STATEMENT in `cat $tempdir/reschoice` ; do
-		eval $STATEMENT
-	done
+		for STATEMENT in `cat $tempdir/reschoice` ; do
+			eval $STATEMENT
+		done
 
-	if [ "$EXIT" == "ok" ] ; then
-		index=$tbl0
-		SCREEN_RESOLUTION=${res[$index]}
-		res="video=uvesafb:"${res[$index]}"-32,mtrr:0,ywrap"
-	else
-		exit 1
+		if [ "$EXIT" == "ok" ] ; then
+			index=$tbl0
+			SCREEN_RESOLUTION=${res[$index]}
+			res="video=uvesafb:"${res[$index]}"-32,mtrr:0,ywrap"
+		else
+			exit 1
+		fi
 	fi
 }
 
@@ -382,12 +384,12 @@ EOF
 
 install_check()
 {
-	for check in $bootdir/vmlinuz \
-		$bootdir/lib.update \
-		$bootdir/initrd \
-		$bootdir/vmlinuz-backup \
-		$bootdir/lib.squash-backup \
-		$bootdir/initrd-backup \
+	for check in $bootdir/boot/vmlinuz \
+		$bootdir/boot/lib.update \
+		$bootdir/boot/initrd \
+		$bootdir/boot/vmlinuz-backup \
+		$bootdir/boot/lib.squash-backup \
+		$bootdir/boot/initrd-backup \
 		/thinstation/setup-chroot
 		do
 			if [ ! -e $check ] ; then
@@ -427,12 +429,10 @@ x_warn "Warning" "All data on the disk <span color='red' weight='bold'>$disk</sp
 install_it
 
 if is_enabled $INSTALLER_DEV ; then
-	cat $bootdir/syslinux/syslinux.tpl | sed -e "s/\$RES/$res/g" > $bootdir/syslinux/syslinux.cfg
-	cat $bootdir/syslinux/syslinux.tpl | sed -e "s/\$RES/$res/g" > /boot/EFI/BOOT/syslinux.cfg
-
+	sed -i -e "s/\$RES/$res/g" $bootdir/boot/grub/grub.cfg
 else
-	cat $bootdir/syslinux/$INSTALLER_SYSLINUX_FILENAME > $bootdir/syslinux/syslinux.cfg
-	cat $bootdir/syslinux/$INSTALLER_SYSLINUX_FILENAME > /boot/EFI/BOOT/syslinux.cfg
+	cat $bootdir/boot/syslinux/$INSTALLER_SYSLINUX_FILENAME > $bootdir/boot/syslinux/syslinux.cfg
+	cat $bootdir/boot/syslinux/$INSTALLER_SYSLINUX_FILENAME > $bootdir/EFI/BOOT/syslinux.cfg
 fi
 
 if is_enabled $INSTALLER_DEV ; then

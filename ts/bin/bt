@@ -46,7 +46,7 @@ wrap_systemd_efi()
 	fi
 	export AGREE=true
 	rm thinstation.img
-	mkgptdrv -p ESP:4g:boot -p l:0:home -o /build/boot-images/grub/efi-source -l thinstation.img:8g
+	mkgptdrv -p ESP:4g:boot -p l:0:home -o /build/boot-images/systemd-boot-iso/efi-source -l thinstation.img:8g
 }
 
 wrap_refind_efi()
@@ -59,6 +59,18 @@ wrap_refind_efi()
         export AGREE=true
 	rm thinstation.img
 	mkgptdrv -p ESP:4g:boot -p l:0:home -o /build/boot-images/refind-iso/efi-source -l thinstation.img:8g
+}
+
+wrap_grub_efi()
+{
+        if [ ! -e build/boot-images/grub ]; then
+                echo "$IMAGE not found?"
+                echo "Did you build an grub image."
+                exit 1
+        fi
+        export AGREE=true
+        rm thinstation.img
+        mkgptdrv -p ESP:4g:boot -p l:0:home -o /build/boot-images/grub/efi-source -l thinstation.img:8g
 }
 
 wrap_bios()
@@ -95,7 +107,7 @@ setup_qemu()
 #	QEMU=qemu-system-i386
 	QEMU=qemu-system-x86_64
 
-	STANDARD_MACHINE="$SOUND $RNG $VGA $CPU $MEMORY $MOUSE $KVM $NETWORK"
+	STANDARD_MACHINE="$SOUND $RNG $VGA $CPU $MEMORY $MOUSE $KVM $NETWORK -serial stdio"
 }
 
 setup_qemu
@@ -114,6 +126,10 @@ case $1 in
 		wrap_refind_efi && \
 		$QEMU $STANDARD_MACHINE $EFI $HDD --boot c
                 echo "Exit code $?"
+	;;
+	hd-grub)wrap_grub_efi && \
+		$QEMU $STANDARD_MACHINE $EFI $HDD --boot c
+		echo "Exit code $?"
 	;;
 	net)
 		$QEMU $STANDARD_MACHINE
@@ -138,6 +154,11 @@ case $1 in
 		$QEMU $STANDARD_MACHINE $CDROM $EFI --boot d
                 echo "Exit code $?"
 	;;
+	cd-grub)
+		confirm_iso grub && \
+		$QEMU $STANDARD_MACHINE $CDROM $EFI --boot d
+		echo "Exit code $?"
+        ;;
 	image)
                 confirm hd && \
                 confirm_iso systemd && \
@@ -155,6 +176,12 @@ case $1 in
 		confirm_iso systemd && \
                 $QEMU $STANDARD_MACHINE $HDD $CDROM $EFI --boot c,menu=on
                 echo "Exit code $?"
+	;;
+	image-grub)
+		confirm_hd && \
+		confirm_iso grub && \
+		$QEMU $STANDARD_MACHINE $HDD $CDROM --boot d,menu=on
+		echo "Exit code $?"
 	;;
 	cd-image-grub)
 		confirm_iso grub

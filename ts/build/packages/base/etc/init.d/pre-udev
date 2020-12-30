@@ -64,9 +64,15 @@ vga_quirks()
 	if ! is_enabled $kms; then
 		if [ ! -e /sys/devices/virtual/vtconsole/vtcon1 ]; then
 			if [ -z "$uvesafb" ] || ! is_disabled $uvesafb; then
+				# If we don't know by now which video module we are going to use, then we need to go ahead and write to the FB
+				# to induce the console takeover, then we can detect EFI FB or fallback to uvesa
+				openvt -f -c 1 -- echo -e "."
 				if module_available uvesafb; then
-					busybox modprobe uvesafb > /dev/null 2>&1
-					continue
+					if [ ! -e /sys/devices/virtual/vtconsole/vtcon1 ]; then
+						busybox modprobe uvesafb > /dev/null 2>&1
+					else
+						echo "X_DRIVER_NAME=fbdev" >> $TS_RUNTIME
+					fi
 				fi
 			fi
 		else

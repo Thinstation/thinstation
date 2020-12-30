@@ -3,7 +3,8 @@
 . /etc/thinstation.global
 
 set -x
-bootdir=/boot/boot
+bootdir=/tmp-boot
+sourceboot=/boot
 tempdir=`mktemp -d 2>/dev/null`
 disk=$1
 
@@ -18,7 +19,7 @@ mounted()
 
 un_mount()
 {
-	umount /boot >/dev/null 2>&1
+	umount $bootdir >/dev/null 2>&1
 	for i in `mount |grep -e $disk |cut -d " " -f3` ; do
 		while mounted $i; do
 			sync
@@ -33,9 +34,13 @@ un_mount()
 do_mounts()
 {
 	sleep 1
-	while ! mounted /boot ; do
-		mount -t vfat ${disk}1 /boot
+	while ! mounted $bootdir ; do
+		mount -t vfat ${disk}1 $bootdir
 		sleep 1
+	done
+	while ! mounted $sourceboot; do
+		mkdir -p $sourceboot
+		mount -a
 	done
 	if is_enabled $INSTALLER_DEV ; then
 		while ! mounted /tmp-home ; do
@@ -65,6 +70,8 @@ echo "Starting Partioner"
 touch /tmp/nomount
 un_mount
 dd if=/dev/zero of=$disk bs=1M count=2
+disk_size=`blockdev --getsz $disk`
+dd if=/dev/zero of=$disk bs=512 count=32 seek=$(($disk_size - 32))
 read_pt
 
 # Creates Boot partition
@@ -84,14 +91,13 @@ fi
 
 read_pt
 un_mount
-dd if=/install/bios/mbr.bin of=$disk bs=440b count=1
 sleep 1
 read_pt
 sleep 1
 
 # Creates all needed FileSystems
 echo "Making filesystems"
-mkfs.vfat -n boot -F 32 -R 32 ${disk}1 ||mkfs.vfat -n boot -F -F 32 -R 32 ${disk}1 # Create /boot FileSystem
+mkfs.vfat -n boot -F 32 -R 32 ${disk}1 || mkfs.vfat -n boot -F -F 32 -R 32 ${disk}1 # Create /boot FileSystem
 sleep 1
 
 if is_enabled $INSTALLER_DEV; then
@@ -126,20 +132,23 @@ read_pt
 do_mounts
 sleep 1
 
-# Add Syslinux to the boot partition
-mkdir -p $bootdir/syslinux
-cd $bootdir/syslinux
-cp /install/* .
-cp /install/bios/* .
-./extlinux -i /boot/boot/syslinux
+# Add grub bootloader
+mkdir -p $bootdir/boot/grub
+mkdir -p $bootdir/EFI/BOOT
+mkdir -p $bootdir/EFI/Microsoft/Boot
 
-cd /boot
-mkdir -p EFI/BOOT
-cp /install/efi64/* /boot/EFI/BOOT/.
-mv /boot/EFI/BOOT/syslinux.efi /boot/EFI/BOOT/bootx64.efi
-cp /install/* /boot/EFI/BOOT/.
+cp -a $sourceboot/EFI/BOOT/* $bootdir/EFI/BOOT/.
+rm $bootdir/EFI/BOOT/boot.efi
+cp -a $bootdir/EFI/BOOT/* $bootdir/EFI/Microsoft/Boot/.
+mv $bootdir/EFI/Microsoft/Boot/bootx64.efi $bootdir/EFI/Microsoft/Boot/bootmgfw.efi
 
-cd $bootdir
+cp -a $sourceboot/boot/grub/devstation/* $bootdir/boot/grub/.
+
+dd if=$sourceboot/boot/grub/boot.img of=$disk bs=446 count=1
+dd if=$sourceboot/boot/grub/core.img of=$disk bs=512 seek=1
+
+
+cd $bootdir/boot
 
 if is_enabled $INSTALLER_DEV || is_enabled $INSTALLER_PROXY_CHECK ; then
 	# Setup proxy for wget and git
@@ -148,8 +157,8 @@ if is_enabled $INSTALLER_DEV || is_enabled $INSTALLER_PROXY_CHECK ; then
 fi
 
 # Install a default boot and backup-boot image into the boot partition
-if [ -e /mnt/cdrom0/$INSTALLER_ARCHIVE_NAME ]; then
-	tar -xvf /mnt/cdrom0/$INSTALLER_ARCHIVE_NAME
+if [ -e $sourceboot/$INSTALLER_ARCHIVE_NAME ]; then
+	tar -xvf $sourceboot/$INSTALLER_ARCHIVE_NAME
 else
 	echo "Downloading Image"
 	if ! wget -t 3 -T 30 "$INSTALLER_WEB_ADDRESS/$INSTALLER_ARCHIVE_NAME"; then

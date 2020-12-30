@@ -222,7 +222,6 @@ https://src.fedoraproject.org/rpms/grub2/raw/master/f/0209-10_linux.in-Enable-BL
 https://src.fedoraproject.org/rpms/grub2/raw/master/f/0210-efi-Set-image-base-address-before-jumping-to-the-PE-.patch
 https://src.fedoraproject.org/rpms/grub2/raw/master/f/0211-blscfg-Lookup-default_kernelopts-variable-as-fallbac.patch
 https://src.fedoraproject.org/rpms/grub2/raw/master/f/0212-10_linux.in-fix-early-exit-due-error-when-reading-pe.patch
-grub-2.04-grub-extras-lua-fix.patch
 oemid.c
 Makefile.oemid
 sysmem.c
@@ -235,8 +234,8 @@ build() {
 	unset CXXFLAGS
 	unset LDFLAGS
 	unset MAKEFLAGS
-	git clone git://git.sv.gnu.org/grub-extras.git
         export GRUB_CONTRIB=$SRC/grub-extras
+	mkdir grub-extras
         cd grub-extras
         mkdir oemid
         cp $SRC/oemid.c oemid/.
@@ -245,10 +244,9 @@ build() {
 	cp $SRC/sysmem.c sysmem/.
 	cp $SRC/Makefile.sysmem sysmem/Makefile.core.def
 
-        patch -p1 -i $SRC/grub-2.04-grub-extras-lua-fix.patch
         cd ..
         cd grub-$version
-#       cp $SRC/oemid.c grub-core/commands/.
+
         ln -sf $SRC/grub-extras contrib
         cp $SRC/gitignore .gitignore
         cp $SRC/bootstrap.conf .

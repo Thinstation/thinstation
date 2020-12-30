@@ -13,8 +13,11 @@ if [ "`tty`" == "$CONSOLE" ]; then
 	elif [ -e /bin/xinit ] && [ -e $WKDIR/windowapps ]; then
 		if check_last_session; then
 			cd /run
-			clear
 			splash_exit
+			while pidof fbsplashd > /dev/null 2>&1; do
+				sleep .1
+			done
+			clear
 			exec /bin/xinit /etc/xinitrc -- /etc/xserverrc > $APPLOGDIR/session.$$ 2>&1
 		elif is_disabled $HALTONERROR; then
 			chvt 1
