@@ -2322,6 +2322,7 @@ refind_copy_files()
 		sys_copy $refdir/$file $EFIDIR/$file
 	done
 
+	rm -f $EFIDIR/grubx64.efi
 	sys_copy $refdir/refind_x64.efi $EFIDIR/grubx64.efi
 
 	for file in `find $configdir -type f |sed -e "s|$configdir||g"`; do
@@ -2387,6 +2388,7 @@ wrap_efi()
 			sys_copy ${configdir}${file} "$ESP/boot/grub/$file"
 			sys_copy ${configdir}${file} "$ESP/boot/grub/$file"
 		done
+		sed -i -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS/g" $ESP/boot/grub/grub.cfg
 
 		MODULES="part_gpt search_fs_uuid efi_gop efi_uga $grub_modules"
 
@@ -2614,8 +2616,6 @@ if [ -z "$NOIMAGES" ]; then
                                 ESP=boot-images/grub/efi-source
                                 wrap_efi
 
-				mkdir -p $ESP/boot/grub
-
                                 add_image
 				add_overlay
 
@@ -2623,8 +2623,6 @@ if [ -z "$NOIMAGES" ]; then
 				sys_copy $rufus_exe $ESP/rufus/`basename $rufus_exe`
 
                                 addpkgs $ESP
-
-				sed -i -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS/g" $ESP/boot/grub/grub.cfg
 
 				export MODULES="biosdisk $grub_modules"
 
