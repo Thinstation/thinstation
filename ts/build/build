@@ -2420,6 +2420,10 @@ wrap_efi()
 
 		grub-mkimage -p "/boot/grub" -c boot-images/templates/grub/hd.cfg -O x86_64-efi -o	$ESP/EFI/BOOT/grubx64.efi $MODULES
 		signefi $ESP/EFI/BOOT/grubx64.efi
+
+		grub-mkimage -p "/boot/grub" -c boot-images/templates/grub/net.cfg -O x86_64-efi -o      $ESP/EFI/BOOT/gpxe_x64.efi $MODULES net tftp http
+		signefi $ESP/EFI/BOOT/gpxe_x64.efi
+		echo $ESP/EFI/BOOT/gpxe_x64.efi >> boot-images/initrd/added.files
 	fi
 }
 
@@ -2632,6 +2636,9 @@ if [ -z "$NOIMAGES" ]; then
 
 				grub-mkimage -p \(hd0,msdos1\)/boot/grub -c boot-images/templates/grub/hd.cfg -O i386-pc -o  $ESP/boot/grub/core.img $MODULES
 				echo $ESP/boot/grub/core.img >> boot-images/initrd/added.files
+
+				grub-mkimage -p /boot/grub -c boot-images/templates/grub/net.cfg -O i386-pc-pxe -o  $ESP/boot/grub/gpxe.img $MODULES net tftp http pxe
+				echo $ESP/boot/grub/gpxe.img >> boot-images/initrd/added.files
 
 				sys_copy /usr/lib/grub/i386-pc/boot.img $ESP/boot/grub/boot.img
 

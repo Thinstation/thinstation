@@ -30,8 +30,8 @@ confirm_hd()
 
 bridge()
 {
-	if [ -n "`ifconfig |grep -e ens33`" ]; then
-		echo "-net bridge,br=ens33"
+	if [ -n "`ifconfig |grep -e br0`" ]; then
+		echo "-netdev bridge,id=br0,br=br0 -device virtio-net,netdev=br0"
 #	else
 #		echo "-netdev user,id=n1 -device e1000,netdev=n1 -netdev tap,id=n2 -device virtio-net,netdev=n2"
 	fi
@@ -103,7 +103,7 @@ setup_qemu()
 	MOUSE="-usb -device usb-tablet"
 	KVM="-enable-kvm"
 	EFI="-L . --bios usr/share/edk2.git/ovmf-x64/OVMF-pure-efi.fd"
-#	NETWORK=`bridge`
+	NETWORK=`bridge`
 #	QEMU=qemu-system-i386
 	QEMU=qemu-system-x86_64
 
