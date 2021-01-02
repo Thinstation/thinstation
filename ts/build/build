@@ -2634,10 +2634,11 @@ if [ -z "$NOIMAGES" ]; then
 				grub-mkimage -p \(hd0,msdos1\)/boot/grub -c boot-images/templates/grub/hd.cfg -O i386-pc -o  $ESP/boot/grub/core.img $MODULES
 				echo $ESP/boot/grub/core.img >> boot-images/initrd/added.files
 
-				grub-mkimage -p /boot/grub -c boot-images/templates/grub/net.cfg -O i386-pc-pxe -o  $ESP/boot/grub/gpxe.img $MODULES net tftp http pxe
-				echo $ESP/boot/grub/gpxe.img >> boot-images/initrd/added.files
+				grub-mkimage -p /boot/grub -c boot-images/templates/grub/net.cfg -O i386-pc-pxe -o  $ESP/boot/grub/pxeboot.img $MODULES net tftp http pxe
+				echo $ESP/boot/grub/pxeboot.img >> boot-images/initrd/added.files
 
 				sys_copy /usr/lib/grub/i386-pc/boot.img $ESP/boot/grub/boot.img
+				sys_copy /usr/lib/grub/i386-pc/normal.mod $ESP/boot/grub/i386-pc/normal.mod
 
 				grub-mkimage -p\(hd0,msdos1\)/boot/grub -c boot-images/templates/grub/cd.cfg -O i386-pc -o	/tmp/.hybrid-core.img $MODULES iso9660 udf
 
