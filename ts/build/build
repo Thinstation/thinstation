@@ -2418,12 +2418,9 @@ wrap_efi()
 		mkdir -p $ESP/EFI/BOOT
 		sys_copy $INITDIR/boot.efi $ESP/EFI/BOOT/boot.efi
 
-		grub-mkimage -p "/boot/grub" -c boot-images/templates/grub/hd.cfg -O x86_64-efi -o	$ESP/EFI/BOOT/grubx64.efi $MODULES
+		grub-mkimage -p "/boot/grub" -c boot-images/templates/grub/hd.cfg -O x86_64-efi -o	$ESP/EFI/BOOT/grubx64.efi $MODULES net tftp http
 		signefi $ESP/EFI/BOOT/grubx64.efi
-
-		grub-mkimage -p "/boot/grub" -c boot-images/templates/grub/net.cfg -O x86_64-efi -o      $ESP/EFI/BOOT/gpxe_x64.efi $MODULES net tftp http
-		signefi $ESP/EFI/BOOT/gpxe_x64.efi
-		echo $ESP/EFI/BOOT/gpxe_x64.efi >> boot-images/initrd/added.files
+		chmod -R 644 $ESP/EFI/BOOT/*
 	fi
 }
 
