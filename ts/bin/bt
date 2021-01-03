@@ -132,7 +132,8 @@ case $1 in
 		$QEMU $STANDARD_MACHINE $EFI $HDD --boot c
                 echo "Exit code $?"
 	;;
-	hd-grub)wrap_grub_efi && \
+	hd-grub)
+		wrap_grub_efi && \
 		$QEMU $STANDARD_MACHINE $EFI $HDD --boot c
 		echo "Exit code $?"
 	;;
@@ -166,8 +167,8 @@ case $1 in
         ;;
 	image)
                 confirm hd && \
-                confirm_iso systemd && \
-                $QEMU $STANDARD_MACHINE $HDD $CDROM--boot c,menu=on
+                confirm_iso grub && \
+                $QEMU $STANDARD_MACHINE $HDD $CDROM --boot c,menu=on
                 echo "Exit code $?"
 	;;
 	image-systemd)
@@ -178,14 +179,14 @@ case $1 in
 	;;
 	image-refind)
 		confirm_hd && \
-		confirm_iso systemd && \
+		confirm_iso refind && \
                 $QEMU $STANDARD_MACHINE $HDD $CDROM $EFI --boot c,menu=on
                 echo "Exit code $?"
 	;;
 	image-grub)
 		confirm_hd && \
 		confirm_iso grub && \
-		$QEMU $STANDARD_MACHINE $HDD $CDROM --boot d,menu=on
+		$QEMU $STANDARD_MACHINE $HDD $CDROM $EFI --boot d,menu=on
 		echo "Exit code $?"
 	;;
 	cd-image-grub)
