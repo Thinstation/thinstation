@@ -30,11 +30,15 @@ confirm_hd()
 
 bridge()
 {
-	if [ -n "`ifconfig |grep -e br0`" ]; then
-		echo "-netdev bridge,id=br0,br=br0 -device virtio-net,netdev=br0"
-#	else
-#		echo "-netdev user,id=n1 -device e1000,netdev=n1 -netdev tap,id=n2 -device virtio-net,netdev=n2"
-	fi
+	bootroot=build/boot-images/grub/efi-source
+	case $1 in
+	net) echo "-netdev user,id=net0,tftp=$bootroot,bootfile=/boot/grub/pxeboot.img -device virtio-net-pci,netdev=net0";;
+	net-efi) echo "-netdev user,id=net0,tftp=$bootroot,bootfile=/EFI/BOOT/bootx64.efi -device virtio-net-pci,netdev=net0";;
+	*)	if [ -n "`ifconfig |grep -e br0`" ]; then
+			echo "-netdev bridge,id=br0,br=br0 -device virtio-net,netdev=br0"
+		fi
+	;;
+	esac
 }
 
 wrap_systemd_efi()
@@ -103,14 +107,15 @@ setup_qemu()
 	MOUSE="-usb -device usb-tablet"
 	KVM="-enable-kvm"
 	EFI="-L . --bios usr/share/edk2.git/ovmf-x64/OVMF-pure-efi.fd"
-	NETWORK=`bridge`
+	NETWORK=`bridge $1`
 #	QEMU=qemu-system-i386
 	QEMU=qemu-system-x86_64
 
 	STANDARD_MACHINE="$SOUND $RNG $VGA $CPU $MEMORY $MOUSE $KVM $NETWORK -serial stdio"
 }
 
-setup_qemu
+setup_qemu $@
+
 case $1 in
         hd)
 		wrap_bios && \

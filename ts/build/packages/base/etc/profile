@@ -34,19 +34,19 @@ if [ "`tty`" == "$CONSOLE" ]; then
 		echo "Fastboot was enabled, but something went wrong with the transfer or mount."
 		echo "Hopefully only Administrators ever see this message, and then only when they fail. :)"
 		echo "Review the log at /var/log/fastboot.log"
-		if [ "$LM"="2" ] && ! mountpoint /boot; then
+		if [ "$LM" == "2" ] && ! mountpoint /boot; then
 			if ! module_available vfat; then
 				echo "syslinux: vfat module not available"
 			else
 				echo "syslinux: /boot was not mounted, maybe check your mount declarations"
 			fi
-		elif [ "$LM"="3" ] && ! pkg_initialized autonet; then
+		elif [ "$LM" == "3" ] && ! pkg_initialized autonet; then
 			if pkg_is_loaded networkmanager; then
 				echo "pxelinux: Package networkmager does not work with this technology, try autonet"
 			else
 				echo "pxelinux: Package autonet not available"
 			fi
-		elif [ "$LM"="4" ] && ! mountpoint /mnt/cdrom0; then
+		elif [ "$LM" == "4" ] && ! mountpoint /mnt/cdrom0; then
 			if ! module_available isofs && ! module_available udf; then
 				echo "isolinux: No CD Rom modules available"
 			else
