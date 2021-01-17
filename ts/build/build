@@ -25,6 +25,7 @@ ignore_libs='libcrypto.so.1.0.2|libssl.so.1.0.2|libcrypto.so.1.0.0|libssl.so.1.0
 export ignore_libs
 
 grub_modules="
+password_pbkdf2
 progress
 part_msdos
 oemid
@@ -56,6 +57,7 @@ search_fs_file
 search_label
 test
 videoinfo
+$ts_grubextra
 "
 
 libutil="chain complex cptime display fancyhello hdt ifcpu \
@@ -2389,7 +2391,14 @@ wrap_efi()
 			sys_copy ${configdir}${file} "$ESP/boot/grub/$file"
 			sys_copy ${configdir}${file} "$ESP/boot/grub/$file"
 		done
+		sed -i -e "s:/boot/initrd:/boot/ucode /boot/initrd:" $ESP/boot/grub/grub.cfg
 		sed -i -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS/g" $ESP/boot/grub/grub.cfg
+
+		if [ -n "$ts_grubpasswd" ]; then
+			passhash=`echo -e "$ts_grubpasswd\n$ts_grubpasswd\n" |grub-mkpasswd-pbkdf2 |cut -d " " -f7|tail -n1`
+			echo 'set superusers="Admin"' >> $ESP/boot/grub/grub.cfg
+			echo "password_pbkdf2 Admin $passhash" >> $ESP/boot/grub/grub.cfg
+		fi
 
 		MODULES="part_gpt search_fs_uuid efi_gop efi_uga $grub_modules"
 
@@ -2631,7 +2640,7 @@ if [ -z "$NOIMAGES" ]; then
 				grub-mkimage -p /boot/grub -c boot-images/templates/grub/cd.cfg -O i386-pc-eltorito -o	$ESP/boot/grub/cdboot.img $MODULES iso9660 udf
 				echo $ESP/boot/grub/cdboot.img >> boot-images/initrd/added.files
 
-				grub-mkimage -p \(hd0,msdos1\)/boot/grub -c boot-images/templates/grub/hd.cfg -O i386-pc -o  $ESP/boot/grub/core.img $MODULES
+				grub-mkimage --compression=none -p \(hd0,msdos1\)/boot/grub -c boot-images/templates/grub/hd.cfg -O i386-pc -o  $ESP/boot/grub/core.img $MODULES
 				echo $ESP/boot/grub/core.img >> boot-images/initrd/added.files
 
 				grub-mkimage -p /boot/grub -c boot-images/templates/grub/net.cfg -O i386-pc-pxe -o  $ESP/boot/grub/pxeboot.img $MODULES net tftp http pxe
