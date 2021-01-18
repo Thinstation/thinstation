@@ -2390,7 +2390,9 @@ wrap_efi()
 			sys_copy ${configdir}${file} "$ESP/boot/grub/$file"
 			sys_copy ${configdir}${file} "$ESP/boot/grub/$file"
 		done
-		sed -i -e "s:/boot/initrd:/boot/ucode /boot/initrd:" $ESP/boot/grub/grub.cfg
+		if is_enabled $ts_earlymicrocode ; then
+			sed -i -e "s:/boot/initrd:/boot/ucode /boot/initrd:" $ESP/boot/grub/grub.cfg
+		fi
 		sed -i -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS/g" $ESP/boot/grub/grub.cfg
 
 		if [ -n "$ts_grubpasswd" ]; then
