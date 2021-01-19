@@ -2641,7 +2641,7 @@ if [ -z "$NOIMAGES" ]; then
 				grub-mkimage -p /boot/grub -c boot-images/templates/grub/cd.cfg -O i386-pc-eltorito -o	$ESP/boot/grub/cdboot.img $MODULES iso9660 udf
 				echo $ESP/boot/grub/cdboot.img >> boot-images/initrd/added.files
 
-				grub-mkimage --compression=none -p \(hd0,msdos1\)/boot/grub -c boot-images/templates/grub/hd.cfg -O i386-pc -o  $ESP/boot/grub/core.img $MODULES
+				grub-mkimage -p \(hd0,msdos1\)/boot/grub -c boot-images/templates/grub/hd.cfg -O i386-pc -o  $ESP/boot/grub/core.img $MODULES
 				echo $ESP/boot/grub/core.img >> boot-images/initrd/added.files
 
 				grub-mkimage -p /boot/grub -c boot-images/templates/grub/net.cfg -O i386-pc-pxe -o  $ESP/boot/grub/pxeboot.img $MODULES net tftp http pxe
