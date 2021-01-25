@@ -4,12 +4,14 @@
 # Contributor: eric <eric@archlinux.org>
 
 name=sane
-version=1.0.28
+version=1.0.31
 release=2
-source=(https://gitlab.com/sane-project/backends/uploads/9e718daff347826f4cfe21126c8d5091/$name-backends-$version.tar.gz)
+source=(https://gitlab.com/sane-project/backends/uploads/8bf1cae2e1803aefab9e5331550e5d5d/sane-backends-1.0.31.tar.gz
+	saned.socket
+	saned.service)
 
 build() {
-  cd "${SRC}/${name}-backends-${version}"
+  cd "${SRC}/sane-backends-${version}"
 
   ./configure --prefix=/usr \
     --sysconfdir=/etc \
@@ -20,6 +22,7 @@ build() {
     --disable-rpath \
     --enable-libusb_1_0 \
     --disable-locking
+
   make
   make DESTDIR="${PKG}" install
   # fix hp officejets
@@ -37,8 +40,8 @@ build() {
   install -D -m644 tools/sane-backends.pc \
      "${PKG}/usr/lib/pkgconfig/sane-backends.pc"
   # install systemd files
-#  install -D -m644 ${SRC}/saned.socket \
-#      "${PKG}/usr/lib/systemd/system/saned.socket"
-#  install -D -m644 ${SRC}/saned.service \
-#      "${PKG}/usr/lib/systemd/system/saned@.service"
+  install -D -m644 ${SRC}/saned.socket \
+      "${PKG}/usr/lib/systemd/system/saned.socket"
+  install -D -m644 ${SRC}/saned.service \
+      "${PKG}/usr/lib/systemd/system/saned@.service"
 }
