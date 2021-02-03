@@ -1,8 +1,17 @@
-diff --git a/apps/ts.c b/apps/ts.c
-index 63c5210183..4ef8a72eef 100644
---- a/apps/ts.c
-+++ b/apps/ts.c
-@@ -425,7 +425,7 @@ static TS_REQ *create_query(BIO *data_bio, const char *digest, const EVP_MD *md,
+diff -up openssl-1.1.1h/apps/openssl.cnf.ts-sha256-default openssl-1.1.1h/apps/openssl.cnf
+--- openssl-1.1.1h/apps/openssl.cnf.ts-sha256-default	2020-11-06 11:07:28.850100899 +0100
++++ openssl-1.1.1h/apps/openssl.cnf	2020-11-06 11:11:28.042913791 +0100
+@@ -364,5 +348,5 @@ tsa_name		= yes	# Must the TSA name be i
+ 				# (optional, default: no)
+ ess_cert_id_chain	= no	# Must the ESS cert id chain be included?
+ 				# (optional, default: no)
+-ess_cert_id_alg		= sha1	# algorithm to compute certificate
++ess_cert_id_alg		= sha256	# algorithm to compute certificate
+ 				# identifier (optional, default: sha1)
+diff -up openssl-1.1.1h/apps/ts.c.ts-sha256-default openssl-1.1.1h/apps/ts.c
+--- openssl-1.1.1h/apps/ts.c.ts-sha256-default	2020-09-22 14:55:07.000000000 +0200
++++ openssl-1.1.1h/apps/ts.c	2020-11-06 11:07:28.883101220 +0100
+@@ -423,7 +423,7 @@ static TS_REQ *create_query(BIO *data_bi
      ASN1_OBJECT *policy_obj = NULL;
      ASN1_INTEGER *nonce_asn1 = NULL;
  
@@ -11,11 +20,22 @@ index 63c5210183..4ef8a72eef 100644
          goto err;
      if ((ts_req = TS_REQ_new()) == NULL)
          goto err;
-diff --git a/doc/man1/ts.pod b/doc/man1/ts.pod
-index 078905a845..83b8fe4350 100644
---- a/doc/man1/ts.pod
-+++ b/doc/man1/ts.pod
-@@ -517,7 +517,7 @@ included. Default is no. (Optional)
+diff -up openssl-1.1.1h/crypto/ts/ts_conf.c.ts-sha256-default openssl-1.1.1h/crypto/ts/ts_conf.c
+--- openssl-1.1.1h/crypto/ts/ts_conf.c.ts-sha256-default	2020-11-06 12:03:51.226372867 +0100
++++ openssl-1.1.1h/crypto/ts/ts_conf.c	2020-11-06 12:04:01.713488990 +0100
+@@ -476,7 +476,7 @@ int TS_CONF_set_ess_cert_id_digest(CONF
+     const char *md = NCONF_get_string(conf, section, ENV_ESS_CERT_ID_ALG);
+ 
+     if (md == NULL)
+-        md = "sha1";
++        md = "sha256";
+ 
+     cert_md = EVP_get_digestbyname(md);
+     if (cert_md == NULL) {
+diff -up openssl-1.1.1h/doc/man1/ts.pod.ts-sha256-default openssl-1.1.1h/doc/man1/ts.pod
+--- openssl-1.1.1h/doc/man1/ts.pod.ts-sha256-default	2020-09-22 14:55:07.000000000 +0200
++++ openssl-1.1.1h/doc/man1/ts.pod	2020-11-06 11:07:28.883101220 +0100
+@@ -518,7 +518,7 @@ included. Default is no. (Optional)
  =item B<ess_cert_id_alg>
  
  This option specifies the hash function to be used to calculate the TSA's
@@ -24,21 +44,21 @@ index 078905a845..83b8fe4350 100644
  
  =back
  
-@@ -529,7 +529,7 @@ openssl/apps/openssl.cnf will do.
+@@ -530,7 +530,7 @@ openssl/apps/openssl.cnf will do.
  
  =head2 Time Stamp Request
  
--To create a time stamp request for design1.txt with SHA-1
-+To create a time stamp request for design1.txt with SHA-256
+-To create a timestamp request for design1.txt with SHA-1
++To create a timestamp request for design1.txt with SHA-256
  without nonce and policy and no certificate is required in the response:
  
    openssl ts -query -data design1.txt -no_nonce \
-@@ -545,12 +545,12 @@ To print the content of the previous request in human readable format:
+@@ -546,12 +546,12 @@ To print the content of the previous req
  
    openssl ts -query -in design1.tsq -text
  
--To create a time stamp request which includes the MD-5 digest
-+To create a time stamp request which includes the SHA-512 digest
+-To create a timestamp request which includes the MD-5 digest
++To create a timestamp request which includes the SHA-512 digest
  of design2.txt, requests the signer certificate and nonce,
  specifies a policy id (assuming the tsa_policy1 name is defined in the
  OID section of the config file):
