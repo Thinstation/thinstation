@@ -7,7 +7,7 @@ version=15
 release=3
 source=(https://github.com/rhboot/shim/releases/download/${version}/shim-${version}.tar.bz2
 	https://patch-diff.githubusercontent.com/raw/rhboot/shim/pull/183.patch \
-	ThinStation-UEFI-CA.cer)
+	UEFI-CA.cer)
 
 build() {
     cd "shim-${version}"
@@ -19,27 +19,25 @@ build() {
     # Fix a typo
     sed -i -e 's/EFI_WARN_UNKOWN_GLYPH/EFI_WARN_UNKNOWN_GLYPH/g' lib/console.c
 
-    export VENDOR_CERT_FILE="$SRC/ThinStation-UEFI-CA.cer"
+    export VENDOR_CERT_FILE="$SRC/UEFI-CA.cer"
     export EFI_PATH='/usr/lib'
     export ENABLE_HTTPBOOT='1'
-    export OSLABEL='ThinStation'
-    export DEFAULT_LOADER='loader.efi'
+    export DEFAULT_LOADER='grubx64.efi'
 
     make
+
+    if [ -e /mnt/Certs/thinstation/TS-UEFI/UEFI.pem ]; then
+	for efi in mmx64.efi fbx64.efi; do
+		sbsign --key /mnt/Certs/thinstation/TS-UEFI/UEFI.pem --cert /mnt/Certs/thinstation/TS-UEFI/UEFI.pem --output $efi $efi
+	done
+    fi
+
     make EFIDIR=ThinStation DESTDIR="$PKG" install
 
     make DESTDIR="$PKG" install-as-data
     install -D -m644 COPYRIGHT "${PKG}/usr/share/licenses/${name}/LICENSE"
 
-    if [ -e /mnt/Certs/thinstation/TS-SB-UEFI/UEFI.pem ]; then
-	for efi in boot/efi/EFI/ThinStation/shimx64.efi; do
-		sbsign --key /mnt/Certs/thinstation/TS-SB-UEFI/UEFI.pem --cert /mnt/Certs/thinstation/TS-SB-UEFI/UEFI.pem --output $PKG/$efi $PKG/$efi
-	done
-    fi
-    if [ -e /mnt/Certs/thinstation/TS-UEFI/UEFI.pem ]; then
-        for efi in boot/efi/EFI/ThinStation/mmx64.efi; do
-		sbsign --key /mnt/Certs/thinstation/TS-UEFI/UEFI.pem --cert /mnt/Certs/thinstation/TS-UEFI/UEFI.pem --output $PKG/$efi $PKG/$efi
-	done
-    fi
+    rm -rf $PKG/usr/{src,lib/debug}
+
     sha256sum $PKG/usr/share/shim/15/x64/shimx64.efi
 }
