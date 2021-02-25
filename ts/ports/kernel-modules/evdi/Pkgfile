@@ -1,0 +1,69 @@
+# Maintainer: Chris Severance aur.severach aATt spamgourmet dott com
+# Contributor: ajs124
+
+# Tested with Kernel 4.16, Dell D3000 SuperSpeed USB 3.0 Docking Station, 17e9:4318 DisplayLink
+
+name='evdi-git'
+version=git
+release=1
+kver=`cat /ts/ports/kernel-modules/VERSION`
+_SRC="${name%-git}"
+export CFLAGS="$CFLAGS -Wno-error=format-truncation"
+
+source=(
+  #'https://crazy.dev.frugalware.org/evdi-all-in-one-fixes.patch'
+  #'relro.patch'
+)
+
+build() {
+  export CFLAGS="$CFLAGS -Wno-error=format-truncation"
+  git clone https://github.com/DisplayLink/evdi
+  cd "${_SRC}"
+  local _src
+  for _src in "${source[@]%%::*}"; do
+    _src="${_src##*/}"
+    if [[ "${_src}" = *.patch ]]; then
+      msg2 "Patch ${_src}"
+      patch -Np1 -i "../${_src}"
+    fi
+  done
+
+  # Fix build for kernel 5.4
+  #sed -E -e 's:SUBDIRS=([^ ]+) :M=\1 &:g' -i 'module/Makefile'
+  # We only need to build the library in this step, dmks will build the module
+  #cd "${_SRC}/library"
+  # DKMS builds are hard to debug. We build it here and throw it away.
+  CFLAGS="${CFLAGS/-fno-plt/}"
+for KERNELTYPE in TS; do
+  export REPORT_KERNEL=${kver}$KERNELTYPE
+  export KBUILD_MODPOST_WARN=1
+
+  make
+  install -Dpm755 "library/lib${name%-git}.so"* -t "${PKG}/usr/lib/"
+  pushd "${PKG}/usr/lib/" > /dev/null
+  local _libs=(*.so.*)
+  if [ "${#_libs[@]}" -ne 1 ]; then
+    set +u
+    echo "Too many libs"
+    false
+  fi
+  _libs="${_libs[0]}"
+  local _libase="${_libs%.so*}.so"
+  ln -sf "${_libs}" "${_libase}"
+  ln -sf "${_libs}" "${_libase}.0" # bad soname
+  popd > /dev/null
+
+  for module in module/evdi.ko; do
+	/usr/src/kernels/$REPORT_KERNEL/scripts/sign-file \
+	sha256 \
+	/etc/ssl/keys/kernel.key \
+	/etc/ssl/certs/kernel.crt \
+	$module
+  done
+
+  local _DKMS="${PKG}/usr/src/${name%-git}-${version}"
+#  install -Dpm644 module/* -t "${_DKMS}/"
+  install -Dpm644 module/*.ko -t $PKG/lib/modules/$REPORT_KERNEL/kernel/extra/
+#  make -j1 -C "${_DKMS}" clean
+done
+}
