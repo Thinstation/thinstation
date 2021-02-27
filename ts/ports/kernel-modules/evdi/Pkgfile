@@ -3,22 +3,24 @@
 
 # Tested with Kernel 4.16, Dell D3000 SuperSpeed USB 3.0 Docking Station, 17e9:4318 DisplayLink
 
-name='evdi-git'
-version=git
+name='evdi'
+version=1.7.2
 release=1
 kver=`cat /ts/ports/kernel-modules/VERSION`
 _SRC="${name%-git}"
 export CFLAGS="$CFLAGS -Wno-error=format-truncation"
 
 source=(
+  https://github.com/DisplayLink/evdi/archive/v$version.tar.gz
   #'https://crazy.dev.frugalware.org/evdi-all-in-one-fixes.patch'
   #'relro.patch'
 )
 
 build() {
   export CFLAGS="$CFLAGS -Wno-error=format-truncation"
-  git clone https://github.com/DisplayLink/evdi
-  cd "${_SRC}"
+#  git clone https://github.com/DisplayLink/evdi
+#  cd "${_SRC}"
+  cd $SRC/evdi-$version
   local _src
   for _src in "${source[@]%%::*}"; do
     _src="${_src##*/}"
