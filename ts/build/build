@@ -2314,6 +2314,7 @@ syslinux_copy_files_efi()
 
 refind_copy_files()
 {
+#	refdir=/boot/efi/EFI/refind
 	refdir=/usr/share/refind
 	configdir=boot-images/templates/refind/"$ts_refindtheme"
 	KDIR=${ESP}/boot
@@ -2369,22 +2370,13 @@ sys_copy()
 	fi
 }
 
-signefi()
-{
-   if [ -e /mnt/Certs/thinstation/TS-UEFI/UEFI.pem ]; then
-                sbsign --key /mnt/Certs/thinstation/TS-UEFI/UEFI.pem --cert /mnt/Certs/thinstation/TS-UEFI/UEFI.pem --output $1 $1
-   fi
-
-}
-
 wrap_efi()
 {
 	if is_enabled ${ts_wrap_efi:=enabled}; then
 		sys_copy /boot/efi/EFI/fedora/shimx64.efi $ESP/EFI/BOOT/bootx64.efi
 		sys_copy /boot/efi/EFI/fedora/mmx64.efi $ESP/EFI/BOOT/mmx64.efi
 		sys_copy /boot/efi/EFI/fedora/MokManager.efi $ESP/EFI/BOOT/MokManager.efi
-		sys_copy /ts/certs/${ts_sb_cert:=ThinStation-SB-UEFI-CA.cer} $ESP/${ts_sb_cert:=ThinStation-SB-UEFI-CA.cer}
-		sys_copy /usr/lib/grub/grub2-x86_64.efi $ESP/EFI/BOOT/grubx64.efi
+		sys_copy /ts/certs/${ts_sb_cert:=ThinStation-UEFI-CA.cer} $ESP/${ts_sb_cert:=ThinStation-UEFI-CA.cer}
 		configdir=boot-images/templates/grub/"$ts_grubtheme"
 		for file in `find $configdir -type f |sed -e "s|$configdir||g"`; do
 			sys_copy ${configdir}${file} "$ESP/boot/grub/$file"
@@ -2401,10 +2393,8 @@ wrap_efi()
 			echo "password_pbkdf2 Admin $passhash" >> $ESP/boot/grub/grub.cfg
 		fi
 
-		MODULES="part_gpt search_fs_uuid efi_gop efi_uga $grub_modules $ts_grubextra"
 
-		grub-mkimage -p "/boot/grub" -c boot-images/templates/grub/cd.cfg -O x86_64-efi -o	$ESP/EFI/BOOT/grubx64.efi $MODULES iso9660 udf
-		signefi $ESP/EFI/BOOT/grubx64.efi
+		cp /usr/lib/grub/grub2-x86_64-CD.efi $ESP/EFI/BOOT/grubx64.efi
 
 		ELTORITO="-eltorito-alt-boot \
 				-eltorito-platform efi \
@@ -2428,8 +2418,8 @@ wrap_efi()
 		mkdir -p $ESP/EFI/BOOT
 		sys_copy $INITDIR/boot.efi $ESP/EFI/BOOT/boot.efi
 
-		grub-mkimage -p "/boot/grub" -c boot-images/templates/grub/hd.cfg -O x86_64-efi -o	$ESP/EFI/BOOT/grubx64.efi $MODULES net tftp http
-		signefi $ESP/EFI/BOOT/grubx64.efi
+		cp /usr/lib/grub/grub2-x86_64-HD.efi $ESP/EFI/BOOT/grubx64.efi
+		echo $ESP/EFI/BOOT/grubx64.efi >> boot-images/initrd/added.files
 		chmod -R 644 $ESP/EFI/BOOT/*
 	fi
 }

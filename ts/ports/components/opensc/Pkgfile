@@ -4,11 +4,12 @@
 # Contributor: kevku <kevku@msn.com>
 
 name=opensc
-version=0.20.0
+version=0.21.0
 release=2
 source=("https://github.com/OpenSC/OpenSC/releases/download/$version/opensc-$version.tar.gz"
 	opensc-skey.patch
-	opensc-conf.patch)
+	opensc-conf.patch
+	opensc.module)
 
 build() {
   cd $name-$version
@@ -32,6 +33,7 @@ build() {
   make
   make DESTDIR="$PKG" install
   install -D -m644 etc/opensc.conf "$PKG/etc/opensc.conf"
+  install -D -m644 $SRC/opensc.module $PKG/usr/share/p11-kit/modules/opensc.module
 }
 
 # vim:set ts=2 sw=2 et:
