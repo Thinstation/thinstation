@@ -31,7 +31,7 @@ build() {
   done
 
   # Fix build for kernel 5.4
-  #sed -E -e 's:SUBDIRS=([^ ]+) :M=\1 &:g' -i 'module/Makefile'
+  sed -E -e 's:SUBDIRS=([^ ]+) :M=\1 &:g' -i 'module/Makefile'
   # We only need to build the library in this step, dmks will build the module
   #cd "${_SRC}/library"
   # DKMS builds are hard to debug. We build it here and throw it away.
@@ -63,9 +63,6 @@ for KERNELTYPE in TS; do
 	$module
   done
 
-  local _DKMS="${PKG}/usr/src/${name%-git}-${version}"
-#  install -Dpm644 module/* -t "${_DKMS}/"
   install -Dpm644 module/*.ko -t $PKG/lib/modules/5.4.98TS/kernel/drivers/gpu/drm/evdi
-#  make -j1 -C "${_DKMS}" clean
 done
 }
