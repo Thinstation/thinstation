@@ -2,10 +2,10 @@
 seed_label="$2"
 module=$1
 full_label=`pkcs11-tool -T |grep -e "$seed_label" |cut -d ":" -f2 |cut -c2-`
+kver=`cat /ts/ports/kernel-modules/VERSION`
 
 if [ -n "$full_label" ]; then
 	uri_label=`echo "$full_label"|sed -e 's/ /%20/g'`
-	kver=`cat /ts/ports/kernel-modules/VERSION`
 	cert="pkcs11:manufacturer=piv_II;id=%03;token=$uri_label"
 	key="/tmp/cert.der"
 	pkcs11-tool -r -d 03 --type cert --token-label "$full_label" --output-file /tmp/cert.der
