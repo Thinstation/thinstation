@@ -21,7 +21,7 @@ New:
 
 - FIRMWARE routine updated. You will need to be more specific about the folder and file you need. Update your machine profile.
 - GRUB2 EFI and CSM support.
-- Moved to kernel 5.4.98 - Fix for June Canyon NUC
+- Moved to kernel 5.4.101 - Fix for June Canyon NUC
 - Secure boot basic support. Working on getting it signed.
 - Enabled compositing by default.
 - Horizon 5.2 support.
