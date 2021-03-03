@@ -30,11 +30,7 @@ build() {
 
        make KVERSION=$KVERSION
 
-	/usr/src/kernels/$KVERSION/scripts/sign-file \
-		sha256 \
-		/etc/ssl/keys/kernel.key \
-		/etc/ssl/certs/kernel.crt \
-		bbswitch.ko
+	modulesign bbswitch.ko "Linux Signing"
 
        make install KVERSION=$KVERSION \
 	MODLIB=$MODLIB \

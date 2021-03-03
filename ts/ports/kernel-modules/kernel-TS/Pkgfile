@@ -19,11 +19,28 @@ build() {
 	done
 
 	cp $SRC/ts.config ./.config
+
+	seed_label="Linux Signing"
+	full_label=`pkcs11-tool -T |grep -e "$seed_label" |cut -d ":" -f2 |cut -c2-`
+	if [ -n "$full_label" ]; then
+		uri_label=`echo "$full_label"|sed -e 's/ /%20/g'`
+		signuri="pkcs11:manufacturer=piv_II;id=%03;token=$uri_label"
+
+		echo 'CONFIG_MODULE_SIG_KEY="'$signuri'"' >> .config
+		echo "Please enter PIN"
+		set +x
+		read -s pin
+		export KBUILD_SIGN_PIN=$pin
+		set -x
+	elif [ ! -e /etc/ssl/keys/kernel.key ]; then
+		prt-get install kernel-keys
+	fi
+
 	make olddefconfig
 
-	touch certs/x509.genkey
-	cp /etc/ssl/keys/kernel.key certs/signing_key.pem
-	openssl x509 -inform DER -in /etc/ssl/certs/kernel.crt -outform PEM >> certs/signing_key.pem
+#	touch certs/x509.genkey
+#	cp /etc/ssl/keys/kernel.key certs/signing_key.pem
+#	openssl x509 -inform DER -in /etc/ssl/certs/kernel.crt -outform PEM >> certs/signing_key.pem
 
 	make modules_prepare headers_install tools/objtool
 	mkdir -p $PKG/usr/src/kernels/${kernel}
@@ -43,11 +60,7 @@ build() {
 
 	cd $PKG
 	mkdir boot
-	if [ -e /mnt/Certs/thinstation/TS-UEFI/UEFI.pem ]; then
-		for efi in vmlinuz; do
-			sbsign --key /mnt/Certs/thinstation/TS-UEFI/UEFI.pem --cert /mnt/Certs/thinstation/TS-UEFI/UEFI.pem --output vmlinuz vmlinuz
-		done
-	fi
+	efisign vmlinuz "UEFI Signing"
 	mv vmlinuz $PKG/boot/vmlinuz-${kernel}
 	mv System.map $PKG/boot/System.map-${kernel}
 	rm lib/modules/${kernel}/{source,build}

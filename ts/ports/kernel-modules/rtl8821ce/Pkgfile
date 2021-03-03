@@ -11,11 +11,7 @@ git clone --depth 1 https://github.com/tomaspinho/rtl8821ce.git
 
        cd $SRC/rtl8821ce
        make
-	/usr/src/kernels/$REPORT_KERNEL/scripts/sign-file \
-		sha256 \
-		/etc/ssl/keys/kernel.key \
-		/etc/ssl/certs/kernel.crt \
-		8821ce.ko
+	modulesign 8821ce.ko "Linux Signing"
 
 	mkdir -p $PKG/lib/modules/$REPORT_KERNEL/kernel/drivers/net/wireless/
 	cp 8821ce.ko $PKG/lib/modules/$REPORT_KERNEL/kernel/drivers/net/wireless/.

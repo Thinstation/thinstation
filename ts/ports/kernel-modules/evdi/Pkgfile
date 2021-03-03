@@ -36,6 +36,7 @@ build() {
   #cd "${_SRC}/library"
   # DKMS builds are hard to debug. We build it here and throw it away.
   CFLAGS="${CFLAGS/-fno-plt/}"
+
 for KERNELTYPE in TS; do
   export REPORT_KERNEL=${kver}$KERNELTYPE
   export KBUILD_MODPOST_WARN=1
@@ -56,13 +57,9 @@ for KERNELTYPE in TS; do
   popd > /dev/null
 
   for module in module/evdi.ko; do
-	/usr/src/kernels/$REPORT_KERNEL/scripts/sign-file \
-	sha256 \
-	/etc/ssl/keys/kernel.key \
-	/etc/ssl/certs/kernel.crt \
-	$module
+	modulesign $module "Linux Signing"
   done
 
-  install -Dpm644 module/*.ko -t $PKG/lib/modules/5.4.98TS/kernel/drivers/gpu/drm/evdi
+  install -Dpm644 module/*.ko -t $PKG/lib/modules/$REPORT_KERNEL/kernel/drivers/gpu/drm/evdi
 done
 }

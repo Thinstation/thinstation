@@ -25,16 +25,9 @@ git clone https://github.com/roadrunner2/macbook12-spi-driver.git
        make -j1
 
 	for module in *.ko; do
-		/usr/src/kernels/$KVERSION/scripts/sign-file \
-		sha256 \
-		/etc/ssl/keys/kernel.key \
-		/etc/ssl/certs/kernel.crt \
-		$module
+		modulesign $module "Linux Signing"
+		install -Dpm644 $module $PKG/lib/modules/$REPORT_KERNEL/extra/$module
 	done
-
-       make install \
-	KVERSION=$KVERSION \
-	MODLIB=$MODLIB
 
        make clean
     done

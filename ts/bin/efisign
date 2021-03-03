@@ -1,0 +1,22 @@
+#!/bin/bash
+seed_label="$2"
+full_label=`pkcs11-tool -T |grep -e "$seed_label" |cut -d ":" -f2 |cut -c2-`
+if [ -z "$full_label" ]; then
+	echo "No smartcard certificate available. Exiting"
+	exit
+fi
+uri_label=`echo "$full_label"|sed -e 's/ /%20/g'`
+
+
+pkcs11-tool -r -d 03 --type cert --token-label "$full_label" --output-file /tmp/cert.der
+openssl x509 -in /tmp/cert.der -inform DER -out /tmp/cert.pem
+
+if [ -n $KBUILD_SIGN_PIN ]; then
+	PIN=";pin-value=$KBUILD_SIGN_PIN"
+fi
+
+sbsign \
+  --engine pkcs11 \
+  --key "pkcs11:manufacturer=piv_II;id=%03;token=$uri_label$PIN" \
+  --cert /tmp/cert.pem  \
+  --output $1 $1

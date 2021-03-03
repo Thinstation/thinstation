@@ -50,7 +50,6 @@ build() {
 	# license
 	install -vDm 0644 LICENSE.txt -t "${PKG}/usr/share/licenses/${name}"
 
-    if [ -e /mnt/Certs/thinstation/TS-UEFI/UEFI.pem ]; then
 	for efi in 	usr/share/refind/drivers_x64/btrfs_x64.efi \
 			usr/share/refind/drivers_x64/ext2_x64.efi \
 			usr/share/refind/drivers_x64/ext4_x64.efi \
@@ -59,7 +58,6 @@ build() {
 			usr/share/refind/drivers_x64/reiserfs_x64.efi \
 			usr/share/refind/refind_x64.efi \
 			usr/share/refind/tools_x64/gptsync_x64.efi; do
-		        sbsign --key /mnt/Certs/thinstation/TS-UEFI/UEFI.pem --cert /mnt/Certs/thinstation/TS-UEFI/UEFI.pem --output $PKG/$efi $PKG/$efi
+		        efisign $PKG/$efi "UEFI Signing"
 	done
-    fi
 }

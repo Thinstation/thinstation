@@ -18,10 +18,7 @@ build() {
 		install -m 644 -D crypto/cryptodev.h $PKG/usr/include/crypto/cryptodev.h
 		install -m 644 -D cryptodev.ko $PKG/lib/modules/`uname -r`/kernel/extra/cryptodev.ko
 
-		/usr/src/kernels/$REPORT_KERNEL/scripts/sign-file \
-		sha256 /etc/ssl/keys/kernel.key \
-		/etc/ssl/certs/kernel.crt \
-	        $PKG/lib/modules/$REPORT_KERNEL/kernel/extra/cryptodev.ko
+		modulesign $PKG/lib/modules/$REPORT_KERNEL/kernel/extra/cryptodev.ko "Linux Signing"
 		make clean
 	done
 }
