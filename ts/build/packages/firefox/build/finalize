@@ -11,11 +11,8 @@ if [ -d /lib/firefox/browser ]; then
 	fi
 fi
 
-if [ -d /etc/pkcs11/nss ]; then
-	for pkcs in /etc/pkcs11/nss/*.pkcs11; do
-		cat $pkcs >> /etc/TS.default/pkcs11.txt
-	done
-fi
+cp -a /etc/pki/nssdb/* /etc/TS.default/.
+chmod 600 /etc/TS.default/*
 
 if [ ! -e /lib/firefox/distribution ]; then
 	mkdir -p /lib/firefox/distribution
