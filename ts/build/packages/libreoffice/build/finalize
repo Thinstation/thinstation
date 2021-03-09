@@ -1,2 +1,7 @@
 #libreoffice 25
-sed -i -e "s/tsuser/$TSUSER/g" /etc/skel/.config/libreoffice/4/user/registrymodifications.xcu
+if [ "$TSUSER" == "root" ]; then
+	home="/root"
+else
+	home="/home/$TSUSER"
+fi
+sed -i -e "s|/home/tsuser|$home|g" /etc/skel/.config/libreoffice/4/user/registrymodifications.xcu
