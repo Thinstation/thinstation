@@ -78,11 +78,33 @@ ln -s /opt/$optname $installdir/lib/libreoffice
 echo "Generating icons"
 icon-gen libreoffice
 
-find $installdir -name \*kab\* -delete
+for dir in `find $installdir -type d -name kab` ; do
+	rm -rf $dir
+done
+for file in libavmediagst_0_10.so libgconfbe1lo.so libucpgvfs1lo.so ; do
+	find $installdir -name $file -delete
+done
+find $installdir -type f -name \*kab\* -delete
 find $installdir -name \*kde\* -delete
-find $installdir -name libavmediagst_0_10.so -delete
-find $installdir -name libgconfbe1lo.so -delete
-find $installdir -name libucpgvfs1lo.so -delete
+
+officever=`ls --color=never $installdir/opt`
+
+for nssfile in	libfreeblpriv3.chk \
+		libfreeblpriv3.so \
+		libnspr4.so \
+		libnss3.so \
+		libnssckbi.so \
+		libnssutil3.so \
+		libplc4.so \
+		libplds4.so \
+		libsmime3.so \
+		libsoftokn3.chk \
+		libsoftokn3.so \
+		libssl3.so; do
+
+	rm -f $installdir/opt/$officever/program/$nssfile
+	ln /usr/lib/$nssfile $installdir/opt/$officever/program/$nssfile
+done
 
 if [ ! -d $installdir/bin ]; then
   mkdir -p $installdir/bin
