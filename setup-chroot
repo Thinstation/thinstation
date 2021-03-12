@@ -192,7 +192,7 @@ do_unmounts()
 	for mount in dev/pts dev tmp proc sys ; do
 		fuser -kv "$PWD"/$mount > /dev/null 2>&1
 		while mounted $mount ; do
-			umount $mount
+			umount -l $mount
 		done
 	done
 }
