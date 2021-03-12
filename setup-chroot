@@ -161,10 +161,12 @@ launch_chroot()
 	fi
 	$chroot_cmd "$PWD" /ts/TS_ENV
 	howdiditgo=$?
-	if first_or_last ; then
+	if ${keys:=false}; then
 		kill_ssh_agent
-		do_unmounts
 		secure_keys
+	fi
+	if first_or_last ; then
+		do_unmounts
 		if [ -e cleanstage2 ] ; then
 			ts/bin/clean_chroot
 		fi
