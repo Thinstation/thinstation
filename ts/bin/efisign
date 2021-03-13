@@ -8,7 +8,7 @@ fi
 uri_label=`echo "$full_label"|sed -e 's/ /%20/g'`
 
 
-pkcs11-tool -r -d 03 --type cert --token-label "$full_label" --output-file /tmp/cert.der
+pkcs11-tool -r -d 01 --type cert --token-label "$full_label" --output-file /tmp/cert.der
 openssl x509 -in /tmp/cert.der -inform DER -out /tmp/cert.pem
 
 if [ -n $KBUILD_SIGN_PIN ]; then
@@ -17,6 +17,6 @@ fi
 
 sbsign \
   --engine pkcs11 \
-  --key "pkcs11:manufacturer=piv_II;id=%03;token=$uri_label$PIN" \
+  --key "pkcs11:manufacturer=piv_II;id=%01;token=$uri_label$PIN" \
   --cert /tmp/cert.pem  \
   --output $1 $1
