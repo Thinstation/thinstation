@@ -1,0 +1,16 @@
+#!/bin/sh
+
+installdir=packages/teams
+
+gzname=`basename $1`
+cd wget_tmp
+ar -xf $gzname
+let returnval=returnval+$?
+tar -C ../$installdir -xf data.tar.*
+let returnval=returnval+$?
+cd ..
+rm -rf $installdir/usr/bin
+mv $installdir/usr/share $installdir/lib
+rmdir $installdir/usr
+chmod +4755 $installdir/lib/teams/chrome-sandbox
+cp -a $installdir/build/extra/* $installdir/.
