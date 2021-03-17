@@ -1,0 +1,24 @@
+#!/bin/sh
+
+installdir=packages/edge
+
+gzname=`basename $1`
+cd wget_tmp
+ar -xf $gzname
+let returnval=returnval+$?
+tar -C ../$installdir -xf data.tar.*
+let returnval=returnval+$?
+cd ..
+mkdir -p $installdir/lib
+mv $installdir/usr/bin $installdir/.
+mv $installdir/usr/share/appdata $installdir/lib/.
+mv $installdir/usr/share/gnome-control-center $installdir/lib/.
+#mv $installdir/usr/share/applications $installdir/lib/.
+rm -rf $installdir/{usr,etc}
+
+for icon_size in 256 128 64 48 32 24 16; do
+	mkdir -p $installdir/lib/icons/hicolor/${icon_size}x${icon_size}/apps
+	cp $installdir/opt/microsoft/msedge-dev/product_logo_${icon_size}_dev.png $installdir/lib/icons/hicolor/${icon_size}x${icon_size}/apps/microsoft-edge-dev.png
+done
+
+cp -a $installdir/build/extra/* $installdir/.

@@ -1,0 +1,10 @@
+#!/bin/sh
+
+
+TEAMS_PATH="/lib/teams/teams"
+TEAMS_LOGS="$HOME/.config/Microsoft/Microsoft Teams/logs"
+
+mkdir -p "$TEAMS_LOGS"
+
+nohup "$TEAMS_PATH" --disable-namespace-sandbox --disable-setuid-sandbox "$@" > "$TEAMS_LOGS/teams-startup.log" 2>&1 &
+
