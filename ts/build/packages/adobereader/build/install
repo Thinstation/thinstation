@@ -4,7 +4,7 @@ gzname=`basename $1`
 dir=AdobeReader
 installdir=./packages/adobereader
 
-mkdir -p $installdir/{opt,usr}
+mkdir -p $installdir/{opt,usr,var/run}
 mkdir -p $installdir/lib/{icons,mime/packages,applications}
 
 tar -C wget_tmp -jxf wget_tmp/$gzname
@@ -44,7 +44,7 @@ mkdir -p $installdir/lib/licenses/adobereader
 ln -s /opt/AdobeReader9/Reader/Legal/en_US/License.txt $installdir/lib/licenses/adobereader
 
 pushd $installdir
-	tar -xvf build/lib32.tar.xz
+	tar -xf build/lib32.tar.xz
 	ln -sf /lib32 usr/lib32
 popd
 cp -a $installdir/build/extra/* $installdir/.

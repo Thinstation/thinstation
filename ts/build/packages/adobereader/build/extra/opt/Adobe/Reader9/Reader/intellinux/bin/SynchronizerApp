@@ -1,4 +1,4 @@
-#!/bin32/sh
+#!/bin/sh
 #
 # Copyright (c) 1996-2007, Adobe Systems Incorporated
 # All Rights Reserved
@@ -6,13 +6,13 @@
 exit 0
 readlink()
 {
-    OLDWD="`/bin32/pwd`"
+    OLDWD="`/bin/pwd`"
     lfile="$1"
 
     while [ -h "$lfile" -a -f "$lfile" ]; do
         CWD="`dirname "$lfile"`"
         if [ "`expr "${CWD}" : "\.\."`" = "2" ]; then
-            CWD="`/bin32/pwd`/$CWD"
+            CWD="`/bin/pwd`/$CWD"
         fi
         lfile="`basename "$lfile"`"
         cd "$CWD"
@@ -23,10 +23,10 @@ readlink()
         CWD="`dirname "$lfile"`"
         lfile="`basename "$lfile"`"
         if [ "`expr "${CWD}" : "\.\."`" = "2" ]; then
-            CWD="`/bin32/pwd`/$CWD"
+            CWD="`/bin/pwd`/$CWD"
         fi
         cd "$CWD"
-        echo `/bin32/pwd`/$lfile
+        echo `/bin/pwd`/$lfile
         cd "$OLDWD"
         return 0
     fi
@@ -45,7 +45,7 @@ LaunchBinary()
     fi
 }
 
-cwd="`/bin32/pwd 2> /dev/null`"
+cwd="`/bin/pwd 2> /dev/null`"
 
 if [ -h "$0" ]; then
  ScriptVariable=`readlink $0`
@@ -53,7 +53,7 @@ if [ -h "$0" ]; then
 else
  ScriptDirectory=`dirname "$0"`
  cd "$ScriptDirectory"
- ScriptDirectory="`/bin32/pwd 2> /dev/null`"
+ ScriptDirectory="`/bin/pwd 2> /dev/null`"
  cd "$cwd"
 fi
 
