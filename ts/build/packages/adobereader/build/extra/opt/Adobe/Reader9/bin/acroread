@@ -1,0 +1,691 @@
+#!/bin32/sh
+#
+# Copyright (c) 1996-2007, Adobe Systems Incorporated
+# All Rights Reserved
+#
+
+export GCONV_PATH=/lib32/gconv
+export GTK_PATH=/lib32/gtk-2.0
+export GDK_PATH=/lib32/gdk-pixbuf-2.0
+export LD_LIBRARY_PATH=/lib32
+export GDK_PIXBUF_MODULE_FILE=/lib32/gdk-pixbuf-2.0/2.10.0/loaders.cache
+export GIO_MODULE_DIR=/lib32/gio/modules
+
+ver="9.5.5"
+
+if [ "$1" = "-version" ]; then
+    echo "$ver"
+    exit
+fi
+
+
+LaunchBinary()
+{
+#    We are not LSB compliant yet, so let's not use ld-lsb.so.3 as loader.
+#    if [ "`uname -s`" = "Linux" ] && [ ! -x /lib/ld-lsb.so.3 ]; then
+#        exec /lib/ld-linux.so.2 ${1+"$@"}
+#    else
+        exec ${1+"$@"}
+#    fi
+}
+
+
+MkTempInternal()
+{
+  if [ "${mktemp_count+set}" != "set" ]; then
+    mktemp_count="0"
+  fi
+  
+  mktemp_file="/tmp/acrobat.$$.${mktemp_count}"
+  
+  while /bin32/test -e "$mktemp_file"
+  do
+    mktemp_count="`expr $mktemp_count + 1`"
+    mktemp_file="/tmp/acrobat.$$.${mktemp_count}"
+  done
+  
+  touch "$mktemp_file" && chmod 600 "$mktemp_file" && echo "$mktemp_file"
+}
+
+MkTemp()
+{
+  MKTEMP="`which mktemp 2>/dev/null`";
+  if [ "$MKTEMP" != "" ]; then
+    :
+  else
+    MKTEMP="MkTempInternal";
+  fi
+
+    $MKTEMP /tmp/acrobat.$1
+}
+
+readlink()
+{
+  OLDPWD="`/bin32/pwd`"
+    lfile="$1"
+
+    while [ -h "$lfile" -a -f "$lfile" ]; do
+      CWD="`dirname "$lfile"`"
+        if [ "`expr "${CWD}" : "\.\."`" = "2" ]; then
+          CWD="`/bin32/pwd`/$CWD"
+            fi
+            lfile="`basename "$lfile"`"
+            cd "$CWD"
+            lfile="`/bin/ls -l "$lfile"|sed 's/^.*-> *\(.*\) *$/\1/'`"
+            done
+
+            if [ -f "$lfile" ]; then
+              CWD="`dirname "$lfile"`"
+                lfile="`basename "$lfile"`"
+                if [ "`expr "${CWD}" : "\.\."`" = "2" ]; then
+                  CWD="`/bin32/pwd`/$CWD"
+                    fi
+        cd "$CWD"
+        echo `/bin32/pwd`/$lfile
+        cd "$OLDPWD"
+        return 0
+    fi
+
+    cd "$OLDPWD"
+    return 1
+}
+
+
+majorRelease="`echo $ver | cut -d. -f1`.0"
+cwd="`/bin32/pwd 2> /dev/null`"
+
+if [ -h "$0" ]; then
+ ScriptVariable=`readlink $0`
+ ScriptDirectory=`dirname "$ScriptVariable"`
+else
+ ScriptDirectory=`dirname "$0"`
+ cd "$ScriptDirectory"
+ ScriptDirectory="`/bin32/pwd 2> /dev/null`"
+ cd "$cwd"
+fi
+install_dir="`dirname "$ScriptDirectory"`/Reader"
+
+
+#
+# Prepend a colon separated environment variable
+# $1 string to be prepended
+# $2 environment variable
+#
+prepend()
+{
+  if [ -z "$2" -o "$2" = "$1" ] ; then
+    echo "$1"
+  else
+    first="`expr "$2" : '\([^:]*\):'`"
+    if [ "$first" = "$1" ] ; then
+      echo "$2"
+    else
+      echo "${1}:${2}"
+    fi
+  fi
+}
+
+
+#
+# Tests the version file in an installation directory.
+#
+test_install_dir()
+{
+	if [ "`cat "$1"/AcroVersion 2>/dev/null`" = "$ver" ] ; then
+		return 0
+	else
+		return 1
+	fi
+}
+
+
+#
+# Check a given file in given path
+#
+
+Which()
+{
+    OLD_IFS="$IFS"
+    IFS=":"
+    status=1
+
+    for i in $PATH; do
+        if [ -x "$i/$1" ]; then
+            echo "$i/$1"
+            status=0
+            break
+        fi
+    done
+
+    IFS="$OLD_IFS"
+    return $status
+}
+
+yesno()
+{
+  msg="$1"
+  def="$2"
+  while : ; do
+    printf "\n%s" "$msg"
+    read answer
+    if [ "$answer" ] ; then
+      case "$answer" in
+      "y" | "Y" | "yes")
+      return 0
+      ;;
+      *)
+      return 1
+      ;;
+      esac
+    else
+      return $def
+    fi
+  done
+}
+
+InstallCertificateFromPath()
+{
+#$1 is install_dir
+#$2 is Certificate Version, can be -PEM -DER
+#$3 is path to Certificate
+# TODO: test with  - other cert versions, test with http addr instead of path
+    RETVAL=0
+    INSTALL_DIR="$1"
+    LOGFILE="`MkTemp ssl_logXXXXXX`"
+    CERTNAME="`MkTemp certi.cerXXXXXX`"
+    CERTDATA="`MkTemp certDataXXXXXX`"
+    INFORM=`echo "$2" | sed 's/^-//'`
+    INPATH="$3"
+
+    CertificateInstallDirectory="$HOME/.adobe/Acrobat/$majorRelease/Cert"
+	
+    if Which openssl >/dev/null
+    then
+        :
+    else
+      printf "%s\n" "Unable to find openssl, please make sure the openssl binary is in the PATH"
+      exit 1
+    fi
+
+    printf "%s\n" "Read the following Certificate:"
+
+    openssl x509 -inform "${INFORM}" -in "${INPATH}" -text -out "${CERTDATA}"
+
+    beginCert=`cat "${CERTDATA}" |grep -n "BEGIN CERTIFICATE---" |cut -f1 -d":"`
+    endCert=`cat "${CERTDATA}" |grep -n "END CERTIFICATE---" |cut -f1 -d":"`
+
+    head -$endCert "${CERTDATA}" | tail -`expr $endCert - $beginCert + 1` >$CERTNAME
+
+    HASH=`openssl x509 -hash -noout -in $CERTNAME`
+
+    more "$CERTDATA"
+    if yesno "Do you want to accept and install it (y|n)? [n] " 1
+        then
+            if [ ! -d "$CertificateInstallDirectory" ]
+            then
+              mkdir -p "$CertificateInstallDirectory"
+              if [ $? -ne 0 ]
+              then
+                printf "ERROR: Cannot make directory %s.\n" "$CertificateInstallDirectory"
+                rm -f "$CERTNAME"
+                rm -f "$CERTDATA"
+                exit 1
+              fi
+            fi
+          
+            cp $CERTNAME "$CertificateInstallDirectory"/${HASH}.0
+            if [ $? -eq 0 ]
+            then
+                printf "%s\n" "Certificate successfully installed."
+            else
+                printf "%s\n" "There was a problem installing the certificate"
+                RETVAL=1
+            fi
+    else
+        printf "%s\n" "Not installing the certificate."
+        RETVAL=2
+    fi
+
+
+    rm -f $CERTNAME
+    rm -f "$CERTDATA"
+    return $RETVAL
+}
+
+
+
+InstallCertificateFromWeb()
+{
+#$1 is install_dir
+#$2 is URL
+#$3 is port
+    RETVAL=0
+    INSTALL_DIR="$1"
+    LOGFILE="`MkTemp ssl_logXXXXXX`"
+    CERTNAME="`MkTemp certi.cerXXXXXX`"
+    CERTDATA="`MkTemp certDataXXXXXX`"
+
+    CertificateInstallDirectory="$HOME/.adobe/Acrobat/$majorRelease/Cert"
+	
+    if Which openssl >/dev/null
+    then
+        :
+    else
+      printf "%s\n" "Unable to find openssl, please make sure the openssl binary is in the PATH"
+      exit 1
+    fi
+
+    printf "%s\n" "Fetching certificate from website...."
+    printf "%s\n" "QUIT"  | openssl s_client -connect $2:$3 >$LOGFILE
+    
+    if [ $? -ne 0 ]
+    then
+	exit 1
+    else
+    	printf "%s\n" "Processing ...."
+    fi
+
+
+    beginCert=`cat $LOGFILE |grep -n "BEGIN CERTIFICATE---" |cut -f1 -d":"`
+    endCert=`cat $LOGFILE |grep -n "END CERTIFICATE---" |cut -f1 -d":"`
+
+    head -$endCert $LOGFILE | tail -`expr $endCert - $beginCert + 1` >$CERTNAME
+
+    openssl x509 -inform PEM -in $CERTNAME -text -out "${CERTDATA}"
+    HASH=`openssl x509 -hash -noout -in $CERTNAME`
+
+    printf "%s\n\n" "The website presented the following Certificate"
+
+    more "$CERTDATA"
+    if yesno "Do you want to accept and install it (y|n)? [n] " 1
+        then
+            if [ ! -d "$CertificateInstallDirectory" ]
+            then
+              mkdir -p "$CertificateInstallDirectory"
+              if [ $? -ne 0 ]
+              then
+                printf "ERROR: Cannot make directory %s.\n" "$CertificateInstallDirectory"
+                rm -f "$CERTNAME"
+                rm -f "$CERTDATA"
+                rm -f "$LOGFILE"
+                exit 1
+              fi
+            fi
+          
+            cp $CERTNAME "$CertificateInstallDirectory"/${HASH}.0
+            if [ $? -eq 0 ]
+            then
+                printf "%s\n" "Certificate successfully installed."
+            else
+                printf "%s\n" "There was a problem installing the certificate"
+                RETVAL=1
+            fi
+    else
+        printf "%s\n" "Not installing the certificate."
+        RETVAL=2
+    fi
+
+
+    rm -f $CERTNAME
+    rm -f $CERTDATA
+    rm -f $LOGFILE
+    return $RETVAL
+}
+
+
+#
+# Get the current working directory.
+# Try to avoid automounter directories by checking
+# if $HOME or $PWD is the same directory as pwd,
+# and removing the automount directory component.
+#
+if [ -z "$cwd" -o ! -d "$cwd" ] ; then
+  printf "%s\n" "ERROR: Cannot determine current directory."
+  exit 1
+fi
+
+if [ "$HOME" -a -d "$HOME" ] && [ "`cd / ; cd "$HOME" ; /bin32/pwd`" = "$cwd" ] ; then
+  cwd="$HOME"
+elif [ "$PWD" -a -d "$PWD" ] && [ "`cd / ; cd "$PWD" ; /bin32/pwd`" = "$cwd" ] ; then
+  cwd="$PWD"
+fi
+
+
+PWD="$cwd"
+export PWD
+
+
+#
+# Setup ACRO_ARG0 to this script
+#
+arg0="$0"
+if [ "$arg0" ] ; then
+  case "$arg0" in
+     /*) ;;
+    ./*) arg0="$cwd/`expr "$arg0" : '\./\(.*\)'`" ;;
+      *) arg0="$cwd/$arg0" ;;
+  esac
+
+  ACRO_ARG0="$arg0"
+  export ACRO_ARG0
+fi
+
+
+#
+# Try to find the installation directory
+#
+if ( test_install_dir "$install_dir" ) ; then
+  ACRO_INSTALL_DIR="$install_dir"
+  export ACRO_INSTALL_DIR
+  
+else
+  script="$arg0"
+  while [ "$script" ] ; do
+    install_dir="`dirname "$script"`"
+    if ( test_install_dir "$install_dir/Reader" ) ; then
+      ACRO_INSTALL_DIR="$install_dir/Reader"
+      export ACRO_INSTALL_DIR
+      break
+    fi
+
+    install_dir="`dirname "$install_dir"`"
+    if ( test_install_dir "$install_dir/Reader" ) ; then
+      ACRO_INSTALL_DIR="$install_dir/Reader"
+      export ACRO_INSTALL_DIR
+      break
+    fi
+
+    if [ -h "$script" ] ; then
+      new_script=`readlink "$script"`
+      if [ "$new_script" -a "`expr "$new_script" : '/.*'`" = 0 ] ; then
+        new_script="`dirname "$script"`/$new_script"
+      fi
+      script="$new_script"
+    else
+      break
+    fi
+  done
+
+  if ( test_install_dir "$ACRO_INSTALL_DIR" ) ; then
+    :
+  elif ( test_install_dir "$ACRO_HOME" ) ; then
+    ACRO_INSTALL_DIR="$ACRO_HOME"
+    export ACRO_INSTALL_DIR
+  else
+    printf "%s\n" "ERROR: Cannot find installation directory."
+    exit 1
+  fi
+fi
+
+
+#
+# setup the configuration from uname
+#
+os_name=`uname -s`
+os_release=`uname -r`
+
+case "$os_name" in
+  SunOS)
+    case "$os_release" in
+      4.1.3*|4.1.4*|4.1C)
+        ACRO_CONFIG=sparcsun
+        export ACRO_CONFIG
+        ;;
+      5.*)
+        machine_type=`uname -p`
+        case "$machine_type" in
+          sparc)
+            ACRO_CONFIG=sparcsolaris
+            export ACRO_CONFIG
+            ;;
+          intel|i386)
+            ACRO_CONFIG=intelsolaris
+            export ACRO_CONFIG
+            ;;
+          ppc)
+            ACRO_CONFIG=ppcsolaris
+            export ACRO_CONFIG
+            ;;
+        esac
+        ;;
+    esac
+    ;;
+  Linux)
+    ACRO_CONFIG=intellinux
+    export ACRO_CONFIG
+    ;;
+  AIX)
+    ACRO_CONFIG=rs6000aix
+    export ACRO_CONFIG
+    ;;
+  HP-UX)
+    ACRO_CONFIG=hppahpux
+    export ACRO_CONFIG
+esac
+
+if [ -z "$ACRO_CONFIG" ] ; then
+   printf "The OS named  %s  is currently not installed." "$os_name version $os_release"
+   printf "%s\n%s\n" "Try running on an installed platform and connecting to your display." "Installed platform(s) include the following:"
+
+  if [ -d "$ACRO_INSTALL_DIR"/sparcsolaris ] ; then
+    printf "  SPARC/Solaris version 2.x\n"
+  fi
+  if [ -d "$ACRO_INSTALL_DIR"/intelsolaris ] ; then
+    printf "  Intel/Solaris\n"
+  fi
+  if [ -d "$ACRO_INSTALL_DIR"/intellinux ] ; then
+    printf "  Intel/Linux\n"
+  fi
+  exit 1
+fi
+
+# Enable this if you donot want Adobe Reader to cache Font-config fonts 
+# ACRO_DISABLE_FONT_CONFIG=1
+# export ACRO_DISABLE_FONT_CONFIG
+
+# Enable this if you want to set the MOZILLA_COMP_PATH globally (for all the users)
+#if [ -f "$ACRO_INSTALL_DIR/GlobalPrefs/mozilla_config" ]; then
+#    . "$ACRO_INSTALL_DIR/GlobalPrefs/mozilla_config"
+#   export MOZILLA_COMP_PATH
+#fi
+
+if [ -x /bin32/test ]; then
+  TestCmd=/bin32/test
+else
+  TestCmd=test
+fi
+
+if $TestCmd -e . 2>/dev/null; then
+  TestCmdOption="-e"
+else
+  TestCmdOption="-f"
+fi
+
+greConfigFile="${HOME}/.adobe/Acrobat/$majorRelease/Preferences/acrogre.conf"
+
+if [ -f "$greConfigFile" ]; then
+    mozillaPath="`cat "$greConfigFile"`"
+    if [ -n "$mozillaPath" ]; then
+        MOZILLA_COMP_PATH="$mozillaPath"
+        export MOZILLA_COMP_PATH
+    fi
+else
+    for i in /etc/gre.d/gre.conf /etc/gre.d/firefox.conf /etc/gre.d/mozilla.conf /etc/gre.d/*.conf /etc/gre.conf
+    do
+        if [ -f "$i" ]; then
+            mozillaPath="`grep "^GRE_PATH=" "$i" | cut -d= -f2 | sed -e 's/^[ ]*//g' -e 's/[ ]*$//g'`"
+            if [ -n "$mozillaPath" ]; then
+                MOZILLA_COMP_PATH="$mozillaPath"
+                export MOZILLA_COMP_PATH
+                break
+            fi
+        fi
+    done
+fi
+
+if [ -z "$mozillaPath" ]; then
+  MozPath="`gconftool-2 -g /desktop/gnome/url-handlers/http/command 2>/dev/null | cut -d ' ' -f1 2>/dev/null`"
+  [ -x "${MozPath}" ] || MozPath="`Which "$MozPath"`"
+  [ -n "${MozPath}" ] || mozillaPath="`readlink "$MozPath" | xargs dirname 2>/dev/null`"
+  if [ -n "$mozillaPath" ] &&  $TestCmd $TestCmdOption "$mozillaPath/libgtkembedmoz.so" || $TestCmd $TestCmdOption "$mozillaPath/libxul.so" ; then
+    MOZILLA_COMP_PATH="$mozillaPath"
+    export MOZILLA_COMP_PATH
+  fi
+fi
+
+ADOBE_USER_PREFERENCES="$HOME/.adobe/Acrobat/$majorRelease/Preferences"
+export ADOBE_USER_PREFERENCES
+
+MOZILLA_FIVE_HOME="$MOZILLA_COMP_PATH"
+export MOZILLA_FIVE_HOME
+
+LIB_NSPR_PATH=/usr/lib/mps/
+
+#
+# Setup configuration specific environment variables
+#
+ACRO_LD_LIBRARY_PATH="$LD_LIBRARY_PATH"
+export ACRO_LD_LIBRARY_PATH
+
+case "$ACRO_CONFIG" in
+  sparcsolaris)
+    LD_LIBRARY_PATH="`prepend "$ACRO_INSTALL_DIR/$ACRO_CONFIG/lib:$ACRO_INSTALL_DIR/$ACRO_CONFIG/sidecars:${MOZILLA_COMP_PATH}" "${LD_LIBRARY_PATH}"`"
+    export LD_LIBRARY_PATH
+    ;;
+  intelsolaris)
+    LD_LIBRARY_PATH="`prepend "$ACRO_INSTALL_DIR/$ACRO_CONFIG/lib:$ACRO_INSTALL_DIR/$ACRO_CONFIG/sidecars:${MOZILLA_COMP_PATH}:${LIB_NSPR_PATH}" "${LD_LIBRARY_PATH}"`"
+    export LD_LIBRARY_PATH
+    ;;
+  intellinux)
+    LD_LIBRARY_PATH="`prepend "$ACRO_INSTALL_DIR/$ACRO_CONFIG/lib:$ACRO_INSTALL_DIR/$ACRO_CONFIG/sidecars:${MOZILLA_COMP_PATH}" "${LD_LIBRARY_PATH}"`"
+    export LD_LIBRARY_PATH
+    ;;
+  rs6000aix)
+    LIBPATH="`prepend "$ACRO_INSTALL_DIR/$ACRO_CONFIG/lib:$ACRO_INSTALL_DIR/$ACRO_CONFIG/sidecars:/opt/freeware/lib" "$LIBPATH"`"
+    export LIBPATH
+	;;
+  hppahpux)
+    SHLIB_PATH="`prepend "$ACRO_INSTALL_DIR/$ACRO_CONFIG/lib:$ACRO_INSTALL_DIR/$ACRO_CONFIG/sidecars:/opt/graphics/OpenGL/lib" "$SHLIB_PATH"`"
+	LD_PRELOAD=/opt/graphics/OpenGL/lib/libGL.sl
+	export SHLIB_PATH
+	export LD_PRELOAD
+    ;;
+esac
+
+
+directory="`basename \"$ACRO_INSTALL_DIR\"`"
+
+if [ "$directory" = "Reader" ]; then
+	cmd="acroread"
+    	prod="Adobe Reader"
+else
+	if [ "$directory" = "Acrobat" ]; then
+		cmd="acroexch"
+    		prod="Adobe Acrobat"
+	fi
+fi
+
+#
+# Set the command.  Process any debug flags and exec.
+#
+ACRO_EXEC_CMD="$ACRO_INSTALL_DIR/$ACRO_CONFIG/bin/$cmd"
+SYNCAPP_EXEC_CMD="$ACRO_INSTALL_DIR/$ACRO_CONFIG/bin/SynchronizerApp"
+export SYNCAPP_EXEC_CMD
+export ACRO_EXEC_CMD
+
+ACRO_RES_DIR=$ACRO_INSTALL_DIR/../Resource
+export ACRO_RES_DIR
+
+ACRO_LANG="ENU"
+export ACRO_LANG
+
+ADOBE_HELP_PATH="$ACRO_INSTALL_DIR/../../.."
+export ADOBE_HELP_PATH
+
+#Checking if TMPDIR points to a valid directory
+if [ -n "$TMPDIR" ] && [ ! -d "$TMPDIR" -o ! -w "$TMPDIR" ]
+then
+	printf "%s\n" "ERROR: The environment variable TMPDIR points to an invalid path."
+	exit 1
+fi
+# Adobe Reader/Acrobat uses gconftool-2 to check whether accessibility support is enabled. Please refer to the Readme file to work around this.
+
+if Which gconftool-2 >/dev/null
+then
+    ACRO_AT_ACTIVE=`gconftool-2 -g /desktop/gnome/interface/accessibility 2>/dev/null`
+else
+    # gconftool-2 is not there on system, turn off AT support
+    ACRO_AT_ACTIVE="false"   
+fi
+
+export ACRO_AT_ACTIVE
+
+# Required for Multimedia plugin
+# look for installed realplayer
+
+if [ "$ACRO_CONFIG" = "intellinux" ] || [ "$ACRO_CONFIG" = "intelsolaris" ]; then
+  if ARG0="`which realplay 2> /dev/null`"; then
+    if [ -d "$REALPLAYER_HOME" ] ; then
+      true
+    elif [ "$REALPLAYER_HOME" = "" -a -L ${ARG0} ] ; then
+      REALPLAYER_HOME=`readlink ${ARG0} 2> /dev/null`
+      REALPLAYER_HOME=`dirname ${REALPLAYER_HOME} 2> /dev/null`  # Delete trailing file name.
+      export REALPLAYER_HOME
+    elif [ "$REALPLAYER_HOME" = "" -a -f ${ARG0} ] ; then
+      REALPLAYER_HOME=$ARG0
+      REALPLAYER_HOME=`dirname ${REALPLAYER_HOME} 2> /dev/null`  # Delete trailing file name.
+      REALPLAYER_HOME=`cd $REALPLAYER_HOME; pwd;`
+      export REALPLAYER_HOME
+    fi
+  fi
+fi
+
+if [ "$ACRO_AT_ACTIVE" = "true" ]; then
+	GTK_MODULES=gail:atk-bridge
+	export GTK_MODULES
+fi
+
+if [ "$1" = "-installCertificate" ] 
+then
+    if [ "$2" = "-PEM" -o "$2" = "-DER" ]; then
+      InstallCertificateFromPath $ACRO_INSTALL_DIR $2 $3
+      exit $?
+    else
+      InstallCertificateFromWeb $ACRO_INSTALL_DIR $2 $3
+      exit $?
+    fi
+fi
+
+PATH="$PATH:$ACRO_INSTALL_DIR/$ACRO_CONFIG/bin"
+export PATH
+
+rm -rf "${HOME}/.adobe/Acrobat/$majorRelease/Preferences/mozilla" >/dev/null 2>&1
+mkdir -p "${HOME}/.adobe/Acrobat/$majorRelease/Preferences/mozilla" >/dev/null 2>&1 && \
+cp -f "$ACRO_INSTALL_DIR/$ACRO_CONFIG/mozilla/prefs.js" "${HOME}/.adobe/Acrobat/$majorRelease/Preferences/mozilla/prefs.js" >/dev/null 2>&1
+
+if [ "$1" = "-DEBUG" ] ; then
+  ACRODEBUG=1
+  ACRO_CRASHLOG=1
+  export ACRODEBUG ACRO_CRASHLOG
+
+  if [ "`ulimit -c 2>/dev/null`" = "0" ]
+  then
+    ulimit -c 1000000 >/dev/null 2>&1
+  fi
+
+  if [ $# = 1 ] ; then
+    export ACRO_EXEC_CMD
+    exec "$SHELL"
+  else
+    shift
+    exec ${1+"$@"} "$ACRO_EXEC_CMD"
+  fi
+fi
+
+if [ -f "$ACRO_EXEC_CMD" ] ; then
+  LaunchBinary "$ACRO_EXEC_CMD" ${1+"$@"}
+else
+  printf "ERROR: Cannot find %s.\n" "$ACRO_EXEC_CMD"
+  printf "%s not installed for this configuration, %s.\n" "$prod" "\"$ACRO_CONFIG\""
+  exit 1
+fi

@@ -269,7 +269,7 @@ lib_dependencies()
 		else
 			export cputil=ln
 		fi
-		find $pkgname -type f > filelist
+		find $pkgname -type f |grep -Ev 'lib32|bin32' > filelist
 		file -e encoding -e tokens -e compress -e ascii -e apptype -e tar -e cdf -f filelist -n -r \
 		|grep -e ELF \
 		|cut -d: -f1 > liblist.final 2>/dev/null

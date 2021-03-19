@@ -1,0 +1,18 @@
+#adobereader 35
+if [ -e /lib/applications/defaults.list ]; then
+ grep -v "application/pdf" /lib/applications/defaults.list > /tmp/defaults.list
+
+ cat >> /tmp/defaults.list <<EOF
+application/pdf=AdobeReader.desktop
+application/vnd.adobe.xfdf=AdobeReader.desktop
+application/vnd.fdf=AdobeReader.desktop
+application/vnd.adobe.xdp+xml=AdobeReader.desktop
+application/vnd.adobe.pdx=AdobeReader.desktop
+application/fdf=AdobeReader.desktop
+application/xdp=AdobeReader.desktop
+application/xfdf=AdobeReader.desktop
+application/pdx=AdobeReader.desktop
+EOF
+
+  mv /tmp/defaults.list /lib/applications/defaults.list
+fi

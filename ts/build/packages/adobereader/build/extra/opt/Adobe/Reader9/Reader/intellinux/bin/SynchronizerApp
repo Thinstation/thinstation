@@ -1,0 +1,68 @@
+#!/bin32/sh
+#
+# Copyright (c) 1996-2007, Adobe Systems Incorporated
+# All Rights Reserved
+#
+exit 0
+readlink()
+{
+    OLDWD="`/bin32/pwd`"
+    lfile="$1"
+
+    while [ -h "$lfile" -a -f "$lfile" ]; do
+        CWD="`dirname "$lfile"`"
+        if [ "`expr "${CWD}" : "\.\."`" = "2" ]; then
+            CWD="`/bin32/pwd`/$CWD"
+        fi
+        lfile="`basename "$lfile"`"
+        cd "$CWD"
+        lfile="`/bin/ls -l "$lfile"|sed 's/^.*-> *\(.*\) *$/\1/'`"
+    done
+
+    if [ -f "$lfile" ]; then
+        CWD="`dirname "$lfile"`"
+        lfile="`basename "$lfile"`"
+        if [ "`expr "${CWD}" : "\.\."`" = "2" ]; then
+            CWD="`/bin32/pwd`/$CWD"
+        fi
+        cd "$CWD"
+        echo `/bin32/pwd`/$lfile
+        cd "$OLDWD"
+        return 0
+    fi
+
+    cd "$OLDWD"
+    return 1
+}
+
+
+LaunchBinary()
+{
+    if [ "`uname -s`" = "Linux" ] && [ ! -x /lib/ld-lsb.so.3 ]; then
+        exec /lib32/ld-linux.so.2 ${1+"$@"}
+    else
+        exec ${1+"$@"}
+    fi
+}
+
+cwd="`/bin32/pwd 2> /dev/null`"
+
+if [ -h "$0" ]; then
+ ScriptVariable=`readlink $0`
+ ScriptDirectory=`dirname "$ScriptVariable"`
+else
+ ScriptDirectory=`dirname "$0"`
+ cd "$ScriptDirectory"
+ ScriptDirectory="`/bin32/pwd 2> /dev/null`"
+ cd "$cwd"
+fi
+
+SYNCAPP_EXEC_CMD="$ScriptDirectory/SynchronizerApp-binary"
+export SYNCAPP_EXEC_CMD
+
+if [ -f "$SYNCAPP_EXEC_CMD" ] ; then
+  LaunchBinary "$SYNCAPP_EXEC_CMD" ${1+"$@"}
+else
+  exit 1
+fi
+
