@@ -131,6 +131,12 @@ do_mounts()
 	if ! mounted proc ; then mount -t proc proc proc ; fi
 	if ! mounted sys ; then mount -t sysfs none sys ; fi
 	if ! mounted dev/pts ; then mount --bind /dev/pts dev/pts ; fi
+	if [ -e /run/pcscd ]; then
+		if ! mounted run/pcscd ; then
+			mkdir -p run/pcscd
+			mount --bind /run/pcscd run/pcscd
+		fi
+	fi
 }
 
 copy_host_essential()
@@ -190,7 +196,7 @@ secure_keys()
 
 do_unmounts()
 {
-	for mount in dev/pts dev tmp proc sys ; do
+	for mount in dev/pts dev tmp proc sys run/pcscd; do
 		fuser -kv "$PWD"/$mount > /dev/null 2>&1
 		while mounted $mount ; do
 			umount -l $mount
