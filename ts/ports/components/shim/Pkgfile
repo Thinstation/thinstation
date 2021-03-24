@@ -5,17 +5,18 @@
 name=shim
 version=15.3
 release=3
-source=(UEFI-CA.cer)
+source=(UEFI-CA.cer \
+	https://github.com/rhboot/shim/releases/download/15.3/shim-15.3.tar.bz2)
 
 build() {
     unset CFLAGS CXXFLAGS
 
-    git clone --recurse-submodules https://www.github.com/rhboot/shim.git -b shim-$version
+#    git clone --recurse-submodules https://www.github.com/rhboot/shim.git -b shim-$version
 
-    cd shim
+    cd shim-$version
 
     export VENDOR_CERT_FILE="$SRC/UEFI-CA.cer"
-    export EFI_PATH='/usr/lib'
+#    export EFI_PATH='/usr/lib'
     export ENABLE_HTTPBOOT='1'
     export DEFAULT_LOADER='grubx64.efi'
 
@@ -32,5 +33,5 @@ build() {
 
     rm -rf $PKG/usr/{src,lib/debug}
 
-    sha256sum $PKG/usr/share/shim/15/x64/shimx64.efi
+    sha256sum $PKG/usr/share/shim/$version/x64/shimx64.efi
 }
