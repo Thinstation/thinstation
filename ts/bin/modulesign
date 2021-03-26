@@ -6,12 +6,12 @@ kver=`cat /ts/ports/kernel-modules/VERSION`
 
 if [ -n "$full_label" ]; then
 	uri_label=`echo "$full_label"|sed -e 's/ /%20/g'`
-	cert="pkcs11:manufacturer=piv_II;id=%03;token=$uri_label"
-	key="/tmp/cert.der"
+	key="pkcs11:manufacturer=piv_II;id=%03;token=$uri_label"
+	cert="/tmp/cert.der"
 	pkcs11-tool -r -d 03 --type cert --token-label "$full_label" --output-file /tmp/cert.der
 else
 	cert=/etc/ssl/keys/kernel.key
 	key=/etc/ssl/keys/kernel.key
 fi
 
-/usr/src/kernels/${kver}TS/scripts/sign-file sha512 "$cert" "$key" $module
+/usr/src/kernels/${kver}TS/scripts/sign-file sha512 "$key" "$cert" $module
