@@ -6,6 +6,7 @@ name=shim
 version=15.3
 release=3
 source=(UEFI-CA.cer \
+	BOOTX64.csv \
 	https://github.com/rhboot/shim/releases/download/$version/shim-$version.tar.bz2)
 
 build() {
@@ -14,16 +15,17 @@ build() {
 #    git clone --recurse-submodules https://www.github.com/rhboot/shim.git -b shim-$version
 
     cd shim-$version
+    cat $SRC/BOOTX64.csv >> data/sbat.csv
 
     export VENDOR_CERT_FILE="$SRC/UEFI-CA.cer"
-#    export EFI_PATH='/usr/lib'
     export ENABLE_HTTPBOOT='1'
     export DEFAULT_LOADER='grubx64.efi'
+
 
     make
 
     for efi in mmx64.efi fbx64.efi; do
-	efisign $efi "UEFI-Signing"
+	efisign $efi "UEFI Signing"
     done
 
     make EFIDIR=ThinStation DESTDIR="$PKG" install
