@@ -4,18 +4,12 @@
 # Depends on:  pyparsing
 
 name=spice-protocol
-version=0.14.0
+version=0.14.3
 release=1
-source=(http://spice-space.org/download/releases/spice-protocol-$version.tar.bz2)
+source=(http://spice-space.org/download/releases/spice-protocol-$version.tar.xz)
 
 build() {
-
-  cd $name-$version
-
-  ./configure --prefix=/usr \
-              --datarootdir=/usr/lib
-
-  make
-  make DESTDIR=$PKG install
-
+  ts-meson $name-$version build
+  meson compile -C build
+  DESTDIR="$PKG" meson install -C build
 }

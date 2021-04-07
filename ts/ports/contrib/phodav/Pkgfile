@@ -1,0 +1,20 @@
+# Maintainer: Balló György <ballogyor+arch at gmail dot com>
+
+name=phodav
+version=2.5
+release=1
+source=("https://download.gnome.org/sources/$name/$version/$name-$version.tar.xz")
+
+build() {
+	cd $name-$version
+	sed -i 's|/etc/sysconfig/spice-webdavd|/etc/conf.d/spice-webdavd|
+	        s|/usr/sbin/spice-webdavd|/usr/bin/spice-webdavd|' data/spice-webdavd.service
+
+	cd $SRC
+	ts-meson $name-$version build
+	meson compile -C build
+	DESTDIR="$PKG" meson install -C build
+
+	install -dm755 "$PKG/etc/conf.d/"
+	echo 'SPICE_WEBDAVD_EXTRA_ARGS=""' > "$PKG/etc/conf.d/spice-webdavd"
+}

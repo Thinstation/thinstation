@@ -4,24 +4,12 @@
 # Depends on: gtk-2.0 celt
 
 name=spice-gtk
-version=0.37
+version=0.39
 release=1
-source=(http://spice-space.org/download/gtk/spice-gtk-$version.tar.bz2)
+source=(http://spice-space.org/download/gtk/spice-gtk-$version.tar.xz)
 
 build() {
-	cd spice-gtk-$version
-	./configure --prefix=/usr \
-			--sysconfdir=/etc \
-			--localstatedir=/var \
-			--enable-vala \
-			--with-coroutine=gthread \
-			--disable-static \
-			--disable-celt051
-
-	sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
-
-	make
-	make -j1 DESTDIR=$PKG install
-#	mkdir $PKG/usr/lib
-#	mv $PKG/lib/pkgconfig $PKG/usr/lib/.
+  ts-meson $name-$version build
+  meson compile -C build
+  DESTDIR="$PKG" meson install -C build
 }
