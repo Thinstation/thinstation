@@ -4,7 +4,7 @@
 # Depends on:  nspr sqlite3
 
 name=nss
-version=3.58
+version=3.63
 release=1
 _version=$(echo $version |sed 's/\./_/g')
 
@@ -28,9 +28,12 @@ export PKG_CONFIG_ALLOW_SYSTEM_CFLAGS=1
 export NSS_USE_SYSTEM_SQLITE=1
 export NSS_ALLOW_SSLKEYLOGFILE=1
 export NSPR_INCLUDE_DIR=/usr/include/nspr
+#export NSS_DISABLE_DBM=1
 
 _nsprver=$(pkg-config --modversion nspr)
 	cd $name-$version
+
+	find nss/lib/libpkix -perm /u+x -type f -exec chmod -x {} \;
 
 #	./build.sh -v --opt --system-sqlite --system-nspr --enable-libpkix --enable-fips
 	make -C ./nss all
@@ -74,15 +77,12 @@ _nsprver=$(pkg-config --modversion nspr)
   cd ../lib
   install -Dt "$PKG/usr/lib" *.so
 
-cd $PKG/usr/
-for FILE in `ls -1 lib/*.so`; do
-	strip --strip-unneeded "$FILE"
-	strip --strip-debug "$FILE"
-done
-
-./bin/shlibsign -i lib/libfreebl3.so
-./bin/shlibsign -i lib/libfreeblpriv3.so
-./bin/shlibsign -i lib/libsoftokn3.so
+  cd $PKG/usr/
+	for lib in libsoftokn3.so libfreebl3.so libfreeblpriv3.so libnssdbm3.so; do
+		if [ -e lib/$lib ]; then
+			./bin/shlibsign -i lib/$lib
+		fi
+	done
 
   # Replace built-in trust with p11-kit connection
 #  ln -sf libnssckbi-p11-kit.so "$PKG/usr/lib/libnssckbi.so"
