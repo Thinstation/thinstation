@@ -1,4 +1,6 @@
-mkdir -p /etc/pki/nssdb
-certutil -d sql:/etc/pki/nssdb -X --empty-password -N
+if [ ! -e /etc/pki/nssdb ]; then
+	mkdir -p /etc/pki/nssdb
+	certutil -d sql:/etc/pki/nssdb -X --empty-password -N
+fi
 chmod -R 655 /etc/pki
 chmod 644 /etc/pki/nssdb/*

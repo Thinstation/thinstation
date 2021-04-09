@@ -1,1 +1,5 @@
+if [ ! -e /etc/pki/nssdb ]; then
+        mkdir -p /etc/pki/nssdb
+        certutil -d sql:/etc/pki/nssdb -X --empty-password -N
+fi
 modutil -dbdir sql:/etc/pki/nssdb/ -add "OpenSC" -libfile /usr/lib/pkcs11/opensc-pkcs11.so -force
