@@ -3,12 +3,10 @@
 # Maintainer:  CRUX System Team, core-ports at crux dot nu
 
 name=glibc
-version=2.30
+version=2.32
 release=1
 source=(http://ftp.gnu.org/gnu/glibc/glibc-$version.tar.xz \
 	http://crux.nu/files/distfiles/kernel-headers-4.1.tar.xz \
-	0001-Revert-elf-Correct-absolute-SHN_ABS-symbol-run-time-.patch \
-	file-truncated-while-reading-soname-after-patchelf.patch \
 	glibc-2.20-multilib-dirs.patch \
 	hosts resolv.conf nsswitch.conf host.conf ld.so.conf)
 
@@ -22,7 +20,6 @@ build() {
 
 	cd glibc-$version
 	for patch in \
-	        file-truncated-while-reading-soname-after-patchelf.patch \
 		glibc-2.20-multilib-dirs.patch; do
 			patch -p1 -i $SRC/$patch
 	done
