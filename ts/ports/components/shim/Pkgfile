@@ -7,7 +7,8 @@ version=15.4
 release=3
 source=(UEFI-CA.cer \
 	BOOTX64.csv \
-	https://github.com/rhboot/shim/releases/download/$version/shim-$version.tar.bz2)
+	https://github.com/rhboot/shim/releases/download/$version/shim-$version.tar.bz2 \
+	https://github.com/rhboot/shim/commit/4068fd42c891ea6ebdec056f461babc6e4048844.patch)
 
 build() {
     unset CFLAGS CXXFLAGS
@@ -15,6 +16,8 @@ build() {
 #    git clone --recurse-submodules https://www.github.com/rhboot/shim.git -b shim-$version
 
     cd shim-$version
+    patch -p1 -i $SRC/4068fd42c891ea6ebdec056f461babc6e4048844.patch # allocate MOK config table as BootServicesData
+
     cat $SRC/BOOTX64.csv >> data/sbat.csv
 
     export VENDOR_CERT_FILE="$SRC/UEFI-CA.cer"
