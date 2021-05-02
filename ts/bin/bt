@@ -112,6 +112,7 @@ setup_qemu()
 	QEMU=qemu-system-x86_64
 
 	STANDARD_MACHINE="$SOUND $RNG $VGA $CPU $MEMORY $MOUSE $KVM $NETWORK -serial stdio"
+	NET_MACHINE="$SOUND $RNG $VGA $CPU $MEMORY $MOUSE $KVM -serial stdio"
 }
 
 setup_qemu $@
@@ -138,11 +139,11 @@ case $1 in
 		echo "Exit code $?"
 	;;
 	net)
-		$QEMU $STANDARD_MACHINE
+		$QEMU $NET_MACHINE -boot n -device e1000,netdev=n1 -netdev user,id=n1,tftp=/build/boot-images/grub/efi-source,bootfile=/boot/grub/pxeboot.img
 		echo "Exit code $?"
 	;;
         net-efi)
-                $QEMU $STANDARD_MACHINE $EFI
+                $QEMU $NET_MACHINE -boot n -device e1000,netdev=n1 -netdev user,id=n1,tftp=/build/boot-images/grub/efi-source,bootfile=/EFI/BOOT/bootx64.efi $EFI
 		echo "Exit code $?"
 	;;
         cd)
