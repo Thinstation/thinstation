@@ -127,7 +127,7 @@ do_test_cd()
 
 do_test_cd_efi()
 {
-        $XTERM_CMD -T Test-CD-EFI --working-directory=/thinstation $ARG script -c "./setup-chroot -e bt cd-refind" -e /home/$TSUSER/Desktop/test.log
+        $XTERM_CMD -T Test-CD-EFI --working-directory=/thinstation $ARG script -c "./setup-chroot -e bt cd-grub" -e /home/$TSUSER/Desktop/test.log
 }
 do_test_hd()
 {
@@ -135,12 +135,17 @@ do_test_hd()
 }
 do_test_hd_efi()
 {
-        $XTERM_CMD -T Test-HD-EFI --working-directory=/thinstation $ARG script -c "./setup-chroot -e bt hd-refind" -e /home/$TSUSER/Desktop/test.log
+        $XTERM_CMD -T Test-HD-EFI --working-directory=/thinstation $ARG script -c "./setup-chroot -e bt hd-grub" -e /home/$TSUSER/Desktop/test.log
 }
 do_test_net()
 {
         cd /thinstation
         $XTERM_CMD -T Test-Network --working-directory=/thinstation $ARG script -c "./setup-chroot -e bt net" -e /home/$TSUSER/Desktop/test.log
+}
+do_test_net_efi()
+{
+        cd /thinstation
+        $XTERM_CMD -T Test-Network --working-directory=/thinstation $ARG script -c "./setup-chroot -e bt net-efi" -e /home/$TSUSER/Desktop/test.log
 }
 
 terminal_arg()
@@ -196,6 +201,9 @@ case $1 in
 		;;
 	test-net)
                 do_test_net
+		;;
+        test-net)
+		do_test_net_efi
 		;;
 esac
 exit 0
