@@ -68,8 +68,12 @@ if `transport $BASEPATH/$HOSTFILE /tmp/$HOSTFILE $SERVER_IP` ; then
 		clientname=`cat $TS_HOSTS | grep -i $CLIENT_MAC | cut -d" " -f 1`
 	  	if [ -n "$clientname" ] ; then
 			if [ "$CLIENT_NAME" != "$clientname" ] ; then
-				INTERFACE=$adapter /etc/udev/scripts/net.sh
-				/etc/init.d/hostname
+				if [ -e /var/packages/autonet ]; then
+					INTERFACE=$adapter /etc/udev/scripts/net.sh
+					/etc/init.d/hostname
+				else
+					. /etc/NetworkManager/dispatcher.d/pre-up.d/00-update-status $adapter pre-up
+				fi
 			fi
 	  	fi
   	fi
