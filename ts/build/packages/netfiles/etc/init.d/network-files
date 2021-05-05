@@ -68,7 +68,7 @@ if `transport $BASEPATH/$HOSTFILE /tmp/$HOSTFILE $SERVER_IP` ; then
 		clientname=`cat $TS_HOSTS | grep -i $CLIENT_MAC | cut -d" " -f 1`
 	  	if [ -n "$clientname" ] ; then
 			if [ "$CLIENT_NAME" != "$clientname" ] ; then
-				if [ -e /var/packages/autonet ]; then
+				if pkg_is_loaded autonet ; then
 					INTERFACE=$adapter /etc/udev/scripts/net.sh
 					/etc/init.d/hostname
 				else
