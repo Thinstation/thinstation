@@ -180,6 +180,10 @@ cleanup
 }
 
 if is_enabled $NET_FILE_ENABLED ; then
+	if which nm-online >/dev/null 2>&1; then
+		NM_ONLINE_TIMEOUT=60
+		/usr/bin/nm-online -s -q
+	fi
 	get_global_file
 	get_hosts_file
 	. /var/log/net/$NET_DEVICE
