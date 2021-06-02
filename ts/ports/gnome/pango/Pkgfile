@@ -4,14 +4,11 @@
 # Depends on: xorg-libsm, xorg-libxft, gobject-introspection fribidi
 
 name=pango
-version=1.46.1
+version=1.48.5
 release=1
 
 build () {
 git clone https://gitlab.gnome.org/GNOME/pango.git
-cd pango
-git checkout -f 5112387e
-cd ..
 
   ts-meson pango build -D gtk_doc=false -D install_tests=false
   ninja -C build -j ${JOBS:-1}

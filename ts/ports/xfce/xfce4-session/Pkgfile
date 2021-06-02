@@ -6,16 +6,14 @@
 # Group: xfce4
 
 name=xfce4-session
-version=4.14.0
+version=4.16.0
 release=1
 source=(http://archive.xfce.org/src/xfce/$name/${version%.*}/$name-$version.tar.bz2 \
-	logout.patch \
-	logout.patch2)
+	logout.patch)
 
 build () {
   cd $name-$version/xfce4-session
-  patch -p0 < ../../logout.patch
-  patch -p0 < ../../logout.patch2
+  patch -p1 < ../../logout.patch
   cd ..
 
   ./configure --prefix=/usr \

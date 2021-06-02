@@ -1,0 +1,14 @@
+# Maintainer: Jan de Groot <jgc@archlinux.org>
+# Contributor: Chaiwat Suttipongsakul <cwt114@gmail.com>
+
+name=libthai
+version=0.1.28
+release=2
+source=(https://linux.thai.net/pub/thailinux/software/${name}/${name}-${version}.tar.xz)
+
+build() {
+  cd ${name}-${version}
+  ./configure --prefix=/usr --disable-static
+  make
+  make DESTDIR="${PKG}" install
+}

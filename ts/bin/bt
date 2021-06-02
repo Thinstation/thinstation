@@ -95,6 +95,7 @@ setup_qemu()
 	let procs=procs/2
 	HD=thinstation.img
 	HDD="-drive file=$HD,index=0,media=disk,format=raw"
+	USBHD="-drive if=none,id=stick,file=/usbhd.img -device nec-usb-xhci,id=xhci -device usb-storage,bus=xhci.0,drive=stick"
 	VGA="-vga qxl -global qxl-vga.vram_size=132710400"
 #	VGA="-vga virtio"
 #	VGA="-vga std"
@@ -163,7 +164,7 @@ case $1 in
 	;;
 	cd-grub)
 		confirm_iso grub && \
-		$QEMU $STANDARD_MACHINE $CDROM $EFI --boot d
+		$QEMU $STANDARD_MACHINE $CDROM $USBHD $EFI --boot d
 		echo "Exit code $?"
         ;;
 	image)

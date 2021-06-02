@@ -1,3 +1,6 @@
+#exec </dev/null >>/var/log/xfwm4.log  2>&1
+#set -x
+
 make_desktop()
 {
 	mkdir -p "$ICONDIR"
@@ -69,7 +72,7 @@ xfconf_settings()
 	else
 		xfconf-query -c xfce4-desktop -p /desktop-icons/file-icons/show-unknown-removable -t bool -s false -n
 	fi
-	if [ ! -e /lib/applications/Thunar.desktop ]; then
+	if [ ! -e /lib/applications/thunar.desktop ]; then
 		xfconf-query -c xfce4-desktop -p /desktop-icons/file-icons/show-filesystem -t bool -s false -n
 		xfconf-query -c xfce4-desktop -p /desktop-icons/file-icons/show-home -t bool -s false -n
 		xfconf-query -c xfce4-desktop -p /desktop-icons/file-icons/show-trash -t bool -s false -n

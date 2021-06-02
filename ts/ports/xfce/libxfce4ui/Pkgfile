@@ -4,9 +4,9 @@
 # Depends on: libxfce4util, gtk, xfconf, startup-notification, libglade
 
 name=libxfce4ui
-version=4.14.1
+version=4.16.0
 release=2
-source=(http://archive.xfce.org/src/xfce/libxfce4ui/4.14/libxfce4ui-$version.tar.bz2)
+source=(http://archive.xfce.org/src/xfce/libxfce4ui/${version%.*}/libxfce4ui-$version.tar.bz2)
 
 build() {
 	cd $name-$version
@@ -15,7 +15,7 @@ build() {
 			--libexecdir=/usr/lib/$name \
 			--sysconfdir=/etc \
 			--disable-gtk-doc-html \
-			--disable-introspection
+			--disable-vala
 
 sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
 

@@ -1,24 +1,25 @@
---- src/xfdesktop-regular-file-icon.c.orig	2020-02-15 20:27:09.454999780 +0000
-+++ src/xfdesktop-regular-file-icon.c	2020-02-15 20:27:36.573314764 +0000
-@@ -814,8 +814,7 @@
+--- src/xfdesktop-regular-file-icon.c.orig	2021-06-02 00:51:41.305445838 +0000
++++ src/xfdesktop-regular-file-icon.c	2021-06-02 00:59:04.443009139 +0000
+@@ -814,9 +814,7 @@
          time_string = xfdesktop_file_utils_format_time_for_display(mtime);
  
          regular_file_icon->priv->tooltip =
--            g_strdup_printf(_("Type: %s\nSize: %s\nLast modified: %s"),
+-            g_strdup_printf(_("Name: %s\nType: %s\nSize: %s\nLast modified: %s"),
+-                            regular_file_icon->priv->display_name,
 -                            description, size_string, time_string);
 +            g_strdup_printf(_(""));
  
          /* Extract the Comment entry from the .desktop file */
          if(is_desktop_file)
---- src/xfdesktop-special-file-icon.c.orig	2020-02-15 20:39:51.145829204 +0000
-+++ src/xfdesktop-special-file-icon.c	2020-02-15 20:40:40.956405442 +0000
+--- src/xfdesktop-special-file-icon.c.orig	2021-06-02 01:06:43.770767601 +0000
++++ src/xfdesktop-special-file-icon.c	2021-06-02 01:07:23.803269471 +0000
 @@ -491,8 +491,7 @@
              time_string = xfdesktop_file_utils_format_time_for_display(mtime);
  
              special_file_icon->priv->tooltip =
 -                g_strdup_printf(_("%s\nSize: %s\nLast modified: %s"),
 -                                description, size_string, time_string);
-+                g_strdup_printf(_("%s"),description);
++                g_strdup_printf(_("%s"), description);
  
              g_free(size_string);
              g_free(time_string);

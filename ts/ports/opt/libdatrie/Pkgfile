@@ -1,0 +1,14 @@
+# Maintainer: Jan de Groot <jgc@archlinux.org>
+# Contributor: Chaiwat Suttipongsakul <cwt114@gmail.com>
+
+name=libdatrie
+version=0.2.13
+release=1
+source=(https://linux.thai.net/pub/thailinux/software/libthai/${name}-${version}.tar.xz)
+
+build() {
+  cd "${SRC}/${name}-${version}"
+  ./configure --prefix=/usr --disable-static
+  make
+  make DESTDIR="${PKG}" install
+}

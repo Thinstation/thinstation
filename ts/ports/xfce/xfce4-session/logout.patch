@@ -1,15 +1,24 @@
---- xfsm-logout-dialog.c.orig	2019-09-11 04:53:09.655363409 +0000
-+++ xfsm-logout-dialog.c	2019-09-11 04:54:46.204100694 +0000
+--- xfce4-session/xfsm-logout-dialog.c.orig	2021-06-02 00:28:57.244411069 +0000
++++ xfce4-session/xfsm-logout-dialog.c	2021-06-02 00:44:25.436958617 +0000
+@@ -184,7 +184,7 @@
+   gtk_widget_show (main_vbox);
+ 
+   /* label showing the users' name */
+-  username = g_get_real_name ();
++/*  username = g_get_real_name ();
+   if (username == NULL
+       || *username == '\0'
+       || strcmp ("Unknown", username) == 0)
 @@ -235,7 +235,7 @@
    /**
     * Logout
     **/
--  button = xfsm_logout_dialog_button (_("_Log Out"), "system-log-out",
+-  button = xfsm_logout_dialog_button (_("_Log Out"), "xfsm-logout",
 +  button = xfsm_logout_dialog_button (_("Re_load"), "reload",
-                                       "xfsm-logout", NULL,
+                                       "system-log-out", NULL,
                                        XFSM_SHUTDOWN_LOGOUT, dialog);
-
-@@ -362,14 +362,14 @@
+ 
+@@ -417,14 +417,14 @@
    /**
     * Save session
     **/
@@ -32,4 +41,3 @@
  
    attrs = pango_attr_list_new ();
    pango_attr_list_insert (attrs, pango_attr_weight_new (PANGO_WEIGHT_BOLD));
-
