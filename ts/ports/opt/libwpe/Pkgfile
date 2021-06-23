@@ -1,0 +1,19 @@
+# Maintainer: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
+
+name=libwpe
+version=1.10.1
+release=1
+
+
+build() {
+  git clone https://github.com/WebPlatformForEmbedded/libwpe
+  cd $name
+  git checkout cdf940cd4ac489e2c3263b0d141c602521a891c5
+  cd ..
+  ts-meson $name build
+  meson compile -C build
+  DESTDIR=$PKG meson install -C build
+  install -Dt "$PKG/usr/share/licenses/$name" -m644 $name/COPYING
+}
+
+# vim:set sw=2 et:

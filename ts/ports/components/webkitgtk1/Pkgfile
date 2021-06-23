@@ -29,6 +29,7 @@ build() {
   autoreconf -ifv
 
   cd "${SRC}/build-gtk2"
+
   PATH="${SRC}/path:${PATH}"
 
   CXXFLAGS+=" -fno-delete-null-pointer-checks"
@@ -47,6 +48,14 @@ build() {
 
   # https://bugzilla.gnome.org/show_bug.cgi?id=655517
   sed -i "s/ -shared / -Wl,-O1,--as-needed\0/g" "${SRC}/build-gtk2/libtool"
+
+  sed -i ../webkitgtk-2.4.11/Source/WebCore/platform/text/icu/UTextProvider.h -e 's/TRUE/true/'
+  sed -i ../webkitgtk-2.4.11/Source/WebCore/platform/text/icu/UTextProvider.h -e 's/FALSE/false/'
+  sed -i ../webkitgtk-2.4.11/Source/WebCore/platform/text/icu/UTextProviderLatin1.cpp -e 's/FALSE/false/'
+  sed -i ../webkitgtk-2.4.11/Source/WebCore/platform/text/icu/UTextProviderLatin1.cpp -e 's/TRUE/true/'
+  sed -i ../webkitgtk-2.4.11/Source/WebCore/platform/text/icu/UTextProviderUTF16.cpp -e 's/TRUE/true/'
+  sed -i ../webkitgtk-2.4.11/Source/WebCore/platform/text/icu/UTextProviderUTF16.cpp -e 's/FALSE/false/'
+  sed -i ../webkitgtk-2.4.11/Source/WebCore/platform/text/TextCodecICU.cpp -e 's/TRUE/true/'
 
   make all stamp-po
 

@@ -4,7 +4,7 @@
 # Depends on:  db iptables
 
 name=iproute2
-version=5.3.0
+version=5.12.0
 release=1
 source=(https://www.kernel.org/pub/linux/utils/net/$name/$name-$version.tar.xz \
         lo.iproute2 net.iproute2)
@@ -16,7 +16,7 @@ build() {
     make CCOPTS="$CFLAGS"
     make MANDIR=/usr/share/man DESTDIR=$PKG install
 
-    rm -r $PKG/usr/share/doc
+#    rm -r $PKG/usr/share/doc
     install -D -m 0755 $SRC/lo.iproute2 $PKG/etc/rc.d/lo
     install -D -m 0755 $SRC/net.iproute2 $PKG/etc/rc.d/net
 }

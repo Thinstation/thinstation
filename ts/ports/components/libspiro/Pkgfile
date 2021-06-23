@@ -1,0 +1,19 @@
+# Maintainer: Gaetan Bisson <bisson@archlinux.org>
+# Contributor: Rémy Oudompheng <oudomphe@clipper.ens.fr>
+
+name=libspiro
+epoch=1
+version=20200505
+release=2
+source=("https://github.com/fontforge/libspiro/releases/download/${version}/libspiro-dist-${version}.tar.gz")
+
+build() {
+	cd "${SRC}/${name}-${version}"
+	autoreconf -i
+	automake --foreign -Wall
+	export LDFLAGS=
+	./configure --prefix=/usr
+	make
+	make DESTDIR="${PKG}" install
+	install -Dm644 libspiro.pc "${PKG}"/usr/lib/pkgconfig/libspiro.pc
+}

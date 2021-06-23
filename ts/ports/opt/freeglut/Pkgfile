@@ -7,10 +7,12 @@
 name=freeglut
 version=3.2.1
 release=1
-source=(http://download.sourceforge.net/$name/$name-$version.tar.gz)
+source=(http://download.sourceforge.net/$name/$name-$version.tar.gz \
+	f-no.patch)
 
 build() {
 	cd $name-$version
+	patch -p1 -i $SRC/f-no.patch
 
 	install -d build
 	cd build

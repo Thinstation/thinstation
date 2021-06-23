@@ -4,12 +4,15 @@
 # Packager: Younes Hafri, ycrux at club-internet dot fr
 
 name=icu
-version=64.2
+version=69.1
 release=1
-source=(http://download.icu-project.org/files/icu4c/$version/icu4c-${version//./_}-src.tgz)
+source=(https://codeload.github.com/unicode-org/icu/tar.gz/refs/tags/release-69-1)
 
 build() {
-	cd icu/source
+	mv release-69-1 release-69-1.tar.gz
+	tar -xvf release-69-1.tar.gz
+	cd icu-release-69-1
+	cd icu4c/source
 
 	# icu tries to use clang by default
 	[ "$CC" ] || export CC=gcc

@@ -4,13 +4,14 @@
 # Depends on:	freerdp libsodium
 
 name=remmina
-version=1.4.11
+version=1.4.18
 release=1
 declare -A \
 source=([$name-$version.tar.gz]=https://github.com/FreeRDP/Remmina/archive/v$version.tar.gz)
 
 build(){
 	cd Remmina-*
+	sed -i -e 's/, GIT_REVISION/, REMMINA_GIT_REVISION/g' plugins/rdp/rdp_plugin.c
 
 	cmake . \
 		-DCMAKE_BUILD_TYPE=Release \
@@ -18,7 +19,7 @@ build(){
 		-DWITH_TRANSLATIONS=Off \
 		-DWITH_APPINDICATOR=Off \
 		-DWITH_LIBSSH=OFF \
-		-DWITH_AVAHI=Off
+		-DWITH_AVAHI=ON
 
 	make DESTDIR=$PKG install
 	mv $PKG/usr/lib64 $PKG/usr/lib

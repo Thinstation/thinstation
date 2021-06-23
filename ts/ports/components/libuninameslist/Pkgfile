@@ -1,0 +1,15 @@
+# Maintainer: Gaetan Bisson <bisson@archlinux.org>
+
+name=libuninameslist
+version=20200413
+release=2
+source=("https://github.com/fontforge/${name}/releases/download/${version}/${name}-dist-${version}.tar.gz")
+
+build() {
+	cd "${SRC}/${name}-${version}"
+	autoreconf -i
+	automake --foreign -Wall
+	./configure --prefix=/usr
+	make
+	make DESTDIR="${PKG}" install
+}

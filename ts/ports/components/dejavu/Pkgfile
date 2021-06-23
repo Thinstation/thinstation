@@ -1,0 +1,21 @@
+# Maintainer: Jan de Groot <jgc@archlinux.org>
+# Contributor: Michal Krenek <mikos@sg1.cz>
+
+name=dejavu
+version=git
+release=3
+
+
+build() {
+  git clone https://github.com/dejavu-fonts/dejavu-fonts.git
+  cd dejavu-fonts
+  make full-ttf
+  install -Dt "$PKG/usr/share/fonts/TTF" -m644 build/*.ttf
+  install -Dt "$PKG/usr/share/fontconfig/conf.avail" -m644 fontconfig/*.conf
+
+  mkdir "$PKG/usr/share/fontconfig/conf.default"
+  ln -srt "$PKG/usr/share/fontconfig/conf.default" \
+    "$PKG"/usr/share/fontconfig/conf.avail/*
+
+  install -Dt "$PKG/usr/share/licenses/$name" -m644 LICENSE
+}

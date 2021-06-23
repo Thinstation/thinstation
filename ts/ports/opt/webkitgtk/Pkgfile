@@ -5,13 +5,13 @@
 # Optional: enchant libnotify geoclue
 
 name=webkitgtk
-version=2.24.3
+version=2.32.1
 release=1
 source=(https://webkitgtk.org/releases/$name-$version.tar.xz)
 
 build() {
 JOBS=`nproc`
-
+	export PYTHON=/usr/bin/python3
 	mkdir build
 	cd $name-$version
 
@@ -52,7 +52,11 @@ JOBS=`nproc`
 		-DCMAKE_INSTALL_LIBEXECDIR:PATH=/usr/lib \
 		-DCMAKE_SKIP_RPATH:BOOL=ON \
 		-DPORT=GTK \
+		-DENABLE_GTKDOC=ON \
+		-DENABLE_GLES2=ON \
+		-DENABLE_GAMEPAD=OFF \
 		-DENABLE_MINIBROWSER=ON \
+		-DENABLE_BUBBLEWRAP_SANDBOX=OFF \
 		-DUSE_SYSTEM_MALLOC=ON \
 		-Wno-dev $GEOLOCATION $SPELLCHECK $NOTIFY
 

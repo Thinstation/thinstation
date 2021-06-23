@@ -4,7 +4,7 @@
 # Depends on:  nspr sqlite3
 
 name=nss
-version=3.63
+version=3.67
 release=1
 _version=$(echo $version |sed 's/\./_/g')
 
@@ -14,6 +14,8 @@ source=(http://ftp.mozilla.org/pub/security/nss/releases/NSS_${_version}_RTM/src
 build() {
 # Fedora
 CFLAGS=`echo $CFLAGS |sed -e 's/-O2/-O0/g'|sed -e 's/-D_FORTIFY_SOURCE=2//g'`
+CFLAGS+=" -Wno-error=nonnull"
+
 export CFLAGS
 export CXXFLAGS="$CFLAGS"
 export XCFLAGS="$CFLAGS"
@@ -28,6 +30,9 @@ export PKG_CONFIG_ALLOW_SYSTEM_CFLAGS=1
 export NSS_USE_SYSTEM_SQLITE=1
 export NSS_ALLOW_SSLKEYLOGFILE=1
 export NSPR_INCLUDE_DIR=/usr/include/nspr
+kver=`cat /ts/ports/kernel-modules/VERSION`
+export REPORT_KERNEL=${kver}TS
+
 #export NSS_DISABLE_DBM=1
 
 _nsprver=$(pkg-config --modversion nspr)

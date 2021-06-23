@@ -1,4 +1,6 @@
 drwxr-xr-x	root/root	etc/
+drwxr-xr-x	root/root	etc/logrotate.d/
+-rw-r--r--	root/root	etc/logrotate.d/bootlog
 drwxr-xr-x	root/root	etc/plymouth/
 -rw-r--r--	root/root	etc/plymouth/plymouthd.conf
 drwxr-xr-x	root/root	usr/
@@ -24,8 +26,11 @@ drwxr-xr-x	root/root	usr/include/plymouth-1/ply-splash-core/
 -rw-r--r--	root/root	usr/include/plymouth-1/ply-splash-core/ply-text-step-bar.h
 drwxr-xr-x	root/root	usr/include/plymouth-1/ply-splash-graphics/
 -rw-r--r--	root/root	usr/include/plymouth-1/ply-splash-graphics/ply-animation.h
+-rw-r--r--	root/root	usr/include/plymouth-1/ply-splash-graphics/ply-capslock-icon.h
 -rw-r--r--	root/root	usr/include/plymouth-1/ply-splash-graphics/ply-entry.h
 -rw-r--r--	root/root	usr/include/plymouth-1/ply-splash-graphics/ply-image.h
+-rw-r--r--	root/root	usr/include/plymouth-1/ply-splash-graphics/ply-keymap-icon.h
+-rw-r--r--	root/root	usr/include/plymouth-1/ply-splash-graphics/ply-keymap-metadata.h
 -rw-r--r--	root/root	usr/include/plymouth-1/ply-splash-graphics/ply-label-plugin.h
 -rw-r--r--	root/root	usr/include/plymouth-1/ply-splash-graphics/ply-label.h
 -rw-r--r--	root/root	usr/include/plymouth-1/ply-splash-graphics/ply-progress-animation.h
@@ -89,8 +94,6 @@ drwxr-xr-x	root/root	usr/lib/plymouth/renderers/
 -rwxr-xr-x	root/root	usr/lib/plymouth/space-flares.so
 -rwxr-xr-x	root/root	usr/lib/plymouth/text.la
 -rwxr-xr-x	root/root	usr/lib/plymouth/text.so
--rwxr-xr-x	root/root	usr/lib/plymouth/throbgress.la
--rwxr-xr-x	root/root	usr/lib/plymouth/throbgress.so
 -rwxr-xr-x	root/root	usr/lib/plymouth/tribar.la
 -rwxr-xr-x	root/root	usr/lib/plymouth/tribar.so
 -rwxr-xr-x	root/root	usr/lib/plymouth/two-step.la
@@ -99,11 +102,13 @@ drwxr-xr-x	root/root	usr/lib/systemd/
 drwxr-xr-x	root/root	usr/lib/systemd/system/
 drwxr-xr-x	root/root	usr/lib/systemd/system/halt.target.wants/
 lrwxrwxrwx	root/root	usr/lib/systemd/system/halt.target.wants/plymouth-halt.service -> ../plymouth-halt.service
+lrwxrwxrwx	root/root	usr/lib/systemd/system/halt.target.wants/plymouth-switch-root-initramfs.service -> ../plymouth-switch-root-initramfs.service
 drwxr-xr-x	root/root	usr/lib/systemd/system/initrd-switch-root.target.wants/
 lrwxrwxrwx	root/root	usr/lib/systemd/system/initrd-switch-root.target.wants/plymouth-start.service -> ../plymouth-start.service
 lrwxrwxrwx	root/root	usr/lib/systemd/system/initrd-switch-root.target.wants/plymouth-switch-root.service -> ../plymouth-switch-root.service
 drwxr-xr-x	root/root	usr/lib/systemd/system/kexec.target.wants/
 lrwxrwxrwx	root/root	usr/lib/systemd/system/kexec.target.wants/plymouth-kexec.service -> ../plymouth-kexec.service
+lrwxrwxrwx	root/root	usr/lib/systemd/system/kexec.target.wants/plymouth-switch-root-initramfs.service -> ../plymouth-switch-root-initramfs.service
 -rw-r--r--	root/root	usr/lib/systemd/system/lightdm-plymouth.service
 drwxr-xr-x	root/root	usr/lib/systemd/system/multi-user.target.wants/
 lrwxrwxrwx	root/root	usr/lib/systemd/system/multi-user.target.wants/plymouth-quit-wait.service -> ../plymouth-quit-wait.service
@@ -116,11 +121,14 @@ lrwxrwxrwx	root/root	usr/lib/systemd/system/multi-user.target.wants/plymouth-qui
 -rw-r--r--	root/root	usr/lib/systemd/system/plymouth-read-write.service
 -rw-r--r--	root/root	usr/lib/systemd/system/plymouth-reboot.service
 -rw-r--r--	root/root	usr/lib/systemd/system/plymouth-start.service
+-rw-r--r--	root/root	usr/lib/systemd/system/plymouth-switch-root-initramfs.service
 -rw-r--r--	root/root	usr/lib/systemd/system/plymouth-switch-root.service
 drwxr-xr-x	root/root	usr/lib/systemd/system/poweroff.target.wants/
 lrwxrwxrwx	root/root	usr/lib/systemd/system/poweroff.target.wants/plymouth-poweroff.service -> ../plymouth-poweroff.service
+lrwxrwxrwx	root/root	usr/lib/systemd/system/poweroff.target.wants/plymouth-switch-root-initramfs.service -> ../plymouth-switch-root-initramfs.service
 drwxr-xr-x	root/root	usr/lib/systemd/system/reboot.target.wants/
 lrwxrwxrwx	root/root	usr/lib/systemd/system/reboot.target.wants/plymouth-reboot.service -> ../plymouth-reboot.service
+lrwxrwxrwx	root/root	usr/lib/systemd/system/reboot.target.wants/plymouth-switch-root-initramfs.service -> ../plymouth-switch-root-initramfs.service
 drwxr-xr-x	root/root	usr/lib/systemd/system/sysinit.target.wants/
 lrwxrwxrwx	root/root	usr/lib/systemd/system/sysinit.target.wants/plymouth-read-write.service -> ../plymouth-read-write.service
 lrwxrwxrwx	root/root	usr/lib/systemd/system/sysinit.target.wants/plymouth-start.service -> ../plymouth-start.service
@@ -131,6 +139,7 @@ drwxr-xr-x	root/root	usr/libexec/plymouth/
 -rwxr-xr-x	root/root	usr/libexec/plymouth/plymouth-generate-initrd
 -rwxr-xr-x	root/root	usr/libexec/plymouth/plymouth-populate-initrd
 -rwxr-xr-x	root/root	usr/libexec/plymouth/plymouth-update-initrd
+-rwxr-xr-x	root/root	usr/libexec/plymouth/plymouthd-fd-escrow
 drwxr-xr-x	root/root	usr/man/
 drwxr-xr-x	root/root	usr/man/man1/
 -rw-r--r--	root/root	usr/man/man1/plymouth-set-default-theme.1.gz
@@ -142,49 +151,6 @@ drwxr-xr-x	root/root	usr/sbin/
 -rwxr-xr-x	root/root	usr/sbin/plymouth-set-default-theme
 -rwxr-xr-x	root/root	usr/sbin/plymouthd
 drwxr-xr-x	root/root	usr/share/
-drwxr-xr-x	root/root	usr/share/locale/
-drwxr-xr-x	root/root	usr/share/locale/be/
-drwxr-xr-x	root/root	usr/share/locale/be/LC_MESSAGES/
--rw-r--r--	root/root	usr/share/locale/be/LC_MESSAGES/plymouth.mo
-drwxr-xr-x	root/root	usr/share/locale/cs/
-drwxr-xr-x	root/root	usr/share/locale/cs/LC_MESSAGES/
--rw-r--r--	root/root	usr/share/locale/cs/LC_MESSAGES/plymouth.mo
-drwxr-xr-x	root/root	usr/share/locale/de/
-drwxr-xr-x	root/root	usr/share/locale/de/LC_MESSAGES/
--rw-r--r--	root/root	usr/share/locale/de/LC_MESSAGES/plymouth.mo
-drwxr-xr-x	root/root	usr/share/locale/es/
-drwxr-xr-x	root/root	usr/share/locale/es/LC_MESSAGES/
--rw-r--r--	root/root	usr/share/locale/es/LC_MESSAGES/plymouth.mo
-drwxr-xr-x	root/root	usr/share/locale/fr/
-drwxr-xr-x	root/root	usr/share/locale/fr/LC_MESSAGES/
--rw-r--r--	root/root	usr/share/locale/fr/LC_MESSAGES/plymouth.mo
-drwxr-xr-x	root/root	usr/share/locale/fur/
-drwxr-xr-x	root/root	usr/share/locale/fur/LC_MESSAGES/
--rw-r--r--	root/root	usr/share/locale/fur/LC_MESSAGES/plymouth.mo
-drwxr-xr-x	root/root	usr/share/locale/hu/
-drwxr-xr-x	root/root	usr/share/locale/hu/LC_MESSAGES/
--rw-r--r--	root/root	usr/share/locale/hu/LC_MESSAGES/plymouth.mo
-drwxr-xr-x	root/root	usr/share/locale/nl/
-drwxr-xr-x	root/root	usr/share/locale/nl/LC_MESSAGES/
--rw-r--r--	root/root	usr/share/locale/nl/LC_MESSAGES/plymouth.mo
-drwxr-xr-x	root/root	usr/share/locale/pl/
-drwxr-xr-x	root/root	usr/share/locale/pl/LC_MESSAGES/
--rw-r--r--	root/root	usr/share/locale/pl/LC_MESSAGES/plymouth.mo
-drwxr-xr-x	root/root	usr/share/locale/sr/
-drwxr-xr-x	root/root	usr/share/locale/sr/LC_MESSAGES/
--rw-r--r--	root/root	usr/share/locale/sr/LC_MESSAGES/plymouth.mo
-drwxr-xr-x	root/root	usr/share/locale/uk/
-drwxr-xr-x	root/root	usr/share/locale/uk/LC_MESSAGES/
--rw-r--r--	root/root	usr/share/locale/uk/LC_MESSAGES/plymouth.mo
-drwxr-xr-x	root/root	usr/share/locale/zh_CN/
-drwxr-xr-x	root/root	usr/share/locale/zh_CN/LC_MESSAGES/
--rw-r--r--	root/root	usr/share/locale/zh_CN/LC_MESSAGES/plymouth.mo
-drwxr-xr-x	root/root	usr/share/locale/zh_HK/
-drwxr-xr-x	root/root	usr/share/locale/zh_HK/LC_MESSAGES/
--rw-r--r--	root/root	usr/share/locale/zh_HK/LC_MESSAGES/plymouth.mo
-drwxr-xr-x	root/root	usr/share/locale/zh_TW/
-drwxr-xr-x	root/root	usr/share/locale/zh_TW/LC_MESSAGES/
--rw-r--r--	root/root	usr/share/locale/zh_TW/LC_MESSAGES/plymouth.mo
 drwxr-xr-x	root/root	usr/share/plymouth/
 -rw-r--r--	root/root	usr/share/plymouth/bizcom.png
 -rw-r--r--	root/root	usr/share/plymouth/plymouthd.defaults
@@ -276,9 +242,14 @@ drwxr-xr-x	root/root	usr/share/plymouth/themes/solar/
 -rw-r--r--	root/root	usr/share/plymouth/themes/solar/solar.plymouth
 -rw-r--r--	root/root	usr/share/plymouth/themes/solar/star.png
 drwxr-xr-x	root/root	usr/share/plymouth/themes/spinfinity/
+-rw-r--r--	root/root	usr/share/plymouth/themes/spinfinity/animation-0001.png
 -rw-r--r--	root/root	usr/share/plymouth/themes/spinfinity/box.png
 -rw-r--r--	root/root	usr/share/plymouth/themes/spinfinity/bullet.png
+-rw-r--r--	root/root	usr/share/plymouth/themes/spinfinity/capslock.png
 -rw-r--r--	root/root	usr/share/plymouth/themes/spinfinity/entry.png
+lrwxrwxrwx	root/root	usr/share/plymouth/themes/spinfinity/header-image.png -> /usr/share/pixmaps/system-logo-white.png
+-rw-r--r--	root/root	usr/share/plymouth/themes/spinfinity/keyboard.png
+-rw-r--r--	root/root	usr/share/plymouth/themes/spinfinity/keymap-render.png
 -rw-r--r--	root/root	usr/share/plymouth/themes/spinfinity/lock.png
 -rw-r--r--	root/root	usr/share/plymouth/themes/spinfinity/spinfinity.plymouth
 -rw-r--r--	root/root	usr/share/plymouth/themes/spinfinity/throbber-00.png
@@ -353,7 +324,10 @@ drwxr-xr-x	root/root	usr/share/plymouth/themes/spinner/
 -rw-r--r--	root/root	usr/share/plymouth/themes/spinner/animation-0035.png
 -rw-r--r--	root/root	usr/share/plymouth/themes/spinner/animation-0036.png
 -rw-r--r--	root/root	usr/share/plymouth/themes/spinner/bullet.png
+-rw-r--r--	root/root	usr/share/plymouth/themes/spinner/capslock.png
 -rw-r--r--	root/root	usr/share/plymouth/themes/spinner/entry.png
+-rw-r--r--	root/root	usr/share/plymouth/themes/spinner/keyboard.png
+-rw-r--r--	root/root	usr/share/plymouth/themes/spinner/keymap-render.png
 -rw-r--r--	root/root	usr/share/plymouth/themes/spinner/lock.png
 -rw-r--r--	root/root	usr/share/plymouth/themes/spinner/spinner.plymouth
 -rw-r--r--	root/root	usr/share/plymouth/themes/spinner/throbber-0001.png

@@ -1,0 +1,27 @@
+# Maintainer: Gaetan Bisson <bisson@archlinux.org>
+# Contributor: Eric Belanger <eric@archlinux.org>
+# Contributor: William Rea <sillywilly@gmail.com>
+
+name=fontforge
+version=20201107
+release=1
+source=("https://github.com/${name}/${name}/releases/download/${version}/${name}-${version}.tar.xz"
+        fontforge-doc-no-warn-error.patch)
+
+build() {
+	cd "${SRC}/${name}-${version}"
+	mkdir build
+	patch -Np1 -i $SRC/fontforge-doc-no-warn-error.patch
+	cd build
+	cmake \
+		-DCMAKE_BUILD_TYPE=Release \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DENABLE_MAINTAINER_TOOLS=TRUE \
+		-DENABLE_FONTFORGE_EXTRAS=TRUE \
+		-DUNIX=TRUE \
+		..
+
+	make
+	make DESTDIR="${PKG}" install
+	install -Dm644 ../LICENSE "${PKG}/usr/share/licenses/${name}/LICENSE"
+}

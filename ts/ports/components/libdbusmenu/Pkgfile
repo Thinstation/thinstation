@@ -1,0 +1,66 @@
+# Maintainer: Levente Polyak <anthraxx[at]archlinux[dot]org>
+# Contributor: Llewelyn Trahaearn <WoefulDerelict at GMail dot com>
+# Contributor: Maxime Gauduin <alucryd at archlinux dot org>
+# Contributor: FadeMind <fademind at gmail dot com>
+# Contributor: Balló György <ballogyor+arch at gmail dot com>
+# Contributor: Branchini Massimo <max.bra.gtalk at gmail dot com
+
+name=libdbusmenu
+version=16.04.0
+release=4
+source=(https://launchpad.net/${name}/${version%.?}/${version}/+download/${name}-${version}.tar.gz{,.asc})
+
+build() {
+  cd ${name}-${version}
+  # don't treat warnings as errors
+  sed -i 's/-Werror//' libdbusmenu-*/Makefile.{am,in}
+  cd ..
+
+  cp -ra ${name}-${version}{,-gtk2}
+
+  cd $SRC
+  export HAVE_VALGRIND_TRUE='#'
+  export HAVE_VALGRIND_FALSE=''
+
+#  msg2 "Building gtk3..."
+  (cd ${name}-${version}
+    ./configure --prefix=/usr \
+      --sysconfdir=/etc \
+      --localstatedir=/var \
+      --disable-{dumper,static,tests,vala} \
+      --with-gtk=3
+    make
+  )
+
+#  msg2 "Building gtk2..."
+  (cd ${name}-${version}-gtk2
+    ./configure --prefix=/usr \
+      --sysconfdir=/etc \
+      --localstatedir=/var \
+      --disable-{dumper,static,tests,vala} \
+      --with-gtk=2
+    make
+  )
+  package_libdbusmenu-glib
+  package_libdbusmenu-gtk2
+  package_libdbusmenu-gtk3
+}
+
+package_libdbusmenu-glib() {
+
+  cd $SRC/${name}-${version}
+  make -j1 -C libdbusmenu-glib DESTDIR="${PKG}" install
+}
+
+package_libdbusmenu-gtk2() {
+
+  cd $SRC/${name}-${version}-gtk2
+  make -j1 -C libdbusmenu-gtk DESTDIR="${PKG}" install
+}
+
+package_libdbusmenu-gtk3() {
+
+  cd $SRC/${name}-${version}
+  make -j1 -C libdbusmenu-gtk DESTDIR="${PKG}" install
+}
+

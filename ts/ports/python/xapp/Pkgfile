@@ -1,0 +1,33 @@
+# Maintainer: Eli Schwartz <eschwartz@archlinux.org>
+# Contributor: Alex Filgueira <alexfilgueira (at antergos.com)>
+# Contributor: Nate Simon <aurpkg (at natesimon.net)>
+
+name=xapp
+version=2.2.0
+release=1
+source=("https://github.com/linuxmint/${name}/archive/${version}.tar.gz")
+
+build() {
+    mkdir -p "${SRC}"/${name}-${version}/build
+    cd "${SRC}"/${name}-${version}/build
+
+    meson --prefix=/usr \
+          --libexecdir=lib \
+          --buildtype=plain \
+          ..
+    samu
+
+    DESTDIR="${PKG}" samu install
+
+    # rm useless scripts
+    rm -r "${PKG}"/usr/bin
+
+    # byte-compile python modules since meson does not implement autotools'
+    # py-compile.
+    # This is kind of ugly but removes traces of the build root.
+    while read -rd '' _file; do
+        _destdir="$(dirname "${_file#${PKG}}")"
+        python -m compileall -d "${_destdir}" "${_file}"
+        python -O -m compileall -d "${_destdir}" "${_file}"
+    done < <(find "${PKG}"/usr/lib/python3* -name '*.py' -print0)
+}

@@ -11,7 +11,7 @@ source=(https://gstreamer.freedesktop.org/src/$name/$name-$version.tar.xz)
 
 build() {
 	cd $name-$version
-
+CFLAGS+=' -fcommon' # https://wiki.gentoo.org/wiki/Gcc_10_porting_notes/fno_common
 	meson build \
 		--prefix=/usr \
 		-D buildtype=release \

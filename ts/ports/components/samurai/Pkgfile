@@ -1,0 +1,16 @@
+# Maintainer: Eli Schwartz <eschwartz@archlinux.org>
+# Contributor : Drew DeVault <sir@cmpwn.com>
+
+name=samurai
+version=1.2
+release=1
+source=("https://github.com/michaelforney/${name}/archive/${version}.tar.gz")
+
+build() {
+    cd "${SRC}"/${name}-${version}
+
+    make samu
+
+    make install PREFIX=/usr DESTDIR="${PKG}"
+    install -Dm644 LICENSE "${PKG}"/usr/share/licenses/${name}/LICENSE
+}

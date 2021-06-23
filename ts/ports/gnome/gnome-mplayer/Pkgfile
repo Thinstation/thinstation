@@ -12,6 +12,7 @@ source=(https://github.com/kdekorte/$name/archive/v$version.tar.gz)
 build() {
     cd $name-$version
     sed -i 's/Exec=gnome-mplayer %U/Exec=gnome-mplayer %F/' $name.desktop
+CFLAGS+=' -fcommon' # https://wiki.gentoo.org/wiki/Gcc_10_porting_notes/fno_common
     autoreconf -fi
 
     ./configure --prefix=/usr \

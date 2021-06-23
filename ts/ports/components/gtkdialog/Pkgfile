@@ -6,14 +6,16 @@
 name=gtkdialog
 version=0.8.3
 release=2
-source=(https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/gtkdialog/gtkdialog-$version.tar.gz)
+source=(https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/gtkdialog/gtkdialog-$version.tar.gz \
+	gtkdialog-0.8.3-fno-common.patch)
 
 build() {
   cd $name-$version
+  patch -p1 -i $SRC/gtkdialog-0.8.3-fno-common.patch
   # Break vte support
   sed -i -e 's/>= 0.23.5/1000/g' configure
 
-  ./configure --prefix=/usr
+  ./configure --prefix=/usr --disable-vte
 
   make
   make prefix=$PKG/usr install

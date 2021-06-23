@@ -5,8 +5,8 @@
 # Optional: rtmpdump openldap libexif openjade gtk-doc gtkspell brotli imagemagick-compat
 
 name=inkscape
-version=1.0
-release=2020-05-01_4035a4fb49
+version=1.1
+release=2021-05-24_c4e8f9ed74
 source=(https://media.inkscape.org/dl/resources/file/inkscape-$version.tar.xz
 	inkscape-0.92.4-poppler-0.76.0.patch)
 
@@ -27,7 +27,7 @@ build() {
        # Fix build with poppler 0.76
 #        sed -e 's|new Lexer(xref, obj)|obj|g' -i src/extension/internal/pdfinput/pdf-parser.cpp
 
-#	export PKG_CONFIG_PATH='/usr/lib/imagemagick6/pkgconfig'
+#	export PKG_CONFIG_PATH='/usr/lib/imagemagick7/pkgconfig'
 #	export FREETYPE_CONFIG="/usr/bin/pkg-config freetype2"
 
 	mkdir -p build
@@ -35,6 +35,8 @@ build() {
 		-DCMAKE_BUILD_TYPE=Release \
 		-DCMAKE_INSTALL_PREFIX:PATH=/usr \
 		-DWITH_DBUS=ON \
+		-DWITH_IMAGE_MAGICK=ON \
+		-DWITH_INTERNAL_2GEOM=ON
 
 	cmake --build build
 

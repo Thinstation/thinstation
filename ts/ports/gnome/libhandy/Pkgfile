@@ -1,0 +1,17 @@
+# Description: C++ interface to GTK+.
+# URL: http://gtkmm.sourceforge.net/
+# Maintainer: Danny Rawlins, monster dot romster at gmail dot com
+# Packager: Younes Hafri, ycrux at club-internet dot fr
+# Depends on: pangomm
+
+name=libhandy
+version=1.2.2
+release=1
+source=(http://ftp.gnome.org/pub/GNOME/sources/$name/${version%.*}/$name-$version.tar.xz)
+
+build() {
+	ts-meson libhandy-$version build \
+	    -D gtk_doc=true
+	meson compile -C build
+	DESTDIR="$PKG" meson install -C build
+}

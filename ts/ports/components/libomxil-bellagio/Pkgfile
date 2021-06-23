@@ -9,7 +9,7 @@ source=("https://downloads.sourceforge.net/project/omxil/omxil/Bellagio%200.9.3/
 
 build() {
   cd ${SRC}/${name}-$version
-
+  CFLAGS+=' -fcommon' # https://wiki.gentoo.org/wiki/Gcc_10_porting_notes/fno_common
   # Fixes from fedora repo
   patch -Np1 -i ../fedora-fixes.patch
   sed -e 's/-Werror//' -i configure.ac

@@ -1,0 +1,18 @@
+# Maintainer: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
+
+name=wpebackend-fdo
+version=1.10.1
+release=1
+
+
+build() {
+  git clone https://github.com/Igalia/WPEBackend-fdo
+  cd WPEBackend-fdo
+  git checkout a908c630483bc99d0c87d4086af183c9a4cafde2
+  cd ..
+  ts-meson WPEBackend-fdo build
+  meson compile -C build
+  DESTDIR=$PKG meson install -C build
+}
+
+# vim:set sw=2 et:

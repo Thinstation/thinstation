@@ -4,7 +4,7 @@
 # Depends on:  cmake
 
 name=rust
-version=1.46.0
+version=1.53.0
 release=1
 source=(
 	https://static.rust-lang.org/dist/rustc-$version-src.tar.gz
@@ -13,11 +13,9 @@ source=(
 build() {
 	cd rustc-$version-src
 
-	./configure --prefix=/usr --enable-extended --disable-docs
+	./configure --prefix=/usr --enable-extended --disable-docs --enable-missing-tools
 
-	procs=`nproc`
-	let procs-=1
-	python3 ./x.py build -j $procs
+	python3 ./x.py build
 	DESTDIR=$PKG python3 ./x.py install
 
 	rm -rf $PKG/usr/share/doc

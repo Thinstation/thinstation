@@ -10,7 +10,7 @@ build() {
 	git clone --depth 1 https://gitlab.com/redhat-crypto/fedora-crypto-policies.git
 	cd fedora-crypto-policies
 	sed -i -e '/LibreswanGenerator/d' python/policygenerators/__init__.py
-	make
+	make PYTHON=/usr/bin/python3
 	make DESTDIR=$PKG install
 	sed -i -e 's|/usr/bin/sh|/bin/bash|g' $PKG/usr/bin/update-crypto-policies
 }
