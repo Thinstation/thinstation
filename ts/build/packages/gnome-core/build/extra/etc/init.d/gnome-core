@@ -10,6 +10,9 @@ if ! pkg_initialized $PACKAGE; then
 		mkdir -p $HOME/.gconf
 		cp -rf /etc/gconf/Default/* $HOME/.gconf/.
 	fi
+	if [ -e /bin/gnome-keyring-daemon ] && [ -z "`getcap /bin/gnome-keyring-daemon`" ]; then
+		setcap cap_ipc_lock=+ep /bin/gnome-keyring-daemon
+	fi
 
 	mode=none
 		if [ -n "$PROXY_HOST$PROXY_PORT$PROXY_SECURE_HOST$PROXY_SECURE_PORT$PROXY_USE_SAME$PROXY_FTP_HOST$PROXY_FTP_PORT$PROXY_SOCKS_HOST$PROXY_SOCKS_PORT$PROXY_USER$PROXY_PASSWORD$PROXY_IGNORE$PROXY_AUTOCONFIG" ]; then
