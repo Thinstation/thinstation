@@ -4,14 +4,12 @@
 # Depends on: mesa3d
 
 name=libepoxy
-version=1.5.4
+version=1.5.8
 release=1
 source=(https://github.com/anholt/libepoxy/releases/download/$version/libepoxy-$version.tar.xz)
 
 build() {
-	cd libepoxy-$version
-	./autogen.sh
-	./configure --prefix=/usr
-	make
-	make DESTDIR=$PKG install
+	ts-meson $name-$version build -D docs=true
+	meson compile -C build
+	DESTDIR="$PKG" meson install -C build
 }

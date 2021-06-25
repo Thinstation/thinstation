@@ -1,14 +1,16 @@
 # Maintainer: Jan Alexander Steffens (heftig) <jan.steffens@gmail.com>
 
 name=pangox-compat
-version=0.0.2+2+gedb9e09
+version=git
 release=3
-source=(0001-Re-add-pango_x_get_shaper_map-it-is-still-used-in-th.patch)
+source=(0001-Re-add-pango_x_get_shaper_map-it-is-still-used-in-th.patch
+	0002-disable-shaper.patch)
 
 build() {
   git clone https://gitlab.gnome.org/Archive/pangox-compat
   cd $name
   patch -Np1 -i ../0001-Re-add-pango_x_get_shaper_map-it-is-still-used-in-th.patch
+  patch -Np1 -i ../0002-disable-shaper.patch
   NOCONFIGURE=1 ./autogen.sh
 
   ./configure --prefix=/usr --sysconfdir=/etc --localstatedir=/var \
