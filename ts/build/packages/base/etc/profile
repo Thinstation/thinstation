@@ -2,10 +2,11 @@
 
 trap "" INT QUIT TSTP
 . /etc/thinstation.global
-if [ `id -u` == '0' ]; then
-	umask 022
+
+if [ "$TSUSER" != "root" ]; then
+	umask 027
 else
-	umask 077
+	umask 022
 fi
 
 if [ "`tty`" == "$CONSOLE" ]; then
