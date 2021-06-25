@@ -2,7 +2,11 @@
 
 trap "" INT QUIT TSTP
 . /etc/thinstation.global
-umask 022
+if [ `id -u` == '0' ]; then
+	umask 022
+else
+	umask 077
+fi
 
 if [ "`tty`" == "$CONSOLE" ]; then
 	. /etc/splash.functions
