@@ -4,40 +4,42 @@
 # Depends on: elfutils libdrm libvdpau llvm xorg-dri3proto xorg-glproto xorg-libxdamage xorg-libxshmfence xorg-libxvmc xorg-presentproto xorg-libxxf86vm
 
 name=mesa3d
-version=20.1.3
+version=21.1.3
 release=1
 source=(https://mesa.freedesktop.org/archive/mesa-$version.tar.xz)
 
 build() {
 ts-meson mesa-$version build \
-    -D b_lto=false \
+    -D b_lto=true \
     -D b_ndebug=true \
-    -D platforms=x11,wayland,drm,surfaceless \
+    -D platforms=x11,wayland \
     -D dri-drivers=i915,i965,r100,r200,nouveau \
-    -D gallium-drivers=r300,r600,radeonsi,nouveau,virgl,svga,swrast,swr,iris \
-    -D vulkan-drivers=amd,intel \
-    -D vulkan-overlay-layer=true \
+    -D gallium-drivers=r300,r600,radeonsi,nouveau,virgl,svga,swrast,swr,iris,zink \
+    -D vulkan-drivers=amd,intel,swrast \
+    -D vulkan-layers=device-select,intel-nullhw,overlay \
     -D swr-arches=avx,avx2 \
-    -D dri3=true \
-    -D egl=true \
+    -D dri3=enabled \
+    -D egl=enabled \
     -D gallium-extra-hud=true \
     -D gallium-nine=true \
     -D gallium-omx=bellagio \
     -D gallium-opencl=icd \
-    -D gallium-va=true \
-    -D gallium-vdpau=true \
-    -D gallium-xa=true \
-    -D gallium-xvmc=false \
-    -D gbm=true \
-    -D gles1=true \
-    -D gles2=true \
+    -D gallium-va=enabled \
+    -D gallium-vdpau=enabled \
+    -D gallium-xa=enabled \
+    -D gallium-xvmc=enabled \
+    -D gbm=enabled \
+    -D gles1=enabled \
+    -D gles2=enabled \
+    -D glvnd=true \
     -D glx=dri \
-    -D libunwind=true \
-    -D llvm=true \
-    -D lmsensors=true \
-    -D osmesa=gallium \
-    -D shared-glapi=true \
-    -D valgrind=false
+    -D libunwind=enabled \
+    -D llvm=enabled \
+    -D lmsensors=enabled \
+    -D osmesa=true \
+    -D shared-glapi=enabled \
+    -D microsoft-clc=disabled \
+    -D valgrind=enabled
 
   # Print config
   meson configure build

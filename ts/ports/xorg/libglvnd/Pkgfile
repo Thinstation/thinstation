@@ -1,0 +1,16 @@
+# Maintainer: Felix Yan <felixonmars@archlinux.org>
+
+name=libglvnd
+version=1.3.3
+release=1
+source=("https://gitlab.freedesktop.org/glvnd/libglvnd/-/archive/v$version/libglvnd-v$version.tar.gz")
+
+build() {
+  ts-meson $name-v$version build \
+    -D gles1=false
+
+  ninja -C build
+
+  DESTDIR="$PKG" ninja -C build install
+  
+}

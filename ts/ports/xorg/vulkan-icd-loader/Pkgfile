@@ -1,0 +1,31 @@
+# Maintainer: Laurent Carlier <lordheavym@gmail.com>
+
+name=vulkan-icd-loader
+version=1.2.182
+release=1
+provides=('libvulkan.so')
+source=("https://github.com/KhronosGroup/Vulkan-Loader/archive/v${version}.tar.gz")
+
+build() {
+  cd "${SRC}"/Vulkan-Loader*
+
+  rm -rf build ; mkdir build ; cd build
+  cmake -DCMAKE_INSTALL_PREFIX=/usr \
+    -DVULKAN_HEADERS_INSTALL_DIR=/usr \
+    -DCMAKE_INSTALL_LIBDIR=lib \
+    -DCMAKE_INSTALL_SYSCONFDIR=/etc \
+    -DCMAKE_INSTALL_DATADIR=/share \
+    -DCMAKE_SKIP_RPATH=True \
+    -DBUILD_TESTS=Off \
+    -DBUILD_WSI_XCB_SUPPORT=On \
+    -DBUILD_WSI_XLIB_SUPPORT=On \
+    -DBUILD_WSI_WAYLAND_SUPPORT=On \
+    -DCMAKE_BUILD_TYPE=Release \
+    ..
+  make
+  
+  make DESTDIR="${PKG}" install
+  
+  install -dm755 "${PKG}"/usr/share/licenses/${name}
+  install -m644 ../LICENSE.txt "${PKG}"/usr/share/licenses/${name}/
+}

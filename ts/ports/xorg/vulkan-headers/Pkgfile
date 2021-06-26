@@ -1,0 +1,20 @@
+# Maintainer: Laurent Carlier <lordheavym@gmail.com>
+
+name=vulkan-headers
+_name=Vulkan-Headers
+version=1.2.182
+release=1
+epoch=1
+source=("https://github.com/KhronosGroup/Vulkan-Headers/archive/v${version}.tar.gz")
+
+build() {
+  cd Vulkan-Headers*
+
+  rm -rf build ; mkdir build ; cd build
+  cmake -DCMAKE_INSTALL_PREFIX=/usr \
+    -DCMAKE_BUILD_TYPE=Release \
+    ..
+  make
+  
+  make DESTDIR="${PKG}" install
+}
