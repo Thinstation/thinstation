@@ -1,7 +1,5 @@
 # ThinStation
 
-- The Bad News - ThinStation has lost it's sponsor(Budget Shortsight). Funding will cease in April of 2021. If your organization thinks ThinStation is a useful product, and would like to takeover sponsorship, please reach out.
-
 README - Displaying of this file can be disabled by touching `/ts/etc/READ`
 
 Visit the ThinStation [Wiki][]
