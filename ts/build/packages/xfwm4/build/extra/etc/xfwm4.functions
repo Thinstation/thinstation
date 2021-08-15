@@ -78,6 +78,10 @@ xfconf_settings()
 		xfconf-query -c xfce4-desktop -p /desktop-icons/file-icons/show-trash -t bool -s false -n
 		xfconf-query -c xfce4-desktop -p /desktop-icons/file-icons/show-removable -t bool -s false -n
 	fi
+	if is_enabled $UDISKS_AUTOMOUNT; then
+		xfconf-query -c thunar-volman -p /automount-drives/enabled -t bool -s true -n
+		xfconf-query -c thunar-volman -p /automount-media/enabled -t bool -s true -n
+	fi
 
 	if is_enabled $PANEL_SHOWDESKTOP; then
 		xfconf-query -c xfce4-panel -p /plugins/plugin-16 -t string -s separator -n
