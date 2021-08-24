@@ -7,31 +7,50 @@ USER_LOGOUT_CODE=12
 USER_DISCONNECT_CODE=11
 DIALOG_TITLE=FreeRDP
 
+gen_list_item()
+{
+        cat <<EOF
+        <item activates_default="true">$1</item>
+EOF
+}
+
 # Menu to choose alternative server
 if is_enabled $FREERDP_SELECT_SERVER; then
-	SERVER_LIST=""
-	CNT=0
-	while [[ ! -z "`eval echo '$FREERDP_SERVER_'$CNT`" ]]; do
-		unset tag
-		SERVERPART=`eval echo '$FREERDP_SERVER_'$CNT |cut -s -d ' ' -f2`
-		if [ -z "$SERVERPART" ]; then
-			let tag=CNT+1
-		fi
-		SERVER_LIST="$SERVER_LIST `eval echo '$tag $FREERDP_SERVER_'$CNT` status"
-		let CNT+=1
+        CNT=0
+	unset ITEM_LIST
+        while [[ ! -z "`eval echo '$FREERDP_SERVER_'$CNT`" ]]; do
+                ITEM="`eval echo '$FREERDP_SERVER_'$CNT`"
+                ITEM_LIST="$ITEM_LIST `gen_list_item $ITEM`"
+                let CNT+=1
+        done
+
+export MAIN_DIALOG='
+<window title="FreeRDP Server Selection" decorated="true" width-request="325" height-request="213" allow-grow="false" allow-shrink="false" skip_taskbar_hint="true" image-name="/lib/icons/hicolor/32x32/apps/freerdp.png">
+  <vbox>
+    <list>
+      <variable>SELECTED_SERVER</variable>
+        '$ITEM_LIST'
+    </list>
+    <hbox>
+     <button can-default="true" has-default="true">	
+        <label>"Select"</label>
+	<action>EXIT:ok</action>
+     </button>
+    </hbox>
+  </vbox>
+</window>
+'
+
+	for STATEMENTS in \
+                $(gtkdialog --program=MAIN_DIALOG); do
+		eval $STATEMENTS
 	done
-	SELECTED_SERVER=""
-	SELECTED_SERVER=`Xdialog	--stdout \
-					--title "Choose server" \
-					--ok-label="Connect .." \
-					--no-cancel \
-					--radiolist "Available servers" 20 50 0 \
-					$SERVER_LIST`
+
 	CNT=0
 	while [[ ! -z "`eval echo '$FREERDP_SERVER_'$CNT`" ]]; do
 		CURRENT=`eval echo '$FREERDP_SERVER_'$CNT`
-		if [ "${CURRENT:0:`expr index "$CURRENT" " "`}" == "$SELECTED_SERVER " ]; then
-			SERVER=${CURRENT#"$SELECTED_SERVER "}
+		if [ "$CURRENT" == "$SELECTED_SERVER" ]; then
+			SERVER=$CURRENT
 			if [[ ! -z "`eval echo '$FREERDP_SERVER_'$CNT'_OPTIONS'`" ]]; then
 				OPTIONS=`eval echo '$FREERDP_SERVER_'$CNT'_OPTIONS'`
 			fi
