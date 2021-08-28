@@ -277,6 +277,7 @@ run_dialog()
 		|sed -e 's|^EXIT="|'$esub'|g' \
 		|sed -e 's|^windowed="|'$wsub'|g' \
 		|sed -e 's|"$|'$lsub'|g' \
+		|sed -e 's|\\|\\\\|g' \
 		|sed -e 's|`|\\`|g' \
 		|sed -e 's|\$|\\\$|g' \
 		|sed -e 's|"|\\"|g' \
@@ -328,6 +329,8 @@ check_results()
 		dialog_no_value $client "Server name or IP"
 	elif $GET_USER && [ -z "$REMOTEUSER" ]; then
 		dialog_no_value $client "Username"
+	elif $GET_PASS && [ -z "$PASSWORD" ]; then
+		dialog_no_value $client "Password"
 	else
 		notcomplete=false
 	fi
