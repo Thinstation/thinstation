@@ -15,21 +15,6 @@ Work To Do / Work in Progress: mail to developer list if you can help
 
 * We could really use some help on the documentation. A lot has changed since 2.2, and I am afraid the documentation has not kept up. Please create a wiki account and help others with your knowledge.
 
-New:
-
-- FIRMWARE routine updated. You will need to be more specific about the folder and file you need. Update your machine profile.
-- GRUB2 EFI and CSM support.
-- Moved to kernel 5.10.28
-- Secure boot basic support. Working on getting it signed.
-- Enabled compositing by default.
-- Horizon 5.2 support.
-
-Fixes:
-
-- hwclock cron task fixed.
-- remade logo svg to render more accuretly.
-- fix background colors not being set correctly.
-
 **Note that several modules have been moved inside the kernel**
 
 ## Installation
