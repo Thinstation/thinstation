@@ -418,7 +418,7 @@ x_error()
 	</vbox>
 </window>
 '
-	result=`$GTKDIALOG`
+	result=`$GTKDIALOG -c`
 	exit 1
 }
 
@@ -450,7 +450,7 @@ find_network()
 	[ -z $GTKDIALOG ] && GTKDIALOG=gtkdialog
 	if [ -z "`busybox ifconfig |grep -e 'inet addr' |grep -v 127.0`" ]; then
 		export PACKAGE_NET_WAIT
-		$GTKDIALOG --program=BAR_DIALOG
+		$GTKDIALOG -c --program=BAR_DIALOG
 	fi
 	if [ -z "`busybox ifconfig |grep -e 'inet addr' |grep -v 127.0`" ]; then
 		x_error "Network" "Timed out waiting for network!"
