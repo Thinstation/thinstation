@@ -143,24 +143,24 @@ pxelinux()
 
 isolinux()
 {
-	FILE=/mnt/cdrom0/"$squash_location"lib.squash
+	FILE=$BASE_MOUNT_PATH/cdrom0/"$squash_location"lib.squash
 	timeout=150
-	while ! mountpoint /mnt/cdrom0 && [ $timeout -ne 0 ]; do
+	while ! mountpoint $BASE_MOUNT_PATH/cdrom0 && [ $timeout -ne 0 ]; do
 		sleep .1
 		let timeout-=1
 	done
 	if [ ! -e $FILE ]; then
 		if [ -z $squash_location ]; then
 			filename=lib.squash
-			if [ -e /mnt/cdrom0/boot/isolinux/$filename ]; then
+			if [ -e $BASE_MOUNT_PATH/cdrom0/boot/isolinux/$filename ]; then
 				squash_location="boot/isolinux/"
-			elif [ -e /mnt/cdrom0/isolinux/$filename ]; then
+			elif [ -e $BASE_MOUNT_PATH/cdrom0/isolinux/$filename ]; then
 				squash_location="isolinux/"
-			elif [ -e /mnt/cdrom0/boot/syslinux/$filename ]; then
+			elif [ -e $BASE_MOUNT_PATH/cdrom0/boot/syslinux/$filename ]; then
 				squash_location="boot/syslinux/"
-			elif [ -e /mnt/cdrom0/syslinux/$filename ]; then
+			elif [ -e $BASE_MOUNT_PATH/cdrom0/syslinux/$filename ]; then
 				squash_location="syslinux/"
-			elif [ -e /mnt/cdrom0/boot/$filename ]; then
+			elif [ -e $BASE_MOUNT_PATH/cdrom0/boot/$filename ]; then
 				squash_location="boot/"
 			fi
 		fi
@@ -169,7 +169,7 @@ isolinux()
 			force_splash_exit
 			echo "Could not find the image on the CDROM!"
 		else
-			FILE=/mnt/cdrom0/"$squash_location"lib.squash
+			FILE=$BASE_MOUNT_PATH/cdrom0/"$squash_location"lib.squash
 		fi
 	fi
 }
