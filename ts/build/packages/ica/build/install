@@ -14,20 +14,23 @@ new_file()
         fi
 }
 
-etcs="passwd group nsswitch.conf issue"
+etcs="passwd group nsswitch.conf issue pam.d"
 bins="attr awk basename bash cat chgrp chmod chown cp cut date dd df \
 	dirname echo ed egrep expr false find gawk grep head id init \
 	install ip ln locale ls mkdir mktemp more mount mv pidof ping \
 	ps red rm rmdir sed sh sleep sort ss tar tc telinit touch tr \
-	true uname vi wc which whoami ldd gst-play-1.0 strace xdg-icon-resource \
-	xdg-mime update-desktop-database"
+	true uname vi wc whoami ldd gst-play-1.0 strace xdg-icon-resource \
+	xdg-mime update-desktop-database useradd killall gzip"
 dirs="proc etc/udev/rules.d etc/init.d bin lib tmp dev/bus/usb usr/local \
         lib/applications lib/gstreamer-1.0"
-clean_dirs="setupwfc linuxx64 dev PkgId tmp proc root \
+clean_dirs="etc/passwd setupwfc linuxx64 dev PkgId tmp proc root \
         lib/plugins lib/mailcap \
         lib/mime.types \
 	etc/xdg/mimeapps.list"
-libs="	/lib/libnss_files.so.2 \
+libs="	/usr/lib/libXdmcp.so.6 \
+	/usr/lib/libXau.so.6 \
+	/usr/lib/libstdc++.so.6 \
+	/lib/libnss_files.so.2 \
 	/usr/lib/libgstapp-1.0.so.0 \
 	/usr/lib/libwebkit2gtk-4.0.so.37 \
 	/usr/lib/libacl.so.1 \
@@ -80,6 +83,7 @@ for mdir in $dirs; do
 done
 
 # Fill in the bin folder
+cp /usr/bin/which $INSTALLDIR/bin/.
 for cbin in $bins ; do
         cp `which $cbin` $INSTALLDIR/bin/.
 	if [ -n "`file $INSTALLDIR/bin/$cbin |grep -oe ELF`" ]; then
@@ -89,10 +93,12 @@ done
 if [ -e /bin/uname-auto ] ; then
         cp /bin/uname-auto $INSTALLDIR/bin/.
 fi
+echo -e "#!/bin/sh\nexit 0" >> $INSTALLDIR/bin/google-chrome
 echo "exit 0" > $INSTALLDIR/bin/install_initd
 echo "exit 0" > $INSTALLDIR/bin/update-rc.d
 echo "exit 0" > $INSTALLDIR/bin/chkconfig
 echo "exit 0" > $INSTALLDIR/bin/systemctl
+chmod +x $INSTALLDIR/bin/google-chrome
 chmod +x $INSTALLDIR/bin/install_initd
 chmod +x $INSTALLDIR/bin/update-rc.d
 chmod +x $INSTALLDIR/bin/chkconfig
@@ -103,10 +109,14 @@ touch $INSTALLDIR/bin/chrome
 for clib in `echo -e $libs |sort -u`; do
         cp $clib $INSTALLDIR/lib/.
 done
+for pam in pam_rootok.so pam_permit.so; do
+	mkdir -p $INSTALLDIR/lib/security
+	cp /lib/security/$pam $INSTALLDIR/lib/security/.
+done
 
 # Fill in the etc folder
 for cetc in $etcs ; do
-        cp /etc/$cetc $INSTALLDIR/etc/.
+        cp -a /etc/$cetc $INSTALLDIR/etc/.
 done
 cat /proc/mounts |grep -Ev 'gvfs|mapper|media' > $INSTALLDIR/etc/mtab
 
@@ -135,7 +145,7 @@ bday=`stat -c %Y $INSTALLDIR/linuxx64/linuxx64.psf`
 # Start the installer in a chroot session.
 mount -t proc proc $INSTALLDIR/proc
 # Pipe the answers
-(for answer in 1 '\n' y n n y y 3; do
+(for answer in 1 '\n' y n n n y 3; do
 		sleep .2
 		echo -e "$answer"
 done)|chroot $INSTALLDIR ./setupwfc
@@ -161,7 +171,7 @@ done
 for dir in $clean_dirs ; do
 	rm -rf $INSTALLDIR/$dir
 done
-rm $INSTALLDIR/etc/ld.so.preload
+#rm $INSTALLDIR/etc/ld.so.preload
 rm $INSTALLDIR/lib64
 
 # Remove library versions that we don't have the dependencies for

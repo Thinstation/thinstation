@@ -27,7 +27,7 @@ bins="stat attr awk basename busybox bash cat chgrp chmod chown cp cut date dd d
 	dirname echo ed egrep expr false find gawk grep head id init od \
 	install ip ln locale ls mkdir mktemp more mount mv pidof ping \
 	ps red rm rmdir sed sh sleep sort ss tar tc telinit touch tr \
-	true uname vi wc which whoami ldd file ldconfig strace getconf"
+	true uname vi wc whoami ldd file ldconfig strace getconf"
 dirs="	proc \
 	sys \
 	etc/udev/rules.d \
@@ -129,6 +129,7 @@ for cbin in $bins ; do
 		libs="$libs \n`ldd $INSTALLDIR/bin/$cbin |grep -v 'linux-vdso' |grep -v 'not a' |cut -d '>' -f2 |cut -d '(' -f1 |sed -E s/[[:space:]]//g`"
 	fi
 done
+cp /usr/bin/which $INSTALLDIR/bin/.
 
 ln -sf python2 $INSTALLDIR/bin/python
 
