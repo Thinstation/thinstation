@@ -8,6 +8,7 @@
 name=qemu
 version=git
 release=1
+source=(qemu-guest-agent.service)
 
 build() {
 #  cd $name-$version
@@ -27,7 +28,8 @@ cd qemu
       --enable-vnc-sasl \
       --enable-libnfs \
       --enable-libiscsi \
-      --enable-virglrenderer
+      --enable-virglrenderer \
+      --enable-docs
 
   make ${MAKEFLAGS:=}
   make DESTDIR=$PKG install
@@ -40,4 +42,7 @@ cd qemu
 #  rm -rf $PKG/usr/share/locale
 
 #  chmod u+s $PKG/usr/lib/qemu/qemu-bridge-helper
+#  mkdir -p $PKG/usr/lib/systemd/system
+  install -Dm644 $SRC/qemu-guest-agent.service "$PKG/usr/lib/systemd/system/qemu-guest-agent.service"
+  install -Dm755 "$SRC/qemu/scripts/qemu-guest-agent/fsfreeze-hook" "$PKG/etc/qemu/fsfreeze-hook"
 }

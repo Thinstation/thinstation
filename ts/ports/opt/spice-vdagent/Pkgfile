@@ -1,0 +1,22 @@
+# Maintainer: Balló György <ballogyor+arch at gmail dot com>
+# Contributor: mutantmonkey <aur@mutantmonkey.in>
+
+name=spice-vdagent
+version=0.21.0
+release=1
+source=("https://www.spice-space.org/download/releases/$name-$version.tar.bz2")
+
+build() {
+  cd $name-$version
+  sed -i 's|/etc/sysconfig/spice-vdagentd|/etc/conf.d/spice-vdagentd|
+          s|/usr/sbin/spice-vdagentd|/usr/bin/spice-vdagentd|' data/spice-vdagentd.service
+  sed -i 's|/etc/sysconfig/spice-vdagentd|/etc/conf.d/spice-vdagentd|' data/spice-vdagentd.1.in
+  ./configure --prefix=/usr --sysconfdir=/etc --localstatedir=/var --sbindir=/usr/bin \
+              --with-session-info=systemd --with-init-script=systemd
+  make
+  make -C $name-$version check || : # test-session-info fails
+  make DESTDIR="$PKG" install
+  rm -r "$PKG/var"
+  install -dm755 "$PKG/etc/conf.d/"
+  echo 'SPICE_VDAGENTD_EXTRA_ARGS=""' > "$PKG/etc/conf.d/spice-vdagentd"
+}
