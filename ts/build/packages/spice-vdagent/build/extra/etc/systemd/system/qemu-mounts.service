@@ -1,0 +1,13 @@
+[Unit]
+Description=Mount shared folder between qemu host and guest
+After=post-udev.service
+
+[Service]
+Type=oneshot
+ExecStartPre=mkdir -p /media/host
+ExecStart=mount -t 9p -o trans=virtio,version=9p2000.L host0 /media/host
+RemainAfterExit=yes
+
+
+[Install]
+WantedBy=local-fs.target.wants
