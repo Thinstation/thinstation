@@ -3,9 +3,10 @@
 name=libnma
 version=1.8.31
 release=1
-source=(https://gitlab.gnome.org/GNOME/libnma/-/archive/$version-dev/libnma-$version-dev.tar.gz)
+source=(https://gitlab.gnome.org/GNOME/libnma/-/archive/$version-dev/libnma-$version-dev.tar.gz token.patch)
 
 build() {
+  patch -d libnma-$version-dev -Np1 < token.patch
   ts-meson libnma-$version-dev build
   meson compile -C build
   DESTDIR="$PKG" meson install -C build
