@@ -94,7 +94,7 @@ setup_qemu()
 	procs=`nproc`
 	let procs=procs/2
 	HD=thinstation.img
-	SHARED_FOLDER="-virtfs local,path=/,mount_tag=host0,security_model=passthrough,id=host0,multidevs=remap"
+	SHARED_FOLDER="-virtfs local,path=/,mount_tag=host0,security_model=mapped,id=host0,multidevs=remap"
 	HDD="-drive file=$HD,index=0,media=disk,format=raw"
 	AGENT="-chardev spicevmc,id=ch1,name=vdagent,clipboard=on -device virtio-serial-pci -device virtserialport,chardev=ch1,id=ch1,name=com.redhat.spice.0"
 	USBHD="-drive if=none,id=stick,file=/usbhd.img -device nec-usb-xhci,id=xhci -device usb-storage,bus=xhci.0,drive=stick"
