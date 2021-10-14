@@ -4,13 +4,17 @@
 # Depends on:
 
 name=dhclient
-version=4.4.2
+version=4.4.2-P1
 release=1
 source=(ftp://ftp.isc.org/isc/dhcp/$version/dhcp-$version.tar.gz)
 
 build()
 {
     cd dhcp-$version
+    sed -i '/o.*dhcp_type/d' server/mdb.c &&
+    sed -r '/u.*(local|remote)_port/d'    \
+      -i client/dhclient.c              \
+         relay/dhcrelay.c
 
     ./configure --prefix=/usr
     make -j1
