@@ -28,6 +28,13 @@ confirm_hd()
 	fi
 }
 
+confirm_usb_hd()
+{
+	if [ ! -e /usbhd.img ]; then
+		truncate --size 2G /usbhd.img
+	fi
+}
+
 bridge()
 {
 	bootroot=build/boot-images/grub/efi-source
@@ -166,6 +173,7 @@ case $1 in
 	;;
 	cd-grub)
 		confirm_iso grub && \
+		confirm_usb_hd && \
 		$QEMU $STANDARD_MACHINE $CDROM $USBHD $EFI --boot d
 		echo "Exit code $?"
         ;;
