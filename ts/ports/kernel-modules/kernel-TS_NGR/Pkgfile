@@ -1,0 +1,74 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=kernel-TS_NGR
+pname=${name%-*}
+version=1
+sversion=`cat /ts/ports/kernel-modules/VERSION`
+release=1
+kernel=${sversion}TS_NGR
+source=(https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-$sversion.tar.xz \
+	ts.config)
+
+build() {
+	cd linux-$sversion
+
+	for patch in `ls ../../../p1/`; do
+		patch -F3 -p1 -i $patch
+	done
+
+	cp $SRC/ts.config ./.config
+
+	seed_label="Linux Signing"
+	full_label=`pkcs11-tool -T |grep -e "$seed_label" |cut -d ":" -f2 |cut -c2-`
+	if [ -n "$full_label" ]; then
+		uri_label=`echo "$full_label"|sed -e 's/ /%20/g'`
+		signuri="pkcs11:manufacturer=piv_II;id=%03;token=$uri_label"
+
+		echo 'CONFIG_MODULE_SIG_KEY="'$signuri'"' >> .config
+		echo "Please enter PIN"
+		set +x
+		read -s pin
+		export KBUILD_SIGN_PIN=$pin
+		set -x
+	elif [ ! -e /etc/ssl/keys/kernel.key ]; then
+		prt-get install kernel-keys
+	fi
+
+	make olddefconfig
+
+#	touch certs/x509.genkey
+#	cp /etc/ssl/keys/kernel.key certs/signing_key.pem
+#	openssl x509 -inform DER -in /etc/ssl/certs/kernel.crt -outform PEM >> certs/signing_key.pem
+
+	make modules_prepare headers_install tools/objtool
+	mkdir -p $PKG/usr/src/kernels/${kernel}
+	cp --parents `find -type f -name "Makefile*" -o -name "Kconfig*"` $PKG/usr/src/kernels/${kernel}
+	cp -a {include,scripts,.config,usr,tools} $PKG/usr/src/kernels/${kernel}
+	cp -a arch/x86/include $PKG/usr/src/kernels/${kernel}/arch/x86
+	ln -sf /usr/src/kernels/${kernel}/usr/include/asm-generic $PKG/usr/src/kernels/${kernel}/usr/include/asm
+	rm $PKG/usr/src/kernels/${kernel}/scripts/{mod,kconfig}/*.o
+
+
+	make -j48
+	make INSTALL_PATH=$PKG install
+	make INSTALL_MOD_PATH=$PKG modules_install
+
+	cp -a Documentation $PKG/usr/src/kernels/${kernel}
+	cp -a Module.symvers System.map $PKG/usr/src/kernels/${kernel}
+
+	cd $PKG
+	mkdir boot
+	efisign vmlinuz "UEFI Signing"
+	mv vmlinuz $PKG/boot/vmlinuz-${kernel}
+	mv System.map $PKG/boot/System.map-${kernel}
+	rm lib/modules/${kernel}/{source,build}
+	rm -rf lib/firmware
+	cp $SRC/linux-$sversion/.config $PKG/boot/config-${kernel}
+#	echo ${kernel} >$PKG/boot/KERNEL_VERSION
+
+	ln -sf /usr/src/kernels/${kernel} $PKG/lib/modules/${kernel}/build
+	ln -sf build $PKG/lib/modules/${kernel}/source
+	ln -sf . $PKG/usr/src/kernels/${kernel}/build
+}
