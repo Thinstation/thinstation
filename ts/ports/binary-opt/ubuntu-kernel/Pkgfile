@@ -1,0 +1,22 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=ubuntu-kernel
+version=5.8.0-63.71
+mversion=${version%.*}
+url=https://mirrors.edge.kernel.org/ubuntu/pool/main/l/linux
+release=1
+source=($url/linux-modules-extra-$mversion-generic_${version}_amd64.deb \
+	$url/linux-modules-$mversion-generic_${version}_amd64.deb \
+	$url/linux-image-unsigned-$mversion-generic_${version}_amd64.deb)
+
+build() {
+	for deb in *; do
+		ar -x $deb
+		tar -xf data.tar.xz
+		rm data.tar.xz debian-binary control.tar.xz
+	done
+	rm -rf usr lib/modprobe.d
+	mv * $PKG/.
+}
