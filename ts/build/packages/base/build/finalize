@@ -83,10 +83,12 @@ cat <<EOF> /etc/thinstation-release
 ThinStation release $TSVER $CODENAME
 EOF
 
+if [ ! -e /etc/issue ]; then
 cat <<'EOF'> /etc/issue
 \S
 Kernel \r on an \m (\l)
 EOF
+fi
 
 for link in release system-release system-release-cpe; do
 	ln -sf thinstation-release /etc/$link

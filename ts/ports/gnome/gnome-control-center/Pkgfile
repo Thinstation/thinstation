@@ -6,10 +6,11 @@
 name=gnome-control-center
 version=3.36.4
 release=1
-source=(https://ftp.gnome.org/pub/gnome/sources/$name/${version%.*}/$name-$version.tar.xz)
+source=(https://ftp.gnome.org/pub/gnome/sources/$name/${version%.*}/$name-$version.tar.xz revert-desktop-detection.patch)
 
 build() {
 	cd $name-$version
+        patch -Np1 < $SRC/revert-desktop-detection.patch
         ts-meson . build -D documentation=true
         ninja -C build
         DESTDIR=$PKG ninja -C build install
