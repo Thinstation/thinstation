@@ -1,0 +1,13 @@
+--- a/shell/cc-panel-loader.c	2021-10-14 10:53:36.213168581 -0600
++++ b/shell/cc-panel-loader.c	2021-10-14 10:54:35.087186784 -0600
+@@ -257,6 +257,10 @@
+       if (G_UNLIKELY (category < 0))
+         continue;
+ 
++      /* Consult OnlyShowIn/NotShowIn for desktop environments */
++      if (!g_desktop_app_info_get_show_in (app, NULL))
++        continue;
++
+       cc_shell_model_add_item (model, category, G_APP_INFO (app), panels_vtable[i].name);
+     }
+ 
