@@ -340,6 +340,23 @@ if ! pkg_initialized $PACKAGE; then
   fi
 
   rm /tmp/script
+
+  (set | grep "ICA_CLIENTAUDIO_" ) |
+  while read session; do
+      icavalue=`echo $session | cut -f2 -d"="`
+      icavalue=`eval echo $icavalue`
+      line=`echo $session | cut -f1 -d"="`
+      icagroup=`echo $line | cut -f3 -d"_"`
+      echo "$icagroup=$icavalue" >> $WFCLIENT_CUSTOM
+  done
+
+  if [ -e $WFCLIENT_CUSTOM ] ; then
+           echo "" >> $ICA_CONF/wfclient.ini
+           echo "[ClientAudio]" >> $ICA_CONF/wfclient.ini
+	   cat $WFCLIENT_CUSTOM >> $ICA_CONF/wfclient.ini
+	   rm $WFCLIENT_CUSTOM
+  fi
+
  fi
 
 fi
