@@ -7,10 +7,14 @@ name=ghostscript
 version=9.53.3
 release=1
 source=(https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs${version//./}/${name}-${version}.tar.xz
-        http://downloads.sourceforge.net/sourceforge/gs-fonts/$name-fonts-std-8.11.tar.gz)
+        http://downloads.sourceforge.net/sourceforge/gs-fonts/$name-fonts-std-8.11.tar.gz
+	cve-2021-3781.patch)
 
 build () {
     cd $name-$version
+
+  # 0nly needed until 9.55 is available
+  patch -Np1 < $SRC/cve-2021-3781.patch
 
   ./configure --prefix=/usr \
               --enable-dynamic \
