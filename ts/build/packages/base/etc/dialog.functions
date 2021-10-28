@@ -3,7 +3,11 @@
 x_check_status()
 {
 	if is_enabled $SHOW_ERROR_REPORT; then
-		if [ $STATUS != 0 ] && [ $STATUS != ${USER_DISCONNECT_CODE:=0} ] && [ $STATUS != ${USER_LOGOUT_CODE:=0} ] && [ ! -e /etc/console/$PACKAGE ]; then
+		if [ $STATUS != 0 ] \
+		&& [ $STATUS != ${USER_DISCONNECT_CODE:=0} ] \
+		&& [ $STATUS != ${USER_LOGOUT_CODE:=0} ] \
+		&& [ $STATUS != ${PASS_EXPIRED_CODE:=0} ] \
+		&& [ ! -e /etc/console/$PACKAGE ]; then
 			Xdialog --title $PACKAGE \
 				--ok-label "View Log" \
 				--cancel-label "OK" \
@@ -17,6 +21,11 @@ x_check_status()
 				--logbox $APPLOG 40 100
 			fi
 		fi
+	fi
+	if [ -n "$PASS_EXPIRED_CODE" ] && [ "$STATUS" == "$PASS_EXPIRED_CODE" ]; then
+		Xdialog --title $PACKAGE \
+			--no-cancel \
+			--msgbox "Your password is expired!" 10 70
 	fi
 }
 
