@@ -6,7 +6,6 @@ x_check_status()
 		if [ $STATUS != 0 ] \
 		&& [ $STATUS != ${USER_DISCONNECT_CODE:=0} ] \
 		&& [ $STATUS != ${USER_LOGOUT_CODE:=0} ] \
-		&& [ $STATUS != ${PASS_EXPIRED_CODE:=0} ] \
 		&& [ ! -e /etc/console/$PACKAGE ]; then
 			Xdialog --title $PACKAGE \
 				--ok-label "View Log" \
@@ -22,11 +21,7 @@ x_check_status()
 			fi
 		fi
 	fi
-	if [ -n "$PASS_EXPIRED_CODE" ] && [ "$STATUS" == "$PASS_EXPIRED_CODE" ]; then
-		Xdialog --title $PACKAGE \
-			--no-cancel \
-			--msgbox "Your password is expired!" 10 70
-	fi
+	pkg_check_status
 }
 
 check_reconnect()

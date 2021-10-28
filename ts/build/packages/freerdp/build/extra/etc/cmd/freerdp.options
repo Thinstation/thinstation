@@ -9,6 +9,17 @@ PASS_EXPIRED_CODE=131
 PASS_REQUIRED=true
 DIALOG_TITLE=FreeRDP
 
+pkg_check_status()
+{
+	if [ -n "$PASS_EXPIRED_CODE" ] && [ "$STATUS" == "$PASS_EXPIRED_CODE" ]; then
+		if cat $APPLOG |grep -e ERRCONNECT_PASSWORD_MUST_CHANGE; then
+			Xdialog --title $PACKAGE \
+				--no-cancel \
+				--msgbox "Your password is expired!" 10 70
+		fi
+	fi
+}
+
 gen_list_item()
 {
         cat <<EOF
