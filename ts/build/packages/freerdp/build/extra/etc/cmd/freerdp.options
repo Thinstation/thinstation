@@ -11,7 +11,7 @@ DIALOG_TITLE=FreeRDP
 
 pkg_check_status()
 {
-	if cat $APPLOG |grep -e ERRCONNECT_PASSWORD_MUST_CHANGE; then
+	if [ $STATUS != 0 ] && cat $APPLOG |grep -e ERRCONNECT_PASSWORD_MUST_CHANGE; then
 		Xdialog --title $PACKAGE \
 			--no-cancel \
 			--msgbox "Your password is expired!" 10 70
