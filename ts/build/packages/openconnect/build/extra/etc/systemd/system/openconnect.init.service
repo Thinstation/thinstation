@@ -1,0 +1,17 @@
+[Unit]
+Description=Configure OpenConnect Settings
+DefaultDependencies=no
+Conflicts=shutdown.target
+After=profile_setup.service net.profle_setup.service
+Before=session-setup.service
+ConditionPathIsReadWrite=/etc
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+EnvironmentFile=/etc/thinstation.env
+ExecStart=/etc/init.d/openconnect.init
+SyslogIdentifier=thinstation
+
+[Install]
+WantedBy=multi-user.target

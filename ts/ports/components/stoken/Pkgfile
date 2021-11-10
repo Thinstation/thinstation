@@ -1,0 +1,17 @@
+# Description: Open source tokencode generator compatibe with RSA SecurID tokens
+# Maintainer: None
+
+name=stoken
+version=0.92
+release=1
+source=(http://sourceforge.net/projects/$name/files/$name-$version.tar.gz)
+
+build() {
+	cd $name-$version
+	./configure --prefix=/usr \
+			--sysconfdir=/etc \
+			--mandir=/usr/man 
+
+	make
+	make DESTDIR=$PKG install
+}

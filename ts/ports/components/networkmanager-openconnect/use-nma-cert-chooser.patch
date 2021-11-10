@@ -1,0 +1,266 @@
+diff -ur a/properties/auth-helpers.c b/properties/auth-helpers.c
+--- a/properties/auth-helpers.c	2019-08-06 07:34:19.000000000 -0400
++++ b/properties/auth-helpers.c	2020-06-18 08:54:16.550031445 -0400
+@@ -22,6 +22,7 @@
+  **************************************************************************/
+ 
+ #include "nm-default.h"
++#include "libnma/nma-cert-chooser.h"
+ 
+ #include "auth-helpers.h"
+ 
+@@ -41,6 +42,7 @@
+                          gpointer user_data)
+ {
+ 	GtkWidget *widget;
++	GtkContainer *container;
+ 	const char *value;
+ 	GtkFileFilter *filter;
+ 
+@@ -64,37 +66,47 @@
+ 			gtk_file_chooser_set_filename (GTK_FILE_CHOOSER (widget), value);
+ 	}
+ 
+-	widget = GTK_WIDGET (gtk_builder_get_object (builder, "cert_user_cert_chooser"));
+-
+-	gtk_size_group_add_widget (group, widget);
+-	filter = tls_file_chooser_filter_new ();
+-	gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (widget), filter);
+-	gtk_file_chooser_set_local_only (GTK_FILE_CHOOSER (widget), TRUE);
+-	gtk_file_chooser_button_set_title (GTK_FILE_CHOOSER_BUTTON (widget),
+-	                                   _("Choose your personal certificate…"));
+-	g_signal_connect (G_OBJECT (widget), "selection-changed", G_CALLBACK (changed_cb), user_data);
++	/* Replace the file chooser with cert chooser to get PKCS#11 support
++	   which is supported by OpenConnect.  The originals were under the
++	   "alignment13" GtkAlignment element in the builder */
++	widget = nma_cert_chooser_new ("User", 0);
++	container = GTK_CONTAINER (gtk_builder_get_object (builder, "alignment13"));
++	gtk_container_add(container, widget);
++	nma_cert_chooser_add_to_size_group(NMA_CERT_CHOOSER(widget), group);
++	gtk_widget_show(widget);
++	g_signal_connect (G_OBJECT (widget), "changed", G_CALLBACK (changed_cb), user_data);
++
++	/* Set the alignment of the labels to the left (default is right) */
++	g_object_set(gtk_grid_get_child_at(GTK_GRID(widget), 0, 0), "xalign", (gfloat)0, NULL);
++	g_object_set(gtk_grid_get_child_at(GTK_GRID(widget), 0, 2), "xalign", (gfloat)0, NULL);
++	/* Hide the password fields we don't use
++	   We don't have an easy way to get access to with widgets except through
++	   accessing the elements in the grid */
++	gtk_widget_hide(gtk_grid_get_child_at(GTK_GRID(widget), 0, 1));
++	gtk_widget_hide(gtk_grid_get_child_at(GTK_GRID(widget), 1, 1));
++	gtk_widget_hide(gtk_grid_get_child_at(GTK_GRID(widget), 0, 3));
++	gtk_widget_hide(gtk_grid_get_child_at(GTK_GRID(widget), 1, 3));
++	gtk_widget_hide(gtk_grid_get_child_at(GTK_GRID(widget), 1, 6));
+ 
+ 	if (s_vpn) {
++		/* Load the chooser with the values from the settings
++		   The file:// URI is not supported by OpenConnect, so we have to
++		   handle that special case */
+ 		value = nm_setting_vpn_get_data_item (s_vpn, NM_OPENCONNECT_KEY_USERCERT);
+ 		if (value && strlen (value))
+-			gtk_file_chooser_set_filename (GTK_FILE_CHOOSER (widget), value);
+-	}
+-
+-	widget = GTK_WIDGET (gtk_builder_get_object (builder, "cert_private_key_chooser"));
+-
+-	gtk_size_group_add_widget (group, widget);
+-	filter = tls_file_chooser_filter_new ();
+-	gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (widget), filter);
+-	gtk_file_chooser_set_local_only (GTK_FILE_CHOOSER (widget), TRUE);
+-	gtk_file_chooser_button_set_title (GTK_FILE_CHOOSER_BUTTON (widget),
+-	                                   _("Choose your private key…"));
+-	g_signal_connect (G_OBJECT (widget), "selection-changed", G_CALLBACK (changed_cb), user_data);
++			if (g_str_has_prefix(value, "pkcs11:"))
++				nma_cert_chooser_set_cert_uri (NMA_CERT_CHOOSER(widget), value);
++			else
++				nma_cert_chooser_set_cert(NMA_CERT_CHOOSER(widget), value, NM_SETTING_802_1X_CK_SCHEME_PATH);
+ 
+-	if (s_vpn) {
+ 		value = nm_setting_vpn_get_data_item (s_vpn, NM_OPENCONNECT_KEY_PRIVKEY);
+ 		if (value && strlen (value))
+-			gtk_file_chooser_set_filename (GTK_FILE_CHOOSER (widget), value);
++			if (g_str_has_prefix(value, "pkcs11:"))
++				nma_cert_chooser_set_key_uri (NMA_CERT_CHOOSER(widget), value);
++			else
++				nma_cert_chooser_set_key(NMA_CERT_CHOOSER(widget), value, NM_SETTING_802_1X_CK_SCHEME_PATH);
+ 	}
++
+ }
+ 
+ gboolean
+@@ -120,9 +132,25 @@
+ 
+ 	widget = GTK_WIDGET (gtk_builder_get_object (builder, widget_name));
+ 
+-	filename = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (widget));
++	/* A bit of a hack to use this function to do both the file chooser and
++	   cert chooser.  Based on which is requested, grab the right "filename"
++	   from the correct widget */
++	if (strcmp(key, NM_OPENCONNECT_KEY_CACERT)) {
++		widget = GTK_WIDGET (gtk_container_get_children(GTK_CONTAINER(widget))->data);
++		if (!strcmp(key, NM_OPENCONNECT_KEY_USERCERT))
++			filename = nma_cert_chooser_get_cert_uri(NMA_CERT_CHOOSER(widget));
++		else
++			filename = nma_cert_chooser_get_key_uri(NMA_CERT_CHOOSER(widget));
++	} else {
++		filename = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (widget));
++	}
+ 	if (filename && strlen(filename)) {
+-		nm_setting_vpn_add_data_item (s_vpn, key, filename);
++		/* OpenConnect doesn't work with the file:// URI type, so
++		   strip it off */
++		if (!strncmp("file://", filename, 7))
++			nm_setting_vpn_add_data_item (s_vpn, key, &filename[7]);
++		else
++			nm_setting_vpn_add_data_item (s_vpn, key, filename);
+ 		authtype = "cert";
+ 	} else {
+ 		nm_setting_vpn_remove_data_item (s_vpn, key);
+@@ -140,8 +168,8 @@
+                                NMSettingVpn *s_vpn)
+ {
+ 	update_from_filechooser (builder, NM_OPENCONNECT_KEY_CACERT, "ca_cert_chooser", s_vpn);
+-	update_from_filechooser (builder, NM_OPENCONNECT_KEY_USERCERT, "cert_user_cert_chooser", s_vpn);
+-	update_from_filechooser (builder, NM_OPENCONNECT_KEY_PRIVKEY, "cert_private_key_chooser", s_vpn);
++	update_from_filechooser (builder, NM_OPENCONNECT_KEY_USERCERT, "alignment13", s_vpn);
++	update_from_filechooser (builder, NM_OPENCONNECT_KEY_PRIVKEY, "alignment13", s_vpn);
+ 	return TRUE;
+ }
+ 
+diff -ur a/properties/nm-openconnect-dialog.ui b/properties/nm-openconnect-dialog.ui
+--- a/properties/nm-openconnect-dialog.ui	2019-08-06 07:34:19.000000000 -0400
++++ b/properties/nm-openconnect-dialog.ui	2020-06-17 11:48:39.734227401 -0400
+@@ -540,133 +540,6 @@
+                 <property name="bottom_padding">0</property>
+                 <property name="left_padding">12</property>
+                 <property name="right_padding">0</property>
+-                <child>
+-                  <object class="GtkTable" id="table1">
+-                    <property name="visible">True</property>
+-                    <property name="n_rows">2</property>
+-                    <property name="n_columns">2</property>
+-                    <property name="homogeneous">False</property>
+-                    <property name="row_spacing">6</property>
+-                    <property name="column_spacing">6</property>
+-                    <child>
+-                      <object class="GtkAlignment" id="alignment5">
+-                        <property name="visible">True</property>
+-                        <property name="xalign">1</property>
+-                        <property name="yalign">0.5</property>
+-                        <property name="xscale">0</property>
+-                        <property name="yscale">1</property>
+-                        <property name="top_padding">0</property>
+-                        <property name="bottom_padding">0</property>
+-                        <property name="left_padding">0</property>
+-                        <property name="right_padding">0</property>
+-                        <child>
+-                          <object class="GtkFileChooserButton" id="cert_user_cert_chooser">
+-                            <property name="visible">True</property>
+-                            <property name="title" translatable="yes">Select A File</property>
+-                            <property name="action">GTK_FILE_CHOOSER_ACTION_OPEN</property>
+-                            <property name="local_only">True</property>
+-                            <property name="show_hidden">False</property>
+-                            <property name="do_overwrite_confirmation">False</property>
+-                            <property name="width_chars">-1</property>
+-                          </object>
+-                        </child>
+-                      </object>
+-                      <packing>
+-                        <property name="left_attach">1</property>
+-                        <property name="right_attach">2</property>
+-                        <property name="top_attach">0</property>
+-                        <property name="bottom_attach">1</property>
+-                        <property name="y_options"/>
+-                      </packing>
+-                    </child>
+-                    <child>
+-                      <object class="GtkLabel" id="label3">
+-                        <property name="visible">True</property>
+-                        <property name="label" translatable="yes">_User Certificate:</property>
+-                        <property name="use_underline">True</property>
+-                        <property name="use_markup">False</property>
+-                        <property name="justify">GTK_JUSTIFY_LEFT</property>
+-                        <property name="wrap">False</property>
+-                        <property name="selectable">False</property>
+-                        <property name="xalign">0</property>
+-                        <property name="yalign">0.5</property>
+-                        <property name="xpad">0</property>
+-                        <property name="ypad">0</property>
+-                        <property name="mnemonic_widget">cert_user_cert_chooser</property>
+-                        <property name="ellipsize">PANGO_ELLIPSIZE_NONE</property>
+-                        <property name="width_chars">-1</property>
+-                        <property name="single_line_mode">False</property>
+-                        <property name="angle">0</property>
+-                      </object>
+-                      <packing>
+-                        <property name="left_attach">0</property>
+-                        <property name="right_attach">1</property>
+-                        <property name="top_attach">0</property>
+-                        <property name="bottom_attach">1</property>
+-                        <property name="y_options"/>
+-                      </packing>
+-                    </child>
+-                    <child>
+-                      <object class="GtkAlignment" id="alignment6">
+-                        <property name="visible">True</property>
+-                        <property name="xalign">1</property>
+-                        <property name="yalign">0.5</property>
+-                        <property name="xscale">0.019999999553</property>
+-                        <property name="yscale">1</property>
+-                        <property name="top_padding">0</property>
+-                        <property name="bottom_padding">0</property>
+-                        <property name="left_padding">0</property>
+-                        <property name="right_padding">0</property>
+-                        <child>
+-                          <object class="GtkFileChooserButton" id="cert_private_key_chooser">
+-                            <property name="visible">True</property>
+-                            <property name="title" translatable="yes">Select A File</property>
+-                            <property name="action">GTK_FILE_CHOOSER_ACTION_OPEN</property>
+-                            <property name="local_only">True</property>
+-                            <property name="show_hidden">False</property>
+-                            <property name="do_overwrite_confirmation">False</property>
+-                            <property name="width_chars">-1</property>
+-                          </object>
+-                        </child>
+-                      </object>
+-                      <packing>
+-                        <property name="left_attach">1</property>
+-                        <property name="right_attach">2</property>
+-                        <property name="top_attach">1</property>
+-                        <property name="bottom_attach">2</property>
+-                        <property name="x_options">fill</property>
+-                        <property name="y_options">fill</property>
+-                      </packing>
+-                    </child>
+-                    <child>
+-                      <object class="GtkLabel" id="label4">
+-                        <property name="visible">True</property>
+-                        <property name="label" translatable="yes">Private _Key:</property>
+-                        <property name="use_underline">True</property>
+-                        <property name="use_markup">False</property>
+-                        <property name="justify">GTK_JUSTIFY_LEFT</property>
+-                        <property name="wrap">False</property>
+-                        <property name="selectable">False</property>
+-                        <property name="xalign">0</property>
+-                        <property name="yalign">0.5</property>
+-                        <property name="xpad">0</property>
+-                        <property name="ypad">0</property>
+-                        <property name="mnemonic_widget">cert_private_key_chooser</property>
+-                        <property name="ellipsize">PANGO_ELLIPSIZE_NONE</property>
+-                        <property name="width_chars">-1</property>
+-                        <property name="single_line_mode">False</property>
+-                        <property name="angle">0</property>
+-                      </object>
+-                      <packing>
+-                        <property name="left_attach">0</property>
+-                        <property name="right_attach">1</property>
+-                        <property name="top_attach">1</property>
+-                        <property name="bottom_attach">2</property>
+-                        <property name="y_options"/>
+-                      </packing>
+-                    </child>
+-                  </object>
+-                </child>
+               </object>
+               <packing>
+                 <property name="padding">0</property>

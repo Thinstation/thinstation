@@ -1,0 +1,27 @@
+# Description: Network Manager add-on for openconnect
+# URL:         http://www.infradead.org/openconnect/gui.html
+# Maintainer:  None
+# Depends on:  NetworkManager
+
+
+name=networkmanager-openconnect
+pname=NetworkManager-openconnect
+version=1.2.6
+release=1
+source=(https://download.gnome.org/sources/$pname/${version%.*}/$pname-$version.tar.xz use-nma-cert-chooser.patch)
+
+build() {
+	cd $pname-$version
+        patch -Np1 < ../use-nma-cert-chooser.patch
+
+	sed -i -e "s/USE_NLS=yes/USE_NLS=no/" \
+		-e "s/ENABLE_NLS 1/ENABLE_NLS 0/" configure
+
+	./configure --prefix=/usr \
+		    --disable-nls \
+		    --disable-static \
+		    --enable-more-warnings=no
+
+	make
+	make DESTDIR=$PKG install
+}

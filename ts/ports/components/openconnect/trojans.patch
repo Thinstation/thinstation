@@ -1,0 +1,20 @@
+--- a/trojans/csd-wrapper.sh	2019-01-03 23:06:04.000000000 +0000
++++ b/trojans/csd-wrapper.sh	2020-06-16 20:01:51.981655354 +0000
+@@ -17,8 +17,6 @@
+ BIN_DIR="$HOSTSCAN_DIR/bin"
+ PINNEDPUBKEY="-s ${CSD_SHA256:+"-k --pinnedpubkey sha256//$CSD_SHA256"}"
+ 
+-BINS=("cscan" "cstub" "cnotify")
+-
+ # parsing command line
+ shift
+ 
+@@ -64,7 +62,7 @@
+ while read HASHTYPE FILE EQU HASHVAL; do
+     FILE="${FILE%*)}"
+     FILE="${FILE#(}"
+-    if grep --extended-regexp --quiet --invert-match ".so|tables.dat" <<< "$FILE"; then
++    if egrep -qv ".so|tables.dat" <<< "$FILE"; then
+ 	PATHNAME="${BIN_DIR}/$FILE"
+ 	IS_BIN=yes
+     else
