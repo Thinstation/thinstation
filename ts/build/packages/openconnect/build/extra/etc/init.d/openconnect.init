@@ -1,0 +1,93 @@
+#! /bin/sh
+
+. `dirname $0`/common
+
+if ! pkg_initialized $PACKAGE; then
+  pkg_set_init_flag $PACKAGE
+
+  if [ -z "$OPENCONNECT_AUTH" ]; then OPENCONNECT_AUTH=password; fi
+  if [ -z "$OPENCONNECT_PROTOCOL" ]; then OPENCONNECT_PROTOCOL=anyconnect; fi
+
+  x=0;
+  count=1;
+    
+  while [ -n "`eval echo '$SESSION_'$x'_TYPE'`" ] ; do
+    OCTYPE=`eval echo '$SESSION_'$x'_TYPE'`
+    if [ "`make_caps $OCTYPE`" = "OPENCONNECT" ] ; then
+      OCX_TITLE=`eval echo '$SESSION_'$x'_TITLE'`
+      OCX_SERVER=`eval echo '$SESSION_'$x'_OPENCONNECT_SERVER'`
+      OCX_AUTH=`eval echo '$SESSION_'$x'_OPENCCONECT_AUTH'`
+      OCX_CSD=`eval echo '$SESSION_'$x'_OPENCONNECT_CSD_WRAPPER'`
+      OCX_USERCERT=`eval echo '$SESSION_'$x'_SHREWSOFT_USERCERT'`
+      OCX_USERKEY=`eval echo '$SESSION_'$x'_OPENCONNECT_USERKEY'`
+      OCX_CACERT=`eval echo '$SESSION_'$x'_OPENCONNECT_CACERT'`
+      OCX_PROTO=`eval echo '$SESSION_'$x'_OPENCONNECT_PROTOCOL'`
+
+      if [ -z "$OCX_TITLE" ]; then OCX_TITLE="VPN $count"; fi
+      site="/etc/NetworkManager/system-connections/$OCX_TITLE"
+      let count=count+1
+
+      if [ -z "$OCX_AUTH" ]; then OCX_AUTH=$OPENCONNECT_AUTH; fi
+      if [ -z "$OCX_PROTO" ]; then OCX_PROTO=$OPENCONNECT_PROTOCOL; fi
+
+      # Generated UUID based on host/time
+      UUID=`uuidgen -t`
+
+      cat <<EOF >> $site
+[connection]
+id=$OCX_TITLE
+uuid=$UUID
+type=vpn
+autoconnect=false
+permissions=
+secondaries=
+
+[ipv4]
+method=auto
+
+[ipv6]
+method=auto
+
+[vpn]
+service-type=org.freedesktop.NetworkManager.openconnect
+gateway=$OCX_SERVER
+protocol=$OCX_PROTO
+EOF
+
+      if [ "$OCX_AUTH" == "smartcard" ]; then
+	  echo "authtype=cert" >> $site
+	  echo "usercert=pkcs11:id=%00%02" >> $site
+      elif [ "$OCX_AUTH" == "cert" ]; then
+	  echo "authtype=cert" >> $site
+	  echo "usercert=$OCX_USERCERT" >> $site
+	  if [ -n "$OCX_USERKEY" ]; then
+	      echo "userkey=$OCX_USERKEY" >> $site
+	  fi
+      else
+	  echo "authtype=password" >> $site
+      fi
+
+
+      if [ -n "$OCX_CACERT" ]; then
+	  echo "cacert=$OCX_CACERT" >> $site
+      fi
+
+      if [ -n "$OCX_CSD" ]; then
+	  echo "enable_csd_trojan=yes" >> $site
+	  echo "csd_wrapper=$OCX_CSD" >> $site
+      else
+	  echo "enable_csd_trojan=no" >> $site
+      fi
+
+      chmod 600 "$site"
+    fi
+    let x=x+1
+  done
+
+  if [ $count -gt 1 ]; then
+    nmcli con reload
+  fi
+
+fi
+
+exit 0

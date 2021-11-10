@@ -1,0 +1,26 @@
+# Description: OpenConnect, open source client for Cisco's AnyConnect SSL VPN
+# URL: http://www.infradead.org/openconnect
+# Maintainer: None
+
+name=openconnect
+version=8.10
+release=1
+source=(ftp://ftp.infradead.org/pub/openconnect/${name}-${version}.tar.gz
+	http://git.infradead.org/users/dwmw2/vpnc-scripts.git/blob_plain/HEAD:/vpnc-script
+	trojans.patch
+	)
+
+build() {
+	cd ${name}-${version}
+	patch -Np1 < ../trojans.patch
+
+	./configure --prefix=/usr --disable-maintainer-mode --disable-nls --with-vpnc-script=/etc/vpnc/vpnc-script
+
+	make 
+	make install DESTDIR=$PKG
+	rm -rf $PKG/usr/share
+	rm -f $PKG/usr/libexec/openconnect/hipreport-android.sh
+
+	mkdir -p $PKG/etc/vpnc
+	cp $SRC/vpnc-script $PKG/etc/vpnc
+}

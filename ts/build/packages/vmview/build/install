@@ -57,6 +57,7 @@ clean_dirs="	dev \
 		lib/vmware-installer-horizon \
 		etc/vmware-installer-horizon \
 		etc/ld.so.cache \
+		lib/vmware/gcc \
 		lib/doc/vmware-horizon-client/debug \
 		lib/doc/vmware-horizon-client/patches \
 		etc/rc0.d \
@@ -255,11 +256,14 @@ done
 #		rm $lib
 #	fi
 #done
-rm -rf $INSTALLDIR/lib/vmware/gcc
 
 # Fix typos and work around missing features in busybox
-# sed -i -e 's/$ENABLE_SEAMLESS_WINDOW = /"$ENABLE_SEAMLESS_WINDOW" = /' \
-sed -i -e 's/glibcxx=.*/glibcxx=1/' $INSTALLDIR/bin/vmware-view
+if [ -e $INSTALLDIR/lib/vmware/view/env/env_utils.sh ]; then
+  sed -i -e 's/glibcxx=.*/glibcxx=1/' $INSTALLDIR/lib/vmware/view/env/env_utils.sh
+else
+  sed -i -e 's/$ENABLE_SEAMLESS_WINDOW = /"$ENABLE_SEAMLESS_WINDOW" = /' \
+	-e 's/glibcxx=.*/glibcxx=1/' $INSTALLDIR/bin/vmware-view
+fi
 
 # Remove broken link
 rm $INSTALLDIR/lib/vmware/libudev.so.0

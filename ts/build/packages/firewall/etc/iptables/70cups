@@ -1,0 +1,5 @@
+#Allow CUPS network printer discovery on local LAN
+-A OUTPUT -d 192.168.0.0/16 -p udp --dport 161 -m recent --name cups_snmp --rsource --set -j ACCEPT #IPV4
+-A OUTPUT -d fd00::/8 -p udp --dport 161 -m recent --name cups_snmp --rsource --set -j ACCEPT #IPV6
+-A INPUT  -s 192.168.0.0/16 -p udp --sport 161 --dport 1024:65535  -m recent --name cups_snmp --rdest --rcheck -j ACCEPT #IPV4
+-A INPUT  -s fd00::/8 -p udp --sport 161 --dport 1024:65535  -m recent --name cups_snmp --rdest --rcheck -j ACCEPT #IPV6
