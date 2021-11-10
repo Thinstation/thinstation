@@ -1,0 +1,23 @@
+#iptables 95
+mkdir -p /etc/sysconfig
+
+if [ -e /etc/sysconfig/iptables-config ]; then
+  . /etc/sysconfig/iptables-config
+fi
+
+if [ "$FIREWALL_DEFAULT" = "no" ]; then
+  rm -f /etc/iptables/50default
+fi
+
+if [ "$FIREWALL_PING" != "yes" ]; then
+  rm -f /etc/iptables/60ping
+fi
+
+if [ "$FIREWALL_CUPS" == "no" -o ! -e /sbin/cupsd ] ; then
+  rm -f /etc/iptables/70cups
+fi
+
+cat /etc/iptables/* | grep -v "#IPV6" | sed -e 's/#IPV4//' > /etc/sysconfig/iptables
+cat /etc/iptables/* | grep -v "#IPV4" | sed -e 's/#IPV6//' > /etc/sysconfig/ip6tables
+rm -rf /etc/iptables
+rm -f /etc/sysconfig/iptables-config

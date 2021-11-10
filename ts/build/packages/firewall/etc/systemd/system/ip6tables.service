@@ -1,0 +1,12 @@
+[Unit]
+Description=Load Ip6tables Rules
+After=network.target iptables.service
+
+[Service]
+Type=forking
+ExecStart=/sbin/ip6tables-restore /etc/sysconfig/ip6tables
+TimeoutSec=0
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

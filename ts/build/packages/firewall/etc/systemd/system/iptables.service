@@ -1,0 +1,12 @@
+[Unit]
+Description=Load Iptables Rules
+After=network.target
+
+[Service]
+Type=forking
+ExecStart=/sbin/iptables-restore /etc/sysconfig/iptables
+TimeoutSec=0
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
