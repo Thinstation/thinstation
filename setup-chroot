@@ -136,6 +136,11 @@ do_mounts()
 			mkdir -p run/pcscd
 			mount --bind /run/pcscd run/pcscd
 		fi
+	elif [ -e /var/run/pcscd ]; then
+		if ! mounted run/pcscd ; then
+			mkdir -p run/pcscd
+			mount --bind /var/run/pcscd run/pcscd
+		fi
 	fi
 	if [ -e /run/user/0 ]; then
 		if ! mounted run/user/0; then
