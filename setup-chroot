@@ -214,10 +214,11 @@ secure_keys()
 do_unmounts()
 {
 	for mount in dev/pts dev tmp proc sys run/pcscd run/user/0 run/user/$SUDO_UID; do
-		fuser -kv "$PWD"/$mount > /dev/null 2>&1
-		while mounted $mount ; do
+		umount -l $mount
+		if [ $? -ne 0 ] ; then
+			fuser -kv "$PWD/$mount" > /dev/null 2>&1
 			umount -l $mount
-		done
+		fi
 	done
 }
 
