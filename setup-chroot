@@ -146,7 +146,7 @@ do_mounts()
 		if ! mounted run/user/0; then
 			mkdir -p run/user/0
 			mount --bind /run/user/0 run/user/0
-        	fi
+		fi
 	fi
 	if [ -n "$SUDO_UID" ]; then
 		if ! mounted run/user/$SUDO_UID; then
@@ -216,9 +216,10 @@ do_unmounts()
 	for mount in dev/pts dev tmp proc sys run/pcscd run/user/0 run/user/$SUDO_UID; do
 		while mounted $mount ; do
 			umount -l $mount
-   			[ $? -ne 0 ] &&	fuser -kv "$PWD/$mount" > /dev/null 2>&1
+			[ $? -ne 0 ] &&	fuser -kv "$PWD/$mount" > /dev/null 2>&1
 		done
-	done}
+	done
+}
 
 main()
 {
