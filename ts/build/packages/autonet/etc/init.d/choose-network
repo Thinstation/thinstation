@@ -41,10 +41,17 @@ elif [ "$devicecount" -gt "1" ]; then
 			wlan)	wlan=`basename $interface`;;
 		esac
 	done
-	if [ -n "$lan" ] && [ -n "$wlan" ]; then
+	if [ -n "$lan" ] && [ -z "$wlan" ]; then
 		device=$lan
-		if [ "$NET_USE" != "BOTH" ] || [ "$NET_USE" != "WLAN" ]; then
+	elif [ -n "$lan" ] && [ -n "$wlan" ]; then
+		if [ "$NET_USE" == "LAN" ]; then
+			device=$lan
 			ifconfig $wlan down
+		elif "$NET_USE" == "WLAN" ]; then
+			device=$wlan
+			ifconfig $lan down
+		elif [ "$NET_USE" == "BOTH" ]; then
+			device=$lan
 		fi
 	elif [ -z "$lan" ] && [ -n "$wlan" ]; then
 		device=$wlan
