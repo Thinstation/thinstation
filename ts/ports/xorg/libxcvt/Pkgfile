@@ -1,0 +1,12 @@
+name=libxcvt
+version=0.1.1
+release=1
+source=(https://xorg.freedesktop.org/releases/individual/lib/${name}-${version}.tar.xz)
+
+build() {
+  ts-meson ${name}-${version} build
+  meson compile -C build
+  meson test -C build #--print-errorlogs
+  DESTDIR="$PKG" meson install -C build
+  install -m644 -Dt "${PKG}/usr/share/licenses/${name}" "${name}-${version}/COPYING"
+}

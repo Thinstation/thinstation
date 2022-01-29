@@ -17,9 +17,8 @@ build() {
 	fi
 	cp -r $PKGMK_SOURCE_DIR/$name $SRC
 	
-	cd $SRC/$name
-
-	./autogen.sh --prefix=/usr 
-	make
-	make DESTDIR=$PKG install
+	cd $SRC
+	meson build $name --buildtype=release --prefix=/usr
+	ninja -C build
+	DESTDIR="$PKG" ninja -C build install
 }

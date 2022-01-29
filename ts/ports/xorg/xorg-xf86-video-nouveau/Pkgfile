@@ -7,11 +7,12 @@ name=xorg-xf86-video-nouveau
 version=1.0.17
 release=1
 source=(http://xorg.freedesktop.org/archive/individual/driver/xf86-video-nouveau-$version.tar.bz2 \
-	1-2-drmmode-fix-screen-resize-without-acceleration.patch)
+	https://raw.githubusercontent.com/archlinux/svntogit-packages/packages/xf86-video-nouveau/trunk/xorg-server-21.1.diff)
 
 build() {
     cd xf86-video-nouveau-$version
-#    patch -p1 -i $SRC/1-2-drmmode-fix-screen-resize-without-acceleration.patch
+
+    patch -p1 -i $SRC/xorg-server-21.1.diff
 
     ./configure --prefix=/usr --mandir=/usr/man
     make
