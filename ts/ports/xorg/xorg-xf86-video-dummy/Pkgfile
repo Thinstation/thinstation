@@ -11,6 +11,10 @@ source=(http://xorg.freedesktop.org/releases/individual/driver/xf86-video-dummy-
 build() {
 	cd xf86-video-dummy-$version
 
+	export CFLAGS=${CFLAGS/-fno-plt}
+	export CXXFLAGS=${CXXFLAGS/-fno-plt}
+	export LDFLAGS=${LDFLAGS/,-z,now}
+
 	./configure --prefix=/usr
 
 	make

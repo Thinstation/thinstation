@@ -14,7 +14,12 @@ build() {
 	git clone https://github.com/freedesktop/xorg-xf86-video-amdgpu.git
 	cd xorg-xf86-video-amdgpu
 
-	./autogen.sh
+	NOCONFIGURE=1 ./autogen.sh
+
+	export CFLAGS=${CFLAGS/-fno-plt}
+	export CXXFLAGS=${CXXFLAGS/-fno-plt}
+	export LDFLAGS=${LDFLAGS/,-z,now}
+
 	./configure --prefix=/usr --mandir=/usr/man --enable-glamor
 
 	make

@@ -12,7 +12,12 @@ source=()
 build() {
 	git clone --depth 1 git://anongit.freedesktop.org/xorg/driver/xf86-video-vmware
 	cd xf86-video-vmware #-$version
-	./autogen.sh
+	NOCONFIGURE=1 ./autogen.sh
+
+	export CFLAGS=${CFLAGS/-fno-plt}
+	export CXXFLAGS=${CXXFLAGS/-fno-plt}
+	export LDFLAGS=${LDFLAGS/,-z,now}
+
 	./configure --prefix=/usr --mandir=/usr/man
 
 	make

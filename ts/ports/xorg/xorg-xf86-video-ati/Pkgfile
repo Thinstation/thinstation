@@ -17,6 +17,10 @@ build() {
 	patch -p1 -i $SRC/0001_dont_set_sourcevalidate_pointer_to_null.diff
 	NOCONFIGURE=1 ./autogen.sh
 
+	export CFLAGS=${CFLAGS/-fno-plt}
+	export CXXFLAGS=${CXXFLAGS/-fno-plt}
+	export LDFLAGS=${LDFLAGS/,-z,now}
+
 	./configure --prefix=/usr --mandir=/usr/man --enable-glamor
 
 	make
