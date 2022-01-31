@@ -4,7 +4,7 @@
 # Depends on:  cmake libffi python
 
 name=llvm
-version=11.0.0
+version=12.0.1
 release=2
 source=(https://github.com/llvm/llvm-project/archive/llvmorg-$version.tar.gz
 	llvm-config.h)
@@ -42,5 +42,5 @@ build() {
   # multilib stub
   mv $PKG/usr/include/llvm/Config/llvm-config{,-64}.h
   install -m 0644 $SRC/llvm-config.h $PKG/usr/include/llvm/Config/
-
+  find $PKG -name clang-tblgen\* -delete
 }
