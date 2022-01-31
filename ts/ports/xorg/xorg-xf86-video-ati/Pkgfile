@@ -4,17 +4,19 @@
 # Depends on: xorg-server
 
 name=xorg-xf86-video-ati
-#version=18.0.1
+#version=19.1.0
 version=git
 release=1
 #source=(http://xorg.freedesktop.org/releases/individual/driver/xf86-video-ati-$version.tar.bz2)
+source=(0001_dont_set_sourcevalidate_pointer_to_null.diff)
 
 build() {
 #	cd xf86-video-ati-$version
 	git clone --depth 1 git://anongit.freedesktop.org/xorg/driver/xf86-video-ati
-        cd xf86-video-ati
+	cd xf86-video-ati
+	patch -p1 -i $SRC/0001_dont_set_sourcevalidate_pointer_to_null.diff
+	NOCONFIGURE=1 ./autogen.sh
 
-        NOCONFIGURE=1 ./autogen.sh
 	./configure --prefix=/usr --mandir=/usr/man --enable-glamor
 
 	make
