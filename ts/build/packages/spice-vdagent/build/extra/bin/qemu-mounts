@@ -1,0 +1,9 @@
+#!/bin/sh
+
+for tagfile in `find /sys/devices -name mount_tag`; do
+	for tag in `cat $tagfile`; do
+		mkdir -p /media/$tag
+		mount -t 9p -o trans=virtio,msize=8388608 $tag /media/$tag
+	done
+done
+
