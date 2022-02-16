@@ -1,0 +1,13 @@
+[Unit]
+Description=Mount shared folder between qemu host and guest
+ConditionVirtualization=kvm
+After=post-udev.service
+
+[Service]
+Type=oneshot
+ExecStart=/bin/9p-mounts
+RemainAfterExit=yes
+
+
+[Install]
+WantedBy=local-fs.target.wants
