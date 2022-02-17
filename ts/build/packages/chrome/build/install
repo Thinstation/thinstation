@@ -10,4 +10,7 @@ mv opt $INSTALLDIR
 chmod 4755 $INSTALLDIR/opt/google/chrome/chrome-sandbox
 returnval=$?
 
+VERSION=`./$INSTALLDIR/opt/google/chrome/chrome --no-sandbox --product-version |cut -d '.' -f1`
+cat $INSTALLDIR/build/'Local State' |sed -e "s/\$VERSION/$VERSION/g" > $INSTALLDIR/etc/chrome/'Local State'
+
 exit $returnval
