@@ -513,6 +513,9 @@ make_initrd()
 			touch -c -h -t $timestamp $file
 		done
 	fi
+	if [ "$ts_initrdcmd" == "xz" ]; then
+		ts_initrdcmd="xz --check=crc32"
+	fi
 	if [ "$ts_initrdcmd" == "squashfs" ]; then
 		mksquashfs . ../$INITDIR/initrd $ts_squashopt $DEF_SQAUSHOPT
 	elif [ "$ts_initrdcmd" == "none" -o "$ts_initrdcmd" == "" ]; then
