@@ -1,0 +1,20 @@
+# Description: Fast file compressor based on lzo.
+# URL: http://www.lzop.org/
+# Maintainer: Danny Rawlins, crux at romster dot me
+# Packager: Han Boetes, han at mijncomputer dot nl
+# Depends on: lzo
+
+name=lzop
+version=1.04
+release=1
+source="http://www.lzop.org/download/$name-$version.tar.gz"
+
+build() {
+	cd $name-$version
+
+	./configure \
+		--prefix=/usr \
+		--enable-shared
+	make
+	make DESTDIR=$PKG install
+}

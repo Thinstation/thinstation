@@ -3,12 +3,14 @@
 # Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 
 name=lz4
-version=1.9.2
+version=git
 release=1
-source=(https://github.com/lz4/lz4/archive/v$version.tar.gz)
+#source=(https://github.com/lz4/lz4/archive/v$version.tar.gz)
 
 build() {
-	cd lz4-$version
+	git clone https://github.com/lz4/lz4.git
+	cd lz4
+#	cd lz4-$version
 
 	make PREFIX=/usr
 	make DESTDIR=$PKG PREFIX=/usr install
