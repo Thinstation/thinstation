@@ -1,0 +1,31 @@
+# Description: Thinstation essential package
+# URL: http://www.thinstation.org
+# Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
+
+name=ubuntu-kernel-src
+pname=kernel
+version=1
+sversion=5.8.0
+release=63
+kernel=${sversion}-${release}-generic
+source=(https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-${sversion%.*}.tar.xz)
+
+build() {
+	cd linux-${sversion%.*}
+
+	cp /boot/config-$kernel  ./.config
+
+	make olddefconfig
+	make modules_prepare headers_install tools/objtool
+	mkdir -p $PKG/usr/src/kernels/${kernel}
+	mkdir -p $PKG/lib/modules/${kernel}
+	cp --parents `find -type f -name "Makefile*" -o -name "Kconfig*"` $PKG/usr/src/kernels/${kernel}
+	cp -a {include,scripts,.config,usr,tools} $PKG/usr/src/kernels/${kernel}
+	cp -a arch/x86/include $PKG/usr/src/kernels/${kernel}/arch/x86
+	ln -sf /usr/src/kernels/${kernel}/usr/include/asm-generic $PKG/usr/src/kernels/${kernel}/usr/include/asm
+	rm $PKG/usr/src/kernels/${kernel}/scripts/{mod,kconfig}/*.o
+
+	ln -sf /usr/src/kernels/${kernel} $PKG/lib/modules/${kernel}/build
+	ln -sf build $PKG/lib/modules/${kernel}/source
+	ln -sf . $PKG/usr/src/kernels/${kernel}/build
+}
