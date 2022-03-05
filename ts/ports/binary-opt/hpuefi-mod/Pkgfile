@@ -6,7 +6,7 @@
 name='hpuefi-mod'
 version=111455
 release=1
-kver=`cat /ts/ports/kernel-modules/VERSION`
+kver="5.8.0-63-generic"
 source=(https://ftp.ext.hp.com/pub/softpaq/sp111001-111500/sp$version.tgz)
 
 build() {
@@ -14,7 +14,7 @@ build() {
 cd non-rpms
 tar -xvf hpuefi-mod-3.03.tgz
 cd hpuefi-mod-3.03
-for KERNELTYPE in 5.8.0-63-generic; do
+for KERNELTYPE in $kver; do
 	export REPORT_KERNEL=$KERNELTYPE
 	export KBUILD_MODPOST_WARN=1
 
