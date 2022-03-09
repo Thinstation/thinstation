@@ -2,6 +2,8 @@
 
 README - Displaying of this file can be disabled by touching `/ts/etc/READ`
 
+Русские идите на хуй.
+
 Visit the ThinStation [Wiki][]
 
 [Wiki]: https://github.com/Thinstation/thinstation/wiki/Getting-Started-with-ThinStation
