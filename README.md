@@ -2,7 +2,7 @@
 
 README - Displaying of this file can be disabled by touching `/ts/etc/READ`
 
-Русские идите на хуй.
+Русские пошел на хуй.
 
 Visit the ThinStation [Wiki][]
 
