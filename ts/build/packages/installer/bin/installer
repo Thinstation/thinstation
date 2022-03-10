@@ -273,7 +273,8 @@ disk_select()
 {
 	index=0
 
-	for disk in `blockdev --report | sed -r 's/[[:space:]]+/:/g' | cut -d ":" -f7 | grep -e / |grep -v [0-9]`; do
+	for disk in	`blockdev --report | sed -r 's/[[:space:]]+/:/g' | cut -d ":" -f7 | grep -e /sd |grep -v [0-9]` \
+			`blockdev --report | sed -r 's/[[:space:]]+/:/g' | cut -d ":" -f7 | grep -e /nvme |grep -v p[0-9]`; do
 		disksize=`blockdev --report | sed -r 's/[[:space:]]+/:/g' | grep -e $disk\$ | cut -d ":" -f6`
 		disks[$index]=$disk
 		if [ "${disksize[$index]}" -gt "30000000000" ] ; then

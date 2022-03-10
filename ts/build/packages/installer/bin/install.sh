@@ -35,7 +35,8 @@ do_mounts()
 {
 	sleep 1
 	while ! mounted $bootdir ; do
-		mount -t vfat ${disk}1 $bootdir
+		mkdir -p $bootdir
+		mount -t vfat ${disk}${p}1 $bootdir
 		sleep 1
 	done
 	while ! mounted $sourceboot; do
@@ -44,16 +45,19 @@ do_mounts()
 	done
 	if is_enabled $INSTALLER_DEV ; then
 		while ! mounted /tmp-home ; do
-			mount -t ext4 ${disk}2 /tmp-home
+			mkdir -p /tmp-home
+			mount -t ext4 ${disk}${p}2 /tmp-home
 			sleep 1
 		done
 		while ! mounted /thinstation ; do
-			mount -t ext4 ${disk}4 /thinstation
+			mkdir -p /thinstation
+			mount -t ext4 ${disk}${p}4 /thinstation
 			sleep 1
 		done
 	else
 		while ! mounted /tmp-home ; do
-			mount -t ext4 ${disk}3 /tmp-home
+			mkdir -p /tmp-home
+			mount -t ext4 ${disk}${p}3 /tmp-home
 			sleep 1
 		done
 	fi
@@ -96,21 +100,22 @@ read_pt
 sleep 1
 
 # Creates all needed FileSystems
+if echo $disk |grep -q -e nvme; then p=p; else unset p; fi
 echo "Making filesystems"
-mkfs.vfat -n boot -F 32 -R 32 ${disk}1 || mkfs.vfat -n boot -F -F 32 -R 32 ${disk}1 # Create /boot FileSystem
+mkfs.vfat -n boot -F 32 -R 32 ${disk}${p}1 || mkfs.vfat -n boot -F -F 32 -R 32 ${disk}${p}1 # Create /boot FileSystem
 sleep 1
 
 if is_enabled $INSTALLER_DEV; then
-	mkfs.ext4 -F -F ${disk}2 #Creates /home FileSystem
+	mkfs.ext4 -F -F ${disk}${p}2 #Creates /home FileSystem
 	sleep 1
-	mkswap -f -L swap ${disk}3 #Creates swap FileSystem
+	mkswap -f -L swap ${disk}${p}3 #Creates swap FileSystem
 	sleep 1
-	mkfs.ext4 -F -F ${disk}4 #Creates /thinstation FileSystem
+	mkfs.ext4 -F -F ${disk}${p}4 #Creates /thinstation FileSystem
 	sleep 1
 else
-	mkswap -f -L swap ${disk}2 #Creates swap FileSystem
+	mkswap -f -L swap ${disk}${p}2 #Creates swap FileSystem
 	sleep 1
-	mkfs.ext4 -F -F ${disk}3 #Creates /home FileSystem
+	mkfs.ext4 -F -F ${disk}${p}3 #Creates /home FileSystem
 fi
 
 read_pt
@@ -118,10 +123,10 @@ un_mount
 
 # Labels partitions
 if is_enabled $INSTALLER_DEV; then
-	e2label ${disk}2 home
-	e2label ${disk}4 tsdev
+	e2label ${disk}${p}2 home
+	e2label ${disk}${p}4 tsdev
 else
-	e2label ${disk}3 home
+	e2label ${disk}${p}3 home
 fi
 sleep 1
 
@@ -182,3 +187,4 @@ if is_enabled $INSTALLER_DEV; then
 
 	./setup-chroot -i -a
 fi
+
