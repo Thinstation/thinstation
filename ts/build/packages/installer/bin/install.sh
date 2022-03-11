@@ -139,12 +139,12 @@ sleep 1
 
 # Add grub bootloader
 mkdir -p $bootdir/boot/grub
-mkdir -p $bootdir/EFI/BOOT
+mkdir -p $bootdir/EFI/boot
 mkdir -p $bootdir/EFI/Microsoft/Boot
 
-cp -a $sourceboot/EFI/BOOT/* $bootdir/EFI/BOOT/.
-rm $bootdir/EFI/BOOT/boot.efi
-cp -a $bootdir/EFI/BOOT/* $bootdir/EFI/Microsoft/Boot/.
+cp -a $sourceboot/EFI/boot/* $bootdir/EFI/boot/.
+rm $bootdir/EFI/boot/boot.efi
+cp -a $bootdir/EFI/boot/* $bootdir/EFI/Microsoft/Boot/.
 mv $bootdir/EFI/Microsoft/Boot/bootx64.efi $bootdir/EFI/Microsoft/Boot/bootmgfw.efi
 
 cp -a $sourceboot/boot/grub/devstation/* $bootdir/boot/grub/.
