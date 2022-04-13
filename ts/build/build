@@ -163,6 +163,9 @@ remove_files()
 		if [ -e /ts/firmware_notfound ]; then
 			rm -rf /ts/firmware_notfound
 		fi
+		if [ -e /tmp/block.package ]; then
+			rm -rf /tmp/block.package
+		fi
 	fi
 }
 
@@ -544,7 +547,7 @@ package_dependencies ()
 		while read filename; do
 			package=`basename $filename .$1`
 			if find_package $package && [ -s $pkgpath/dependencies ] ; then
-				(cat $pkgpath/dependencies |grep -v ^#) |
+				(cat $pkgpath/dependencies |grep -v ^# |grep -vf /tmp/block.package) |
 				while read name cross; do
 					if ! find_package $name; then
 						if ! is_enabled $DISPLAYED; then
@@ -1211,6 +1214,14 @@ if [ -e $PACDIR/earlymicrocode.param ]; then
 fi
 if [ -e $PACDIR/allfirmware.param ]; then
 	. $PACDIR/allfirmware.param
+fi
+if [ -e $PACDIR/blockpackage.param ]; then
+	. $PACDIR/blockpackage.param
+	for package in $ts_blockpackage; do
+		echo $package >> /tmp/block.package
+	done
+else
+	touch /tmp/block.package
 fi
 
 # Check if kernel exists
