@@ -1,0 +1,12 @@
+#!/bin/sh
+
+gzname=`basename $1`
+INSTALLDIR=./packages/docker
+
+mkdir -p $INSTALLDIR/bin
+tar -C wget_tmp -xf wget_tmp/$gzname
+mv wget_tmp/docker/* $INSTALLDIR/bin/.
+
+returnval=$?
+
+cp -a $INSTALLDIR/build/extra/* $INSTALLDIR/.
