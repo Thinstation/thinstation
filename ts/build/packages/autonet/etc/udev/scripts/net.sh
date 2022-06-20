@@ -101,7 +101,7 @@ log_interface()
 
 manual_config()
 {
-	echo "nameserver $NET_DNS1" >> /etc/resolv.conf
+	echo "nameserver $NET_DNS1" > /etc/resolv.conf
 	echo "nameserver $NET_DNS2" >> /etc/resolv.conf
 	echo "search $NET_DNS_SEARCH" >> /etc/resolv.conf
 	if ifconfig $INTERFACE $NET_IP_ADDRESS netmask $NET_MASK ; then
