@@ -23,8 +23,8 @@ for i in runlevel reboot poweroff halt telinit; do
 	ln -sf ../bin/systemctl ./packages/$PACKAGE/sbin/$i
 	let returnval=returnval+$?
 done
-for i in init linuxrc sbin/init ; do
-	ln -sf /lib/systemd/systemd ./packages/$PACKAGE/$i
+for link in init sbin/init ; do
+	ln -sf /lib/systemd/systemd ./packages/$PACKAGE/$link
 	let returnval=returnval+$?
 done
 
