@@ -547,6 +547,7 @@ package_dependencies ()
 		while read filename; do
 			package=`basename $filename .$1`
 			if find_package $package && [ -s $pkgpath/dependencies ] ; then
+				cat $pkgpath/dependencies |grep -e "!" |sed -e 's/!//g' >> /tmp/block.package
 				(cat $pkgpath/dependencies |grep -v ^# |grep -vf /tmp/block.package) |
 				while read name cross; do
 					if ! find_package $name; then
