@@ -52,7 +52,12 @@ if [ "$2" == "true" ] ; then
 			ldd fastboot/sbin/$i 2>/dev/null >> /tmp/fastlibneed
 		fi
 	done
-	cat /tmp/fastlibneed |grep -v "not a dyn"|grep -v ":"| sed -e 's/\t//g' |cut -d " " -f1 |sort -u  |sed -e 's|/lib64/||g' > /tmp/fastlib
+	if [ -e lib/plymouth ]; then
+		for so in `dir lib/plymouth/*.so`; do
+			ldd $so 2>/dev/null >> /tmp/fastlibneed
+		done
+	fi
+	cat /tmp/fastlibneed |grep -v "not a dyn"|grep -v ":"| sed -e 's/\t//g' |cut -d " " -f1 |sed -e 's|/lib64/||g' |sed -e 's|/lib/||g' |sort -u > /tmp/fastlib
 	for lib in `cat ../fastboot/lib-boot; cat /tmp/fastlib; ls --color=never lib |grep -E 'libgcc_s.so.[0-1]+|libnss_files.so.[0-9]+|libnss_dns.so.[0-9]+'` ; do
 		if [ -e lib/$lib ]; then
 			mv lib/$lib fastboot/.
@@ -122,7 +127,12 @@ if [ "$2" == "lotsofmem" ]; then
 	done
 	ldd bin/* 2>/dev/null > /tmp/fastlibneed
 	ldd sbin/* 2>/dev/null >> /tmp/fastlibneed
-	cat /tmp/fastlibneed |grep -v "not a dyn"|grep -v ":" |sed -e 's/\t//g' |cut -d " " -f1 |sort -u  |sed -e 's|/lib64/||g' > /tmp/fastlib
+	if [ -e lib/plymouth ]; then
+		for so in `dir lib/plymouth/*.so`; do
+			ldd $so 2>/dev/null >> /tmp/fastlibneed
+		done
+	fi
+	cat /tmp/fastlibneed |grep -v "not a dyn"|grep -v ":" |sed -e 's/\t//g' |cut -d " " -f1 |sed -e 's|/lib64/||g' |sed -e 's|/lib/||g' |sort -u > /tmp/fastlib
 	for i in `ls --color=never lib/ |grep -xvf ../fastboot/lib-boot |grep -xvf /tmp/fastlib |grep -Ev 'libgcc_s.so.[0-1]+|libnss_files.so.[0-9]+|libnss_dns.so.[0-9]+'` ; do
 		if [ -n "$i" ] ; then
 			mv lib/$i ../fastboot-tmp/lib/.

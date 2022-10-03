@@ -847,7 +847,11 @@ if [ -n "$ts_bootresolution" ] ;then
   else
 		rm -rf ./tmp-tree/etc/splash
 		rm -rf ./tmp-tree/lib/splash
-		KERNEL_PARAMETERS="$KERNEL_PARAMETERS splash=off"
+		if [ -e ./tmp-tree/etc/plymouth/plymouthd.conf ]; then
+			KERNEL_PARAMETERS="$KERNEL_PARAMETERS splash"
+		else
+			KERNEL_PARAMETERS="$KERNEL_PARAMETERS splash=off"
+		fi
   fi
 fi
 }

@@ -6,22 +6,8 @@ EOF
 
 cat << EOF >> /etc/group
 lightdm:!:620:
+autologin:!:621:tsuser
 EOF
 
-
-chmod 755 /var/cache/lightdm
-chmod 770 /var/lib/lightdm
-chmod 770 /var/lib/lightdm-data
-chmod 711 /var/log/lightdm
-chmod +t /var/cache/lightdm
-chmod +t /var/lib/lightdm
-chmod +t /var/lib/lightdm-data
-chown 620:620 -R /var/lib/lightdm
-chown 620:620 -R /var/lib/lightdm-data
-chgrp 620 /var/log/lightdm
-#rm /etc/systemd/system/display-manager.service
-
-#systemctl set-default -f multi-user.target
-
-#USER=root
-#/usr/lib/lightdm/lightdm-set-defaults --autologin "$USER"
+rm /etc/systemd/system/display-manager.service
+systemctl enable lightdm

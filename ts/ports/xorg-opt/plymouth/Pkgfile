@@ -18,7 +18,9 @@ git clone git://git.freedesktop.org/git/plymouth
                         --sysconfdir=/etc \
                         --mandir=/usr/man \
                         --localstatedir=/var \
+			--with-runtimedir=/run \
                         --enable-pango \
+                        --enable-udev \
                         --enable-gtk \
                         --enable-libdrm_intel \
                         --enable-libdrm_radeon \
@@ -33,4 +35,5 @@ git clone git://git.freedesktop.org/git/plymouth
   for i in lightdm-plymouth.service; do
     install -Dm644 "$SRC/$i" "$PKG/usr/lib/systemd/system/$i"
   done
+  mv $PKG/var/run $PKG/.
 }

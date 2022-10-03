@@ -5,6 +5,9 @@ export PORTS=$PACKAGE
 export CREATE_EMPTY_DIRS="var/lib/plymouth run/plymouth var/spool/plymouth"
 repackage -e
 
+sed -i -e 's|/usr/bin|/bin|g' /build/packages/plymouth/lib/systemd/system/*.service
+sed -i -e 's|/usr/sbin|/sbin|g' /build/packages/plymouth/lib/systemd/system/*.service
+
 returnval=$?
 
 exit $returnval
