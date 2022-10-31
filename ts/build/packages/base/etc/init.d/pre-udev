@@ -33,7 +33,7 @@ bb_switch()
 vesa_mode()
 {
 	if is_enabled $VESAMODE; then
-		for module in radeon vmwgfx nouveau i915 gma500_gfx qxl drm_kms_helper hyperv_fb cirrus bochs_drm amdgpu; do
+		for module in radeon vmwgfx nouveau i915 gma500_gfx qxl drm_kms_helper hyperv_fb cirrus bochs_drm amdgpu nvidia; do
 			echo "blacklist $module" >> /etc/modprobe.d/blacklist.conf
 		done
 		if [ -e /sys/devices/virtual/vtconsole/vtcon1 ]; then
@@ -57,7 +57,7 @@ vga_quirks()
 	if ! vesa_mode; then
 		# This is very dependent upon full lspci, as busybox lspci needs modules to be in memory,
 		# and at this point, nothing is.
-		if /sbin/lspci -k |grep -E 'radeon|vmwgfx|nouveau|i915|gma500_gfx|qxl|hyperv_fb|cirrus|bochs_drm|amdgpu' > /dev/null 2>&1; then
+		if /sbin/lspci -k |grep -E 'radeon|vmwgfx|nouveau|i915|gma500_gfx|qxl|hyperv_fb|cirrus|bochs_drm|amdgpu|nvidia' > /dev/null 2>&1; then
 			kms=true
 		fi
 	fi
