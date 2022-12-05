@@ -2410,6 +2410,9 @@ wrap_efi()
 		if is_enabled $ts_earlymicrocode ; then
 			sed -i -e "s:/boot/initrd:/boot/ucode /boot/initrd:" $ESP/boot/grub/grub.cfg
 		fi
+		sed -i -e "s:/boot/initrd:/${ts_bootprefix}boot/initrd:" $ESP/boot/grub/grub.cfg
+		sed -i -e "s:/boot/ucode:/${ts_bootprefix}boot/ucode:" $ESP/boot/grub/grub.cfg
+		sed -i -e "s:/boot/vmlinuz:/${ts_bootprefix}boot/vmlinuz:" $ESP/boot/grub/grub.cfg
 		sed -i -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS/g" $ESP/boot/grub/grub.cfg
 
 		if [ -n "$ts_grubpasswd" ]; then
