@@ -1,0 +1,14 @@
+# Contributor: yaroslav <proninyaroslav@mail.ru>
+# Contributor: Askhat Bakarov <sirocco{at}ngs{dot}ru>
+
+name=android-file-transfer
+version=4.2
+release=3
+source=(https://github.com/whoozle/android-file-transfer-linux/archive/v$version.tar.gz)
+
+build() {
+  cd android-file-transfer-linux-$version
+  cmake -DCMAKE_INSTALL_PREFIX=/usr . -DCMAKE_CXX_FLAGS="$CXXFLAGS -ffat-lto-objects"
+  make
+  make DESTDIR="$PKG/" install
+}

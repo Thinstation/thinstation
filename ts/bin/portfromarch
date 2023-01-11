@@ -1,19 +1,14 @@
 #!/bin/bash
 
-get_ops()
-while -n "$@"; do
-	src=$1; shift
-	dest=$1; shift
-	case $1 in
-		*) echo "to many variables, crash"; exit 1 ;;
-	esac
-done
-if [ -z $src ]; then
-	src=PKGBUILD
+if [ -n "$1" ]; then
+        PKG=$1
+	PKGSRC=`find /arch -name $1`
+	mkdir /ts/ports/components/$1
+	cp $PKGSRC/trunk/* /ts/ports/components/$1/. -a
+	cd /ts/ports/components/$1
 fi
-if [ -z $dest ]; then
-	dest=Pkgfile
-fi
+src=PKGBUILD
+dest=Pkgfile
 mv PKGBUILD* PKGBUILD
 if [ ! -e PKGBUILD ]; then
 	echo "PKGBUILD not found"

@@ -1,0 +1,28 @@
+# Maintainer: Laurent Carlier <lordheavym@gmail.com>
+# Contributor: yugrotavele <yugrotavele at archlinux dot us>
+# Contributor: Anton Pirogov <anton.pirogov <AT> googlemail.com>
+
+pkgname=mtpfs
+pkgver=1.1
+pkgrel=4
+pkgdesc="A FUSE filesystem that supports reading and writing from any MTP device"
+arch=('x86_64')
+url="https://www.adebenham.com/mtpfs/"
+license=('GPL3')
+depends=('libmtp' 'glib2' 'libid3tag' 'fuse2' 'libmad')
+makedepends=('pkg-config')
+source=(https://www.adebenham.com/files/mtp/${pkgname}-${pkgver}.tar.gz)
+sha512sums=('627f1a5efa024276f58857e0cb2a2b3057ab9ba6c26d8dcba9de066f4c0efc56a5c991e000e67763b874ee9feb1d9a1e176872b56dd13b146823e8724f2052c8')
+
+build() {
+  cd "$srcdir/$pkgname-$pkgver"
+
+  ./configure --prefix=/usr
+  make
+}
+
+package() {
+  cd "$srcdir/$pkgname-$pkgver"
+
+  make DESTDIR="$pkgdir" install
+}

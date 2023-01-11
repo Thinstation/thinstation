@@ -1,0 +1,19 @@
+# Maintainer: Antonio Rojas <arojas@archlinux.org>
+# Contributor: Tom Gundersen <teg@jklm.no>
+# Contributor: damir <damir@archlinux.org>
+# Contributor: Kevin Edmonds <edmondskevin@hotmail.com>
+
+name=libmtp
+version=1.1.20
+release=1
+source=(https://downloads.sourceforge.net/$name/$name-$version.tar.gz{,.asc})
+
+build() {
+  cd $name-$version
+  ./configure --prefix=/usr --with-udev=/usr/lib/udev
+  make
+  make DESTDIR="$PKG" install
+
+# Install man page
+#  install -Dm644 doc/man/man3/*.3 -t "$PKG"/usr/share/man/man3/
+}

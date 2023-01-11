@@ -1,0 +1,37 @@
+# Maintainer: Antonio Rojas <arojas@archlinux.org>
+# Contributor: Tom Gundersen <teg@jklm.no>
+# Contributor: damir <damir@archlinux.org>
+# Contributor: Kevin Edmonds <edmondskevin@hotmail.com>
+
+pkgname=libmtp
+pkgver=1.1.20
+pkgrel=1
+pkgdesc='Library implementation of the Media Transfer Protocol'
+arch=(x86_64)
+url='http://libmtp.sourceforge.net'
+license=(LGPL)
+depends=(libusb)
+makedepends=(doxygen)
+source=(https://downloads.sourceforge.net/$pkgname/$pkgname-$pkgver.tar.gz{,.asc})
+sha256sums=('c9191dac2f5744cf402e08641610b271f73ac21a3c802734ec2cedb2c6bc56d0'
+            'SKIP')
+validpgpkeys=(7C4AFD61D8AAE7570796A5172209D6902F969C95) # Marcus Meißner <meissner@suse.de>
+
+build() {
+  cd $pkgname-$pkgver
+  ./configure --prefix=/usr --with-udev=/usr/lib/udev
+  make
+}
+
+check() {
+  cd $pkgname-$pkgver
+  make -k check
+}
+
+package() {
+  cd $pkgname-$pkgver
+  make DESTDIR="$pkgdir" install
+
+# Install man page
+  install -Dm644 doc/man/man3/*.3 -t "$pkgdir"/usr/share/man/man3/
+}

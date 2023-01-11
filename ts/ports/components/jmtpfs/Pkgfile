@@ -1,0 +1,17 @@
+# Maintainer: Michele Spagnuolo <mikispag@gmail.com>
+
+name=jmtpfs
+version=0.5
+release=3
+url=https://github.com/JasonFerrara/jmtpfs
+source=("$url/archive/v$version/jmtpfs-v$version.tar.gz")
+
+build() {
+  cd jmtpfs-$version
+  ./configure CXXFLAGS=-lpthread --prefix=/usr
+  make
+  make DESTDIR="$PKG" install
+
+  ln -s jmtpfs "$PKG"/usr/bin/mount.jmtpfs
+  ln -s jmtpfs "$PKG"/usr/bin/mount.fuse.jmtpfs
+}

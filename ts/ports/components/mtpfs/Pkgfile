@@ -1,0 +1,16 @@
+# Maintainer: Laurent Carlier <lordheavym@gmail.com>
+# Contributor: yugrotavele <yugrotavele at archlinux dot us>
+# Contributor: Anton Pirogov <anton.pirogov <AT> googlemail.com>
+
+name=mtpfs
+version=1.1
+release=4
+source=(https://www.adebenham.com/files/mtp/${name}-${version}.tar.gz)
+
+build() {
+  cd "$SRC/$name-$version"
+
+  ./configure --prefix=/usr
+  make
+  make DESTDIR="$PKG" install
+}
