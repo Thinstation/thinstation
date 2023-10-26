@@ -5,17 +5,16 @@
 # NOTE: libtool requires rebuilt with each new gcc version
 
 name=gcc
-version=10.3.0
+version=12.2.0
 _version=7
-_islver=0.23
+_islver=0.24
 release=1
 _commit=c2103c17
 checkdepends=('dejagnu' 'inetutils')
 options=('!emptydirs')
-source=(http://isl.gforge.inria.fr/isl-${_islver}.tar.bz2 \
-	ftp://gcc.gnu.org/pub/gcc/releases/gcc-$version/$name-$version.tar.xz \
-	bz90397.patch \
-        bz90949.patch)
+source=(ftp://gcc.gnu.org/pub/gcc/infrastructure/isl-${_islver}.tar.bz2 \
+	ftp://gcc.gnu.org/pub/gcc/releases/gcc-$version/$name-$version.tar.xz 
+        )
 
 # gcc-6.0 forces a changed triplet - need to address in pacman/devtools
 CARCH=x86_64
@@ -114,6 +113,7 @@ build() {
     make -C $CHOST/$lib DESTDIR="$PKG" install-toolexeclibLTLIBRARIES
   done
 
+
   make -C libiberty DESTDIR=${PKG} install
   # install PIC version of libiberty
   install -m644 ${SRC}/gcc-build/libiberty/pic/libiberty.a ${PKG}/usr/lib
@@ -165,14 +165,17 @@ EOF
 
   ln -s gfortran ${PKG}/usr/bin/f95
 
+
   # Install Runtime Library Exception
   install -d ${PKG}/usr/share/licenses/gcc-fortran/
   ln -s ../gcc-libs/RUNTIME.LIBRARY.EXCEPTION ${PKG}/usr/share/licenses/gcc-fortran/
+
 
   cd ${SRC}/gcc-build
   make DESTDIR=$PKG -C $CHOST/libobjc install-headers
   install -dm755 $PKG/${_libdir}
   install -m755 gcc/cc1obj{,plus} $PKG/${_libdir}/
+
 
   # Install Runtime Library Exception
   install -d ${PKG}/usr/share/licenses/gcc-objc/
