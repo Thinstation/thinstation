@@ -9,7 +9,7 @@ release=1
 kver=`cat /ts/ports/kernel-modules/VERSION`
 source=(https://api.github.com/repos/Bumblebee-Project/bbswitch/tarball/v$version makefile.patch \
 	uaccess.patch \
-	0001-proc_ops-struct.patch  0002-kernel-5.7.patch)
+	0001-proc_ops-struct.patch  0002-kernel-5.7.patch 0003-kernel-5.18.patch)
 
 build() {
     tar xzfv v$version
@@ -18,6 +18,7 @@ build() {
     patch -Np1 -i $SRC/uaccess.patch
     patch -Np1 -i $SRC/0001-proc_ops-struct.patch
     patch -Np1 -i $SRC/0002-kernel-5.7.patch
+    patch -Np1 -i $SRC/0003-kernel-5.18.patch
 
     for KERNELTYPE in TS; do
        export REPORT_KERNEL=${kver}$KERNELTYPE
