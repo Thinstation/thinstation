@@ -4,7 +4,7 @@
 # Tested with Kernel 4.16, Dell D3000 SuperSpeed USB 3.0 Docking Station, 17e9:4318 DisplayLink
 
 name='evdi'
-version=1.7.2
+version=1.14.1
 release=1
 kver=`cat /ts/ports/kernel-modules/VERSION`
 _SRC="${name%-git}"
@@ -45,15 +45,23 @@ for KERNELTYPE in TS; do
   install -Dpm755 "library/lib${name%-git}.so"* -t "${PKG}/usr/lib/"
   pushd "${PKG}/usr/lib/" > /dev/null
   local _libs=(*.so.*)
-  if [ "${#_libs[@]}" -ne 1 ]; then
-    set +u
-    echo "Too many libs"
+  local _libase
+  if [ "${#_libs[@]}" -eq 2 ]; then
+    _libs="${_libs[1]}"
+    for _libase in *.so*; do
+      if [ "${_libase}" != "${_libs}" ]; then
+        ln -sf "${_libs}" "${_libase}"
+      fi
+    done
+  elif [ "${#_libs[@]}" -eq 1 ]; then
+    _libs="${_libs[0]}"
+    _libase="${_libs%.so*}.so"
+    ln -sf "${_libs}" "${_libase}"
+    ln -sf "${_libs}" "${_libase}.0" # bad soname
+  else
+    echo 'Unhandled libs'
     false
   fi
-  _libs="${_libs[0]}"
-  local _libase="${_libs%.so*}.so"
-  ln -sf "${_libs}" "${_libase}"
-  ln -sf "${_libs}" "${_libase}.0" # bad soname
   popd > /dev/null
 
   for module in module/evdi.ko; do

@@ -8,7 +8,7 @@ release=${release%TS}
 
 INSTALLDIR="/build/packages/xorg7_nvidia"
 
-DROP_FILES="libGL.la libnvidia-egl-wayland.so.1.0.2"
+DROP_FILES="libGL.la libnvidia-egl-wayland.so.1.0.2 nvidia-drm-outputclass.conf"
 
 KMOD=kernel/drivers/video
 
@@ -24,8 +24,8 @@ mkdir -p $INSTALLDIR/lib/icons/hicolor/48x48/apps
   mv $INSTALLDIR/share/doc/NVIDIA_GLX-1.0/nvidia-settings.png $INSTALLDIR/lib/icons/hicolor/48x48/apps/.
 rm -rf $INSTALLDIR/share
 
-mkdir -p $INSTALLDIR/lib/applications
-  mv /usr/local/share/applications/nvidia-settings.desktop		$INSTALLDIR/lib/applications
+#mkdir -p $INSTALLDIR/lib/applications
+#  mv /usr/local/share/applications/nvidia-settings.desktop		$INSTALLDIR/lib/applications
 mkdir -p $INSTALLDIR/etc/X11
   mv /usr/share/X11/xorg.conf.d/nvidia-drm-outputclass.conf		$INSTALLDIR/etc/X11
 mkdir -p $INSTALLDIR/lib/glvnd/egl_vendor.d
@@ -47,9 +47,8 @@ for link in `find $INSTALLDIR/lib -mindepth 1 -maxdepth 1 -type l | grep -E '\.s
 		base=`basename $link`
 		if [ -z "$soname" ]; then
 			echo "MISSING SONAME $link"
-			exit 1
-		fi
-		if [ "$base" == "$soname" ]; then
+#			exit 1
+		elif [ "$base" == "$soname" ]; then
 			rm $link
 			cp $linkdir/$linkdest $link
 			rm $linkdir/$linkdest
@@ -59,14 +58,20 @@ for link in `find $INSTALLDIR/lib -mindepth 1 -maxdepth 1 -type l | grep -E '\.s
 	fi
 done
 
+rm $INSTALLDIR/lib/gbm/nvidia-drm_gbm.so
+ln -s ../libnvidia-allocator.so.1 $INSTALLDIR/lib/gbm/nvidia-drm_gbm.so
+
 # Move potential conflicts to special files
-find $INSTALLDIR/lib/xorg/ -type l -delete
-mv $INSTALLDIR/lib/xorg/modules/extensions/libglx.so.*	$INSTALLDIR/lib/xorg/modules/extensions/libglx.so-nvidia
+#find $INSTALLDIR/lib/xorg/ -type l -delete
+#mv $INSTALLDIR/lib/xorg/modules/extensions/libglx.so.*	$INSTALLDIR/lib/xorg/modules/extensions/libglx.so-nvidia
 
 # Delete Nvidia version of libwfb.so
 rm -f mv $INSTALLDIR/lib/xorg/modules/libnvidia-wfb.so.*
 
 # Move potential conflicts to special files without an .so name element
+mv $INSTALLDIR/lib/libOpenGL.so.0	$INSTALLDIR/lib/libOpenGL-nvidia
+mv $INSTALLDIR/lib/libGLX.so.0		$INSTALLDIR/lib/libGLX-nvidia
+mv $INSTALLDIR/lib/libGLdispatch.so.0	$INSTALLDIR/lib/libGLdispatch-nvidia
 mv $INSTALLDIR/lib/libGLESv1_CM.so.1	$INSTALLDIR/lib/libGLESv1_CM-nvida
 mv $INSTALLDIR/lib/libEGL.so.1		$INSTALLDIR/lib/libEGL-nvidia
 mv $INSTALLDIR/lib/libGLESv2.so.2	$INSTALLDIR/lib/libGLESv2-nvidia
@@ -78,7 +83,7 @@ done
 
 cd kernel
 
-for kernel in TS TS+con; do
+for kernel in TS; do
 	make SYSSRC=/usr/src/kernels/${release}${kernel} module
 	for module in nvidia nvidia-uvm nvidia-modeset nvidia-drm; do
 		/usr/src/kernels/${release}${kernel}/scripts/sign-file \
@@ -102,6 +107,7 @@ cp -Prfd $INSTALLDIR/build/extra/* $INSTALLDIR/.
 prt-get remove mesa3d
 prt-get remove glu
 prt-get remove glew
+prt-get remove libglvnd
 
 rm -rf /usr/lib/libGL*
 rm -rf /usr/lib/libEGL*
@@ -110,3 +116,4 @@ rm -rf /usr/lib/libEGL*
 prt-get install mesa3d -uf
 prt-get install glu -uf
 prt-get install glew -uf
+prt-get install libglvnd -uf

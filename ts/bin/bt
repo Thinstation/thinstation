@@ -117,6 +117,7 @@ setup_qemu()
 	MOUSE="-usb -device usb-tablet"
 	KVM="-enable-kvm"
 	EFI="-L . --bios usr/share/edk2.git/ovmf-x64/OVMF-pure-efi.fd"
+#	EFI="-L . --bios usr/share/edk2-ovmf/x64/OVMF_CODE.fd"
 #	NETWORK=`bridge $1`
 #	QEMU=qemu-system-i386
 	QEMU=qemu-system-x86_64
@@ -153,7 +154,7 @@ case $1 in
 		echo "Exit code $?"
 	;;
         net-efi)
-                $QEMU $NET_MACHINE -boot n -device e1000,netdev=n1 -netdev user,id=n1,tftp=/build/boot-images/grub/efi-source,bootfile=/EFI/BOOT/bootx64.efi $EFI
+                $QEMU $NET_MACHINE -boot n -device e1000,netdev=n1 -netdev user,id=n1,tftp=/build/boot-images/grub/efi-source,bootfile=/EFI/boot/bootx64.efi $EFI
 		echo "Exit code $?"
 	;;
         cd)
@@ -198,7 +199,7 @@ case $1 in
 	image-grub)
 		confirm_hd && \
 		confirm_iso grub && \
-		$QEMU $STANDARD_MACHINE $HDD $CDROM $EFI --boot d,menu=on
+		$QEMU $STANDARD_MACHINE $HDD $CDROM $EFI --boot c,menu=on
 		echo "Exit code $?"
 	;;
 	cd-image-grub)

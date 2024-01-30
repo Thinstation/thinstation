@@ -517,7 +517,7 @@ make_initrd()
 		done
 	fi
 	if [ "$ts_initrdcmd" == "xz" ]; then
-		ts_initrdcmd="xz --check=crc32"
+		ts_initrdcmd="xz --threads=0 --check=crc32"
 	fi
 	if [ "$ts_initrdcmd" == "squashfs" ]; then
 		mksquashfs . ../$INITDIR/initrd $ts_squashopt $DEF_SQAUSHOPT
@@ -547,6 +547,7 @@ package_dependencies ()
 		while read filename; do
 			package=`basename $filename .$1`
 			if find_package $package && [ -s $pkgpath/dependencies ] ; then
+				cat $pkgpath/dependencies |grep -e "!" |sed -e 's/!//g' >> /tmp/block.package
 				(cat $pkgpath/dependencies |grep -v ^# |grep -vf /tmp/block.package) |
 				while read name cross; do
 					if ! find_package $name; then
@@ -847,7 +848,11 @@ if [ -n "$ts_bootresolution" ] ;then
   else
 		rm -rf ./tmp-tree/etc/splash
 		rm -rf ./tmp-tree/lib/splash
-		KERNEL_PARAMETERS="$KERNEL_PARAMETERS splash=off"
+		if [ -e ./tmp-tree/etc/plymouth/plymouthd.conf ]; then
+			KERNEL_PARAMETERS="$KERNEL_PARAMETERS splash"
+		else
+			KERNEL_PARAMETERS="$KERNEL_PARAMETERS splash=off"
+		fi
   fi
 fi
 }
@@ -2239,13 +2244,13 @@ syslinux_copy_files_bios()
 	if [ "$LOADER" == "lpxelinux.0" ]; then
 		for file in `find $BIOSDIR -type f`; do
 			if [ -n "`file -e tokens $file| grep -e ASCII |cut -d ":" -f1`" ];then
-				sed -i -e "s|/boot|http://$ts_bootserver/boot|g" $file
+				sed -i -e "s|/boot|http://$ts_bootserver/${ts_bootprefix}boot|g" $file
 			fi
 		done
 	elif [ "$LOADER" == "pxelinux.0" ]; then
 		for file in `find $BIOSDIR -type f`; do
 			if [ -n "`file -e tokens $file| grep -e ASCII |cut -d ":" -f1`" ];then
-				sed -i -e "s|/boot|::/boot|g" $file
+				sed -i -e "s|/boot|::/${ts_bootprefix}boot|g" $file
 			fi
 		done
 	fi
@@ -2259,9 +2264,9 @@ syslinux_copy_files_bios()
 		rm $ESP/$file
 		sed -i -e "s/\$LM/$LM/g" $ESP/$endfile
 		if [ "$LOADER" == "lpxelinux.0" ]; then
-			sed -i -e "s|/boot|http://$ts_bootserver/boot|g" $ESP/$endfile
+			sed -i -e "s|/boot|http://$ts_bootserver/${ts_bootprefix}boot|g" $ESP/$endfile
 		elif [ "$LOADER" == "pxelinux.0" ]; then
-			sed -i -e "s|/boot|::/boot|g" $ESP/$endfile
+			sed -i -e "s|/boot|::/${ts_bootprefix}boot|g" $ESP/$endfile
 		fi
 		echo $ESP/$endfile >> boot-images/initrd/added.files
 	done
@@ -2296,9 +2301,9 @@ syslinux_copy_files_efi()
 		rm $ESP/$file
 		sed -i -e "s/\$LM/$LM/g" $ESP/$endfile
 		if [ "$LOADER" == "lpxelinux.0" ]; then
-			sed -i -e "s|/boot|http://$ts_bootserver/boot|g" $ESP/$endfile
+			sed -i -e "s|/boot|http://$ts_bootserver/${ts_bootprefix}boot|g" $ESP/$endfile
 		elif [ "$LOADER" == "pxelinux.0" ]; then
-			sed -i -e "s|/boot|::/boot|g" $ESP/$endfile
+			sed -i -e "s|/boot|::/${ts_bootprefix}boot|g" $ESP/$endfile
 		fi
 		echo $ESP/$endfile >> boot-images/initrd/added.files
 	done
@@ -2405,6 +2410,9 @@ wrap_efi()
 		if is_enabled $ts_earlymicrocode ; then
 			sed -i -e "s:/boot/initrd:/boot/ucode /boot/initrd:" $ESP/boot/grub/grub.cfg
 		fi
+		sed -i -e "s:/boot/initrd:/${ts_bootprefix}boot/initrd:" $ESP/boot/grub/grub.cfg
+		sed -i -e "s:/boot/ucode:/${ts_bootprefix}boot/ucode:" $ESP/boot/grub/grub.cfg
+		sed -i -e "s:/boot/vmlinuz:/${ts_bootprefix}boot/vmlinuz:" $ESP/boot/grub/grub.cfg
 		sed -i -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS/g" $ESP/boot/grub/grub.cfg
 
 		if [ -n "$ts_grubpasswd" ]; then

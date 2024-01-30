@@ -54,6 +54,7 @@ clean_dirs="	dev \
 		tmp \
 		sys \
 		lib/python2.7 \
+		lib/python3.9 \
 		lib/vmware-installer-horizon \
 		etc/vmware-installer-horizon \
 		etc/ld.so.cache \
@@ -105,10 +106,11 @@ libs="	/usr/lib/libffi.so.6 \
 	/usr/lib/libgcc_s.so.1"
 
 # Create all the directories that we are going to need
-for repack in python cups expat sane libgphoto2 v4l-utils libtiff libjpeg-turbo libxkbcommon libepoxy \
+echo "Repacking supporting packages for installer"
+for repack in python3 cups expat sane libgphoto2 v4l-utils libtiff libjpeg-turbo libxkbcommon libepoxy \
 	libusb libwebp zstd libtool libexif systemd libgcrypt libgpg-error gtk gtk3 wayland \
 	openssl gst-plugins-base gstreamer pygobject-3 \
-	dbus-python gdb meson pip2 scons setuptools2 netaddr pyxdg sqlalchemy urllib3 \
+	dbus-python gdb meson pip3 scons setuptools2 netaddr pyxdg sqlalchemy urllib3 \
 	libpng12 pcsc-lite atkmm cairomm ffmpeg libsigc++ pangomm util-linux at-spi2-atk \
 	atk gdk-pixbuf glib glibmm gtk gtkmm libxml2 pango alsa-lib cairo fontconfig freetype libva \
 	nspr nss pulseaudio libvdpau xorg-libpixman xorg-libx11 xorg-libxcb \
@@ -127,12 +129,12 @@ done
 for cbin in $bins ; do
         cp `which $cbin` $INSTALLDIR/bin/.
 	if [ -n "`file $INSTALLDIR/bin/$cbin |grep -oe ELF`" ]; then
-		libs="$libs \n`ldd $INSTALLDIR/bin/$cbin |grep -v 'linux-vdso' |grep -v 'not a' |cut -d '>' -f2 |cut -d '(' -f1 |sed -E s/[[:space:]]//g`"
+		libs="$libs \n`ldd $INSTALLDIR/bin/$cbin 2>/dev/null |grep -v 'linux-vdso' |cut -d '>' -f2 |cut -d '(' -f1 |sed -E s/[[:space:]]//g`"
 	fi
 done
 cp /usr/bin/which $INSTALLDIR/bin/.
 
-ln -sf python2 $INSTALLDIR/bin/python
+ln -sf python3 $INSTALLDIR/bin/python
 
 if [ -e /bin/uname-auto ] ; then
         cp /bin/uname-auto $INSTALLDIR/bin/.
@@ -188,8 +190,10 @@ mount -t devtmpfs dev $INSTALLDIR/dev
 
 # Run the installer
 chroot $INSTALLDIR strace -f -o /debug ./$gzname -I --stop-services --eulas-agreed --console --required $components
-chroot $INSTALLDIR ./$gzname -t -I
+chroot $INSTALLDIR ./$gzname -t -I --console
 
+# Remove all the files/folders not directly released by VMWare
+echo "Cleaning up...."
 for mount in dev proc sys; do
 	while mountpoint $INSTALLDIR/$mount >/dev/null 2>&1 ; do
 		umount $INSTALLDIR/$mount
