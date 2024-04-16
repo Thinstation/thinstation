@@ -130,6 +130,11 @@ append_ethernet_config() {
 
 
 create_ethernet_system_connection() {
+	conn_name="Ethernet"
+
+	# File to create in system-connections dir
+	SCFILE="$SCDIR/$conn_name.nmconnection"
+
 	# Creates NetworkManager system-connection file for Ethernet interfaces in
 	# $SCFILE (which must be set by caller)
 	#
@@ -167,6 +172,64 @@ create_ethernet_system_connection() {
 	fi
 }
 
+create_wireless_system_connection() {
+	if [ -n "$WIRELESS_ESSID" ]; then
+	    conn_name="$WIRELESS_ESSID"
+	    SCFILE="$SCDIR/$conn_name.nmconnection"
+	    append_wireless_connection
+	fi
+}
+
+append_wireless_connection() {
+    echo "Appending wireless connection configuration..."
+    : ${WIRELESS_MODE:="managed"}
+
+    # Extract the wireless interface name using iwconfig
+    wireless_interface=$(iwconfig 2>&1 | awk '/IEEE 802.11/ {print $1}')
+
+    # Start building the connection file
+    cat <<EOF >> $SCFILE
+[connection]
+id=$conn_name
+uuid=$(uuidgen -t)
+type=wifi
+interface-name=$wireless_interface
+autoconnect=true
+permissions=
+
+[wifi]
+ssid=$WIRELESS_ESSID
+mode=$WIRELESS_MODE
+EOF
+
+    # Check if a WPA key is provided
+    if [ -n "$WIRELESS_WPAKEY" ]; then
+        cat <<EOF >> $SCFILE
+security=802-11-wireless-security
+
+[wifi-security]
+auth-alg=open
+key-mgmt=wpa-psk
+psk=$WIRELESS_WPAKEY
+
+EOF
+    else
+        echo "No WPA key provided, setting up an open network..."
+        echo "security=none" >> $SCFILE
+    fi
+
+    # Append IPv4 and IPv6 configuration
+    append_ipv4_connection_config
+    append_ipv6_connection_config
+
+    # Set permissions for the configuration file
+    chmod 600 $SCFILE
+    chown root:root $SCFILE
+
+    echo "Finished appending wireless connection configuration..."
+}
+
+
 # Source TS variables
 . `dirname $0`/common
 
@@ -177,13 +240,8 @@ create_ethernet_system_connection() {
 #exec </dev/null >/var/log/networkmanager.log 2>&1
 
 ## MAIN
-conn_name="Ethernet"
-
 # system-connections directory path
 SCDIR="/etc/NetworkManager/system-connections"
-
-# File to create in system-connections dir
-SCFILE="$SCDIR/$conn_name.nmconnection"
 
 # Assume that if not specified, an interface will auto-configure
 # We do this here to avoid creating a system-configuration file
@@ -197,5 +255,9 @@ SCFILE="$SCDIR/$conn_name.nmconnection"
 [ "$NET_IPV6_MODE" == "disable" ] && NET_IPV6_MODE="disabled"
 
 create_ethernet_system_connection
+
+#Wieless
+
+create_wireless_system_connection
 
 echo "Finished creating system connections for NetworkManager."
