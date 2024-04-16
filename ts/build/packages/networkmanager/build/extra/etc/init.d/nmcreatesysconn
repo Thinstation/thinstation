@@ -186,6 +186,10 @@ append_wireless_connection() {
 
     # Extract the wireless interface name using iwconfig
     wireless_interface=$(iwconfig 2>&1 | awk '/IEEE 802.11/ {print $1}')
+	if [ -z "$wireless_interface" ]; then
+		echo "No wireless adapters found."
+		return 1
+	fi
 
     # Start building the connection file
     cat <<EOF >> $SCFILE
@@ -249,15 +253,19 @@ SCDIR="/etc/NetworkManager/system-connections"
 # default NetworkManager behavior)
 : ${NET_IPV4_MODE:="auto"}
 : ${NET_IPV6_MODE:="auto"}
+: ${NET_USE:="BOTH"}
 
 # Correct a likely data entry mistake
 [ "$NET_IPV4_MODE" == "disable" ] && NET_IPV4_MODE="disabled"
 [ "$NET_IPV6_MODE" == "disable" ] && NET_IPV6_MODE="disabled"
 
-create_ethernet_system_connection
+if [ "$NET_USE" == "LAN" ] || [ "$NET_USE" == "BOTH" ]; then
+	create_ethernet_system_connection
+fi
 
 #Wieless
-
-create_wireless_system_connection
+if [ "$NET_USE" == "WLAN" ] || [ "$NET_USE" == "BOTH" ]; then
+	create_wireless_system_connection
+fi
 
 echo "Finished creating system connections for NetworkManager."
