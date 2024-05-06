@@ -9,25 +9,8 @@ if [ "$INTERFACE" != "lo" ]; then
 
 	case $ACTION in
 	pre-up)
-		if [ "$HOSTNAME" == "thinstation-linux" ]; then
-			CLIENT_MAC=`cat /sys/class/net/$INTERFACE/address | sed 's/://g'`
-			if [ -n "`echo \"$NET_HOSTNAME\" | sed -n '/\*/p'`" ]; then
-				CLIENT_NAME=`echo "$NET_HOSTNAME" | sed "s/\*/$CLIENT_MAC/"`
-			else
-				CLIENT_NAME=$NET_HOSTNAME
-			fi
-			if [ -e /etc/thinstation.hosts ] ; then
-				clientname=`cat /etc/thinstation.hosts | grep -i $CLIENT_MAC | cut -d" " -f 1`
-				if [ -n "$clientname" ] ; then
-					CLIENT_NAME=$clientname
-				fi
-			fi
-			if [ "$CLIENT_NAME" == "(none)" ]; then
-				unset CLIENT_NAME
-			else
-				hostname $CLIENT_NAME
-			fi
-		fi
+		CLIENT_MAC=`cat /sys/class/net/$INTERFACE/address | sed 's/://g'`
+		CLIENT_NAME=$HOSTNAME
 	;;
 	up|dhcp4-change)
 

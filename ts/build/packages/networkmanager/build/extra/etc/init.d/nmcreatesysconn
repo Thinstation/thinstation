@@ -269,3 +269,26 @@ if [ "$NET_USE" == "WLAN" ] || [ "$NET_USE" == "BOTH" ]; then
 fi
 
 echo "Finished creating system connections for NetworkManager."
+
+if [ "$HOSTNAME" == "thinstation-linux" ]; then
+	FIRST_ETH=$(ls /sys/class/net | grep -m 1 'e')
+	if [ -n "$FIRST_ETH" ]; then
+		CLIENT_MAC=`cat /sys/class/net/$FIRST_ETH/address | sed 's/://g'`
+		if [ -n "`echo \"$NET_HOSTNAME\" | sed -n '/\*/p'`" ]; then
+			CLIENT_NAME=`echo "$NET_HOSTNAME" | sed "s/\*/$CLIENT_MAC/"`
+		else
+			CLIENT_NAME=$NET_HOSTNAME
+		fi
+		if [ -e /etc/thinstation.hosts ] ; then
+			clientname=`cat /etc/thinstation.hosts | grep -i $CLIENT_MAC | cut -d" " -f 1`
+			if [ -n "$clientname" ] ; then
+				CLIENT_NAME=$clientname
+			fi
+		fi
+		if [ "$CLIENT_NAME" == "(none)" ]; then
+			unset CLIENT_NAME
+		else
+			hostname $CLIENT_NAME
+		fi
+	fi
+fi
