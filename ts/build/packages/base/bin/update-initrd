@@ -19,43 +19,49 @@ echo "
 exit_everything_already_current()
 {
 	echo "Everything is Up to Date"
+	echo 0 > /tmp/update.status
 	exit 0
 }
 
 exit_update_completed()
 {
         echo "Update Complete"
-        exit 1
+        echo 1 > /tmp/update.status
+	exit 1
 }
 
 exit_failed_no_md5()
 {
 	echo "Could not check md5"
+	echo 2 > /tmp/update.status
 	exit 2
 }
 
 exit_invalid_path()
 {
 	echo "Invalid Path or missing vmlinuz and initrd"
-        exit 3
-
+        echo 3 > /tmp/update.status
+	exit 3
 }
 
 exit_copy_failed()
 {
 	echo "Something went wrong a file copy. Either permissions or space."
+	echo 4 > /tmp/update.status
 	exit 4
 }
 
 exit_transfer_failed()
 {
 	echo "Something went wrong with a download from the internet. Are you connected?"
+	echo 5 > /tmp/update.status
 	exit 5
 }
 
 exit_unwind_failed()
 {
 	echo "Something went wrong with the unwind of the update archive. Possibly a space problem or lack of memory"
+	echo 6 > /tmp/update.status
 	exit 6
 }
 

@@ -27,7 +27,8 @@ x_echo()
 do_update()
 {
 	$XTERM_CMD -T "Update initrd" $ARG script -c "update-initrd -w" -e /home/$TSUSER/Desktop/update.log
-	case $? in
+	STATUS="`cat /tmp/update.status`"
+	case $STATUS in
                 0) x_echo Update "No Update Needed" ;;
 		1) x_echo Update "Update Complete, Click OK to reboot" ;reboot;;
 		*) x_echo Update "Something went wrong with the update. Check the log." ;;
