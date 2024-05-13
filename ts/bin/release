@@ -5,6 +5,8 @@ set -x
 user=$2
 ver=$1
 
+read -s -p "Enter Password: " PASSWORD
+
 mk_devstat()
 {
 	# Make DevStation
@@ -20,8 +22,8 @@ mk_devstat()
 	mv lib.squash lib.update
 	tar -c * |xz > ../thindev-default-$TSVER.tar.xz
 	cd ..
-	scp image-*.md5 ${user}@frs.sourceforge.net:/home/frs/project/thinstation/DevStation-Source/
-	scp thindev-default-*.tar.xz ${user}@frs.sourceforge.net:/home/frs/project/thinstation/DevStation-Source/
+	sshpass -p "$PASSWORD" scp -o StrictHostKeyChecking=no image-*.md5 ${user}@frs.sourceforge.net:/home/frs/project/thinstation/DevStation-Source/
+	sshpass -p "$PASSWORD" scp -o StrictHostKeyChecking=no thindev-default-*.tar.xz ${user}@frs.sourceforge.net:/home/frs/project/thinstation/DevStation-Source/
 }
 
 mk_installer()
@@ -42,7 +44,7 @@ mk_installer()
 	cp conf/installer/* .
 	stb --allmodules
 	cp /build/boot-images/grub/thinstation-efi.iso /tmp/$name
-	scp /tmp/$name ${user}@frs.sourceforge.net:/home/frs/project/thinstation/thinstation/thinstation-6/.
+	sshpass -p "$PASSWORD" scp -o StrictHostKeyChecking=no /tmp/$name ${user}@frs.sourceforge.net:/home/frs/project/thinstation/thinstation/thinstation-6/.
 }
 
 mk_livecd(){
@@ -50,7 +52,7 @@ mk_livecd(){
 	cd /build
         cp conf/LiveCD/* .
         stb --allmodules
-        scp /build/boot-images/grub/thinstation-efi.iso ${user}@frs.sourceforge.net:/home/frs/project/thinstation/LiveCD/TS-Multiclient-Desktop-LiveCD-Demo.iso
+	sshpass -p "$PASSWORD" scp -o StrictHostKeyChecking=no /build/boot-images/grub/thinstation-efi.iso ${user}@frs.sourceforge.net:/home/frs/project/thinstation/LiveCD/TS-Multiclient-Desktop-LiveCD-Demo.iso
 }
 
 case $3 in

@@ -2144,21 +2144,22 @@ image_fastboot()
 	fi
 }
 
-if [ -z "$ts_bootimages" ]; then
-	ts_bootimages="syslinux iso pxe refind-iso systemd-boot-iso grub"
+if [ "$ts_bootimages" != "grub" ] && [ -n "$ts_bootimages" ] ; then
+	echo "Use of bootimages is deprecated. Only grub is supported."
 fi
-if [ -z "$ts_syslinuxtheme" ]; then
-	ts_syslinuxtheme="default"
-fi
-if [ -z "$ts_refindtheme" ]; then
-	ts_refindtheme="default"
-fi
-if [ -z "$ts_gummitheme" ]; then
-	ts_gummitheme="default"
-fi
-if [ -z "$ts_grubtheme" ]; then
-	ts_grubtheme="default"
-fi
+ts_bootimages="grub"
+#if [ -z "$ts_syslinuxtheme" ]; then
+#	ts_syslinuxtheme="default"
+#fi
+#if [ -z "$ts_refindtheme" ]; then
+#	ts_refindtheme="default"
+#fi
+#if [ -z "$ts_gummitheme" ]; then
+#	ts_gummitheme="default"
+#fi
+#if [ -z "$ts_grubtheme" ]; then
+#	ts_grubtheme="default"
+#fi
 
 rm -rf boot-images/common
 if [ -e build.image ]; then
@@ -2192,172 +2193,172 @@ add_overlay()
 	fi
 }
 
-syslinux_scan_config()
-{
+#syslinux_scan_config()
+#{
 	# Scan config file for potentially needed com32 files
-	for com in `ls /usr/share/syslinux/bios/ -1 |grep -e c32 |cut -d. -f1`; do
-		grep $1 -oe $com.c32 >> /tmp/syslinux-com32
-	done
-}
+#	for com in `ls /usr/share/syslinux/bios/ -1 |grep -e c32 |cut -d. -f1`; do
+#		grep $1 -oe $com.c32 >> /tmp/syslinux-com32
+#	done
+#}
 
-syslinux_com_deps()
-{
-	for lib in libutil libcom32 liblua libgpl libmenu; do
-		if ! grep -qe $lib.c32 /tmp/syslinux-com32; then
-			for module in `eval echo "\$"$lib`; do #Actually look at the dependencies variables
-				if grep -qe $module.c32 /tmp/syslinux-com32; then
-					echo "$lib.c32" >> /tmp/syslinux-com32
-					if [ "$lib" == "libmenu" ]; then
-						echo libutil.c32 >> /tmp/syslinux-com32
-						echo libcom32.c32 >> /tmp/syslinux-com32
-					fi
-				fi
-			done
-		fi
-	done
-	cat /tmp/syslinux-com32 |sort -u > /tmp/sorted
-	rm /tmp/syslinux-com32
-	mv /tmp/sorted /tmp/syslinux-com32
-}
+#syslinux_com_deps()
+#{
+#	for lib in libutil libcom32 liblua libgpl libmenu; do
+#		if ! grep -qe $lib.c32 /tmp/syslinux-com32; then
+#			for module in `eval echo "\$"$lib`; do #Actually look at the dependencies variables
+#				if grep -qe $module.c32 /tmp/syslinux-com32; then
+#					echo "$lib.c32" >> /tmp/syslinux-com32
+#					if [ "$lib" == "libmenu" ]; then
+#						echo libutil.c32 >> /tmp/syslinux-com32
+#						echo libcom32.c32 >> /tmp/syslinux-com32
+#					fi
+#				fi
+#			done
+#		fi
+#	done
+#	cat /tmp/syslinux-com32 |sort -u > /tmp/sorted
+#	rm /tmp/syslinux-com32
+#	mv /tmp/sorted /tmp/syslinux-com32
+#}
 
-syslinux_copy_files_bios()
-{
-	if [ -z "$ts_bootserver" ]; then
-		inet_dev=`ip route list |grep -e default |cut -d " " -f5| head -n1`
-		ts_bootserver=`ip addr show $inet_dev |grep -e "inet " |cut -d " " -f6 |cut -d "/" -f1| head -n1`
-	fi
-	biosdir=/usr/share/syslinux/bios
-	configdir=boot-images/templates/syslinux/"$ts_syslinuxtheme"
-	BIOSDIR=${ESP}/boot$BDIR
-	CONFIGDIR=`dirname $CONFIGFILE`
+#syslinux_copy_files_bios()
+#{
+#	if [ -z "$ts_bootserver" ]; then
+#		inet_dev=`ip route list |grep -e default |cut -d " " -f5| head -n1`
+#		ts_bootserver=`ip addr show $inet_dev |grep -e "inet " |cut -d " " -f6 |cut -d "/" -f1| head -n1`
+#	fi
+#	biosdir=/usr/share/syslinux/bios
+#	configdir=boot-images/templates/syslinux/"$ts_syslinuxtheme"
+#	BIOSDIR=${ESP}/boot$BDIR
+#	CONFIGDIR=`dirname $CONFIGFILE`
+#
+#	for file in `find $configdir -type f |sed -e "s|$configdir||g"`; do
+#		sys_copy ${configdir}${file} "$BIOSDIR/$file"
+#	done
+#
+#	mkdir -p `dirname $BIOSDIR/$CONFIGFILE`
+#	cat $BIOSDIR/syslinux.cfg.tpl |sed -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS LM=$LM/g"> $BIOSDIR/$CONFIGFILE
+#	sed -i -e "s/\$LM/$LM/g" $BIOSDIR/$CONFIGFILE
+#	if is_enabled $ts_earlymicrocode ; then
+#		sed -i -e "s:/boot/initrd:/boot/ucode,/boot/initrd:" $BIOSDIR/$CONFIGFILE
+#	fi
+#	if [ "$LOADER" == "lpxelinux.0" ]; then
+#		for file in `find $BIOSDIR -type f`; do
+#			if [ -n "`file -e tokens $file| grep -e ASCII |cut -d ":" -f1`" ];then
+#				sed -i -e "s|/boot|http://$ts_bootserver/${ts_bootprefix}boot|g" $file
+#			fi
+#		done
+#	elif [ "$LOADER" == "pxelinux.0" ]; then
+#		for file in `find $BIOSDIR -type f`; do
+#			if [ -n "`file -e tokens $file| grep -e ASCII |cut -d ":" -f1`" ];then
+#				sed -i -e "s|/boot|::/${ts_bootprefix}boot|g" $file
+#			fi
+#		done
+#	fi
+#	echo $BIOSDIR/$CONFIGFILE >> boot-images/initrd/added.files
+#
+#	find $ESP -name syslinux.cfg.tpl -delete
+#
+#	for file in `find $ESP -name \*.tpl |sed -e "s|$ESP||g"`; do
+#		endfile=`dirname $file`/`basename $file .tpl`
+#		cat $ESP/$file |sed -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS LM=$LM/g" > $ESP/$endfile
+#		rm $ESP/$file
+#		sed -i -e "s/\$LM/$LM/g" $ESP/$endfile
+#		if [ "$LOADER" == "lpxelinux.0" ]; then
+#			sed -i -e "s|/boot|http://$ts_bootserver/${ts_bootprefix}boot|g" $ESP/$endfile
+#		elif [ "$LOADER" == "pxelinux.0" ]; then
+#			sed -i -e "s|/boot|::/${ts_bootprefix}boot|g" $ESP/$endfile
+#		fi
+#		echo $ESP/$endfile >> boot-images/initrd/added.files
+#	done
+#
+#	for com in `cat /tmp/syslinux-com32`; do
+#		sys_copy $biosdir/$com		"$BIOSDIR/$com"
+#		if [ "$com" == "hdt.c32" ]; then
+#			sys_copy /usr/share/pci.ids $BIOSDIR/pci.ids
+#			sys_copy `prt-get fsearch modules.alias |grep -v Found |head -n1` $BIOSDIR/modules.alias
+#		fi
+#	done
+#
+#	loadersource="`prt-get fsearch $LOADER |grep -Ev 'Found|/$' |cut -d " " -f3 |head -n1`"
+#	sys_copy $loadersource			"$BIOSDIR/$LOADER"
+#	sys_copy $biosdir/ldlinux.c32	"$BIOSDIR/ldlinux.c32"
+#}
 
-	for file in `find $configdir -type f |sed -e "s|$configdir||g"`; do
-		sys_copy ${configdir}${file} "$BIOSDIR/$file"
-	done
-
-	mkdir -p `dirname $BIOSDIR/$CONFIGFILE`
-	cat $BIOSDIR/syslinux.cfg.tpl |sed -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS LM=$LM/g"> $BIOSDIR/$CONFIGFILE
-	sed -i -e "s/\$LM/$LM/g" $BIOSDIR/$CONFIGFILE
-	if is_enabled $ts_earlymicrocode ; then
-		sed -i -e "s:/boot/initrd:/boot/ucode,/boot/initrd:" $BIOSDIR/$CONFIGFILE
-	fi
-	if [ "$LOADER" == "lpxelinux.0" ]; then
-		for file in `find $BIOSDIR -type f`; do
-			if [ -n "`file -e tokens $file| grep -e ASCII |cut -d ":" -f1`" ];then
-				sed -i -e "s|/boot|http://$ts_bootserver/${ts_bootprefix}boot|g" $file
-			fi
-		done
-	elif [ "$LOADER" == "pxelinux.0" ]; then
-		for file in `find $BIOSDIR -type f`; do
-			if [ -n "`file -e tokens $file| grep -e ASCII |cut -d ":" -f1`" ];then
-				sed -i -e "s|/boot|::/${ts_bootprefix}boot|g" $file
-			fi
-		done
-	fi
-	echo $BIOSDIR/$CONFIGFILE >> boot-images/initrd/added.files
-
-	find $ESP -name syslinux.cfg.tpl -delete
-
-	for file in `find $ESP -name \*.tpl |sed -e "s|$ESP||g"`; do
-		endfile=`dirname $file`/`basename $file .tpl`
-		cat $ESP/$file |sed -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS LM=$LM/g" > $ESP/$endfile
-		rm $ESP/$file
-		sed -i -e "s/\$LM/$LM/g" $ESP/$endfile
-		if [ "$LOADER" == "lpxelinux.0" ]; then
-			sed -i -e "s|/boot|http://$ts_bootserver/${ts_bootprefix}boot|g" $ESP/$endfile
-		elif [ "$LOADER" == "pxelinux.0" ]; then
-			sed -i -e "s|/boot|::/${ts_bootprefix}boot|g" $ESP/$endfile
-		fi
-		echo $ESP/$endfile >> boot-images/initrd/added.files
-	done
-
-	for com in `cat /tmp/syslinux-com32`; do
-		sys_copy $biosdir/$com		"$BIOSDIR/$com"
-		if [ "$com" == "hdt.c32" ]; then
-			sys_copy /usr/share/pci.ids $BIOSDIR/pci.ids
-			sys_copy `prt-get fsearch modules.alias |grep -v Found |head -n1` $BIOSDIR/modules.alias
-		fi
-	done
-
-	loadersource="`prt-get fsearch $LOADER |grep -Ev 'Found|/$' |cut -d " " -f3 |head -n1`"
-	sys_copy $loadersource			"$BIOSDIR/$LOADER"
-	sys_copy $biosdir/ldlinux.c32	"$BIOSDIR/ldlinux.c32"
-}
-
-syslinux_copy_files_efi()
-{
+#syslinux_copy_files_efi()
+#{
 	# Comment out all 32bit, cause were 64 bit only now.
-	efi32dir=/usr/share/syslinux/efi32
-	efi64dir=/usr/share/syslinux/efi64
+#	efi32dir=/usr/share/syslinux/efi32
+#	efi64dir=/usr/share/syslinux/efi64
+#
+#	for file in `find $configdir -type f |sed -e "s|$configdir||g"`; do
+#		sys_copy ${configdir}${file} "$EFI32DIR/$file"
+#		sys_copy ${configdir}${file} "$EFI64DIR/$file"
+#	done
+#
+#	for file in `find $ESP -name \*.tpl |sed -e "s|$ESP||g"`; do
+#		endfile=`dirname $file`/`basename $file .tpl`
+#		cat $ESP/$file |sed -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS LM=$LM/g" > $ESP/$endfile
+#		rm $ESP/$file
+#		sed -i -e "s/\$LM/$LM/g" $ESP/$endfile
+#		if [ "$LOADER" == "lpxelinux.0" ]; then
+#			sed -i -e "s|/boot|http://$ts_bootserver/${ts_bootprefix}boot|g" $ESP/$endfile
+#		elif [ "$LOADER" == "pxelinux.0" ]; then
+#			sed -i -e "s|/boot|::/${ts_bootprefix}boot|g" $ESP/$endfile
+#		fi
+#		echo $ESP/$endfile >> boot-images/initrd/added.files
+#	done
+#	find $ESP -name syslinux.cfg.tpl -delete
+#
+#	if [ "$LOADER" == "lpxelinux.0" ]; then
+#		sys_copy $BIOSDIR/$CONFIGFILE "$EFI32DIR/$CONFIGFILE"
+#		sys_copy $BIOSDIR/$CONFIGFILE "$EFI64DIR/$CONFIGFILE"
+#		sys_copy $efi32dir/syslinux.efi "$EFI32DIR/syslinux.efi"
+#		sys_copy $efi64dir/syslinux.efi "$EFI64DIR/syslinux.efi"
+#	else
+#		sys_copy $BIOSDIR/$CONFIGFILE "$EFI32DIR/syslinux.cfg"
+#		sys_copy $BIOSDIR/$CONFIGFILE "$EFI64DIR/syslinux.cfg"
+#		sys_copy $efi32dir/syslinux.efi "$EFI32DIR/bootia32.efi"
+#		sys_copy $efi64dir/syslinux.efi "$EFI64DIR/bootx64.efi"
+#	fi
+#	sys_copy $efi32dir/ldlinux.e32  "$EFI32DIR/ldlinux.e32"
+#	sys_copy $efi64dir/ldlinux.e64  "$EFI64DIR/ldlinux.e64"
+#
+#	for com in `cat /tmp/syslinux-com32`; do
+#		sys_copy $efi32dir/$com "$EFI32DIR/$com"
+#		sys_copy $efi64dir/$com "$EFI64DIR/$com"
+#		if [ "$com" == "hdt.c32" ]; then
+#			sys_copy /usr/share/pci.ids $EFI32DIR/pci.ids
+#			sys_copy `prt-get fsearch modules.alias |grep -v Found |head -n1` $EFI32DIR/modules.alias
+#			sys_copy /usr/share/pci.ids $EFI64DIR/pci.ids
+#			sys_copy `prt-get fsearch modules.alias |grep -v Found |head -n1` $EFI64DIR/modules.alias
+#		fi
+#	done
+#}
 
-	for file in `find $configdir -type f |sed -e "s|$configdir||g"`; do
-		sys_copy ${configdir}${file} "$EFI32DIR/$file"
-		sys_copy ${configdir}${file} "$EFI64DIR/$file"
-	done
-
-	for file in `find $ESP -name \*.tpl |sed -e "s|$ESP||g"`; do
-		endfile=`dirname $file`/`basename $file .tpl`
-		cat $ESP/$file |sed -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS LM=$LM/g" > $ESP/$endfile
-		rm $ESP/$file
-		sed -i -e "s/\$LM/$LM/g" $ESP/$endfile
-		if [ "$LOADER" == "lpxelinux.0" ]; then
-			sed -i -e "s|/boot|http://$ts_bootserver/${ts_bootprefix}boot|g" $ESP/$endfile
-		elif [ "$LOADER" == "pxelinux.0" ]; then
-			sed -i -e "s|/boot|::/${ts_bootprefix}boot|g" $ESP/$endfile
-		fi
-		echo $ESP/$endfile >> boot-images/initrd/added.files
-	done
-	find $ESP -name syslinux.cfg.tpl -delete
-
-	if [ "$LOADER" == "lpxelinux.0" ]; then
-		sys_copy $BIOSDIR/$CONFIGFILE "$EFI32DIR/$CONFIGFILE"
-		sys_copy $BIOSDIR/$CONFIGFILE "$EFI64DIR/$CONFIGFILE"
-		sys_copy $efi32dir/syslinux.efi "$EFI32DIR/syslinux.efi"
-		sys_copy $efi64dir/syslinux.efi "$EFI64DIR/syslinux.efi"
-	else
-		sys_copy $BIOSDIR/$CONFIGFILE "$EFI32DIR/syslinux.cfg"
-		sys_copy $BIOSDIR/$CONFIGFILE "$EFI64DIR/syslinux.cfg"
-		sys_copy $efi32dir/syslinux.efi "$EFI32DIR/bootia32.efi"
-		sys_copy $efi64dir/syslinux.efi "$EFI64DIR/bootx64.efi"
-	fi
-	sys_copy $efi32dir/ldlinux.e32  "$EFI32DIR/ldlinux.e32"
-	sys_copy $efi64dir/ldlinux.e64  "$EFI64DIR/ldlinux.e64"
-
-	for com in `cat /tmp/syslinux-com32`; do
-		sys_copy $efi32dir/$com "$EFI32DIR/$com"
-		sys_copy $efi64dir/$com "$EFI64DIR/$com"
-		if [ "$com" == "hdt.c32" ]; then
-			sys_copy /usr/share/pci.ids $EFI32DIR/pci.ids
-			sys_copy `prt-get fsearch modules.alias |grep -v Found |head -n1` $EFI32DIR/modules.alias
-			sys_copy /usr/share/pci.ids $EFI64DIR/pci.ids
-			sys_copy `prt-get fsearch modules.alias |grep -v Found |head -n1` $EFI64DIR/modules.alias
-		fi
-	done
-}
-
-refind_copy_files()
-{
+#refind_copy_files()
+#{
 #	refdir=/boot/efi/EFI/refind
-	refdir=/usr/share/refind
-	configdir=boot-images/templates/refind/"$ts_refindtheme"
-	KDIR=${ESP}/boot
-	EFIDIR=$ESP/EFI/boot
-
-	for file in `find $refdir -type f |grep -Ev 'banners|docs|refind.conf-sample|refind_ia32.efi|refind_x64.efi|refind_aa64.efi|README.txt|mkfont.sh|gptsync' |sed -e "s|$refdir/||g"`; do
-		sys_copy $refdir/$file $EFIDIR/$file
-	done
-
-	rm -f $EFIDIR/grubx64.efi
-	sys_copy $refdir/refind_x64.efi $EFIDIR/grubx64.efi
-
-	for file in `find $configdir -type f |sed -e "s|$configdir||g"`; do
-		sys_copy ${configdir}${file} "$EFIDIR/$file"
-		sed -i -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS LM=$LM/g" "$EFIDIR/$file"
-		if is_enabled $ts_earlymicrocode ; then
-			sed -i -e "s:initrd=/boot/initrd:initrd=/boot/ucode initrd=/boot/initrd:" $EFIDIR/$file
-		fi
-	done
-}
+#	refdir=/usr/share/refind
+#	configdir=boot-images/templates/refind/"$ts_refindtheme"
+#	KDIR=${ESP}/boot
+#	EFIDIR=$ESP/EFI/boot
+#
+#	for file in `find $refdir -type f |grep -Ev 'banners|docs|refind.conf-sample|refind_ia32.efi|refind_x64.efi|refind_aa64.efi|README.txt|mkfont.sh|gptsync' |sed -e "s|$refdir/||g"`; do
+#		sys_copy $refdir/$file $EFIDIR/$file
+#	done
+#
+#	rm -f $EFIDIR/grubx64.efi
+#	sys_copy $refdir/refind_x64.efi $EFIDIR/grubx64.efi
+#
+#	for file in `find $configdir -type f |sed -e "s|$configdir||g"`; do
+#		sys_copy ${configdir}${file} "$EFIDIR/$file"
+#		sed -i -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS LM=$LM/g" "$EFIDIR/$file"
+#		if is_enabled $ts_earlymicrocode ; then
+#			sed -i -e "s:initrd=/boot/initrd:initrd=/boot/ucode initrd=/boot/initrd:" $EFIDIR/$file
+#		fi
+#	done
+#}
 
 rufus_copy_files()
 {
@@ -2466,185 +2467,185 @@ if [ -z "$NOIMAGES" ]; then
 			syslinux_scan_config $file
 		fi
 	done
-        syslinux_com_deps
+ #       syslinux_com_deps
 	for image in $ts_bootimages; do
 		echo -e "\nMaking boot image for $image Type....\n"
 		case $image in
-			syslinux)
-				ESP=boot-images/syslinux
-				EFI32DIR=$ESP/EFI/boot
-				EFI64DIR=$ESP/EFI/boot
-				BDIR=/syslinux
-				CONFIGFILE=syslinux.cfg
-				LOADER=syslinux
-				LM=2
-
-				addpkgs $ESP
-				syslinux_copy_files_bios
-				syslinux_copy_files_efi
-				add_image
-				add_overlay
-			;;
-			pxe)
-				ESP=boot-images/pxe
-				EFI32DIR=$ESP/boot/efi32
-				EFI64DIR=$ESP/boot/efi64
-				CONFIGFILE=pxelinux.cfg/default
-
-				BDIR=/lpxelinux
-				LOADER=lpxelinux.0
-
-				LM=3
-
-				addpkgs $ESP
-				syslinux_copy_files_bios
-				syslinux_copy_files_efi
-
-				BDIR=/pxelinux
-				LOADER=pxelinux.0
-				syslinux_copy_files_bios
-
-				add_image
-				add_overlay
-			;;
-			iso)
-				ESP=boot-images/iso/source
-
-				BDIR=/isolinux
-				CONFIGFILE=isolinux.cfg
-				LOADER=isolinux.bin
-				LM=4
-				syslinux_copy_files_bios
-
-				BDIR=/syslinux
-				CONFIGFILE=syslinux.cfg
-				LOADER=syslinux
-				LM=2
-				syslinux_copy_files_bios
-
-				addpkgs $ESP
-
-				rufus_copy_files -s
-
-				add_image
-				add_overlay
-
-				mkisofs	-V "$ts_cdvolname" \
-					-o $ESP/../thinstation.iso \
-					-b boot/isolinux/isolinux.bin \
-					-c boot/isolinux/boot.cat \
-					-no-emul-boot \
-					-boot-load-size 4 \
-					-boot-info-table \
-					-joliet \
-					-ucs-level 3 \
-					-rock \
-					-f \
-					-quiet \
-					$ESP
-				isohybrid $ESP/../thinstation.iso
-				echo $ESP/../thinstation.iso >> boot-images/initrd/added.files
-			;;
-			refind-iso)
-				ESP=boot-images/refind-iso/efi-source
-				EFIOVERLAY=$ESP/EFI
-
-				wrap_efi
-
-				LM=2
-				CONFIGFILE=refind.conf
-				refind_copy_files
-
-				add_overlay
-				add_image
-
-
-				BDIR=/isolinux
-				CONFIGFILE=isolinux.cfg
-				LOADER=isolinux.bin
-				LM=4
-				syslinux_copy_files_bios
-
-				BDIR=/syslinux
-				CONFIGFILE=syslinux.cfg
-				LOADER=syslinux
-				LM=2
-				syslinux_copy_files_bios
-
-				rufus_copy_files -s
-
-				add_image
-				addpkgs $ESP
-
-				mkisofs	-V "$ts_cdvolname" \
-					-o $ESP/../thinstation-efi.iso \
-					-b boot/isolinux/isolinux.bin \
-					-c boot/isolinux/boot.cat \
-					-no-emul-boot \
-					-boot-load-size 4 \
-					-boot-info-table \
-					-joliet \
-					-ucs-level 3 \
-					-rock \
-					$ELTORITO \
-					-f \
-					-quiet \
-					$ESP
-				isohybrid $HYBRID_EFI $ESP/../thinstation-efi.iso
-				echo $ESP/../thinstation-efi.iso >> boot-images/initrd/added.files
-			;;
-			systemd-boot-iso)
-				ESP=boot-images/systemd-boot-iso/efi-source
-				EFIOVERLAY="$ESP/EFI $ESP/loader"
-
-				wrap_efi
-				rm $ESP/EFI/boot/grubx64.efi
-
-				LM=2
-				configdir=boot-images/templates/systemd-boot/"$ts_gummitheme"
-				sys_copy /usr/lib/systemd/boot/efi/systemd-bootx64.efi $ESP/EFI/boot/grubx64.efi
-				for file in `find $configdir -type f |sed -e "s|$configdir||g"`; do
-					sys_copy ${configdir}${file} $ESP/$file
-					sed -i -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS LM=$LM/g" $ESP/$file
-				done
-
-				add_overlay
-				add_image
-
-				BDIR=/isolinux
-				CONFIGFILE=isolinux.cfg
-				LOADER=isolinux.bin
-				LM=4
-				syslinux_copy_files_bios
-
-				BDIR=/syslinux
-				CONFIGFILE=syslinux.cfg
-				LOADER=syslinux
-				LM=2
-				syslinux_copy_files_bios
-
-				rufus_copy_files -s
-
-				add_image
-				addpkgs $ESP
-
-				mkisofs	-V "$ts_cdvolname" \
-					-o $ESP/../thinstation-efi.iso \
-					-b boot/isolinux/isolinux.bin \
-					-c boot/isolinux/boot.cat \
-					-no-emul-boot \
-					-boot-load-size 4 \
-					-boot-info-table \
-					-joliet \
-					-ucs-level 3 \
-					-rock \
-					$ELTORITO \
-					-f \
-					-quiet \
-					$ESP
-				isohybrid $HYBRID_EFI $ESP/../thinstation-efi.iso
-				echo $ESP/../thinstation-efi.iso >> boot-images/initrd/added.files
-			;;
+#			syslinux)
+#				ESP=boot-images/syslinux
+#				EFI32DIR=$ESP/EFI/boot
+#				EFI64DIR=$ESP/EFI/boot
+#				BDIR=/syslinux
+#				CONFIGFILE=syslinux.cfg
+#				LOADER=syslinux
+#				LM=2
+#
+#				addpkgs $ESP
+#				syslinux_copy_files_bios
+#				syslinux_copy_files_efi
+#				add_image
+#				add_overlay
+#			;;
+#			pxe)
+#				ESP=boot-images/pxe
+#				EFI32DIR=$ESP/boot/efi32
+#				EFI64DIR=$ESP/boot/efi64
+#				CONFIGFILE=pxelinux.cfg/default
+#
+#				BDIR=/lpxelinux
+#				LOADER=lpxelinux.0
+#
+#				LM=3
+#
+#				addpkgs $ESP
+#				syslinux_copy_files_bios
+#				syslinux_copy_files_efi
+#
+#				BDIR=/pxelinux
+#				LOADER=pxelinux.0
+#				syslinux_copy_files_bios
+#
+#				add_image
+#				add_overlay
+#			;;
+#			iso)
+#				ESP=boot-images/iso/source
+#
+#				BDIR=/isolinux
+#				CONFIGFILE=isolinux.cfg
+#				LOADER=isolinux.bin
+#				LM=4
+#				syslinux_copy_files_bios
+#
+#				BDIR=/syslinux
+#				CONFIGFILE=syslinux.cfg
+#				LOADER=syslinux
+#				LM=2
+#				syslinux_copy_files_bios
+#
+#				addpkgs $ESP
+#
+#				rufus_copy_files -s
+#
+#				add_image
+#				add_overlay
+#
+#				mkisofs	-V "$ts_cdvolname" \
+#					-o $ESP/../thinstation.iso \
+#					-b boot/isolinux/isolinux.bin \
+#					-c boot/isolinux/boot.cat \
+#					-no-emul-boot \
+#					-boot-load-size 4 \
+#					-boot-info-table \
+#					-joliet \
+#					-ucs-level 3 \
+#					-rock \
+#					-f \
+#					-quiet \
+#					$ESP
+#				isohybrid $ESP/../thinstation.iso
+#				echo $ESP/../thinstation.iso >> boot-images/initrd/added.files
+#			;;
+#			refind-iso)
+#				ESP=boot-images/refind-iso/efi-source
+#				EFIOVERLAY=$ESP/EFI
+#
+#				wrap_efi
+#
+#				LM=2
+#				CONFIGFILE=refind.conf
+#				refind_copy_files
+#
+#				add_overlay
+#				add_image
+#
+#
+#				BDIR=/isolinux
+#				CONFIGFILE=isolinux.cfg
+#				LOADER=isolinux.bin
+#				LM=4
+#				syslinux_copy_files_bios
+#
+#				BDIR=/syslinux
+#				CONFIGFILE=syslinux.cfg
+#				LOADER=syslinux
+#				LM=2
+#				syslinux_copy_files_bios
+#
+#				rufus_copy_files -s
+#
+#				add_image
+#				addpkgs $ESP
+#
+#				mkisofs	-V "$ts_cdvolname" \
+#					-o $ESP/../thinstation-efi.iso \
+#					-b boot/isolinux/isolinux.bin \
+#					-c boot/isolinux/boot.cat \
+#					-no-emul-boot \
+#					-boot-load-size 4 \
+#					-boot-info-table \
+#					-joliet \
+#					-ucs-level 3 \
+#					-rock \
+#					$ELTORITO \
+#					-f \
+#					-quiet \
+#					$ESP
+#				isohybrid $HYBRID_EFI $ESP/../thinstation-efi.iso
+#				echo $ESP/../thinstation-efi.iso >> boot-images/initrd/added.files
+#			;;
+#			systemd-boot-iso)
+#				ESP=boot-images/systemd-boot-iso/efi-source
+#				EFIOVERLAY="$ESP/EFI $ESP/loader"
+#
+#				wrap_efi
+#				rm $ESP/EFI/boot/grubx64.efi
+#
+#				LM=2
+#				configdir=boot-images/templates/systemd-boot/"$ts_gummitheme"
+#				sys_copy /usr/lib/systemd/boot/efi/systemd-bootx64.efi $ESP/EFI/boot/grubx64.efi
+#				for file in `find $configdir -type f |sed -e "s|$configdir||g"`; do
+#					sys_copy ${configdir}${file} $ESP/$file
+#					sed -i -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS LM=$LM/g" $ESP/$file
+#				done
+#
+#				add_overlay
+#				add_image
+#
+#				BDIR=/isolinux
+#				CONFIGFILE=isolinux.cfg
+#				LOADER=isolinux.bin
+#				LM=4
+#				syslinux_copy_files_bios
+#
+#				BDIR=/syslinux
+#				CONFIGFILE=syslinux.cfg
+#				LOADER=syslinux
+#				LM=2
+#				syslinux_copy_files_bios
+#
+#				rufus_copy_files -s
+#
+#				add_image
+#				addpkgs $ESP
+#
+#				mkisofs	-V "$ts_cdvolname" \
+#					-o $ESP/../thinstation-efi.iso \
+#					-b boot/isolinux/isolinux.bin \
+#					-c boot/isolinux/boot.cat \
+#					-no-emul-boot \
+#					-boot-load-size 4 \
+#					-boot-info-table \
+#					-joliet \
+#					-ucs-level 3 \
+#					-rock \
+#					$ELTORITO \
+#					-f \
+#					-quiet \
+#					$ESP
+#				isohybrid $HYBRID_EFI $ESP/../thinstation-efi.iso
+#				echo $ESP/../thinstation-efi.iso >> boot-images/initrd/added.files
+#			;;
 			grub)
                                 ESP=boot-images/grub/efi-source
                                 wrap_efi
