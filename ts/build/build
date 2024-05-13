@@ -2459,15 +2459,15 @@ wrap_efi()
 # Skips Images if NOIMAGES is set, useful for TS-O-Matic
 if [ -z "$NOIMAGES" ]; then
 	remove_old_boot_files
-	configdir=boot-images/templates/syslinux/"$ts_syslinuxtheme"
-	# Any text file is a potential config, and there are plenty of ways to get one in there,
-	# so lets look at all of them in the config folder.
-	for file in `find $configdir -type f`;do
-		if file -e tokens $file |grep -qe 'ASCII text'; then
-			syslinux_scan_config $file
-		fi
-	done
- #       syslinux_com_deps
+#	configdir=boot-images/templates/syslinux/"$ts_syslinuxtheme"
+#	# Any text file is a potential config, and there are plenty of ways to get one in there,
+#	# so lets look at all of them in the config folder.
+#	for file in `find $configdir -type f`;do
+#		if file -e tokens $file |grep -qe 'ASCII text'; then
+#			syslinux_scan_config $file
+#		fi
+#	done
+#       syslinux_com_deps
 	for image in $ts_bootimages; do
 		echo -e "\nMaking boot image for $image Type....\n"
 		case $image in

@@ -5,12 +5,10 @@
 name=firmware-libertas
 version=1.3
 release=1
-source=(http://www.downloads.netgear.com/files/GDC/WN311T/WN311T%20Driver%20and%20Utility%20Version%204.2.zip
-	http://archlinuxarm.org/builder/firmware/firmware/mrvl/sd8786_uapsta.bin)
+source=(http://www.downloads.netgear.com/files/GDC/WN311T/WN311T%20Driver%20and%20Utility%20Version%204.2.zip)
 
 build() {
 	mkdir -p $PKG/lib/firmware/mwl8k
-	mkdir -p $PKG/lib/firmware/mrvl
 
 	cabextract -F Disk1/data* wn311t_4_2_setup.exe
 	unshield -g Driver x Disk1/data1.cab
@@ -21,5 +19,4 @@ build() {
 
 	cp fmimage_8XX1.fw $PKG/lib/firmware/mwl8k/fmimage_8363.fw
 	cp helper_8XX1.fw $PKG/lib/firmware/mwl8k/helper_8363.fw
-	cp sd8786_uapsta.bin $PKG/lib/firmware/mrvl/.
 }
