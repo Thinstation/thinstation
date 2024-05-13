@@ -11,6 +11,8 @@ This env was created for you by Donald A. Cupp Jr. from Crux and ThinStation
 ThinStation itself has many many many contributors, but much thanx goes out to
 Mike Eriksen, Trevor Batley, Miles Roper and Marcos Amorim
 
+NEWS: All boot images except grub have been deprecated. 
+
 Work To Do / Work in Progress: mail to developer list if you can help
 
 * We could really use some help on the documentation. A lot has changed since 2.2, and I am afraid the documentation has not kept up. Please create a wiki account and help others with your knowledge.
