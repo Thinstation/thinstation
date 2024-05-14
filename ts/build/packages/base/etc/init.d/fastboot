@@ -39,50 +39,59 @@ search()
 	fi
 }
 
-syslinux()
-{
-	initrd_file=`basename $initrd`
-	if [ "$initrd_file" == "initrd-backup" ]; then
-		lib_file=lib.squash-backup
-	else
-		lib_file=lib.squash
-	fi
-	FILE=/boot/"$squash_location"$lib_file
-	UPDATE=/boot/"$squash_location"lib.update
-	local timeout=15
-	while [ "$BOOTABLE" != "TRUE" ] && [ "$timeout" -ne "0" ]; do 
-		if search $FILE || search $UPDATE ; then
-			BOOTABLE=TRUE
-		else
-			BOOTABLE=FALSE
-			let timeout-=1
-			printf "\rWaiting for Storage -- $timeout"
-			sleep .5
-			mount -a 2>/dev/null
-		fi
-		printf "\n"
-	done
-	if [ "$BOOTABLE" == "FALSE" ]; then
-		printf "\rCould not find the storage volume!"
-		if pkg_initialized debug || is_disabled $HALTONERROR ; then
-			touch /tmp/splash.exit
-			force_splash_exit
-			echo_log "Debug enabled...dropping to shell."
-			/bin/sh
-		else
-			touch /tmp/splash.exit
-			force_splash_exit
-			echo_log "Debug not enabled, boot halted."
-			halt
-		fi
-	fi
-	if [ -e $UPDATE ]; then
-		rm $FILE
-		mv $UPDATE $FILE
-	fi
+disk() {
+    # Parse /proc/cmdline to find the BOOT_IMAGE parameter
+    BOOT_IMAGE=$(cat /proc/cmdline | sed 's/.*BOOT_IMAGE=\([^ ]*\).*/\1/')
+    echo "Boot Image: $BOOT_IMAGE"
+
+    # Determine the version based on the BOOT_IMAGE name
+    if echo "$BOOT_IMAGE" | grep -q -- "-green"; then
+        lib_file="lib.squash-green"
+    elif echo "$BOOT_IMAGE" | grep -q -- "-blue"; then
+        lib_file="lib.squash-blue"
+    elif [ "$initrd_file" == "initrd-backup" ]; then
+        lib_file="lib.squash-backup"
+    else
+        # Default case if no specific version is found
+        lib_file="lib.squash"
+    fi
+    systemd-mount --fsck=no -o "x-mount.mkdir,defaults" /dev/disk/by-label/$HDVOLNAME /boot
+    FILE=/boot/"$squash_location"$lib_file
+    UPDATE=/boot/"$squash_location"lib.update
+    local timeout=15
+    while [ "$BOOTABLE" != "TRUE" ] && [ "$timeout" -ne "0" ]; do 
+        if search "$FILE" || search "$UPDATE" ; then
+            BOOTABLE=TRUE
+        else
+            BOOTABLE=FALSE
+            let timeout-=1
+            printf "\rWaiting for Storage -- %s" "$timeout"
+            sleep .5
+            mount -a 2>/dev/null
+        fi
+        printf "\n"
+    done
+    if [ "$BOOTABLE" == "FALSE" ]; then
+        printf "\rCould not find the storage volume!"
+        if pkg_initialized debug || is_disabled "$HALTONERROR" ; then
+            touch /tmp/splash.exit
+            force_splash_exit
+            echo_log "Debug enabled...dropping to shell."
+            /bin/sh
+        else
+            touch /tmp/splash.exit
+            force_splash_exit
+            echo_log "Debug not enabled, boot halted."
+            halt
+        fi
+    fi
+    if [ -e "$UPDATE" ]; then
+        rm "$FILE"
+        mv "$UPDATE" "$FILE"
+    fi
 }
 
-pxelinux()
+pxe()
 {
 	MEMORY_CONSTRAINED=TRUE
 	FILE=/tmp/lib.squash
@@ -141,8 +150,9 @@ pxelinux()
 	fi
 }
 
-isolinux()
+iso()
 {
+	systemd-mount --fsck=no -o x-mount.mkdir,defaults /dev/disk/by-label/$CDVOLNAME /mnt/cdrom0
 	FILE=$BASE_MOUNT_PATH/cdrom0/"$squash_location"lib.squash
 	timeout=150
 	while ! mountpoint $BASE_MOUNT_PATH/cdrom0 && [ $timeout -ne 0 ]; do
@@ -218,11 +228,12 @@ if ! is_disabled $FASTBOOT; then
 	fi
 	squash_loc
 	case $LM in
-		2) syslinux;;
-		3) pxelinux;;
-		4) isolinux;;
+		2) disk;;
+		3) pxe;;
+		4) iso;;
 	esac
 	mount_squash
+	used > /used.log
 else
 	exit 0
 fi

@@ -9,7 +9,7 @@
 # the Free Software Foundation, either version 2 of the License, or
 # any later version.
 #
-# mkdosdrv is distributed in the hope that it will be useful, but
+# mkmbrdrv is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
@@ -21,28 +21,11 @@
 test $(id -u) -ne 0 && echo "please run as root" && exit 1
 
 PID=$$
-COM32_LIST=`mktemp -t mkmbrdrv.XXX`
 MNTDIR=`mktemp -t -d mkmbrdrv.XXX`
 ESP=$MNTDIR
 cpt=262144 #default Copy Progress Threshold
 
 needed="parted mkswap mkfs.vfat mkfs.ext4 fuser"
-
-libutil="chain complex cptime display fancyhello hdt ifcpu \
-	 keytest libmenu menu prdhcp pxechn rosh simple test \
-	 test2 vesamenu"
-
-libcom32="chain cmd complex config display elf ethersel gfxboot \
-	  gpxecmd hdt hexdump host ifcpu ifcpu64 ifmemdsk ifplop \
-	  kbdmap kontron_wdt libmenu linux localboot lua mboot \
-	  pcitest pmload prdhcp pxechn reboot rosh sanboot sdi \
-	  simple sysdump test test2 vesamenu whichsys"
-
-libmenu="complex display hdt simple test test2"
-
-libgpl="cpuidtest disk dmitest hdt ifcpu lua vpdtest zzjson"
-
-liblua="lua"
 
 clean_up()
 {
@@ -52,10 +35,10 @@ clean_up()
 	done
 	sync
 	if mountpoint -q $MNTDIR; then
-		umount -f $MNTDIR
+		umount $MNTDIR
 	fi
 	lodestroy_
-	rm -rf $COM32_LIST $MNTDIR
+	rm -rf $MNTDIR
 	exit $1
 }
 
@@ -68,11 +51,6 @@ Usage:
 
 This is a simple script to turn a block device into a mbr formated disk.
 
-Additionally, you will need to tell it where it can find a syslinux theme.
-This is passed as -c <directory with syslinux.cfg>. This file will be scanned for
-the neceassary com32 files, and those files will be copied into the appropriate
-location, along with the config folder.
-
 Multiple partitions are supported, and can be added with -p <type:size:label>
 The order they are entered will be used when creating the ID. At least one
 partition will be made. By default, it will be an vfat partition that will
@@ -81,7 +59,6 @@ fill the disk and it will be labeled 'boot'.
 Sizes can be expressed as <size>B, K, M, G and S for sectors.
 
 Options:
-     --config,-c <dir>             : Path to syslinux.cfg folder.
         --min,-m <size>            : Minimum disk size allowed.
   --partition,-p <type:size:label> : Partition shorthand.
     --overlay,-o <dir>             : Additional directory to merge in at the root level.
@@ -96,10 +73,9 @@ Partition Types:
           data,d : General Data Partition Formated Fat32
 
 Examples:
-         mkmbrdrv -c /sys-themes/default -o /build /dev/loop0
+         mkmbrdrv -o /build/boot-images/grub/efi-source /dev/loop0
 
-         mkmbrdrv -c /sys-themes/menu \\
-                  -o /build \\
+         mkmbrdrv -o /build/boot-images/grub/efi-source \\
                   -p d:1g:boot \\
                   -p l:0:System \\
                   /dev/sdb
@@ -116,7 +92,6 @@ getopts()
 	part=0
 	while [ -n "$1" ]; do
 		case "$1" in
-			-c|--config)	configdir="$2";	shift;;
 			-m|--min)	min_size="$2";	shift;;
 			-p|--partition)	add_part "$2";	shift; let part+=1;;
 			-o|--overlay)	overlay="$2";	shift;;
@@ -145,80 +120,9 @@ getopts()
 
 get_dirs()
 {
-	for knownloc in /usr/share/syslinux /usr/lib/syslinux; do
-		if [ -e $knownloc/bios/ifcpu64.c32 ]; then
-			biosdir=$knownloc/bios
-		elif [ -e $knownloc/ifcpu64.c32 ]; then
-			biosdir=$knownloc
-		fi
-	done
-	if [ -n "$configdir" ] && ! find $configdir -name syslinux.cfg; then
-		usage 14 "You must specify a syslinux theme dir with a syslinux.cfg inside."
-	fi
-	if [ -z "$biosdir" ]; then
-		usage 11 "We could not get a good read on your syslinux install."
-	fi
 	if [ -n "$overlay" ] && [ ! -e "$overlay" ]; then
 		usage 15 "The requested root overlay directory $overlay, does not exist!"
 	fi
-	if [ ! -e `which extlinux` ]; then
-		usage 12 "Could not find extlinux executable."
-	else
-		ever=`extlinux -v 2>&1 |cut -c 10`
-	fi
-}
-
-scan_config()
-{
-	# Scan config file for potentially needed com32 files
-	if [ -e $1 ]; then
-		for com in \
-			pmload vesamenu sdi cpuidtest dmitest whichsys vpdtest \
-			elf cpuid debug linux vesainfo pxechn meminfo \
-			pcitest ifplop ethersel liblua ifmemdsk kbdmap libcom32 \
-			libmenu prdhcp gfxboot hexdump config libutil gpxecmd \
-			kontron_wdt disk zzjson libgpl chain host rosh ifcpu \
-			ifcpu64 hdt menu lua mboot cmd; do
-
-			grep $1 -oe $com.c32 >> $COM32_LIST
-		done
-	else
-		usage 13 "Could not find config $config."
-	fi
-}
-
-com_deps()
-{
-	for lib in libutil libcom32 liblua libgpl libmenu; do
-		if ! grep -qe $lib.c32 $COM32_LIST; then
-			for module in `eval echo "\$"$lib`; do
-				if grep -qe $module.c32 $COM32_LIST; then
-					echo "$lib.c32" >> $COM32_LIST
-					if [ "$lib" == "libmenu" ]; then
-						echo libutil.c32 >> $COM32_LIST
-						echo libcom32.c32 >> $COM32_LIST
-					fi
-				fi
-			done
-		fi
-	done
-	cat $COM32_LIST |sort -u > /tmp/sorted
-	rm $COM32_LIST
-	mv /tmp/sorted $COM32_LIST
-}
-
-copy_files()
-{
-	BIOSDIR=$ESP/boot/syslinux
-	mkdir -p "$BIOSDIR"
-	if [ -n "$configdir" ]; then
-		echo -e "\nCopying Syslinux Theme"
-		copy_dir "$configdir"		"$BIOSDIR"
-	fi
-	for com in `cat $COM32_LIST`; do
-		echo -e "\nCopying com32 files"
-		copy_file "$biosdir/$com"	"$BIOSDIR/$com"
-	done
 }
 
 copy_overlay()
@@ -275,7 +179,7 @@ add_part()
 {
 	oIFS=$IFS
 	IFS='\n'
-	let ID[$part]=$part+1 
+	let ID[$part]=$part+1
 	if [ "${ID[$part]}" == "5" ]; then
 		echo "Really, you need that many partitions?"
 		exit 5150
@@ -364,7 +268,8 @@ enough_room()
 install_mbr()
 {
 	echo -e "\nInstalling Master Boot Record"
-	dd if=$biosdir/mbr.bin of=$device bs=440 count=1 conv=notrunc
+	dd if=$overlay/boot/grub/boot.img of=$device bs=446 count=1
+	dd if=$overlay/boot/grub/core.img of=$device bs=512 seek=1
 }
 
 part_id()
@@ -384,16 +289,6 @@ mount_dev()
 main()
 {
 	get_dirs
-	if [ -n "$configdir" ]; then
-		# Any text file is a potential config, and there are plenty of ways to get one in there,
-		# so lets look at all of them in the config folder.
-		for file in `find $configdir -type f`; do
-			if file -e tokens $file |grep -qe 'ASCII text'; then
-				scan_config $file
-			fi
-		done
-		com_deps
-	fi
 	if block_device $device && \
 	   not_being_used $device && \
 	   user_agrees; then
@@ -410,12 +305,9 @@ main()
 			install_mbr
 			mount_dev
 			sync
-			copy_files
 			copy_overlay
 			_sync
-			echo -e "\nInstalling Bios Bootloader"
-			extlinux -i $BIOSDIR
-			sync
+			umount $MNTDIR
 			clean_up 0
 		fi
 	fi
@@ -509,7 +401,10 @@ losetup_()
 	else
 		let lsize=$lsize/1024
 	fi
-	dd if=/dev/zero of=$loopfile bs=1M count=$lsize; orbail 51
+	if [ -e $loopfile ]; then
+		rm -f $loopfile
+	fi
+	truncate -s ${lsize}M $loopfile; orbail 51
 	losetup -P $device $loopfile; orbail 52
 }
 
@@ -555,7 +450,7 @@ partition()
 		printf "%3s %4s %12s %-40s\n" "${ID[$part]}" "${type[$part]}" "$msize" "${label[$part]}"
 		parted -s $device mkpart primary ${type[$part]} ${start[$part]}s ${end[$part]}s ; orbail 21
 	done
-	parted -s $device set 1 boot on
+#	parted -s $device set 1 boot on
 }
 
 format()

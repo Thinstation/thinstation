@@ -48,52 +48,28 @@ bridge()
 	esac
 }
 
-wrap_systemd_efi()
-{
-	if [ ! -e build/boot-images/systemd-boot-iso ]; then
-		echo "$IMAGE not found?"
-		echo "Did you build an systemd image."
-		exit 1
-	fi
-	export AGREE=true
-	rm thinstation.img
-	mkgptdrv -p ESP:4g:boot -p l:0:home -o /build/boot-images/systemd-boot-iso/efi-source -l thinstation.img:8g
-}
-
-wrap_refind_efi()
-{
-	if [ ! -e build/boot-images/refind-iso ]; then
-                echo "refind image not found?"
-                echo "Did you build an refind image."
-                exit 1
-        fi
-        export AGREE=true
-	rm thinstation.img
-	mkgptdrv -p ESP:4g:boot -p l:0:home -o /build/boot-images/refind-iso/efi-source -l thinstation.img:8g
-}
-
-wrap_grub_efi()
+wrap_bios()
 {
         if [ ! -e build/boot-images/grub ]; then
                 echo "$IMAGE not found?"
-                echo "Did you build an grub image."
+                echo "Did you build an image."
                 exit 1
         fi
         export AGREE=true
         rm thinstation.img
-        mkgptdrv -p ESP:4g:boot -p l:0:home -o /build/boot-images/grub/efi-source -l thinstation.img:8g
+        mkmbrdrv -p d:4g:boot -p l:0:home -o /build/boot-images/grub/efi-source -l thinstation.img:8g
 }
 
-wrap_bios()
+wrap_efi()
 {
-	if [ ! -e build/boot-images/iso ]; then
-                echo "syslinux image not found."
-                echo "Did you build and image?"
+        if [ ! -e build/boot-images/grub ]; then
+                echo "$IMAGE not found?"
+                echo "Did you build an image."
                 exit 1
         fi
-	export AGREE=true
-	rm thinstation.img
-	mkmbrdrv -p d:4g:boot -p l:0:home -o /build/boot-images/iso/source -l thinstation.img:8g
+        export AGREE=true
+        rm thinstation.img
+        mkgptdrv -p d:4g:boot -p l:0:home -o /build/boot-images/grub/efi-source -l thinstation.img:8g
 }
 
 setup_qemu()
@@ -134,18 +110,8 @@ case $1 in
                 $QEMU $STANDARD_MACHINE $HDD --boot c
                 echo "Exit code $?"
 	;;
-	hd-systemd)
-		wrap_systemd_efi && \
-		$QEMU $STANDARD_MACHINE $EFI $HDD --boot c
-		echo "Exit code $?"
-	;;
-	hd-refind)
-		wrap_refind_efi && \
-		$QEMU $STANDARD_MACHINE $EFI $HDD --boot c
-                echo "Exit code $?"
-	;;
-	hd-grub)
-		wrap_grub_efi && \
+	hd-efi)
+		wrap_efi && \
 		$QEMU $STANDARD_MACHINE $EFI $HDD --boot c
 		echo "Exit code $?"
 	;;
@@ -162,17 +128,7 @@ case $1 in
                 $QEMU $STANDARD_MACHINE $CDROM --boot d
                 echo "Exit code $?"
 	;;
-	cd-systemd)
-		confirm_iso systemd && \
-		$QEMU $STANDARD_MACHINE $CDROM $EFI --boot d
-		echo "Exit code $?"
-	;;
-	cd-refind)
-		confirm_iso refind && \
-		$QEMU $STANDARD_MACHINE $CDROM $EFI --boot d
-                echo "Exit code $?"
-	;;
-	cd-grub)
+	cd-efi)
 		confirm_iso grub && \
 		confirm_usb_hd && \
 		$QEMU $STANDARD_MACHINE $CDROM $USBHD $EFI --boot d
@@ -184,56 +140,20 @@ case $1 in
                 $QEMU $STANDARD_MACHINE $HDD $CDROM --boot c,menu=on
                 echo "Exit code $?"
 	;;
-	image-systemd)
-		confirm_hd && \
-		confirm_iso systemd && \
-                $QEMU $STANDARD_MACHINE $HDD $CDROM $EFI --boot c,menu=on
-                echo "Exit code $?"
-	;;
-	image-refind)
-		confirm_hd && \
-		confirm_iso refind && \
-                $QEMU $STANDARD_MACHINE $HDD $CDROM $EFI --boot c,menu=on
-                echo "Exit code $?"
-	;;
-	image-grub)
+	image-efi)
 		confirm_hd && \
 		confirm_iso grub && \
 		$QEMU $STANDARD_MACHINE $HDD $CDROM $EFI --boot c,menu=on
 		echo "Exit code $?"
 	;;
-	cd-image-grub)
+	cd-image)
 		confirm_iso grub
 		HDD="-drive file=$ISO,index=0,media=disk,format=raw"
 		$QEMU $STANDARD_MACHINE $HDD --boot c,menu=on
 		echo "Exit code $?"
 	;;
-	cd-image-refind)
-		confirm_iso refind
-		HDD="-drive file=$ISO,index=0,media=disk,format=raw"
-		$QEMU $STANDARD_MACHINE $HDD --boot c,menu=on
-		echo "Exit code $?"
-	;;
-	cd-image-systemd)
-		confirm_iso systemd
-		HDD="-drive file=$ISO,index=0,media=disk,format=raw"
-		$QEMU $STANDARD_MACHINE $HDD --boot c,menu=on
-		echo "Exit code $?"
-	;;
-	cd-image-grub-efi)
+	cd-image-efi)
 		confirm_iso grub
-		HDD="-drive file=$ISO,index=0,media=disk,format=raw"
-		$QEMU $STANDARD_MACHINE $HDD $EFI --boot c,menu=on
-		echo "Exit code $?"
-	;;
-	cd-image-refind-efi)
-		confirm_iso refind
-		HDD="-drive file=$ISO,index=0,media=disk,format=raw"
-		$QEMU $STANDARD_MACHINE $HDD $EFI --boot c,menu=on
-		echo "Exit code $?"
-	;;
-	cd-image-systemd-efi)
-		confirm_iso systemd
 		HDD="-drive file=$ISO,index=0,media=disk,format=raw"
 		$QEMU $STANDARD_MACHINE $HDD $EFI --boot c,menu=on
 		echo "Exit code $?"

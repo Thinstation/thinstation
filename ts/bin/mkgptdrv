@@ -2,7 +2,7 @@
 ####################################################################
 # Copyright 2014 Donald A. Cupp Jr.
 #
-# This file is part of mkgptdrv.
+# This file is part of mkmbrdrv.
 #
 # mkgptdrv is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by
@@ -15,40 +15,17 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with mkgptdrv. If not, see http://www.gnu.org/licenses/.
+# along with mkmbrdrv. If not, see http://www.gnu.org/licenses/.
 #####################################################################
 
 test $(id -u) -ne 0 && echo "please run as root" && exit 1
 
 PID=$$
-COM32_LIST=`mktemp -t mkgptdrv.XXX`
 MNTDIR=`mktemp -t -d mkgptdrv.XXX`
 ESP=$MNTDIR
 cpt=262144 #default Copy Progress Threshold
 
-needed="sgdisk mkswap mkfs.vfat mkfs.ext4 fuser"
-
-libutil="chain complex cptime display fancyhello hdt ifcpu \
-	 keytest libmenu menu prdhcp pxechn rosh simple test \
-	 test2 vesamenu"
-
-libcom32="chain cmd complex config display elf ethersel gfxboot \
-	  gpxecmd hdt hexdump host ifcpu ifcpu64 ifmemdsk ifplop \
-	  kbdmap kontron_wdt libmenu linux localboot lua mboot \
-	  pcitest pmload prdhcp pxechn reboot rosh sanboot sdi \
-	  simple sysdump test test2 vesamenu whichsys"
-
-libmenu="complex display hdt simple test test2"
-
-libgpl="cpuidtest disk dmitest hdt ifcpu lua vpdtest zzjson"
-
-liblua="lua"
-
-bios=true
-configure_efi=true
-nvdefault=false
-msoft=false
-hybridmbr=false
+needed="parted mkswap mkfs.vfat mkfs.ext4 fuser"
 
 clean_up()
 {
@@ -58,10 +35,10 @@ clean_up()
 	done
 	sync
 	if mountpoint -q $MNTDIR; then
-		umount -f $MNTDIR
+		umount $MNTDIR
 	fi
 	lodestroy_
-	rm -rf $COM32_LIST $MNTDIR
+	rm -rf $MNTDIR
 	exit $1
 }
 
@@ -73,50 +50,33 @@ usage()
 Usage:
 
 This is a simple script to turn a block device into a gpt formated disk.
-It does require that a unique name for your Project/Brand be passed with 
-the -t <project> argument. This name will be used to set up the EFI loaders.
-
-Additionally, you will need to tell it where it can find a syslinux theme.
-This is passed as -c <directory with syslinux.cfg>. This file will be scanned for
-the neceassary com32 files, and those files will be copied into the appropriate 
-locations for each loader, along with the config folder.
 
 Multiple partitions are supported, and can be added with -p <type:size:label>
 The order they are entered will be used when creating the ID. At least one
-partition will be made. By default, it will be an ESP partition that will
-fill the disk and it will be labeled \"EFI System Partition\". At least one ESP
-is required.
+partition will be made. By default, it will be an vfat partition that will
+fill the disk and it will be labeled 'boot'.
 
 Sizes can be expressed as <size>B, K, M, G and S for sectors.
 
 Options:
-     --config,-c <dir>             : Path to syslinux.cfg folder.
         --min,-m <size>            : Minimum disk size allowed.
   --partition,-p <type:size:label> : Partition shorthand.
-      --title,-t <Project/Brand>   : Will be used to label the EFI Loader Directory.
     --overlay,-o <dir>             : Additional directory to merge in at the root level.
        --sync,-s                   : Mount volumes with sync enabled.
-     --hybrid,-y                   : Hybrid MBR (Limited to 3 Partitions for your safty).
      --device,-d <block device>    : The last argument is interpreted as the device anyways.
    --loopfile,-l <filename:Size>   : Create a file of <size> and use instead of a real device.
        --help,-h                   : Show this usage.
 
 Partition Types:
          linux,l : Standard Ext4 Linux Volume
-          home,h : Ext4 Linux Volume with gpt partition type set to home
           swap,s : Linux Swap Partition
           data,d : General Data Partition Formated Fat32
-             LVM : Logical Volume Manager Partition
-             ESP : EFI System Partition
 
 Examples:
-         mkgptdrv -c /sys-themes/default -t \"MyProject\" -o /build /dev/loop0
+         mkgptdrv -o /build/boot-images/grub/efi-source /dev/loop0
 
-         mkgptdrv -c /sys-themes/menu \\
-                  -t \"BobsDistro\" \\
-                  -o /build \\
-                  -p \"ESP:1g:EFI System Partition\" \\
-                  -p s:2g \\
+         mkgptdrv -o /build/boot-images/grub/efi-source \\
+                  -p d:1g:boot \\
                   -p l:0:System \\
                   /dev/sdb
 
@@ -132,21 +92,13 @@ getopts()
 	part=0
 	while [ -n "$1" ]; do
 		case "$1" in
-			-c|--config)	configdir="$2";	shift;;
 			-m|--min)	min_size="$2";	shift;;
 			-p|--partition)	add_part "$2";	shift; let part+=1;;
-			-t|--title)	EFIname="$2";	shift;;
 			-o|--overlay)	overlay="$2";	shift;;
 			-d|--device)	device="$2";	shift;;
 			-s|--sync)	mount_opts="-o sync";;
-			-y|--hybrid)	hybridmbr=true;;
 			-l|--loop)	loopfile=$2;	shift;;
 			--cpt)		let cpt=`convert_to_sectors $2`*512;shift;;
-			--nvdefault)	nvdefault=true;;
-			--msoft)	msoft=true;;
-			--no-bios)	bios=false;;
-			--no-cfg)	configure_efi=false;;
-			--agree)	AGREE=true;;
 			-h|--help)	usage 255;;
 			*) device="$1";;
 		esac
@@ -161,141 +113,15 @@ getopts()
 	fi
 	let number_of_parts=$part-1
 	if [ -z ${ID[0]} ]; then
-		add_part "ESP:0:EFI System Partition"
+		add_part "d:0:boot"
 		number_of_parts=0
 	fi
 }
 
 get_dirs()
 {
-	for knownloc in /usr/share/syslinux /usr/lib/syslinux; do
-		if [ -e $knownloc/bios/ifcpu64.c32 ]; then
-			biosdir=$knownloc/bios
-		elif [ -e $knownloc/ifcpu64.c32 ]; then
-			biosdir=$knownloc
-		fi
-		if [ -e $knownloc/efi64/ifcpu64.c32 ]; then
-			efi64dir=$knownloc/efi64
-		fi
-		if [ -e $knownloc/efi32/ifcpu64.c32 ]; then
-			efi32dir=$knownloc/efi32
-		fi
-	done
-	if $configure_efi; then
-		if [ -n "$configdir" ] && ! find $configdir -name syslinux.cfg; then
-			usage 14 "You must specify a syslinux theme dir with a syslinux.cfg inside."
-		fi
-	fi
-	if [ -z "$biosdir" ] || [ -z "$efi64dir" ] || [ -z "$efi32dir" ]; then
-		usage 11 "We could not get a good read on your syslinux install."
-	fi
 	if [ -n "$overlay" ] && [ ! -e "$overlay" ]; then
 		usage 15 "The requested root overlay directory $overlay, does not exist!"
-	fi
-	if $bios; then
-		if [ ! -e `which extlinux` ]; then
-			usage 12 "Could not find extlinux executable."
-		fi
-	fi
-}
-
-scan_config()
-{
-	# Scan config file for potentially needed com32 files
-	if [ -e $1 ]; then
-		for com in \
-			pmload vesamenu sdi cpuidtest dmitest whichsys vpdtest \
-			elf cpuid debug linux vesainfo pxechn meminfo \
-			pcitest ifplop ethersel liblua ifmemdsk kbdmap libcom32 \
-			libmenu prdhcp gfxboot hexdump config libutil gpxecmd \
-			kontron_wdt disk zzjson libgpl chain host rosh ifcpu \
-			ifcpu64 hdt menu lua mboot cmd; do
-
-			grep $1 -oe $com.c32 >> $COM32_LIST
-		done
-	else
-		usage 13 "Could not find config $config."
-	fi
-}
-
-com_deps()
-{
-	for lib in libutil libcom32 liblua libgpl libmenu; do
-		if ! grep -qe $lib.c32 $COM32_LIST; then
-			for module in `eval echo "\$"$lib`; do
-				if grep -qe $module.c32 $COM32_LIST; then
-					echo "$lib.c32" >> $COM32_LIST
-					if [ "$lib" == "libmenu" ]; then
-						echo libutil.c32 >> $COM32_LIST
-						echo libcom32.c32 >> $COM32_LIST
-					fi
-				fi
-			done
-		fi
-	done
-	cat $COM32_LIST |sort -u > /tmp/sorted
-	rm $COM32_LIST
-	mv /tmp/sorted $COM32_LIST
-}
-
-copy_files()
-{
-	BIOSDIR=$ESP/boot/syslinux
-	EFI32=$ESP/EFI/"$EFIname"/efi32
-	EFI64=$ESP/EFI/"$EFIname"/efi64
-	MSDIR=$ESP/EFI/Microsoft/Boot
-	NVDIR=$ESP/EFI/BOOT
-	mkdir -p "$BIOSDIR"
-	if [ -n "$configdir" ]; then
-		echo -e "\nCopying Syslinux Theme"
-		copy_dir "$configdir"		"$BIOSDIR"
-		if [ -n "$EFIname" ]; then
-			mkdir -p "$EFI32"
-			mkdir -p "$EFI64"
-			copy_dir "$configdir"		"$EFI32"
-			copy_dir "$configdir"		"$EFI64"
-		fi
-	fi
-	if $nvdefault; then
-		mkdir -p "$NVDIR"
-		if [ -n "$configdir" ]; then
-			copy_dir "$configdir"	"$NVDIR"
-		fi
-	fi
-	if $msoft; then
-		mkdir -p "$MSDIR"
-		if [ -n "$configdir" ]; then
-			copy_dir "$configdir" 	"$MSDIR"
-		fi
-	fi
-	for com in `cat $COM32_LIST`; do
-		echo -e "\nCopying com32 files"
-		copy_file "$biosdir/$com"	"$BIOSDIR/$com"
-		if [ -n "$EFIname" ]; then
-			copy_file "$efi32dir/$com"	"$EFI32/$com"
-			copy_file "$efi64dir/$com"	"$EFI64/$com"
-		fi
-		if $nvdefault; then
-			copy_file "$efi64dir/$com" "$NVDIR/$com"
-		fi
-		if $msoft; then
-			copy_file "$efi64dir/$com" "$MSDIR/$com"
-		fi
-	done
-	if [ -n "$EFIname" ]; then
-		echo -e "\nCopying EFI loaders"
-		copy_file "$efi32dir/syslinux.efi"	"$EFI32/syslinux.efi"
-		copy_file "$efi32dir/ldlinux.e32" 	"$EFI32/ldlinux.e32"
-		copy_file "$efi64dir/syslinux.efi"	"$EFI64/syslinux.efi"
-		copy_file "$efi64dir/ldlinux.e64"	"$EFI64/ldlinux.e64"
-	fi
-	if $nvdefault; then
-		copy_file "$efi64dir/syslinux.efi" "$NVDIR/bootx64.efi"
-		copy_file "$efi64dir/ldlinux.e64"  "$NVDIR/ldlinux.e64"
-	fi
-	if $msoft; then
-		copy_file "$efi64dir/syslinux.efi" "$MSDIR/bootmgfw.efi"
-		copy_file "$efi64dir/ldlinux.e64"  "$MSDIR/ldlinux.e64"
 	fi
 }
 
@@ -305,17 +131,6 @@ copy_overlay()
 		echo -e "\nCopying in the Overlay Directory"
 		copy_dir "$overlay"	"$ESP"
 	fi
-}
-
-efi_ready()
-{
-	if [ -z "$EFIname" ]; then
-		usage 9 "You must specify the name of 'Your' EFI bootloader."
-	fi
-	if [ -z "$ESPpart" ]; then
-		usage 10 "You must have at least one ESP partition."
-	fi
-	return 0
 }
 
 block_device()
@@ -364,36 +179,31 @@ add_part()
 {
 	oIFS=$IFS
 	IFS='\n'
-	let ID[$part]=$part+1 
-	if [ "${ID[$part]}" == "128" ] || $hybridmbr && [ "${ID[$part]}" == "3" ]; then
+	let ID[$part]=$part+1
+	if [ "${ID[$part]}" == "129" ]; then
 		echo "Really, you need that many partitions?"
 		exit 5150
 	fi
-	# linux home swap data ESP
+	# linux swap data
 	type[$part]=`echo "$1" |cut -d':' -f1`
 	if echo $1 | grep -qe ":"; then
 		size[$part]=`echo "$1" |cut -d':' -f2`
 		label[$part]=`echo "$1" |cut -d':' -f3`
 	fi
+	if [ "${label[$part]}" == "boot" ]; then
+		if [ -z "$ESPpart" ]; then
+			ESPpart=${ID[$part]}
+		else
+			usage 5100 "You can only have one boot partition"
+		fi
+	fi
 	if [ -z "${size[$part]}" ]; then
 		size[$part]=0
 	fi
 	case ${type[$part]} in
-		l|linux) type[$part]=8300;mtype[$part]=83;;
-		s|swap)	type[$part]=8200;mtype[$part]=82;;
-		h|home) type[$part]=8302;mtype[$part]=83;;
-		d|data) type[$part]=0700;mtype[$part]=07;MOST_VISABLE=${ID[$part]};;
-		LVM)	type[$part]=8e00;mtype[$part]=8e;;
-		ESP)	type[$part]=0700;mtype[$part]=07
-			if [ -n "$ESPpart" ]; then
-				usage 12 "You can only have one ESP partition."
-			else
-				ESPpart=${ID[$part]}
-			fi
-			if [ -z "$MOST_VISABLE" ]; then
-				MOST_VISABLE=${ID[$part]}
-			fi
-		;;
+		l|linux) type[$part]=ext4;;
+		s|swap)	type[$part]=linux-swap;;
+		d|data) type[$part]=fat32;;
 	esac
 	IFS=$oIFS
 }
@@ -424,9 +234,8 @@ convert_to_sectors()
 enough_room()
 {
 	disk_size=`blockdev --getsz $device`
-	let last_psec=$disk_size-32
-	let last_psec=$last_psec/2048*2048
-	let last_psec-=1
+	let last_psec=$disk_size/2048*2048
+	let last_psec-=34
 	if [ -n "$min_size" ]; then
 		min_size=`convert_to_sectors $min_size`
 		if [ "$last_psec" -lt "$min_size" ]; then
@@ -456,12 +265,6 @@ enough_room()
 	fi
 }
 
-install_mbr()
-{
-	echo -e "\nInstalling Master Boot Record"
-	dd if=$biosdir/gptmbr.bin of=$device bs=440 count=1 conv=notrunc
-}
-
 part_id()
 {
 	blockdev --rereadpt $device
@@ -479,17 +282,6 @@ mount_dev()
 main()
 {
 	get_dirs
-	if $configure_efi && [ -n "$configdir" ]; then
-		efi_ready
-		# Any text file is a potential config, and there are plenty of ways to get one in there,
-		# so lets look at all of them in the config folder.
-		for file in `find $configdir -type f`;do
-			if file -e tokens $file |grep -qe 'ASCII text'; then
-				scan_config $file
-			fi
-		done
-		com_deps
-	fi
 	if block_device $device && \
 	   not_being_used $device && \
 	   user_agrees; then
@@ -503,21 +295,11 @@ main()
 		if enough_room $device; then
 			partition
 			format
-			if $bios; then
-				install_mbr
-			fi
 			mount_dev
 			sync
-			if $configure_efi; then
-				copy_files
-			fi
 			copy_overlay
 			_sync
-			if $bios; then
-				echo -e "\nInstalling Bios Bootloader"
-				extlinux -i $BIOSDIR
-			fi
-			sync
+			umount $MNTDIR
 			clean_up 0
 		fi
 	fi
@@ -611,7 +393,10 @@ losetup_()
 	else
 		let lsize=$lsize/1024
 	fi
-	dd if=/dev/zero of=$loopfile bs=1M count=$lsize; orbail 51
+	if [ -e $loopfile ]; then
+		rm -f $loopfile
+	fi
+	truncate -s ${lsize}M $loopfile; orbail 51
 	losetup -P $device $loopfile; orbail 52
 }
 
@@ -636,14 +421,8 @@ orbail()
 	fi
 }
 
-mbr_part_list()
-{
-	$sfdisk -l $device |grep -e ^/ |sed -e "s|$device||g" |sed -E "s|[[:space:]]+|:|g" |cut -d: -f1-2
-}
-	
 partition()
 {
-	sfdisk="sfdisk -f -q -L -uS --no-reread"
 	part_id
 	for mount in `list_mounts ${device}${p}`; do
 		umount -f $mount; orbail 29
@@ -654,70 +433,16 @@ partition()
 	sync
 	blockdev --rereadpt $device; orbail 18
 	echo ""
-	sgdisk -o $device; orbail 19
-	sync
+	parted -s $device mklabel gpt; orbail 19
 	echo -e "\nCreating Partitions"
 	printf "%3s %4s %12s %-40s\n" ID Type MBytes Label
 	echo "==================================================="
 	for part in `seq 0 $number_of_parts`; do
 		let msize=${size[$part]}/2048
 		printf "%3s %4s %12s %-40s\n" "${ID[$part]}" "${type[$part]}" "$msize" "${label[$part]}"
-		if [ -n "${label[$part]}" ]; then
-			sgdisk	-n ${ID[$part]}:${start[$part]}:${end[$part]} \
-					-t ${ID[$part]}:${type[$part]} \
-					-c ${ID[$part]}:"${label[$part]}" \
-					$device 1>/dev/null; orbail 20
-		else
-			sgdisk	-n ${ID[$part]}:${start[$part]}:${end[$part]} \
-					-t ${ID[$part]}:${type[$part]} \
-					$device 1>/dev/null; orbail 21
-		fi
-		sync
+		parted -s $device mkpart primary ${type[$part]} ${start[$part]}s ${end[$part]}s ; orbail 21
 	done
-	if $hybridmbr; then
-		sgdisk -h `seq -s ":" 1 $(( $number_of_parts+1 ))` $device
-		sync
-	fi
-        for part in `seq 0 $number_of_parts`; do
-		if [ ${ID[$part]} != 1 ] && [ ${ID[$part]} == $MOST_VISABLE ]; then
-			sgdisk -r 1:${ID[$part]} $device
-		fi
-		if $hybridmbr; then
-			if [ ${ID[$part]} == $MOST_VISABLE ]; then
-				for parts in `mbr_part_list`; do
-					if [ ${parts#*:} == ${start[$part]} ]; then
-						mbrvis=${parts%:*}
-						if [ $mbrvis != 1 ]; then
-							cpart=`$sfdisk -l $device |grep -e ${device}1 |sed -e "s|$device||g" |sed -E "s|[[:space:]]+|:|g" |cut -d: -f1-5`
-							cpartstart=`echo "$cpart" |cut -d: -f2`
-							cpartsize=`echo "$cpart" |cut -d: -f4`
-							cparttype=`echo "$cpart" |cut -d: -f5`
-							$sfdisk -N $mbrvis $device <<EOF
-$cpartstart $cpartsize $cparttype
-y
-EOF
-							sync
-							$sfdisk -N 1 $device <<EOF
-${start[$part]} ${size[$part]} ${mtype[$part]}
-y
-EOF
-							sync
-						fi
-					fi
-				done
-			fi
-			if [ ${ID[$part]} == $ESPpart ];then
-				for parts in `mbr_part_list`; do
-					if [ ${parts#*:} == ${start[$part]} ]; then
-						$sfdisk -A $device ${parts%:*}
-						sync
-					fi
-				done
-			fi
-		fi
-	done
-	sgdisk $device --attributes=1:set:2 1>/dev/null; orbail 22
-	sync
+#	parted -s $device set 1 boot on
 }
 
 format()
@@ -726,29 +451,26 @@ format()
 	echo -e "\nFormating Partitions"
 	for part in `seq 0 $number_of_parts`; do
 		case ${type[$part]} in
-			0700|ef00)
+			fat32)
 				if [ -n "${label[$part]}" ]; then
 					mkfs.vfat ${device}${p}${ID[$part]} -I -n "${label[$part]}"; orbail 23
 				else
 					mkfs.vfat ${device}${p}${ID[$part]}; -I orbail 24
 				fi
 			;;
-			8300|8302)
+			ext4)
 				if [ -n "${label[$part]}" ]; then
-					mkfs.ext4 ${device}${p}${ID[$part]} -F -L "${label[$part]}"; orbail 25
+					mkfs.ext4 ${device}${p}${ID[$part]} -L "${label[$part]}"; orbail 25
 				else
-					mkfs.ext4 ${device}${p}${ID[$part]} -F; orbail 26
+					mkfs.ext4 ${device}${p}${ID[$part]}; orbail 26
 				fi
 			;;
-			8200)
+			linux-swap)
 				if [ -n "${label[$part]}" ]; then
 					mkswap ${device}${p}${ID[$part]} -L "${label[$part]}"; orbail 27
 				else
 					mkswap ${device}${p}${ID[$part]}; orbail 28
 				fi
-			;;
-			8e00) #pvcreate ${device}${p}${ID[$part]}
-				echo "LVM Partitioned, the rest is up to you"
 			;;
 		esac
 	done
