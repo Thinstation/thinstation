@@ -3,9 +3,10 @@
 . `dirname $0`/common
 . /etc/splash.functions
 
-# Short enough to just always log.....
-set -x
-exec </dev/null >/var/log/fastboot.log  2>&1
+if [ -n "$DEBUG_BOOT" ]; then
+	set -x
+	exec </dev/null >/var/log/fastboot.log  2>&1
+fi
 
 search()
 {
@@ -14,15 +15,7 @@ search()
 	fi
 	if [ -z $squash_location ]; then
 		filename=`basename $1`
-		if [ -e /boot/boot/isolinux/$filename ]; then
-			squash_location="boot/isolinux/"
-		elif [ -e /boot/isolinux/$filename ]; then
-			squash_location="isolinux/"
-		elif [ -e /boot/boot/syslinux/$filename ]; then
-			squash_location="boot/syslinux/"
-		elif [ -e /boot/syslinux/$filename ]; then
-			squash_location="syslinux/"
-		elif [ -e /boot/boot/$filename ]; then
+		if [ -e /boot/boot/$filename ]; then
 			squash_location="boot/"
 		fi
 	fi
@@ -49,7 +42,7 @@ disk() {
         lib_file="lib.squash-green"
     elif echo "$BOOT_IMAGE" | grep -q -- "-blue"; then
         lib_file="lib.squash-blue"
-    elif [ "$initrd_file" == "initrd-backup" ]; then
+    elif echo "$BOOT_IMAGE" | grep -q -- "-backup"; then
         lib_file="lib.squash-backup"
     else
         # Default case if no specific version is found
@@ -233,7 +226,6 @@ if ! is_disabled $FASTBOOT; then
 		4) iso;;
 	esac
 	mount_squash
-	used > /used.log
 else
 	exit 0
 fi

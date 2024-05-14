@@ -15,7 +15,9 @@ if ! pkg_initialized $PACKAGE; then
 		fi
         fi
         if [ -e $LOCALE ] && [ "$LOCALE" != "" ]; then
-                echo "Extended locale support enabled" >> $LOGFILE
+		if [ -n "$DEBUG_BOOT" ]; then
+	                echo "Extended locale support enabled" >> $LOGFILE
+		fi
                 cat $LOCALE >> $TS_RUNTIME
 		. $LOCALE
         else
@@ -30,7 +32,9 @@ if ! pkg_initialized $PACKAGE; then
 	fi
         if [ -e /lib/kbd/consolefonts/$CONSOLE_FONT ] && [ "$CONSOLE_FONT" != "" ] ; then
                 setfont /lib/kbd/consolefonts/$CONSOLE_FONT
-                echo "Loading console font: $CONSOLE_FONT" >> $LOGFILE
+		if [ -n "$DEBUG_BOOT" ]; then
+	                echo "Loading console font: $CONSOLE_FONT" >> $LOGFILE
+		fi
         else
                 echo_log "\nNotice!, no console font found"
                 echo_log "Continuing boot with default kernel font"
