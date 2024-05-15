@@ -1,14 +1,8 @@
 #!/bin/bash
 set -x
 case $1 in
-refind)
-	mkgptdrv -p ESP:2g:boot -p l:0:home -o /build/boot-images/refind-iso/efi-source /dev/sdb
-;;
-systemd)
-    	mkgptdrv -p ESP:2g:boot -p l:0:home -o /build/boot-images/systemd-boot-iso/efi-source /dev/sdb
-;;
 *)
-	mkgptdrv -p ESP:2g:boot -p l:0:home -o /build/boot-images/grub/efi-source /dev/sdb
+	mkmbrdrv -p d:2g:boot -p l:0:home -o /build/boot-images/grub/efi-source /dev/sdb
 ;;
 
 esac
