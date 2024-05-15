@@ -1,8 +1,7 @@
 #!/bin/bash
 set -x
-case $1 in
-*)
-	mkmbrdrv -p d:2g:boot -p l:0:home -o /build/boot-images/grub/efi-source /dev/sdb
-;;
-
-esac
+if [ -n "$1" ]
+	mkmbrdrv -p d:2g:boot -p l:0:home -o /build/boot-images/grub/efi-source /dev/$1
+else
+	echo "Please tell me what device to flash. ie. sda sdb"
+fi
