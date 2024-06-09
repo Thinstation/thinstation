@@ -80,17 +80,17 @@ read_pt
 
 # Creates Boot partition
 parted -s $disk mklabel msdos
-parted -s $disk mkpart primary fat32 "2048s 4196351s" 1>/dev/null
+parted -s $disk mkpart primary fat32 "2048s 6293503s" 1>/dev/null
 parted -s $disk set 1 boot on
 
-# Creates all need partition depending if install is Dev or not
+# Creates all needed partitions depending if install is Dev or not
 if is_enabled $INSTALLER_DEV; then
-	parted -s $disk mkpart primary ext4 "4196352s 8390655s"
-	parted -s $disk mkpart primary linux-swap "8390656s 12584959s"
-	parted -s $disk mkpart primary ext4 "12584960s -0"
+        parted -s $disk mkpart primary ext4 "6293504s 16779263s"
+        parted -s $disk mkpart primary linux-swap "16779264s 33556479s"
+        parted -s $disk mkpart primary ext4 "33556480s -0"
 else
-	parted -s $disk mkpart primary linux-swap "4196352s 8390655s"
-	parted -s $disk mkpart primary ext4 "12584960s -0"
+	parted -s $disk mkpart primary linux-swap "6293504s 11g"
+	parted -s $disk mkpart primary ext4 "11g -0"
 fi
 
 read_pt
