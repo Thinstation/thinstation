@@ -348,8 +348,12 @@ status=$(bash -c status_dnsmasq)
 if [ "$status" != "DNSMasq: active" ]; then
 	scan_dhcp_servers
 else
-	lan_interfaces[1]=$LAN_INTERFACE
-	wan_interfaces[1]=$WAN_INTERFACE
+	lan_interfaces[0]=$LAN_INTERFACE
+	wan_interfaces[0]=$WAN_INTERFACE
+fi
+if [ -z "$wan_interfaces[@]" ]; then
+        x_echo "No WAN interface" "No suitable interface was found that could be used to route traffic. Maybe wait for connections to settle."
+        exit 1
 fi
 if [ -z "$lan_interfaces[@]" ]; then
 	x_echo "No LAN interface" "No suitable interface was found that could saftely host a DHCP server."
