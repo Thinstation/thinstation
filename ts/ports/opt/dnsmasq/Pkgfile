@@ -7,19 +7,28 @@ name=dnsmasq
 version=2.85
 release=1
 source=(http://www.thekelleys.org.uk/$name/$name-$version.tar.xz \
-        $name-config.patch dnsmasq)
+        $name-config.patch dnsmasq \
+        dnsmasq.service \
+        dnsmasq-sysusers.conf)
+
+_build_copts='-DHAVE_DNSSEC -DHAVE_DBUS -DHAVE_LIBIDN2'
 
 build () {
     cd $name-$version
 
     patch -p1 -i $SRC/$name-config.patch
 
-    make COPTS="-DHAVE_DNSSEC" CFLAGS="$CFLAGS -Wall -W"
-    make COPTS="-DHAVE_DNSSEC" PREFIX=$PKG/usr install
+    make COPTS="$_build_copts" CFLAGS="$CFLAGS -Wall -W"
+    make COPTS="$_build_copts" PREFIX=$PKG/usr install
 
     install -d  $PKG/{var/lib/dhcp,etc/rc.d,usr/share/dnsmasq}
 
     install -m 755 $SRC/dnsmasq $PKG/etc/rc.d/
+    install -Dm0644 dbus/dnsmasq.conf $PKG/usr/share/dbus-1/system.d/dnsmasq.conf
     install -m 644 dnsmasq.conf.example $PKG/etc/dnsmasq.conf
     install -m 644 trust-anchors.conf $PKG/usr/share/dnsmasq
+
+    install -Dm0644 "$SRC/dnsmasq.service" "$PKG"/usr/lib/systemd/system/dnsmasq.service
+    install -Dm0644 "$SRC/dnsmasq-sysusers.conf" "$PKG"/usr/lib/sysusers.d/dnsmasq.conf
+
 }

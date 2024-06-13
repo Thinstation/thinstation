@@ -1,0 +1,19 @@
+[Unit]
+Description=dnsmasq - A lightweight DHCP and caching DNS server
+Documentation=man:dnsmasq(8)
+After=network.target
+Before=network-online.target nss-lookup.target
+Wants=nss-lookup.target
+
+[Service]
+Type=dbus
+BusName=uk.org.thekelleys.dnsmasq
+ExecStartPre=/usr/sbin/dnsmasq --test
+ExecStart=/usr/sbin/dnsmasq -k --enable-dbus --user=dnsmasq --pid-file
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-failure
+PrivateDevices=true
+ProtectSystem=full
+
+[Install]
+WantedBy=multi-user.target

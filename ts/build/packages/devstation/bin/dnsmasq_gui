@@ -1,0 +1,359 @@
+#!/bin/bash
+
+export NMAP_TIMEOUT=3
+export IPTABLES_BACKUP="/tmp/iptables_backup"
+export CONFIG_FILE="$HOME/dnsmasq.conf"
+export DNSMASQ_CONFIG_FILE=/etc/dnsmasq.conf
+
+
+wan_interfaces=()
+lan_interfaces=()
+
+# Define functions
+
+gen_text_widget()
+{
+	cat <<EOF
+		<text use-markup="true" justify="2" space-expand="true" space-fill="true" wrap="true" width-chars="40">
+			<label>"$1"</label>
+		</text>
+EOF
+}
+
+x_echo()
+{
+	title="$1"
+	shift
+
+	while [ -n "$1" ] ; do
+		local text_widget="$text_widget `gen_text_widget \"$1\"`"
+		shift
+	done
+
+	export MAIN_DIALOG='
+	<window title="'$title'" decorated="true" resizable="false" image-name="/lib/pixmaps/ThinStation_32x32.xpm">
+		<vbox>
+			<hseparator></hseparator>
+			<hbox>
+				<pixmap icon_size="6">
+					<input file stock="gtk-dialog-info"></input>
+				</pixmap>
+				<vbox>
+					'$text_widget'
+				</vbox>
+			</hbox>
+			<hseparator></hseparator>
+			<hbox>
+				<button has-focus="true">
+					<label>"Next"</label>
+					<action>EXIT:ok</action>
+				</button>
+			</hbox>
+		</vbox>
+	</window>'
+
+	result=`$GTKDIALOG`
+}
+
+nmap_progress()
+{
+	let chunksize="100 / $NMAP_TIMEOUT"
+	progress=".    "
+	while kill -0 $nmap_pid 2>/dev/null; do
+		for i in $(seq 0 +$chunksize 99); do
+			if kill -0 $nmap_pid 2>/dev/null; then
+				echo $i
+				echo "Scanning$progress"
+				if      [ "$progress" == ".    " ]; then progress="..   "
+				elif    [ "$progress" == "..   " ]; then progress="...  "
+				elif    [ "$progress" == "...  " ]; then progress=".... "
+				elif    [ "$progress" == ".... " ]; then progress="....."
+				elif    [ "$progress" == "....." ]; then progress=".    "
+				fi
+				sleep 1
+			fi
+		done
+	done
+	echo 100 Done
+}
+
+look_for_dhcp_server()
+{
+	export -f nmap_progress
+	export BAR_DIALOG='
+<window title="DHCP Scan Progress" decorated="false" width-request="325" height-request="95" allow-grow="false" allow-shrink="false" skip_taskbar_hint="true">
+	<vbox>
+		<text>
+			<label>Scanning for DHCP Servers on '$1'</label>
+		</text>
+		<vseparator height-request="5"></vseparator>
+		<progressbar>
+			<variable>PROGRESS_BAR</variable>
+			<label>Scanning</label>
+			<input>bash -c nmap_progress</input>
+			<action function="refresh">ENTRY</action>
+			<action function="closewindow">BAR_DIALOG</action>
+			<action>echo ready</action>
+		</progressbar>
+	</vbox>
+	<variable>BAR_DIALOG</variable>
+</window>
+'
+	[ -z $GTKDIALOG ] && GTKDIALOG=gtkdialog
+	local output_file="/tmp/nmap_dhcp_scan_$1.txt"
+	nmap -e "$1" --script broadcast-dhcp-discover --script-timeout ${NMAP_TIMEOUT}s > "$output_file" 2>&1 &
+	nmap_pid=$!
+	export nmap_pid
+	$GTKDIALOG -c --program=BAR_DIALOG
+
+	if grep -q "Server Identifier" "$output_file"; then
+		wan_interfaces+=("$1")
+	else
+		lan_interfaces+=("$1")
+	fi
+
+	# Cleanup
+	rm "$output_file"
+}
+
+scan_dhcp_servers() {
+	# This function scans the /sys/class/net directory for network interfaces
+	# that have a carrier (link)
+
+	for interface in /sys/class/net/*; do
+		# Extract the interface name from the path
+		iface=$(basename "$interface")
+
+		# Avoid the loopback interface
+		if [[ "$iface" == "lo" ]]; then
+			continue
+		elif [[ "$(cat "$interface"/carrier)" == "1" ]]; then
+			look_for_dhcp_server "$iface"
+		fi
+	done
+}
+
+read_config() {
+	if [[ -f "$CONFIG_FILE" ]]; then
+		source "$CONFIG_FILE"
+	else
+		DHCP_START_1="192"
+		DHCP_START_2="168"
+		DHCP_START_3="1"
+		DHCP_START_4="50"
+
+		DHCP_END_1="192"
+		DHCP_END_2="168"
+		DHCP_END_3="1"
+		DHCP_END_4="150"
+
+		LAN_IP_1="192"
+		LAN_IP_2="168"
+		LAN_IP_3="1"
+		LAN_IP_4="1"
+
+		LAN_NETMASK="24"
+
+		LAN_INTERFACE=""
+		WAN_INTERFACE=""
+	fi
+}
+
+save_config() {
+	echo "Saving configuration..."
+	at <<EOF > $CONFIG_FILE
+DHCP_START_1="$DHCP_START_1"
+DHCP_START_2="$DHCP_START_2"
+DHCP_START_3="$DHCP_START_3"
+DHCP_START_4="$DHCP_START_4"
+
+DHCP_END_1="$DHCP_END_1"
+DHCP_END_2="$DHCP_END_2"
+DHCP_END_3="$DHCP_END_3"
+DHCP_END_4="$DHCP_END_4"
+
+LAN_IP_1="$LAN_IP_1"
+LAN_IP_2="$LAN_IP_2"
+LAN_IP_3="$LAN_IP_3"
+LAN_IP_4="$LAN_IP_4"
+
+LAN_NETMASK="$LAN_NETMASK"
+
+LAN_INTERFACE="$LAN_INTERFACE"
+WAN_INTERFACE="$WAN_INTERFACE"
+EOF
+	if [ "$?" == "0" ]; then
+		echo "Saved succesfully"
+	fi
+}
+
+enable_dnsmasq() {
+	# Step 1: Save the current iptables configuration
+	sudo iptables-save > "$IPTABLES_BACKUP"
+	echo "iptables configuration saved to $iptables_backup"
+
+	# Writing dnsmasq configuration
+	echo "Writing dnsmasq configuration to $CONFIG_FILE..."
+	sudo cat > $DNSMASQ_CONFIG_FILE <<EOF
+interface=$LAN_INTERFACE
+dhcp-range=$DHCP_START_1.$DHCP_START_2.$DHCP_START_3.$DHCP_START_4,$DHCP_END_1.$DHCP_END_2.$DHCP_END_3.$DHCP_END_4,12h
+dhcp-option=option:router,${LAN_IP_1}.${LAN_IP_2}.${LAN_IP_3}.${LAN_IP_4}
+dhcp-option=66,${LAN_IP_1}.${LAN_IP_2}.${LAN_IP_3}.${LAN_IP_4}
+dhcp-match=set:bios-x86,option:client-arch,0
+dhcp-match=set:efi-x86_64,option:client-arch,7
+dhcp-match=set:efi-x86_64,option:client-arch,9
+dhcp-option=tag:bios-x86,option:bootfile-name,boot/grub/pxeboot.img
+dhcp-option=tag:efi-x86_64,option:bootfile-name,EFI/boot/grubx64.efi
+EOF
+
+	# Configure the network interface via nmcli
+	echo "Configuring the network interface..."
+	UUID=`nmcli con show |grep -e $LAN_INTERFACE |cut -c 21-56`
+	if [ -n "$UUID" ]; then
+		for interface in $UUID; do
+		sudo nmcli con down $interface
+		sudo nmcli con del $interface
+	done
+	fi
+	sudo nmcli con add type ethernet con-name $LAN_INTERFACE ifname $LAN_INTERFACE
+	sudo nmcli con mod "$LAN_INTERFACE" ipv4.addresses ${LAN_IP_1}.${LAN_IP_2}.${LAN_IP_3}.${LAN_IP_4}/$LAN_NETMASK
+	sudo nmcli con mod "$LAN_INTERFACE" ipv4.gateway ${LAN_IP_1}.${LAN_IP_2}.${LAN_IP_3}.${LAN_IP_4}
+	sudo nmcli con mod "$LAN_INTERFACE" ipv4.method manual
+	sudo nmcli con up "$LAN_INTERFACE"
+
+	# Start forwarding
+	sudo echo 1 > /proc/sys/net/ipv4/ip_forward
+
+	# Flush existing rules and set default policies
+	sudo iptables -t nat -F
+	sudo iptables -F
+	sudo iptables -X
+
+	# Set up NAT
+	sudo iptables -t nat -A POSTROUTING -o $WAN_INTERFACE -j MASQUERADE
+
+	# Allow forwarding from LAN to WAN
+	sudo iptables -A FORWARD -i $LAN_INTERFACE -o $WAN_INTERFACE -j ACCEPT
+	sudo iptables -A FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+
+	# Start dnsmasq
+	sudo systemctl start dnsmasq
+}
+
+disable_dnsmasq()
+{
+	sudo systemctl stop dnsmasq
+	sudo nmcli con down $LAN_INTERFACE
+	sudo nmcli con del $LAN_INTERFACE
+	sudo iptables -t nat -F
+	sudo iptables -F
+	sudo iptables -X
+	sudo echo 0 > /proc/sys/net/ipv4/ip_forward
+	sudo iptables-restore < "$IPTABLES_BACKUP"
+}
+
+status_dnsmasq()
+{
+	echo "DNSMasq: $(sudo systemctl status dnsmasq |grep -e Active|awk '{print $2}')"
+}
+
+set_main_dialog()
+{
+	# Create and display the GUI's
+	echo "Creating GUI..."
+	export dnsmasq_dialog='
+<window title="DNSMasq Configuration" window-position="1" width_request="345" image-name="/lib/pixmaps/ThinStation_32x32.xpm">
+	<vbox>
+		 <frame DHCP Settings>
+			<vbox>
+				<hbox>
+					<text><label>DHCP Start IP:</label></text>
+					<entry space_expand="false" width_chars="3" text="'$DHCP_START_1'"><variable>DHCP_START_1</variable></entry>
+					<entry space_expand="false" width_chars="3" text="'$DHCP_START_2'"><variable>DHCP_START_2</variable></entry>
+					<entry space_expand="false" width_chars="3" text="'$DHCP_START_3'"><variable>DHCP_START_3</variable></entry>
+					<entry space_expand="false" width_chars="3" text="'$DHCP_START_4'"><variable>DHCP_START_4</variable></entry>
+				</hbox>
+				<hbox>
+					<text><label>DHCP End IP:</label></text>
+					<entry space_expand="false" width_chars="3" text="'$DHCP_END_1'"><variable>DHCP_END_1</variable></entry>
+					<entry space_expand="false" width_chars="3" text="'$DHCP_END_2'"><variable>DHCP_END_2</variable></entry>
+					<entry space_expand="false" width_chars="3" text="'$DHCP_END_3'"><variable>DHCP_END_3</variable></entry>
+					<entry space_expand="false" width_chars="3" text="'$DHCP_END_4'"><variable>DHCP_END_4</variable></entry>
+				</hbox>
+			</vbox>
+		</frame>
+		<frame Network Adapters>
+			<hbox>
+				<text><label>WAN Interface:</label></text>
+				<comboboxtext><variable>WAN_INTERFACE</variable>
+					'$(for adapter in "${wan_interfaces[@]}"; do echo "<item>$adapter</item>"; done)'
+					'$(for adapter in "${wan_interfaces[@]}"; do if [[ "$adapter" == "$WAN_INTERFACE" ]]; then echo "<default>$adapter</default>"; fi; done)'
+				</comboboxtext>
+			</hbox>
+			<hbox>
+				<text><label>LAN Interface:</label></text>
+				<comboboxtext><variable>LAN_INTERFACE</variable>
+					'$(for adapter in "${lan_interfaces[@]}"; do echo "<item>$adapter</item>"; done)'
+					'$(for adapter in "${lan_interfaces[@]}"; do if [[ "$adapter" == "$LAN_INTERFACE" ]]; then echo "<default>$adapter</default>"; fi; done)'
+				</comboboxtext>
+			</hbox>
+			<vbox>
+				<hbox>
+					<text><label>LAN IP:</label></text>
+					<entry space_expand="false" width_chars="3" text="'$LAN_IP_1'"><variable>LAN_IP_1</variable></entry>
+					<entry space_expand="false" width_chars="3" text="'$LAN_IP_2'"><variable>LAN_IP_2</variable></entry>
+					<entry space_expand="false" width_chars="3" text="'$LAN_IP_3'"><variable>LAN_IP_3</variable></entry>
+					<entry space_expand="false" width_chars="3" text="'$LAN_IP_4'"><variable>LAN_IP_4</variable></entry>
+					<text><label>/</label></text>
+					<comboboxtext space_expand="false" width_chars="2"><variable>LAN_NETMASK</variable>
+						'$(for cidr in `seq 1 32`; do echo "<item>$cidr</item>"; done)'
+						<default>'$LAN_NETMASK'</default>
+					</comboboxtext>
+				</hbox>
+			</vbox>
+		</frame>
+		<hbox>
+			<button>
+				<label>Save Config</label>
+				<action>bash -c "save_config"</action>
+			</button>
+			<button>
+				<label>Enable</label>
+				<action>bash -c "enable_dnsmasq"</action>
+				<action function="Refresh">dnsmasq_status</action>
+			</button>
+			<button>
+				<label>Disable</label>
+				<action>bash -c "disable_dnsmasq"</action>
+				<action function="Refresh">dnsmasq_status</action>
+			</button>
+		</hbox>
+		<statusbar has-resize-grip="false">
+			<label>DNSMasq Status</label>
+			<default>'$status'</default>
+			<variable>dnsmasq_status</variable>
+			<input>bash -c status_dnsmasq</input>
+			<sensitive>true</sensitive>
+		</statusbar>
+	</vbox>
+</window>
+'
+}
+
+export -f save_config enable_dnsmasq disable_dnsmasq status_dnsmasq
+
+# Main execution
+read_config
+status=$(bash -c status_dnsmasq)
+if [ "$status" != "DNSMasq: active" ]; then
+	scan_dhcp_servers
+else
+	lan_interfaces[1]=$LAN_INTERFACE
+	wan_interfaces[1]=$WAN_INTERFACE
+fi
+if [ -z "$lan_interfaces[@]" ]; then
+	x_echo "No LAN interface" "No suitable interface was found that could saftely host a DHCP server."
+	exit 1
+fi
+set_main_dialog
+gtkdialog -c --program=dnsmasq_dialog
