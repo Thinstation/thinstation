@@ -59,9 +59,9 @@ nmap_progress()
 {
 	let chunksize="100 / $NMAP_TIMEOUT"
 	progress=".    "
-	sudo while kill -0 $nmap_pid 2>/dev/null; do
+	while kill -0 $nmap_pid 2>/dev/null; do
 		for i in $(seq 0 +$chunksize 99); do
-			if sudo kill -0 $nmap_pid 2>/dev/null; then
+			if kill -0 $nmap_pid 2>/dev/null; then
 				echo $i
 				echo "Scanning$progress"
 				if      [ "$progress" == ".    " ]; then progress="..   "
@@ -101,7 +101,7 @@ look_for_dhcp_server()
 '
 	[ -z $GTKDIALOG ] && GTKDIALOG=gtkdialog
 	local output_file="/tmp/nmap_dhcp_scan_$1.txt"
-	sudo nmap -e "$1" --script broadcast-dhcp-discover --script-timeout ${NMAP_TIMEOUT}s > "$output_file" 2>&1 &
+	nmap -e "$1" --script broadcast-dhcp-discover --script-timeout ${NMAP_TIMEOUT}s > "$output_file" 2>&1 &
 	nmap_pid=$!
 	export nmap_pid
 	$GTKDIALOG -c --program=BAR_DIALOG
@@ -189,12 +189,12 @@ EOF
 
 enable_dnsmasq() {
 	# Step 1: Save the current iptables configuration
-	sudo iptables-save > "$IPTABLES_BACKUP"
+	iptables-save > "$IPTABLES_BACKUP"
 	echo "iptables configuration saved to $iptables_backup"
 
 	# Writing dnsmasq configuration
 	echo "Writing dnsmasq configuration to $CONFIG_FILE..."
-	sudo cat > $DNSMASQ_CONFIG_FILE <<EOF
+	cat > $DNSMASQ_CONFIG_FILE <<EOF
 interface=$LAN_INTERFACE
 dhcp-range=$DHCP_START_1.$DHCP_START_2.$DHCP_START_3.$DHCP_START_4,$DHCP_END_1.$DHCP_END_2.$DHCP_END_3.$DHCP_END_4,12h
 dhcp-option=option:router,${LAN_IP_1}.${LAN_IP_2}.${LAN_IP_3}.${LAN_IP_4}
@@ -211,50 +211,50 @@ EOF
 	UUID=`nmcli con show |grep -e $LAN_INTERFACE |cut -c 21-56`
 	if [ -n "$UUID" ]; then
 		for interface in $UUID; do
-		sudo nmcli con down $interface
-		sudo nmcli con del $interface
+		nmcli con down $interface
+		nmcli con del $interface
 	done
 	fi
-	sudo nmcli con add type ethernet con-name $LAN_INTERFACE ifname $LAN_INTERFACE
-	sudo nmcli con mod "$LAN_INTERFACE" ipv4.addresses ${LAN_IP_1}.${LAN_IP_2}.${LAN_IP_3}.${LAN_IP_4}/$LAN_NETMASK
-	sudo nmcli con mod "$LAN_INTERFACE" ipv4.gateway ${LAN_IP_1}.${LAN_IP_2}.${LAN_IP_3}.${LAN_IP_4}
-	sudo nmcli con mod "$LAN_INTERFACE" ipv4.method manual
-	sudo nmcli con up "$LAN_INTERFACE"
+	nmcli con add type ethernet con-name $LAN_INTERFACE ifname $LAN_INTERFACE
+	nmcli con mod "$LAN_INTERFACE" ipv4.addresses ${LAN_IP_1}.${LAN_IP_2}.${LAN_IP_3}.${LAN_IP_4}/$LAN_NETMASK
+	nmcli con mod "$LAN_INTERFACE" ipv4.gateway ${LAN_IP_1}.${LAN_IP_2}.${LAN_IP_3}.${LAN_IP_4}
+	nmcli con mod "$LAN_INTERFACE" ipv4.method manual
+	nmcli con up "$LAN_INTERFACE"
 
 	# Start forwarding
-	sudo echo 1 > /proc/sys/net/ipv4/ip_forward
+	echo 1 > /proc/sys/net/ipv4/ip_forward
 
 	# Flush existing rules and set default policies
-	sudo iptables -t nat -F
-	sudo iptables -F
-	sudo iptables -X
+	iptables -t nat -F
+	iptables -F
+	iptables -X
 
 	# Set up NAT
-	sudo iptables -t nat -A POSTROUTING -o $WAN_INTERFACE -j MASQUERADE
+	iptables -t nat -A POSTROUTING -o $WAN_INTERFACE -j MASQUERADE
 
 	# Allow forwarding from LAN to WAN
-	sudo iptables -A FORWARD -i $LAN_INTERFACE -o $WAN_INTERFACE -j ACCEPT
-	sudo iptables -A FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+	iptables -A FORWARD -i $LAN_INTERFACE -o $WAN_INTERFACE -j ACCEPT
+	iptables -A FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
 
 	# Start dnsmasq
-	sudo systemctl start dnsmasq
+	systemctl start dnsmasq
 }
 
 disable_dnsmasq()
 {
-	sudo systemctl stop dnsmasq
-	sudo nmcli con down $LAN_INTERFACE
-	sudo nmcli con del $LAN_INTERFACE
-	sudo iptables -t nat -F
-	sudo iptables -F
-	sudo iptables -X
-	sudo echo 0 > /proc/sys/net/ipv4/ip_forward
-	sudo iptables-restore < "$IPTABLES_BACKUP"
+	systemctl stop dnsmasq
+	nmcli con down $LAN_INTERFACE
+	nmcli con del $LAN_INTERFACE
+	iptables -t nat -F
+	iptables -F
+	iptables -X
+	echo 0 > /proc/sys/net/ipv4/ip_forward
+	iptables-restore < "$IPTABLES_BACKUP"
 }
 
 status_dnsmasq()
 {
-	echo "DNSMasq: $(sudo systemctl status dnsmasq |grep -e Active|awk '{print $2}')"
+	echo "DNSMasq: $(systemctl status dnsmasq |grep -e Active|awk '{print $2}')"
 }
 
 set_main_dialog()
