@@ -59,9 +59,9 @@ nmap_progress()
 {
 	let chunksize="100 / $NMAP_TIMEOUT"
 	progress=".    "
-	while kill -0 $nmap_pid 2>/dev/null; do
+	sudo while kill -0 $nmap_pid 2>/dev/null; do
 		for i in $(seq 0 +$chunksize 99); do
-			if kill -0 $nmap_pid 2>/dev/null; then
+			if sudo kill -0 $nmap_pid 2>/dev/null; then
 				echo $i
 				echo "Scanning$progress"
 				if      [ "$progress" == ".    " ]; then progress="..   "
@@ -101,7 +101,7 @@ look_for_dhcp_server()
 '
 	[ -z $GTKDIALOG ] && GTKDIALOG=gtkdialog
 	local output_file="/tmp/nmap_dhcp_scan_$1.txt"
-	nmap -e "$1" --script broadcast-dhcp-discover --script-timeout ${NMAP_TIMEOUT}s > "$output_file" 2>&1 &
+	sudo nmap -e "$1" --script broadcast-dhcp-discover --script-timeout ${NMAP_TIMEOUT}s > "$output_file" 2>&1 &
 	nmap_pid=$!
 	export nmap_pid
 	$GTKDIALOG -c --program=BAR_DIALOG
