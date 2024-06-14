@@ -109,6 +109,11 @@ look_for_dhcp_server()
 	if grep -q "Server Identifier" "$output_file"; then
 		wan_interfaces+=("$1")
 	else
+		# Allow for the possibility of a statically configured IP on the WAN
+		# This will put the adapter in both lists
+		if  [ -n "$(ip addr show $1 |grep -e "inet " |awk '{print $2}')" ]; then
+			wan_interfaces+=("$1")
+		fi
 		lan_interfaces+=("$1")
 	fi
 
