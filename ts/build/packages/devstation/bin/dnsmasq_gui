@@ -147,6 +147,9 @@ read_config() {
 		DHCP_END_3="1"
 		DHCP_END_4="150"
 
+		BIOS_FILE="boot/grub/pxeboot.img"
+		EFI_FILE="EFI/boot/grubx64.efi"
+
 		LAN_IP_1="192"
 		LAN_IP_2="168"
 		LAN_IP_3="1"
@@ -171,6 +174,9 @@ DHCP_END_1="$DHCP_END_1"
 DHCP_END_2="$DHCP_END_2"
 DHCP_END_3="$DHCP_END_3"
 DHCP_END_4="$DHCP_END_4"
+
+BIOS_FILE="$BIOS_FILE"
+EFI_FILE="$EFI_FILE"
 
 LAN_IP_1="$LAN_IP_1"
 LAN_IP_2="$LAN_IP_2"
@@ -202,8 +208,8 @@ dhcp-option=66,${LAN_IP_1}.${LAN_IP_2}.${LAN_IP_3}.${LAN_IP_4}
 dhcp-match=set:bios-x86,option:client-arch,0
 dhcp-match=set:efi-x86_64,option:client-arch,7
 dhcp-match=set:efi-x86_64,option:client-arch,9
-dhcp-option=tag:bios-x86,option:bootfile-name,boot/grub/pxeboot.img
-dhcp-option=tag:efi-x86_64,option:bootfile-name,EFI/boot/grubx64.efi
+dhcp-option=tag:bios-x86,option:bootfile-name,$BIOS_FILE
+dhcp-option=tag:efi-x86_64,option:bootfile-name,$EFI_FILE
 EOF
 
 	# Configure the network interface via nmcli
@@ -280,6 +286,14 @@ set_main_dialog()
 					<entry space_expand="false" width_chars="3" text="'$DHCP_END_3'"><variable>DHCP_END_3</variable></entry>
 					<entry space_expand="false" width_chars="3" text="'$DHCP_END_4'"><variable>DHCP_END_4</variable></entry>
 				</hbox>
+				<hbox>
+					<text><label>BIOS boot file:</label></text>
+                                        <entry space_expand="false" width_chars="25" text="'$BIOS_FILE'"><variable>BIOS_FILE</variable></entry>
+				</hbox>
+                                <hbox>
+                                        <text><label>EFI boot file:</label></text>
+                                        <entry space_expand="false" width_chars="25" text="'$EFI_FILE'"><variable>EFI_FILE</variable></entry>
+                                </hbox>
 			</vbox>
 		</frame>
 		<frame Network Adapters>
