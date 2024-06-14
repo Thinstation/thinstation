@@ -211,10 +211,12 @@ dhcp-range=$DHCP_START_1.$DHCP_START_2.$DHCP_START_3.$DHCP_START_4,$DHCP_END_1.$
 dhcp-option=option:router,${LAN_IP_1}.${LAN_IP_2}.${LAN_IP_3}.${LAN_IP_4}
 dhcp-option=66,${LAN_IP_1}.${LAN_IP_2}.${LAN_IP_3}.${LAN_IP_4}
 dhcp-match=set:bios-x86,option:client-arch,0
+dhcp-match=set:bios-x86-http,option:client-arch,14
 dhcp-match=set:efi-x86_64,option:client-arch,7
 dhcp-match=set:efi-x86_64,option:client-arch,9
 dhcp-match=set:efi-x86_64-http,option:client-arch,10
 dhcp-option=tag:bios-x86,option:bootfile-name,$BIOS_FILE
+dhcp-option=tag:bios-x86-http,option:bootfile-name,http://${LAN_IP_1}.${LAN_IP_2}.${LAN_IP_3}.${LAN_IP_4}/$BIOS_FILE
 dhcp-option=tag:efi-x86_64,option:bootfile-name,$EFI_FILE
 dhcp-option=tag:efi-x86_64-http,option:bootfile-name,http://${LAN_IP_1}.${LAN_IP_2}.${LAN_IP_3}.${LAN_IP_4}/$EFI_FILE
 EOF
