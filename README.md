@@ -11,7 +11,8 @@ This env was created for you by Donald A. Cupp Jr. from Crux and ThinStation
 ThinStation itself has many many many contributors, but much thanx goes out to
 Mike Eriksen, Trevor Batley, Miles Roper and Marcos Amorim
 
-NEWS: All boot images except grub have been deprecated. 
+NEWS: I have added a small utility to configure dnsmasq as a DHCP/DNS/Router to DevStation
+      All boot images except grub have been deprecated. 
 
 Work To Do / Work in Progress: mail to developer list if you can help
 
