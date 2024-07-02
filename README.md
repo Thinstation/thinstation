@@ -2,7 +2,9 @@
 
 README - Displaying of this file can be disabled by touching `/ts/etc/READ`
 
-Visit the ThinStation [Wiki][]
+Visit the ThinStation [Wiki][]  
+
+ThinStation is a basic and small, yet very powerful, Open Source thin client operating system supporting all major connectivity protocols: Citrix ICA, Redhat Spice, NoMachine NX, 2X ThinClient, Microsoft Windows terminal services (RDP, via RDesktop/FreeRDP), VMWare Horizon View, Cendio ThinLinc, Tarantella, X, telnet, tn5250, VMS terminal and SSH 
 
 [Wiki]: https://github.com/Thinstation/thinstation/wiki/Getting-Started-with-ThinStation
 
