@@ -30,7 +30,7 @@ Just run `./setup_chroot`. The first time this is run, it will expand all binary
 You will need to make sure you are in the chroot **Development Environment** by running `./setup-chroot`. You should then be able to `cd /build` and run `./build` to start making images. Edit build.conf and thinstation.conf.buildtime to make changes
 
 ## Compiling
-First off, this is a very advanced and not required at all to use ThinStation. The build environment allows the brave to go very far into the makeup of software packages that are a part ThinStation building environment. Most people really don't need to, but it's possible if you do
+First off, this is a very advanced and not required at all to use ThinStation. The build environment allows the brave to go very far into the makeup of software packages that are a part of the ThinStation image building environment. Most people really don't need to, but it's possible if you do.
 
 The **CFLAGS** and **CXXFLAGS** can be changed by editing `/ts/etc/pkgmk.conf` and then exiting and re-entering the chroot. If you change the flags, you might want to rebuild all installed packages with `rebuild-all` command.
 You can make a single package like this `prt-get depinst [Package Name]` or update it with `prt-get update [Package name]`.
