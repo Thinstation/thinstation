@@ -1,0 +1,429 @@
+#exec </dev/null >>/var/log/xfwm4.log  2>&1
+#set -x
+
+make_desktop()
+{
+	mkdir -p "$ICONDIR"
+	LINK="$ICONDIR"/`replace_char "$title.desktop" "[ /]" "_"`
+	if [ -n "$menu" ]; then
+		submenu="`echo $menu | awk -F:: "{ print \\$NF }"`"
+	else
+		submenu="X-Xfce-Toplevel"
+	fi
+	echo "[Desktop Entry]"			>"$LINK"
+	echo "Version=1.0"			>>"$LINK"
+	echo "Name=$title"			>>"$LINK"
+	echo "Comment=$title"			>>"$LINK"
+	echo "TryExec=$command"			>>"$LINK"
+	echo "Exec=$command"			>>"$LINK"
+	if [ -n "$Path" ]; then
+	echo "Path=$Path"			>>"$LINK"
+	fi
+	echo "StartupNotify=false"		>>"$LINK"
+	echo "Terminal=false"			>>"$LINK"
+	echo "Type=Application"			>>"$LINK"
+	echo "Icon=$icon"			>>"$LINK"
+	echo "Categories=GTK;GNOME;$submenu;"	>>"$LINK"
+	chmod +x "$LINK"
+	unset submenu
+}
+
+xfconf_settings()
+{
+	xfconf-query -c xfce4-session -p /compat/LaunchGNOME -t bool -s true -n
+
+	if [ -n "$XKEYBOARD$XKBMODEL$XKBVARIANT" ]; then
+		xfconf-query -c keyboard-layout -p /Default/XkbDisable -t bool -s false -n
+		if [ -n "$XKEYBOARD" ]; then
+			xfconf-query -c keyboard-layout -p /Default/XkbLayout -t string -s $XKEYBOARD -n
+		fi
+		if [ -n "$XKBMODEL" ]; then
+			xfconf-query -c keyboard-layout -p /Default/XbkModel -t string -s $XKBMODEL -n
+		fi
+		if [ -n "$XKBVARIANT" ]; then
+			xfconf-query -c keyboard-layout -p /Default/XkbVariant -t string -s $XKBVARIANT -n
+		fi
+	fi
+
+	xfconf-query -c xfce4-session -p /general/SaveOnExit -t bool -s false -n
+#	xfconf-query -c xfce4-session -p /shutdown/ShowSuspend -t bool -s false -n
+	xfconf-query -c xfce4-session -p /shutdown/ShowHibernate -t bool -s false -n
+        xfconf-query -c xfce4-session -p /shutdown/ShowSwitchUser -t bool -s false -n
+
+	if is_disabled $DESKTOP_SHOWTRASH; then
+		xfconf-query -c xfce4-desktop -p /desktop-icons/file-icons/show-trash -t bool -s false -n
+	else
+		xfconf-query -c xfce4-desktop -p /desktop-icons/file-icons/show-trash -t bool -s true -n
+	fi
+	if is_disabled $DESKTOP_SHOWHOME; then
+		xfconf-query -c xfce4-desktop -p /desktop-icons/file-icons/show-home -t bool -s false -n
+	else
+		xfconf-query -c xfce4-desktop -p /desktop-icons/file-icons/show-home -t bool -s true -n
+	fi
+	if is_disabled $DESKTOP_SHOWREMOVEABLE; then
+		xfconf-query -c xfce4-desktop -p /desktop-icons/file-icons/show-removable -t bool -s false -n
+	else
+		xfconf-query -c xfce4-desktop -p /desktop-icons/file-icons/show-removable -t bool -s true -n
+	fi
+	if is_disabled $DESKTOP_SHOWFILESYSTEM; then
+		xfconf-query -c xfce4-desktop -p /desktop-icons/file-icons/show-filesystem -t bool -s false -n
+	else
+		xfconf-query -c xfce4-desktop -p /desktop-icons/file-icons/show-filesystem -t bool -s true -n
+	fi
+	if is_enabled $DESKTOP_SHOWUNKNOWN; then
+		xfconf-query -c xfce4-desktop -p /desktop-icons/file-icons/show-unknown-removable -t bool -s true -n
+	else
+		xfconf-query -c xfce4-desktop -p /desktop-icons/file-icons/show-unknown-removable -t bool -s false -n
+	fi
+	if [ ! -e /lib/applications/thunar.desktop ]; then
+		xfconf-query -c xfce4-desktop -p /desktop-icons/file-icons/show-filesystem -t bool -s false -n
+		xfconf-query -c xfce4-desktop -p /desktop-icons/file-icons/show-home -t bool -s false -n
+		xfconf-query -c xfce4-desktop -p /desktop-icons/file-icons/show-trash -t bool -s false -n
+		xfconf-query -c xfce4-desktop -p /desktop-icons/file-icons/show-removable -t bool -s false -n
+	fi
+	if is_enabled $UDISKS_AUTOMOUNT; then
+		xfconf-query -c thunar-volman -p /automount-drives/enabled -t bool -s true -n
+		xfconf-query -c thunar-volman -p /automount-media/enabled -t bool -s true -n
+	fi
+
+	if is_enabled $PANEL_SHOWDESKTOP; then
+		xfconf-query -c xfce4-panel -p /plugins/plugin-16 -t string -s separator -n
+		xfconf-query -c xfce4-panel -p /plugins/plugin-17 -t string -s showdesktop -n
+		PANEL="-t int -s 1 -t int -s 16 -t int -s 17 -t int -s 3 -t int -s 15"
+	else
+		PANEL="-t int -s 1 -t int -s 3 -t int -s 15"
+	fi
+	if is_enabled $PANEL_PAGER; then
+		PANEL="$PANEL -t int -s 4"
+	else
+		xfconf-query -c xfce4-panel -p /plugins/plugin-4 --reset
+		xfconf-query -c xfwm4 -p /general/workspace_count -t int -s 1 -n
+		xfconf-query -c xfwm4 -p /general/workspace_names --reset
+	fi
+        if [ -e /lib/xfce4/panel/plugins/libxkb.so ]; then
+		PANEL="$PANEL -t int -s 22"
+		xfconf-query -c xfce4-panel -p /plugins/plugin-22 -t string -s xkb -n
+	fi
+	if is_disabled $MENU_SHOWCLOCK; then
+		xfconf-query -c xfce4-panel -p /plugins/plugin-5 --reset
+		PANEL="$PANEL -t int -s 6"
+	elif is_enabled $PANEL_REV_CLOCKSYSTRAY; then
+		PANEL="$PANEL -t int -s 6 -t int -s 5"
+	else
+		PANEL="$PANEL -t int -s 5 -t int -s 6"
+	fi
+	if is_enabled $PANEL_USER; then
+		PANEL="$PANEL -t int -s 2"
+	else
+		xfconf-query -c xfce4-panel -p /plugins/plugin-2 --reset
+	fi
+
+	xfconf-query -c xfce4-panel -p /plugins/plugin-6/show-frame -t bool -s false -n
+
+	if [ -d /etc/xfwm4.d ]; then
+		for conf in /etc/xfwm4.d/*; do
+			. $conf
+		done
+	fi
+
+	xfconf-query -c xfce4-panel -p /panels/panel-1/plugin-ids $PANEL
+
+	if is_enabled $XFWM4_KIOSK; then
+		xfconf-query -c xfce4-desktop -p /desktop-icons/style -t uint -s 0 -n
+		xfconf-query -c xfce4-desktop -p /desktop-menu/show -t bool -s false -n
+		xfconf-query -c xfce4-desktop -p /windowlist-menu/show -t bool -s false -n
+	fi
+	if [ -n "$DESKTOP_ICON_SIZE" ]; then
+		xfconf-query -c xfce4-desktop -p /desktop-icons/icon-size -t uint -s $DESKTOP_ICON_SIZE -n
+	fi
+	if [ -n "$DESKTOP_FONT_SIZE" ]; then
+		xfconf-query -c xfce4-desktop -p /desktop-icons/use-custom-font-size -t bool -s true -n
+		xfconf-query -c xfce4-desktop -p /desktop-icons/font-size -t double -s $DESKTOP_FONT_SIZE -n
+	fi
+	if [ -e /etc/background.svg ]; then
+		background=/etc/background.svg
+		if is_enabled $WALLPAPER_STRETCH; then
+			bg_mode=3
+		else
+			bg_mode=4
+		fi
+	elif [ -e /etc/background.jpg ]; then
+		background=/etc/background.jpg
+		if is_enabled $WALLPAPER_STRETCH || [ -z "$WALLPAPER_STRETCH" ]; then
+			bg_mode=3
+		else
+			bg_mode=4
+		fi
+	fi
+	for display in `xrandr |grep -e " connected" |cut -f1 -d " "`; do
+		if [ -n "$background" ]; then
+			xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor$display/workspace0/last-image -t string -s $background -n
+			xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor$display/workspace0/image-style -t int -s $bg_mode -n
+		fi
+		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor$display/workspace0/color-style -t int -s 0 -n
+		xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor$display/workspace0/rgba1 -t double -t double -t double -t double -s "${XFWM4_RED:=0}" -s "${XFWM4_GREEN:=0}" -s "${XFWM4_BLUE:=0}" -s "${XFWM4_ALPHA:=1.0}" -n
+	done
+	if [ -n "$XFWM4_START_ICON" ]; then
+		xfconf-query -c xfce4-panel -p /plugins/plugin-1/button-icon -t string -s $XFWM4_START_ICON -n
+	fi
+	if [ -n "$XFWM4_START_TITLE" ]; then
+		xfconf-query -c xfce4-panel -p /plugins/plugin-1/button-title -t string -s $XFWM4_START_TITLE -n
+	fi
+	
+	if [ -n "$XFWM4_CLOCK_FORMAT" ]; then
+		xfconf-query -c xfce4-panel -p /plugins/plugin-5/digital-format -t string -s $XFWM4_CLOCK_FORMAT -n
+	fi
+	
+	if [ "`make_caps x$XFWM4_START_POSITION`" == "XBOTTOM" ]; then
+		xfconf-query -c xfce4-panel -p /panels/panel-1/position -t string -s "p=8;x=0;y=0" -n
+	fi
+	if is_disabled $XFWM4_START_DISABLE_SUSPEND; then
+		xfconf-query -c xfce4-session -p /shutdown/ShowSuspend --create --set false --type bool
+	else
+		xfconf-query -c xfce4-session -p /shutdown/ShowSuspend --create --set true --type bool
+	fi
+	xfconf-query -c xfwm4 -p /general/double_click_distance -t int -s 5 -n
+	xprop -root -format _NET_NUMBER_OF_DESKTOPS 32c -set _NET_NUMBER_OF_DESKTOPS 1
+	if is_enabled $XFWM4_COMPOSITING; then
+		xfconf-query -c xfwm4 -p /general/use_compositing -t bool -s true -n
+	else
+		xfconf-query -c xfwm4 -p /general/use_compositing -t bool -s false -n
+	fi
+	if [ -n "$XFWM4_THEME" ] && [ "$XFWM4_THEME" != "ALL" ]; then
+		if [ -e /lib/themes/$XFWM4_THEME/xfwm4/themerc ]; then
+			xfconf-query -c xfwm4 -p /general/theme -t string -s $XFWM4_THEME -n
+		fi
+	fi
+	GTK_ICON_THEME=`grep /etc/gtk-2.0/gtkrc -e icon-theme-name |cut -d\" -f2`
+	xfconf-query -c xsettings -p /Net/IconThemeName -t string -s $GTK_ICON_THEME -n
+	xfconf-query -c xsettings -p /Net/ThemeName -t string -s $GTK_THEME -n
+	xfconf-query -c xfce4-notifyd -p /theme -t string -s Smoke -n
+	if [ -z "$X_DPI" ]; then
+		xfconf-query -c xsettings -p /Xft/DPI -t int -s "-1" -n
+	else
+		xfconf-query -c xsettings -p /Xft/DPI -t int -s "$X_DPI" -n
+	fi
+	if is_enabled $PANEL_AUTOHIDE; then
+		xfconf-query -c xfce4-panel -p /panels/panel-1/autohide -t bool -s true -n
+	else
+		xfconf-query -c xfce4-panel -p /panels/panel-1/autohide -t bool -s false -n
+	fi
+	if [ -n "$SCREEN_BLANK_TIME" ]; then
+		xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/blank-on-ac -t uint -s $SCREEN_BLANK_TIME -n
+		xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/blank-on-battery -t uint -s $SCREEN_BLANK_TIME -n
+	fi
+	if [ -n "$SCREEN_SUSPEND_TIME" ]; then
+		xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/dpms-on-ac-sleep -t uint -s $SCREEN_SUSPEND_TIME -n
+		xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/dpms-on-battery-sleep -t uint -s $SCREEN_SUSPEND_TIME -n
+	fi
+	if [ -n "$SCREEN_OFF_TIME" ]; then
+		xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/dpms-on-ac-off -t uint -s $SCREEN_OFF_TIME -n
+		xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/dpms-on-battery-off -t uint -s $SCREEN_OFF_TIME -n
+	fi
+	if [ -n "$XFWM4_SHOW_SUSPEND" ]; then
+		xfconf-query -c xfce4-session -p /shutdown/ShowSuspend -t bool -s $XFWM4_SHOW_SUSPEND -n
+	fi
+	if [ -e /sys/class/power_supply/BAT0 ]; then
+		xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/show-tray-icon -t bool -s true -n
+	fi
+}
+
+wm_menu()
+{
+	xfconf_settings
+	rm -f $HOME/Desktop/*.desktop
+	rm -f $HOME/.local/share/applications/*
+	rm -f $HOME/.config/xfce4/desktop/*
+	if [ "`make_caps $ICONMODE`" == "AUTO" ]; then
+		IMENU=/tmp/icon.menu
+		rm -rf $IMENU
+		rm -rf /tmp/typelist
+		if [ -e /lib/menu ] ; then
+			cat /lib/menu/* > $IMENU
+		fi
+		(cat $IMENU) |
+			while read entry; do
+				case "$entry" in
+					\#*|"") continue ;;
+				esac
+				eval $entry
+				if ! is_enabled $nomenu ; then
+					ICONDIR=$HOME/.local/share/applications
+					if [ -z "$menu" ]; then
+						menu=X-Xfce-Toplevel
+					else
+						echo $menu >> /tmp/typelist
+					fi
+					if [ -z "$icon" ]; then
+						icon=$package
+					fi
+					if [ -n "$path" ]; then
+						Path=$path
+					fi
+					make_desktop
+				fi
+				if ! is_enabled $nodesktop ; then
+					if [ -z "$metric" ]; then
+						metric=99
+					fi
+					ICONDIR=$HOME/Desktop
+					make_desktop
+					desktop_icon_file=$ICONDIR/`replace_char "$title.desktop" "[ /]" "_"`
+					echo "$metric $desktop_icon_file" >> /tmp/icon.sort
+				fi
+				unset title package command nodesktop nomenu menu needs icon metric desktop_icon_file
+			done
+			screenrc=$HOME/.config/xfce4/desktop/icons.screen0.rc
+			mkdir -p $HOME/.config/xfce4/desktop
+			echo -e "[xfdesktop-version-4.10.3+-rcfile_format]\n4.10.3+=true\n" > $screenrc
+	fi
+
+	sindex=50
+	(cat $WKDIR/session |grep -Ev '^xfwm4 ') |
+		while read type title screen position workspace autostart custom icon_mode server options user pass_enable gate gate_user; do
+			if [ "$server" == "." ];	then unset server	;fi
+			if [ "$options" == "." ];	then unset options	;fi
+			if [ "$user" == "." ];		then unset user		;fi
+			if [ "$pass_enable" == "." ];	then unset pass_enable	;fi
+			if [ "$gate" == "." ];          then unset gate         ;fi
+			if [ "$gate_user" == "." ];	then unset gate_user	;fi
+			command="pkg $MAXIMIZE_DEFAULT $type \"$server\" \"$options\" \"$workspace\" \"$user\" \"$pass_enable\" \"$gate\" \"$gate_user\""
+			package=$type
+			icon=$type
+			menu="`echo $title | awk -F:: -v OFS=:: "{ NF--; print }"`"
+			if [ -n "$menu" ]; then
+				title="`echo $title | awk -F:: "{ print \\$NF }"`"
+				echo $menu >> /tmp/typelist
+			fi
+			case "$icon_mode" in
+				ON|MENU)
+					ICONDIR=$HOME/.local/share/applications
+					make_desktop
+				;;
+				SUBMENU|SUBMENUONLY)
+					ICONDIR=$HOME/.local/share/applications
+					menu=$type
+					echo $type >> /tmp/typelist
+					make_desktop
+					unset menu
+				;;
+			esac
+			case "$icon_mode" in
+				ON|SUBMENU)
+					ICONDIR=$HOME/Desktop
+					if [ -n "$menu" ]; then
+						ICONDIR="$ICONDIR/`echo $menu | sed -e 's/::/\//g'`"
+					fi
+					make_desktop
+					if [ -z "$menu" ]; then
+						desktop_icon_file=$ICONDIR/`replace_char "$title.desktop" "[ /]" "_"`
+						echo "$sindex $desktop_icon_file" >> /tmp/icon.sort
+						let sindex+=1
+					fi
+				;;
+			esac
+			case "$autostart" in
+				ON)
+					command="pkg auto $type \"$server\" \"$options\" \"$workspace\" \"$user\" \"$pass_enable\" \"$gate\" \"$gate_user\""
+					ICONDIR=$HOME/.config/autostart
+					make_desktop
+				;;
+			esac
+		done
+
+	sindex=0
+	if is_enabled $DESKTOP_SHOWHOME; then
+		echo -e "[$HOME]\nrow=$sindex\ncol=0\n" >> $screenrc
+		let sindex+=1
+	fi
+	if is_enabled $DESKTOP_SHOWFILESYSTEM; then
+		echo -e "[/]\nrow=$sindex\ncol=0\n" >> $screenrc
+		let sindex+=1
+	fi
+	if [ -e /tmp/icon.sort ]; then
+		for iconfile in `cat /tmp/icon.sort |sort |cut -d " " -f2`; do
+			echo -e "[$iconfile]" >> $screenrc
+			echo -e "row=$sindex" >> $screenrc
+			echo -e "col=0\n" >> $screenrc
+			let sindex+=1
+		done
+		rm /tmp/icon.sort
+	fi
+	unset sindex
+
+	mkdir -p ~/.config/menus
+	menufile=~/.config/menus/xfce-applications.menu
+		echo "<!DOCTYPE Menu PUBLIC \"-//freedesktop//DTD Menu 1.0//EN\""		>$menufile
+		echo "  \"http://www.freedesktop.org/standards/menu-spec/1.0/menu.dtd\">"	>>$menufile
+		echo ""										>>$menufile
+		echo "<Menu>"									>>$menufile
+		echo "    <Name>Xfce</Name>"							>>$menufile
+		echo ""										>>$menufile
+		echo "    <DefaultAppDirs/>"							>>$menufile
+		echo "    <DefaultDirectoryDirs/>"						>>$menufile
+		echo "    <DefaultMergeDirs/>"							>>$menufile
+		echo ""										>>$menufile
+		echo "    <Include>"								>>$menufile
+		echo "        <Category>X-Xfce-Toplevel</Category>"				>>$menufile
+		echo "    </Include>"								>>$menufile
+		echo ""										>>$menufile
+		echo "    <Layout>"								>>$menufile
+	for toplevel in `grep $HOME/.local/share/applications/* -e Toplevel |grep -v About |cut -d ":" -f1`; do
+		toplevel=`basename $toplevel`
+		echo "        <Filename>$toplevel</Filename>"					>>$menufile
+	done
+		echo "        <Merge type=\"all\"/>"						>>$menufile
+		echo "        <Menuname>Settings</Menuname>"					>>$menufile
+	if is_enabled $MENU_SHOWABOUT; then
+		echo "        <Filename>About.desktop</Filename>"				>>$menufile
+		ICONDIR=$HOME/.local/share/applications
+		command=about
+		icon=help-about
+		menu=X-Xfce-Toplevel
+		title=About
+		make_desktop
+	fi
+	if is_enabled $MENU_SHOWLOGOUT; then
+		echo "        <Filename>xfce4-session-logout.desktop</Filename>"		>>$menufile
+	fi
+		echo "    </Layout>"								>>$menufile
+		echo ""										>>$menufile
+	if is_enabled $MENU_SHOWSETTINGS; then
+		echo "    <Menu>"								>>$menufile
+		echo "        <Name>Settings</Name>"						>>$menufile
+		echo "        <Directory>xfce-settings.directory</Directory>"			>>$menufile
+		echo "        <Include>"							>>$menufile
+		echo "            <Category>Settings</Category>"				>>$menufile
+		echo "        </Include>"							>>$menufile
+		echo "    </Menu>"								>>$menufile
+		echo ""										>>$menufile
+	fi
+	menudir=$HOME/.local/share/desktop-directories
+	mkdir -p $menudir
+	cat /tmp/typelist |sort -u | while read menu_type; do
+		menu_dirtype="`echo $menu_type | awk -F:: "{ print \\$NF }"`"
+		menudirfile=$menudir/$menu_dirtype.directory
+		echo $menu_type | awk -F:: "{ for (i=1; i<NF; i++) { print \"<Menu>\"; print \"<Name>\"\$i\"</Name>\" } }"	>>$menufile
+		echo "    <Menu>"								>>$menufile
+		echo "        <Name>$menu_dirtype</Name>"					>>$menufile
+		echo "        <Directory>$menu_dirtype.directory</Directory>"			>>$menufile
+		echo "        <Include>"							>>$menufile
+		echo "            <Category>$menu_dirtype</Category>"				>>$menufile
+		echo "        </Include>"							>>$menufile
+		echo "    </Menu>"								>>$menufile
+		echo $menu_type | awk -F:: "{ for (i=1; i<NF; i++) print \"</Menu>\" }"		>>$menufile
+		echo ""										>>$menufile
+		echo "[Desktop Entry]"								>>$menudirfile
+		echo "Version=1.0"								>>$menudirfile
+		echo "Type=Directory"								>>$menudirfile
+		echo "Icon=$menu_dirtype"							>>$menudirfile
+		echo "Name=$menu_dirtype"							>>$menudirfile
+		echo "Comment=$menu_dirtype"							>>$menudirfile
+	done
+		echo "</Menu>"									>>$menufile
+}
+
+wm_workspaces()
+{
+	echo unused > /dev/null
+}
