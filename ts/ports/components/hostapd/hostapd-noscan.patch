@@ -1,0 +1,76 @@
+diff -ru hostapd-2.10.orig/hostapd/config_file.c hostapd-2.10/hostapd/config_file.c
+--- hostapd-2.10.orig/hostapd/config_file.c	2022-01-16 15:51:29.000000000 -0500
++++ hostapd-2.10/hostapd/config_file.c	2023-10-24 17:27:37.379867191 -0400
+@@ -2906,6 +2906,8 @@
+ 				   line, bss->wpa_deny_ptk0_rekey);
+ 			return 1;
+ 		}
++    } else if (os_strcmp(buf, "noscan") == 0) {
++        conf->noscan = atoi(pos);
+ 	} else if (os_strcmp(buf, "wpa_group_update_count") == 0) {
+ 		char *endp;
+ 		unsigned long val = strtoul(pos, &endp, 0);
+@@ -3474,6 +3476,8 @@
+ 		if (bss->ocv && !bss->ieee80211w)
+ 			bss->ieee80211w = 1;
+ #endif /* CONFIG_OCV */
++    } else if (os_strcmp(buf, "noscan") == 0) {
++        conf->noscan = atoi(pos);
+ 	} else if (os_strcmp(buf, "ieee80211n") == 0) {
+ 		conf->ieee80211n = atoi(pos);
+ 	} else if (os_strcmp(buf, "ht_capab") == 0) {
+diff -ru hostapd-2.10.orig/src/ap/ap_config.h hostapd-2.10/src/ap/ap_config.h
+--- hostapd-2.10.orig/src/ap/ap_config.h	2022-01-16 15:51:29.000000000 -0500
++++ hostapd-2.10/src/ap/ap_config.h	2023-10-24 17:27:37.379867191 -0400
+@@ -1014,6 +1014,7 @@
+ 
+ 	int ht_op_mode_fixed;
+ 	u16 ht_capab;
++    int noscan;
+ 	int ieee80211n;
+ 	int secondary_channel;
+ 	int no_pri_sec_switch;
+diff -ru hostapd-2.10.orig/src/ap/hw_features.c hostapd-2.10/src/ap/hw_features.c
+--- hostapd-2.10.orig/src/ap/hw_features.c	2022-01-16 15:51:29.000000000 -0500
++++ hostapd-2.10/src/ap/hw_features.c	2023-10-24 17:27:37.379867191 -0400
+@@ -517,7 +517,7 @@
+ 	int ret;
+ 
+ 	/* Check that HT40 is used and PRI / SEC switch is allowed */
+-	if (!iface->conf->secondary_channel || iface->conf->no_pri_sec_switch)
++	if (!iface->conf->secondary_channel || iface->conf->no_pri_sec_switch || iface->conf->noscan)
+ 		return 0;
+ 
+ 	hostapd_set_state(iface, HAPD_IFACE_HT_SCAN);
+@@ -915,7 +915,7 @@
+ 	if (!hostapd_is_usable_edmg(iface))
+ 		return 0;
+ 
+-	if (!iface->conf->secondary_channel)
++	if (!iface->conf->secondary_channel || iface->conf->noscan)
+ 		return 1;
+ 
+ 	if (hostapd_is_usable_chan(iface, iface->freq +
+diff -ru hostapd-2.10.orig/src/ap/ieee802_11_ht.c hostapd-2.10/src/ap/ieee802_11_ht.c
+--- hostapd-2.10.orig/src/ap/ieee802_11_ht.c	2022-01-16 15:51:29.000000000 -0500
++++ hostapd-2.10/src/ap/ieee802_11_ht.c	2023-10-24 17:27:37.383200623 -0400
+@@ -230,6 +230,9 @@
+ 		return;
+ 	}
+ 
++    if (iface->conf->noscan)
++        return;
++
+ 	if (len < IEEE80211_HDRLEN + 2 + sizeof(*bc_ie)) {
+ 		wpa_printf(MSG_DEBUG,
+ 			   "Ignore too short 20/40 BSS Coexistence Management frame");
+@@ -390,6 +393,9 @@
+ 	if (iface->current_mode->mode != HOSTAPD_MODE_IEEE80211G)
+ 		return;
+ 
++    if (iface->conf->noscan)
++        return;
++
+ 	wpa_printf(MSG_INFO, "HT: Forty MHz Intolerant is set by STA " MACSTR
+ 		   " in Association Request", MAC2STR(sta->addr));
+ 

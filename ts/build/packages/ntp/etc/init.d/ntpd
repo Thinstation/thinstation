@@ -1,6 +1,6 @@
 #! /bin/sh
 
-. $TS_GLOBAL
+. `dirname $0`/common
 
 update ()
 {
@@ -37,6 +37,7 @@ start ()
 				echo "1 * * * * /sbin/hwclock -w" >> /tmp/crontab
 				if is_enabled $WAIT_FOR_TOCK; then
 					ntpdate -s -b $tickers
+					/sbin/hwclock -w
 				fi
 			else
 				ntpdate -s -b $tickers

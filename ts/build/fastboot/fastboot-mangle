@@ -56,6 +56,9 @@ if [ "$2" == "true" ] ; then
 		for so in `dir lib/plymouth/*.so`; do
 			ldd $so 2>/dev/null >> /tmp/fastlibneed
 		done
+		for so in lib/plymouth/renderers/drm.so; do
+			ldd $so 2>/dev/null >> /tmp/fastlibneed
+		done
 	fi
 	cat /tmp/fastlibneed |grep -v "not a dyn"|grep -v ":"| sed -e 's/\t//g' |cut -d " " -f1 |sed -e 's|/lib64/||g' |sed -e 's|/lib/||g' |sort -u > /tmp/fastlib
 	for lib in `cat ../fastboot/lib-boot; cat /tmp/fastlib; ls --color=never lib |grep -E 'libgcc_s.so.[0-1]+|libnss_files.so.[0-9]+|libnss_dns.so.[0-9]+'` ; do
@@ -101,7 +104,7 @@ if [ "$2" == "lotsofmem" ]; then
 	mkdir -p ../fastboot-tmp/usr
 	cp --remove-destination `which cp`		bin/.
 	cp --remove-destination `which mv`		bin/.
-	cp --remove-destination `which unsquashfs`	bin/.
+	cp --remove-destination `which unsquashfs`	sbin/.
 	for i in opt jre ; do
 		if [ -e $i ] ; then
 			mv $i ../fastboot-tmp/.
@@ -131,8 +134,17 @@ if [ "$2" == "lotsofmem" ]; then
 		for so in `dir lib/plymouth/*.so`; do
 			ldd $so 2>/dev/null >> /tmp/fastlibneed
 		done
+                for so in lib/plymouth/renderers/drm.so; do
+                        ldd $so 2>/dev/null >> /tmp/fastlibneed
+                done
 	fi
 	cat /tmp/fastlibneed |grep -v "not a dyn"|grep -v ":" |sed -e 's/\t//g' |cut -d " " -f1 |sed -e 's|/lib64/||g' |sed -e 's|/lib/||g' |sort -u > /tmp/fastlib
+	for lib in `cat /tmp/fastlib |grep -v linux-vdso.so`; do
+		if [ ! -e lib/$lib ]; then
+			libsource="`prt-get fsearch $lib |grep -Ev 'Found|x-tool|^$' | cut -d " " -f3 |head -n1`"
+			cp $libsource lib/.
+		fi
+	done
 	for i in `ls --color=never lib/ |grep -xvf ../fastboot/lib-boot |grep -xvf /tmp/fastlib |grep -Ev 'libgcc_s.so.[0-1]+|libnss_files.so.[0-9]+|libnss_dns.so.[0-9]+'` ; do
 		if [ -n "$i" ] ; then
 			mv lib/$i ../fastboot-tmp/lib/.

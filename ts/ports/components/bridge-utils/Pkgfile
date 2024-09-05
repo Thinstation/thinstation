@@ -1,0 +1,21 @@
+# Maintainer: Christian Hesse <mail@eworm.de>
+# Contributor: Judd Vinet <judd@archlinux.org>
+
+name=bridge-utils
+version=1.7.1
+release=2
+source=https://mirrors.edge.kernel.org/pub/linux/utils/net/${name}/${name}-${version}.tar.xz
+
+build() {
+  cd "${SRC}/${name}-${version}"
+
+  aclocal
+  autoconf
+
+  ./configure \
+    --prefix=/usr \
+    --sbindir=/usr/bin \
+    --sysconfdir=/etc
+  make
+  make DESTDIR="${PKG}" install
+}

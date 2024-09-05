@@ -1,0 +1,31 @@
+# Description: Access point and authentication daemon
+# URL:         http://hostap.epitest.fi/hostapd/
+# Maintainer:  Alan Mizrahi, alan at mizrahi dot com dot ve
+# Depends on:  libnl
+
+name=hostapd
+version=2.11
+release=9
+source=(
+https://w1.fi/releases/$name-$version.tar.gz
+config
+hostapd.rc
+hostapd-noscan.patch
+)
+
+build(){
+	cd $name-$version
+	for p in $SRC/*.patch; do
+		patch -p1 -i $p
+	done
+
+	cd hostapd
+	cp $SRC/config .config
+	make
+	install -D -m 755 hostapd $PKG/usr/sbin/hostapd
+	install -D -m 755 hostapd_cli $PKG/usr/sbin/hostapd_cli
+	install -D -m 644 hostapd.conf $PKG/etc/hostapd.conf
+	install -D -m 755 $SRC/hostapd.rc $PKG/etc/rc.d/hostapd
+	install -D -m 644 hostapd_cli.1 $PKG/usr/share/man/man1/hostapd_cli.1
+	install -D -m 644 hostapd.8 $PKG/usr/share/man/man8/hostapd.8
+}

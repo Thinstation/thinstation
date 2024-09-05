@@ -3,6 +3,31 @@
 . `dirname $0`/common
 . /etc/splash.functions
 
+#plymouth change-mode --system-upgrade
+#plymouth system-update --progress=10
+#sleep 3
+#plymouth system-update --progress=20
+#sleep 3
+#plymouth system-update --progress=30
+#sleep 3
+#plymouth system-update --progress=40
+#sleep 3
+#plymouth system-update --progress=50
+#sleep 3
+#plymouth system-update --progress=60
+#sleep 3
+#plymouth system-update --progress=70
+#sleep 3
+#plymouth system-update --progress=80
+#sleep 3
+#plymouth system-update --progress=90
+#sleep 3
+#plymouth system-update --progress=100
+#sleep 3
+#plymouth change-mode --boot-up
+
+
+
 if [ -n "$DEBUG_BOOT" ]; then
 	set -x
 	exec </dev/null >/var/log/fastboot.log  2>&1
@@ -48,6 +73,16 @@ disk() {
         # Default case if no specific version is found
         lib_file="lib.squash"
     fi
+    if [ -z "$HDVOLNAME" ]; then
+	if [ -e /dev/disk/by-label/THINSTATION ]; then
+		HDVOLNAME=THINSTATION
+	elif [ -e /dev/disk/by-label/BOOT ]; then
+                HDVOLNAME=BOOT
+	else
+                HDVOLNAME=boot
+	fi
+    fi
+
     systemd-mount --fsck=no -o "x-mount.mkdir,defaults" /dev/disk/by-label/$HDVOLNAME /boot
     FILE=/boot/"$squash_location"$lib_file
     UPDATE=/boot/"$squash_location"lib.update
@@ -214,6 +249,7 @@ mount_squash()
 }
 # This has to be a double negative test. Only is_disabled will
 # return false with a non-null value that isn't explicitly disabled.
+#used > /var/log/used
 if ! is_disabled $FASTBOOT; then
 	export FASTBOOT
 	if [ -n "$DEBUG_INIT" ] ; then
