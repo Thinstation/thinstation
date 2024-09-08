@@ -4,7 +4,7 @@
 # Maintainer: Tom Gundersen <teg@jklm.no>
 
 name=systemd
-version=244
+version="256.5"
 release=2
 source=(https://github.com/systemd/systemd/archive/v$version.tar.gz
 	fstab-generator.patch
@@ -32,8 +32,8 @@ source=(https://github.com/systemd/systemd/archive/v$version.tar.gz
 build() {
 
   cd $SRC/systemd-$version
-  patch -p0 -i $SRC/quiet.patch
-  patch -p0 -i $SRC/quiet2.patch
+#  patch -p0 -i $SRC/quiet.patch
+#  patch -p0 -i $SRC/quiet2.patch
   cd $SRC
 
   local _timeservers=({0..3}.us.pool.ntp.org)
@@ -52,7 +52,6 @@ build() {
   )
 
   local _meson_options=(
-    -Dgnuefi=true
     -Ddbuspolicydir=/usr/share/dbus-1/system.d
     # TODO(dreisner): consider changing this to unified
     -Ddefault-hierarchy=hybrid
@@ -60,10 +59,12 @@ build() {
     -Dfallback-hostname='thinstation-linux'
     -Dntp-servers="${_timeservers[*]}"
     -Ddns-servers="${_nameservers[*]}"
+    -Dukify=false
+    -Dselinux=false
+    -Delfutils=false
     -Drpmmacrosdir=no
     -Dportabled=false
-    -Dselinux=false
-    -Dfirstboot=false
+    -Dfirstboot=true
     -Dmicrohttpd=false
     -Dsplit-usr=false
     -Dsplit-bin=false
@@ -71,9 +72,10 @@ build() {
     -Dhibernate=false
     -Denvironment-d=false
     -Dtpm=false
+    -Dtpm2=disabled
     -Dbinfmt=false
     -Dcoredump=false
-    -Dsysusers=false
+    -Dsysusers=true
     -Dquotacheck=false
     -Dsystem-uid-max=999
     -Dsystem-gid-max=999
@@ -83,7 +85,6 @@ build() {
     -Dsysvrcnd-path=
     -Drfkill=false
     -Dima=false
-    -Dseccomp=false
     -Dsmack=false
     -Dzlib=false
     -Dxz=false
@@ -95,19 +96,30 @@ build() {
     -Drandomseed=false
     -Dbacklight=false
     -Dmachined=false
+    -Dnss-mymachines=false
     -Dimportd=false
     -Dhostnamed=true
     -Dtimedated=true
     -Dlocaled=false
     -Dnetworkd=false
     -Dresolve=false
+    -Dnss-resolve=false
     -Dxkbcommon=false
-    -Dmyhostname=false
     -Ddns-over-tls=false
     -Dtmpfiles=true
     -Dlibcryptsetup=false
     -Dutmp=false
     -Dman=true
+    -Dbpf-framework=disabled
+    -Dapparmor=disabled
+    -Dxenctrl=disabled
+    -Dlibcryptsetup-plugins=disabled
+    -Dqrencode=disabled
+    -Dlibfido2=disabled
+    -Dglib=disabled
+    -Dhomed=disabled
+    -Dremote=disabled
+    -Delfutils=disabled
   )
 
   ts-meson "$name-$version" build "${_meson_options[@]}"
