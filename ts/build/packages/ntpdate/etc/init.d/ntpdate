@@ -1,0 +1,83 @@
+#! /bin/sh
+
+. `dirname $0`/common
+
+update ()
+{
+	tickers=`awk '$1=="peer"||$1=="server"{print $2}' /etc/ntp.conf`
+	if [ -n "$tickers" ]; then
+		ntpdate -s $tickers
+	fi
+}
+
+status ()
+{
+	if [ -z "`crontab -l 2>/dev/null | grep ntpd`" ]; then
+		return 1
+	fi
+	return 0
+}
+
+start ()
+{
+	if ! pkg_initialized $PACKAGE; then
+		pkg_set_init_flag $PACKAGE
+		if [ -n "$NET_TIME_SERVER" ]; then
+			echo "server $NET_TIME_SERVER" >> /etc/ntp.conf
+			if [ -n "$NET_TIME_SERVER_BACKUP" ]; then
+				echo "server $NET_TIME_SERVER_BACKUP" >> /etc/ntp.conf
+			fi
+		fi
+	fi
+	if ! status ; then
+		tickers=`awk '$1=="peer"||$1=="server"{print $2}' /etc/ntp.conf`
+		if [ -n "$tickers" ]; then
+			echo "1 * * * * /etc/init.d/ntpd restart" >> /tmp/crontab
+			if is_enabled $RTC_CMOS_UPDATE; then
+				echo "1 * * * * /sbin/hwclock -w" >> /tmp/crontab
+				if is_enabled $WAIT_FOR_TOCK; then
+					ntpdate -s -b $tickers
+					/sbin/hwclock -w
+				fi
+			else
+				ntpdate -s -b $tickers
+			fi
+			crontab /tmp/crontab
+		fi
+	else
+		update
+	fi
+}
+
+stop ()
+{
+	sed -i -e "/ntpd/d" /tmp/crontab
+	if is_enabled $RTC_CMOS_UPDATE; then
+		sed -i -e "/hwclock/d" /tmp/crontab
+	fi
+	crontab /tmp/crontab
+}
+
+case "$1" in
+restart)
+	update
+	;;
+start)
+	start
+	;;
+stop)
+	stop
+	;;
+status)
+	status
+	exit $?
+	;;
+help)
+	echo "Usage: $0 init"
+	;;
+*)
+	exit 1
+	;;
+esac
+
+exit 0

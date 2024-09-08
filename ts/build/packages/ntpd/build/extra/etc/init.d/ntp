@@ -1,0 +1,42 @@
+#!/bin/sh
+
+. `dirname $0`/common
+
+start() {
+    if [ -n "$NET_TIME_SERVER" ]; then
+        # Check if the main time server is already in ntp.conf
+        if ! grep -q "server $NET_TIME_SERVER" /etc/ntp.conf; then
+            echo "server $NET_TIME_SERVER" >> /etc/ntp.conf
+        fi
+
+        if [ -n "$NET_TIME_SERVER_BACKUP" ]; then
+            # Check if the backup time server is already in ntp.conf
+            if ! grep -q "server $NET_TIME_SERVER_BACKUP" /etc/ntp.conf; then
+                echo "server $NET_TIME_SERVER_BACKUP" >> /etc/ntp.conf
+            fi
+        fi
+    fi
+}
+
+update_rtc() {
+    if is_enabled $RTC_CMOS_UPDATE; then
+        /sbin/hwclock -w
+    fi
+}
+
+case "$1" in
+    start|init)
+        start
+        ;;
+    update_rtc)
+        update_rtc
+        ;;
+    help)
+        echo "Usage: $0 start"
+        ;;
+    *)
+        exit 1
+        ;;
+esac
+
+exit 0
