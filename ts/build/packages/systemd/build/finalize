@@ -35,3 +35,14 @@ chgrp systemd-journal /var/log/journal/
 chmod g+s /var/log/journal/
 
 systemd-machine-id-setup
+
+if [ ! -e /etc/init.d/ntp ] || [ ! -e /etc/init.d/ntpdate ]; then
+	if [ -n "$NET_TIME_SERVER" ]; then
+		echo "NTP=$NET_TIME_SERVER" >> /etc/systemd/timesyncd.conf
+	fi
+	if [ -n "$NET_TIME_SERVER_BACKUP" ]; then
+		echo "FallbackNTP=$NET_TIME_SERVER_BACKUP" >> /etc/systemd/timesyncd.conf
+	fi
+	systemctl enable systemd-timesyncd
+fi
+
