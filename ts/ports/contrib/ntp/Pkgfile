@@ -4,22 +4,20 @@
 # Depends on:  openssl xorg-imake
 
 name=ntp
-version=4.2.8p15
+version=4.2.8p18
 release=1
 source=(https://www.eecis.udel.edu/~ntp/ntp_spool/ntp4/ntp-4.2/$name-$version.tar.gz
-        ntpd
-        ntpdate
-        ntp.conf
-        ntp-64bit.diff)
+	ntpd.service
+	ntpdate.service
+	ntp.sysusers
+        ntp.conf)
 
 build () {
-   mkdir -p $PKG/etc/{rc.d,ntp} \
-      $PKG/var/log \
+   mkdir -p $PKG/var/log \
       $PKG/var/run/ntp \
       $PKG/var/lib/ntp/stats
 
    cd $name-$version
-   patch -p1 -i ../ntp-64bit.diff
 
    ./configure \
       --prefix=/usr \
@@ -35,16 +33,15 @@ build () {
       LDFLAGS="$LDFLAGS"
 
    # substitute the default configuration path
-   sed -i -e 's;\(CONFIG_FILE[^"]*"\)/etc/ntp.conf;\1/etc/ntp/ntp.conf;' \
-        include/ntp_config.h
 
    make
    make DESTDIR=$PKG install
    touch $PKG/var/log/ntp.log
 
-   install -m 644 $SRC/ntp.conf $PKG/etc/ntp
-   install -m 755 $SRC/ntpd $PKG/etc/rc.d
-   install -m 755 $SRC/ntpdate $PKG/etc/rc.d
+   install -Dm644 $SRC/ntp.conf $PKG/etc/ntp.conf
+   install -Dm644 $SRC/ntpd.service $PKG/usr/lib/systemd/system/ntpd.service
+   install -Dm644 $SRC/ntpdate.service $PKG/usr/lib/systemd/system/ntpdate.service
+   install -Dm644 $SRC/ntp.sysusers $PKG/usr/lib/sysusers.d/ntp.conf
 
    # fix remove unnecessary directory
    rmdir $PKG/usr/{sbin,libexec}
@@ -52,7 +49,4 @@ build () {
 
    # initialize ntp.drift file
    echo "0.0" > $PKG/var/lib/ntp/ntp.drift
-#rm -rf /$PKG/{var,usr/man}
-#mkdir -p $PKG/$TSCOMPROOT/$pname
-#mv $PKG/{etc,usr} $PKG/$TSCOMPROOT/$pname
 }
