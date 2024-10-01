@@ -49,6 +49,7 @@ do_mounts()
 			mount -t ext4 ${disk}${p}2 /tmp-home
 			sleep 1
 		done
+		mkdir -p -m 700 /tmp-home/root
 		while ! mounted /thinstation ; do
 			mkdir -p /thinstation
 			mount -t ext4 ${disk}${p}4 /thinstation
