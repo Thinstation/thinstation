@@ -2,7 +2,7 @@
 
 . /etc/thinstation.global
 
-rm -rf /vbe_modes.list /firmware.list /module.list
+rm -rf /vbe_modes.list /firmware.list /module.list /package.list
 
 bday=`stat -c %X /etc/index.html`
 
