@@ -1,0 +1,66 @@
+#!/bin/bash
+
+# Directory where the files will be copied and linked
+BACKUP_DIR="/var/etc"
+
+# Array of files to check and manage
+FILES=("passwd" "group" "shadow" "gshadow" "thinstation.env")
+
+backup_files() {
+    # Backup each file
+    for FILE in "${FILES[@]}"; do
+        DIR=$(dirname "${FILE}")  # Get directory path of the file
+
+        # Ensure the directory structure exists in the backup directory
+        mkdir -p "${BACKUP_DIR}/${DIR}"
+
+        # Check if the source and destination files differ
+        # If they differ, copy the file to the backup directory
+        if ! cmp -s "/etc/${FILE}" "${BACKUP_DIR}/${FILE}"; then
+            cp -a "/etc/${FILE}" "${BACKUP_DIR}/${FILE}"
+        fi
+    done
+}
+
+restore_files() {
+    for FILE in "${FILES[@]}"; do
+        if [ -f "${BACKUP_DIR}/${FILE}" ]; then
+            # Copy file to target directory
+            cp -a "${BACKUP_DIR}/${FILE}" "/etc/${FILE}"
+        fi
+    done
+}
+
+firstrun() {
+    # Update security files with the new Administrative User
+    if [ -f /var/etc/firstrun ]; then
+        # Update root password
+        rstring="$(grep -E '^root' /var/etc/firstrun)"
+        rpass="$(echo "$rstring" | cut -d ':' -f2)"
+        /sbin/usermod -p "$rpass" root
+
+        # Update Admin user name and password
+        ustring="$(grep -Ev '^root' /var/etc/firstrun)"
+        user="$(echo "$ustring" | cut -d ':' -f1)"
+        pass="$(echo "$ustring" | cut -d ':' -f2)"
+        /sbin/groupmod -n "$user" tsuser
+        /sbin/usermod -l "$user" tsuser
+        /sbin/usermod -c "$user" "$user"
+        /sbin/usermod -p "$pass" -m -d /home/"$user" "$user"
+        sed -i -e "s/tsuser/$user/g" /etc/thinstation.env
+        rmdir /home/tsuser
+
+        rm /var/etc/firstrun
+        backup_files
+    fi
+}
+
+case $1 in
+    backup)
+        backup_files
+        ;;
+    restore)
+        restore_files
+        firstrun
+        ;;
+esac

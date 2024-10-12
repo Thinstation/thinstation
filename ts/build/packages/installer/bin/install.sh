@@ -20,13 +20,20 @@ mounted()
 un_mount()
 {
 	umount $bootdir >/dev/null 2>&1
-	for i in `mount |grep -e $disk |cut -d " " -f3` ; do
+	for i in `mount |grep -e /dev/devstation_vg |cut -d " " -f3` ; do
 		while mounted $i; do
 			sync
 			umount -f $i
 			sleep 1
 		done
 	done
+        for i in `mount |grep -e $disk |cut -d " " -f3` ; do
+                while mounted $i; do
+                        sync
+                        umount -f $i
+                        sleep 1
+                done
+        done
 	swapoff -a
 	sleep 1
 }
@@ -46,13 +53,27 @@ do_mounts()
 	if is_enabled $INSTALLER_DEV ; then
 		while ! mounted /tmp-home ; do
 			mkdir -p /tmp-home
-			mount -t ext4 ${disk}${p}2 /tmp-home
+			mount /dev/devstation_vg/home_lv /tmp-home
 			sleep 1
 		done
-		mkdir -p -m 700 /tmp-home/root
+                while ! mounted /tmp-root ; do
+                        mkdir -p /tmp-root
+                        mount /dev/devstation_vg/root_lv /tmp-root
+                        sleep 1
+                done
+                while ! mounted /tmp-log ; do
+                        mkdir -p /tmp-log
+                        mount /dev/devstation_vg/log_lv /tmp-log
+                        sleep 1
+                done
+                while ! mounted /tmp-etc ; do
+                        mkdir -p /tmp-etc
+                        mount /dev/devstation_vg/etc_lv /tmp-etc
+                        sleep 1
+                done
 		while ! mounted /thinstation ; do
 			mkdir -p /thinstation
-			mount -t ext4 ${disk}${p}4 /thinstation
+			mount /dev/devstation_vg/tsdev_lv /thinstation
 			sleep 1
 		done
 	else
@@ -72,6 +93,7 @@ read_pt()
 }
 
 echo "Starting Partioner"
+if echo $disk |grep -q -e nvme; then p=p; else unset p; fi
 touch /tmp/nomount
 un_mount
 dd if=/dev/zero of=$disk bs=1M count=2
@@ -86,9 +108,15 @@ parted -s $disk set 1 boot on
 
 # Creates all needed partitions depending if install is Dev or not
 if is_enabled $INSTALLER_DEV; then
-        parted -s $disk mkpart primary ext4 "6293504s 16779263s"
-        parted -s $disk mkpart primary linux-swap "16779264s 33556479s"
-        parted -s $disk mkpart primary ext4 "33556480s -0"
+	parted -s $disk mkpart primary "6293504s -1"
+	pvcreate ${disk}${p}2
+	vgcreate devstation_vg ${disk}${p}2
+	lvcreate -n etc_lv -L 64M devstation_vg
+	lvcreate -n root_lv -L 1G devstation_vg
+	lvcreate -n swap_lv -L 4G devstation_vg
+	lvcreate -n home_lv -L 4G devstation_vg
+	lvcreate -n log_lv -L 1G devstation_vg
+	lvcreate -n tsdev_lv -l 100%FREE devstation_vg
 else
 	parted -s $disk mkpart primary linux-swap "6293504s 11g"
 	parted -s $disk mkpart primary ext4 "11g -0"
@@ -101,35 +129,26 @@ read_pt
 sleep 1
 
 # Creates all needed FileSystems
-if echo $disk |grep -q -e nvme; then p=p; else unset p; fi
 echo "Making filesystems"
 mkfs.vfat -n boot -F 32 -R 32 ${disk}${p}1 || mkfs.vfat -n boot -F -F 32 -R 32 ${disk}${p}1 # Create /boot FileSystem
 sleep 1
 
 if is_enabled $INSTALLER_DEV; then
-	mkfs.ext4 -F -F ${disk}${p}2 #Creates /home FileSystem
-	sleep 1
-	mkswap -f -L swap ${disk}${p}3 #Creates swap FileSystem
-	sleep 1
-	mkfs.ext4 -F -F ${disk}${p}4 #Creates /thinstation FileSystem
-	sleep 1
+	mkfs.ext4 -L etc /dev/devstation_vg/etc_lv
+	mkfs.ext4 -L root /dev/devstation_vg/root_lv
+	mkfs.ext4 -L home /dev/devstation_vg/home_lv
+	mkfs.ext4 -L log /dev/devstation_vg/log_lv
+	mkfs.ext4 -L tsdev /dev/devstation_vg/tsdev_lv
+        mkswap -L swap /dev/devstation_vg/swap_lv
 else
 	mkswap -f -L swap ${disk}${p}2 #Creates swap FileSystem
 	sleep 1
-	mkfs.ext4 -F -F ${disk}${p}3 #Creates /home FileSystem
+	mkfs.ext4 -L home -F ${disk}${p}3 #Creates /home FileSystem
 fi
 
 read_pt
 un_mount
 
-# Labels partitions
-if is_enabled $INSTALLER_DEV; then
-	e2label ${disk}${p}2 home
-	e2label ${disk}${p}4 tsdev
-else
-	e2label ${disk}${p}3 home
-fi
-sleep 1
 
 # Remounts all partitions
 echo "Remounting"
@@ -188,4 +207,3 @@ if is_enabled $INSTALLER_DEV; then
 
 	./setup-chroot -i -a
 fi
-

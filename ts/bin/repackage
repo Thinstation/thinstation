@@ -275,7 +275,8 @@ reduce_libs()
 			fi
 			# Ignore TCL/TK, it doesn't ever declare an SONAME
 			# ncurses has some wierd scripts named .so ??
-			if [ -n "`basename $link |grep -E 'libtcl.so$|libtk.so$|libncurses.so$|libcurses.so$|libform.so$|libmenu.so$|libpanel.so$|libcursesw.so$'`" ]; then
+			# llvm has an ascii file with a .so extension
+			if [ -n "`basename $link |grep -E 'libtcl.so$|libtk.so$|libncurses.so$|libcurses.so$|libform.so$|libmenu.so$|libpanel.so$|libcursesw.so$|libc\+\+.so$'`" ]; then
 				continue
 			fi
 			soname=`objdump -p $linkdir/$linkdest | grep SONAME | awk '{print $2}'`
@@ -296,7 +297,8 @@ reduce_libs()
 		| grep -E '\.so' |sort -u`; do
 			# Ignore TCL/TK, it doesn't ever declare an SONAME
 			# ncurses has some wierd scripts named .so ??
-			if [ -n "`basename $lib |grep -E 'libtcl8.6.so$|libtk8.6.so$|libncurses.so$|libcurses.so$|libform.so$|libmenu.so$|libpanel.so$|libcursesw.so'`" ]; then
+			# llvm has an ascii file with a .so extension
+			if [ -n "`basename $lib |grep -E 'libtcl8.6.so$|libtk8.6.so$|libncurses.so$|libcurses.so$|libform.so$|libmenu.so$|libpanel.so$|libcursesw.so|libc\+\+.so$'`" ]; then
 				continue
 			fi
 			soname=`objdump -p $lib | grep SONAME | awk '{print $2}'`

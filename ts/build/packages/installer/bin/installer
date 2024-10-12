@@ -132,7 +132,7 @@ x_warn()
 			</hbox>
 		</vbox>
 	</window>'
-	
+
 	result=`$GTKDIALOG`
 	for statement in `echo $result`;do
 		eval $statement
@@ -401,6 +401,77 @@ install_check()
 		done
 }
 
+# Function to hash the password and save it
+hash_password_and_save() {
+	local input_user="$1"
+	local input_password="$2"
+	if [ -n "$input_password" ] && [ -n "$input_user" ]; then
+		# Hash the password using mkpasswd
+		local hashed_password=$(mkpasswd -m sha-512 "$input_password")
+		# Save the hashed password
+		echo "$input_user:$hashed_password" >> /tmp/firstrun
+	else
+		return 1
+	fi
+}
+
+cred_dialog()
+{
+	rm -f /tmp/firstrun
+	STATUS="incomplete"
+	while [ "$STATUS" == "incomplete" ]; do
+		export MAIN_DIALOG='
+		<window title="Update User Credentials" window_position="center" decorated="true" resizable="false" image-name="/lib/pixmaps/installer_32x32.xpm">
+			<vbox>
+				<text use-markup="true" justify="2" space-expand="true" space-fill="true" wrap="true" width-chars="50">
+					<label>"Finally, lets create an administrative user and update the root password."</label>
+				</text>
+				<hseparator></hseparator>
+				<text><label>New Password for root:</label></text>
+					<entry text="">
+						<variable>RPASSWORD</variable>
+						<visible>password</visible>
+					</entry>
+				<text><label>New Administrative User Name:</label></text>
+					<entry text="">
+						<variable>USER</variable>
+						<visible>yes</visible>
+					</entry>
+				<text><label>Password for Administrative User:</label></text>
+					<entry text="">
+						<variable>UPASSWORD</variable>
+						<visible>password</visible>
+					</entry>
+				<hbox>
+					<button>
+						<label>"Next"</label>
+						<action>EXIT:ok</action>
+					</button>
+				</hbox>
+			</vbox>
+		</window>
+	'
+set +x
+		result=`$GTKDIALOG`
+		for statement in `echo $result`;do
+			eval $statement
+		done
+		if [ "$EXIT" != "ok" ]; then
+			exit 1
+		fi
+		if [ -n "$RPASSWORD" ] && [ -n "$USER" ] && [ -n "$UPASSWORD" ]; then
+			hash_password_and_save "root" "$RPASSWORD"
+			hash_password_and_save "$USER" "$UPASSWORD"
+			if [ $? -eq 0 ]; then
+				STATUS="complete"
+			fi
+		else
+			x_echo "Error" "All fields are required. Please enter all details."
+			STATUS="incomplete"
+		fi
+set -x
+	done
+}
 cd /
 
 if is_enabled $INSTALLER_DEV || is_enabled $INSTALLER_README ; then
@@ -423,6 +494,7 @@ if is_enabled $INSTALLER_DEV ; then
 	resolution_select
 	timezone_select
 	locale_select
+	cred_dialog
 fi
 
 x_warn "Warning" "All data on the disk <span color='red' weight='bold'>$disk</span> is about to be <span color='red' weight='bold'>erased!</span>"
@@ -439,12 +511,14 @@ if is_enabled $INSTALLER_DEV ; then
 	user_conf
 fi
 
-install_check
-
 cp /var/log/installer.log /tmp-home/tsuser/.
 cp /var/log/install.log /tmp-home/tsuser/.
+cp /tmp/firstrun /tmp-etc/.
+
 chmod -R 750 /tmp-home/tsuser
 chown -R 1000:1000 /tmp-home/tsuser
+
+install_check
 
 if is_enabled $INSTALLER_DEV ; then
 	x_echo "Almost Done" "You can now make your first image by going to  <b>/thinstation</b> and running <b>./setup-chroot</b>. From there, <b>cd /build</b> and run <b>./build</b>"

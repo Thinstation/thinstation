@@ -49,14 +49,14 @@ build() {
 
   # Build legacy udev rule for initramfs
   cd udev
-  make 69-dm-lvm-metad.rules
+#  make 69-dm-lvm-metad.rules
   cd ..
   make -j1 DESTDIR="${PKG}" install_device-mapper
   # extra udev rule for device-mapper in initramfs
   install -D -m644 "${SRC}/11-dm-initramfs.rules" "${PKG}/usr/lib/initcpio/udev/11-dm-initramfs.rules"
   # Install dmeventd socket and service
   make -j1 DESTDIR="${PKG}" install_systemd_units
-  rm -f "${PKG}/usr/lib/systemd/system/"{blk-availability.service,lvm2-*}
+#  rm -f "${PKG}/usr/lib/systemd/system/"{blk-availability.service,lvm2-*}
   install -d -m755 "${PKG}/usr/lib/systemd/system/sockets.target.wants"
   ln -sf ../dm-event.socket "${PKG}/usr/lib/systemd/system/sockets.target.wants/dm-event.socket"
 
@@ -73,10 +73,10 @@ build() {
 #  install -D -m644 "${SRC}/lvm2-initramfs/udev/69-dm-lvm-metad.rules" "${PKG}/usr/lib/initcpio/udev/69-dm-lvm-metad.rules"
   # systemd support
   make -j1 DESTDIR="${PKG}" install_systemd_units
-  rm -f "${PKG}/usr/lib/systemd/system/"dm-*
-  install -d -m755 "${PKG}/usr/lib/systemd/system/sysinit.target.wants"
-  ln -sf ../lvm2-lvmetad.socket "${PKG}/usr/lib/systemd/system/sysinit.target.wants/lvm2-lvmetad.socket"
-  ln -sf ../lvm2-lvmpolld.socket "${PKG}/usr/lib/systemd/system/sysinit.target.wants/lvm2-lvmpolld.socket"
-  ln -sf ../lvm2-monitor.service "${PKG}/usr/lib/systemd/system/sysinit.target.wants/lvm2-monitor.service"
+#  rm -f "${PKG}/usr/lib/systemd/system/"dm-*
+#  install -d -m755 "${PKG}/usr/lib/systemd/system/sysinit.target.wants"
+#  ln -sf ../lvm2-lvmetad.socket "${PKG}/usr/lib/systemd/system/sysinit.target.wants/lvm2-lvmetad.socket"
+#  ln -sf ../lvm2-lvmpolld.socket "${PKG}/usr/lib/systemd/system/sysinit.target.wants/lvm2-lvmpolld.socket"
+#  ln -sf ../lvm2-monitor.service "${PKG}/usr/lib/systemd/system/sysinit.target.wants/lvm2-monitor.service"
   make -j1 DESTDIR="${PKG}" install_systemd_generators
 }
