@@ -1,0 +1,13 @@
+[Unit]
+Description=Monitor/Backup/Restore system critical files
+StartAfter=fastboot.service
+
+[Service]
+Type=simple
+ExecStartPre=/etc/init.d/persistent-files restore
+ExecStart=/etc/init.d/persistent-files monitor
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

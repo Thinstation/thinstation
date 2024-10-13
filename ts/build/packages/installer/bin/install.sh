@@ -59,6 +59,7 @@ do_mounts()
                 while ! mounted /tmp-root ; do
                         mkdir -p /tmp-root
                         mount /dev/devstation_vg/root_lv /tmp-root
+			chmod 0700 /tmp-root
                         sleep 1
                 done
                 while ! mounted /tmp-log ; do
@@ -66,9 +67,10 @@ do_mounts()
                         mount /dev/devstation_vg/log_lv /tmp-log
                         sleep 1
                 done
-                while ! mounted /tmp-etc ; do
-                        mkdir -p /tmp-etc
-                        mount /dev/devstation_vg/etc_lv /tmp-etc
+                while ! mounted /tmp-prstnt ; do
+                        mkdir -p /tmp-prstnt
+                        mount /dev/devstation_vg/prstnt_lv /tmp-prstnt
+			chmod 0700 /tmp-prstnt
                         sleep 1
                 done
 		while ! mounted /thinstation ; do
@@ -111,7 +113,7 @@ if is_enabled $INSTALLER_DEV; then
 	parted -s $disk mkpart primary "6293504s -1"
 	pvcreate ${disk}${p}2
 	vgcreate devstation_vg ${disk}${p}2
-	lvcreate -n etc_lv -L 64M devstation_vg
+	lvcreate -n prstnt_lv -L 64M devstation_vg
 	lvcreate -n root_lv -L 1G devstation_vg
 	lvcreate -n swap_lv -L 4G devstation_vg
 	lvcreate -n home_lv -L 4G devstation_vg
@@ -134,12 +136,12 @@ mkfs.vfat -n boot -F 32 -R 32 ${disk}${p}1 || mkfs.vfat -n boot -F -F 32 -R 32 $
 sleep 1
 
 if is_enabled $INSTALLER_DEV; then
-	mkfs.ext4 -L etc /dev/devstation_vg/etc_lv
-	mkfs.ext4 -L root /dev/devstation_vg/root_lv
-	mkfs.ext4 -L home /dev/devstation_vg/home_lv
-	mkfs.ext4 -L log /dev/devstation_vg/log_lv
-	mkfs.ext4 -L tsdev /dev/devstation_vg/tsdev_lv
-        mkswap -L swap /dev/devstation_vg/swap_lv
+	mkfs.ext4 -L prstnt -F /dev/devstation_vg/prstnt_lv
+	mkfs.ext4 -L root -F /dev/devstation_vg/root_lv
+	mkfs.ext4 -L home -F /dev/devstation_vg/home_lv
+	mkfs.ext4 -L log -F /dev/devstation_vg/log_lv
+	mkfs.ext4 -L tsdev -F /dev/devstation_vg/tsdev_lv
+        mkswap -f -L swap /dev/devstation_vg/swap_lv
 else
 	mkswap -f -L swap ${disk}${p}2 #Creates swap FileSystem
 	sleep 1
@@ -202,8 +204,11 @@ if is_enabled $INSTALLER_DEV; then
 	rm -rf *
 
 	echo "Gitting thinstation repo"
-
-	git clone --depth 1 https://github.com/Thinstation/thinstation.git -b $TS_VERSION-Stable /thinstation
+	COUNTER=3
+	while [ ! -e /thinstation/setup-chroot ] && [ "$COUNTER" -gt "0" ]; do
+		git clone --depth 1 https://github.com/Thinstation/thinstation.git -b $TS_VERSION-Stable /thinstation
+		let COUNTER-=1
+	done
 
 	./setup-chroot -i -a
 fi

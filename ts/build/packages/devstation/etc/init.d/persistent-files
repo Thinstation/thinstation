@@ -1,10 +1,41 @@
 #!/bin/bash
 
 # Directory where the files will be copied and linked
-BACKUP_DIR="/var/etc"
+BACKUP_DIR="/var/prstnt"
 
 # Array of files to check and manage
-FILES=("passwd" "group" "shadow" "gshadow" "thinstation.env")
+FILES=( "/etc/passwd"
+        "/etc/group"
+        "/etc/shadow"
+        "/etc/gshadow"
+        "/etc/thinstation.env")
+
+monitor_files() {
+    WATCH_PATHS=""
+    for file in "${FILES[@]}"; do
+        WATCH_PATHS+="$file "
+    done
+
+    # Monitor files for changes
+    inotifywait -m -e modify,create $WATCH_PATHS | while read -r directory events filename; do
+        echo "Detected $events on $filename. Running backup..."
+        backup_file "$directory$filename"
+    done
+}
+
+backup_file() {
+    local FILE="$1"
+    local DIR=$(dirname "${FILE}")  # Get directory path of the file
+
+    # Ensure the directory structure exists in the backup directory
+    mkdir -p "${BACKUP_DIR}/${DIR}"
+
+    # Check if the source and destination files differ
+    # If they differ, copy the file to the backup directory
+    if ! cmp -s "${FILE}" "${BACKUP_DIR}/${FILE}"; then
+        cp -a "${FILE}" "${BACKUP_DIR}/${FILE}"
+    fi
+}
 
 backup_files() {
     # Backup each file
@@ -13,12 +44,7 @@ backup_files() {
 
         # Ensure the directory structure exists in the backup directory
         mkdir -p "${BACKUP_DIR}/${DIR}"
-
-        # Check if the source and destination files differ
-        # If they differ, copy the file to the backup directory
-        if ! cmp -s "/etc/${FILE}" "${BACKUP_DIR}/${FILE}"; then
-            cp -a "/etc/${FILE}" "${BACKUP_DIR}/${FILE}"
-        fi
+        cp -a "${FILE}" "${BACKUP_DIR}/${FILE}"
     done
 }
 
@@ -26,31 +52,32 @@ restore_files() {
     for FILE in "${FILES[@]}"; do
         if [ -f "${BACKUP_DIR}/${FILE}" ]; then
             # Copy file to target directory
-            cp -a "${BACKUP_DIR}/${FILE}" "/etc/${FILE}"
+            cp -a "${BACKUP_DIR}/${FILE}" "${FILE}"
         fi
     done
 }
 
 firstrun() {
     # Update security files with the new Administrative User
-    if [ -f /var/etc/firstrun ]; then
+    if [ -f $BACKUP_DIR/firstrun ]; then
         # Update root password
-        rstring="$(grep -E '^root' /var/etc/firstrun)"
+        rstring="$(grep -E '^root' $BACKUP_DIR/firstrun)"
         rpass="$(echo "$rstring" | cut -d ':' -f2)"
         /sbin/usermod -p "$rpass" root
 
         # Update Admin user name and password
-        ustring="$(grep -Ev '^root' /var/etc/firstrun)"
+        ustring="$(grep -Ev '^root' $BACKUP_DIR/firstrun)"
         user="$(echo "$ustring" | cut -d ':' -f1)"
         pass="$(echo "$ustring" | cut -d ':' -f2)"
         /sbin/groupmod -n "$user" tsuser
-        /sbin/usermod -l "$user" tsuser
+        /sbin/usermod -l "$user" -m -d /home/"$user" tsuser
+        wait
         /sbin/usermod -c "$user" "$user"
-        /sbin/usermod -p "$pass" -m -d /home/"$user" "$user"
+        /sbin/usermod -p "$pass" "$user"
         sed -i -e "s/tsuser/$user/g" /etc/thinstation.env
         rmdir /home/tsuser
 
-        rm /var/etc/firstrun
+        rm $BACKUP_DIR/firstrun
         backup_files
     fi
 }
@@ -63,4 +90,11 @@ case $1 in
         restore_files
         firstrun
         ;;
+    monitor)
+        monitor_files
+        ;;
+    *)
+        exit 0
+        ;;
 esac
+

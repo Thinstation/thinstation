@@ -513,7 +513,7 @@ fi
 
 cp /var/log/installer.log /tmp-home/tsuser/.
 cp /var/log/install.log /tmp-home/tsuser/.
-cp /tmp/firstrun /tmp-etc/.
+cp /tmp/firstrun /tmp-prstnt/.
 
 chmod -R 750 /tmp-home/tsuser
 chown -R 1000:1000 /tmp-home/tsuser
@@ -522,8 +522,8 @@ install_check
 
 if is_enabled $INSTALLER_DEV ; then
 	x_echo "Almost Done" "You can now make your first image by going to  <b>/thinstation</b> and running <b>./setup-chroot</b>. From there, <b>cd /build</b> and run <b>./build</b>"
-	x_echo "PXE Booting" "This DevStation is a <b>PXE boot server</b>. You can set it's IP address as the <b>Next boot server</b> in your DHCP server client config. Also set the boot file to <b>boot/pxelinux.0</b>. This will let clients boot directly from images created in the build env of this workstation."
-	x_echo "All Done!" "Your system is now bootable with the ThinStation development environment, but the password is guessable. Please reboot and if everything is ok, <b>'Tweak your DevStation'</b>."
+	x_echo "PXE Booting" "This DevStation is a <b>PXE boot server</b>. You can set it's IP address as the <b>Next boot server</b> in your DHCP server config. Also set the boot file to <b>boot/grub/pxeboot.img</b> for BIOS systems and <b>EFI/boot/bootx64.efi</b> for EFI systems. This will let clients boot directly from images created in the build env of this workstation."
+	x_echo "All Done!" "Your system is now bootable with the ThinStation development environment."
 fi
 
 eject

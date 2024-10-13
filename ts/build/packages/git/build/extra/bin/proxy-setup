@@ -51,14 +51,14 @@ test_http()
 
 test_https()
 {
-	if !  wget -t 2 -T 30 https://sourceforge.net/projects/thinstation/files/DevStation-Source/image.md5 ; then
+	if ! wget -t 2 -T 30 https://sourceforge.net/projects/thinstation/files/DevStation-Source/image.md5 ; then
 		https=false
 		https_display=Fail
 		return 1
 	else
 		https=true
 		https_display=Success
-		rm -r viewMyClient.html
+		rm image.md5
 		touch /tmp/https_tested
 		return 0
 	fi
@@ -203,15 +203,6 @@ reset_git()
 	git config --global --unset core.gitproxy
 }
 
-#reset_http()
-#{
-#	if [ -e /etc/thinstation.user ] ; then
-#		sed -e /http_proxy/d -i `readlink /etc/thinstation.user`
-#		sed -e /https_proxy/d -i `readlink /etc/thinstation.user`
-#		unset http_proxy https_proxy
-#	fi
-#}
-
 reset_gnome()
 {
 	gconftool-2 -u /system/proxy/mode
@@ -234,7 +225,6 @@ main()
 {
 	if $reset ; then
 		rm -f /tmp/.proxy
-#		reset_http
 		reset_git
 		reset_gnome
 		exit 0
