@@ -1,54 +1,49 @@
 # Description: SMB server and client for unix
-# URL:         http://www.samba.org
-# Maintainer:  Juergen Daubert, jue at crux dot nu
-# Depends on:  linux-pam libarchive libcap popt tdb tevent ldb python3
+# URL: https://www.samba.org
+# Maintainer: Juergen Daubert, jue at crux dot nu
+# Depends on: dbus gnutls ldb linux-pam jansson p5-json p5-parse-yapp rpcsvc-proto
+# Optional: brotli cups libidn2
 
 name=samba
-version=4.14.5
+version=4.20.0
 release=1
 source=(https://www.samba.org/samba/ftp/stable/$name-$version.tar.gz \
-        samba)
+	samba.rc samba.pam)
 
 build () {
-    touch /usr/include/stropts.h
+	cd $name-$version
 
-    cd $name-$version
+	./configure \
+		--enable-fhs \
+		--prefix=/usr \
+		--libexecdir=/usr/lib \
+		--localstatedir=/var \
+		--sysconfdir=/etc \
+		--with-piddir=/run/samba \
+		--with-sockets-dir=/run/samba \
+		--with-privatedir=/etc/samba/private \
+		--with-pammodulesdir=/lib/security
 
-    ./configure --enable-fhs \
-                --prefix=/usr \
-                --libexecdir=/usr/lib \
-                --localstatedir=/var \
-                --sysconfdir=/etc \
-                --with-privatedir=/etc/samba/private \
-                --bundled-libraries=!tdb,!talloc,!tevent,!popt,!ldb \
-                --with-{ads,ldap,systemd,winbind,acl-support,pam} \
+	make
+	make DESTDIR=$PKG install
 
-    python ./buildtools/bin/waf build --jobs=${JOBS:-1}
-    python ./buildtools/bin/waf install --destdir=$PKG
+	# man pages
+	local p
+	for p in docs/manpages/*; do
+		install -D -m 644 $p $PKG/usr/share/man/man${p##*.}/${p##*/}
+	done
 
-    # man pages
-    local p
-    for p in docs/manpages/*; do 
-        install -D -m 644 $p $PKG/usr/share/man/man${p##*.}/${p##*/}
-    done
+	# cleanup
+	chmod 1777 $PKG/var/lock
+	rm -r $PKG/run
 
-    # cleanup
-    chmod 1777 $PKG/var/lock
+	# config-file and start-script
+	install -d $PKG/etc/{samba,rc.d,pam.d}
+	install -m 0600 examples/smb.conf.default $PKG/etc/samba
+	install -m 0755 $SRC/samba.rc $PKG/etc/rc.d/samba
+	install -m 0644 $SRC/samba.pam $PKG/etc/pam.d/samba
 
-    # remove pidl
-    find $PKG -iname '*pidl*' -type f -delete
-    find $PKG -depth -name perl5 -type d -exec rm -r {} \;
-
-    # remove third party python stuff
-    rm -r $PKG/usr/lib/python?.?
-
-    # config-file and start-script
-    install -d $PKG/etc/{samba,rc.d}
-    install -m 0600 examples/smb.conf.default $PKG/etc/samba
-    install -m 0755 $SRC/samba $PKG/etc/rc.d
-
-    # revdep
-    install -d $PKG/etc/revdep.d
-    echo '/usr/lib/samba' > $PKG/etc/revdep.d/samba
+	# revdep
+	install -d $PKG/etc/revdep.d
+	echo '/usr/lib/samba' > $PKG/etc/revdep.d/samba
 }
-

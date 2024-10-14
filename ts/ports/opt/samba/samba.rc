@@ -1,0 +1,50 @@
+#!/bin/sh
+#
+# /etc/rc.d/samba: start/stop samba daemons
+#
+
+SSD=/sbin/start-stop-daemon
+SMB=/usr/sbin/smbd
+NMB=/usr/sbin/nmbd
+SMB_PID=/run/samba/smbd.pid
+NMB_PID=/run/samba/nmbd.pid
+
+
+print_status() {
+	$SSD --status --pidfile $2
+	case $? in
+	0) echo "$1 is running with pid $(cat $2)" ;;
+	1) echo "$1 is not running but the pid file $2 exists" ;;
+	3) echo "$1 is not running" ;;
+	4) echo "Unable to determine the program status" ;;
+	esac
+}
+
+case $1 in
+start)
+	mkdir -p /run/samba
+	$SSD --start --pidfile $NMB_PID --exec $NMB -- -D
+	$SSD --start --pidfile $SMB_PID --exec $SMB -- -D
+	;;
+stop)
+	$SSD --stop --retry 10 --pidfile $SMB_PID 
+	$SSD --stop --retry 10 --pidfile $NMB_PID 
+	;;
+restart)
+	$0 stop
+	$0 start
+	;;
+reload)
+	/usr/bin/smbcontrol smbd reload-config
+	/usr/bin/smbcontrol nmbd reload-config
+	;;
+status)
+	print_status $SMB $SMB_PID
+	print_status $NMB $NMB_PID
+	;;
+*)
+	echo "usage: $0 [start|stop|restart|status]"
+	;;
+esac
+
+# End of file

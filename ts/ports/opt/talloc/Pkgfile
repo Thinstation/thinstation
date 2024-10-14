@@ -1,29 +1,25 @@
 # Description: Hierarchical, reference counted memory pool system with destructors
-# URL: http://talloc.samba.org/
-# Maintainer: Jose V Beneyto, sepen at crux dot nu
-# Packager: Tilman Sauerbeck, tilman at crux dot nu
-# Depends on: python
+# URL: https://talloc.samba.org/
+# Maintainer: Juergen Daubert, jue at crux dot nu
+# Depends on: python3
 
 name=talloc
-version=2.3.2
+version=2.4.2
 release=1
-source=(https://www.samba.org/ftp/$name/$name-$version.tar.gz
-        talloc.3)
+source=(https://samba.org/ftp/$name/$name-$version.tar.gz
+	$name-man-pages.tar.xz)
 
 build() {
 	cd $name-$version
-#	sed -i 's/conf\.check_python_headers()/conf.check_python_headers(features="pyext")/' buildtools/wafsamba/samba_python.py
 
-	./configure --prefix=/usr --mandir=/usr/man \
-	            --enable-talloc-compat1
+	./configure \
+		--prefix=/usr \
+		--bundled-libraries=NONE \
+		--enable-talloc-compat1
 
-	# Don't depend on xsltproc or docbook.sourceforge.net being available
-	cp $SRC/talloc.3 .
-	touch talloc.3 talloc.3.html
+	make -j1
+	make DESTDIR=$PKG install
 
-	make
-	make install DESTDIR=$PKG
-
-	install -d $PKG/usr/man/man3
-	install -m 644 talloc.3 $PKG/usr/man/man3
+	install -d $PKG/usr/share/man/man3
+	install -m 0644 $SRC/talloc.3 $PKG/usr/share/man/man3
 }

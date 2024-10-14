@@ -1,21 +1,21 @@
-# Description: Simple database API for samba
-# URL: http://tdb.samba.org/
-# Maintainer: Rusty Russell <rusty@samba.org>
-# Depends on: python
+# Description: Trivial DataBase similar to gdbm
+# URL: https://tdb.samba.org/
+# Maintainer: Juergen Daubert, jue at crux dot nu
+# Depends on: python3
 
 name=tdb
-version=1.4.3
+version=1.4.10
 release=1
-source=(https://www.samba.org/ftp/$name/$name-$version.tar.gz)
+source=(https://www.samba.org/ftp/$name/$name-$version.tar.gz
+	$name-man-pages.tar.xz)
 
 build() {
 	cd $name-$version
 
-	./configure --prefix=/usr \
-                --localstatedir=/var \
-                --mandir=/usr/man \
-                --sysconfdir=/etc
-
+	./configure --prefix=/usr
 	make
-	make install DESTDIR=$PKG
+	make DESTDIR=$PKG install
+
+	install -d $PKG/usr/share/man/man8
+	install -m 0644 $SRC/tdb[!-]*.8 $PKG/usr/share/man/man8
 }

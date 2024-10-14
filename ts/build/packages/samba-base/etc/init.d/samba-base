@@ -9,6 +9,7 @@ init)
 	pkg_set_init_flag $PACKAGE
 
         mkdir /mnt/home
+	mkdir -p /run/samba/nmbd
 	chmod 1777 /var/spool/samba
 
 #	cat /lib/passdb.tdb.ro > /etc/samba/private/passdb.tdb
@@ -31,7 +32,7 @@ init)
 	fi
 	if [ `make_caps "$SAMBA_USB"` = "ON" ] ; then
 		if ! [ -d /mnt/usbdevice ]; then
-			mkdir /mnt/usbdevice
+			mkdir -p /mnt/usbdevice
 		fi
 	fi
 	if [ `make_caps "$SAMBA_SECURITY"` = "USER" ] ; then
