@@ -2,16 +2,15 @@
 
 . `dirname $0`/common
 
-case "$1" in  
+case "$1" in
 init)
     if ! pkg_initialized $PACKAGE; then
 
 	pkg_set_init_flag $PACKAGE
 
-	SAMBA_SERVER_ENABLED=`make_caps $SAMBA_SERVER_ENABLED`
-
-	if [ "$SAMBA_SERVER_ENABLED" = "ON" ] ; then
-		smbd -D
+	if is_enabled "$SAMBA_SERVER_ENABLED" ; then
+		systemctl start /lib/systemd/system/winbind.service
+		systemctl start /lib/systemd/system/smb.service
 	fi
     fi
     ;;

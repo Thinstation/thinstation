@@ -2,18 +2,22 @@
 
 . `dirname $0`/common
 
-case "$1" in  
+case "$1" in
 init)
     if ! pkg_initialized $PACKAGE; then
 
 	pkg_set_init_flag $PACKAGE
 
-        mkdir /mnt/home
+        mkdir -p /mnt/home
 	mkdir -p /run/samba/nmbd
 	chmod 1777 /var/spool/samba
 
-#	cat /lib/passdb.tdb.ro > /etc/samba/private/passdb.tdb
-#	cat /lib/secrets.tdb.ro > /etc/samba/private/secrets.tdb
+	if [ -e /lib/passdb.tdb.ro ]; then
+		cat /lib/passdb.tdb.ro > /etc/samba/private/passdb.tdb
+	fi
+	if [ -e /lib/secrets.tdb.ro ]; then
+		cat /lib/secrets.tdb.ro > /etc/samba/private/secrets.tdb
+	fi
 
 	if [ -z "$SAMBA_WORKGROUP" ] ; then SAMBA_WORKGROUP=WORKGROUP ; fi
 	if [ -z "$SAMBA_SECURITY" ] ; then SAMBA_SECURITY=Server ; fi
@@ -57,7 +61,6 @@ init)
 	cat /lib/smb.conf.tpl | sed -f /tmp/script > /etc/samba/smb.conf
 	rm /tmp/script
 
-	nmbd -D
     fi
     ;;
 help)

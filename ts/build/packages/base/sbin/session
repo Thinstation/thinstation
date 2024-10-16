@@ -28,7 +28,7 @@ if [ "$1" == "open" ]; then
 			cp -dR /etc/skel/$file $HOME/. 2>/dev/null
 		fi
 	done
-	chown -R "$TSUSER.`id -gn $TSUSER`" $HOME
+	chown -R "$TSUSER:`id -gn $TSUSER`" $HOME
 	chmod 750 $HOME
 fi
 
@@ -49,6 +49,7 @@ if [ "$1" == "close" ] && [ -z "`pidof shutdown`" ] && [ -z "`pidof reboot`" ]; 
 		wait
 		let timeout=timeout+1
 	done
+	rm $HOME/.Xauthority
 	if is_enabled $DESTRUCTIVE_RELOAD; then
 		fuser -k $HOME
 		rm -rf $HOME

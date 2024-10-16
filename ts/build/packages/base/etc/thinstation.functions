@@ -707,3 +707,98 @@ dconf_proxy_configure ()
 		fi
 	fi
 }
+
+# Convert CIDR to binary netmask
+cidr_to_bin() {
+	local cidr=$1
+	local binmask=""
+	local full_octets=$((cidr / 8))
+	local partial_octet=$((cidr % 8))
+	local i=0
+
+	# Create full '1' octets
+	while [ $i -lt $full_octets ]; do
+		binmask="${binmask}11111111"
+		i=$((i + 1))
+	done
+
+	# Create partial '1' octet
+	while [ $partial_octet -gt 0 ]; do
+		binmask="${binmask}1"
+		partial_octet=$((partial_octet - 1))
+	done
+
+	# Pad the remaining bits with '0'
+	binmask=$(printf "%-32s" "$binmask")
+	binmask=${binmask// /0}
+
+	echo "$binmask"
+}
+
+# Convert binary to octal netmask
+bin_to_ip() {
+	local binmask=$1
+	local ip=""
+	local i=0
+
+	while [ $i -lt 32 ]; do
+		local octet="${binmask:$i:8}"
+		ip="${ip}$(printf "%d." "$((2#$octet))")"
+		i=$((i + 8))
+	done
+
+	# Strip the trailing '.'
+	echo "${ip%.*}"
+}
+
+cidr_to_nm() {
+	# Convert CIDR to binary netmask
+	local binary_mask=$(cidr_to_bin $1)
+
+	# Convert binary netmask to IP format
+	local octal_mask=$(bin_to_ip $binary_mask)
+
+	# Output octal netmask
+	echo "$octal_mask"
+}
+
+ip_to_bin() {
+	local IFS=.
+	local ip=$1
+	local binip=""
+	local octet
+
+	for octet in $ip; do
+		binip="${binip}$(printf "%08d" "$(echo "obase=2;$octet" | bc)")"
+	done
+
+	echo "$binip"
+}
+
+bin_to_cidr() {
+	local binmask=$1
+	local count=0
+	local i=0
+
+	while [ $i -lt ${#binmask} ]; do
+		if [ "${binmask:$i:1}" = "1" ]; then
+			count=$((count + 1))
+		else
+			break
+		fi
+		i=$((i + 1))
+	done
+
+	echo "$count"
+}
+
+nm_to_cidr() {
+	# Convert IP subnet mask to binary
+	local binary_mask=$(ip_to_bin $1)
+
+	# Calculate CIDR notation
+	local cidr=$(bin_to_cidr $binary_mask)
+
+	# Output CIDR notation
+	echo "$cidr"
+}

@@ -22,7 +22,12 @@ build () {
 		--with-piddir=/run/samba \
 		--with-sockets-dir=/run/samba \
 		--with-privatedir=/etc/samba/private \
-		--with-pammodulesdir=/lib/security
+		--with-pammodulesdir=/lib/security \
+		--with-systemd \
+		--systemd-install-services \
+		--bundled-libraries=!tdb,!talloc,!tevent,!popt,!ldb,!cmocka \
+                --without-ad-dc
+
 
 	make
 	make DESTDIR=$PKG install

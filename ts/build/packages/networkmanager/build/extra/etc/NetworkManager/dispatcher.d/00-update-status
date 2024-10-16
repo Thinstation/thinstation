@@ -13,9 +13,30 @@ if [ "$INTERFACE" != "lo" ]; then
 		CLIENT_NAME=$HOSTNAME
 	;;
 	up|dhcp4-change)
-
 		if [ -e /var/log/net/$INTERFACE ]; then
 			. /var/log/net/$INTERFACE
+		fi
+		if [ -n "$DHCP4_HOST_NAME" ]; then
+			CLIENT_NAME="$DHCP4_HOST_NAME"
+			hostnamectl set-hostname $CLIENT_NAME
+			sed -i -e '/localhost/d' /etc/hosts
+                        echo "127.0.0.1 `hostname` localhost" >> /etc/hosts
+
+			# Update the .Xauthority with the new hostname
+			if `which xauth >/dev/null` && [ -n "`xauth list`" ]; then
+				# Extract the old key
+				OLDHOST=`xauth list | awk '{print $1}' | head -1`
+				KEY=`xauth list | awk '{print $3}' | head -1`
+
+				# Get the current hostname
+				NEWHOST=`hostname`/unix:0
+
+				# Add new entry
+				xauth add $NEWHOST MIT-MAGIC-COOKIE-1 $KEY
+
+				# Remove the old entry
+				xauth remove "$OLDHOST"
+			fi
 		fi
 		NETWORKUP=TRUE
 		gw=`echo $IP4_ADDRESS_0 | cut -d/ -f2 | cut -d' ' -f2`
@@ -35,7 +56,8 @@ if [ "$INTERFACE" != "lo" ]; then
 	;;
 	esac
 
-	echo "DEVTYPE=$DEVTYPE"				> /var/log/net/$INTERFACE
+	mkdir -p /var/log/net
+	echo "DEVTYPE=\"$CONNECTION_ID\""			> /var/log/net/$INTERFACE
 	echo "CLIENT_NAME=$CLIENT_NAME"			>> /var/log/net/$INTERFACE
 	echo "CLIENT_MAC=$CLIENT_MAC"			>> /var/log/net/$INTERFACE
 	echo "CLIENT_IP=$ip"				>> /var/log/net/$INTERFACE

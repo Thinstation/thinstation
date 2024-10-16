@@ -1,0 +1,20 @@
+# Description: an IPv4/IPv6 ipcalc tool
+# URL: https://github.com/nmav/ipcalc
+# Maintainer: #teatime (irc.kyber.io), teatime at kyber dot io
+
+name=ipcalc
+version=0.2.0
+release=1
+source=(https://github.com/nmav/$name/archive/$version.tar.gz)
+
+current() {
+  git-check-tag https://github.com/nmav/ipcalc/ ""
+}
+
+build() {
+  cd $name-$version
+  sed -i -e 's/USE_GEOIP?=yes/USE_GEOIP?=no/' Makefile
+  make
+  install -m 644 -D ipcalc.1 $PKG/usr/share/man/man1/ipcalc.1
+  install -m 755 -D ipcalc $PKG/usr/bin/ipcalc
+}

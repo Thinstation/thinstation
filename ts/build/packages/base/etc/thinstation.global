@@ -23,11 +23,13 @@ if [ -e $TS_RUNTIME ] ; then . $TS_RUNTIME ; fi
 if [ -e $TS_CUSTOM ] ; then . $TS_CUSTOM ; fi
 if [ -n "$NET_DEVICE" ] && [ -e /var/log/net/$NET_DEVICE ] ; then . /var/log/net/$NET_DEVICE ; fi
 
-PACKAGE=`basename $0 | cut -c 1`
-if [ "$PACKAGE" = "S" ] ; then
-	PACKAGE=`basename $0 | cut -c 4-`
-else
-	PACKAGE=`basename $0`
+if [ "$0" != "-sh" ]; then
+	PACKAGE=`basename $0 | cut -c 1`
+	if [ "$PACKAGE" = "S" ] ; then
+		PACKAGE=`basename $0 | cut -c 4-`
+	else
+		PACKAGE=`basename $0`
+	fi
 fi
 
 for i in `cat $TS_EXPORTS` ; do	export $i ; done
