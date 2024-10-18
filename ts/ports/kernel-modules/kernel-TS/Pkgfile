@@ -63,7 +63,7 @@ build() {
 	efisign vmlinuz "UEFI Signing"
 	mv vmlinuz $PKG/boot/vmlinuz-${kernel}
 	mv System.map $PKG/boot/System.map-${kernel}
-	rm lib/modules/${kernel}/{source,build}
+	rm -f lib/modules/${kernel}/{source,build}
 	rm -rf lib/firmware
 	cp $SRC/linux-$sversion/.config $PKG/boot/config-${kernel}
 	echo ${kernel} >$PKG/boot/KERNEL_VERSION

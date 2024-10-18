@@ -206,6 +206,9 @@ if is_enabled $INSTALLER_DEV; then
 	echo "Gitting thinstation repo"
 	COUNTER=3
 	while [ ! -e /thinstation/setup-chroot ] && [ "$COUNTER" -gt "0" ]; do
+		if [ "$COUNTER" -lt "3" ]; then
+			echo "Something went wrong with the clone, retying."
+		fi
 		git clone --depth 1 https://github.com/Thinstation/thinstation.git -b $TS_VERSION-Stable /thinstation
 		let COUNTER-=1
 	done

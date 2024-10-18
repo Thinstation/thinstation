@@ -16,7 +16,7 @@ if [ "$INTERFACE" != "lo" ]; then
 		if [ -e /var/log/net/$INTERFACE ]; then
 			. /var/log/net/$INTERFACE
 		fi
-		if [ -n "$DHCP4_HOST_NAME" ]; then
+		if [ -n "$DHCP4_HOST_NAME" ] && [ -z "`pidof Xorg`" ]; then
 			CLIENT_NAME="$DHCP4_HOST_NAME"
 			hostnamectl set-hostname $CLIENT_NAME
 			sed -i -e '/localhost/d' /etc/hosts
