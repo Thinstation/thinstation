@@ -158,10 +158,12 @@ do_mounts()
 
 copy_host_essential()
 {
-	auth_file=$(xauth info | grep "Authority file" | awk '{print $3}')
-	auth_dir="`dirname $auth_file`"
-	mkdir -p $PWD$auth_dir
-	cp -a $auth_file $PWD$auth_dir/.
+	if [ -n "`xauth list`" ]; then
+		auth_file=$(xauth info | grep "Authority file" | awk '{print $3}')
+		auth_dir="`dirname $auth_file`"
+		mkdir -p $PWD$auth_dir
+		cp -a $auth_file $PWD$auth_dir/.
+	fi
 	cp -f /etc/resolv.conf etc/resolv.conf
 	if ${keys:=false}; then
 		if [ -e ~/.ssh ]; then
@@ -194,7 +196,9 @@ launch_chroot()
 	fi
 	if first_or_last ; then
 		do_unmounts
-		rm $PWD$auth_file
+		if [ -n "$auth_file" ]; then
+			rm $PWD$auth_file
+		fi
 		if [ -e cleanstage2 ] ; then
 			ts/bin/clean_chroot
 		fi
