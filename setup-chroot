@@ -158,7 +158,7 @@ do_mounts()
 
 copy_host_essential()
 {
-	if [ -n "`xauth list`" ]; then
+	if which xauth >/dev/null 2>&1 && [ -n "`xauth list`" ]; then
 		auth_file=$(xauth info | grep "Authority file" | awk '{print $3}')
 		auth_dir="`dirname $auth_file`"
 		mkdir -p $PWD$auth_dir
