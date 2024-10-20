@@ -1,0 +1,33 @@
+#! /bin/sh
+
+. `dirname $0`/common
+
+# You can anything that your application needs to have configured or downloaded here.
+# This should run during boot, but not necessarily start your application.
+# If you need a process started during boot, you would need to adjust the .service file from oneshot to simple,
+# along with a few other minor changes
+
+case "$1" in
+init)
+    if ! pkg_initialized $PACKAGE; then
+
+	# Your startup instructions go here
+
+	pkg_set_init_flag $PACKAGE
+    fi
+    ;;
+console)
+;;
+window)
+;;
+fullscreen)
+;;
+help)
+    echo "Usage: $0 init"
+    ;;
+  *)
+    exit 1
+    ;;
+esac
+
+exit 0
