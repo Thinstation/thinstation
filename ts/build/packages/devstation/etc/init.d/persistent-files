@@ -8,76 +8,88 @@ FILES=( "/etc/passwd"
         "/etc/group"
         "/etc/shadow"
         "/etc/gshadow"
-        "/etc/thinstation.env")
+        "/etc/thinstation.env"
+	"/etc/dnsmasq.conf")
 
 monitor_files() {
-    WATCH_PATHS=""
-    for file in "${FILES[@]}"; do
-        WATCH_PATHS+="$file "
-    done
+    # Temporarily set IFS to newline to avoid splitting on spaces
+    IFS=$'\n'
 
     # Monitor files for changes
-    inotifywait -m -e modify,create $WATCH_PATHS | while read -r directory events filename; do
-        echo "Detected $events on $filename. Running backup..."
-        backup_file "$directory$filename"
+    inotifywait -m -e modify,create "${FILES[@]}" | while read -r line; do
+        # Use awk to split the last field (event) from the rest (file path)
+        filepath=$(echo "$line" | awk '{$NF=""; print $0}' | sed 's/[[:space:]]*$//')
+        event=$(echo "$line" | awk '{print $NF}')
+
+        echo "Detected $event on $filepath. Running backup..."
+
+        # Pass only the file path to the backup_file function
+        backup_file "$filepath"
     done
+
+    # Unset IFS to restore it to default behavior
+    unset IFS
 }
 
+
 backup_file() {
-    local FILE="$1"
-    local DIR=$(dirname "${FILE}")  # Get directory path of the file
+    local SOURCE_FILE="${1}"
+
+    # Construct the backup destination path
+    local DEST_FILE="${BACKUP_DIR}/${SOURCE_FILE}"
 
     # Ensure the directory structure exists in the backup directory
-    mkdir -p "${BACKUP_DIR}/${DIR}"
+    mkdir -p "$(dirname "${DEST_FILE}")"
 
     # Check if the source and destination files differ
-    # If they differ, copy the file to the backup directory
-    if ! cmp -s "${FILE}" "${BACKUP_DIR}/${FILE}"; then
-        cp -a "${FILE}" "${BACKUP_DIR}/${FILE}"
+    if ! cmp -s "${SOURCE_FILE}" "${DEST_FILE}"; then
+        cp -a "${SOURCE_FILE}" "${DEST_FILE}"
     fi
 }
 
 backup_files() {
-    # Backup each file
+    # Backup each file using backup_file function
     for FILE in "${FILES[@]}"; do
-        DIR=$(dirname "${FILE}")  # Get directory path of the file
-
-        # Ensure the directory structure exists in the backup directory
-        mkdir -p "${BACKUP_DIR}/${DIR}"
-        cp -a "${FILE}" "${BACKUP_DIR}/${FILE}"
+        backup_file "${FILE}"
     done
 }
 
 restore_files() {
     for FILE in "${FILES[@]}"; do
-        if [ -f "${BACKUP_DIR}/${FILE}" ]; then
-            # Copy file to target directory
-            cp -a "${BACKUP_DIR}/${FILE}" "${FILE}"
+        local DEST_FILE="${BACKUP_DIR}/${FILE}"
+
+        if [ -f "${DEST_FILE}" ]; then
+            # Ensure the directory structure exists in the target directory
+            mkdir -p "$(dirname "${FILE}")"
+            cp -a "${DEST_FILE}" "${FILE}"
         fi
     done
 }
 
 firstrun() {
     # Update security files with the new Administrative User
-    if [ -f $BACKUP_DIR/firstrun ]; then
-        # Update root password
-        rstring="$(grep -E '^root' $BACKUP_DIR/firstrun)"
-        rpass="$(echo "$rstring" | cut -d ':' -f2)"
-        /sbin/usermod -p "$rpass" root
+    if [ -f "${BACKUP_DIR}/firstrun" ]; then
+        # Update root password hash
+        local rstring="$(grep -E '^root' "${BACKUP_DIR}/firstrun")"
+        local rpass="$(echo "${rstring}" | cut -d ':' -f2)"
+        /sbin/usermod -p "${rpass}" root
 
-        # Update Admin user name and password
-        ustring="$(grep -Ev '^root' $BACKUP_DIR/firstrun)"
-        user="$(echo "$ustring" | cut -d ':' -f1)"
-        pass="$(echo "$ustring" | cut -d ':' -f2)"
-        /sbin/groupmod -n "$user" tsuser
-        /sbin/usermod -l "$user" -m -d /home/"$user" tsuser
-        wait
-        /sbin/usermod -c "$user" "$user"
-        /sbin/usermod -p "$pass" "$user"
-        sed -i -e "s/tsuser/$user/g" /etc/thinstation.env
+        # Update Admin user name and password hash
+        local ustring="$(grep -Ev '^root' "${BACKUP_DIR}/firstrun")"
+        local user="$(echo "${ustring}" | cut -d ':' -f1)"
+        local pass="$(echo "${ustring}" | cut -d ':' -f2)"
+
+        /sbin/groupmod -n "${user}" tsuser
+        /sbin/usermod -l "${user}" -m -d /home/"${user}" tsuser
+        /sbin/usermod -c "${user}" "${user}"
+        /sbin/usermod -p "${pass}" "${user}"
+
+        # Replace 'tsuser' in the environment file with new username
+        sed -i -e "s/tsuser/${user}/g" /etc/thinstation.env
         rmdir /home/tsuser
 
-        rm $BACKUP_DIR/firstrun
+        # Clean up the first run file and back up other files
+        rm "${BACKUP_DIR}/firstrun"
         backup_files
     fi
 }
@@ -97,4 +109,3 @@ case $1 in
         exit 0
         ;;
 esac
-
