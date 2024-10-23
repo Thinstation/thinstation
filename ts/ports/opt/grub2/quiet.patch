@@ -1,0 +1,21 @@
+--- grub-core/kern/main.c.orig	2024-10-23 16:12:25.375204911 +0000
++++ grub-core/kern/main.c	2024-10-23 16:14:23.912048388 +0000
+@@ -333,11 +333,14 @@
+   grub_boot_time ("After machine init.");
+ 
+   /* This breaks flicker-free boot on EFI systems, so disable it there. */
++  /* Update, just disable it, but keep the text in the binary. */
+ #ifndef GRUB_MACHINE_EFI
+-  /* Hello.  */
+-  grub_setcolorstate (GRUB_TERM_COLOR_HIGHLIGHT);
+-  grub_printf ("Welcome to GRUB!\n\n");
+-  grub_setcolorstate (GRUB_TERM_COLOR_STANDARD);
++  if (false) {
++    /* Hello.  */
++    grub_setcolorstate (GRUB_TERM_COLOR_HIGHLIGHT);
++    grub_printf ("Welcome to GRUB!\n\n");
++    grub_setcolorstate (GRUB_TERM_COLOR_STANDARD);
++  }
+ #endif
+ 
+   /* Init verifiers API. */

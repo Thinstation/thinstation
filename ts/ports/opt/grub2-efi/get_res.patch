@@ -1,0 +1,14 @@
+--- grub-core/term/gfxterm.c.orig	2024-10-23 14:25:05.318525106 +0000
++++ grub-core/term/gfxterm.c	2024-10-23 14:26:02.785466750 +0000
+@@ -343,6 +343,11 @@
+   if (err)
+     return err;
+ 
++  /* Store the selected resolution in a GRUB environment variable */
++  char res_buf[32];
++  grub_snprintf(res_buf, sizeof(res_buf), "%ux%u", mode_info.width, mode_info.height);
++  grub_env_set("grub_selected_resolution", res_buf);
++
+   grub_video_set_active_render_target (GRUB_VIDEO_RENDER_TARGET_DISPLAY);
+ 
+   double_redraw = mode_info.mode_type & GRUB_VIDEO_MODE_TYPE_DOUBLE_BUFFERED
