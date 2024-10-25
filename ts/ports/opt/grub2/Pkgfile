@@ -11,11 +11,10 @@ furl=https://src.fedoraproject.org/rpms/grub2/raw/rawhide/f/
 source=(https://git.savannah.gnu.org/cgit/grub.git/snapshot/grub-$version.tar.gz
 https://ftp.gnu.org/gnu/unifont/unifont-${_UNIFONT_VER}/unifont-${_UNIFONT_VER}.bdf.gz
 oemid.c
-get_res.patch
 Makefile.oemid
 sysmem.c
 Makefile.sysmem
-test
+get_res.patch
 quiet.patch
 ${furl}0001-Revert-templates-Fix-user-facing-typo-with-an-incorr.patch
 ${furl}0002-Revert-templates-Properly-disable-the-os-prober-by-d.patch
@@ -306,7 +305,7 @@ build() {
         unset LDFLAGS
         unset MAKEFLAGS
         export GRUB_CONTRIB=$SRC/grub-extras
-        mkdir grub-extras
+	mkdir grub-extras
         cd grub-extras
         mkdir oemid
         cp $SRC/oemid.c oemid/.
@@ -316,9 +315,9 @@ build() {
         cp $SRC/Makefile.sysmem sysmem/Makefile.core.def
         cd ..
 
-        cd grub-$version
+	cd grub-$version
 
-        ln -sf $SRC/grub-extras contrib
+	ln -sf $SRC/grub-extras contrib
         cp $SRC/gitignore .gitignore
         cp $SRC/bootstrap.conf .
 
@@ -329,12 +328,11 @@ build() {
         done
 	patch -i $SRC/get_res.patch -p0
 	patch -i $SRC/quiet.patch -p0
-        mkdir build-aux
-        cp docs/texinfo.tex build-aux/.
-        ./bootstrap
-        sed -i -e 's| -specs=/usr/lib/rpm/redhat/redhat-hardened-cc1 -specs=/usr/lib/rpm/redhat/redhat-annobin-cc1||g'  grub-core/lib/gnulib/Makefile.am
-	sed -i -e 's|0x37FFFFFF|0x53FFFFFF|g' include/grub/i386/linux.h
-        ./autogen.sh
+	mkdir build-aux
+	cp docs/texinfo.tex build-aux/.
+	./bootstrap
+	sed -i -e 's| -specs=/usr/lib/rpm/redhat/redhat-hardened-cc1 -specs=/usr/lib/rpm/redhat/redhat-annobin-cc1||g'	grub-core/lib/gnulib/Makefile.am
+	./autogen.sh
 
 	ARCH=x86_64
 

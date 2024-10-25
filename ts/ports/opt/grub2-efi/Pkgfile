@@ -8,6 +8,15 @@ version=2.12
 release=1
 furl=https://src.fedoraproject.org/rpms/grub2/raw/rawhide/f/
 source=(https://git.savannah.gnu.org/cgit/grub.git/snapshot/grub-$version.tar.gz
+sbat.csv.in
+hd.cfg
+cd.cfg
+oemid.c
+Makefile.oemid
+sysmem.c
+Makefile.sysmem
+get_res.patch
+quiet.patch
 ${furl}0001-Revert-templates-Fix-user-facing-typo-with-an-incorr.patch
 ${furl}0002-Revert-templates-Properly-disable-the-os-prober-by-d.patch
 ${furl}0003-Revert-templates-Disable-the-os-prober-by-default.patch
@@ -70,6 +79,7 @@ ${furl}0059-make-better-backtraces.patch
 ${furl}0060-Fixup-for-newer-compiler.patch
 ${furl}0061-Don-t-attempt-to-export-the-start-and-_start-symbols.patch
 ${furl}0062-Fixup-for-newer-compiler.patch
+${furl}0063-Add-support-for-non-Ethernet-network-cards.patch
 ${furl}0064-efinet-UEFI-IPv6-PXE-support.patch
 ${furl}0065-grub.texi-Add-net_bootp6-doument.patch
 ${furl}0066-bootp-Add-processing-DHCPACK-packet-from-HTTP-Boot.patch
@@ -287,16 +297,7 @@ ${furl}0277-Stop-grub.efi-from-always-printing-dynamic_load_symb.patch
 ${furl}0278-acpi-Fix-out-of-bounds-access-in-grub_acpi_xsdt_find.patch
 ${furl}0279-cmd-search-Fix-a-possible-NULL-ptr-dereference.patch
 ${furl}gitignore
-${furl}bootstrap.conf
-sbat.csv.in
-hd.cfg
-cd.cfg
-oemid.c
-Makefile.oemid
-sysmem.c
-Makefile.sysmem
-get_res.patch
-quiet.patch)
+${furl}bootstrap.conf)
 
 build() {
         unset CFLAGS
@@ -321,7 +322,7 @@ build() {
         cp $SRC/gitignore .gitignore
         cp $SRC/bootstrap.conf .
 
-        for patch in `seq -f %04g 1 219`; do
+        for patch in `seq -f %04g 1 279`; do
                 if [ -e $SRC/$patch*.patch ]; then
                         patch -i $SRC/$patch*.patch -p1
                 fi
