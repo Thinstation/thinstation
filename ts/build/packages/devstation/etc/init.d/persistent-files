@@ -66,6 +66,13 @@ restore_files() {
     done
 }
 
+convert_to_username() {
+    local name="$1"
+    # Convert to lowercase, replace spaces/hyphens with underscores, remove invalid characters, and limit length
+    username=$(echo "$name" | tr '[:upper:]' '[:lower:]' | tr -s ' -' '_' | sed 's/[^a-z0-9_]//g' | cut -c1-32)
+    echo "$username"
+}
+
 firstrun() {
     # Update security files with the new Administrative User
     if [ -f "${BACKUP_DIR}/firstrun" ]; then
@@ -76,12 +83,13 @@ firstrun() {
 
         # Update Admin user name and password hash
         local ustring="$(grep -Ev '^root' "${BACKUP_DIR}/firstrun")"
-        local user="$(echo "${ustring}" | cut -d ':' -f1)"
+        local userc="$(echo "${ustring}" | cut -d ':' -f1)"
+	local user="$(convert_to_username "${userc}")"
         local pass="$(echo "${ustring}" | cut -d ':' -f2)"
 
         /sbin/groupmod -n "${user}" tsuser
         /sbin/usermod -l "${user}" -m -d /home/"${user}" tsuser
-        /sbin/usermod -c "${user}" "${user}"
+        /sbin/usermod -c "${userc}" "${user}"
         /sbin/usermod -p "${pass}" "${user}"
 
         # Replace 'tsuser' in the environment file with new username

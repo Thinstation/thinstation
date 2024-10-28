@@ -1,0 +1,21 @@
+# Maintainer: Maxime Gauduin <alucryd@archlinux.org>
+
+name=light-locker
+version=1.9.0
+release=5
+_tag=7a96e9f87dc95c794cd45fd0378a62f45308ea87
+#source=(git+https://github.com/the-cavalry/light-locker.git#tag=${_tag})
+
+build() {
+  git clone https://github.com/the-cavalry/light-locker.git
+  cd light-locker
+  git checkout $_tag
+#  git cherry-pick -n d3ea262b336cf66ec41d25a8ea021d759c2c3a1d
+#  git cherry-pick -n 366fdbfe284efacf39d887a0512d38030af7ff16
+#  git cherry-pick -n 6224184e2677d76c7904d488b0e9295886fa9ee3
+#  git cherry-pick -n 8e03981e83fd03920e8e68145d0eb933dddb4c3c
+cd $SRC
+  ts-meson light-locker build
+  ninja -C build
+  DESTDIR="${PKG}" ninja -C build install
+}

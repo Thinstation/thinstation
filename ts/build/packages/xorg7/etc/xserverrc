@@ -3,6 +3,7 @@
 . /etc/thinstation.global
 
 DISPLAY_NUMBER=0
+DISPLAY=":$DISPLAY_NUMBER.0"
 XAUTHHOME=$HOME
 LOGFILE=$APPLOGDIR/xorg.$$
 
@@ -36,7 +37,9 @@ build_command ()
 if [ ! -e /tmp/.xorg-unix/X$DISPLAY_NUMBER ]; then
 	echo "Starting $0 server" >> $LOGFILE
 	if [ -n "$X_COOKIE" ]; then
-		xauth -f $XAUTHHOME/.Xauthority add :$DISPLAY_NUMBER.0 - $X_COOKIE >> $LOGFILE 2>&1
+		xauth -f $XAUTHHOME/.Xauthority add ${DISPLAY} . $X_COOKIE >> $LOGFILE 2>&1
+	elif [ -e $XAUTHHOME/.Xauthority ] && [ -z "`xauth -f $XAUTHHOME/.Xauthority list`" ] || [ ! -e $XAUTHHOME/.Xauthority ]; then
+		xauth -f $XAUTHHOME/.Xauthority add ${DISPLAY} . $(mcookie) >> $LOGFILE 2>&1
 	fi
 	build_command
 	cd /run

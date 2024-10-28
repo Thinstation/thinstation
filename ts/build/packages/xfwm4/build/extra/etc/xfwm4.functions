@@ -226,6 +226,9 @@ xfconf_settings()
 	if [ -e /sys/class/power_supply/BAT0 ]; then
 		xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/show-tray-icon -t bool -s true -n
 	fi
+	if [ -e /bin/light-locker-command ]; then
+		xfconf-query -c xfce4-session -p /general/LockCommand -s "light-locker-command --lock" --create -t string
+	fi
 }
 
 wm_menu()
