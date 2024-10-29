@@ -3,6 +3,12 @@ trap "" INT QUIT TSTP
 . /etc/thinstation.global
 hide_cursor
 
+if [ -n "$2" ] && [ "$2" == "lightdm" ]; then
+	TSUSER=$LOGNAME
+elif [ -n "$2" ]; then
+	TSUSER=$2
+fi
+
 if [ "$TSUSER" != "root" ]; then
 	HOME=/home/$TSUSER
 else
@@ -59,5 +65,8 @@ if [ "$1" == "close" ] && [ -z "`pidof shutdown`" ] && [ -z "`pidof reboot`" ]; 
 			fuser -k /media/$mount
 			umount /media/$mount
 		done
+	fi
+	if [ -e /etc/lightdm/lightdm.conf ] && grep -q /etc/lightdm/lightdm.conf -e '^autologin-user='; then
+		pkill -P1 -fx /bin/lightdm
 	fi
 fi
