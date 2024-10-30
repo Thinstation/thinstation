@@ -1,6 +1,13 @@
 #exec </dev/null >>/var/log/xfwm4.log  2>&1
 #set -x
 
+TSUSER="`id -un`"
+if [ "$TSUSER" != "root" ]; then
+        HOME=/home/$TSUSER
+else
+        HOME=/root
+fi
+
 make_desktop()
 {
 	mkdir -p "$ICONDIR"

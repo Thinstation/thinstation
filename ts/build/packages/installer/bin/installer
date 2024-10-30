@@ -453,7 +453,8 @@ cred_dialog()
 	'
 set +x
 		result=`$GTKDIALOG`
-		for statement in `echo $result`;do
+		IFS=$'\n'
+		for statement in $result;do
 			eval $statement
 		done
 		if [ "$EXIT" != "ok" ]; then
@@ -469,6 +470,7 @@ set +x
 			x_echo "Error" "All fields are required. Please enter all details."
 			STATUS="incomplete"
 		fi
+		unset IFS
 set -x
 	done
 }
