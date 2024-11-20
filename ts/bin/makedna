@@ -52,7 +52,7 @@ getfootprints()
 {
 	if [ "$footprints" == "" ];
 		then
-			footprints="`find -L /{usr/ports,ts/ports} -name .footprint`"
+			footprints="`find -L /{ts/ports} -name .footprint`"
 	fi
 }
 
@@ -111,7 +111,7 @@ getpackage()
 {
 	unset packf[@]
 	index=0
-	for l in `prt-get fsearch $file |grep -w -e Found |cut -d / -f5 |cut -d : -f1`;
+	for l in `dnf --disablerepo=* provides \*/$loc/$file 2>/dev/null| awk -F'-[0-9]' '{print $1}'|grep -v ':'|grep -v "^$"`;
 		do
 			packf[$index]=$l
 			index=$(( $index + 1 ))

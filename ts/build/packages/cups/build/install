@@ -1,7 +1,7 @@
 #!/bin/sh
 
 export PACKAGE=cups
-export PORTS="$PACKAGE cups-filters"
+export PORTS="cups cups-browsed cups-client cups-filesystem cups-filters cups-filters-driverless cups-ipptool cups-libs cups-lpd cups-pdf cups-pk-helper cups-printerapp"
 export DROP_FILES="cups.key cups.crt"
 export DROP_DIRS="etc/rc.d etc/init.d etc/rc0.d etc/rc2.d etc/rc3.d etc/rc5.d"
 export CREATE_EMPTY_DIRS="
@@ -14,9 +14,9 @@ etc/cups/interfaces
 "
 repackage -e
 
-mv packages/cups/lib/systemd/system/*.service packages/cups/etc/systemd/system/.
-mv packages/cups/lib/systemd/system/*.path packages/cups/etc/systemd/system/.
-mv packages/cups/lib/systemd/system/*.socket packages/cups/etc/systemd/system/.
+#mv packages/cups/lib/systemd/system/*.service packages/cups/etc/systemd/system/.
+#mv packages/cups/lib/systemd/system/*.path packages/cups/etc/systemd/system/.
+#mv packages/cups/lib/systemd/system/*.socket packages/cups/etc/systemd/system/.
 mksslcert packages/cups/etc/ssl/keys/cups.key packages/cups/etc/ssl/certs/cups.crt localhost 2>/dev/null
 
 returnval=$?

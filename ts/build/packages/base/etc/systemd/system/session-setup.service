@@ -2,12 +2,12 @@
 Description=ThinStation Session Configure
 Conflicts=shutdown.target
 After=session.service
-Before=shutdown.target
+Before=shutdown.target display-manager.service
 ConditionPathIsReadWrite=/etc
 
 [Service]
 Type=oneshot
-RemainAfterExit=yes
+RemainAfterExit=no
 EnvironmentFile=/etc/thinstation.env
 ExecStart=/etc/init.d/session-setup
 SyslogIdentifier=thinstation

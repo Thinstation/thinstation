@@ -1,1 +1,0 @@
-SASLAUTHD_OPTS="-a pam"

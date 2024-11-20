@@ -32,11 +32,13 @@ make_desktop()
 	echo "Icon=$icon"			>>"$LINK"
 	echo "Categories=GTK;GNOME;$submenu;"	>>"$LINK"
 	chmod +x "$LINK"
+	gio set -t string $LINK metadata::xfce-exe-checksum "$(sha256sum $LINK | awk '{print $1}')"
 	unset submenu
 }
 
 xfconf_settings()
 {
+	xfconf-query -c xsettings -p /Gtk/CursorThemeSize -s ${CURSOR_SIZE:=16}
 	xfconf-query -c xfce4-session -p /compat/LaunchGNOME -t bool -s true -n
 
 	if [ -n "$XKEYBOARD$XKBMODEL$XKBVARIANT" ]; then
@@ -82,7 +84,7 @@ xfconf_settings()
 	else
 		xfconf-query -c xfce4-desktop -p /desktop-icons/file-icons/show-unknown-removable -t bool -s false -n
 	fi
-	if [ ! -e /lib/applications/thunar.desktop ]; then
+	if [ ! -e /lib64/applications/thunar.desktop ]; then
 		xfconf-query -c xfce4-desktop -p /desktop-icons/file-icons/show-filesystem -t bool -s false -n
 		xfconf-query -c xfce4-desktop -p /desktop-icons/file-icons/show-home -t bool -s false -n
 		xfconf-query -c xfce4-desktop -p /desktop-icons/file-icons/show-trash -t bool -s false -n
@@ -107,7 +109,7 @@ xfconf_settings()
 		xfconf-query -c xfwm4 -p /general/workspace_count -t int -s 1 -n
 		xfconf-query -c xfwm4 -p /general/workspace_names --reset
 	fi
-        if [ -e /lib/xfce4/panel/plugins/libxkb.so ]; then
+        if [ -e /lib64/xfce4/panel/plugins/libxkb.so ]; then
 		PANEL="$PANEL -t int -s 22"
 		xfconf-query -c xfce4-panel -p /plugins/plugin-22 -t string -s xkb -n
 	fi
@@ -133,7 +135,7 @@ xfconf_settings()
 		done
 	fi
 
-	xfconf-query -c xfce4-panel -p /panels/panel-1/plugin-ids $PANEL
+	xfconf-query -c xfce4-panel -p /panels/panel-1/plugin-ids $PANEL -n
 
 	if is_enabled $XFWM4_KIOSK; then
 		xfconf-query -c xfce4-desktop -p /desktop-icons/style -t uint -s 0 -n
@@ -197,13 +199,13 @@ xfconf_settings()
 		xfconf-query -c xfwm4 -p /general/use_compositing -t bool -s false -n
 	fi
 	if [ -n "$XFWM4_THEME" ] && [ "$XFWM4_THEME" != "ALL" ]; then
-		if [ -e /lib/themes/$XFWM4_THEME/xfwm4/themerc ]; then
+		if [ -e /lib64/themes/$XFWM4_THEME/xfwm4/themerc ]; then
 			xfconf-query -c xfwm4 -p /general/theme -t string -s $XFWM4_THEME -n
 		fi
 	fi
-	GTK_ICON_THEME=`grep /etc/gtk-2.0/gtkrc -e icon-theme-name |cut -d\" -f2`
-	xfconf-query -c xsettings -p /Net/IconThemeName -t string -s $GTK_ICON_THEME -n
-	xfconf-query -c xsettings -p /Net/ThemeName -t string -s $GTK_THEME -n
+#	GTK_ICON_THEME=`grep /etc/gtk-2.0/gtkrc -e icon-theme-name |cut -d\" -f2`
+	xfconf-query -c xsettings -p /Net/IconThemeName -t string -s ${ICON_THEME:=gnome} -n
+	xfconf-query -c xsettings -p /Net/ThemeName -t string -s ${GTK_THEME:=Adwaita} -n
 	xfconf-query -c xfce4-notifyd -p /theme -t string -s Smoke -n
 	if [ -z "$X_DPI" ]; then
 		xfconf-query -c xsettings -p /Xft/DPI -t int -s "-1" -n
@@ -248,8 +250,8 @@ wm_menu()
 		IMENU=/tmp/icon.menu
 		rm -rf $IMENU
 		rm -rf /tmp/typelist
-		if [ -e /lib/menu ] ; then
-			cat /lib/menu/* > $IMENU
+		if [ -e /lib64/menu ] ; then
+			cat /lib64/menu/* > $IMENU
 		fi
 		(cat $IMENU) |
 			while read entry; do
@@ -271,12 +273,14 @@ wm_menu()
 						Path=$path
 					fi
 					make_desktop
+					
 				fi
 				if ! is_enabled $nodesktop ; then
 					if [ -z "$metric" ]; then
 						metric=99
 					fi
 					ICONDIR=$HOME/Desktop
+					
 					make_desktop
 					desktop_icon_file=$ICONDIR/`replace_char "$title.desktop" "[ /]" "_"`
 					echo "$metric $desktop_icon_file" >> /tmp/icon.sort

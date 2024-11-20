@@ -1,0 +1,15 @@
+# Define Dropbear SSH rules for both IPv4 and IPv6
+nft add set inet filter ssh_clients_v4 '{ type ipv4_addr; flags timeout; timeout 5m; }'
+nft add set inet filter ssh_clients_v6 '{ type ipv6_addr; flags timeout; timeout 5m; }'
+
+# Allow incoming SSH connections and track clients (IPv4 and IPv6)
+nft add rule inet filter INPUT ip saddr 192.168.0.0/16 tcp dport 22 add @ssh_clients_v4 { ip saddr }
+nft add rule inet filter INPUT ip saddr 172.16.0.0/12 tcp dport 22 add @ssh_clients_v4 { ip saddr }
+nft add rule inet filter INPUT ip saddr 10.0.0.0/8 tcp dport 22 add @ssh_clients_v4 { ip saddr }
+nft add rule inet filter INPUT ip6 saddr fc00::/7 tcp dport 22 add @ssh_clients_v6 { ip6 saddr }
+
+# Allow outgoing responses to tracked SSH clients (IPv4 and IPv6)
+nft add rule inet filter OUTPUT ip daddr 192.168.0.0/16 tcp sport 22 ip daddr @ssh_clients_v4 accept
+nft add rule inet filter OUTPUT ip daddr 172.16.0.0/12 tcp sport 22 ip daddr @ssh_clients_v4 accept
+nft add rule inet filter OUTPUT ip daddr 10.0.0.0/8 tcp sport 22 ip daddr @ssh_clients_v4 accept
+nft add rule inet filter OUTPUT ip6 daddr fc00::/7 tcp sport 22 ip6 daddr @ssh_clients_v6 accept

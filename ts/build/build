@@ -28,8 +28,6 @@ grub_modules="
 password_pbkdf2
 progress
 part_msdos
-oemid
-sysmem
 echo
 cat
 sleep
@@ -207,26 +205,26 @@ calculate_lib_dependencies()
 	|while read libfile; do
 		filepath=`dirname $filename | sed -e "s,$pkgname,,"`
 		export filepath
-		if ! lib_in_path $libfile && [ ! -e $pkgname/lib/$libfile ]; then
+		if ! lib_in_path $libfile && [ ! -e $pkgname/lib64/$libfile ]; then
 			if [ "$DISPLAYED" != "TRUE" ]; then
 				echo "Adding library dependencies for `basename $filename`"
 				DISPLAYED=TRUE
 			fi
-			libsource="`prt-get fsearch $libfile |grep -Ev 'Found|x-tool|^$' | cut -d " " -f3 |head -n1`"
+			libsource="`find /usr/lib /usr/lib64 -name $libfile`"
 			if [ -n "$libsource" ] && [ -e $libsource ]; then
 				echo -e "\t\t\t$libfile"
-				if [ ! -e $pkgname/lib ]; then
-					mkdir -p $pkgname/lib
+				if [ ! -e $pkgname/lib64 ]; then
+					mkdir -p $pkgname/lib64
 				fi
 				linkdest=`readlink $libsource`
 				if [ -n "$linkdest" ]; then
-					[ ! -e $pkgname/lib/$libfile ] \
-					&& $cputil `dirname $libsource`/$linkdest ./tmp-tree/lib/$libfile 2>/dev/null \
-					&& echo "$pkgname/lib/$libfile" >> liblist.added
+					[ ! -e $pkgname/lib64/$libfile ] \
+					&& $cputil `dirname $libsource`/$linkdest ./tmp-tree/lib64/$libfile 2>/dev/null \
+					&& echo "$pkgname/lib64/$libfile" >> liblist.added
 				else
-					[ ! -e $pkgname/lib/$libfile ] \
-					&& $cputil $libsource ./tmp-tree/lib/$libfile 2>/dev/null \
-					&& echo "$pkgname/lib/$libfile" >> liblist.added
+					[ ! -e $pkgname/lib64/$libfile ] \
+					&& $cputil $libsource ./tmp-tree/lib64/$libfile 2>/dev/null \
+					&& echo "$pkgname/lib64/$libfile" >> liblist.added
 				fi
 			else
 				echo "Could not find $libfile !"
@@ -266,7 +264,7 @@ lib_dependencies()
 				let procs=( procs * 2 )
 			fi
 			cat liblist.final |sort -u|sort -R | \
-			xargs -n 1 -P $procs -I {} bash -c 'calculate_lib_dependencies "$@"' _ {}
+			xargs -P $procs -I {} bash -c 'calculate_lib_dependencies "$@"' _ {}
 			rm liblist.final
 			if [ -e liblist.added ]; then
 				mv liblist.added liblist.final
@@ -284,10 +282,11 @@ copy_module()
 	local src=/lib/modules/$2/$rpath/$1
 	local dest=$3/lib/modules/$2/$rpath
 	if [ ! -e $src ]; then
-		if grep /lib/modules/$2/modules.builtin -e $1 -q; then
-			echo "Module $1 already builtin"
+		if grep /lib/modules/$2/modules.builtin -e ${1%.xz} -q; then
+			echo "Module ${1%.ko.xz} already builtin"
+			return 3
 		else
-			echo "Notice! Module $1 not found for kernel $2"
+			echo "Notice! Module ${1%.ko.xz} not found for kernel $2"
 			return 1
 		fi
 	fi
@@ -321,23 +320,23 @@ module_dependencies()
 {
 echo -e "\nAdding modules that are dependencies of selected modules"
 for pkgname in `list_all_packages`; do
-	if [ -e $pkgname/lib/modules/$KERNVER ]; then
-		find $pkgname/lib/modules/$KERNVER -name \*.ko > ./modules.list
+	if [ -e $pkgname/lib64/modules/$KERNVER ]; then
+		find $pkgname/lib64/modules/$KERNVER -name \*.ko.xz > ./modules.list
 		while [ -s ./modules.list ]; do
 			for module in `cat modules.list`; do
 				allfirm `basename $module`
 				depends="`modinfo -F depends $module |sed -e 's/,/ /g'`"
 				# Checks for already existing modules
 				for depend in $depends; do
-					if [ -z "`find ./tmp-tree/lib/modules/$KERNVER -name ${depend}.ko`" ] && \
-					   [ -z "`find $pkgname/lib/modules/$KERNVER -name ${depend}.ko`" ]; then
-						needed="$needed ${depend}.ko"
+					if [ -z "`find ./tmp-tree/lib64/modules/$KERNVER -name ${depend}.ko.xz`" ] && \
+					   [ -z "`find $pkgname/lib64/modules/$KERNVER -name ${depend}.ko.xz`" ]; then
+						needed="$needed ${depend}.ko.xz"
 					fi
 				done
 				if [ -n "$needed" ]; then
-					echo "Adding dependency in `basename $pkgname` for module `basename $module`"
+					echo "Adding dependency in `basename $pkgname` for module `basename $module .ko.xz`"
 					for depend in $needed; do
-						echo -e "\t\t\t\t$depend"
+						echo -e "\t\t\t\t${depend%.ko.xz}"
 						if copy_module $depend $KERNVER $pkgname; then
 							echo $copied >> modules.copied
 							allfirm $depend
@@ -378,20 +377,20 @@ module_package_dependencies()
 	for pkgname in `list_mod_packages`; do
 		(ls ./kernel/dependencies_module/ ) |
 		while read module; do
-			if [ -n "`find ./tmp-tree/lib/modules/$KERNVER -name ${module}.ko`" ] || \
-			   [ -n "`find $pkgname/lib/modules/$KERNVER -name ${module}.ko`" ]; then
+			if [ -n "`find ./tmp-tree/lib/modules/$KERNVER -name ${module}.ko.xz`" ] || \
+			   [ -n "`find $pkgname/lib/modules/$KERNVER -name ${module}.ko.xz`" ]; then
 				(cat ./kernel/dependencies_module/$module ) |
 				while read type name; do
 					case $type in
 						module)
-							if [ -z "`find ./tmp-tree/lib/modules/$KERNVER -name ${name}.ko`" ] && \
-							   [ -z "`find $pkgname/lib/modules/$KERNVER -name ${name}.ko`" ]; then
+							if [ -z "`find ./tmp-tree/lib/modules/$KERNVER -name ${name}.ko.xz`" ] && \
+							   [ -z "`find $pkgname/lib/modules/$KERNVER -name ${name}.ko.xz`" ]; then
 								if ! is_enabled $DISPLAYED; then
 									echo "Adding module dependencies for $module"
 									DISPLAYED=true
 								fi
 								echo -e "\t\t\t\tModule : $name"
-								copy_module ${name}.ko $KERNVER $pkgname
+								copy_module ${name}.ko.xz $KERNVER $pkgname
 								touch /tmp/dirty
 							fi
 						;;
@@ -421,8 +420,8 @@ module_package_dependencies()
 								else
 									echo "Not Found $name!!"
 								fi
-							elif [ -z "`find ./tmp-tree/lib/modules -name ${module}.ko`" ] && \
-								 [ -n "`find $pkgname/lib/modules/$KERNVER -name ${module}.ko`" ] && \
+							elif [ -z "`find ./tmp-tree/lib/modules -name ${module}.ko.xz`" ] && \
+								 [ -n "`find $pkgname/lib/modules/$KERNVER -name ${module}.ko.xz`" ] && \
 								 [ ! -e $PACDIR/$name.pkg ]; then
 								if find_package $name ; then
 									echo "building-pkg $name"
@@ -450,7 +449,7 @@ strip_files()
 		echo -e "\nStripping Enabled"
 		rampre="`du -s ./tmp-tree|cut -f1`"
 		echo -e "\tRAM Usage before stripping\t$rampre KiloBytes"
-		for i in `find tmp-tree -type f |grep -v -f exclusions |xargs file |grep -e ELF |grep -v /lib/modules/ |grep -v e3$ |cut -d ":" -f1` ;
+		for i in `find tmp-tree -type f |grep -v -f exclusions |xargs file |grep -e ELF |grep -v /lib64/modules/ |grep -v e3$ |cut -d ":" -f1` ;
 			do
 				strip --strip-all -R.note -R.comment $i
 			done
@@ -462,7 +461,6 @@ strip_files()
 
 make_initrd()
 {
-
    cd tmp-tree
 	if [ "$ts_fastboot" == "true" ] || [ "$ts_fastboot" == "lotsofmem" ] ;then
 		echo -e "\nMaking initramfs - Fastboot Enabled"
@@ -474,18 +472,18 @@ make_initrd()
 		echo -e "\nMaking initramfs"
 	fi
 	echo -e "\tFixing-Up links"
-	rm usr/bin usr/sbin usr/lib usr/icons usr/X11R7 usr/share usr/etc usr/local share usr/libexec
+	rm -f usr/bin usr/sbin usr/lib usr/lib64 usr/icons usr/X11R7 usr/share usr/etc usr/local share usr/libexec
 	ln -sf /bin usr/bin
 	ln -sf /sbin usr/sbin
-	ln -sf /lib usr/lib
+	ln -sf /lib64 usr/lib64
+	ln -sf /lib64 usr/lib
 	ln -sf /libexec usr/libexec
 	ln -sf /etc usr/etc
-	ln -sf /lib usr/share
-	ln -sf /lib share
+	ln -sf /lib64 usr/share
+	ln -sf /lib64 share
 	ln -sf / usr/X11R7
-	ln -sf /lib/icons usr/icons
+	ln -sf /lib64/icons usr/icons
 	ln -sf / usr/local
-	ln -sf /lib usr/lib64
 
 	if [ "$ts_hardlinkfs" == "true" ]; then
 		hardlink -v .
@@ -504,7 +502,8 @@ make_initrd()
 		mksquashfs . ../$INITDIR/initrd $ts_squashopt $DEF_SQAUSHOPT
 	elif [ "$ts_initrdcmd" == "none" -o "$ts_initrdcmd" == "" ]; then
 		find . -print0 | cpio --null -oV --format=newc > ../$INITDIR/initrd
-	else find . -print0 | cpio --null -oV --format=newc | $ts_initrdcmd > ../$INITDIR/initrd
+	else
+		find . -print0 | cpio --null -oV --format=newc | $ts_initrdcmd > ../$INITDIR/initrd
 	fi
 	cd ..
    chmod 755 $INITDIR/initrd
@@ -596,21 +595,19 @@ package_module_dependencies()
 		(cat ./kernel/dependencies_package/$name ) |
 		while read module; do
 			if [ -e $PACDIR/$name.package ]; then
-				if [ -z "`find ./tmp-tree/lib/modules/$KERNVER -name ${module}.ko`" ]; then
+				if [ -z "`find ./tmp-tree/lib/modules/$KERNVER -name ${module}.ko.xz`" ]; then
 					echo "Package : $name   Module: $module"
-					if copy_module ${module}.ko $KERNVER ./tmp-tree; then
+					copy_module ${module}.ko.xz $KERNVER ./tmp-tree
+					if [ "$?" == "0" ]; then
 						touch /tmp/dirty
-					else
-						echo "Could not find $KERNVER module $module"
 					fi
 				fi
 			elif [ -e $PACDIR/$name.pkg ]; then
-				if [ -z "`find $PKGDIR/$name/lib/modules/$KERNVER -name ${module}.ko`" ]; then
+				if [ -z "`find $PKGDIR/$name/lib/modules/$KERNVER -name ${module}.ko.xz`" ]; then
 					echo "Pkg     : $name   Module: $module"
-					if copy_module ${module}.ko $KERNVER $PKGDIR/$name; then
+					copy_module ${module}.ko.xz $KERNVER $PKGDIR/$name
+					if [ "$?" == "0" ]; then
 						touch /tmp/dirty
-					else
-						echo "Could not find $KERNVER module $module"
 					fi
 				fi
 			fi
@@ -828,7 +825,7 @@ if [ -n "$ts_bootresolution" ] ;then
 	done
   else
 		rm -rf ./tmp-tree/etc/splash
-		rm -rf ./tmp-tree/lib/splash
+		rm -rf ./tmp-tree/lib64/splash
 		if [ -e ./tmp-tree/etc/plymouth/plymouthd.conf ]; then
 			KERNEL_PARAMETERS="$KERNEL_PARAMETERS splash"
 		else
@@ -974,11 +971,11 @@ copy_firmware()
 	if [ -n "$2" ]; then
 		firmfiles=`find -L /lib/firmware/ -name $1\* | grep $2`
 	else
-		firmfiles=/lib/firmware/$1
+		firmfiles=$(find -L /lib/firmware/`dirname $1` -name `basename $1`\* 2>/dev/null)
 	fi
 	if [ -n "$firmfiles" ]; then
 		for firmfile in $firmfiles; do
-			firmpath=./tmp-tree${firmfile}
+			firmpath=$(echo "./tmp-tree${firmfile}" |sed 's|/lib/|/lib64/|g')
 			if [ -e $firmfile ]; then
 				if [ -n `readlink $firmfile` ]; then
 					ffile=`readlink -e $firmfile`
@@ -1015,9 +1012,9 @@ fi
 (cat $CONF_FILE; echo) | # make sure there is a LF at the end
 while read type name args
 do
-    type=`echo $type | busybox dos2unix | sed -e 's/\&/\\\&/g'`
-    name=`echo $name | busybox dos2unix | sed -e 's/\&/\\\&/g'`
-    args=`echo $args | busybox dos2unix | sed -e 's/\&/\\\&/g'`
+    type=`echo $type | busybox.shared dos2unix | sed -e 's/\&/\\\&/g'`
+    name=`echo $name | busybox.shared dos2unix | sed -e 's/\&/\\\&/g'`
+    args=`echo $args | busybox.shared dos2unix | sed -e 's/\&/\\\&/g'`
     case $type in
     \#*|"") continue
 	    ;;
@@ -1060,14 +1057,12 @@ do
 		if [ -e ./kernel/alias/$name ] ; then
 			name=`cat ./kernel/alias/$name`
 		fi
-		for KERNVER in $KERNVERS; do
-		        if [ -e `find /lib/modules/$KERNVER -name ${name}.ko` ] ; then
-				echo "Module $KERNVER: $name"
-				copy_module ${name}.ko $KERNVER ./tmp-tree
-			else
-				echo "Error, Module $name not found"
-			fi
-		done
+	        if [ -e `find /lib/modules/$KERNVER -name ${name}.ko.xz` ] ; then
+			echo "Module $KERNVER: $name"
+			copy_module ${name}.ko.xz $KERNVER ./tmp-tree
+		else
+			echo "Error, Module $name not found"
+		fi
 	fi
 	if [ `make_caps X$args` == "XFORCE" ]; then
 		echo $name `echo $args | cut -f1 -d#` >> ./tmp-tree/etc/modules
@@ -1078,15 +1073,13 @@ do
 	        if [ -e ./kernel/alias/$name ] ; then
 			name=`cat ./kernel/alias/$name`
 		fi
-		for KERNVER in $KERNVERS; do
-        		if [ -e `find /lib/modules/$KERNVER -name ${name}.ko` ] ; then
-				echo "Module Pkg: $name"
-				copy_module ${name}.ko $KERNVER $MODDIR/$name
-				mkdir -p $MODDIR/$name/etc
-			else
-				echo "Error, Module $name not found"
-			fi
-		done
+       		if [ -e `find /lib/modules/$KERNVER -name ${name}.ko.xz` ] ; then
+			echo "Module Pkg: $name"
+			copy_module ${name}.ko.xz $KERNVER $MODDIR/$name
+			mkdir -p $MODDIR/$name/etc
+		else
+			echo "Error, Module $name not found"
+		fi
 		echo $name $args `echo $args | cut -f1 -d#` > $MODDIR/$name/etc/$name.modules
 	fi
 	;;
@@ -1188,7 +1181,7 @@ fi
 
 mkdir -p $PKGDIR
 unsquashfs -d ./tmp-tree $INITDIR/initrd.devices > /dev/null
-mkdir -p ./tmp-tree/lib/modules
+mkdir -p ./tmp-tree/lib64/modules
 mkdir -p ./tmp-tree/packages
 mkdir -p $MODDIR
 
@@ -1211,104 +1204,98 @@ else
 fi
 
 # Check if kernel exists
-for KERNVER in $KERNVERS; do
-	if [ ! -e /boot/vmlinuz-$KERNVER ] ; then
-		echo -e "\nError Kernel $KERNVER not found!!!"
-		remove_files
-		exit 0
-	fi
-done
+if [ ! -e /boot/vmlinuz-$KERNVER ] ; then
+	echo -e "\nError Kernel $KERNVER not found!!!"
+	remove_files
+	exit 0
+fi
 
 if is_enabled $ts_earlymicrocode ; then
 	echo "Creating Early Microcode!"
 	mkdir -p kernel/x86/microcode
-	cat /lib/firmware/intel-ucode/*-*-* > kernel/x86/microcode/GenuineIntel.bin
-	cat /lib/firmware/amd-ucode/microcode_amd*.bin > kernel/x86/microcode/AuthenticAMD.bin
+	cat /lib64/firmware/intel-ucode/*-*-* > kernel/x86/microcode/GenuineIntel.bin
+	cat /lib64/firmware/amd-ucode/microcode_amd*.bin > kernel/x86/microcode/AuthenticAMD.bin
 	ls kernel/x86/microcode/* | cpio -o -C 1024 -H newc -R 0:0 > $INITDIR/ucode
 	rm -rf kernel/x86
 elif is_enabled $ts_allfirmware ; then
 	echo "Doing an All Firmware Build!"
-	if [ -e /lib/firmware/amd-ucode ]; then
-	    for microcode in `find /lib/firmware/amd-ucode -type f |cut -d "/" -f4-`; do
+	if [ -e /lib64/firmware/amd-ucode ]; then
+	    for microcode in `find /lib64/firmware/amd-ucode -type f |cut -d "/" -f4-`; do
 		copy_firmware $microcode
 	    done
 	fi
-	if [ -e /lib/firmware/intel-ucode ]; then
-	    for microcode in `find /lib/firmware/intel-ucode -type f |cut -d "/" -f4-`; do
+	if [ -e /lib64/firmware/intel-ucode ]; then
+	    for microcode in `find /lib64/firmware/intel-ucode -type f |cut -d "/" -f4-`; do
 		copy_firmware $microcode
 	    done
 	fi
 fi
 
-for KERNVER in $KERNVERS; do
-	mkdir -p ./tmp-tree/lib/modules/$KERNVER
-        copy_module modules.builtin $KERNVER ./tmp-tree
-        copy_module modules.order $KERNVER ./tmp-tree
-	if [ -e ./ALLMODULES ]; then
-		ALLMODULES=true
+mkdir -p ./tmp-tree/lib64/modules/$KERNVER
+copy_module modules.builtin $KERNVER ./tmp-tree
+copy_module modules.order $KERNVER ./tmp-tree
+if [ -e ./ALLMODULES ]; then
+	ALLMODULES=true
+fi
+if is_enabled $ALLMODULES ; then
+	echo "Doing an All Modules Build!"
+	if [ -e $PACDIR/blacklist.param ]; then
+                . $PACDIR/blacklist.param
 	fi
-	if is_enabled $ALLMODULES ; then
-		echo "Doing an All Modules Build!"
-		if [ -e $PACDIR/blacklist.param ]; then
-	                . $PACDIR/blacklist.param
-		fi
-		if [ -e $PACDIR/blacklist_grp.param ]; then
- 			. $PACDIR/blacklist_grp.param
-		fi
-		touch /tmp/blacklist.modules
-		for module in $ts_blacklist; do
-			echo $module >> /tmp/blacklist.modules
-		done
-		for group in $ts_blacklist_grp; do
-			for gdir in `find /lib/modules/$KERNVER -type d -name $group`; do
-				find $gdir -name \*.ko -printf '%f ' >> /tmp/blacklist.modules
-			done
-		done
-		if is_enabled $ts_singlethread; then
-			procs=1
-		else
-			procs=`nproc`
-			let procs=(procs * 8 )
-		fi
-		export -f pre_copy copy_module allfirm make_caps copy_firmware
-		export ts_allfirmware KERNVER
-		find /lib/modules/$KERNVER -name \*.ko -printf '%f\n' | \
-		xargs -n 1 -P $procs -I {} bash -c 'pre_copy "$@"' _ {}
-		rm /tmp/blacklist.modules
+	if [ -e $PACDIR/blacklist_grp.param ]; then
+		. $PACDIR/blacklist_grp.param
 	fi
-done
-
-for KERNVER in $KERNVERS; do
-	touch /tmp/dirty
-	while [ -e /tmp/dirty ]; do
-		rm /tmp/dirty
-		if ! is_enabled $ALLMODULES || [ -n "$ts_blacklist_grp" ]; then
-			# Adding dependent modules via modinfo
-			echo -e "\nBuilding dependencies for $KERNVER Modules..."
-			module_dependencies
-		fi
-
-		# Adding additional packages and modules which are dependencies of modules
-		module_package_dependencies
-
-		# Adding dependent packages
-		echo -e "\nAdding Package Dependencies"
-
-		package_dependencies package
-		package_dependencies pkg
-
-		# Adding modules that are dependencies of packages
-		package_module_dependencies
-
-		# Did we add anything?
-		if [ -e /tmp/dirty ]; then
-			echo -e "\nDependencies are dirty. Restarting!"
-		fi
+	touch /tmp/blacklist.modules
+	for module in $ts_blacklist; do
+		echo $module >> /tmp/blacklist.modules
 	done
-	echo -e "\nDependencies are clean!"
-	#Run depmod on modules included to generate modules.* files
-	depmod -b ./tmp-tree $KERNVER 2>/dev/null
+	for group in $ts_blacklist_grp; do
+		for gdir in `find /lib/modules/$KERNVER -type d -name $group`; do
+			find $gdir -name \*.ko.xz -printf '%f ' >> /tmp/blacklist.modules
+		done
+	done
+	if is_enabled $ts_singlethread; then
+		procs=1
+	else
+		procs=`nproc`
+		let procs=(procs * 8 )
+	fi
+	export -f pre_copy copy_module allfirm make_caps copy_firmware
+	export ts_allfirmware KERNVER
+	find /lib/modules/$KERNVER -name \*.ko.xz -printf '%f\n' | \
+	xargs -P $procs -I {} bash -c 'pre_copy "$@"' _ {}
+	rm /tmp/blacklist.modules
+fi
+
+touch /tmp/dirty
+while [ -e /tmp/dirty ]; do
+	rm /tmp/dirty
+	if ! is_enabled $ALLMODULES || [ -n "$ts_blacklist_grp" ]; then
+		# Adding dependent modules via modinfo
+		echo -e "\nBuilding dependencies for $KERNVER Modules..."
+		module_dependencies
+	fi
+
+	# Adding additional packages and modules which are dependencies of modules
+	module_package_dependencies
+
+	# Adding dependent packages
+	echo -e "\nAdding Package Dependencies"
+
+	package_dependencies package
+	package_dependencies pkg
+
+	# Adding modules that are dependencies of packages
+	package_module_dependencies
+
+	# Did we add anything?
+	if [ -e /tmp/dirty ]; then
+		echo -e "\nDependencies are dirty. Restarting!"
+	fi
 done
+echo -e "\nDependencies are clean!"
+#Run depmod on modules included to generate modules.* files
+depmod -b ./tmp-tree $KERNVER 2>/dev/null
 
 # Now that all the package deps are satisfied, do we really need a splash
 if [ -e $PACDIR/bootlogo.param ]; then
@@ -1331,7 +1318,6 @@ fi
 install_non_distributable
 
 # Add all packages to filetree
-
 echo -e "\nAdding Packages to Filetree\n"
 ls $PACDIR/* > ./filelist
 for filename in `cat ./filelist | grep "\.package"` ; do
@@ -1344,7 +1330,6 @@ for filename in `cat ./filelist | grep "\.param"` ; do
 	. $filename
 done
 rm ./filelist
-
 # Set Additional Params
 
 if [ -e $PACDIR/tsuser.param ]; then
@@ -1494,9 +1479,9 @@ echo -e "Checking for ICA encryption support"
 if [ -e $PACDIR/icaencryption.param ]; then
     if [ "`make_caps $ts_icaencryption`" != "TRUE" ] ; then
 	    if [ -e $PACDIR/ica.package ] ; then 
-		    rm ./tmp-tree/usr/lib/ICAClient/libctxssl.so
+		    rm ./tmp-tree/usr/lib64/ICAClient/libctxssl.so
 	    elif [ -e $PACDIR/ica.pkg ] ; then
-		    rm $PKGDIR/ica/usr/lib/ICAClient/libctxssl.so
+		    rm $PKGDIR/ica/usr/lib64/ICAClient/libctxssl.so
 	    fi
     fi
 fi
@@ -1537,7 +1522,7 @@ keymaps
 rm ./tmp-tree/dependencies
 rm -Rf ./tmp-tree/build
 rm -Rf ./tmp-tree/.dna
-
+set +x
 # Adding library dependencies
 
 lib_dependencies
@@ -1545,7 +1530,7 @@ lib_dependencies
 # Add user defined defaults
 if [ -e ./$ts_defaultconfig ] && [ ! -z "$ts_defaultconfig" ] ; then
 	cat ./$ts_defaultconfig | grep -v "^#" | sed '/^[ \t]*$/d' >> ./tmp-tree/etc/thinstation.defaults
-	busybox dos2unix ./tmp-tree/etc/thinstation.defaults
+	busybox.shared dos2unix ./tmp-tree/etc/thinstation.defaults
 	source ./tmp-tree/etc/thinstation.defaults
 fi
 
@@ -1554,7 +1539,7 @@ if [ "$TIME_ZONE" == "" ]; then
 	TIME_ZONE=UTC
 fi
 echo -e "\nSetting Zone Info File to $TIME_ZONE"
-tzpath=./tmp-tree/lib/zoneinfo/$TIME_ZONE
+tzpath=./tmp-tree/lib64/zoneinfo/$TIME_ZONE
 if [ ! -d ${tzpath%/*} ]; then
 	mkdir -p ${tzpath%/*}
 fi
@@ -1565,7 +1550,7 @@ ln -sf /usr/share/zoneinfo/$TIME_ZONE ./tmp-tree/etc/localtime
 
 # Copy across sample file for www administration interface
 if [ -e $PACDIR/www.* ]; then
-  WEBDIR=./tmp-tree/lib/www/html/admin/config
+  WEBDIR=./tmp-tree/lib64/www/html/admin/config
 	if [ ! -d $WEBDIR ] ; then 
 		mkdir -p $WEBDIR
 	fi
@@ -1573,7 +1558,7 @@ if [ -e $PACDIR/www.* ]; then
 	grep "\-\-\-" | \
 	cut -d" " -f3- | \
 	sed -e s/Options//g  | \
-	busybox dos2unix | \
+	busybox.shared dos2unix | \
   	while read heading; do
 		awk "/--- $heading/,/##/" ./thinstation.conf.sample  > "$WEBDIR/$heading.sample"
 	done
@@ -1684,10 +1669,10 @@ mesa()
 {
 	if is_disabled $ts_mesa_3d; then
 		echo -e "Mesa 3D disabled, deleting the dri folder."
-		rm -rf ./tmp-tree/lib/dri
-		rm -rf ./tmp-tree/lib/gallium-pipe
-		rm -rf ./tmp-tree/lib/vdpau
-		rm -f ./tmp-tree/lib/xorg/modules/extensions/libglx.so
+		rm -rf ./tmp-tree/lib64/dri
+		rm -rf ./tmp-tree/lib64/gallium-pipe
+		rm -rf ./tmp-tree/lib64/vdpau
+		rm -f ./tmp-tree/lib64/xorg/modules/extensions/libglx.so
 	fi
 }
 
@@ -1705,8 +1690,23 @@ filesystem_fixups()
 	if [ -e ./tmp-tree/pip3.freeze ]; then
 		echo -e "Installing Python3 Packages"
 		mkdir py-tmp
-		pip3 install -r ./tmp-tree/pip3.freeze -I --root ./py-tmp --prefix=/usr --no-warn-script-location
-		cp -a ./py-tmp/usr/* ./tmp-tree/.
+		pip3 install -r ./tmp-tree/pip3.freeze -I --root ./py-tmp --prefix=/usr --no-warn-script-location --root-user-action=ignore --disable-pip-version-check
+		mkdir -p ./py-tmp/lib64
+		if [ -e ./py-tmp/usr/lib ]; then
+			cp -a ./py-tmp/usr/lib/* ./py-tmp/lib64/.
+			rm -rf ./py-tmp/usr/lib
+		fi
+                if [ -e ./py-tmp/usr/lib64 ]; then
+                        cp -a ./py-tmp/usr/lib64/* ./py-tmp/lib64/.
+                        rm -rf ./py-tmp/usr/lib64
+                fi
+		if [ -e ./py-tmp/usr/share ]; then
+			cp -a ./py-tmp/usr/share/* ./py-tmp/lib64/.
+			rm -rf ./py-tmp/usr/share
+		fi
+		cp -a ./py-tmp/usr/* ./py-tmp/.
+		rm -rf ./py-tmp/usr
+		cp -a ./py-tmp/* ./tmp-tree/.
 		rm -rf ./py-tmp
 		rm ./tmp-tree/pip3.freeze
 	fi
@@ -1723,10 +1723,10 @@ filesystem_fixups()
 		sed -i "s/\$XTERM_CMD/$XTERM_CMD/g" ./tmp-tree/etc/icewm/toolbar
 		sed -i "s/\$XTERM_CMD/$XTERM_CMD/g" ./tmp-tree/etc/icewm/keys
 	fi
-	if [ -e ./tmp-tree/lib/gconv ] ; then
+	if [ -e ./tmp-tree/lib64/gconv ] ; then
 		echo -e "\tBuilding Charmap Cache"
-		for i in `ls ./tmp-tree/lib/gconv --color=never |cut -d . -f1`; do
-			cat /usr/lib/gconv/gconv-modules|grep -e "$i" >>./tmp-tree/lib/gconv/gconv-modules
+		for i in `ls ./tmp-tree/lib64/gconv --color=never |cut -d . -f1`; do
+			cat /usr/lib64/gconv/gconv-modules|grep -e "$i" >>./tmp-tree/lib64/gconv/gconv-modules
 		done
         cp -H `which iconvconfig` ./tmp-tree/bin/.
         chroot ./tmp-tree /bin/iconvconfig
@@ -1739,7 +1739,7 @@ filesystem_fixups()
 #			rm -rf $sound
 #		done
 #	fi
-#	if [ -z "`find ./tmp-tree/lib/modules -name udf.ko -o -name isofs.ko`" ]; then
+#	if [ -z "`find ./tmp-tree/lib/modules -name udf.ko.xz -o -name isofs.ko.xz`" ]; then
 #		for cdrom in `find ./tmp-tree/lib/modules -type d -name cdrom`; do
 #			rm -rf $cdrom
 #		done
@@ -1753,26 +1753,26 @@ filesystem_fixups()
 #	done
 	if [ ! -e ./tmp-tree/etc/xserverrc ] ;then
 		echo -e "\tRemoving Extra Font Files"
-		rm -rf ./tmp-tree/lib/fonts/X11
-		rm -rf ./tmp-tree/lib/X11
-		rm -rf ./tmp-tree/lib/keymaps
+		rm -rf ./tmp-tree/lib64/X11/fonts
+		rm -rf ./tmp-tree/lib64/X11
+		rm -rf ./tmp-tree/lib64/keymaps
 		rm -f ./tmp-tree/etc/background.jpg
 	else
 		echo -e "\tRunning mkfontdir and mkfontscale"
-		for fontdir in `find ./tmp-tree/lib/fonts/X11 -mindepth 1 -type d`; do
+		for fontdir in `find ./tmp-tree/lib64/X11/fonts -mindepth 1 -type d`; do
 			if [ ! -e $fontdir/fonts.scale ]; then
 				mkfontscale $fontdir
 			fi
 			mkfontdir $fontdir
 		done
-		if [ -e ./tmp-tree/lib/gdk-pixbuf-2.0/2.10.0/loaders ] ; then
+		if [ -e ./tmp-tree/lib64/gdk-pixbuf-2.0/2.10.0/loaders ] ; then
 			echo -e "\tCaching pixbuf loaders"
-			for loader in `find ./tmp-tree/lib/gdk-pixbuf-2.0/ -type f -printf "%f "`; do
-				loader=`find /usr/lib/gdk-pixbuf-2.0/ -name $loader`
+			for loader in `find ./tmp-tree/lib64/gdk-pixbuf-2.0/ -type f -printf "%f "`; do
+				loader=`find /usr/lib64/gdk-pixbuf-2.0/ -name $loader`
 				lver=`echo $loader |cut -d "/" -f5`
-				gdk-pixbuf-query-loaders $loader | \
+				gdk-pixbuf-query-loaders-64 $loader | \
 					grep -v "#" \
-					>>./tmp-tree/lib/gdk-pixbuf-2.0/$lver/loaders.cache
+					>>./tmp-tree/lib64/gdk-pixbuf-2.0/$lver/loaders.cache
 			done
 		fi
 #		if [ -d ./tmp-tree/lib/pango ] ;then
@@ -1785,34 +1785,40 @@ filesystem_fixups()
 #					>> ./tmp-tree/lib/pango/$pver/modules.cache
 #			done
 #		fi
-		if [ -d ./tmp-tree/lib/gtk-2.0 ]; then
+		if [ -d ./tmp-tree/lib64/gtk-2.0 ]; then
 			echo -e "\tCaching gtk-2.0 immodules"
-			gver=`find ./tmp-tree/lib/gtk-2.0 -type d -name immodules | cut -d "/" -f5`
-			if [ -n "$gver" ]; then
-				for immodule in `find ./tmp-tree/lib/gtk-2.0/$gver/immodules -type f -printf "%f "`; do
-					immodule=`find /usr/lib/gtk-2.0/$gver/immodules -name $immodule`
-					gtk-query-immodules-2.0 $immodule | \
-						grep -v "#" \
-						>> ./tmp-tree/lib/gtk-2.0/$gver/immodules.cache
-				done
-			fi
+			for immodule in `find ./tmp-tree/lib64/gtk-2.0/2.10.0/immodules -type f -printf "%f "`; do
+				immodule=`find /usr/lib64/gtk-2.0/2.10.0/immodules -name $immodule`
+				gtk-query-immodules-2.0-64 $immodule | \
+					grep -v "#" \
+					>> ./tmp-tree/lib64/gtk-2.0/2.10.0/immodules.cache
+			done
 		fi
-		if [ -e ./tmp-tree/lib/glib-2.0/schemas ]; then
+                if [ -d ./tmp-tree/lib64/gtk-3.0 ]; then
+                        echo -e "\tCaching gtk-3.0 immodules"
+                        for immodule in `find ./tmp-tree/lib64/gtk-3.0/3.0.0/immodules -type f -printf "%f "`; do
+                                immodule=`find /usr/lib64/gtk-3.0/3.0.0/immodules -name $immodule`
+                                gtk-query-immodules-3.0-64 $immodule | \
+                                        grep -v "#" \
+                                        >> ./tmp-tree/lib64/gtk-3.0/3.0.0/immodules.cache
+                        done
+                fi
+		if [ -e ./tmp-tree/lib64/glib-2.0/schemas ]; then
 			echo -e "\tCompiling Schemas"
 			cp -H `which glib-compile-schemas` ./tmp-tree/bin/.
-			chroot ./tmp-tree /bin/glib-compile-schemas /lib/glib-2.0/schemas 2>/dev/null
+			chroot ./tmp-tree /bin/glib-compile-schemas /lib64/glib-2.0/schemas 2>/dev/null
 #			rm ./tmp-tree/bin/glib-compile-schemas
-			gio-querymodules ./tmp-tree/lib/gio/modules
+			gio-querymodules-64 ./tmp-tree/lib64/gio/modules
 		fi
 	fi
 	echo -e "\tLinking BusyBox\n"
-	chroot ./tmp-tree /bin/busybox --install -s
+	chroot ./tmp-tree /sbin/busybox.shared --install -s
 
-	if [ -e ./tmp-tree/lib/libcrypto.so.1.1 ]; then
-		cp /usr/lib/.libcrypto.so.1.1.hmac ./tmp-tree/lib
+	if [ -e ./tmp-tree/lib64/libcrypto.so.1.1 ]; then
+		cp /usr/lib64/.libcrypto.so.1.1.hmac ./tmp-tree/lib64
 	fi
-	if [ -e ./tmp-tree/lib/libssl.so.1.1 ]; then
-		cp /usr/lib/.libssl.so.1.1.hmac ./tmp-tree/lib
+	if [ -e ./tmp-tree/lib64/libssl.so.1.1 ]; then
+		cp /usr/lib64/.libssl.so.1.1.hmac ./tmp-tree/lib64
 	fi
         if echo "$ts_kernelcmdline" |grep -q -e 'fips=1'; then
                 touch tmp-tree/FIPS
@@ -1837,12 +1843,10 @@ filesystem_fixups()
 			echo -e "\tCompressing Modules"
 			export -f compress_module
 			export ts_modcmd
-			find ./tmp-tree/lib/modules -name \*.ko | \
-			 xargs -n 1 -P $procs -I {} bash -c 'compress_module "$@"' _ {}
+			find ./tmp-tree/lib64/modules -name \*.ko.xz | \
+			 xargs -P $procs -I {} bash -c 'compress_module "$@"' _ {}
 		fi
-		for KERNVER in $KERNVERS; do
-			depmod -b ./tmp-tree $KERNVER 2>/dev/null
-		done
+		depmod -b ./tmp-tree $KERNVER 2>/dev/null
 	fi
 }
 
@@ -1890,7 +1894,7 @@ if [ -n "$missing_commands" ]; then
 	exit 1
 fi
 
-required_tools="mkisofs mksquashfs unsquashfs gdk-pixbuf-query-loaders glib-compile-schemas gio-querymodules rsvg-convert convert cryptmd5 vncpasswd smbpasswd"
+required_tools="mkisofs mksquashfs unsquashfs glib-compile-schemas rsvg-convert convert vncpasswd smbpasswd"
 for tool in $required_tools; do
 	if [ ! `which $tool` ]; then
 		missing_tools="$missing_tools $tool"
@@ -1957,38 +1961,8 @@ else
 	CONFIG_FILE="build.conf"
 fi
 
-if [ -z "$KERNVEROPT" ]; then
-	if [ -e ./CON ]; then
-		KERNVEROPT=+con
-	else
-		KERNVEROPT=`cat /boot/KERNEL_VERSION`
-	fi
-fi
-
-for KERNVER in $KERNVEROPT; do
-	if [ "$KERNVER" = "UP" ]; then
-		KERNVER=`cat /boot/KERNEL_VERSION`
-	fi
-
-	# If a specific Kernel version is specified - use it
-	if echo $KERNVER |grep -qe "^+"; then
-		KERNVER_SHORT=`cat /boot/KERNEL_VERSION |sed -e 's/TS/TS'$KERNVER'/g'`
-	else
-		KERNVER_SHORT=`cat /boot/KERNEL_VERSION |sed -e 's/TS/TS_'$KERNVER'/g'`
-	fi
-	if [ -n "$KERNVER" ]; then
-		if [ ! -e /lib/modules/$KERNVER ] && [ ! -e /lib/modules/$KERNVER_SHORT ]; then
-			echo "Kernel $KERNVER doesn't exist, ERROR!!"
-			remove_files
-			exit 1
-		fi
-		if [ -e /lib/modules/$KERNVER_SHORT ]; then
-			KERNVER=$KERNVER_SHORT
-		fi
-	fi
-	echo "Using the $KERNVER Kernel"
-	KERNVERS="$KERNVERS $KERNVER"
-done
+KERNVER=`ls --color=never /lib/modules |sort -V|tail -n1`
+echo -e "Using the $KERNVER Kernel"
 
 # Removal all commerical packages then exit
 if [ -n "$REMOVEALL" ]; then
@@ -2052,7 +2026,7 @@ else
 			fi
 		fi
 		cat ../"$BUILDTIME" >> ../tmp-tree/thinstation.buildtime
-		busybox dos2unix ../tmp-tree/thinstation.buildtime
+		busybox.shared dos2unix ../tmp-tree/thinstation.buildtime
 		. ../$INITDIR/kernel_parameters
 		if [ "$ts_initrdcmd" == "squashfs" ]; then
 		    mksquashfs . ../$INITDIR/initrd $ts_squashopt $DEF_SQUASHOPT
@@ -2104,11 +2078,9 @@ md5sum initrd > image.md5
 if is_enabled $ts_earlymicrocode; then
 	md5sum ucode >> image.md5
 fi
-for KERNVER in $KERNVERS; do
-	ln /boot/vmlinuz-$KERNVER ./vmlinuz$k
-	md5sum vmlinuz$k >> image.md5
-	let k=k+1
-done
+
+ln /boot/vmlinuz-$KERNVER ./vmlinuz$k
+md5sum vmlinuz$k >> image.md5
 
 if [ -e lib.squash ]; then
 	md5sum lib.squash >> image.md5
@@ -2187,45 +2159,54 @@ sys_copy()
 	if [ ! -e "$2" ]; then
 		mkdir -p `dirname "$2"`
 		cp -a "$1" "$2"
-		echo "$2" |sed -E "s|/+|/|g" |sed '/\.tpl/d' >> boot-images/initrd/added.files
+		if [ "$?" == "0" ]; then
+			echo "$2" |sed -E "s|/+|/|g" |sed '/\.tpl/d' >> boot-images/initrd/added.files
+		else
+			echo "Could not copy $1 to $2"
+		fi
 	fi
 }
 
 wrap_efi()
 {
 	if is_enabled ${ts_wrap_efi:=enabled}; then
-		sys_copy /boot/efi/EFI/Leidos/shimx64.efi $ESP/EFI/boot/bootx64.efi
-		sys_copy /boot/efi/EFI/Leidos/shimx64.efi $ESP/EFI/Microsoft/Boot/bootmgfw.efi
-		sys_copy /boot/efi/EFI/Leidos/mmx64.efi $ESP/EFI/boot/mmx64.efi
-		sys_copy /boot/efi/EFI/Leidos/mmx64.efi $ESP/EFI/Microsoft/Boot/mmx64.efi
+		sys_copy /boot/efi/EFI/fedora/shimx64.efi $ESP/EFI/BOOT/BOOTX64.EFI
+		sys_copy /boot/efi/EFI/fedora/shimx64.efi $ESP/EFI/Microsoft/Boot/bootmgfw.efi
+		sys_copy /boot/efi/EFI/fedora/mmx64.efi $ESP/EFI/BOOT/mmx64.efi
+		sys_copy /boot/efi/EFI/fedora/mmx64.efi $ESP/EFI/Microsoft/Boot/mmx64.efi
+		sys_copy /boot/efi/EFI/fedora/BOOTX64.CSV $ESP/EFI/BOOT/BOOTX64.CSV
+		sys_copy /boot/efi/EFI/fedora/BOOTX64.CSV $ESP/EFI/Microsoft/Boot/BOOTX64.CSV
 
-		sys_copy /ts/certs/${ts_sb_cert:=ThinStation-UEFI-CA.cer} $ESP/${ts_sb_cert:=ThinStation-UEFI-CA.cer}
 		configdir=boot-images/templates/grub/"$ts_grubtheme"
 		for file in `find $configdir -type f |sed -e "s|$configdir||g"`; do
-			sys_copy ${configdir}${file} "$ESP/boot/grub/$file"
-			sys_copy ${configdir}${file} "$ESP/boot/grub/$file"
+			sys_copy ${configdir}${file} "$ESP/boot/grub2/$file"
+			sys_copy ${configdir}${file} "$ESP/boot/grub2/$file"
 		done
+		sys_copy /usr/share/grub/unicode.pf2 $ESP/boot/grub2/fonts/unicode.pf2
+
 		if is_enabled $ts_earlymicrocode ; then
-			sed -i -e "s:/boot/initrd:/boot/ucode /boot/initrd:" $ESP/boot/grub/grub.cfg
+			sed -i -e "s:/boot/initrd:/boot/ucode /boot/initrd:" $ESP/boot/grub2/grub.cfg
 		fi
-		sed -i -e "s:/boot/initrd:/${ts_bootprefix}boot/initrd:" $ESP/boot/grub/grub.cfg
-		sed -i -e "s:/boot/ucode:/${ts_bootprefix}boot/ucode:" $ESP/boot/grub/grub.cfg
-		sed -i -e "s:/boot/vmlinuz:/${ts_bootprefix}boot/vmlinuz:" $ESP/boot/grub/grub.cfg
-		sed -i -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS/g" $ESP/boot/grub/grub.cfg
+		sed -i -e "s:/boot/initrd:/${ts_bootprefix}boot/initrd:" $ESP/boot/grub2/grub.cfg
+		sed -i -e "s:/boot/ucode:/${ts_bootprefix}boot/ucode:" $ESP/boot/grub2/grub.cfg
+		sed -i -e "s:/boot/vmlinuz:/${ts_bootprefix}boot/vmlinuz:" $ESP/boot/grub2/grub.cfg
+		sed -i -e "s/\$KERNEL_PARAMETERS/$KERNEL_PARAMETERS/g" $ESP/boot/grub2/grub.cfg
 
 		if [ -n "$ts_grubpasswd" ]; then
 			passhash=`echo -e "$ts_grubpasswd\n$ts_grubpasswd\n" |grub-mkpasswd-pbkdf2 |cut -d " " -f7|tail -n1`
-			echo 'set superusers="Admin"' >> $ESP/boot/grub/grub.cfg
-			echo "password_pbkdf2 Admin $passhash" >> $ESP/boot/grub/grub.cfg
+			echo 'set superusers="Admin"' >> $ESP/boot/grub2/grub.cfg
+			echo "password_pbkdf2 Admin $passhash" >> $ESP/boot/grub2/grub.cfg
 		fi
+		for module in `grep $ESP/boot/grub2/grub.cfg -e insmod |awk '{print $2}'`; do
+                        sys_copy /usr/lib/grub/i386-pc/$module.mod $ESP/boot/grub2/i386-pc/$module.mod
+                done
 
-
-		cp /usr/lib/grub/grub2-x86_64-CD.efi $ESP/EFI/boot/grubx64.efi
-		cp /usr/lib/grub/grub2-x86_64-CD.efi $ESP/EFI/Microsoft/Boot/grubx64.efi
+		sys_copy /boot/efi/EFI/fedora/grubx64.efi $ESP/EFI/BOOT/grubx64.efi
+		sys_copy /boot/efi/EFI/fedora/grubx64.efi $ESP/EFI/Microsoft/Boot/grubx64.efi
 
 		ELTORITO="-eltorito-alt-boot \
 				-eltorito-platform efi \
-				-b EFI/boot/boot.efi \
+				-b EFI/BOOT/CDBOOT.EFI \
 				-no-emul-boot"
 
 		HYBRID_EFI="--uefi"
@@ -2242,13 +2223,12 @@ wrap_efi()
 		umount temp-efi
 		losetup -d $lodev
 		rmdir temp-efi
-		mkdir -p $ESP/EFI/boot
-		sys_copy $INITDIR/boot.efi $ESP/EFI/boot/boot.efi
 
-		cp /usr/lib/grub/grub2-x86_64-HD.efi $ESP/EFI/boot/grubx64.efi
-		cp /usr/lib/grub/grub2-x86_64-HD.efi $ESP/EFI/Microsoft/Boot/grubx64.efi
-		echo $ESP/EFI/boot/grubx64.efi >> boot-images/initrd/added.files
-		echo $ESP/EFI/Microsoft/Boot/grubx64.efi >> boot-images/initrd/added.files
+		sys_copy $INITDIR/boot.efi $ESP/EFI/BOOT/CDBOOT.EFI
+		sys_copy $ESP/boot/grub2/grub.cfg $ESP/EFI/fedora/grub.cfg
+		for module in `grep $ESP/EFI/fedora/grub.cfg -e insmod |awk '{print $2}'`; do
+			sys_copy /usr/lib/grub/x86_64-efi/$module.mod $ESP/EFI/fedora/x86_64-efi/$module.mod
+		done
 		find $ESP/EFI -type f -exec chmod 644 {} \;
 	fi
 }
@@ -2266,30 +2246,30 @@ if [ -z "$NOIMAGES" ]; then
                                 add_image
 				add_overlay
 
-				rufus_exe=`find /usr/share/rufus -type f 2>/dev/null`
-				sys_copy $rufus_exe $ESP/rufus/`basename $rufus_exe`
+#				rufus_exe=`find /usr/share/rufus -type f 2>/dev/null`
+#				sys_copy $rufus_exe $ESP/rufus/`basename $rufus_exe`
 
                                 addpkgs $ESP
 
 				export MODULES="biosdisk $grub_modules $ts_grubextra"
 
-				grub-mkimage -p /boot/grub -c boot-images/templates/grub/cd.cfg -O i386-pc-eltorito -o	$ESP/boot/grub/cdboot.img $MODULES iso9660 udf
-				echo $ESP/boot/grub/cdboot.img >> boot-images/initrd/added.files
+				grub2-mkimage -p /boot/grub2 -O i386-pc-eltorito -o $ESP/boot/grub2/cdboot.img $MODULES iso9660 udf
+				echo $ESP/boot/grub2/cdboot.img >> boot-images/initrd/added.files
 
-				grub-mkimage -p \(hd0,msdos1\)/boot/grub -c boot-images/templates/grub/hd.cfg -O i386-pc -o  $ESP/boot/grub/core.img $MODULES
-				echo $ESP/boot/grub/core.img >> boot-images/initrd/added.files
+				grub2-mkimage -p \(hd0,msdos1\)/boot/grub2 -O i386-pc -o $ESP/boot/grub2/core.img $MODULES
+				echo $ESP/boot/grub2/core.img >> boot-images/initrd/added.files
 
-				grub-mkimage -p /boot/grub -c boot-images/templates/grub/net.cfg -O i386-pc-pxe -o  $ESP/boot/grub/pxeboot.img $MODULES net tftp http pxe
-				echo $ESP/boot/grub/pxeboot.img >> boot-images/initrd/added.files
+				grub2-mkimage -p /boot/grub2 -O i386-pc-pxe -o  $ESP/boot/grub2/pxeboot.img $MODULES net tftp http pxe
+				echo $ESP/boot/grub2/pxeboot.img >> boot-images/initrd/added.files
 
-				sys_copy /usr/lib/grub/i386-pc/boot.img $ESP/boot/grub/boot.img
-				sys_copy /usr/lib/grub/i386-pc/normal.mod $ESP/boot/grub/i386-pc/normal.mod
+				sys_copy /usr/lib/grub/i386-pc/boot.img $ESP/boot/grub2/boot.img
+				sys_copy /usr/lib/grub/i386-pc/normal.mod $ESP/boot/grub2/i386-pc/normal.mod
 
-				grub-mkimage -p\(hd0,msdos1\)/boot/grub -c boot-images/templates/grub/cd.cfg -O i386-pc -o	/tmp/.hybrid-core.img $MODULES iso9660 udf
+				grub2-mkimage -p\(hd0,msdos1\)/boot/grub2 -O i386-pc -o	/tmp/.hybrid-core.img $MODULES iso9660 udf
 
                                 xorriso -as mkisofs -V "$ts_cdvolname" \
                                         -o $ESP/../thinstation-efi.iso \
-                                        -eltorito-boot boot/grub/cdboot.img \
+                                        -eltorito-boot boot/grub2/cdboot.img \
                                         -c boot/boot.cat \
                                         -no-emul-boot \
                                         -boot-load-size 4 \
@@ -2322,9 +2302,9 @@ if [ -n "$MODFILES" ]; then
 	echo "Your MOD_PACKAGES for the .conf file should be"
 	echo "MOD_PACKAGES=\"$MODFILES\""
 fi
-for KERNVER in $KERNVERS; do
-	echo "Kernel $KERNVER size is `du -L --apparent-size -BK /boot/vmlinuz-$KERNVER |cut -f1`"
-done
+
+echo "Kernel $KERNVER size is `du -L --apparent-size -BK /boot/vmlinuz-$KERNVER |cut -f1`"
+
 echo "Initrd size is `du --apparent-size -BK boot-images/initrd/initrd |cut -f1`"
 if [ "$ts_fastboot" == "true" ] || [ "$ts_fastboot" == "lotsofmem" ] ; then
 	echo "Squash size is `du --apparent-size -BK boot-images/initrd/lib.squash |cut -f1`"

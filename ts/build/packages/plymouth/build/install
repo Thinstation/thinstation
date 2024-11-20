@@ -1,12 +1,11 @@
 #!/bin/sh
 
-export PACKAGE=plymouth
-export PORTS=$PACKAGE
-export CREATE_EMPTY_DIRS="var/lib/plymouth run/plymouth var/spool/plymouth"
+export PACKAGE="plymouth"
+export PORTS="plymouth plymouth-core-libs plymouth-graphics-libs plymouth-plugin-label plymouth-plugin-two-step plymouth-scripts plymouth-theme-spinner"
+export DROP_FILES=""
+export DROP_DIRS=""
+export CREATE_EMPTY_DIRS=""
 repackage -e
-
-sed -i -e 's|/usr/bin|/bin|g' /build/packages/plymouth/lib/systemd/system/*.service
-sed -i -e 's|/usr/sbin|/sbin|g' /build/packages/plymouth/lib/systemd/system/*.service
 
 returnval=$?
 

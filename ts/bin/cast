@@ -49,7 +49,7 @@ do_mounts()
 	if ! mounted dev/pts ; then mount --bind /dev/pts dev/pts ; fi
 	if [ -e fastboot ]; then
 		if [ -e ../boot-images/initrd/lib.squash ]; then
-			mount ../boot-images/initrd/lib.squash lib
+			mount ../boot-images/initrd/lib.squash lib64
 		fi
 	fi
 	if [ -e /run/pcscd ]; then
@@ -77,7 +77,7 @@ launch_chroot()
 		fi
 	fi
 	chroot_cmd="chroot"
-	$chroot_cmd $PWD /bin/busybox sh
+	$chroot_cmd $PWD /sbin/busybox.shared sh
 	howdiditgo=$?
 	if first_or_last ; then
 		do_unmounts

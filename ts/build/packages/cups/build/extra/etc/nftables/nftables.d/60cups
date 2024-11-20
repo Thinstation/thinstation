@@ -1,0 +1,4 @@
+# Define cups rules
+nft add set ip filter cups_snmp '{ type ipv4_addr; flags timeout; timeout 5m; }'
+nft add rule ip filter OUTPUT ip daddr 192.168.0.0/16 udp dport 161 add @cups_snmp { ip saddr }
+nft add rule ip filter INPUT ip saddr 192.168.0.0/16 udp sport 161 udp dport 1024-65535 ip saddr @cups_snmp accept

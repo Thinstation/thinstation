@@ -60,7 +60,6 @@
     <a href="#How-do-I-build-a-thinclient-">How do I build a thinclient?</a>
     <a href="#How-do-I-change-the-kind-of-image-I-want-to-make-">How do I change the kind of image I want to make?</a>
     <a href="#Is-there-any-more-documentation-or-help-">Is there any more documentation or help?</a>
-    <a href="#-PROXY-SUPPORT-">(PROXY SUPPORT)</a>
   </div>
 
   <ol class='man-decor man-head man head'>
@@ -72,7 +71,7 @@
   <h1>DevStation</h1>
 <h2 id="NOTE">NOTE</h2>
 
-<p>You will need a network connection for this installer to work. Proxies are supported(Notes at bottom).</p>
+<p>You will need a network connection for this installer to work.</p>
 
 <h2 id="What-will-this-disc-do-">What will this disc do?</h2>
 
@@ -80,50 +79,44 @@
 
 <h2 id="Do-I-really-need-this-">Do I really need this?</h2>
 
-<p>Strictly speaking, no. You can git clone on your favorite distro like this.<br />
-<code>git clone --depth 1 git://github.com/Thinstation/thinstation.git</code></p>
+<p>Strictly speaking, no. You can git clone on a Fedora(possibly RHEL) based distro like this.<br /></p>
+
+<p><code>git clone --depth 1 git://github.com/Thinstation/thinstation.git</code></p>
 
 <h2 id="What-else-do-I-need-">What else do I need?</h2>
 
-<p>If you want to boot clients from this workstation, you will need to assign a static IP to the MAC address of this workstation on your DHCP Server. You will also need to set the 'Next Server' for your network to that IP and set the boot file to <code>pxelinux.0</code>.</p>
+<p>If you want to boot clients from this workstation, you will need to assign a static IP to the MAC address of this workstation on your DHCP Server. You will also need to set the 'Next Server' for your network to that IP and set the boot file to <code>boot/grub2/pxeboot.img</code>.</p>
 
 <h2 id="How-do-I-build-a-thinclient-">How do I build a thinclient?</h2>
 
-<p>After the installation has finished and you have rebooted, open an xterm and do the following<br />
-<code>cd /thinstation</code><br />
+<p>After the installation has finished and you have rebooted, open a root terminal and do the following<br /></p>
+
+<p><code>cd /thinstation</code><br />
 <code>./setup-chroot</code><br />
-<code>cd /build</code><br />
-<code>./build</code></p>
+<code>stb</code><br /></p>
 
 <p>This will make a thinclient that will boot on VMware workstations.</p>
 
 <h2 id="How-do-I-change-the-kind-of-image-I-want-to-make-">How do I change the kind of image I want to make?</h2>
 
-<p>nano <code>/build/build.conf</code> and <code>/build/thinstation.conf.buildtime</code>.</p>
+<p>Use your favorite editor to modify<br /></p>
+<p><code>/build/build.conf</code> and<br />
+<code>/build/thinstation.conf.buildtime</code>.</p>
 
 <h2 id="Is-there-any-more-documentation-or-help-">Is there any more documentation or help?</h2>
 
-<p>Yes, check<br />
-<code>/build/conf</code><br />
-and the wiki at<br />
-<code>https:/www.thinstation.org</code><br />
-or the general mailing list<br />
-<code>https://lists.sourceforge.net/mailman/listinfo/thinstation-general</code><br />
-or the developer mailing list<br />
-<code>https://lists.sourceforge.net/mailman/listinfo/thinstation-developer</code><br />
-or the irc channel<br />
-<code>#thinstation</code><br />
-on freenode</p>
-
-<h2 id="-PROXY-SUPPORT-">(PROXY SUPPORT)</h2>
-
-<p>The sourceforge.net git repo does not support http or https, only ssh and git. However, all is not lost. You can still clone via an https proxy with a little extra configuration. On the proxy server, you will need to allow the ssl 'CONNECT' command for port <code>9418</code>. As an example, for squid, you would edit the squid.conf and add port <code>9418</code> to the list of ssl ports along side <code>443</code> and <code>563</code>.<br />
-If you setup a proxy, a couple of files are created in <code>~/</code>; <code>.wgetrc</code>, <code>proxy</code>, <code>.gitconfig</code>. These files may contain the plain text of a username and password. You may want to delete them after installation.</p>
-
+<p>Yes, check<br /></p>
+<p><code>/build/conf</code><br /></p>
+<p>and the wiki at<br /></p>
+<p><code>https://github.com/Thinstation/thinstation/wiki</code><br /></p>
+<p>or the general mailing list<br /></p>
+<p><code>https://lists.sourceforge.net/mailman/listinfo/thinstation-general</code><br /></p>
+<p>or the developer mailing list<br /></p>
+<p><code>https://lists.sourceforge.net/mailman/listinfo/thinstation-developer</code><br /></p>
 
   <ol class='man-decor man-foot man foot'>
     <li class='tl'></li>
-    <li class='tc'>November 2019</li>
+    <li class='tc'>November 2024</li>
     <li class='tr'>README</li>
   </ol>
 

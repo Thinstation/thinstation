@@ -160,19 +160,22 @@ do_mounts
 sleep 1
 
 # Add grub bootloader
-mkdir -p $bootdir/boot/grub
-mkdir -p $bootdir/EFI/boot
+mkdir -p $bootdir/boot/grub2
+mkdir -p $bootdir/EFI/BOOT
 mkdir -p $bootdir/EFI/Microsoft/Boot
+mkdir -p $bootdir/EFI/fedora
 
-cp -a $sourceboot/EFI/boot/* $bootdir/EFI/boot/.
-rm $bootdir/EFI/boot/boot.efi
-cp -a $bootdir/EFI/boot/* $bootdir/EFI/Microsoft/Boot/.
+cp -a $sourceboot/EFI/BOOT/* $bootdir/EFI/BOOT/.
+rm $bootdir/EFI/BOOT/CDBOOT.EFI
+cp -a $bootdir/EFI/BOOT/* $bootdir/EFI/Microsoft/Boot/.
 mv $bootdir/EFI/Microsoft/Boot/bootx64.efi $bootdir/EFI/Microsoft/Boot/bootmgfw.efi
+cp -a $sourceboot/EFI/fedora/* $bootdir/EFI/fedora/.
 
-cp -a $sourceboot/boot/grub/devstation/* $bootdir/boot/grub/.
+cp -a $sourceboot/boot/grub2/devstation/* $bootdir/boot/grub2/.
+cp -a $bootdir/boot/grub2/grub.cfg $bootdir/EFI/fedora/.
 
-dd if=$sourceboot/boot/grub/boot.img of=$disk bs=446 count=1
-dd if=$sourceboot/boot/grub/core.img of=$disk bs=512 seek=1
+dd if=$sourceboot/boot/grub2/boot.img of=$disk bs=446 count=1
+dd if=$sourceboot/boot/grub2/core.img of=$disk bs=512 seek=1
 
 
 cd $bootdir/boot
@@ -199,7 +202,7 @@ cp initrd initrd-backup
 cp vmlinuz vmlinuz-backup
 cp lib.update lib.squash-backup
 
-if is_enabled $INSTALLER_DEV; then
+if is_enabled $INSTALLER_DEV && false; then
 	cd /thinstation
 	rm -rf *
 

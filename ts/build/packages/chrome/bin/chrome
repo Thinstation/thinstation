@@ -2,6 +2,20 @@
 
 . /etc/thinstation.global
 
+# Ensure the login keyring exists
+if [ ! -f ~/.local/share/keyrings/login.keyring ]; then
+	printf "[keyring]\npassword=" > ~/.local/share/keyrings/login.keyring
+fi
+
+# Unlock the keyring explicitly
+dbus-send --session \
+	--dest=org.freedesktop.secrets \
+	--type=method_call \
+	--print-reply \
+		/org/freedesktop/secrets \
+		org.freedesktop.Secret.Service.Unlock \
+		array:string:"login"
+
 if [ -e ~/.proxy ] ; then
 	. ~/.proxy
 	if [ "$PROXY_HTTP" == "TRUE" ] ; then

@@ -9,97 +9,97 @@ echo FASTBOOT=$2 >> etc/thinstation.env
 cp --remove-destination /bin/mount bin/.
 
 if [ "$2" == "true" ] ; then
-	mv bin lib/.
-	mv sbin lib/.
-	ln -sf /lib/bin bin
-	ln -sf /lib/sbin sbin
-	ln -sf . lib/lib
-	mkdir lib/etc
+	mv bin lib64/.
+	mv sbin lib64/.
+	ln -sf /lib64/bin bin
+	ln -sf /lib64/sbin sbin
+	ln -sf . lib64/lib64
+	mkdir lib64/etc
 	mkdir -p fastboot/bin
 	mkdir -p fastboot/sbin
 	for i in opt jre lib32; do
 		if [ -e $i ]; then
-			mv $i lib/.
-			ln -sf /lib/$i $i
+			mv $i lib64/.
+			ln -sf /lib64/$i $i
 		fi
 	done
 	for i in `cat ../fastboot/etc-ro` ; do
 		if [ -e etc/$i ]; then
-			mv etc/$i lib/etc/.
-			ln -sf /lib/etc/$i etc/$i
+			mv etc/$i lib64/etc/.
+			ln -sf /lib64/etc/$i etc/$i
 		fi
 	done
 	for i in `cat ../fastboot/lib-rw` ; do
-		if [ -e lib/$i ]; then
-			mv lib/$i var/.
-			ln -sf /var/$i lib/$i
+		if [ -e lib64/$i ]; then
+			mv lib64/$i var/.
+			ln -sf /var/$i lib64/$i
 		fi
 	done
 	for i in `ls --color=never usr |grep -Ewvf ../fastboot/usr-rw` ;do
-		mv usr/$i lib/.
-		ln -sf /lib/$i usr/$i
+		mv usr/$i lib64/.
+		ln -sf /lib64/$i usr/$i
 	done
 	rm -f fastlibneed
 	for i in `cat ../fastboot/bin-boot` ; do
-		if [ -e lib/bin/$i ]; then
-			mv lib/bin/$i fastboot/bin/.
-			ln -sf /fastboot/bin/$i lib/bin/$i
+		if [ -e lib64/bin/$i ]; then
+			mv lib64/bin/$i fastboot/bin/.
+			ln -sf /fastboot/bin/$i lib64/bin/$i
 			ldd fastboot/bin/$i 2>/dev/null >> /tmp/fastlibneed
 		fi
-		if [ -e lib/sbin/$i ]; then
-			mv lib/sbin/$i fastboot/sbin/.
-			ln -sf /fastboot/sbin/$i lib/sbin/$i
+		if [ -e lib64/sbin/$i ]; then
+			mv lib64/sbin/$i fastboot/sbin/.
+			ln -sf /fastboot/sbin/$i lib64/sbin/$i
 			ldd fastboot/sbin/$i 2>/dev/null >> /tmp/fastlibneed
 		fi
 	done
-	if [ -e lib/plymouth ]; then
-		for so in `dir lib/plymouth/*.so`; do
+	if [ -e lib64/plymouth ]; then
+		for so in `dir lib64/plymouth/*.so`; do
 			ldd $so 2>/dev/null >> /tmp/fastlibneed
 		done
-		for so in lib/plymouth/renderers/drm.so; do
+		for so in lib64/plymouth/renderers/drm.so; do
 			ldd $so 2>/dev/null >> /tmp/fastlibneed
 		done
 	fi
 	cat /tmp/fastlibneed |grep -v "not a dyn"|grep -v ":"| sed -e 's/\t//g' |cut -d " " -f1 |sed -e 's|/lib64/||g' |sed -e 's|/lib/||g' |sort -u > /tmp/fastlib
-	for lib in `cat ../fastboot/lib-boot; cat /tmp/fastlib; ls --color=never lib |grep -E 'libgcc_s.so.[0-1]+|libnss_files.so.[0-9]+|libnss_dns.so.[0-9]+'` ; do
-		if [ -e lib/$lib ]; then
-			mv lib/$lib fastboot/.
-			ln -sf /fastboot/$lib lib/$lib
+	for lib in `cat ../fastboot/lib-boot; cat /tmp/fastlib; ls --color=never lib64 |grep -E 'libgcc_s.so.[0-1]+|libnss_files.so.[0-9]+|libnss_dns.so.[0-9]+'` ; do
+		if [ -e lib64/$lib ]; then
+			mv lib64/$lib fastboot/.
+			ln -sf /fastboot/$lib lib64/$lib
 		fi
 	done
 	echo -e "\tMaking lib.squash"
 	timestamp="`date +%Y%m%d`0000"
-	for file in `find lib`; do
-		touch -c -h -t $timestamp lib/$file
+	for file in `find lib64`; do
+		touch -c -h -t $timestamp lib64/$file
 	done
 	if [ "$HARDLINK" == "true" ]; then
-		hardlink -v lib
+		hardlink -v lib64
 	fi
-	mksquashfs lib ../$INITDIR/lib.squash -always-use-fragments -no-recovery -noappend $FB_COMP_EXTRA
-	for i in `ls --color=never lib/ |grep -xvf ../fastboot/lib-boot |grep -xvf /tmp/fastlib |grep -Ewv 'bin|sbin|dbus-1' |grep -Ev 'libgcc_s.so.[0-1]+|libnss_files.so.[0-9]+|libnss_dns.so.[0-9]+'` ; do
+	mksquashfs lib64 ../$INITDIR/lib.squash -always-use-fragments -no-recovery -noappend $FB_COMP_EXTRA
+	for i in `ls --color=never lib64/ |grep -xvf ../fastboot/lib-boot |grep -xvf /tmp/fastlib |grep -Ewv 'bin|sbin|dbus-1' |grep -Ev 'libgcc_s.so.[0-1]+|libnss_files.so.[0-9]+|libnss_dns.so.[0-9]+'` ; do
 		if [ -n "$i" ] ; then
-			rm -rf lib/$i
+			rm -rf lib64/$i
 		fi
 	done
-	for i in `ls --color=never lib/bin/ |grep -xvf ../fastboot/bin-boot` ; do
+	for i in `ls --color=never lib64/bin/ |grep -xvf ../fastboot/bin-boot` ; do
 		if [ -n "$i" ]; then
-			rm  -rf lib/bin/$i
+			rm  -rf lib64/bin/$i
 		fi
 	done
-	for i in `ls --color=never lib/sbin/ |grep -xvf ../fastboot/bin-boot` ; do
+	for i in `ls --color=never lib64/sbin/ |grep -xvf ../fastboot/bin-boot` ; do
 		if [ -n "$i" ]; then
-			rm  -rf lib/sbin/$i
+			rm  -rf lib64/sbin/$i
 		fi
 	done
 	cd ..
 	echo -e "\tRe-Linking BusyBox\n"
-	chroot ./tmp-tree /bin/busybox --install -s
+	chroot ./tmp-tree /sbin/busybox.shared --install -s
 	cd tmp-tree
 fi
 if [ "$2" == "lotsofmem" ]; then
 	mkdir -p ../fastboot-tmp/bin
 	mkdir -p ../fastboot-tmp/sbin
-	mkdir -p ../fastboot-tmp/lib
+	mkdir -p ../fastboot-tmp/lib64
 	mkdir -p ../fastboot-tmp/etc
 	mkdir -p ../fastboot-tmp/usr
 	cp --remove-destination `which cp`		bin/.
@@ -119,35 +119,35 @@ if [ "$2" == "lotsofmem" ]; then
 		fi
 	done
 	for i in `ls --color=never bin/ |grep -xvf ../fastboot/bin-boot` ; do
-		if [ -n "$i" ] && [ "`readlink bin/$i`" != "/bin/busybox" ]; then
+		if [ -n "$i" ] && [ "`readlink bin/$i`" != "/sbin/busybox.shared" ]; then
 			mv bin/$i ../fastboot-tmp/bin/.
 		fi
 	done
 	for i in `ls --color=never sbin/ |grep -xvf ../fastboot/bin-boot` ; do
-		if [ -n "$i" ] && [ "`readlink sbin/$i`" != "/bin/busybox" ]; then
+		if [ -n "$i" ] && [ "`readlink sbin/$i`" != "/sbin/busybox.shared" ]; then
 			mv sbin/$i ../fastboot-tmp/sbin/.
 		fi
 	done
 	ldd bin/* 2>/dev/null > /tmp/fastlibneed
 	ldd sbin/* 2>/dev/null >> /tmp/fastlibneed
-	if [ -e lib/plymouth ]; then
-		for so in `dir lib/plymouth/*.so`; do
+	if [ -e lib64/plymouth ]; then
+		for so in `dir lib64/plymouth/*.so`; do
 			ldd $so 2>/dev/null >> /tmp/fastlibneed
 		done
-                for so in lib/plymouth/renderers/drm.so; do
+                for so in lib64/plymouth/renderers/drm.so; do
                         ldd $so 2>/dev/null >> /tmp/fastlibneed
                 done
 	fi
 	cat /tmp/fastlibneed |grep -v "not a dyn"|grep -v ":" |sed -e 's/\t//g' |cut -d " " -f1 |sed -e 's|/lib64/||g' |sed -e 's|/lib/||g' |sort -u > /tmp/fastlib
 	for lib in `cat /tmp/fastlib |grep -v linux-vdso.so`; do
-		if [ ! -e lib/$lib ]; then
-			libsource="`prt-get fsearch $lib |grep -Ev 'Found|x-tool|^$' | cut -d " " -f3 |head -n1`"
-			cp $libsource lib/.
+		if [ ! -e lib64/$lib ]; then
+			libsource="`find /usr/lib /usr/lib64 -name $lib`"
+			cp $libsource lib64/.
 		fi
 	done
-	for i in `ls --color=never lib/ |grep -xvf ../fastboot/lib-boot |grep -xvf /tmp/fastlib |grep -Ev 'libgcc_s.so.[0-1]+|libnss_files.so.[0-9]+|libnss_dns.so.[0-9]+'` ; do
+	for i in `ls --color=never lib64/ |grep -xvf ../fastboot/lib-boot |grep -xvf /tmp/fastlib |grep -Ev 'libgcc_s.so.[0-1]+|libnss_files.so.[0-9]+|libnss_dns.so.[0-9]+'` ; do
 		if [ -n "$i" ] ; then
-			mv lib/$i ../fastboot-tmp/lib/.
+			mv lib64/$i ../fastboot-tmp/lib64/.
 		fi
 	done
 	if [ "$HARDLINK" == "true" ]; then

@@ -1,20 +1,11 @@
-#!/bin/bash
+#!/bin/sh
 
-bday=`stat -c %X /etc/index.html`
-
-file_loaded()
-{
-	if [ -n "`stat -c '%X' $1 | grep -v \"$bday\"`" ]; then
-		return 0
-	else
-		return 1
+for dir in bin etc lib64 libexec usr home opt root sbin srv var; do
+	if [ -d /$dir ]; then
+		for file in `find /$dir -type f`; do
+			if [ "`stat -c '%X' $file`" != "`stat -c '%Z' $file`" ]; then
+				echo $file
+			fi
+		done
 	fi
-}
-
-for dir in bin etc lib libexec media net run usr home label mnt opt root sbin srv var; do
-	for file in `find /$dir -type f`; do
-		if file_loaded $file; then
-			echo $file
-		fi
-	done
 done

@@ -1,0 +1,4 @@
+# Define TFTP rules
+nft add set ip filter tftp_clients '{ type ipv4_addr; flags timeout; timeout 5m; }'
+nft add rule ip filter OUTPUT ip daddr 192.168.0.0/16 udp dport 69 add @tftp_clients { ip saddr }
+nft add rule ip filter INPUT ip saddr 192.168.0.0/16 udp sport 69 udp dport 1024-65535 ip saddr @tftp_clients accept

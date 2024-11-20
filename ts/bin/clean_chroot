@@ -66,43 +66,44 @@ stage1()
 	done
 
 	for working in $TSWRKNG $XTRWRKNG; do
-		if [ $working = $TSWRKNG ]
-		then cache=/ts
-		else cache=$working
+		if [ $working = $TSWRKNG ]; then
+			export cache=/ts
+		else
+			export cache=$working
 		fi
 
 		# Remove any empty folders
 		find -L $working -type d -empty -delete
 
-		export cache
 		export working
 		export -f create_wind
 		export -f create_unwind
 		export -f wind_package
 	        procs=`nproc`
 	        let procs-=1
-	        ls --color=never $working/packages |xargs -n 1 -P $procs -I {} bash -c 'wind_package "$@"' _ {}
+
+	        ls --color=never $working/packages |xargs -P $procs -I {} bash -c 'wind_package "$@"' _ {}
 
 	done
 	printf "\rPackages are %-40s\n" "Clean"
 	echo -e "Cleaning tools"
 	update -c -t
-	echo "Checking Ports Directories for Downloaded Files"
-	for distro in /ts $XTRWRKNG; do
-		cd $distro/ports
-		for port_type in `list_folders |grep -v relegated`; do
-			cd $port_type
-			export distro
-			export port_type
-			export super
-			export -f save_archive
-			export -f clean_port
+#	echo "Checking Ports Directories for Downloaded Files"
+#	for distro in /ts $XTRWRKNG; do
+#		cd $distro/ports
+#		for port_type in `list_folders |grep -v relegated`; do
+#			cd $port_type
+#			export distro
+#			export port_type
+#			export super
+#			export -f save_archive
+#			export -f clean_port
 
-			list_folders |xargs -n 1 -P $procs -I {} bash -c 'clean_port "$@"' _ {}
+#			list_folders |xargs -n 1 -P $procs -I {} bash -c 'clean_port "$@"' _ {}
 
-			cd ..
-		done
-	done
+#			cd ..
+#		done
+#	done
 	touch /cleanstage2
 	sync
 	if [ -z "$clean" ]; then
@@ -176,7 +177,7 @@ stage2()
 			umount $mount
 		done
 	done
-	for trash in BUILD.* autodl usr lib64 run www share home man bin boot dev etc lib mnt opt proc root sbin sys tmp var label ts/components; do
+	for trash in BUILD.* autodl usr lib64 run www share home man bin boot dev etc lib mnt opt proc root sbin sys tmp var label ts/components srv media afs; do
 		if [ -e $trash ] || [ -h $trash ]; then
 			rm -rf $ROOT/$trash
 		fi

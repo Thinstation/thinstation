@@ -1,0 +1,106 @@
+#! /bin/sh
+
+. `dirname $0`/common
+
+case "$1" in
+init)
+    if ! pkg_initialized $PACKAGE; then
+	pkg_set_init_flag $PACKAGE
+    fi
+;;
+console)
+
+   TFTP_DIR=/tmp/tftpboot
+   mkdir $TFTP_DIR
+
+   if [ -n "$BASENAME" ] ; then
+	CONFNBI="$BASENAME."
+	CONFNET="$BASENAME.conf."
+	CONFFILE="$BASENAME.conf-"
+	CONFGROUP="$BASENAME.conf.group-"
+	CONFHOSTS="$BASENAME."
+   else
+	CONFNBI=""
+	CONFNET=""
+	CONFFILE=""
+	CONFGROUP=""
+	CONFHOSTS=""
+   fi
+
+   if [ -n $BASEPATH ] ; then
+	   mkdir $TFTP_DIR/$BASEPATH
+   fi
+
+   if [ -n $PKG_PREFIX ] ; then
+	   mkdir $TFTP_DIR/$BASEPATH/$PKG_PREFIX
+   fi
+   if [ -n $MOD_PREFIX ] ; then
+	   mkdir $TFTP_DIR/$BASEPATH/$MOD_PREFIX
+   fi
+
+   until tftp -g -r $BASEPATH/"$CONFNBI"nbi -l $TFTP_DIR/$BASEPATH/"$CONFNBI"nbi $SERVER_IP -b 4000
+   do
+	   echo "Trying to Download tftp image " >> $LOGFILE
+   done
+
+   tftp -g -r $BASEPATH/"$CONFNET"network -l $TFTP_DIR/$BASEPATH/"$CONFNET"network $SERVER_IP -b 4000
+   tftp -g -r $BASEPATH/"$CONFHOSTS"hosts -l $TFTP_DIR/$BASEPATH/"$CONFHOSTS"hosts $SERVER_IP -b 4000
+
+   (cat $TS_HOSTS) |
+   while read options
+   do
+     case "$options" in
+    	\#*|"") continue
+	   ;;
+	*)
+	   thingrouplist=`echo $options | cut -f3- -d" " | cut -f1 -d#`
+   	   for thingroup in $thingrouplist
+	   do
+	     if [ ! -e $TFTP_DIR/$BASEPATH/$CONFGROUP$thingroup ] ; then
+		if ! tftp -g -r $BASEPATH/$CONFGROUP$thingroup -l\
+		   $TFTP_DIR/$BASEPATH/$CONFGROUP$thingroup\
+		   $SERVER_IP -b 4000; then
+			echo -e "\nERROR: $thingroup not found!" >> $LOGFILE
+		fi
+	     fi
+	   done
+	;;
+     esac
+   done
+
+   for thinpkg in $PKG_PACKAGES
+   do
+      if ! tftp -g -r $BASEPATH/$PKG_PREFIX/$thinpkg.pkg -l\
+	$TFTP_DIR/$BASEPATH/$PKG_PREFIX/$thinpkg.pkg\
+	$SERVER_IP -b 4000; then
+	echo -e "\nERROR: $thinpkg not found!" >> $LOGFILE
+      fi
+   done
+
+   for thinpkg in $MOD_PACKAGES
+   do
+      if ! tftp -g -r $BASEPATH/$MOD_PREFIX/$thinpkg.mpkg -l\
+	$TFTP_DIR/$BASEPATH/$MOD_PREFIX/$thinpkg.mpkg\
+	$SERVER_IP -b 4000; then
+	echo -e "\nERROR: $thinpkg not found!" >> $LOGFILE
+      fi
+   done
+
+   echo "0  0 * * * /bin/reboot" >> /tmp/crontab
+   crontab /tmp/crontab
+
+   echo "Acting as a tftp server, waiting for connections" >> $LOGFILE
+   while true ; do
+	sleep 10000
+   done
+
+    ;;
+help)
+    echo "Usage: $0 console"
+    ;;
+  *)
+    exit 1
+    ;;
+esac
+
+exit 0

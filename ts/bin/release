@@ -29,14 +29,14 @@ mk_installer()
 	# Make HW lister
 	cd /build
 	cp conf/hwlister/* .
-	sed -i -e 's/^usermode/#usermode/g' /build/packages/switchuser/dependencies
+#	sed -i -e 's/^usermode/#usermode/g' /build/packages/switchuser/dependencies
 	stb --allmodules
-	sed -i -e 's/^#usermode/usermode/g' /build/packages/switchuser/dependencies
+#	sed -i -e 's/^#usermode/usermode/g' /build/packages/switchuser/dependencies
 
 	mkdir -p /build/boot-images/hw/boot/hwlister
-	mkdir -p /build/boot-images/hw/boot/grub
+	mkdir -p /build/boot-images/hw/boot/grub2
 	cp /build/boot-images/initrd/{vmlinuz,initrd} /build/boot-images/hw/boot/hwlister/.
-	cp -a  /build/boot-images/templates/grub/devstation /build/boot-images/hw/boot/grub/.
+	cp -a  /build/boot-images/templates/grub/devstation /build/boot-images/hw/boot/grub2/.
 	# Make Installer
 	name=TS-${ver}-Installer-`date +%m%d`.iso
 	cp conf/installer/* .

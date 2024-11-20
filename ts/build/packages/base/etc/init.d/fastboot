@@ -183,7 +183,7 @@ iso()
 	systemd-mount --fsck=no -o x-mount.mkdir,defaults /dev/disk/by-label/$CDVOLNAME /mnt/cdrom0
 	FILE=$BASE_MOUNT_PATH/cdrom0/"$squash_location"lib.squash
 	timeout=150
-	while ! /bin/busybox mountpoint $BASE_MOUNT_PATH/cdrom0 && [ $timeout -ne 0 ]; do
+	while ! /sbin/busybox.shared mountpoint $BASE_MOUNT_PATH/cdrom0 && [ $timeout -ne 0 ]; do
 		sleep .1
 		let timeout-=1
 	done
@@ -230,19 +230,19 @@ squash_loc()
 mount_squash()
 {
 	if [ "$FASTBOOT" == "lotsofmem" ] ; then
-		unsquashfs -f -d / -f $FILE
+		/sbin/unsquashfs -f -d / -f $FILE
 		if [ -e /tmp/lib.squash ] ; then
 			rm /tmp/lib.squash
 		fi
 	else
 		if is_enabled $MEMORY_CONSTRAINED ; then
-			systemd-mount --fsck=no -o ro,loop -t squashfs $FILE /lib
+			systemd-mount --fsck=no -o ro,loop -t squashfs $FILE /lib64
 		else
 			if [ ! -e /tmp/lib.squash ] ; then
 				cp $FILE /tmp/lib.squash
 				#systemctl start --no-block vmtouch.service
 			fi
-			systemd-mount --fsck=no -o ro,loop -t squashfs /tmp/lib.squash /lib
+			systemd-mount --fsck=no -o ro,loop -t squashfs /tmp/lib.squash /lib64
 			#systemctl start --no-block vmtouch.service
 		fi
 	fi
@@ -256,11 +256,23 @@ if ! is_disabled $FASTBOOT; then
 		echo_log "Doing Fastboot"
 	fi
 	squash_loc
-	case $LM in
-		2) disk;;
-		3) pxe;;
-		4) iso;;
-	esac
+	# Check if $boot_device is set
+	if [[ -z "$boot_device" ]]; then
+		echo "Error: boot_device is not set."
+		exit 1
+	fi
+
+	# Continue based on the value of $boot_device
+	if [[ "$boot_device" == cd* || "$boot_device" == hd96 ]]; then
+		iso
+	elif [[ "$boot_device" == hd* ]]; then
+		disk
+	elif [[ "$boot_device" == *tftp* || "$boot_device" == *http* ]]; then
+		pxe
+	else
+		echo "boot_device UNKNOWN!"
+	fi
+
 	mount_squash
 else
 	exit 0

@@ -49,18 +49,21 @@ while read type title screen position workspace autostart custom icon server opt
 		if [ "$gate_user" = "." ] ; then unset gate_user ; fi
 
 		if [ ! -e /etc/console/$type ]; then
-		if [ -n "$WMNAME" ] && [ "$type" != "$WMNAME" ]; then
-			echo "pkg auto $type \"$server\" \"$options\" \"$WMWORKSPACE\" \"$user\" \"$pass_enable\" \"$gate\" \"$gate_user\" &" >> $WKDIR/$WMNAME.autostart
- 			echo "sleep .2" >> $WKDIR/$WMNAME.autostart
-		elif [ -n "$WMNAME" ] && [ "$type" == "$WMNAME" ]; then
-			echo "export DISPLAY_NUMBER=$DISPLAY_NUMBER" >> $WKDIR/windowapps
-			echo "exec pkg console $type \"$server\" \"$options\" \"$WMWORKSPACE\" \"$user\" \"$pass_enable\" \"$gate\" \"$gate_user\"" >> $WKDIR/windowapps
+			if [ -n "$WMNAME" ] && [ "$type" != "$WMNAME" ]; then
+				echo "pkg auto $type \"$server\" \"$options\" \"$WMWORKSPACE\" \"$user\" \"$pass_enable\" \"$gate\" \"$gate_user\" &" >> $WKDIR/$WMNAME.autostart
+	 			echo "sleep .2" >> $WKDIR/$WMNAME.autostart
+			elif [ -n "$WMNAME" ] && [ "$type" == "$WMNAME" ]; then
+				echo "export DISPLAY_NUMBER=$DISPLAY_NUMBER" >> $WKDIR/windowapps
+				echo "exec pkg console $type \"$server\" \"$options\" \"$WMWORKSPACE\" \"$user\" \"$pass_enable\" \"$gate\" \"$gate_user\"" >> $WKDIR/windowapps
+			else
+				echo "export DISPLAY_NUMBER=$DISPLAY_NUMBER" >> $WKDIR/windowapps
+				echo "pkg console $type \"$server\" \"$options\" \"$WMWORKSPACE\" \"$user\" \"$pass_enable\" \"$gate\" \"$gate_user\" &" >> $WKDIR/windowapps
+			fi
 		else
-			echo "export DISPLAY_NUMBER=$DISPLAY_NUMBER" >> $WKDIR/windowapps
-			echo "pkg console $type \"$server\" \"$options\" \"$WMWORKSPACE\" \"$user\" \"$pass_enable\" \"$gate\" \"$gate_user\" &" >> $WKDIR/windowapps
-		fi
-		else
-		echo "pkg console $type \"$server\" \"$options\"" >> $WKDIR/consoleapps
+			if ! grep -e "#!/bin/sh" -q $WKDIR/consoleapps; then
+				echo "#!/bin/sh" >> $WKDIR/consoleapps
+			fi
+			echo "pkg console $type \"$server\" \"$options\"" >> $WKDIR/consoleapps
 		fi
 	else
 		no_package

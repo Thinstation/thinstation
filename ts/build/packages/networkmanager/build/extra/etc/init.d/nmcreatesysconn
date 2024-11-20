@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 #
 # Description: Customizes NetworkManager by creating system connection
 # entries. Uses thinstation.conf variables to control creation of
@@ -270,7 +270,7 @@ fi
 
 echo "Finished creating system connections for NetworkManager."
 
-if [ "$HOSTNAME" == "thinstation-linux" ]; then
+if [ "$HOSTNAME" == "localhost" ]; then
 	FIRST_ETH=$(ls /sys/class/net | grep -m 1 'e')
 	if [ -n "$FIRST_ETH" ]; then
 		CLIENT_MAC=`cat /sys/class/net/$FIRST_ETH/address | sed 's/://g'`

@@ -1,18 +1,20 @@
 #!/bin/sh
 
 export PACKAGE=systemd
-export PORTS="$PACKAGE"
+export PORTS="systemd systemd-libs systemd-networkd systemd-pam systemd-resolved systemd-udev"
 export DROP_FILES="	etc.conf \
 			systemd-growfs \
 			systemd-makefs \
 			systemd-fsck \
-			shutdown"
+			shutdown \
+			ldconfig.service \
+			installkernel"
 
-export DROP_DIRS="	lib/zsh \
-			lib/systemd/boot/efi \
-			lib/doc \
-			lib/factory \
-			lib/systemd/system-generators \
+export DROP_DIRS="	lib64/zsh \
+			lib64/systemd/boot/efi \
+			lib64/doc \
+			lib64/factory \
+			lib64/systemd/system-generators \
 			etc/systemd/system/sysinit.target.wants"
 
 repackage -e
@@ -24,10 +26,10 @@ for i in runlevel reboot poweroff halt telinit; do
 	let returnval=returnval+$?
 done
 for link in init sbin/init ; do
-	ln -sf /lib/systemd/systemd ./packages/$PACKAGE/$link
+	ln -sf /lib64/systemd/systemd ./packages/$PACKAGE/$link
 	let returnval=returnval+$?
 done
 
-ln -sf libudev.so.1 ./packages/$PACKAGE/lib/libudev.so.0
+ln -sf libudev.so.1 ./packages/$PACKAGE/lib64/libudev.so.0
 
 exit $returnval

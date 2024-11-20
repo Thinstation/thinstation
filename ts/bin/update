@@ -97,9 +97,9 @@ empty_file()
 
 getpackageloc()
 {
-	if [ "`prt-get isinst $srcpkg |grep -c -e 'not inst'`" -ge "1" ] ; then
-		prt-get depinst -fr $srcpkg
-		pkgver="`prt-get current $srcpkg`"
+	if [ -z "`rpm -q $srcpkg >/dev/null 2>&1 |grep -v 'is not installed'`" ]; then
+		dnf install --setopt=keepcache=1 -y $srcpkg >/dev/null 2>&1
+		pkgver="`rpm -q --queryformat '%{VERSION}-%{RELEASE}\n' $srcpkg`"
 	fi
 }
 
@@ -113,21 +113,21 @@ count_files()
 
 updatefiles()
 {
-	lfile="`prt-get cat $srcpkg .footprint |grep -e /$file$ |grep -v 'lrwx\|drwx' |cut -f 3`"
-	if [ "$lfile" != "" ] ; then
+	lfile="`rpm -qlv $srcpkg |grep -Ev 'drwx|lrwx' |awk '{print $9}'|grep -e /$file$`"
+	if [ -n "$lfile" ] ; then
 		ffile="$file"
 	elif	[ "${#link[@]}" -lt "1" ] && [ "$versioned" == "1" ] ; then
 		version $file
-		lfile="`prt-get cat $srcpkg .footprint |grep -e /${prefix}[0-9] |grep -e $suffix$ |grep -v 'lrwx\|drwx' -m 1 |cut -f3`"
+		lfile="`rpm -qlv $srcpkg |grep -Ev 'drwx|lrwx' |awk '{print $9}' |grep -e /${prefix}[0-9] |grep -e $suffix$`"
 		ffile=${lfile##*/}
 	else
-			slink=${link[0]##*/}
-			if [ -n "$slink" ];then
-				ffile="`prt-get fsearch $slink |grep -e $srcpkg: -A 1 |grep -e '>' |cut -d ' ' -f 5`"
-				lfile="`prt-get cat $srcpkg .footprint |grep -e /$ffile$ |grep -v 'lrwx\|drwx' |cut -f 3`"
-			else
-				echo "Error processing $file"
-			fi
+		slink="`rpm -qlv $srcpkg|grep -e lrwx |awk '{print $9}'|grep -e $file$`"
+		if [ -n "$slink" ];then
+			lfile="`readlink -f $slink`"
+			ffile=${lfile##*/}
+		else
+			echo "Error processing $file"
+		fi
 	fi
 	transdepthvar=$loc
 	count_files
@@ -135,17 +135,22 @@ updatefiles()
 	while [ "$filecount" -gt "1" ]; do
 		sloc=`basename $transdepthvar`/$sloc
 		transdepthvar=`dirname $transdepthvar`
-		lfile="`prt-get cat $srcpkg .footprint |grep -e $sloc$ffile$ |grep -v 'lrwx\|drwx' |cut -f 3`"
+		lfile="`rpm -ql $srcpkg|grep -e $sloc$ffile$`"
 		count_files
 	done
+	if [ "$versioned" == "1" ]; then
+		dfile="."
+	else
+		dfile="$file"
+	fi
 	if [ -n "$lfile" ]; then
 		if [ "$loc" == "" ] ; then
-			cmdlist="${cmdlist}ln /$lfile $DEST/.\n"
+			cmdlist="${cmdlist}ln /$lfile $DEST/$dfile\n"
 		elif	[ ! -d $DEST/$loc ] || $DRYRUN ; then
 			cmdlist="${cmdlist}mkdir -p $DEST/$loc\n"
-			cmdlist="${cmdlist}ln /$lfile $DEST/$loc/.\n"
+			cmdlist="${cmdlist}ln /$lfile $DEST/$loc/$dfile\n"
 		else
-			cmdlist="${cmdlist}ln /$lfile $DEST/$loc/.\n"
+			cmdlist="${cmdlist}ln /$lfile $DEST/$loc/$dfile\n"
 		fi
 	else
 		echo "Error processing $file"

@@ -1,10 +1,10 @@
 #!/bin/sh
 
 export PACKAGE=lightdm
-export PORTS="$PACKAGE lightdm-gtk-greeter accountsservice"
+export PORTS="lightdm lightdm-gtk accountsservice lightdm-autologin-greeter lightdm-gobject"
 repackage -e
 
-sed -i -e 's|/usr/bin|/bin|g' /build/packages/lightdm/lib/systemd/system/*.service
+sed -i -e 's|/usr/bin|/bin|g' /build/packages/lightdm/lib64/systemd/system/*.service
 returnval=$?
 
 exit $returnval

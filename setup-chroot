@@ -7,7 +7,7 @@ state_checks()
 	test $(id -u) -ne 0 && echo "please run as root" && exit 1
 	test ! -e setup-chroot  && echo "This utility must be run in the directory in which it exists." && exit 1
 	test "$PWD" == "/" && echo "You have already started the session." && exit 1
-	test ! -d var/lib/pkg && ts/bin/install_chroot
+	test ! -d var/cache/dnf && ts/bin/install_chroot
 }
 
 help()
@@ -117,7 +117,7 @@ set_proxy()
 
 mounted()
 {
-	if [ "`cat /proc/mounts |grep -e \"$PWD\"/$1 -c`" -ne "0" ]; then
+	if mountpoint $1 >/dev/null; then
 		return 0
 	else
 		return 1
@@ -131,6 +131,7 @@ do_mounts()
 	if ! mounted proc ; then mount -t proc proc proc ; fi
 	if ! mounted sys ; then mount -t sysfs none sys ; fi
 	if ! mounted dev/pts ; then mount --bind /dev/pts dev/pts ; fi
+	if ! mounted run ; then mount --bind /run run ; fi
 	if [ -e /run/pcscd ]; then
 		if ! mounted run/pcscd ; then
 			mkdir -p run/pcscd
@@ -158,13 +159,13 @@ do_mounts()
 
 copy_host_essential()
 {
-	if which xauth >/dev/null 2>&1 && [ -n "`xauth list`" ]; then
-		auth_file=$(xauth info | grep "Authority file" | awk '{print $3}')
-		auth_dir="`dirname $auth_file`"
-		mkdir -p $PWD$auth_dir
-		cp -a $auth_file $PWD$auth_dir/.
-	fi
-	cp -f /etc/resolv.conf etc/resolv.conf
+#	if which xauth >/dev/null 2>&1 && [ -n "`xauth list`" ]; then
+#		auth_file=$(xauth info | grep "Authority file" | awk '{print $3}')
+#		auth_dir="`dirname $auth_file`"
+#		mkdir -p $PWD$auth_dir
+#		cp -a $auth_file $PWD$auth_dir/.
+#	fi
+#	cp -f /etc/resolv.conf etc/resolv.conf
 	if ${keys:=false}; then
 		if [ -e ~/.ssh ]; then
 			mkdir -p root
@@ -222,7 +223,8 @@ secure_keys()
 
 do_unmounts()
 {
-	for mount in dev/pts dev tmp proc sys run/pcscd run/user/0 run/user/$SUDO_UID; do
+#	for mount in dev/pts dev tmp proc sys run/pcscd run/user/0 run/user/$SUDO_UID; do
+	for mount in dev/pts dev tmp proc sys run; do
 		while mounted $mount ; do
 			umount -l $mount
 			if mounted $mount; then

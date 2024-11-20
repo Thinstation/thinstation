@@ -193,7 +193,7 @@ dialog_no_value()
 create_dialog()
 {
 	MAIN_DIALOG='
-<window title="'"$DIALOG_TITLE"'" decorated="true" width-request="325" height-request="213" allow-grow="false" allow-shrink="false" skip_taskbar_hint="true" image-name="'$(choose_pixmap)'">
+<window title="'"$DIALOG_TITLE"'" decorated="true" width-request="325" height-request="225" allow-grow="false" allow-shrink="false" skip_taskbar_hint="true" image-name="'$(choose_pixmap)'">
 	<vbox>
 	<notebook labels="User|Server">
 		<vbox visible="'"$SHOW_USER"'">
@@ -451,11 +451,11 @@ find_network()
 </window>
 '
 	[ -z $GTKDIALOG ] && GTKDIALOG=gtkdialog
-	if [ -z "`busybox ifconfig |grep -e 'inet addr' |grep -v 127.0`" ]; then
+	if [ -z "`/sbin/busybox.shared ifconfig |grep -e 'inet addr' |grep -v 127.0`" ]; then
 		export PACKAGE_NET_WAIT
 		$GTKDIALOG -c --program=BAR_DIALOG
 	fi
-	if [ -z "`busybox ifconfig |grep -e 'inet addr' |grep -v 127.0`" ]; then
+	if [ -z "`/sbin/busybox.shared ifconfig |grep -e 'inet addr' |grep -v 127.0`" ]; then
 		x_error "Network" "Timed out waiting for network!"
 		return 1
 	fi
