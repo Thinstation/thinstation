@@ -7,7 +7,7 @@ core_ports="filesystem basesystem dnf rubygem-ronn-ng tar pciutils busybox-share
 grub_ports="grub2-common grub2-efi-x64 grub2-efi-x64-modules grub2-pc-modules grub2-tools grub2-tools-efi grub2-tools-minimal shim-x64"
 kernel_ports="kernel-core kernel-modules kernel-modules-core kernel-modules-extra"
 firmware_ports="alsa-sof-firmware amd-gpu-firmware amd-ucode-firmware atheros-firmware brcmfmac-firmware cirrus-audio-firmware intel-audio-firmware intel-gpu-firmware iwlegacy-firmware iwlwifi-dvm-firmware iwlwifi-mvm-firmware libertas-firmware linux-firmware linux-firmware-whence mt7xxx-firmware nvidia-gpu-firmware nxpwireless-firmware realtek-firmware tiwilink-firmware "
-misc_ports="librsvg2-tools samba-common-tools xorriso pulseaudio which squashfs-tools xsetroot rng-tools xrandr vmtouch dropbear volumeicon dialog xdialog socat inotify-tools pip qemu rubygem-ronn-ng most nano xinput x11vnc libcurl-devel gcc dbus-devel python-devel cups-devel"
+misc_ports="librsvg2-tools samba-common-tools xorriso pulseaudio which squashfs-tools xsetroot rng-tools xrandr vmtouch dropbear volumeicon dialog xdialog socat inotify-tools pip qemu rubygem-ronn-ng most nano xinput x11vnc libcurl-devel gcc dbus-devel python-devel cups-devel strace xdpyinfo xfontsel xev setserial glx-utils mesa-demos"
 
 stage1()
 {
@@ -31,10 +31,10 @@ stage1()
 		mkdir -m 750 root
 	fi
 
-        if ! mountpoint dev ; then mount --bind /dev dev ; fi
-        if ! mountpoint tmp ; then mount -t tmpfs /tmp tmp ; fi
-        if ! mountpoint proc ; then mount -t proc proc proc ; fi
-        if ! mountpoint sys ; then mount -t sysfs none sys ; fi
+        if ! mountpoint dev >/dev/null 2>&1 ; then mount --bind /dev dev ; fi
+        if ! mountpoint tmp >/dev/null 2>&1 ; then mount -t tmpfs /tmp tmp ; fi
+        if ! mountpoint proc >/dev/null 2>&1 ; then mount -t proc proc proc ; fi
+        if ! mountpoint sys >/dev/null 2>&1 ; then mount -t sysfs none sys ; fi
 
 	ROOT=$PWD
 	sudo dnf install --setopt=keepcache=1 -y --installroot=$ROOT $host_config --releasever=41 --allowerasing $core_ports $kernel_ports $grub_ports $firmware_ports

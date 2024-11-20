@@ -117,7 +117,7 @@ set_proxy()
 
 mounted()
 {
-	if mountpoint $1 >/dev/null; then
+	if mountpoint $1 >/dev/null 2>&1; then
 		return 0
 	else
 		return 1
@@ -223,14 +223,15 @@ secure_keys()
 
 do_unmounts()
 {
-#	for mount in dev/pts dev tmp proc sys run/pcscd run/user/0 run/user/$SUDO_UID; do
-	for mount in dev/pts dev tmp proc sys run; do
-		while mounted $mount ; do
-			umount -l $mount
-			if mounted $mount; then
-				fuser -kv "$PWD/$mount" > /dev/null 2>&1
-			fi
-		done
+	for mount in dev/pts dev tmp proc sys run/pcscd run/user/0 run/user/$SUDO_UID run; do
+		if [ -e $mount ]; then
+			while mounted $mount ; do
+				umount -l $mount
+				if mounted $mount; then
+					fuser -kv "$PWD/$mount" > /dev/null 2>&1
+				fi
+			done
+		fi
 	done
 }
 
