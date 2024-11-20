@@ -111,14 +111,14 @@ parted -s $disk set 1 boot on
 # Creates all needed partitions depending if install is Dev or not
 if is_enabled $INSTALLER_DEV; then
 	parted -s $disk mkpart primary "6293504s -1"
-	pvcreate ${disk}${p}2
+	pvcreate -ff -y ${disk}${p}2
 	vgcreate devstation_vg ${disk}${p}2
-	lvcreate -n prstnt_lv -L 64M devstation_vg
-	lvcreate -n root_lv -L 1G devstation_vg
-	lvcreate -n swap_lv -L 4G devstation_vg
-	lvcreate -n home_lv -L 4G devstation_vg
-	lvcreate -n log_lv -L 1G devstation_vg
-	lvcreate -n tsdev_lv -l 100%FREE devstation_vg
+	lvcreate -y -n prstnt_lv -L 64M devstation_vg
+	lvcreate -y -n root_lv -L 1G devstation_vg
+	lvcreate -y -n swap_lv -L 4G devstation_vg
+	lvcreate -y -n home_lv -L 4G devstation_vg
+	lvcreate -y -n log_lv -L 1G devstation_vg
+	lvcreate -y -n tsdev_lv -l 100%FREE devstation_vg
 else
 	parted -s $disk mkpart primary linux-swap "6293504s 11g"
 	parted -s $disk mkpart primary ext4 "11g -0"
@@ -202,7 +202,7 @@ cp initrd initrd-backup
 cp vmlinuz vmlinuz-backup
 cp lib.update lib.squash-backup
 
-if is_enabled $INSTALLER_DEV && false; then
+if is_enabled $INSTALLER_DEV; then
 	cd /thinstation
 	rm -rf *
 
