@@ -31,10 +31,10 @@ stage1()
 		mkdir -m 750 root
 	fi
 
-        if ! mountedpoint dev ; then mount --bind /dev dev ; fi
-        if ! mountedpoint tmp ; then mount -t tmpfs /tmp tmp ; fi
-        if ! mountedpoint proc ; then mount -t proc proc proc ; fi
-        if ! mountedpoint sys ; then mount -t sysfs none sys ; fi
+        if ! mountpoint dev ; then mount --bind /dev dev ; fi
+        if ! mountpoint tmp ; then mount -t tmpfs /tmp tmp ; fi
+        if ! mountpoint proc ; then mount -t proc proc proc ; fi
+        if ! mountpoint sys ; then mount -t sysfs none sys ; fi
 
 	ROOT=$PWD
 	sudo dnf install --setopt=keepcache=1 -y --installroot=$ROOT $host_config --releasever=41 --allowerasing $core_ports $kernel_ports $grub_ports $firmware_ports
