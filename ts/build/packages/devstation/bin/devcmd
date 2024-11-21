@@ -28,7 +28,7 @@ x_echo()
 do_update()
 {
 	rm -f /tmp/update.status
-	$XTERM_CMD -T "Update initrd" $ARG script -c "update-initrd -w" -e /home/$TSUSER/Desktop/update.log
+	$XTERM_CMD -T "Update initrd" $ARG script -c "update-initrd -w" /home/$TSUSER/Desktop/update.log
 	STATUS="`cat /tmp/update.status`"
 	case $STATUS in
                 0) x_echo Update "No Update Needed" ;;
@@ -73,7 +73,7 @@ toggle_pxe()
 do_build()
 {
 	cd /thinstation
-	$XTERM_CMD -T Build $ARG script -c "./setup-chroot -b -o --autodl --license ACCEPT" -e /home/$TSUSER/Desktop/build.log
+	$XTERM_CMD -T Build $ARG script -c "./setup-chroot -b -o --autodl --license ACCEPT" /home/$TSUSER/Desktop/build.log
 	chown $TSUSER /home/$TSUSER/Desktop/build.log
 }
 
@@ -125,30 +125,30 @@ Are you really sure?" 20 100
 
 do_test_cd()
 {
-        $XTERM_CMD -T Test-CD --working-directory=/thinstation $ARG script -c "./setup-chroot -e bt cd" -e /home/$TSUSER/Desktop/test.log
+        $XTERM_CMD -T Test-CD --working-directory=/thinstation $ARG script -c "./setup-chroot -e bt cd" /home/$TSUSER/Desktop/test.log
 }
 
 do_test_cd_efi()
 {
-        $XTERM_CMD -T Test-CD-EFI --working-directory=/thinstation $ARG script -c "./setup-chroot -e bt cd-efi" -e /home/$TSUSER/Desktop/test.log
+        $XTERM_CMD -T Test-CD-EFI --working-directory=/thinstation $ARG script -c "./setup-chroot -e bt cd-efi" /home/$TSUSER/Desktop/test.log
 }
 do_test_hd()
 {
-        $XTERM_CMD -T Test-HD --working-directory=/thinstation $ARG script -c "./setup-chroot -e bt hd" -e /home/$TSUSER/Desktop/test.log
+        $XTERM_CMD -T Test-HD --working-directory=/thinstation $ARG script -c "./setup-chroot -e bt hd" /home/$TSUSER/Desktop/test.log
 }
 do_test_hd_efi()
 {
-        $XTERM_CMD -T Test-HD-EFI --working-directory=/thinstation $ARG script -c "./setup-chroot -e bt hd-efi" -e /home/$TSUSER/Desktop/test.log
+        $XTERM_CMD -T Test-HD-EFI --working-directory=/thinstation $ARG script -c "./setup-chroot -e bt hd-efi" /home/$TSUSER/Desktop/test.log
 }
 do_test_net()
 {
         cd /thinstation
-        $XTERM_CMD -T Test-Network --working-directory=/thinstation $ARG script -c "./setup-chroot -e bt net" -e /home/$TSUSER/Desktop/test.log
+        $XTERM_CMD -T Test-Network --working-directory=/thinstation $ARG script -c "./setup-chroot -e bt net" /home/$TSUSER/Desktop/test.log
 }
 do_test_net_efi()
 {
         cd /thinstation
-        $XTERM_CMD -T Test-Network --working-directory=/thinstation $ARG script -c "./setup-chroot -e bt net-efi" -e /home/$TSUSER/Desktop/test.log
+        $XTERM_CMD -T Test-Network --working-directory=/thinstation $ARG script -c "./setup-chroot -e bt net-efi" /home/$TSUSER/Desktop/test.log
 }
 
 terminal_arg()

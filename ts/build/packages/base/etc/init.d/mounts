@@ -12,6 +12,7 @@ while [ -n "`eval echo '$MOUNT_'$x`" ]; do
 	echo -e "`echo \"$mount\" |sed -e 's/[ ]\+/\t/g'`" >> /etc/fstab
 	let x=x+1
 done
+systemctl daemon-reload
 
 # Swap initialization
 if grep /etc/fstab -e swap -q; then
@@ -23,9 +24,9 @@ if grep /etc/fstab -e swap -q; then
 	swapon -a
 fi
 
-if ! is_disabled $FASTBOOT && [ "$LM" == "4" ]; then
-	echo -e "`echo \"LABEL=$CDVOLNAME /mnt/cdrom0 auto x-mount.mkdir,defaults 0 0\" |sed -e 's/[ ]\+/\t/g'`" >> /etc/fstab
-fi
+#if ! is_disabled $FASTBOOT && [ "$LM" == "4" ]; then
+#	echo -e "`echo \"LABEL=$CDVOLNAME /mnt/cdrom0 auto x-mount.mkdir,defaults 0 0\" |sed -e 's/[ ]\+/\t/g'`" >> /etc/fstab
+#fi
 
 mount -a
 mkdir /run/applications

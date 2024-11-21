@@ -98,8 +98,12 @@ echo "Starting Partioner"
 if echo $disk |grep -q -e nvme; then p=p; else unset p; fi
 touch /tmp/nomount
 un_mount
-dd if=/dev/zero of=$disk bs=1M count=2
 disk_size=`blockdev --getsz $disk`
+for lv in `systemctl status | grep -o 'lvm-activate-[^ ]*\.service'`; do
+	systemctl stop $lv
+done
+dmsetup remove_all
+dd if=/dev/zero of=$disk bs=1M count=2
 dd if=/dev/zero of=$disk bs=512 count=32 seek=$(($disk_size - 32))
 read_pt
 

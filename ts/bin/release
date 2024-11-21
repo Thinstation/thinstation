@@ -20,8 +20,11 @@ mk_devstat()
 	mv lib.squash lib.update
 	tar -c * |xz > ../thindev-default-$TSVER.tar.xz
 	cd ..
-	scp -o StrictHostKeyChecking=no image-*.md5 ${user}@frs.sourceforge.net:/home/frs/project/thinstation/DevStation-Source/
-	scp -o StrictHostKeyChecking=no thindev-default-*.tar.xz ${user}@frs.sourceforge.net:/home/frs/project/thinstation/DevStation-Source/
+#	scp -o StrictHostKeyChecking=no image-*.md5 ${user}@frs.sourceforge.net:/home/frs/project/thinstation/DevStation-Source/
+#	scp -o StrictHostKeyChecking=no thindev-default-*.tar.xz ${user}@frs.sourceforge.net:/home/frs/project/thinstation/DevStation-Source/
+       scp -o StrictHostKeyChecking=no image-*.md5 ${user}@ftp.thinstation.us:public_html/
+       scp -o StrictHostKeyChecking=no thindev-default-*.tar.xz ${user}@ftp.thinstation.us:public_html/
+
 }
 
 mk_installer()
@@ -42,7 +45,7 @@ mk_installer()
 	cp conf/installer/* .
 	stb --allmodules
 	cp /build/boot-images/grub/thinstation-efi.iso /tmp/$name
-	scp -o StrictHostKeyChecking=no /tmp/$name ${user}@frs.sourceforge.net:/home/frs/project/thinstation/thinstation/thinstation-6/.
+	scp -o StrictHostKeyChecking=no /tmp/$name ${user}@ftp.thinstation.us:public_html/
 }
 
 mk_livecd(){
