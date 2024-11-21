@@ -1,0 +1,16 @@
+#! /bin/sh
+
+. `dirname $0`/common
+
+if ! pkg_initialized $PACKAGE; then
+	if [ -n "$NET_SMB_SERVER" ]; then
+		mkdir /mnt/smb
+		echo "$NET_SMB_SERVER  /mnt/smb  cifs  user=$NET_SMB_USER,password=`cat /etc/.storage`  0 0" >> /etc/fstab
+	fi
+	if module_available nfs && [ -n "$NET_NFS_SERVER" ] ; then
+		mkdir /mnt/nfs
+		echo "$NET_NFS_SERVER  /mnt/nfs  nfs   rsize=8192,wsize=8192,timeo=14,vers=4,intr  0 0" >> /etc/fstab
+	fi
+
+	pkg_set_init_flag $PACKAGE
+fi

@@ -1,0 +1,184 @@
+#! /bin/sh
+
+. `dirname $0`/common
+
+if [ -z "$SETNETWORKUP" ] ; then
+	NETWORKUP=FALSE
+fi
+
+if [ -n "$BASENAME" ] ; then
+	CONFNET="$BASENAME.conf."
+	CONFFILE="$BASENAME.conf-"
+	CONFGROUP="$BASENAME.conf.group-"
+	CONFHOSTS="$BASENAME."
+else
+	CONFNET=""
+	CONFFILE=""
+	CONFGROUP=""
+	CONFHOSTS=""
+fi
+
+if [ -n "$DEBUG_NETWORK" ] ; then
+	debug="-d"
+fi
+
+# Get global config file
+
+get_global_file()
+{
+	. $TS_GLOBAL
+
+	echo_log "Getting global configuration from $SERVER_NAME ($SERVER_IP)" -n $debug
+	if `transport $BASEPATH/"$CONFNET"network /tmp/"$CONFNET"network $SERVER_IP` ; then
+		dos2unix /tmp/"$CONFNET"network
+		cat /tmp/"$CONFNET"network >> $TS_NETWORK 2> /dev/null
+		# Fixes any lines which haven't a CR/LF at end
+		echo >> $TS_NETWORK
+		echo_log "Ok" $debug
+		cleanup
+	else
+		echo_log "Not Found" $debug
+		echo_log "Can't get global configuration file! Using default config" $debug
+		if [ -e /tmp/"$CONFNET"network ] ; then
+			rm /tmp/"$CONFNET"network
+		fi
+		echo_log "Will continue boot in 5 seconds....." $debug
+		sleep 5
+	fi
+}
+
+
+get_hosts_file()
+{
+	. $TS_GLOBAL
+
+	HOSTFILE="$CONFHOSTS"hosts
+	if `transport $BASEPATH/$HOSTFILE /tmp/$HOSTFILE $SERVER_IP` ; then
+		dos2unix /tmp/$HOSTFILE
+		cat /tmp/$HOSTFILE |sed "s/[[:blank:]][[:blank:]]*/ /g" | grep "^#" -v > $TS_HOSTS
+		rm /tmp/$HOSTFILE
+		rm /tmp/$HOSTFILE.tmp
+		for adapter in `ls /var/log/net`; do
+			unset NETWORKUP DEVTYPE CLIENT_NAME CLIENT_MAC CLIENT_IP SUBNET boot_file SERVER_IP NETMASK_SIZE SERVER_NAME
+			. /var/log/net/$adapter
+			if is_enabled $NETWORKUP ; then
+				clientname=`cat $TS_HOSTS | grep -i $CLIENT_MAC | cut -d" " -f 1`
+				if [ -n "$clientname" ] ; then
+					if [ "$CLIENT_NAME" != "$clientname" ] ; then
+						if pkg_is_loaded autonet ; then
+							INTERFACE=$adapter /etc/udev/scripts/net.sh
+							/etc/init.d/hostname
+						else
+							. /etc/NetworkManager/dispatcher.d/pre-up.d/00-update-status $adapter pre-up
+						fi
+					fi
+				fi
+			fi
+		done
+	fi
+}
+
+get_ssh_known_hosts()
+{
+	. $TS_GLOBAL
+
+	HOME=/etc/skel
+	if `transport $BASEPATH/ssh_known_hosts /tmp/ssh_known_hosts $SERVER_IP` ; then
+		if [ ! -d $HOME/.ssh ] ; then
+			mkdir $HOME/.ssh
+		fi
+		dos2unix /tmp/ssh_known_hosts
+		cp /tmp/ssh_known_hosts $HOME/.ssh/known_hosts
+		rm /tmp/ssh_known_hosts
+	fi
+}
+
+get_config_files()
+{
+	. $TS_GLOBAL
+
+	# Added group configs
+	if [ -e $TS_HOSTS ] ; then
+		echo_log "Getting group configurations..." -n $debug
+		thingrouplist=`cat $TS_HOSTS |grep -i $CLIENT_MAC |cut -f3- -d" " |cut -f1 -d#`
+
+		# take the first 3 and first 4 character to search for a group file
+		if [ -z "$thingrouplist" ]; then
+			thingrouplist=`echo ${CLIENT_NAME} | cut -b1-3`
+			thingrouplist="${thingrouplist} `echo ${CLIENT_NAME} | cut -b1-4`"
+		fi
+		if [ -z "$thingrouplist" ] ; then
+			echo_log "Not found!" $debug
+		else
+			for thingroup in $thingrouplist ; do
+				if `transport $BASEPATH/$CONFGROUP$thingroup /tmp/$CONFGROUP$thingroup $SERVER_IP` > /dev/null 2>&1; then
+					dos2unix /tmp/$CONFGROUP$thingroup
+					cat /tmp/$CONFGROUP$thingroup >> $TS_NETWORK 2> /dev/null
+					# Fixes any lines which haven't a CR/LF at end
+					echo >> $TS_NETWORK
+					echo_log "\nAdding group parameters for $thingroup" -n $debug
+					rm /tmp/$CONFGROUP$thingroup
+				else
+					echo_log "\nERROR: $thingroup not found!" $debug
+					sleep 2
+				fi
+			done
+			cleanup
+		fi
+	else
+		echo_log "\nHosts file not found!" $debug
+	fi
+
+	# Machine Config
+	echo_log  "\nGetting configuration for hostname $CLIENT_NAME..." -n $debug
+	if `transport $BASEPATH/$CONFFILE$CLIENT_NAME /tmp/$CONFFILE$CLIENT_NAME $SERVER_IP` ; then
+		dos2unix /tmp/$CONFFILE$CLIENT_NAME
+		cat /tmp/$CONFFILE$CLIENT_NAME >> $TS_NETWORK 2> /dev/null
+		# Fixes any lines which haven't a CR/LF at end
+		echo >> $TS_NETWORK
+		echo_log "Ok\n" $debug
+		rm /tmp/$CONFFILE$CLIENT_NAME
+	else
+		if [ -e /tmp/$CONFFILE$CLIENT_NAME ] ; then
+			rm /tmp/$CONFFILE$CLIENT_NAME
+		fi
+		echo_log "Not Found\n" $debug
+		echo_log "Getting configuration for IP address $CLIENT_IP..." -n $debug
+		if `transport $BASEPATH/$CONFFILE$CLIENT_IP /tmp/$CONFFILE$CLIENT_IP $SERVER_IP` ; then
+			dos2unix /tmp/$CONFFILE$CLIENT_IP
+			cat /tmp/$CONFFILE$CLIENT_IP >> $TS_NETWORK 2> /dev/null
+			# Fixes any lines which haven't a CR/LF at end
+			echo >> $TS_NETWORK
+			echo_log "Ok\n" $debug
+			rm /tmp/$CONFFILE$CLIENT_IP
+		else
+			if [ -e /tmp/$CONFFILE$CLIENT_IP ] ; then
+				rm /tmp/$CONFFILE$CLIENT_IP
+			fi
+			echo_log "Not Found\n" $debug
+			echo_log "Getting configuration for MAC address $CLIENT_MAC..." -n $debug
+			if `transport $BASEPATH/$CONFFILE$CLIENT_MAC /tmp/$CONFFILE$CLIENT_MAC $SERVER_IP` ; then
+				dos2unix /tmp/$CONFFILE$CLIENT_MAC
+				cat /tmp/$CONFFILE$CLIENT_MAC >> $TS_NETWORK 2> /dev/null
+				# Fixes any lines which haven't a CR/LF at end
+				echo >> $TS_NETWORK
+				rm /tmp/$CONFFILE$CLIENT_MAC
+				echo_log "Ok\n" $debug
+			else
+				if [ -e /tmp/$CONFFILE$CLIENT_MAC ] ; then
+					rm /tmp/$CONFFILE$CLIENT_MAC
+				fi
+				echo_log "Not Found\n" $debug
+			fi
+		fi
+	fi
+	cleanup
+}
+
+if is_enabled $NET_FILE_ENABLED ; then
+	get_global_file
+	get_hosts_file
+	. /var/log/net/$NET_DEVICE
+	get_config_files
+	get_ssh_known_hosts
+fi

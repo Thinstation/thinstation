@@ -1,0 +1,16 @@
+[Unit]
+Description=ThinStation Network Files
+Wants=NetworkManager-wait-online.service
+After=profile-setup.service choose-network.service NetworkManager-wait-online.service
+Before=net.profile-setup.service avahi-daemon.service
+ConditionPathIsReadWrite=/etc
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+EnvironmentFile=/etc/thinstation.env
+ExecStart=/etc/init.d/network-files
+SyslogIdentifier=thinstation
+
+[Install]
+WantedBy=multi-user.target

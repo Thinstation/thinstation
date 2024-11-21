@@ -726,113 +726,14 @@ web_package ()
 }
 
 ## Add boot splash image
-splash_resize()
-{
-	mkdir -p $TOOLSDIR/splash/$ts_boottheme/$res
-	if [ -e $TOOLSDIR/splash/$ts_boottheme/scalable ]; then
-		if [ -z "$SPLASH_BG_COLOR" ]; then
-			SPLASH_BG_COLOR=black
-		fi
-		$TOOLSDIR/splash/bin/splash_resize ./utils/tools/splash $ts_boottheme scalable 1024x768 $res
-		rsvg-convert $TOOLSDIR/splash/$ts_boottheme/scalable/silent.svg \
-			-w `echo $res |cut -d "x" -f1` \
-			-h `echo $res |cut -d "x" -f2` \
-			-a -o tmp.png
-		convert -background $SPLASH_BG_COLOR tmp.png \
-			-define png:color-type=2 \
-			-resize $res \
-			-gravity center \
-			-extent $res \
-			+repage $TOOLSDIR/splash/$ts_boottheme/$res/silent.png
-		rm tmp.png
-        else
-		$TOOLSDIR/splash/bin/splash_resize ./utils/tools/splash $ts_boottheme 1024x768 1024x768 $res
-		convert -size 1024x768 \
-			$TOOLSDIR/splash/$ts_boottheme/1024x768/silent.jpg \
-			-resize $res\! $TOOLSDIR/splash/$ts_boottheme/$res/silent.jpg
-        fi
-}
-
 splash_setup()
 {
-if [ -z "$ts_bootresolution" ] ; then
-	ts_bootresolution=800x600-32
-fi
-if [ -n "$ts_bootresolution" ] ;then
-        uvesafb="mode_option=\"$ts_bootresolution\""
-	screenres=`echo "$ts_bootresolution" |cut -d "-" -f 1`
-	screenbpp=`echo "$ts_bootresolution" |cut -d "-" -f 2`
-	echo "PREFERED_RES=$ts_bootresolution" |cut -d '-' -f1 >> ./tmp-tree/etc/thinstation.defaults
-        if [ ! -z "$ts_fbmtrr" ] ;then
-	        uvesafb="$uvesafb mtrr=$ts_fbmtrr"
-        fi
-        if [ `make_caps X"$ts_fbnocrtc"` == "XTRUE" ] ;then
-	        uvesafb="$uvesafb nocrtc=1"
-        fi
-	if [ `make_caps X"$ts_fbnoedid"` == "XTRUE" ] ; then
-		uvesafb="$uvesafb noedid=1"
+	if [ -n "$ts_bootresolution"; then
+		KERNEL_PARAMETERS="$KERNEL_PARAMETERS video=${ts_bootresolution}"
 	fi
-	if [ ! -z "$ts_fbvtotal" ] ; then
-		uvesafb="$uvesafb vram_total=$ts_fbvtotal"
+	if is_enabled $ts_bootlogo; then
+		KERNEL_PARAMETERS="$KERNEL_PARAMETERS splash"
 	fi
-	if [ ! -z "$ts_fbmaxhf" ] ; then
-		uvesafb="$uvesafb maxhf=$ts_fbmaxhf"
-	fi
-	if [ ! -z "$ts_fbmaxvf" ] ; then
-                uvesafb="$uvesafb maxvf=$ts_fbmaxvf"
-        fi
-	if [ ! -z "$ts_fbmaxclk" ] ; then
-                uvesafb="$uvesafb maxclk=$ts_fbmaxclk"
-        fi
-        if [ ! -z "$ts_fbsm" ] ;then
-	        uvesafb="$uvesafb scroll=$ts_fbsm"
-        fi
-	if [ "$ts_uvesafb" == "disable" ]; then
-		KERNEL_PARAMETERS="$KERNEL_PARAMETERS uvesafb=off"
-	fi
-	mkdir -p ./tmp-tree/etc/modprobe.d
-	echo "options uvesafb $uvesafb" > ./tmp-tree/etc/modprobe.d/uvesafb.conf
-	if [ ! -z $ts_extra_vid ]; then
-		KERNEL_PARAMETERS="$KERNEL_PARAMETERS video=$ts_extra_vid"
-	fi
-  if is_enabled $ts_bootlogo && [ -e ./tmp-tree/bin/fbsplashd ]; then
-	splashvar="splash=silent"
-	if [ -n "$ts_splash" ] ; then splashvar="splash=$ts_splash" ; fi
-	if [ -n "$ts_boottheme" ] ; then splashvar="$splashvar,theme:$ts_boottheme" ; fi
-	if [ -n "$ts_silenttty" ] ; then splashvar="$splashvar,tty:$ts_silenttty" ; fi
-	KERNEL_PARAMETERS="$KERNEL_PARAMETERS $splashvar"
-	echo -e "+ Adding splash boot logo\n"
-	res=${ts_bootresolution%-*}
-	echo $res
-	if [ ! -e $TOOLSDIR/splash/$ts_boottheme/$res/$res.cfg ] ; then
-		splash_resize
-	fi
-	mkdir -p ./tmp-tree/etc/splash/$ts_boottheme
-	cp -Prfd $TOOLSDIR/splash/$ts_boottheme/$res ./tmp-tree/etc/splash/$ts_boottheme
-	if is_enabled $ts_allres; then
-		for res in 640x480 800x600 1024x600 1024x768 1152x864 1280x720 1280x768 1280x800 1280x960 1280x1024 1366x768 1400x1050 1440x900 1600x900 1600x1200 1680x1050 1920x1080 1920x1200 2560x1440 2560x1600 2880x1800 3360x2100 3840x2160; do
-			if [ ! -e $TOOLSDIR/splash/$ts_boottheme/$res/$res.cfg ] ; then
-				splash_resize
-			fi
-			if [ ! -e ./tmp-tree/etc/splash/$ts_boottheme/$res/$res.cfg ]; then
-				mkdir -p ./tmp-tree/etc/splash/$ts_boottheme
-				cp -Prfd $TOOLSDIR/splash/$ts_boottheme/$res ./tmp-tree/etc/splash/$ts_boottheme
-			fi
-		done
-	fi
-	for res in `ls --color=never ./tmp-tree/etc/splash/$ts_boottheme |grep -v "\.ttf"`; do
-		mv ./tmp-tree/etc/splash/$ts_boottheme/$res/$res.cfg ./tmp-tree/etc/splash/$ts_boottheme/.
-	done
-  else
-		rm -rf ./tmp-tree/etc/splash
-		rm -rf ./tmp-tree/lib64/splash
-		if [ -e ./tmp-tree/etc/plymouth/plymouthd.conf ]; then
-			KERNEL_PARAMETERS="$KERNEL_PARAMETERS splash"
-		else
-			KERNEL_PARAMETERS="$KERNEL_PARAMETERS splash=off"
-		fi
-  fi
-fi
 }
 
 write_locale()
@@ -1303,7 +1204,7 @@ if [ -e $PACDIR/bootlogo.param ]; then
 fi
 if ! is_enabled $ts_bootlogo; then
 	echo -e "Boot Logo Disabled. Removing splash package."
-	rm -f $PACDIR/splash.package
+	rm -f $PACDIR/plymouth.package
 fi
 
 # Now that all the package deps are satisfied, do we really need wmsetbg
