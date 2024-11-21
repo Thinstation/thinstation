@@ -264,11 +264,14 @@ if ! is_disabled $FASTBOOT; then
 
 	# Continue based on the value of $boot_device
 	if [[ "$boot_device" == cd* || "$boot_device" == hd96 ]]; then
+		echo "LM=iso" >> /etc/thinstation.runtime
 		iso
 	elif [[ "$boot_device" == hd* ]]; then
 		disk
+		echo "LM=hd" >> /etc/thinstation.runtime
 	elif [[ "$boot_device" == *tftp* || "$boot_device" == *http* ]]; then
 		pxe
+		echo "LM=pxe" >> /etc/thinstation.runtime
 	else
 		echo "boot_device UNKNOWN!"
 	fi

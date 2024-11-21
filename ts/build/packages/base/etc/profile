@@ -40,22 +40,22 @@ if [ "`tty`" == "$CONSOLE" ]; then
 		echo "Hopefully only Administrators ever see this message, and then only when they fail. :)"
 		echo "Review the log at /var/log/fastboot.log"
 		case $LM in
-		2)	if ! module_available vfat; then
+		hd)	if ! module_available vfat; then
 				echo "hd: vfat module not available"
 			else
 				echo "hd: /boot was not mounted, maybe check your mount declarations"
 			fi
 		;;
-		3)
+		pxe)
 			if pkg_is_loaded networkmanager; then
-				echo "pxeboot: Package networkmager does not work with this technology, try autonet"
+				echo "pxe: Package networkmager does not work with this technology, try autonet"
 			elif ! pkg_initialized autonet; then
-				echo "pxeboot: Package autonet not available"
+				echo "pxe: Package autonet not available"
 			else
-				echo "pxeboot: Maybe we didn't get the server"
+				echo "pxe: Maybe we didn't get the server"
 			fi
 		;;
-		4)
+		iso)
 			if ! module_available isofs && ! module_available udf; then
 				echo "iso: No CD Rom modules available"
 			else
