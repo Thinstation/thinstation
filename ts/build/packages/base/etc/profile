@@ -35,31 +35,31 @@ if [ "`tty`" == "$CONSOLE" ]; then
 	fi
 	splash_exit
 	chvt 1
-	if ! is_disabled $FASTBOOT && ! mountpoint /lib; then
+	if ! is_disabled $FASTBOOT && ! mountpoint /lib64; then
 		echo "Fastboot was enabled, but something went wrong with the transfer or mount."
 		echo "Hopefully only Administrators ever see this message, and then only when they fail. :)"
 		echo "Review the log at /var/log/fastboot.log"
 		case $LM in
 		2)	if ! module_available vfat; then
-				echo "syslinux: vfat module not available"
+				echo "hd: vfat module not available"
 			else
-				echo "syslinux: /boot was not mounted, maybe check your mount declarations"
+				echo "hd: /boot was not mounted, maybe check your mount declarations"
 			fi
 		;;
 		3)
 			if pkg_is_loaded networkmanager; then
-				echo "pxelinux: Package networkmager does not work with this technology, try autonet"
+				echo "pxeboot: Package networkmager does not work with this technology, try autonet"
 			elif ! pkg_initialized autonet; then
-				echo "pxelinux: Package autonet not available"
+				echo "pxeboot: Package autonet not available"
 			else
-				echo "pxelinux: Maybe we didn't get the server"
+				echo "pxeboot: Maybe we didn't get the server"
 			fi
 		;;
 		4)
 			if ! module_available isofs && ! module_available udf; then
-				echo "isolinux: No CD Rom modules available"
+				echo "iso: No CD Rom modules available"
 			else
-				echo "isolinux: $BASE_MOUNT_PATH/cdrom0 was not mounted, maybe check your mount declarations"
+				echo "iso: $BASE_MOUNT_PATH/cdrom0 was not mounted, maybe check your mount declarations"
 			fi
 		;;
 		*)
