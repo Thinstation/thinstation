@@ -289,6 +289,7 @@ if [ "$HOSTNAME" == "localhost" ]; then
 			unset CLIENT_NAME
 		else
 			hostnamectl set-hostname $CLIENT_NAME
+			sed -i '/localhost/d' /etc/hosts
 			echo "127.0.0.1 `hostname` localhost" >> /etc/hosts
 		fi
 	fi

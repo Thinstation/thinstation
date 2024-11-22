@@ -1,32 +1,6 @@
 #!/bin/sh
 
 . `dirname $0`/common
-. /etc/splash.functions
-
-#plymouth change-mode --system-upgrade
-#plymouth system-update --progress=10
-#sleep 3
-#plymouth system-update --progress=20
-#sleep 3
-#plymouth system-update --progress=30
-#sleep 3
-#plymouth system-update --progress=40
-#sleep 3
-#plymouth system-update --progress=50
-#sleep 3
-#plymouth system-update --progress=60
-#sleep 3
-#plymouth system-update --progress=70
-#sleep 3
-#plymouth system-update --progress=80
-#sleep 3
-#plymouth system-update --progress=90
-#sleep 3
-#plymouth system-update --progress=100
-#sleep 3
-#plymouth change-mode --boot-up
-
-
 
 if [ -n "$DEBUG_BOOT" ]; then
 	set -x
@@ -214,6 +188,8 @@ iso()
 
 squash_loc()
 {
+	eval "`cat /proc/cmdline |cut -d ' ' -f1`"
+	initrd="`dirname $BOOT_IMAGE`"/initrd
 	initrd=${initrd:=/boot/initrd}
 	squash_location=`dirname $initrd |sed -e 's|::/boot|/boot|g'`
 	if [ "$squash_location" == "." -o "$squash_location" == "/." ]; then

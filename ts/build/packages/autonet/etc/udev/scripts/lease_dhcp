@@ -7,18 +7,18 @@ if [ -z "$INTERFACE" ]; then
 fi
 
 . /var/log/net/$INTERFACE
-RESOLV=/etc/resolv.conf
 
 case $1 in
 	deconfig)
 		ifconfig $INTERFACE 0.0.0.0
 		;;
 	bound|renew)
-		cat /dev/null > $RESOLV
-		for dnsserver in $dns ; do
-			echo "nameserver $dnsserver" >> $RESOLV
-	        done
-		echo "search $domain $NET_DNS_SEARCH" >> $RESOLV
+		if [ -n "$dns"]; then
+			resolvectl dns $INTERFACE $dnsserver
+		fi
+		if [ -n "$domain" ]; then
+			resolvectl domain $INTERFACE $domain
+		fi
 		ifconfig $interface $ip netmask $subnet
 		route add default gw $router
 		if [ -n "$hostname" ] ;then

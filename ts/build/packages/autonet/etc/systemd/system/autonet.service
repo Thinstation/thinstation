@@ -1,12 +1,11 @@
 [Unit]
 Description=Configure Network Connections Automatically
 DefaultDependencies=no
-After=systemd-udev-settle.service
-Before=sysinit.target choose-network.service
+After=sysinit.target systemd-resolved.service
 
 [Service]
 Type=oneshot
-RemainAfterExit=no
+RemainAfterExit=yes
 EnvironmentFile=/etc/thinstation.env
 ExecStart=/etc/init.d/autonet
 SyslogIdentifier=thinstation
