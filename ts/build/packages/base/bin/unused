@@ -1,0 +1,11 @@
+#!/bin/sh
+
+for dir in bin etc lib64 libexec usr home opt root sbin srv var; do
+	if [ -d /$dir ]; then
+		for file in `find /$dir -type f`; do
+			if [ "`stat -c '%X' $file`" == "`stat -c '%Z' $file`" ]; then
+				echo $file
+			fi
+		done
+	fi
+done
