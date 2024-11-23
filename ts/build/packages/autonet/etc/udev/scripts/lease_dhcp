@@ -8,13 +8,16 @@ fi
 
 . /var/log/net/$INTERFACE
 
+#set -x
+#exec </dev/null >/var/log/lease.log  2>&1
+
 case $1 in
 	deconfig)
 		ifconfig $INTERFACE 0.0.0.0
 		;;
 	bound|renew)
-		if [ -n "$dns"]; then
-			resolvectl dns $INTERFACE $dnsserver
+		if [ -n "$dns" ]; then
+			resolvectl dns $INTERFACE $dns
 		fi
 		if [ -n "$domain" ]; then
 			resolvectl domain $INTERFACE $domain
