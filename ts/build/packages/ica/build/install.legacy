@@ -1,0 +1,198 @@
+#!/bin/bash
+
+gzname=`basename $1`
+tarname=`basename $1 .gz`
+filename=`basename $1 .tar.gz`
+INSTALLDIR=./packages/ica
+
+new_file()
+{
+        if [ -n "`stat -c '%Y' $1 | grep -v \"$bday\"`" ]; then
+                return 0
+        else
+                return 1
+        fi
+}
+
+etcs="passwd group nsswitch.conf issue pam.d"
+bins="attr awk basename bash cat chgrp chmod chown cp cut date dd df \
+	dirname echo ed egrep expr false find gawk grep head id init \
+	install ip ln locale ls mkdir mktemp more mount mv pidof ping \
+	ps red rm rmdir sed sh sleep sort ss tar tc telinit touch tr \
+	true uname vi wc whoami ldd gst-play-1.0 strace xdg-icon-resource \
+	xdg-mime update-desktop-database useradd killall gzip"
+dirs="proc etc/udev/rules.d etc/init.d bin lib tmp dev/bus/usb usr/local \
+        lib/applications lib/gstreamer-1.0"
+clean_dirs="etc/passwd setupwfc linuxx64 dev PkgId tmp proc root \
+        lib/plugins lib/mailcap \
+        lib/mime.types \
+	etc/xdg/mimeapps.list"
+libs="	/usr/lib/libXdmcp.so.6 \
+	/usr/lib/libXau.so.6 \
+	/usr/lib/libstdc++.so.6 \
+	/lib/libnss_files.so.2 \
+	/usr/lib/libgstapp-1.0.so.0 \
+	/usr/lib/libwebkit2gtk-4.0.so.37 \
+	/usr/lib/libacl.so.1 \
+	/lib/libcap.so.2 \
+	/lib/libc.so.6 \
+	/lib/libdl.so.2 \
+	/usr/lib/libgmp.so.10 \
+	/usr/lib/libgstapp-1.0.so.0 \
+	/lib/libm.so.6 \
+	/lib/libpcre.so.1 \
+	/lib/libreadline.so.8 \
+	/usr/lib/libelf.so.1 \
+	/usr/lib/libgstreamer-1.0.so \
+	/usr/lib/libgstvideo-1.0.so.0 \
+	/usr/lib/libgstbase-1.0.so.0 \
+	/usr/lib/libgstreamer-1.0.so.0 \
+	/usr/lib/libgobject-2.0.so.0 \
+	/usr/lib/libglib-2.0.so.0 \
+	/lib/libpthread.so.0 \
+	/usr/lib/liborc-0.4.so.0 \
+	/usr/lib/libgmodule-2.0.so.0 \
+	/usr/lib/libunwind.so.8 \
+	/usr/lib/libdw.so.1 \
+	/lib/librt.so.1 \
+	/usr/lib/libffi.so.6 \
+	/lib/libpcre.so.1 \
+	/usr/lib/libgcc_s.so.1 \
+	/usr/lib/liblzma.so.5 \
+	/usr/lib/libelf.so.1 \
+	/lib/libz.so.1 \
+	/usr/lib/libbz2.so.1.0"
+
+for repack in cups expat sane libgphoto2 v4l-utils libtiff libjpeg-turbo libxkbcommon libepoxy \
+        libusb libwebp zstd libtool libexif systemd libgcrypt libgpg-error gtk gtk3 wayland file \
+        openssl gst-plugins-base gstreamer gst-plugins-good gst-plugins-bad gst-plugins-ugly pygobject-3 \
+        gdb \
+        libpng12 pcsc-lite atkmm cairomm ffmpeg libsigc++ pangomm util-linux at-spi2-atk \
+        atk gdk-pixbuf glib glibmm gtk gtkmm libxml2 pango alsa-lib cairo fontconfig freetype libva \
+        nspr nss pulseaudio libvdpau xorg-libpixman xorg-libx11 xorg-libxcb \
+        xorg-libxcomposite xorg-libxcursor xorg-libxdamage xorg-libxext xorg-libxfixes xorg-libxi \
+        xorg-libxinerama xorg-libxkbfile xorg-libxrandr xorg-libxrender xorg-libxscrnsaver xorg-libxtst glibc; do
+        repackage $repack -t $INSTALLDIR
+        cp -a $INSTALLDIR/$repack/* $INSTALLDIR/.
+        rm -rf $INSTALLDIR/$repack
+done
+
+# Create all the directories that we are going to need
+for mdir in $dirs; do
+        mkdir -p $INSTALLDIR/$mdir
+done
+
+# Fill in the bin folder
+cp /usr/bin/which $INSTALLDIR/bin/.
+for cbin in $bins ; do
+        cp `which $cbin` $INSTALLDIR/bin/.
+	if [ -n "`file $INSTALLDIR/bin/$cbin |grep -oe ELF`" ]; then
+		libs="$libs \n`ldd $INSTALLDIR/bin/$cbin |grep -v 'linux-vdso' |cut -d '>' -f2 |cut -d '(' -f1 |sed -E s/[[:space:]]//g`"
+	fi
+done
+if [ -e /bin/uname-auto ] ; then
+        cp /bin/uname-auto $INSTALLDIR/bin/.
+fi
+echo -e "#!/bin/sh\nexit 0" >> $INSTALLDIR/bin/google-chrome
+echo "exit 0" > $INSTALLDIR/bin/install_initd
+echo "exit 0" > $INSTALLDIR/bin/update-rc.d
+echo "exit 0" > $INSTALLDIR/bin/chkconfig
+echo "exit 0" > $INSTALLDIR/bin/systemctl
+chmod +x $INSTALLDIR/bin/google-chrome
+chmod +x $INSTALLDIR/bin/install_initd
+chmod +x $INSTALLDIR/bin/update-rc.d
+chmod +x $INSTALLDIR/bin/chkconfig
+touch $INSTALLDIR/bin/firefox
+touch $INSTALLDIR/bin/chrome
+
+# Fill in the lib folder
+for clib in `echo -e $libs |sort -u`; do
+        cp $clib $INSTALLDIR/lib/.
+done
+for pam in pam_rootok.so pam_permit.so; do
+	mkdir -p $INSTALLDIR/lib/security
+	cp /lib/security/$pam $INSTALLDIR/lib/security/.
+done
+
+# Fill in the etc folder
+for cetc in $etcs ; do
+        cp -a /etc/$cetc $INSTALLDIR/etc/.
+done
+cat /proc/mounts |grep -Ev 'gvfs|mapper|media' > $INSTALLDIR/etc/mtab
+
+# Add some links to fool any tests
+ln -sf /bin $INSTALLDIR/usr/local/sbin
+ln -sf /bin $INSTALLDIR/usr/local/bin
+ln -sf /lib $INSTALLDIR/usr/local/lib
+ln -sf /bin $INSTALLDIR/usr/sbin
+ln -sf /bin $INSTALLDIR/usr/bin
+ln -sf /lib $INSTALLDIR/usr/lib
+ln -sf /lib $INSTALLDIR/usr/share
+ln -sf /lib $INSTALLDIR/lib64
+ln -sf /lib $INSTALLDIR/usr/lib64
+
+# Now extract the installer
+tar -C $INSTALLDIR -zxvf ./wget_tmp/$gzname
+let returnval=$?
+
+# This will mark all the files before we run install, so that we know what to remove afterwards.
+timestamp="`date +%Y%m%d`0000.00"
+for file in `find $INSTALLDIR`; do
+	touch -c -h -t $timestamp $file
+done
+bday=`stat -c %Y $INSTALLDIR/linuxx64/linuxx64.psf`
+
+# Start the installer in a chroot session.
+mount -t proc proc $INSTALLDIR/proc
+# Pipe the answers
+(for answer in 1 '\n' y n n n y 3; do
+		sleep .2
+		echo -e "$answer"
+done)|chroot $INSTALLDIR ./setupwfc
+chroot $INSTALLDIR ./etc/init.d/ctxusbd stop
+umount $INSTALLDIR/proc
+sleep 1
+
+# Pin open empty folders, they may get used on a running system
+for dir in `find $INSTALLDIR -type d -empty`; do
+        touch $dir/.gitignore
+done
+
+# Remove any files not placed by the installer according to the bday set earlier
+for dir in `find $INSTALLDIR -mindepth 1 -maxdepth 1 -type d ! -name build`; do
+	for file in `find $dir -type f -o -type l`; do
+		if ! new_file $file; then
+			rm $file
+		fi
+	done
+done
+
+# Remove folders and files that we know must go.
+for dir in $clean_dirs ; do
+	rm -rf $INSTALLDIR/$dir
+done
+#rm $INSTALLDIR/etc/ld.so.preload
+rm $INSTALLDIR/lib64
+
+# Remove library versions that we don't have the dependencies for
+rm $INSTALLDIR/opt/Citrix/ICAClient/util/*0.10*
+rm $INSTALLDIR/opt/Citrix/ICAClient/util/gst_aud_{play,read}
+
+# Define wfica as a mimetype handler for .ica files
+echo "MimeType=application/x-ica;" >> $INSTALLDIR/opt/Citrix/ICAClient/desktop/wfica.desktop
+
+# Record special file ownerships to be re-established according the running system gid's
+find $INSTALLDIR -group sys |cut -d '/' -f4- > $INSTALLDIR/etc/ICA-Perms
+
+# Merge static files and folders
+mkdir -p $INSTALLDIR/lib/pcsc/drivers
+cp -Prf $INSTALLDIR/build/extra/* $INSTALLDIR/.
+
+# Remove sysv init files
+rm -rf $INSTALLDIR/etc/init.d/ctxusbd
+
+#mv $INSTALLDIR/var/run/* $INSTALLDIR/run/.
+rm -rf $INSTALLDIR/var/run
+
+# Remove any now empty folders
+find $INSTALLDIR -type d -empty -delete

@@ -768,11 +768,9 @@ locales()
 			inputfile=`echo $localedef|cut -d , -f1`
 			charmap=`echo $localedef|cut -d , -f2`
 			name=`echo $localedef|cut -d , -f3`
-		        if ! is_enabled $ts_fulllocales; then
-				if [ "$charmap" == "UTF-8" ]; then
-					write_locale
-				fi
-			else
+		        if is_enabled $ts_fulllocales ; then
+				write_locale
+			elif [ "$charmap" == "UTF-8" ]; then
 				write_locale
 			fi
 		done

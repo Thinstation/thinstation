@@ -1,0 +1,364 @@
+#! /bin/sh
+
+. `dirname $0`/common
+HOME=/etc/skel
+
+if ! pkg_initialized $PACKAGE; then
+
+ pkg_set_init_flag $PACKAGE
+ ICA_ROOT=/opt/Citrix/ICAClient
+ ICA_DIR=/opt/Citrix/ICAClient/config
+ ICA_CACHETMPL=$ICA_DIR/StoreCache.ctx-template
+ ICA_CONF=$HOME/.ICAClient
+ ICA_CACHEDIR=$HOME/.ICAClient/cache/Stores
+ ICA_CACHE=$ICA_CACHEDIR/StoreCache.ctx
+ APPSRV_CUSTOM=/tmp/appsrv.ini.new
+ WFCLIENT_CUSTOM=/tmp/wfclient.ini.new
+ if [ -e $ICA_DIR/appsrv.template ]; then
+  APPSRV_TPL=$ICA_DIR/appsrv.template
+  WFCLIENT_TPL=$ICA_DIR/wfclient.template
+ else
+  APPSRV_TPL=$ICA_DIR/appsrv.ini
+  WFCLIENT_TPL=$ICA_DIR/wfclient.ini
+ fi
+
+ if [ -n "$PKCS11_MODULE" ]; then
+   awk -v pkcs="$PKCS11_MODULE" '{ print $0; if($1 == "<key>PKCS11module</key>") { getline; print "<value>" pkcs "</value>"} }' < $ICA_DIR/AuthManConfig.xml > $ICA_DIR/AuthManConfig.old
+   mv $ICA_DIR/AuthManConfig.old $ICA_DIR/AuthManConfig.xml
+ fi
+
+ # Create the user config directory if it doesn't exist
+ if [ ! -e $ICA_CONF ] ; then mkdir -p $ICA_CONF ; fi
+
+ # Accept EULA (the license agreement dialog)
+ if [ ! -e $ICA_CONF/.eula_accepted ] ; then touch $ICA_CONF/.eula_accepted ; fi
+
+ # Create a cache directory
+ if [ ! -e $ICA_CONF/cache ] ; then mkdir $ICA_CONF/cache ; fi
+
+ # Create a cache stores directory
+ if [ ! -e $ICA_CACHEDIR ]; then
+   mkdir $ICA_CACHEDIR
+   cp $ICA_CACHETMPL $ICA_CACHE
+   chmod u+w $ICA_CACHE
+ fi
+
+ chmod u+s $ICA_ROOT/ctxusb
+
+ # Checks for pre-existing files, from permanent storage
+ if [ ! -e $ICA_CONF/appsrv.ini ] ; then
+  cat $APPSRV_TPL >$ICA_CONF/appsrv.ini
+
+  let x=0
+
+  # Defaults for global parameters
+  ICA_BROWSER_PROTOCOL=HTTPonTCP
+  ICA_ENCRYPTION=Basic
+  ICA_COMPRESS=On
+  ICA_AUDIO_QUALITY=Medium
+  ICA_AUDIO=On
+  ICA_SEAMLESS_WINDOW=Off
+  ICA_SMARTCARD=Off
+  ICA_DISABLECTRLALTDEL=On
+
+  # Add each Applications configuration parameters
+
+  while [ -n "`eval echo '$SESSION_'$x'_TYPE'`" ] ; do
+   ICATYPE=`eval echo '$SESSION_'$x'_TYPE'`
+   if [ "`make_caps $ICATYPE`" = "ICA" ] ; then
+
+    ICAX_SERVER=""
+    ICAX_ENCRYPTION=""
+    ICAX_COMPRESS=""
+    ICAX_AUDIO_QUALITY=""
+    ICAX_AUDIO=""
+    ICAX_APPLICATION_SET=""
+    ICAX_SEAMLESS_WINDOW=""
+    ICAX_SMARTCARD=""
+    ICAX_DISABLECTRLALTDEL=""
+    ICAX_TITLE=""
+
+    . $TS_GLOBAL
+
+    ICAX_SERVER=`eval echo '$SESSION_'$x'_ICA_SERVER'`
+    ICAX_ENCRYPTION=`eval echo '$SESSION_'$x'_ICA_ENCRYPTION'`
+    ICAX_COMPRESS=`eval echo '$SESSION_'$x'_ICA_COMPRESS'`
+    ICAX_AUDIO_QUALITY=`eval echo '$SESSION_'$x'_ICA_AUDIO_QUALITY'`
+    ICAX_AUDIO=`eval echo '$SESSION_'$x'_ICA_AUDIO'`
+    ICAX_APPLICATION_SET=`eval echo '$SESSION_'$x'_ICA_APPLICATION_SET'`
+    ICAX_TITLE=`eval echo '$SESSION_'$x'_TITLE'`
+    ICAX_TITLE=`replace_char "$ICAX_TITLE" " " "_"`
+    ICAX_SEAMLESS_WINDOW=`eval echo '$SESSION_'$x'_ICA_SEAMLESS_WINDOW'`
+    ICAX_SMARTCARD=`eval echo '$SESSION_'$x'_ICA_SMARTCARD'`
+    ICAX_DISABLECTRLALTDEL=`eval echo '$SESSION_'$x'_ICA_DISABLECTRLALTDEL'`
+    # The reason it checks for x=0 below is so it doesn't go into a endless loop
+    # If the default, ICA_SERVER or ICA_APPLICATION_SET is set then it should
+    # only boot the first session, unless SESSION_1_ICA_APPLICATION or
+    # SESSION_1_ICA_SERVER has something other than null
+
+    if [ -z "$ICAX_SERVER" ] ; then
+	   if [ "$x" = 0 ] ; then
+		   ICAX_SERVER=$ICA_SERVER
+	   fi
+    fi
+    if [ -z "$ICAX_APPLICATION_SET" ];then
+	   if [ "$x" = 0 ] ; then
+		   ICAX_APPLICATION_SET=$ICA_APPLICATION_SET
+	   fi
+    fi
+
+    (set | grep "SESSION_"$x"_ICA_APPSRV_" ) |
+    while read session; do
+      icavalue=`echo $session | cut -f2 -d"="`
+      icavalue=`eval echo $icavalue`
+      default=`echo "$icavalue" | cut -f 1 -d"|"`
+      line=`echo $session | cut -f1 -d"="`
+      icagroup=`echo $line | cut -f5 -d"_"`
+      echo "$icagroup=$default" >> $APPSRV_CUSTOM
+      echo "/^$icagroup =/d" >> /tmp/script
+      echo "/^$icagroup=/d" >> /tmp/script
+    done
+
+    if [ -e $APPSRV_CUSTOM ] ; then
+    	. $APPSRV_CUSTOM
+    fi
+
+    if [ -n "$DESCRIPTION" ] ; then
+	   ICAX_TITLE=$DESCRIPTION
+    else
+      if [ -z "$ICAX_TITLE" ] ; then
+	   if [ -z "$ICAX_SERVER" ] ; then
+		   ICAX_TITLE=$ICAX_APPLICATION_SET
+	   else
+		   ICAX_TITLE=$ICAX_SERVER
+	   fi
+      fi
+    fi
+
+    # If the server is a web URL, use the SelfService instead of wfica
+    if [ -n "`echo $ICAX_SERVER | grep https://`" ]; then
+      rm -f /tmp/script
+      cat $ICA_CACHE | while read line; do
+        if [ -n "`echo $line | grep '\/VisibleStores'`" ]; then
+          echo "	<Store name=\"$ICAX_TITLE\" type=\"PNA\">" >> /tmp/script
+          echo "		$ICAX_SERVER" >> /tmp/script
+          echo "	</Store>" >> /tmp/script
+        fi
+        echo $line >> /tmp/script
+      done
+      mv /tmp/script $ICA_CACHE
+      let x=x+1
+      continue
+    fi
+
+    if [ -z "$ICAX_ENCRYPTION" ] ; then ICAX_ENCRYPTION=$ICA_ENCRYPTION ;fi
+    if [ -z "$ICAX_COMPRESS" ] ; then ICAX_COMPRESS=$ICA_COMPRESS ;fi
+    if [ -z "$ICAX_AUDIO_QUALITY" ] ; then ICAX_AUDIO_QUALITY=$ICA_AUDIO_QUALITY ;fi
+    if [ -z "$ICAX_AUDIO" ] ; then ICAX_AUDIO=$ICA_AUDIO;fi
+    if [ -z "$ICAX_SEAMLESS_WINDOW" ];then ICAX_SEAMLESS_WINDOW=$ICA_SEAMLESS_WINDOW;fi
+    if [ -z "$ICAX_SMARTCARD" ];then ICAX_SMARTCARD=$ICA_SMARTCARD;fi
+    if [ -z "$ICAX_DISABLECTRLALTDEL" ];then ICAX_DISABLECTRLALTDEL=$ICA_DISABLECTRLALTDEL;fi
+    if [ -z "$ICAX_APPLICATION_SET" ]; then
+	  ICAX_APPLICATION_SET=$ICAX_SERVER
+	  ICAX_INITIAL_PROGRAM=""
+    else
+	  ICAX_INITIAL_PROGRAM="#$ICAX_APPLICATION_SET"
+    fi
+
+    # Check to see if sound module is loaded
+
+    if ! check_module soundcore ; then
+  	ICAX_AUDIO="Off"
+    fi
+
+    # Change settings for audio to valid ICA settings
+
+    ICAX_AUDIO_QUALITY=`make_caps $ICAX_AUDIO_QUALITY`
+
+    case $ICAX_AUDIO_QUALITY in
+	   MEDIUM)
+	    ICAX_AUDIO_QUALITY=1;;
+	   HIGH)
+	    ICAX_AUDIO_QUALITY=0;;
+	   *)
+	    ICAX_AUDIO_QUALITY=2;;
+    esac
+
+    echo "$ICAX_TITLE=" >> $ICA_CONF/appsrv.ini
+
+    # Enable Smart Card Support
+    if [ "`make_caps $ICAX_SMARTCARD`" = "ON" ] ; then
+	    ICAX_DISABLECTRLALTDEL="OFF"
+    fi
+
+    echo -e "s/\$ICAX_SERVER/$ICAX_SERVER/g\n \
+         s/\$ICAX_ENCRYPTION/$ICAX_ENCRYPTION/g\n \
+         s/\$ICAX_COMPRESS/$ICAX_COMPRESS/g\n \
+         s/\$ICAX_AUDIO_QUALITY/$ICAX_AUDIO_QUALITY/g\n \
+         s/\$ICAX_AUDIO/$ICAX_AUDIO/g\n \
+         s/\$ICAX_INITIAL_PROGRAM/$ICAX_INITIAL_PROGRAM/g\n \
+         s/\$ICAX_APPLICATION_SET/$ICAX_APPLICATION_SET/g\n \
+         s/\$ICAX_TITLE/$ICAX_TITLE/g\n \
+	 s/\$ICAX_DISABLECTRLALTDEL/$ICAX_DISABLECTRLALTDEL/g\n \
+         s/\$ICAX_SEAMLESS_WINDOW/$ICAX_SEAMLESS_WINDOW/g" >> /tmp/script
+
+	 cat $ICA_DIR/appsrv.ini.tpl | awk -F= '{ printf(toupper($1)) ; if( NF >1 ) print "=" $2;
+           else print "" }' | sed -f /tmp/script >> /tmp/appsrv.ini.tmp
+    if [ -e /tmp/appsrv.ini.new ] ; then
+	   cat $APPSRV_CUSTOM >> /tmp/appsrv.ini.tmp
+	   rm $APPSRV_CUSTOM
+    fi
+    rm /tmp/script
+    echo >> /tmp/appsrv.ini.tmp
+   fi
+   let x=x+1
+  done
+  if [ -e /tmp/appsrv.ini.tmp ] ; then
+	  echo >>$ICA_CONF/appsrv.ini
+	  cat /tmp/appsrv.ini.tmp >>$ICA_CONF/appsrv.ini
+	  rm /tmp/appsrv.ini.tmp
+  fi
+ fi
+
+ # Check Receiver Preference for Reconnect at Logon behavior
+ if is_enabled ${ICA_RECEIVER_RECONNECT_ON_LOGON}; then
+   sed -i -e "s/\(<ReconnectOnLogon>\)False/\1True/" $ICA_CACHE
+ fi
+
+ # Check Receiver Preference for Reconnect at Launch Or Refresh behavior
+ if is_enabled ${ICA_RECEIVER_RECONNECT_ON_LAUNCH_OR_REFRESH}; then
+   sed -i -e "s/\(<ReconnectOnLaunchOrRefresh>\)False/\1True/" $ICA_CACHE
+ fi
+
+ # Check Receiver Preference for Display Desktops in window/full screen mode
+ if is_disabled ${ICA_RECEIVER_DISPLAY_DESKTOPS_IN_FULLSCREEN}; then
+   sed -i -e "s,\(<VisibleStores>\),<SessionWindowedMode>True</SessionWindowedMode>\n\1," $ICA_CACHE
+ fi
+
+ # Check Receiver Preference for SharedUserMode
+ if is_enabled ${ICA_RECEIVER_SHARED_USER_MODE}; then
+   sed -i -e "s/\(<SharedUserMode>\)False/\1True/" $ICA_CACHE
+ fi
+
+ # Check Receiver Preference for FullscreenMode
+ if [ -n "${ICA_RECEIVER_FULLSCREEN_MODE}" ]; then
+   sed -i -e "s/\(<FullscreenMode>\)0/\1${ICA_RECEIVER_FULLSCREEN_MODE}/" $ICA_CACHE
+ fi
+
+ # Check Receiver Preference for SelfSelection
+ if is_disabled ${ICA_RECEIVER_SELF_SELECTION}; then
+   sed -i -e "s/\(<SelfSelection>\)True/\1False/" $ICA_CACHE
+ fi
+
+ # Checks for pre-existing files, from permanent storage
+ if [ ! -e $ICA_CONF/wfclient.ini ] ; then
+
+  line=`grep -n Thinwire $WFCLIENT_TPL | cut -d : -f 1`
+
+ # Choose ICA colour Depth
+
+  case "$SCREEN_COLOR_DEPTH" in
+   8)
+     ICA_THINWIRE_DesiredColor=2
+     ICA_THINWIRE_ApproximateColors="Yes"
+     ICA_THINWIRE_UseDefaultSettingsForColormap="No";;
+   16)
+     ICA_THINWIRE_DesiredColor=4
+     ICA_THINWIRE_ApproximateColors="No"
+     ICA_THINWIRE_UseDefaultSettingsForColormap="Yes";;
+   24)
+     ICA_THINWIRE_DesiredColor=8
+     ICA_THINWIRE_ApproximateColors="No"
+     ICA_THINWIRE_UseDefaultSettingsForColormap="Yes";;
+   *)
+     ICA_THINWIRE_DesiredColor=15
+     ICA_THINWIRE_ApproximateColors="No"
+     ICA_THINWIRE_UseDefaultSettingsForColormap="Yes";;
+  esac
+
+  if [ "`make_caps "$ICA_USE_SERVER_KEYBOARD"`" != "ON" ] ; then
+     ICA_WFCLIENT_KeyboardLayout=`make_caps $KEYBOARD_MAP`
+  fi
+
+  if [ "`make_caps "$ICA_PRINTER"`" != "ON" ] ; then
+     ICA_WFCLIENT_ClientPrinter="Off"
+  else
+     ICA_WFCLIENT_ClientPrinter="On"
+     ICA_WFCLIENT_DefaultPrinter=$PRINTER_0_NAME
+  fi
+
+  if [ "`make_caps "$ICA_BROWSER_PROTOCOL"`" == "UDP" ]; then
+     ICA_WFCLIENT_BrowserProtocol="UDP"
+     ICA_WFCLIENT_SSLEnable="Off"
+  elif [ "`make_caps "$ICA_BROWSER_PROTOCOL"`" == "HTTPSONSSL" ]; then
+     ICA_WFCLIENT_BrowserProtocol="HTTPonTCP"
+     ICA_WFCLIENT_SSLEnable="On"
+  else
+     ICA_WFCLIENT_BrowserProtocol="HTTPonTCP"
+     ICA_WFCLIENT_SSLEnable="Off"
+  fi
+
+  cat /dev/null > /tmp/script
+  (set | grep "ICA_WFCLIENT_" ) |
+  while read session; do
+      icavalue=`echo $session | cut -f2 -d"="`
+      icavalue=`eval echo $icavalue`
+      line=`echo $session | cut -f1 -d"="`
+      icagroup=`echo $line | cut -f3 -d"_"`
+      echo "$icagroup=$icavalue" >> $WFCLIENT_CUSTOM
+      echo "/^$icagroup =/d" >> /tmp/script
+      echo "/^$icagroup=/d" >> /tmp/script
+  done
+
+  let line=line-1
+  head -n $line $WFCLIENT_TPL | \
+      sed -f /tmp/script >> $ICA_CONF/wfclient.ini
+  if [ -e $WFCLIENT_CUSTOM ] ; then
+	   cat $WFCLIENT_CUSTOM >> $ICA_CONF/wfclient.ini
+	   rm $WFCLIENT_CUSTOM
+  fi
+  echo "" >> $ICA_CONF/wfclient.ini
+
+  cat /dev/null > /tmp/script
+  (set | grep "ICA_THINWIRE_" ) |
+  while read session; do
+      icavalue=`echo $session | cut -f2 -d"="`
+      icavalue=`eval echo $icavalue`
+      line=`echo $session | cut -f1 -d"="`
+      icagroup=`echo $line | cut -f3 -d"_"`
+      echo "$icagroup=$icavalue" >> $WFCLIENT_CUSTOM
+      echo "/^$icagroup =/d" >> /tmp/script
+      echo "/^$icagroup=/d" >> /tmp/script
+  done
+
+  let line=line+1
+  tail -n +$line $WFCLIENT_TPL | \
+      sed -f /tmp/script >> $ICA_CONF/wfclient.ini
+  if [ -e $WFCLIENT_CUSTOM ] ; then
+	   cat $WFCLIENT_CUSTOM >> $ICA_CONF/wfclient.ini
+	   rm $WFCLIENT_CUSTOM
+  fi
+
+  rm /tmp/script
+
+  (set | grep "ICA_CLIENTAUDIO_" ) |
+  while read session; do
+      icavalue=`echo $session | cut -f2 -d"="`
+      icavalue=`eval echo $icavalue`
+      line=`echo $session | cut -f1 -d"="`
+      icagroup=`echo $line | cut -f3 -d"_"`
+      echo "$icagroup=$icavalue" >> $WFCLIENT_CUSTOM
+  done
+
+  if [ -e $WFCLIENT_CUSTOM ] ; then
+           echo "" >> $ICA_CONF/wfclient.ini
+           echo "[ClientAudio]" >> $ICA_CONF/wfclient.ini
+	   cat $WFCLIENT_CUSTOM >> $ICA_CONF/wfclient.ini
+	   rm $WFCLIENT_CUSTOM
+  fi
+
+ fi
+
+fi
+
+exit 0

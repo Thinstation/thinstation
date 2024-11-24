@@ -3,6 +3,7 @@
 # URL: http://www.thinstation.org
 # Maintainer: Donald A. Cupp Jr. (don cupp jr at ya hoo dot com)
 
+#set -x
 show_help()
 {
 echo "
@@ -53,6 +54,12 @@ package_path()
 extract_archive()
 {
 	local archive
+	if [ -n "$RPM" ]; then
+		archive=`basename "$RPM" .rpm`
+		if ! ${IGNORE_DEPS:=false}; then
+			dnf install --setopt=keepcache=1 -y /build/wget_tmp/$archive.rpm
+		fi
+	fi
 	while [ -z "$archive" ]; do
 		archive="`rpm -q $package |grep -v 'not installed'`"
 		if [ -z "$archive" ]; then
@@ -78,9 +85,13 @@ extract_archive()
 	                fi
 		fi
 	done
-	ppath=`find /var/cache -name $archive.rpm -printf '%h'`
-	if [ ! -d $pkgpath ]; then
-		mkdir -p $pkgpath
+	if [ -z "$RPM" ]; then
+		ppath=`find /var/cache -name $archive.rpm -printf '%h'`
+		if [ ! -d $pkgpath ]; then
+			mkdir -p $pkgpath
+		fi
+	else
+		ppath=/build/wget_tmp
 	fi
 	rpm2cpio $ppath/$archive.rpm | cpio -idmv -D $pkgpath 2>/dev/null
 	rm -rf $pkgpath/usr/lib/.build-id $pkgpath/usr/lib64/.build-id
@@ -253,9 +264,9 @@ merge_trunk()
 
 from_env()
 {
-	for i in $TSWRKNG $XTRWRKNG; do
-		if [ -d $i/packages/$PACKAGE ]; then
-			INSTALLDIR=$i/packages/$PACKAGE
+	for project in $TSWRKNG $XTRWRKNG; do
+		if [ -d $project/packages/$PACKAGE ]; then
+			INSTALLDIR=$project/packages/$PACKAGE
 		fi
 	done
 	temp_folder=./build-$PACKAGE
@@ -263,6 +274,11 @@ from_env()
 		main
 		cp -Prf $temp_folder/$package/* $INSTALLDIR/.
 		rm -rf $temp_folder
+	done
+	for rpm in $RPM; do
+                main
+                cp -Prf $temp_folder/$package/* $INSTALLDIR/.
+                rm -rf $temp_folder
 	done
 	cut_bloat
 	create_empty

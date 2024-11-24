@@ -1,0 +1,24 @@
+[$ICAX_TITLE]
+Description=$ICAX_TITLE
+WinStationDriver=ICA 3.0
+TransportDriver=TCP/IP
+DoNotUseDefaultCSL=On
+LocHttpBrowserAddress=$ICAX_SERVER
+LocTCPBrowserAddress=$ICAX_SERVER
+EncryptionLevelSession=$ICAX_ENCRYPTION
+Compress=$ICAX_COMPRESS
+ICASOCKSProxyPortNumber=1080
+ICASOCKSProxyHost=
+ICASOCKSTimeout=5000
+ICASOCKSProtocolVersion=-1
+AudioBandwidthLimit=$ICAX_AUDIO_QUALITY
+ClientAudio=$ICAX_AUDIO
+UseDefaultSettingForColormap=Yes
+ZLMouseMode=2
+ZLKeyboardMode=2
+NoWindowManager=True
+UseFullScreen=Yes
+InitialProgram=$ICAX_INITIAL_PROGRAM
+Address=$ICAX_APPLICATION_SET
+TWIMode=$ICAX_SEAMLESS_WINDOW
+DisableCtrlAltDel=$ICAX_DISABLECTRLALTDEL

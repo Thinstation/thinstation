@@ -1,0 +1,12 @@
+[Unit]
+Description=LSB: Citrix USB Service
+After=udev.service pkg.service
+ConditionPathExists=/dev/bus/usb
+
+[Service]
+Type=forking
+Restart=no
+ExecStart=/opt/Citrix/ICAClient/ctxusbd
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,53 @@
+
+# --- Citrix Receiver Session Options
+#TYPE=icastore
+#ICASTORE_SERVER                                               The address to the store you want to connect to with this session.
+#ICASTORE_OPTIONS                                              If you need to change the Default Gateway for the added store.
+#                                                              You can find the info if you go in to Receiver --> Preferences,
+#                                                              the tab Accounts, press Edit and there you find the "Server URL:"
+#                                                              and "Default Gateway:" (droplist)
+#
+#                                                              That info should be defined as
+#                                                                   SESSION_1_ICASTORE_OPTIONS="--storegateway 'Default Gateway Name as in the droplist' 'Server URL (the one that ends with /discovery)'"
+#
+#                                                              e.g. in the configuration files:
+#                                                                   SESSION_1_ICASTORE_OPTIONS="--storegateway 'Internal Gateway' 'https://storefront.myinternaldomain.com/citrix/myStoreName/discovery'"
+#                                                              (note that name and url are within single quotes (') and everything is enclosed with double quotes (")
+#
+#                                                              If the information does display completly in the application GUI you can see the information by running
+#                                                                   /opt/Citrix/ICAClient/util/storebrowse --liststores
+#
+#
+# --- Citrix Receiver Configuration Options
+#
+#ICA_RECEIVER_RECONNECT_ON_LOGON                               true or false. Corresponding to the GUI option. If true, sessions are reconnected to when the user logs on to the Citrix Recever / StoreFront
+#ICA_RECEIVER_RECONNECT_ON_LAUNCH_OR_REFRESH                   true or false. Corresponding to the GUI option. If true, sessions are reconnected to when the user logs on to, or clicks Refresh in the Citrix Recever / StoreFront
+#ICA_RECEIVER_DISPLAY_DESKTOPS_IN_FULLSCREEN                   true or false. Corresponding to the GUI option. If true, starts all sessions in full screen mode.
+#ICA_RECEIVER_SHARED_USER_MODE                                 true or false. Google it... If you don't know it you probably don't need it.
+#ICA_RECEIVER_FULLSCREEN_MODE                                  1 or 0. If 1, Citrix Reciver (the application, not the sessions) starts in full screen mode. To use in kiosk mode.
+#ICA_RECEIVER_SELF_SELECTION                                   true or false. Google it... If you don't know it you probably don't need it.
+#
+#ICA_RECEIVER_CLEAR_CREDENTIALS_WHEN_SESSION_LAUNCHED          true or false. If true, the users credentials are cleard afther he/she
+#                                                              have launched their first session. This increases security on the Thinstation client.
+#                                                              Otherwise: if the user logs on to the Receiver and launches a session, and leaves or disconnects
+#                                                              the session, his/hers credentials are still logged on to the Receiver and anyone could simple start (logon)
+#
+#ICA_RECEIVER_CLEAR_CREDENTIALS_AFTER_SESSION_ENDS             Same as ICA_RECEIVER_CLEAR_CREDENTIALS_WHEN_SESSION_LAUNCHED, but instead of
+#                                                              clearing the session directly after the first session starts, the credentials are cleard
+#                                                              X minutes (ICA_RECEIVER_CLEAR_CREDENTIALS_CHECK_INTERVAL) after the last session has ended.
+#                                                              This makes it easier for the user since he/she can then close sessions and easily start them
+#                                                              again directly (within the time timeout limit) without having to logon.
+#
+#ICA_RECEIVER_CLEAR_CREDENTIALS_CHECK_INTERVAL                  Numeric value, default if not defined is 5. The check interval (timeout) used
+#                                                              by ICA_RECEIVER_CLEAR_CREDENTIALS_WHEN_SESSION_LAUNCHED and ICA_RECEIVER_CLEAR_CREDENTIALS_AFTER_SESSION_ENDS
+#
+#
+#Examples of configuration for Citrix Receiver:
+#SESSION_1_TYPE=icastore
+#SESSION_1_ICASTORE_SERVER="storefront.mycompany.com"
+#SESSION_1_ICASTORE_OPTIONS="--storegateway 'StoreFront' 'https://storefront.mycompany.com/citrix/mycompany/discovery'"
+#ICA_RECEIVER_RECONNECT_ON_LOGON=true
+#ICA_RECEIVER_RECONNECT_ON_LAUNCH_OR_REFRESH=true
+#ICA_RECEIVER_DISPLAY_DESKTOPS_IN_FULLSCREEN=true
+#ICA_RECEIVER_CLEAR_CREDENTIALS_AFTER_SESSION_ENDS=true
+
