@@ -7,9 +7,9 @@ create_wind()
 {
 	pkg=$1
 	printf "\n\tCreating fast clean cache for $pkg"
-	echo "#`md5sum .dna`" > $cache/wind_cache/$pkg.turbo
-        update -c -d $pkg >> $cache/wind_cache/$pkg.turbo
-        . $cache/wind_cache/$pkg.turbo
+	echo "#`md5sum .dna`" > .wind
+        update -c -d $pkg >> .wind
+        . .wind
 	errata=true
 }
 
@@ -17,12 +17,12 @@ create_unwind()
 {
 	pkg=$1
 	printf "\n\tCreating fast install cache for $pkg"
-        echo "#`md5sum .dna`" > $cache/unwind_cache/$pkg.turbo
+        echo "#`md5sum .dna`" > .unwind
         update -d $pkg |
         sed -e 's/^mkdir \-/2:/g' -e 's/^ln \-/4:/g' -e 's/^touch /5:/g' -e 's/^ln \//3:/g' |
         sort |
         uniq |
-        sed -e 's/^2:/mkdir \-/g' -e 's/^3:/ln \//g' -e 's/^4:/ln \-/g' -e 's/^5:/touch /g' >> $cache/unwind_cache/$pkg.turbo
+        sed -e 's/^2:/mkdir \-/g' -e 's/^3:/ln \//g' -e 's/^4:/ln \-/g' -e 's/^5:/touch /g' >> .unwind
 	errata=true
 }
 
@@ -146,17 +146,17 @@ wind_package()
         if [ -e $working/packages/$pkg/.dna ]; then
         	cd $working/packages/$pkg
                 printf "\rCleaning package %-40s" "$pkg"
-                if [ -e $cache/wind_cache/$pkg.turbo ]; then
-                	if cat $cache/wind_cache/$pkg.turbo |grep -e "#" |cut -d "#" -f2 |md5sum -c --quiet; then
-                        	. $cache/wind_cache/$pkg.turbo
+                if [ -e .wind ]; then
+                	if cat .wind |grep -e "#" |cut -d "#" -f2 |md5sum -c --quiet; then
+                        	. .wind
                         else
                                	create_wind $pkg
                         fi
                 else
                       	create_wind $pkg
                 fi
-                if [ -e $cache/unwind_cache/$pkg.turbo ]; then
-                	if cat $cache/unwind_cache/$pkg.turbo|grep -e "#" |cut -d "#" -f2 |md5sum -c --quiet; then
+                if [ -e .unwind ]; then
+                	if cat .unwind |grep -e "#" |cut -d "#" -f2 |md5sum -c --quiet; then
                         	echo "Already made" >> /dev/null
                         else
                              	create_unwind $pkg
