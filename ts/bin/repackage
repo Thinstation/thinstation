@@ -128,6 +128,9 @@ shallow_usr()
 					cp -a $pkgpath/$usr_dir/$essential_dir $pkgpath/.
 				fi
 				rm -rf $pkgpath/$usr_dir/$essential_dir
+				if [ -z "`ls -A $pkgpath/$usr_dir`" ]; then
+					rmdir $pkgpath/$usr_dir
+				fi
 			fi
 		done
 	done
@@ -270,15 +273,10 @@ from_env()
 		fi
 	done
 	temp_folder=./build-$PACKAGE
-	for package in $PORTS; do
+	for package in $PORTS $RPM; do
 		main
 		cp -Prf $temp_folder/$package/* $INSTALLDIR/.
 		rm -rf $temp_folder
-	done
-	for rpm in $RPM; do
-                main
-                cp -Prf $temp_folder/$package/* $INSTALLDIR/.
-                rm -rf $temp_folder
 	done
 	cut_bloat
 	create_empty
@@ -310,8 +308,7 @@ reduce_libs()
 			if [ -z "$soname" ]; then
 				echo "MISSING SONAME $link"
 #				exit 1
-			fi
-			if [ "$base" == "$soname" ]; then
+			elif [ "$base" == "$soname" ]; then
 				rm $link
 				cp $linkdir/$linkdest $link
 			else
@@ -332,8 +329,7 @@ reduce_libs()
 			if [ -z "$soname" ]; then
 				echo "MISSING SONAME $lib"
 #				exit 1
-			fi
-			if [ "$base" != "$soname" ]; then
+			elif [ "$base" != "$soname" ]; then
 				rm $lib
 			fi
 		done
