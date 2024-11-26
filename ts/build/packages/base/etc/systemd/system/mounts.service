@@ -1,15 +1,14 @@
 [Unit]
 Description=ThinStation Local Mounts
-DefaultDependencies=no
-After=systemd-udev-settle.service
+After=network-online.target choose-network.service
 
 [Service]
 Type=oneshot
-RemainAfterExit=no
+RemainAfterExit=yes
 EnvironmentFile=/etc/thinstation.env
 ExecStart=/etc/init.d/mounts
 SyslogIdentifier=thinstation
 TimeoutStartSec=30s
 
 [Install]
-WantedBy=sysinit.target
+WantedBy=multi-user.target

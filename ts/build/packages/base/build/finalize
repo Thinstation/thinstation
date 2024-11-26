@@ -24,8 +24,17 @@ done
 #rm -rf /etc/systemd/system/getty.target.wants
 #fi
 
-sed -i -e "s/tsuser/$TSUSER/g" /etc/group
-#sed -i -e "s/\-a tsuser/\-a $TSUSER/g" /etc/inittab
+if [ "$TSUSER" == "root" ]; then
+        sed -i "/deleteme/d" /etc/passwd
+	sed -i "/deleteme/d" /etc/shadow
+        sed -i "/deleteme/d" /etc/group
+        sed -i "/deleteme/d" /etc/gshadow
+fi
+sed -i -e "s/tsuser/$TSUSER/" /etc/passwd
+sed -i -e "s/tsuser/$TSUSER/" /etc/shadow
+sed -i -e "s/tsuser/$TSUSER/" /etc/group
+sed -i -e "s/tsuser/$TSUSER/" /etc/gshadow
+
 sed -i -e "s/\-a tsuser/\-a $TSUSER/g" /etc/systemd/system/display-manager.service
 if [ -e /etc/systemd/system/getty@tty1.service.d/override.conf ]; then
 	sed -i -e "s/\-a tsuser/\-a $TSUSER/g" /etc/systemd/system/getty@tty1.service.d/override.conf

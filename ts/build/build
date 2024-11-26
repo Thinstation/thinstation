@@ -1232,9 +1232,13 @@ if [ -e $PACDIR/tsuser.param ]; then
 			GETPASSWD=`mkpasswd -m md5 $ts_tsuserpasswd 2>/dev/null || mkpasswd -m sha512crypt $ts_tsuserpasswd`
 		fi
 	fi
-    echo "$ts_tsuser:$GETPASSWD:1000:1000:$ts_tsuser:/home/$ts_tsuser:/bin/sh" >> ./tmp-tree/etc/passwd
-    echo "$ts_tsuser:!:1000:" >> ./tmp-tree/etc/group
+	# Create the entries as tsuser, they will be replaced later
+	echo "tsuser:$GETPASSWD:1000:1000:tsuser:/home/tsuser:/bin/sh" >> ./tmp-tree/etc/passwd
+	echo "tsuser:x:1000:tsuser" >> ./tmp-tree/etc/group
 else
+	# Still create the tsuser, but we will delete later after other automation runs.
+	echo "tsuser:!!:1000:1000:tsuser:/home/tsuser:deleteme" >> ./tmp-tree/etc/passwd
+	echo "tsuser:x:1000:deleteme" >> ./tmp-tree/etc/group
 	ts_tsuser=root
 fi
 echo "TSUSER=$ts_tsuser" >> ./tmp-tree/etc/thinstation.env
@@ -1249,11 +1253,11 @@ if [  -e $PACDIR/tsadminpasswd.param ]; then
     else
         GETPASSWD=`mkpasswd -m md5 $ts_tsadminpasswd 2>/dev/null || mkpasswd -m sha512crypt $ts_tsadminpasswd`
     fi
-    cp ./tmp-tree/etc/passwd ./tmp-tree/etc/passwd.tmp
-    echo "tsadmin:$GETPASSWD:42:42:tsadmin:/home/tsadmin:/bin/sh" >./tmp-tree/etc/passwd
-    cat ./tmp-tree/etc/passwd.tmp | grep -v "tsadmin" >> ./tmp-tree/etc/passwd
-    rm ./tmp-tree/etc/passwd.tmp
-    echo "tsadmin:!:42:" >> ./tmp-tree/etc/group
+#    cp ./tmp-tree/etc/passwd ./tmp-tree/etc/passwd.tmp
+    echo "tsadmin:$GETPASSWD:42:42:tsadmin:/home/tsadmin:/bin/sh" >>./tmp-tree/etc/passwd
+#    cat ./tmp-tree/etc/passwd.tmp | grep -v "tsadmin" >> ./tmp-tree/etc/passwd
+#    rm ./tmp-tree/etc/passwd.tmp
+    echo "tsadmin:x:42:tsadmin" >> ./tmp-tree/etc/group
 fi
 
 if [  -e $PACDIR/rootpasswd.param ]; then
@@ -1264,10 +1268,11 @@ if [  -e $PACDIR/rootpasswd.param ]; then
     else
         GETPASSWD=`mkpasswd -m md5 $ts_rootpasswd 2>/dev/null || mkpasswd -m sha512crypt $ts_rootpasswd`
     fi
-    cp ./tmp-tree/etc/passwd ./tmp-tree/etc/passwd.tmp
-    echo "root:$GETPASSWD:0:0:root:/root:/bin/sh" >./tmp-tree/etc/passwd
-    cat ./tmp-tree/etc/passwd.tmp | grep -v "root" >> ./tmp-tree/etc/passwd
-    rm ./tmp-tree/etc/passwd.tmp
+#    cp ./tmp-tree/etc/passwd ./tmp-tree/etc/passwd.tmp
+    echo "root:$GETPASSWD:0:0:root:/root:/bin/sh" >>./tmp-tree/etc/passwd
+    echo "root:x:0:root" >> ./tmp-tree/etc/group
+#    cat ./tmp-tree/etc/passwd.tmp | grep -v "root" >> ./tmp-tree/etc/passwd
+#    rm ./tmp-tree/etc/passwd.tmp
 fi
 
 if [ -e $PACDIR/xorgvncpasswd.param ]; then
@@ -1736,6 +1741,9 @@ filesystem_fixups()
 		fi
 		depmod -b ./tmp-tree $KERNVER 2>/dev/null
 	fi
+	# Sort the auth files
+	pwck -s -R /build/tmp-tree
+	grpck -s -R /build/tmp-tree
 }
 
 compress_module()
