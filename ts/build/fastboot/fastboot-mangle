@@ -73,7 +73,7 @@ if [ "$2" == "true" ] ; then
 		touch -c -h -t $timestamp lib64/$file
 	done
 	if [ "$HARDLINK" == "true" ]; then
-		hardlink -v lib64
+		hardlink lib64
 	fi
 	mksquashfs lib64 ../$INITDIR/lib.squash -always-use-fragments -no-recovery -noappend $FB_COMP_EXTRA
 	for i in `ls --color=never lib64/ |grep -xvf ../fastboot/lib-boot |grep -xvf /tmp/fastlib |grep -Ewv 'bin|sbin|dbus-1' |grep -Ev 'libgcc_s.so.[0-1]+|libnss_files.so.[0-9]+|libnss_dns.so.[0-9]+'` ; do
@@ -151,7 +151,7 @@ if [ "$2" == "lotsofmem" ]; then
 		fi
 	done
 	if [ "$HARDLINK" == "true" ]; then
-		hardlink -v ../fastboot-tmp
+		hardlink ../fastboot-tmp
 	fi
 	echo -e "\tMaking lib.squash"
 	mksquashfs ../fastboot-tmp/. ../$INITDIR/lib.squash -always-use-fragments -no-recovery -noappend $FB_COMP_EXTRA

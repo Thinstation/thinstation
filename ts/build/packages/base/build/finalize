@@ -1,4 +1,6 @@
 #base 00
+systemd-sysusers
+
 for i in /*; do
   if [ $i != "/dev" ] && [ $i != "/proc" ] && [ $i != "/tmp" ]; then
 #    chown -R root:root $i
@@ -126,8 +128,21 @@ chmod u+s /sbin/unix_chkpwd
 wait
 /sbin/grpconv
 wait
-rm /etc/passwd-
-rm /etc/group-
 chmod 000 /etc/shadow
 chmod 000 /etc/gshadow
 ldconfig
+
+systemctl enable debug
+systemctl enable mounts
+systemctl enable crond
+systemctl enable crontab
+systemctl enable rtc_cmos
+systemctl enable pkg
+systemctl enable post-udev
+systemctl enable profile-setup
+systemctl enable session
+systemctl enable session-setup
+systemctl enable fastboot
+if [ "`readlink /sbin/syslogd`" == "/sbin/busybox.shared" ]; then
+	systemctl enable syslog-bb
+fi

@@ -1,10 +1,6 @@
 [Unit]
 Description=ThinStation Debug Configuration
 DefaultDependencies=no
-Conflicts=shutdown.target
-After=systemd-fsck-root.service
-Before=local-fs-pre.target local-fs.target shutdown.target
-Wants=local-fs-pre.target
 ConditionPathExists=/etc/fstab
 
 [Service]
@@ -13,3 +9,6 @@ RemainAfterExit=no
 EnvironmentFile=/etc/thinstation.env
 ExecStart=/etc/init.d/debug
 SyslogIdentifier=thinstation
+
+[Install]
+WantedBy=sysinit.target

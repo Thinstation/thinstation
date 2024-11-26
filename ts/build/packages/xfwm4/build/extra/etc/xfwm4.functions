@@ -38,7 +38,12 @@ make_desktop()
 
 xfconf_settings()
 {
-	xfconf-query -c xfce4-notifyd -p /applications/muted_applications -a -t string -s "xfce4-settings-helper" --create
+#        xfconf-query -c xfce4-notifyd -p /applications/known_applications -a -t string -s "xfce4-settings-helper" --create
+#        xfconf-query -c xfce4-notifyd -p /applications/known_applications -a -t string -s "Xfce volume control"
+#        xfconf-query -c xfce4-notifyd -p /applications/known_applications -a -t string -s "org.freedesktop.network-manager-applet"
+#	xfconf-query -c xfce4-notifyd -p /applications/muted_applications -a -t string -s "xfce4-settings-helper" --create
+#	xfconf-query -c xfce4-notifyd -p /applications/muted_applications -a -t string -s "Xfce volume control"
+#	xfconf-query -c xfce4-notifyd -p /applications/muted_applications -a -t string -s "org.freedesktop.network-manager-applet"
 	xfconf-query -c xsettings -p /Gtk/CursorThemeSize -s ${CURSOR_SIZE:=16}
 	xfconf-query -c xfce4-session -p /compat/LaunchGNOME -t bool -s true -n
 
@@ -103,6 +108,7 @@ xfconf_settings()
 	else
 		PANEL="-t int -s 1 -t int -s 3 -t int -s 15"
 	fi
+
 	if is_enabled $PANEL_PAGER; then
 		PANEL="$PANEL -t int -s 4"
 	else
@@ -110,18 +116,27 @@ xfconf_settings()
 		xfconf-query -c xfwm4 -p /general/workspace_count -t int -s 1 -n
 		xfconf-query -c xfwm4 -p /general/workspace_names --reset
 	fi
+
         if [ -e /lib64/xfce4/panel/plugins/libxkb.so ]; then
 		PANEL="$PANEL -t int -s 22"
 		xfconf-query -c xfce4-panel -p /plugins/plugin-22 -t string -s xkb -n
 	fi
+
+        if [ -e /lib64/xfce4/panel/plugins/libpulseaudio-plugin.so ]; then
+		xfconf-query -c xfce4-panel -p /plugins/plugin-18 -n -t string -s "pulseaudio"
+		xfconf-query -c xfce4-panel -p /plugins/plugin-18/enable-keyboard-shortcuts -n -t bool -s true
+		PULSE_PANEL="-t int -s 18"
+        fi
+
 	if is_disabled $MENU_SHOWCLOCK; then
 		xfconf-query -c xfce4-panel -p /plugins/plugin-5 --reset
 		PANEL="$PANEL -t int -s 6"
 	elif is_enabled $PANEL_REV_CLOCKSYSTRAY; then
-		PANEL="$PANEL -t int -s 6 -t int -s 5"
+		PANEL="$PANEL -t int -s 6 $PULSE_PANEL -t int -s 5"
 	else
-		PANEL="$PANEL -t int -s 5 -t int -s 6"
+		PANEL="$PANEL $PULSE_PANEL -t int -s 5 -t int -s 6"
 	fi
+
 	if is_enabled $PANEL_USER; then
 		PANEL="$PANEL -t int -s 2"
 	else

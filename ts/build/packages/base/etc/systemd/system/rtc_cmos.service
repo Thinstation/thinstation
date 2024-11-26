@@ -1,8 +1,6 @@
 [Unit]
 Description=Configure System Clock Properties
 DefaultDependencies=no
-After=systemd-udev-settle.service
-Before=sysinit.target
 
 [Service]
 Type=oneshot
@@ -10,3 +8,6 @@ RemainAfterExit=no
 EnvironmentFile=/etc/thinstation.env
 ExecStart=/etc/init.d/rtc_cmos
 SyslogIdentifier=thinstation
+
+[Install]
+WantedBy=sysinit.target

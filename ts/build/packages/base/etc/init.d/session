@@ -5,22 +5,23 @@
 # Set Geometry Variables for, needed for certain session types
 
 screen_res
-let COLS=`echo $SCREEN_RESOLUTION | cut -f1 -dx`/6-1
-let ROWS=`echo $SCREEN_RESOLUTION | cut -f2 -dx`/14
+#let COLS=`echo $SCREEN_RESOLUTION | cut -f1 -dx`/6-1
+#let ROWS=`echo $SCREEN_RESOLUTION | cut -f2 -dx`/14
 
 if is_enabled $X_RES_SEED; then
 	echo "SCREEN_RESOLUTION=\"$SCREEN_RESOLUTION\"" >>$TS_RUNTIME
 fi
 
-echo "COLS=$COLS" >> $TS_RUNTIME
-echo "ROWS=$ROWS" >> $TS_RUNTIME
+#echo "COLS=$COLS" >> $TS_RUNTIME
+#echo "ROWS=$ROWS" >> $TS_RUNTIME
 
-let x=-1
-let y=-1
+#let x=-1
+#let y=-1
 
 # Add each Applications configuration parameters
-while [ $x -le $y ]; do
-   let x=x+1
+for x in `seq 0 10`; do
+#while [ $x -le $y ]; do
+#   let x=x+1
 
    # Define Default Values. Can be overriden by session parameters.
    SCREEN=0
@@ -95,7 +96,7 @@ while [ $x -le $y ]; do
    fi
    mkdir -p $WKDIR
    if [ -n "$SESSION_TYPE" ] ;then
-     let y=y+1
+ #    let y=y+1
      echo $SESSION_TYPE  \
 	$(replace_invalid "$SESSION_TITLE")  \
 	$SESSION_SCREEN  \
