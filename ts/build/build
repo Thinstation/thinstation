@@ -1414,8 +1414,8 @@ sample_configuration
 keymaps
 
 # Clean up unncessary folders
-rm -rf ./tmp-tree/{dependencies,build,.dna,.wind,.unwind}
-set +x
+#rm -rf ./tmp-tree/{dependencies,build,.dna,.wind,.unwind}
+#set +x
 # Adding library dependencies
 
 lib_dependencies
@@ -1741,6 +1741,9 @@ filesystem_fixups()
 		fi
 		depmod -b ./tmp-tree $KERNVER 2>/dev/null
 	fi
+	# Clean up unncessary folders
+	rm -rf ./tmp-tree/{dependencies,build,.dna,.wind,.unwind}
+
 	# Sort the auth files
 	pwck -s -R /build/tmp-tree
 	grpck -s -R /build/tmp-tree
