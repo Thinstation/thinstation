@@ -210,7 +210,7 @@ calculate_lib_dependencies()
 				echo "Adding library dependencies for `basename $filename`"
 				DISPLAYED=TRUE
 			fi
-			libsource="`find /usr/lib /usr/lib64 -name $libfile`"
+			libsource="`find /usr/lib /usr/lib64 -name $libfile |grep -v vmware |tail -n1`"
 			if [ -n "$libsource" ] && [ -e $libsource ]; then
 				echo -e "\t\t\t$libfile"
 				if [ ! -e $pkgname/lib64 ]; then

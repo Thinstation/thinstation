@@ -1,0 +1,17 @@
+[Unit]
+Description=Configure VMware Horizon View Client Settings
+DefaultDependencies=no
+Conflicts=shutdown.target
+After=profile-setup.service net.profile-setup.service pkg.service session.service
+Before=session-setup.service vmware.usbarbitrator.service
+ConditionPathIsReadWrite=/etc
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+EnvironmentFile=/etc/thinstation.env
+ExecStart=/etc/init.d/vmview-init
+SyslogIdentifier=thinstation
+
+[Install]
+WantedBy=multi-user.target

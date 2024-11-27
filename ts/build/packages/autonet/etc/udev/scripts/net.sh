@@ -1,6 +1,9 @@
 #!/bin/sh
 . /etc/thinstation.global
 
+#set -x
+#exec </dev/null >>/var/log/net.log  2>&1
+
 valid_interface()
 {
 	if [ -z "$INTERFACE" ];then

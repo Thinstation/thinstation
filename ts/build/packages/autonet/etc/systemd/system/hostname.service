@@ -1,12 +1,12 @@
 [Unit]
-Description=Thinstation Hostname Configuration
-After=choose-network.service fastboot.service
-Conflicts=shutdown.service
-ConditionPathIsReadWrite=/etc
+Description=Configure Network Connections Automatically
+After=post-udev.service	network-pre.target dbus.service choose-network.service
+Before=network-online.target network.target
+Wants=network.target network-online.target
 
 [Service]
 Type=oneshot
-RemainAfterExit=no
+RemainAfterExit=yes
 EnvironmentFile=/etc/thinstation.env
 ExecStart=/etc/init.d/hostname
 SyslogIdentifier=thinstation

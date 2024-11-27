@@ -2,6 +2,9 @@
 
 #. `dirname $0`/common
 
+#set -x
+#exec </dev/null >>/var/log/hostname.log  2>&1
+
 for adapter in `ls /var/log/net`; do
         . /var/log/net/$adapter
         echo "$CLIENT_IP $CLIENT_NAME" >> /etc/hosts
@@ -14,7 +17,7 @@ done
 
 . $TS_RUNTIME
 
-if [ -n $NET_DEVICE ] ; then
+if [ -n "$NET_DEVICE" ] ; then
 	. /var/log/net/$NET_DEVICE
 	hostnamectl set-hostname $CLIENT_NAME
 fi

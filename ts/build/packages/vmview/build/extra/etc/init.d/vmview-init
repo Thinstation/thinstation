@@ -1,0 +1,139 @@
+#! /bin/sh
+
+. `dirname $0`/common
+. /etc/vmview.functions
+HOME=/etc/skel
+
+if [ -n $DEBUG_NETWORK ] ; then
+	debug="-d"
+fi
+
+if ! pkg_initialized $PACKAGE; then
+	pkg_set_init_flag $PACKAGE
+
+	if [ ! -e /etc/skel/.vmware ] ; then
+		mkdir -p /etc/skel/.vmware
+	fi
+
+	(ls -1 /etc/vmware/*.vdm 2>/dev/null) |
+	while read filename ; do
+		cp $filename /etc/skel/.vmware/.
+	done
+
+	if [ -n "$PKCS11_MODULE" ] && [ -e "$PKCS11_MODULE" ]; then
+		mkdir -p /lib/vmware/view/pkcs11
+		ln -s $PKCS11_MODULE /lib/vmware/view/pkcs11/
+	fi
+
+	if [ -z "$VMVIEW_AUTOCONNECT" ]; then VMVIEW_AUTOCONNECT="TRUE"; fi
+	if [ -z "$VMVIEW_SSLVERIFYMODE" ]; then VMVIEW_SSLVERIFYMODE=3; fi
+	if [ ! -e /etc/skel/.vmware/view-preferences ]; then
+		echo "view.autoConnectBroker = \"$VMVIEW_AUTOCONNECT\"" > /etc/skel/.vmware/view-preferences
+		# ignore bad ssl certificate
+		echo "view.sslVerificationMode = \"$VMVIEW_SSLVERIFYMODE\"" >> /etc/skel/.vmware/view-preferences
+		if [ -n "$VMVIEW_DEFAULTBROKER" ]; then
+			echo "view.defaultBroker = \"$VMVIEW_DEFAULTBROKER\"" >> /etc/skel/.vmware/view-preferences
+		fi
+		if [ -n "$VMVIEW_SSLPROTOCOL" ]; then
+		    echo "view.sslProtocolString = \"$VMVIEW_SSLPROTOCOL\"" >> /etc/skel/.vmware/view-preferences
+		fi
+		if [ -n "$VMVIEW_SSLCIPHERS" ]; then
+		    echo "view.sslCipherString = \"$VMVIEW_SSLCIPHER\"" >> /etc/skel/.vmware/view-preferences
+		fi
+		if [ -n "$VMVIEW_DATASHARING" ]; then
+		    echo "view.enableDataSharing = \"$VMVIEW_DATASHARING\"" >> /etc/skel/.vmware/view-preferences
+		fi
+
+	fi
+
+	let x=0
+	while [ -n "`eval echo '$SESSION_'$x'_TYPE'`" ] ; do
+		VDITYPE=`eval echo '$SESSION_'$x'_TYPE'`
+		if [ "`make_caps $VDITYPE`" == "VMVIEW" ] ; then
+			VDITITLE=`eval echo '$SESSION_'$x'_TITLE'`
+			VDITITLE=`replace_char "$VDITITLE" " " "_"`
+			VDIPARAMS=/tmp/VDI$VDITITLE
+			VDICONFIG=/etc/skel/.vmware/$VDITITLE.vdm
+			VDIICON=`eval echo '$SESSION_'$x'_ICON'`
+			touch $VDICONFIG
+			# we need to pass the TS selected keyboard map through to rdesktop
+			rdesktopoptions="-k $KEYBOARD_MAP"
+
+			set | grep "SESSION_"$x"_VMVIEW_"  > $VDIPARAMS
+			while read session; do
+				line=`echo $session | cut -f4- -d"_"`
+				vdioption=${line%%=*}
+				vdioption=`make_lower $vdioption`
+				var="\$${session%%=*}"
+				vdivalue=`eval echo $var`
+				# fix for mixed case (case sensitive) parameters
+				if [ "$vdioption" == "serverurl" ] ; then vdioption="serverURL" ; VDISERVER=$vdivalue ; fi
+				if [ "$vdioption" == "server" ] ; then vdioption="serverURL" ; VDISERVER=$vdivalue ; fi
+				if [ "$vdioption" == "noninteractive" ] ; then vdioption="nonInteractive" ; fi
+				if [ "$vdioption" == "desktopname" ] ; then vdioption="desktopName" ; fi
+				if [ "$vdioption" == "domainname" ] ; then vdioption="domainName" ; fi
+				if [ "$vdioption" == "desktopsize" ] ; then vdioption="desktopSize" ; fi
+				if [ "$vdioption" == "username" ] ; then vdioption="userName" ; fi
+				if [ "$vdioption" == "mmrpath" ] ; then vdioption="mmrPath" ; fi
+				if [ "$vdioption" == "rdesktopoptions" ] ; then vdioption="rdesktopOptions" ; fi
+				if [ "$vdioption" == "xfreerdpoptions" ] ; then vdioption="xfreerdpOptions" ; fi
+				if [ "$vdioption" == "printenvironmentinfo" ] ; then vdioption="printEnvironmentInfo" ; fi
+				if [ "$vdioption" == "kbdlayout" ] ; then vdioption="kbdLayout" ; fi
+				if [ "$vdioption" == "kiosklogin" ] ; then vdioption="kioskLogin" ; fi
+				if [ "$vdioption" == "enablenla" ] ; then vdioption="enableNla" ; fi
+				if [ "$vdioption" == "lockserver" ] ; then vdioption="lockServer" ; fi
+				if [ "$vdioption" == "sslprotocolstring" ] ; then vdioption="sslProtocolString" ; fi
+				if [ "$vdioption" == "sslcipherstring" ] ; then vdioption="sslCipherString" ; fi
+
+				case $vdioption in
+				fullscreen|allmonitors|nonInteractive|unattended|keep-wm-bindings|once|printEnvironmentInfo|enableNla|kioskLogin|save|nomenubar|lockServer)
+					# some parameters don't have values
+					value=`make_lower $vdivalue`
+					if [ "$value" == "true" ] || [ "$value" == "on" ] ; then
+						echo "--$vdioption" >> $VDICONFIG
+					fi
+				;;
+				rdesktopOptions)
+					# allow for passthrough of user specified rdesktop options - one ONLY
+					rdesktopoptions="${rdesktopoptions} ${vdivalue}"
+				;;
+				xfreerdpOptions)
+					# allow for passthrough of user specified xfreerdp options - one ONLY
+					xfreerdpoptions="${xfreerdpoptions} ${vdivalue}"
+				;;
+				options)
+					# ignore
+				;;
+				*)
+				# allow for multiple REDIRECT
+				if [ `expr match "$vdioption" 'redirect'` == "8" ] ; then
+					echo "--redirect='$vdivalue'" >> $VDICONFIG
+				# allow for multiple USB
+				elif [ `expr match "$vdioption" 'usb'` == "3" ] ; then
+					echo "--usb='$vdivalue'" >> $VDICONFIG
+				# the rest are just option=value
+				else
+					if [ -z "`echo $vdivalue | grep ' '`" ]; then
+						echo "--$vdioption=$vdivalue" >> $VDICONFIG
+					else
+						echo "--$vdioption='$vdivalue'" >> $VDICONFIG
+					fi
+				fi
+				;;
+				esac
+			done < $VDIPARAMS
+			# make sure we set at least the keyboard map
+			echo "--rdesktopOptions='$rdesktopoptions'" >> $VDICONFIG
+			if [ -n "$xfreerdpoptions" ]; then
+				echo "--xfreerdpOptions='$xfreerdpoptions'" >> $VDICONFIG
+			fi
+			if is_disabled $VDIICON; then
+				if [ -n "$VDISERVER" ]; then
+					echo "$VDISERVER" >> /etc/skel/.vmware/view-recent-brokers
+				fi
+			fi
+		fi
+		let x=x+1
+	done
+	vdi_menu
+fi

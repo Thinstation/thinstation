@@ -141,7 +141,7 @@ if [ "$2" == "lotsofmem" ]; then
 	cat /tmp/fastlibneed |grep -v "not a dyn"|grep -v ":" |sed -e 's/\t//g' |cut -d " " -f1 |sed -e 's|/lib64/||g' |sed -e 's|/lib/||g' |sort -u > /tmp/fastlib
 	for lib in `cat /tmp/fastlib |grep -v linux-vdso.so`; do
 		if [ ! -e lib64/$lib ]; then
-			libsource="`find /usr/lib /usr/lib64 -name $lib`"
+			libsource="`find /usr/lib /usr/lib64 -name $lib |grep -v vmware`"
 			cp $libsource lib64/.
 		fi
 	done

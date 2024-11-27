@@ -1,0 +1,23 @@
+#!/bin/sh
+# Functions
+
+vdi_menu ()
+{
+ if [ -e $HOME/.vmware ] ; then
+   if [ `ls -1 $HOME/.vmware/*.vdm 2>/dev/null |wc -l` -ge 1 ] ; then
+     # Defaults screen to 0 when generating sessions that were created from outside of thinstation.conf
+     DISPLAY_NUMBER=`echo $DISPLAY | cut -c2`
+     (ls -1 $HOME/.vmware/*.vdm) |
+     while read conf
+     do
+	 echo_log "Generating menu item for $conf"
+	 name=`echo $conf | cut -f4 -d"/" | cut -f1 -d"."`
+         name=`replace_invalid ${name}`
+	 gname=`replace_char "$name" ' ' '_'`
+	 if ! cat $WKDIR/session | sed -e "s/\\\ /_/g" | cut -f2 -d" " | grep $gname > /dev/null 2>&1 ; then
+          echo "vmview $gname $DISPLAY_NUMBER 1 1 OFF OFF SUBMENU gname ." >> $WKDIR/session
+         fi
+     done
+   fi
+ fi
+}

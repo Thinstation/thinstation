@@ -1,11 +1,15 @@
 [Unit]
-Description=Select Best Available Network Connection
-DefaultDependencies=no
-After=autonet.service
+Description=Choose from available network connections
+After=post-udev.service	network-pre.target dbus.service autonet.service
+Before=network-online.target network.target
+Wants=network.target
 
 [Service]
 Type=oneshot
-RemainAfterExit=no
+RemainAfterExit=yes
 EnvironmentFile=/etc/thinstation.env
 ExecStart=/etc/init.d/choose-network
 SyslogIdentifier=thinstation
+
+[Install]
+WantedBy=multi-user.target

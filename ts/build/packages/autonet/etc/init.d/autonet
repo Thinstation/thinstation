@@ -1,13 +1,14 @@
 #!/bin/sh
 . `dirname $0`/common
 
-if ! pkg_initialized $PACKAGE; then
-        pkg_set_init_flag $PACKAGE
-
-	for INTERFACE in `ls /var/log/net`; do
-		if [ -n "$INTERFACE" ]; then
-			export INTERFACE
-			/etc/udev/scripts/net.sh
-		fi
-	done
-fi
+timeout=50
+while [ -z "`ls -A /var/log/net |grep -v lo`" ] && [ "$timeout" != "0" ]; do
+	sleep .1
+	let timeout-=1
+done
+for INTERFACE in `ls /var/log/net`; do
+	if [ -n "$INTERFACE" ]; then
+		export INTERFACE
+		/etc/udev/scripts/net.sh &
+	fi
+done

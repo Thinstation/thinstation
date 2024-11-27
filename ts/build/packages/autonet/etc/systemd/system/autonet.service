@@ -1,7 +1,9 @@
 [Unit]
 Description=Configure Network Connections Automatically
-DefaultDependencies=no
-After=sysinit.target systemd-resolved.service
+After=post-udev.service network-pre.target dbus.service
+Before=network-online.target network.target
+Wants=network.target
+
 
 [Service]
 Type=oneshot
@@ -9,3 +11,6 @@ RemainAfterExit=yes
 EnvironmentFile=/etc/thinstation.env
 ExecStart=/etc/init.d/autonet
 SyslogIdentifier=thinstation
+
+[Install]
+WantedBy=multi-user.target
