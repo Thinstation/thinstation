@@ -1,0 +1,38 @@
+#!/bin/bash
+
+gzname=`basename $1`
+tarname=`basename $1 .tar.gz`
+filename=`basename $1 .tar.gz`
+INSTALLDIR=./packages/thinlinc
+
+tar -C wget_tmp -zxf ./wget_tmp/$gzname
+let returnval=$?
+
+chmod -R u+w ./wget_tmp
+cp -Prf ./wget_tmp/*/* $INSTALLDIR/.
+
+mkdir -p $INSTALLDIR/lib/icons/hicolor/scalable/apps
+cp $INSTALLDIR/lib/tlclient/share/icons/hicolor/scalable/apps/thinlinc-client.svg \
+	$INSTALLDIR/lib/icons/hicolor/scalable/apps/thinlinc.svg
+icon-gen thinlinc
+
+rm $INSTALLDIR/lib/tlclient/pulseaudio
+ln -sf /bin/pulseaudio $INSTALLDIR/lib/tlclient/pulseaudio
+
+for dir in `find $INSTALLDIR/build/extra -type d -printf "%P\n"`; do
+	mkdir -p $INSTALLDIR/$dir
+done
+IFS=$'\n\t'
+for file in `find $INSTALLDIR/build/extra ! -type d -printf "%P\n"`; do
+	if [ -e $INSTALLDIR/"$file" ]; then
+		rm $INSTALLDIR/"$file"
+	fi
+	ln $INSTALLDIR/build/extra/"$file" $INSTALLDIR/"$file"
+done
+unset IFS
+
+sed -i -e '/TLCLIENT_PREFIX=/d' $INSTALLDIR/bin/tlclient
+sed -i -e 's/export TLCLIENT_PREFIX/export TLCLIENT_PREFIX=\//g' $INSTALLDIR/bin/tlclient
+sed -i -e 's|${ORIGIN}/..||g' $INSTALLDIR/bin/tlclient
+
+exit $returnval

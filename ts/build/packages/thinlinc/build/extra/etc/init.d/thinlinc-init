@@ -1,0 +1,50 @@
+#!/bin/sh
+# -*- mode: shell-script; coding: utf-8 -*-
+#
+# Copyright 2002-2014 Cendio AB.
+# For more information, see http://www.cendio.com
+
+. `dirname $0`/common
+
+case "$1" in 
+init)
+
+  # If the file already exists, it was probably downloaded by
+  # /etc/init.d/network on Thinstation 2.2 or later. 
+  #
+  # From now on, we don't support ThinStation 2.1 or older with
+  # automatic download of known_hosts.
+
+  if [ -e ${HOME}/.ssh/known_hosts ] ; then
+    mkdir -p ${HOME}/.thinlinc
+    cp -a ${HOME}/.ssh/known_hosts ${HOME}/.thinlinc/
+  fi
+
+  let x=0
+  while [ -n "`eval echo '$SESSION_'$x'_TYPE'`" ] ; do  
+      TLTYPE=`eval echo '$SESSION_'$x'_TYPE'`     
+      if [ "`make_caps $TLTYPE`" = "THINLINC" ] ; then
+	  if [ ! -d $HOME/.thinlinc ] ; then
+	      mkdir $HOME/.thinlinc
+	  fi
+
+	  TLCLIENTCONF=$HOME/.thinlinc/tlclient.conf
+
+	  (set | grep "SESSION_"$x"_THINLINC_CONFIG_" ) |
+	  while read session; do
+	      tlvalue=`echo $session | cut -f2 -d"="`
+	      tlvalue=`eval echo $tlvalue`
+	      line=`echo $session | cut -f1 -d"="`
+	      tlparam=`echo $line | sed -e s/SESSION_${x}_THINLINC_CONFIG_//`
+	      tlparam=`make_caps $tlparam` 
+
+	      echo "${tlparam} = ${tlvalue}" >> $TLCLIENTCONF
+	  done
+      fi
+      let x=x+1
+  done
+
+;;
+esac
+
+  
