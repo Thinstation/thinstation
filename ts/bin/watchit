@@ -1,40 +1,41 @@
 #!/bin/bash
 
-new_file()
-{
-        if [ -n "`stat -c '%Y' "$1" | grep -v \"$bday\"`" ]; then
-                echo "$1"
-        fi
+new_file() {
+    if [ "$(stat -c '%Y' "$1")" -ne "$epoch_time" ]; then
+        echo "$1"
+    fi
 }
+export -f new_file
 
-stamp()
-{
-	touch -c -h -t "$timestamp" "$1"
+stamp() {
+    touch -c -h -t "$timestamp" "$1"
 }
+export -f stamp
 
-procs=`nproc`
-timestamp="`date +%Y%m%d`0000.00"
+# Initialize variables
+procs=$(nproc)
+epoch_time=1700000000
+timestamp=$(date -d @"$epoch_time" +%Y%m%d%H%M.%S)
+scan_dirs="usr lib lib64 bin sbin opt etc share var libexec"
 
 export timestamp
-export procs
-export -f new_file
-export -f stamp
-export scan_dirs="usr lib bin sbin build/packages opt etc share var"
+export epoch_time
 
+# Update timestamps
 for dir in $scan_dirs; do
-	export IFS=$'\n'
-        find /$dir ! -type d |xargs -n 1 -P $procs -I {} bash -c 'stamp "$@"' _ {}
-	unset IFS
+    if [ -d "/$dir" ]; then
+        find "/$dir" ! -type d -print0 | xargs -0 -P "$procs" -I {} bash -c 'stamp "$@"' _ {}
+    else
+        echo "Warning: Directory /$dir does not exist, skipping."
+    fi
 done
 
-bday=`stat -c %Y /bin/busybox`
-export bday
+# Run user-specified command
+"$@"
 
-$@
-
+# Identify new files
 for dir in $scan_dirs; do
-	export IFS=$'\n'
-	find /$dir ! -type d |xargs -n 1 -P $procs -I {} bash -c 'new_file "$@"' _ {}
-	unset IFS
+    if [ -d "/$dir" ]; then
+        find "/$dir" ! -type d -print0 | xargs -0 -P "$procs" -I {} bash -c 'new_file "$@"' _ {}
+    fi
 done
-
