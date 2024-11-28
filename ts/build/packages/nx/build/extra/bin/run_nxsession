@@ -1,0 +1,38 @@
+#!/bin/sh
+
+. /etc/thinstation.global
+
+NXPLAYERBIN=/lib/NX/bin/nxplayer
+NXCLIENTBIN=/lib/NX/bin/nxclient
+
+case $1 in
+"--admin")
+	$NXCLIENTBIN --admin
+;;
+"--wizard")
+	$NXPLAYERBIN --wizard
+
+	. /etc/nx.functions
+	nx_menu
+
+	if [ -n "$WMNAME" ] ; then
+		. /etc/$WMNAME.functions
+		wm_menu
+	fi
+
+	XTDPID=`pidof xtdesk`
+	if [ -n "$XTDPID" ] ; then
+		. /etc/xtdesk.functions
+		xtdesk_icons
+		kill $XTDPID
+		xtdesk_icons
+		xtdesk & >> $LOGFILE 2>&1
+	fi
+	;;
+"")
+	$NXPLAYERBIN
+;;
+*)
+	$NXPLAYERBIN --session ~/.nx/config/$1.nxs
+;;
+esac

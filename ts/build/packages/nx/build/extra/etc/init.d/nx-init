@@ -1,0 +1,127 @@
+#! /bin/sh
+
+. `dirname $0`/common
+. /etc/nx.functions
+HOME=/etc/skel
+
+if [ -n $DEBUG_NETWORK ] ; then
+    debug="-d"
+fi
+
+case "$1" in
+init)
+    if ! pkg_initialized $PACKAGE; then
+	pkg_set_init_flag $PACKAGE
+
+	if [ ! -e $HOME/.nx/config ] ; then
+		mkdir -p $HOME/.nx/config
+		mkdir $HOME/.nx/temp
+		mkdir $HOME/Desktop
+	fi
+
+	if [ ! -e $HOME/.nx/config/nxclient.cfg ] ; then
+		cp /etc/nx/nxclient.cfg $HOME/.nx/config/nxclient.cfg
+	fi
+
+	ls /etc/nx/*.nxs > nxsessions 2>/dev/null
+	if [ -s nxsessions ] ; then
+		(cat nxsessions ) | 
+		while read filename ; do
+			cp $filename $HOME/.nx/config/.
+		done
+	fi
+	rm nxsessions
+
+	if [ -n `eval echo '$NX_NOCONFIG'` ] ; then
+		NXNOCONFIG=`eval echo '$NX_NOCONFIG'`
+		if [ "ON" = "`make_caps $NXNOCONFIG`" ] ; then
+			touch /usr/NX/share/noconfig
+		fi
+	fi
+
+	if [ -n `eval echo '$NX_NOEXIT'` ] ; then
+		NXNOEXIT=`eval echo '$NX_NOEXIT'`
+		if [ "ON" = "`make_caps $NXNOEXIT`" ] ; then
+			touch /usr/NX/share/noexit
+		fi
+	fi
+
+	if [ -n `eval echo '$NX_NOPASSWORD'` ] ; then
+		NXNOEXIT=`eval echo '$NX_NOPASSWORD'`
+		if [ "ON" = "`make_caps $NXNOPASSWORD`" ] ; then
+			touch /usr/NX/share/nopasswd
+		fi
+	fi
+
+	let x=0
+	while [ -n "`eval echo '$SESSION_'$x'_TYPE'`" ] ; do
+	  NXTYPE=`eval echo '$SESSION_'$x'_TYPE'`
+	  if [ "`make_caps $NXTYPE`" = "NX" ] ; then
+
+      	    NXTITLE=`eval echo '$SESSION_'$x'_TITLE'`
+	    NXTITLE=`replace_char "$NXTITLE" " " "_"`
+	    NXCONFIG=$HOME/.nx/config/$NXTITLE.nxs
+	    cat /etc/nx.tpl > $NXCONFIG
+
+	    (set | grep "SESSION_"$x"_NX_" ) |
+	    while read session; do
+              # Reworked below line to allow multiline NX options, ie ssh keys
+	      nxvalue=`echo $session | cut -f1 -d"="`
+	      eval nxvalue=\$$nxvalue
+	      line=`echo $session | cut -f1 -d"="`
+	      nxgroup=`echo $line | cut -f4 -d"_"`
+
+	      # Work around for groups which are > than 1 word long
+	      case $nxgroup in
+		      VNC|WINDOWS|SHARE)
+	      		nxgroup=`echo $line | cut -f4-5 -d"_"`
+			linestart=6
+		      ;;
+		      *)
+			linestart=5
+		      ;;
+	      esac
+
+	      # NX Options and groups are case sensitive.  Grrrrrr
+	      # Makes my life difficult.
+
+	      nxgroup=`replace_char $nxgroup "_" " "`
+	      nxgroup=`make_capital $nxgroup`
+	      if [ "$nxgroup" != "$nxloop" ] ; then
+		if [ -n "$nxloop" ] ; then
+	  	    echo "</group>" >> $NXCONFIG
+		fi
+		echo "<group name=\"$nxgroup\" >" >> $NXCONFIG
+	      fi
+	      nxoption=`echo $line | cut -f$linestart- -d"_"`
+	      nxoption=`replace_char $nxoption "_" " "`
+	      # Special case where all 3 words need to be cap'd
+	      case $nxoption in
+	        "CUSTOM UNIX DESKTOP"|"COLOR DEPTH"|"IMAGE CACHE"|"IMAGE JPEG ENCODING"|"IMAGE CODING TYPE"|"IMAGE COMPRESSION TYPE"|"DISABLE JPEG COMPRESSION"|"USE PNG COMPRESSION"|"WINDOWS IMAGE COMPRESSION"|"PUBLIC KEY")
+	      		nxoption=`make_capital $nxoption`
+		;;
+		*)
+	      		nxoption=`make_capital -1 $nxoption`
+		;;
+	      esac
+	      echo "<option key=\"$nxoption\" value=\"""$nxvalue""\" />" >> $NXCONFIG
+	      nxloop=$nxgroup
+	    done
+	    echo "</group>" >> $NXCONFIG
+	    if [ -e "$NXCONFIG" ] ; then
+	      echo "</NXClientSettings>" >> $NXCONFIG
+  	    fi
+  	  fi
+	  let x=x+1
+	done
+
+	nx_menu
+
+    fi
+    ;;
+  *)
+    exit 1
+    ;;
+esac
+
+exit 0

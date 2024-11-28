@@ -1,0 +1,31 @@
+#!/bin/sh
+# Functions
+
+. $TS_GLOBAL
+
+nx_menu ()
+{
+ if [ -e $HOME/.nx ] ; then
+   if [ `ls -1 $HOME/.nx/config|wc -l` -gt 1 ] ; then
+     # Defaults screen to 0 when generating sessions that were created from outside of thinstation.conf
+     if [ -z "$DISPLAY_NUMBER" ] ; then
+	     DISPLAY_NUMBER=0
+     fi
+     (ls -1 $HOME/.nx/config) |
+     while read conf
+     do
+       case "$conf" in
+         nxclient.conf|nxclient.cfg) continue ;;
+       *)
+	 echo_log "Generating menu item for $conf"
+         name=`replace_invalid ${conf%.nxs}`
+	 gname=`replace_char "$name" ' ' '_'`
+	 if ! cat $WKDIR/session | sed -e "s/\\\ /_/g" | cut -f2 -d" " | grep $gname > /dev/null 2>&1 ; then
+          echo "nx $gname $DISPLAY_NUMBER 1 1 OFF OFF SUBMENU $gname ." >> $WKDIR/session
+         fi
+       ;;
+       esac
+     done
+   fi
+ fi
+}
