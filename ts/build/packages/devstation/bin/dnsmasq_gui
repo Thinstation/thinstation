@@ -1,7 +1,7 @@
 #!/bin/bash
 
-export NMAP_TIMEOUT=3
-export IPTABLES_BACKUP="/tmp/iptables_backup"
+export NMAP_TIMEOUT=4
+export NFTABLES_BACKUP="/tmp/nftables_backup"
 export CONFIG_FILE="/root/dnsmasq.conf"
 export DNSMASQ_CONFIG_FILE=/etc/dnsmasq.conf
 
@@ -152,7 +152,7 @@ read_config() {
 		DHCP_END_3="1"
 		DHCP_END_4="150"
 
-		BIOS_FILE="boot/grub/pxeboot.img"
+		BIOS_FILE="boot/grub2/pxeboot.img"
 		EFI_FILE="EFI/boot/grubx64.efi"
 
 		LAN_IP_1="192"
@@ -199,14 +199,15 @@ EOF
 }
 
 enable_dnsmasq() {
-	# Step 1: Save the current iptables configuration
-	iptables-save > "$IPTABLES_BACKUP"
-	echo "iptables configuration saved to $iptables_backup"
+	# Step 1: Save the current nftables configuration
+	nft list ruleset > "$NFTABLES_BACKUP"
+	echo "nftables configuration saved to $NFTABLES_BACKUP"
 
 	# Writing dnsmasq configuration
 	echo "Writing dnsmasq configuration to $CONFIG_FILE..."
 	cat > $DNSMASQ_CONFIG_FILE <<EOF
 interface=$LAN_INTERFACE
+bind-interfaces
 dhcp-range=$DHCP_START_1.$DHCP_START_2.$DHCP_START_3.$DHCP_START_4,$DHCP_END_1.$DHCP_END_2.$DHCP_END_3.$DHCP_END_4,12h
 dhcp-option=option:router,${LAN_IP_1}.${LAN_IP_2}.${LAN_IP_3}.${LAN_IP_4}
 dhcp-option=66,${LAN_IP_1}.${LAN_IP_2}.${LAN_IP_3}.${LAN_IP_4}
@@ -236,20 +237,37 @@ EOF
 	nmcli con mod "$LAN_INTERFACE" ipv4.method manual
 	nmcli con up "$LAN_INTERFACE"
 
-	# Start forwarding
+	# Enable IPv4 and IPv6 forwarding
 	echo 1 > /proc/sys/net/ipv4/ip_forward
+	echo 1 > /proc/sys/net/ipv6/conf/all/forwarding
 
-	# Flush existing rules and set default policies
-	iptables -t nat -F
-	iptables -F
-	iptables -X
+	# Flush existing ruleset
+	nft flush ruleset
 
-	# Set up NAT
-	iptables -t nat -A POSTROUTING -o $WAN_INTERFACE -j MASQUERADE
+	# Define variables for interfaces
+	WAN_INTERFACE="your_wan_interface"
+	LAN_INTERFACE="your_lan_interface"
 
-	# Allow forwarding from LAN to WAN
-	iptables -A FORWARD -i $LAN_INTERFACE -o $WAN_INTERFACE -j ACCEPT
-	iptables -A FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+	# Create NAT table and chain (IPv4 NAT only)
+	nft add table inet nat
+	nft add chain inet nat postrouting { type nat hook postrouting priority 100 \; policy accept \; }
+	nft add rule inet nat postrouting oifname "$WAN_INTERFACE" masquerade
+
+	# Create Filter table and chain
+	nft add table inet filter
+	nft add chain inet filter forward { type filter hook forward priority 0 \; policy drop \; }
+
+	# Forward IPv4/IPv6 traffic from LAN to WAN
+	nft add rule inet filter forward iifname "$LAN_INTERFACE" oifname "$WAN_INTERFACE" accept
+
+	# Allow established and related connections
+	nft add rule inet filter forward ct state related,established accept
+
+	# Allow essential ICMPv6 traffic
+	nft add rule inet filter forward icmpv6 type { destination-unreachable, packet-too-big, time-exceeded, parameter-problem, echo-request, echo-reply } accept
+
+	# Allow IPv6 Neighbor Discovery (NDP)
+	nft add rule inet filter forward ip6 nexthdr icmpv6 icmpv6 type { nd-neighbor-solicit, nd-neighbor-advert, nd-router-advert } accept
 
 	# Start dnsmasq
 	systemctl start dnsmasq
@@ -258,13 +276,17 @@ EOF
 disable_dnsmasq()
 {
 	systemctl stop dnsmasq
+
 	nmcli con down $LAN_INTERFACE
 	nmcli con del $LAN_INTERFACE
-	iptables -t nat -F
-	iptables -F
-	iptables -X
+
+	# Flush existing ruleset
+	nft flush ruleset
+
 	echo 0 > /proc/sys/net/ipv4/ip_forward
-	iptables-restore < "$IPTABLES_BACKUP"
+	echo 0 > /proc/sys/net/ipv6/conf/all/forwarding
+
+	nft -f "$NFTABLES_BACKUP"
 }
 
 status_dnsmasq()
@@ -380,6 +402,10 @@ if [ -z "${wan_interfaces[@]}" ]; then
 fi
 if [ -z "${lan_interfaces[@]}" ]; then
 	x_echo "No LAN interface" "No suitable interface was found that could saftely host a DHCP server."
+	exit 1
+fi
+if [ "${wan_interfaces[@]}" == "${lan_interfaces[@]}" ]; then
+	x_echo "Single interface" "We only found one interface, so this utility will not work"
 	exit 1
 fi
 set_main_dialog
