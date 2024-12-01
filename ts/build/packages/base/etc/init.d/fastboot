@@ -75,17 +75,17 @@ disk() {
     done
     if [ "$BOOTABLE" == "FALSE" ]; then
         printf "\rCould not find the storage volume!"
-        if pkg_initialized debug || is_disabled "$HALTONERROR" ; then
-            touch /tmp/splash.exit
-            force_splash_exit
-            echo_log "Debug enabled...dropping to shell."
-            /bin/sh
-        else
-            touch /tmp/splash.exit
-            force_splash_exit
-            echo_log "Debug not enabled, boot halted."
-            halt
-        fi
+#        if pkg_initialized debug || is_disabled "$HALTONERROR" ; then
+#            touch /tmp/splash.exit
+#            force_splash_exit
+#            echo_log "Debug enabled...dropping to shell."
+#            /bin/sh
+#        else
+#            touch /tmp/splash.exit
+#            force_splash_exit
+#            echo_log "Debug not enabled, boot halted."
+#            halt
+#        fi
     fi
     if [ -e "$UPDATE" ]; then
         rm "$FILE"
@@ -112,7 +112,7 @@ pxe()
 				WPROGRESS=`cat -v /var/log/wget_progress |sed -e 's/\^M/\n/g'|grep -e '|'| tail -n 1 |cut -c 22-24 |sed -e 's/ //g'`
 				if [ -z "$WPROGRESS" ]; then WPROGRESS=0 ; fi
 				let progress=WPROGRESS+OLDPROGRESS
-				splash_progress
+#				splash_progress
 			done
 		else
 			while [ "$WPROGRESS" != "100" ] && [ -n "`pidof wget`" ]; do
@@ -120,7 +120,7 @@ pxe()
 				WPROGRESS=`cat -v /var/log/wget_progress |grep -e "%" |tail -n 1 |cut -c 63-65`
 				if [ -z "$WPROGRESS" ]; then WPROGRESS=0 ; fi
 				let progress=WPROGRESS+OLDPROGRESS
-				splash_progress
+#				splash_progress
 			done
 		fi
 		rm -rf /var/log/wget_progress
@@ -140,16 +140,16 @@ pxe()
 			TPROGRESS=`cat -v /var/log/tftp_progress |sed -e 's/\^M/\n/g'|tail -n 1 |cut -c 22-24`
 			if [ -z "$TPROGRESS" ]; then TPROGRESS=0 ; fi
 			let progress=TPROGRESS+OLDPROGRESS
-			splash_progress
+#			splash_progress
 		done
 		rm -rf /var/log/tftp_progress
 	fi
 	let progress=OLDPROGRESS+100
-	splash_progress
-	if [ ! -e $FILE ]; then
-		touch /tmp/splash.exit
-		force_splash_exit
-	fi
+#	splash_progress
+#	if [ ! -e $FILE ]; then
+#		touch /tmp/splash.exit
+#		force_splash_exit
+#	fi
 }
 
 iso()
@@ -182,8 +182,8 @@ iso()
 			fi
 		fi
 		if [ -z $squash_location ]; then
-			touch /tmp/splash.exit
-			force_splash_exit
+#			touch /tmp/splash.exit
+#			force_splash_exit
 			echo "Could not find the image on the CDROM!"
 		else
 			FILE=$BASE_MOUNT_PATH/cdrom0/"$squash_location"lib.squash
@@ -228,7 +228,7 @@ mount_squash()
 		fi
 	fi
 }
-# This has to be a double negative test. Only is_disabled will
+# This has to be a double negative test. Only is_disabled() will
 # return false with a non-null value that isn't explicitly disabled.
 #used > /var/log/used
 if ! is_disabled $FASTBOOT; then

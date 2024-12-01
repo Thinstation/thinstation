@@ -1722,7 +1722,7 @@ filesystem_fixups()
 		mount --bind /proc ./tmp-tree/proc
 		sed -e "/if.*proc\/cmdline/d" tmp-tree/etc/thinstation.global > ./tmp-tree/build.finalize
 		cat ./tmp-tree/finalize/* >> ./tmp-tree/build.finalize
-		chroot ./tmp-tree /bin/sh /build.finalize
+		chroot ./tmp-tree /bin/bash /build.finalize
 		while fuser ./tmp-tree 2>&1 > /dev/null; do
 			sleep .1
 		done

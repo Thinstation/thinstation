@@ -1,6 +1,7 @@
 [Unit]
 Description=Mount Fastboot Data
-After=mounts.service
+After=network-online.target
+Before=display-manager.service
 
 [Service]
 Type=oneshot
@@ -8,7 +9,7 @@ RemainAfterExit=yes
 EnvironmentFile=/etc/thinstation.env
 ExecStart=/etc/init.d/fastboot
 SyslogIdentifier=fastboot
-TimeoutStartSec=45s
+TimeoutStartSec=180s
 
 [Install]
 WantedBy=multi-user.target

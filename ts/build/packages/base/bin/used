@@ -1,10 +1,14 @@
 #!/bin/sh
 
+case $1 in
+	-pre) log=/run/applications/used-pre.log;;
+	-post) log=/run/applications/used-post.log;;
+esac
 for dir in bin etc lib64 libexec usr home opt root sbin srv var; do
 	if [ -d /$dir ]; then
 		for file in `find /$dir -type f`; do
 			if [ "`stat -c '%X' $file`" != "`stat -c '%Z' $file`" ]; then
-				echo $file
+				echo $file > $log
 			fi
 		done
 	fi

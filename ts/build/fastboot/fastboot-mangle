@@ -60,6 +60,9 @@ if [ "$2" == "true" ] ; then
 			ldd $so 2>/dev/null >> /tmp/fastlibneed
 		done
 	fi
+	for so in `dir lib64/security/*`; do
+		ldd $so 2>/dev/null >> /tmp/fastlibneed
+	done
 	cat /tmp/fastlibneed |grep -v "not a dyn"|grep -v ":"| sed -e 's/\t//g' |cut -d " " -f1 |sed -e 's|/lib64/||g' |sed -e 's|/lib/||g' |sort -u > /tmp/fastlib
 	for lib in `cat ../fastboot/lib-boot; cat /tmp/fastlib; ls --color=never lib64 |grep -E 'libgcc_s.so.[0-1]+|libnss_files.so.[0-9]+|libnss_dns.so.[0-9]+'` ; do
 		if [ -e lib64/$lib ]; then
@@ -138,6 +141,9 @@ if [ "$2" == "lotsofmem" ]; then
                         ldd $so 2>/dev/null >> /tmp/fastlibneed
                 done
 	fi
+        for so in `dir lib64/security/*`; do
+                ldd $so 2>/dev/null >> /tmp/fastlibneed
+        done
 	cat /tmp/fastlibneed |grep -v "not a dyn"|grep -v ":" |sed -e 's/\t//g' |cut -d " " -f1 |sed -e 's|/lib64/||g' |sed -e 's|/lib/||g' |sort -u > /tmp/fastlib
 	for lib in `cat /tmp/fastlib |grep -v linux-vdso.so`; do
 		if [ ! -e lib64/$lib ]; then

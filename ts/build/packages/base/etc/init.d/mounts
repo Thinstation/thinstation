@@ -1,37 +1,43 @@
 #!/bin/sh
 
-. `dirname $0`/common
+echo "Ensuring all devices are available..."
 
-if [ -n "$DEBUG_INIT" ] ; then
-        echo_log "Doing Mounts"
-fi
+# Parse /etc/fstab for device specifications
+while read -r line; do
+    # Skip comments and empty lines
+    [ -z "$line" ] || [[ "$line" =~ ^# ]] && continue
 
-let x=0
-while [ -n "`eval echo '$MOUNT_'$x`" ]; do
-	mount=`eval echo '$MOUNT_'$x`
-	echo -e "`echo \"$mount\" |sed -e 's/[ ]\+/\t/g'`" >> /etc/fstab
-	let x=x+1
-done
-systemctl daemon-reload
+    # Extract the first column (device specifier)
+    device=$(echo "$line" | awk '{print $1}')
 
-# Swap initialization
-if grep /etc/fstab -e swap -q; then
-#	if is_enabled $MEMORY_CONSTRAINED ; then
-#		echo 100 > /proc/sys/vm/swappiness
-#	else
-#		echo 0 > /proc/sys/vm/swappiness
-#	fi
-	swapon -a
-fi
+    if [[ "$device" =~ ^LABEL= ]]; then
+        # Handle LABEL= entries
+        label=${device#LABEL=}
+        while [ -z "$(blkid -L "$label")" ]; do
+            echo "Waiting for device with LABEL=$label..."
+            sleep 1
+        done
+    elif [[ "$device" =~ ^UUID= ]]; then
+        # Handle UUID= entries
+        uuid=${device#UUID=}
+        while [ -z "$(blkid -U "$uuid")" ]; do
+            echo "Waiting for device with UUID=$uuid..."
+            sleep 1
+        done
+    elif [[ "$device" =~ ^/dev/ ]]; then
+        # Handle direct device paths
+        while [ ! -e "$device" ]; do
+            echo "Waiting for device $device..."
+            sleep 1
+        done
+    else
+        # Unknown device specification, log a warning
+        echo "Unknown device specifier: $device (skipping)"
+    fi
+done < /etc/fstab
 
-#if ! is_disabled $FASTBOOT && [ "$LM" == "4" ]; then
-#	echo -e "`echo \"LABEL=$CDVOLNAME /mnt/cdrom0 auto x-mount.mkdir,defaults 0 0\" |sed -e 's/[ ]\+/\t/g'`" >> /etc/fstab
-#fi
+echo "All devices are available."
 
 mount -a
 systemd-tmpfiles --create
-
-mkdir /run/applications
-chmod 777 /run/applications
-exit 0
 

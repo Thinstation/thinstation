@@ -2,6 +2,13 @@
 systemd-sysusers
 systemd-tmpfiles --create
 
+for var in $(compgen -v | grep '^MOUNT_'); do
+    mount="${!var}"
+    if [ -n "$mount" ]; then
+        echo -e "$(echo "$mount" | sed -e 's/[ ]\+/\t/g')" >> /etc/fstab
+    fi
+done
+
 for i in /*; do
   if [ $i != "/dev" ] && [ $i != "/proc" ] && [ $i != "/tmp" ]; then
 #    chown -R root:root $i
@@ -142,6 +149,7 @@ chmod 000 /etc/shadow
 chmod 000 /etc/gshadow
 ldconfig
 
+#systemctl enable machine-id
 systemctl enable debug
 systemctl enable mounts
 systemctl enable crond

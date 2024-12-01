@@ -10,7 +10,7 @@ disk=$1
 
 mounted()
 {
-	if [ "`cat /proc/mounts |grep -e $1 -c`" -ne "0" ] ; then
+	if mountpoint $1 ; then
 		return 0
 	else
 		return 1
@@ -109,23 +109,24 @@ read_pt
 
 # Creates Boot partition
 parted -s $disk mklabel msdos
-parted -s $disk mkpart primary fat32 "2048s 6293503s" 1>/dev/null
+parted -s $disk mkpart primary fat32 "1MiB 4GiB" 1>/dev/null
 parted -s $disk set 1 boot on
 
-# Creates all needed partitions depending if install is Dev or not
+# Create swap partition
+parted -s $disk mkpart primary linux-swap "4GiB 8GiB"
+
+# Creates all additional partitions depending if install is Dev or not
 if is_enabled $INSTALLER_DEV; then
-	parted -s $disk mkpart primary "6293504s -1"
-	pvcreate -ff -y ${disk}${p}2
-	vgcreate devstation_vg ${disk}${p}2
-	lvcreate -y -n prstnt_lv -L 64M devstation_vg
-	lvcreate -y -n root_lv -L 1G devstation_vg
-	lvcreate -y -n swap_lv -L 4G devstation_vg
-	lvcreate -y -n home_lv -L 4G devstation_vg
-	lvcreate -y -n log_lv -L 1G devstation_vg
+	parted -s $disk mkpart primary "8GiB 100%"
+	pvcreate -ff -y ${disk}${p}3
+	vgcreate devstation_vg ${disk}${p}3
+	lvcreate -y -n prstnt_lv -L 64MiB devstation_vg
+	lvcreate -y -n root_lv -L 1GiB devstation_vg
+	lvcreate -y -n home_lv -L 4GiB devstation_vg
+	lvcreate -y -n log_lv -L 1GiB devstation_vg
 	lvcreate -y -n tsdev_lv -l 100%FREE devstation_vg
 else
-	parted -s $disk mkpart primary linux-swap "6293504s 11g"
-	parted -s $disk mkpart primary ext4 "11g -0"
+	parted -s $disk mkpart primary ext4 "8GiB 100%"
 fi
 
 read_pt
@@ -139,17 +140,18 @@ echo "Making filesystems"
 mkfs.vfat -n boot -F 32 -R 32 ${disk}${p}1 || mkfs.vfat -n boot -F -F 32 -R 32 ${disk}${p}1 # Create /boot FileSystem
 sleep 1
 
+#Create swap FileSystem
+mkswap -f -L swap ${disk}${p}2
+
+# Creates all additional FileSystems depending if install is Dev or not
 if is_enabled $INSTALLER_DEV; then
 	mkfs.ext4 -L prstnt -F /dev/devstation_vg/prstnt_lv
 	mkfs.ext4 -L root -F /dev/devstation_vg/root_lv
 	mkfs.ext4 -L home -F /dev/devstation_vg/home_lv
 	mkfs.ext4 -L log -F /dev/devstation_vg/log_lv
 	mkfs.ext4 -L tsdev -F /dev/devstation_vg/tsdev_lv
-        mkswap -f -L swap /dev/devstation_vg/swap_lv
 else
-	mkswap -f -L swap ${disk}${p}2 #Creates swap FileSystem
-	sleep 1
-	mkfs.ext4 -L home -F ${disk}${p}3 #Creates /home FileSystem
+	mkfs.ext4 -L home -F ${disk}${p}3
 fi
 
 read_pt
@@ -183,6 +185,7 @@ dd if=$sourceboot/boot/grub2/core.img of=$disk bs=512 seek=1
 
 
 cd $bootdir/boot
+echo "machine_id=`dbus-uuidgen`" > machine-id
 
 if is_enabled $INSTALLER_DEV || is_enabled $INSTALLER_PROXY_CHECK ; then
 	# Setup proxy for wget and git
@@ -205,6 +208,8 @@ fi
 cp initrd initrd-backup
 cp vmlinuz vmlinuz-backup
 cp lib.update lib.squash-backup
+
+mkdir /tmp-log/journal
 
 if is_enabled $INSTALLER_DEV; then
 	cd /thinstation

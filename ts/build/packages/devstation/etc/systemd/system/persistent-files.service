@@ -1,7 +1,9 @@
 [Unit]
 Description=Monitor/Backup/Restore system critical files
-After=fastboot.service
-Before=session-setup.service
+DefaultDependencies=no
+After=mounts.service
+Before=systemd-journal-flush.service
+ConditionPathExists=/etc/fstab
 
 [Service]
 Type=simple
@@ -11,4 +13,4 @@ Restart=always
 RestartSec=10
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=local-fs.target
