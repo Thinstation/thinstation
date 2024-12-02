@@ -1,0 +1,81 @@
+#! /bin/sh
+
+. `dirname $0`/common
+HOME=/etc/skel
+
+if ! pkg_initialized $PACKAGE; then
+	pkg_set_init_flag $PACKAGE
+
+	if [ -e $HOME/.config/xfce4/helpers.rc ]; then
+		sed -i -e 's/WebBrowser=google-chrome/WebBrowser=firefox/g' $HOME/.config/xfce4/helpers.rc
+	fi
+
+	if [ -e /etc/FF.tar.gz ]; then
+		tar -C $HOME -zxvf /etc/FF.tar.gz
+	else
+		# If no site FF profile archive was found, fall back to some useful defaults.a
+
+		# Generate a random profile path
+		Path=`tr -cd "a-z0-9" < /dev/urandom | head -c8`
+		Path=$Path.default-release
+
+		# This is a hash of the install path of Firefox
+		Install=37962855DDB9971D
+
+		mkdir -p $HOME/.mozilla/firefox/$Path
+		cp /etc/TS.default/* $HOME/.mozilla/firefox/$Path -r
+
+		cat <<EOF>$HOME/.mozilla/firefox/profiles.ini
+[Profile1]
+Name=default
+IsRelative=1
+Path=nybpu877.default
+Default=1
+
+[Profile0]
+Name=default-release
+IsRelative=1
+Path=$Path
+
+[General]
+StartWithLastProfile=1
+Version=2
+
+[Install$Install]
+Default=$Path
+Locked=1
+EOF
+
+#		if [ -n "`find $HOME/.mozilla/firefox/$Path/extensions -type f -name \*.json` 2>/dev/null" ]; then
+#			cat $HOME/.mozilla/firefox/$Path/e.head.tpl > $HOME/.mozilla/firefox/$Path/extensions.json
+#			for file in `find $HOME/.mozilla/firefox/$Path/extensions -type f -name \*.json`; do
+#				cat $file |sed -e "s/TS.default/$Path/g" >> $HOME/.mozilla/firefox/$Path/extensions.json
+#			done
+#			cat $HOME/.mozilla/firefox/$Path/e.tail.tpl >> $HOME/.mozilla/firefox/$Path/extensions.json
+#		fi
+
+		FFPREFS=$HOME/.mozilla/firefox/$Path/prefs.js
+		if [ -z "$FF_HOMEPAGE" ]; then
+			FF_HOMEPAGE="https://www.thinstation.org"
+		fi
+		# Add any configuration parameters
+		let x=0
+		while [ -n "`eval echo '$SESSION_'$x'_TYPE'`" ] ; do
+			FFTYPE=`eval echo '$SESSION_'$x'_TYPE'`
+			if [ "`make_caps $FFTYPE`" = "FIREFOX" ] ; then
+				FFHP=`eval echo '$SESSION_'$x'_FIREFOX_HOMEPAGE'`
+			fi
+			let x=x+1
+		done
+		if [ -n "$FFHP" ] ; then
+			FF_HOMEPAGE=$FFHP
+		fi
+		cp /etc/TS.default/prefs.tpl $FFPREFS
+		echo 'user_pref("browser.startup.homepage", "'$FF_HOMEPAGE'");' >>$FFPREFS
+		if [ -e /etc/TS.default/places.sqlite ] ; then
+			echo 'user_pref("browser.toolbars.bookmarks.visibility", "always");' >>$FFPREFS
+		else
+			echo 'user_pref("browser.toolbars.bookmarks.visibility", "never");' >>$FFPREFS
+		fi
+	fi
+fi
