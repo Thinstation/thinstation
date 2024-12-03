@@ -6,9 +6,9 @@ README - Displaying this file can be disabled by touching `/ts/etc/READ`
 Visit the ThinStation Wiki: https://github.com/Thinstation/thinstation/wiki/Getting-Started-with-ThinStation
 
 ThinStation is a small, yet powerful, Open Source thin client operating system supporting:
-Citrix ICA, Redhat Spice, NoMachine NX, Microsoft Windows terminal services (RDP, via FreeRDP), VMware Horizon View, Cendio ThinLinc, Tarantella, X, telnet, tn5250, VMS terminal, and SSH.
+Citrix ICA, Redhat Spice, NoMachine NX, Microsoft Windows terminal services (RDP, via FreeRDP), VMware Horizon View, Cendio ThinLinc, X and SSH.
 
-This environment was created for you by Donald A. Cupp Jr. from Crux and ThinStation.
+This environment was created for you by Donald A. Cupp Jr. from Fedora and ThinStation.
 
 ThinStation itself has many contributors, with special thanks to:
 - Mike Eriksen
@@ -107,7 +107,7 @@ The **DevStation image** is not directly usable and must be installed through th
 
 - **Client Hardware:**
     - CPU: x86-64 architecture.
-    - RAM: Minimum 512 MB (1 GB recommended).
+    - RAM: Minimum 2 GB (8 GB recommended).
     - Network: Wired or wireless network interface.
 
 - **Server Environment:**
