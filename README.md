@@ -3,7 +3,7 @@
 
 README - Displaying this file can be disabled by touching `/ts/etc/READ`
 
-Visit the ThinStation Wiki: https://github.com/Thinstation/thinstation/wiki/Getting-Started-with-ThinStation
+Visit the ThinStation [Wiki](https://github.com/Thinstation/thinstation/wiki/Getting-Started-with-ThinStation)
 
 ThinStation is a small, yet powerful, Open Source thin client operating system supporting:
 Citrix ICA, Redhat Spice, NoMachine NX, Microsoft Windows terminal services (RDP, via FreeRDP), VMware Horizon View, Cendio ThinLinc, X and SSH.
@@ -52,7 +52,7 @@ The **DevStation image** is not directly usable and must be installed through th
 
 #### Steps to Use the DevStation Installer:
 
-1. Download the DevStation Installer from the ThinStation Website: https://www.thinstation.org/TS-7.0.0-Installer-1130.iso
+1. Download the DevStation Installer from the ThinStation [Website](https://www.thinstation.org/TS-7.0.0-Installer-1130.iso)
 2. Boot the installer on your system.
 3. Follow the prompts to:
     - Partition the disk.
