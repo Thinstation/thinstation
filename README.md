@@ -1,66 +1,124 @@
+
 # ThinStation
 
-README - Displaying of this file can be disabled by touching `/ts/etc/READ`
+README - Displaying this file can be disabled by touching `/ts/etc/READ`
 
-Visit the ThinStation [Wiki][]  
+Visit the ThinStation Wiki: https://github.com/Thinstation/thinstation/wiki/Getting-Started-with-ThinStation
 
-ThinStation is a basic and small, yet very powerful, Open Source thin client operating system supporting all major connectivity protocols: Citrix ICA, Redhat Spice, NoMachine NX, 2X ThinClient, Microsoft Windows terminal services (RDP, via RDesktop/FreeRDP), VMWare Horizon View, Cendio ThinLinc, Tarantella, X, telnet, tn5250, VMS terminal and SSH 
+ThinStation is a small, yet powerful, Open Source thin client operating system supporting:
+Citrix ICA, Redhat Spice, NoMachine NX, Microsoft Windows terminal services (RDP, via FreeRDP), VMware Horizon View, Cendio ThinLinc, Tarantella, X, telnet, tn5250, VMS terminal, and SSH.
 
-[Wiki]: https://github.com/Thinstation/thinstation/wiki/Getting-Started-with-ThinStation
+This environment was created for you by Donald A. Cupp Jr. from Crux and ThinStation.
 
-This env was created for you by Donald A. Cupp Jr. from Crux and ThinStation
+ThinStation itself has many contributors, with special thanks to:
+- Mike Eriksen
+- Trevor Batley
+- Miles Roper
+- Marcos Amorim
 
-ThinStation itself has many many many contributors, but much thanx goes out to
-Mike Eriksen, Trevor Batley, Miles Roper and Marcos Amorim
+## NEWS
 
-NEWS:  
-* I have added a small utility to configure dnsmasq as a DHCP/DNS/Router to DevStation  
-* All boot images except grub have been deprecated. 
+- ThinStation now uses **Fedora binaries** and the **DNF** package manager for improved compatibility and maintainability.
+- A utility has been added to configure `dnsmasq` as a DHCP/DNS/Router to DevStation.
+- All boot images except GRUB have been deprecated.
 
-Work To Do / Work in Progress: mail to developer list if you can help
+## System Requirements
 
-* We could really use some help on the documentation. A lot has changed since 2.2, and I am afraid the documentation has not kept up. Please create a wiki account and help others with your knowledge.
+ThinStation now requires either:
+1. A **Fedora-based host environment**.
+2. The preconfigured **DevStation Installer** to set up the development environment.
 
-**Note that several modules have been moved inside the kernel**
+### Using a Fedora Host
 
-## Installation
-Just run `./setup_chroot`. The first time this is run, it will expand all binary packages into the right place. It will then populate all the packages that build will use to make images. Afterwards, it will just start the chroot session.
+- Minimum system requirements:
+    - **8 GB of RAM**
+    - **30 GB of free disk space**
+    - Administrative privileges (root or sudo).
 
-## Running
-You will need to make sure you are in the chroot **Development Environment** by running `./setup-chroot`. You should then be able to `cd /build` and run `./build` to start making images. Edit build.conf and thinstation.conf.buildtime to make changes
+- Install required dependencies:
 
-## Compiling
-First off, this is a very advanced and not required at all to use ThinStation. The build environment allows the brave to go very far into the makeup of software packages that are a part of the ThinStation image building environment. Most people really don't need to, but it's possible if you do.
+      sudo dnf install dnf chroot
 
-The **CFLAGS** and **CXXFLAGS** can be changed by editing `/ts/etc/pkgmk.conf` and then exiting and re-entering the chroot. If you change the flags, you might want to rebuild all installed packages with `rebuild-all` command.
-You can make a single package like this `prt-get depinst [Package Name]` or update it with `prt-get update [Package name]`.
-You can remove a package  with `prt-get remove [Package Name]`.
-You can also go to the actual port directory like `cd /ts/ports/components/busybox-TS` and then do `pkgmk -kw` (keep work) if you want to examine the working compile and perhaps edit a `.config` file. If you upgrade a version or change a `.config`, you will need to run `pkgmk -um` to update md5 checksums on source files.
-If the file layout changes, you will need to run `pkgmk -uf` to update the footprint of the results.
+- Clone the ThinStation repository:
 
-## Ports
-The available ports directories can be changed by editing `/ts/etc/prt-get.conf` and then exiting and re-entering chroot.
-A "Generic" Pkgfile is located in `/ts/ports`. Copy this file into your new port directory and rename to `Pkgfile`.
-You can update the official crux ports with `ports -u` and then do a `prt-get sysup` to update all packages in chroot.
-Other ports may be availabe, but should only be used as a template from `http://crux.nu/portdb/`.
-Doing an update will sometimes give undesired results. Be patient and read the log files for package builds.(`/var/log/pkgbuild`)
+      git clone https://github.com/Thinstation/thinstation.git
+      cd thinstation
 
-## Updating ThinStation
-The update command will read a `.dna` file and extract the latest and greatest from compressed binary packages into the working TS packages folder.
+### Using the DevStation Installer
 
-## Source
-Some package sources were not available in any crux port. 
-In those instances, I made my own port, BUT I did not install the resulting binaries into the chroot, but rather jailed them in `/ts/components`. Ports where I could not locate the source anywhere else but in the old TS chroot are in `/ts/ports/static-source`. You could compile all static source packages with a line like:
+The **DevStation image** is not directly usable and must be installed through the **DevStation Installer**, which will:
+- Create the necessary partitions on your target disk.
+- Download and place the DevStation image on the system.
 
-    for pkg in `ls --color=never /ts/ports/static-source/`; do
-        prt-get install $pkg
-    done
+#### Steps to Use the DevStation Installer:
 
-This will also work with the components directory.
+1. Download the DevStation Installer from the ThinStation Wiki.
+2. Boot the installer on your system.
+3. Follow the prompts to:
+    - Partition the disk.
+    - Download the DevStation image.
+    - Install the image to the appropriate partitions.
+4. Once installed, reboot into the DevStation environment.
 
-**WARNING**
+## Getting Started
 
-Never edit the ports in `/usr/ports/`. You will likely lose your work. 
-If you need to edit a port, bring it into the `/ts/ports/(something appt)` directory and make your own package.
-Everything else you might need is in `/ts/TS_ENV`and `/ts/bin`
-.
+1. **Prepare the Development Environment**
+
+   - On a Fedora host or DevStation, ensure you have access to the `setup-chroot` script located in the ThinStation repository.
+   - Run the script to initialize the development environment:
+
+         ./setup-chroot
+
+   - This will:
+      - Populate necessary directories and dependencies.
+      - Set up the chroot environment for building ThinStation images.
+
+2. **Build ThinStation Images**
+
+   - Enter the chroot environment:
+
+         ./setup-chroot
+
+   - Navigate to the build directory:
+
+         cd /build
+
+   - Configure your build by editing the following files:
+      - `build.conf`: Defines the overall build configuration.
+      - `thinstation.conf.buildtime`: Customizes runtime settings for ThinStation.
+
+   - Run the build process:
+
+         ./build
+
+3. **Deploy ThinStation**
+
+   - Once the build completes, your ThinStation images will be ready in the output directory.
+   - Follow the deployment guide on the ThinStation Wiki for details on deploying ThinStation to your environment.
+
+## Notes for End Users
+
+### Running ThinStation
+
+- ThinStation is designed to run as a thin client, requiring minimal hardware resources.
+- Ensure that the target hardware supports PXE boot or has a method to boot the ThinStation image (e.g., USB, CD/DVD, or network boot).
+
+### Basic Requirements
+
+- **Client Hardware:**
+    - CPU: x86-64 architecture.
+    - RAM: Minimum 512 MB (1 GB recommended).
+    - Network: Wired or wireless network interface.
+
+- **Server Environment:**
+    - Ensure compatibility with your backend systems (e.g., RDP, Citrix, VMware Horizon).
+    - Configure servers to allow client connections according to your chosen protocol.
+
+## Support and Documentation
+
+For detailed instructions, troubleshooting, and additional resources, visit the ThinStation Wiki.
+
+If you encounter issues or require assistance:
+- Open an issue on the [ThinStation GitHub repository](https://github.com/Thinstation/thinstation/issues).
+- Join the discussion on the ThinStation mailing list or community forums.
+
