@@ -18,7 +18,7 @@ ThinStation itself has many contributors, with special thanks to:
 
 ## NEWS
 
-- ThinStation now uses **Fedora binaries** and the **DNF** package manager for improved compatibility and maintainability.
+- ThinStation now uses **Fedora** binaries and the **DNF** package manager for improved compatibility and maintainability.
 - A utility has been added to configure `dnsmasq` as a DHCP/DNS/Router to DevStation.
 - All boot images except GRUB have been deprecated.
 
@@ -95,7 +95,7 @@ The **DevStation** image is installed through the DevStation **Installer**, whic
 
 3. **Deploy ThinStation**
 
-   - Once the build completes, your ThinStation images will be ready in /build/boot-images/grub.
+   - Once the build completes, your ThinStation images will be ready in /build/boot-images/grub of the chroot.
    - Follow the [deployment](https://github.com/Thinstation/thinstation/wiki/Deployment) guide on the ThinStation Wiki for details on deploying ThinStation to your environment.
 
 ## Notes for End Users
