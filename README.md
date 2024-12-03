@@ -46,7 +46,7 @@ ThinStation now requires either:
 
 ### Using the DevStation Installer
 
-The **DevStation image** is installed through the **DevStation Installer**, which will:
+The **DevStation** image is installed through the DevStation **Installer**, which will:
 - Create the necessary partitions on your target disk.
 - Download and place the DevStation image on the system.
 
