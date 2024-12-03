@@ -46,7 +46,7 @@ ThinStation now requires either:
 
 ### Using the DevStation Installer
 
-The **DevStation image** is not directly usable and must be installed through the **DevStation Installer**, which will:
+The **DevStation image** is installed through the **DevStation Installer**, which will:
 - Create the necessary partitions on your target disk.
 - Download and place the DevStation image on the system.
 
@@ -55,10 +55,12 @@ The **DevStation image** is not directly usable and must be installed through th
 1. Download the DevStation Installer from the ThinStation [Website](https://www.thinstation.org/TS-7.0.0-Installer-1130.iso)
 2. Boot the installer on your system.
 3. Follow the prompts to:
+    - Collect credentials.
     - Partition the disk.
     - Download the DevStation image.
     - Install the image to the appropriate partitions.
-4. Once installed, reboot into the DevStation environment.
+    - Setup the build environment.
+5. Once installed, reboot into the DevStation environment.
 
 ## Getting Started
 
