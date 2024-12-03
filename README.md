@@ -93,8 +93,8 @@ The **DevStation image** is not directly usable and must be installed through th
 
 3. **Deploy ThinStation**
 
-   - Once the build completes, your ThinStation images will be ready in the output directory.
-   - Follow the deployment guide on the ThinStation Wiki for details on deploying ThinStation to your environment.
+   - Once the build completes, your ThinStation images will be ready in /build/boot-images/grub.
+   - Follow the [deployment](https://github.com/Thinstation/thinstation/wiki/Deployment) guide on the ThinStation Wiki for details on deploying ThinStation to your environment.
 
 ## Notes for End Users
 
