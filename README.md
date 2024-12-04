@@ -37,7 +37,7 @@ ThinStation now requires either:
 
 - Install required dependencies:
 
-      sudo dnf install dnf chroot
+      sudo dnf install dnf chroot git
 
 - Clone the ThinStation repository:
 
