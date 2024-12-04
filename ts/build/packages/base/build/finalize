@@ -149,9 +149,8 @@ chmod 000 /etc/shadow
 chmod 000 /etc/gshadow
 ldconfig
 
-#systemctl enable machine-id
 systemctl enable debug
-#systemctl enable mounts
+systemctl enable persistent-files
 systemctl enable crond
 systemctl enable crontab
 systemctl enable rtc_cmos
@@ -161,6 +160,3 @@ systemctl enable profile-setup
 systemctl enable session
 systemctl enable session-setup
 systemctl enable fastboot
-if [ "`readlink /sbin/syslogd`" == "/sbin/busybox.shared" ]; then
-	systemctl enable syslog-bb
-fi

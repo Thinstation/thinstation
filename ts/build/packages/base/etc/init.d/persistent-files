@@ -4,12 +4,21 @@
 BACKUP_DIR="/var/prstnt"
 
 # Array of files to check and manage
-FILES=( "/etc/passwd"
-        "/etc/group"
-        "/etc/shadow"
-        "/etc/gshadow"
-        "/etc/thinstation.env"
-	"/etc/dnsmasq.conf")
+# Source the main persistent files list
+mapfile -t main_files < <(grep -Ev '^\s*#|^\s*$' /etc/persistent-files.conf)
+FILES+=("${main_files[@]}")
+
+if [ -d "/etc/persistent-files.d" ]; then
+	for file in /etc/persistent-files.d/*; do
+		if [ -f "$file" ]; then
+			mapfile -t extra_files < <(grep -Ev '^\s*#|^\s*$' "$file")
+			FILES+=("${extra_files[@]}")
+		fi
+	done
+fi
+
+# Remove duplicates from FILES (optional)
+FILES=($(printf "%s\n" "${FILES[@]}" | sort -u))
 
 monitor_files() {
     # Temporarily set IFS to newline to avoid splitting on spaces
@@ -36,14 +45,14 @@ backup_file() {
     local SOURCE_FILE="${1}"
 
     # Construct the backup destination path
-    local DEST_FILE="${BACKUP_DIR}/${SOURCE_FILE}"
+    local BACKUP_FILE="${BACKUP_DIR}/${SOURCE_FILE}"
 
     # Ensure the directory structure exists in the backup directory
-    mkdir -p "$(dirname "${DEST_FILE}")"
+    mkdir -p "$(dirname "${BACKUP_FILE}")"
 
     # Check if the source and destination files differ
-    if ! cmp -s "${SOURCE_FILE}" "${DEST_FILE}"; then
-        cp -a "${SOURCE_FILE}" "${DEST_FILE}"
+    if ! cmp -s "${SOURCE_FILE}" "${BACKUP_FILE}"; then
+        cp -a "${SOURCE_FILE}" "${BACKUP_FILE}"
     fi
 }
 
@@ -56,12 +65,16 @@ backup_files() {
 
 restore_files() {
     for FILE in "${FILES[@]}"; do
-        local DEST_FILE="${BACKUP_DIR}/${FILE}"
+        local BACKUP_FILE="${BACKUP_DIR}/${FILE}"
+	# Ensure the directory structure exists in the target directory
+	mkdir -p "$(dirname "${FILE}")"
 
-        if [ -f "${DEST_FILE}" ]; then
-            # Ensure the directory structure exists in the target directory
-            mkdir -p "$(dirname "${FILE}")"
-            cp -a "${DEST_FILE}" "${FILE}"
+        if [ -f "${BACKUP_FILE}" ]; then
+            # Restore file if we have a backup
+            cp -a "${BACKUP_FILE}" "${FILE}"
+	elif [ ! -f "${FILE}" ]; then
+            # Create file if we don't so that monitoroing does not fail
+            touch "${FILE}"
         fi
     done
 }
