@@ -18,15 +18,15 @@ ThinStation itself has many contributors, with special thanks to:
 
 ## NEWS
 
-- ThinStation now uses **Fedora binaries** and the **DNF** package manager for improved compatibility and maintainability.
+- ThinStation now uses **Fedora** binaries and the **DNF** package manager for improved compatibility and maintainability.
 - A utility has been added to configure `dnsmasq` as a DHCP/DNS/Router to DevStation.
 - All boot images except GRUB have been deprecated.
 
 ## System Requirements
 
 ThinStation now requires either:
-1. A **Fedora-based host environment**.
-2. The preconfigured **DevStation Installer** to set up the development environment.
+1. A **Fedora-based** host environment.
+2. The preconfigured **DevStation** Installer to set up the development environment.
 
 ### Using a Fedora Host
 
@@ -37,7 +37,7 @@ ThinStation now requires either:
 
 - Install required dependencies:
 
-      sudo dnf install dnf chroot
+      sudo dnf install dnf chroot git
 
 - Clone the ThinStation repository:
 
@@ -46,7 +46,7 @@ ThinStation now requires either:
 
 ### Using the DevStation Installer
 
-The **DevStation image** is not directly usable and must be installed through the **DevStation Installer**, which will:
+The **DevStation** image is installed through the DevStation **Installer**, which will:
 - Create the necessary partitions on your target disk.
 - Download and place the DevStation image on the system.
 
@@ -55,10 +55,12 @@ The **DevStation image** is not directly usable and must be installed through th
 1. Download the DevStation Installer from the ThinStation [Website](https://www.thinstation.org/TS-7.0.0-Installer-1130.iso)
 2. Boot the installer on your system.
 3. Follow the prompts to:
+    - Collect credentials.
     - Partition the disk.
     - Download the DevStation image.
     - Install the image to the appropriate partitions.
-4. Once installed, reboot into the DevStation environment.
+    - Setup the build environment.
+5. Once installed, reboot into the DevStation environment.
 
 ## Getting Started
 
@@ -93,8 +95,8 @@ The **DevStation image** is not directly usable and must be installed through th
 
 3. **Deploy ThinStation**
 
-   - Once the build completes, your ThinStation images will be ready in the output directory.
-   - Follow the deployment guide on the ThinStation Wiki for details on deploying ThinStation to your environment.
+   - Once the build completes, your ThinStation images will be ready in /build/boot-images/grub of the chroot.
+   - Follow the [deployment](https://github.com/Thinstation/thinstation/wiki/Deployment) guide on the ThinStation Wiki for details on deploying ThinStation to your environment.
 
 ## Notes for End Users
 
