@@ -1,7 +1,7 @@
 #ica 25
-echo 'citrixlog:!:169:100::/var/log/citrix:' >> /etc/passwd
-mkdir -p /var/log/citrix
-chown citrixlog:users /var/log/citrix
+#echo 'citrixlog:!:169:100::/var/log/citrix:' >> /etc/passwd
+#mkdir -p /var/log/citrix
+#chown citrixlog:users /var/log/citrix
 
 if is_enabled $ICA_DISABLE_START_CONFIG; then
 	rm /etc/xdg/autostart/ica_receiver_config.desktop
@@ -15,5 +15,5 @@ application/x-ica=wfica.desktop;
 application/vnd.citrix.receiver.configure=new_store.desktop;
 x-scheme-handler/receiver=receiver.desktop;
 EOF
-/opt/Citrix/ICAClient/util/integrate.sh
+. build/scripts/ICAClient-rhel_postinstall.sh
 systemctl enable ica.init
