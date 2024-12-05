@@ -1,0 +1,62 @@
+#!/bin/bash
+
+SHARE_MOUNT_ROOT="/media"
+
+case "$1" in
+    start)
+        echo "Starting VMware Shared Folders service..."
+        mkdir -p "$SHARE_MOUNT_ROOT"
+        
+        # List all VMware shared folders
+        if command -v vmware-hgfsclient >/dev/null; then
+            for share in $(vmware-hgfsclient); do
+                mount_point="${SHARE_MOUNT_ROOT}/${share}"
+                echo "Mounting shared folder: $share at $mount_point"
+                
+                # Create the mount point
+                mkdir -p "$mount_point"
+                
+                # Mount the shared folder
+                mount -t fuse.vmhgfs-fuse ".host:/${share}" "$mount_point" -o allow_other || {
+                    echo "Failed to mount $share"
+                }
+            done
+        else
+            echo "vmware-hgfsclient not found. Ensure VMware Tools or open-vm-tools is installed."
+            exit 1
+        fi
+        ;;
+    stop)
+        echo "Stopping VMware Shared Folders service..."
+        
+        # Unmount all shared folders
+        if mount | grep -q fuse.vmhgfs-fuse; then
+            for mount_point in $(mount | grep fuse.vmhgfs-fuse | awk '{print $3}'); do
+                echo "Unmounting $mount_point"
+                umount "$mount_point" || {
+                    echo "Failed to unmount $mount_point"
+                }
+            done
+        else
+            echo "No VMware shared folders are currently mounted."
+        fi
+        ;;
+    restart|reload|force-reload)
+        $0 stop
+        $0 start
+        ;;
+    status)
+        if mount | grep -q fuse.vmhgfs-fuse; then
+            echo "The following VMware shared folders are mounted:"
+            mount | grep fuse.vmhgfs-fuse | awk '{print $3}'
+        else
+            echo "No VMware shared folders are mounted."
+        fi
+        ;;
+    *)
+        echo "Usage: $0 {start|stop|restart|status}"
+        exit 1
+        ;;
+esac
+
+exit 0

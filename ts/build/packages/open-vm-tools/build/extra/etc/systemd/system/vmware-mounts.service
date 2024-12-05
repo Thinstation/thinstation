@@ -1,0 +1,13 @@
+[Unit]
+Description=Mount VMware Shared Folders Dynamically
+After=vmtoolsd.service
+ConditionVirtualization=vmware
+
+[Service]
+Type=oneshot
+ExecStart=/etc/init.d/vmware-mounts start
+ExecStop=/etc/init.d/vmware-mounts stop
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
