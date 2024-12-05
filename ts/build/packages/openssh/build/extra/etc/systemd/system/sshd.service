@@ -2,7 +2,7 @@
 Description=OpenSSH Daemon
 Wants=sshdgenkeys.service
 After=sshdgenkeys.service
-After=network.target pkg.service
+After=network.target pkg.service tsinit.target
 
 [Service]
 ExecStart=/sbin/sshd -D
@@ -11,7 +11,7 @@ KillMode=process
 Restart=always
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=tsinit.target
 
 # This service file runs an SSH daemon that forks for each incoming connection.
 # If you prefer to spawn on-demand daemons, use sshd.socket and sshd@.service.

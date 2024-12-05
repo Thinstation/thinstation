@@ -2,7 +2,7 @@
 Description=Configure CUPS Printers
 DefaultDependencies=no
 Conflicts=shutdown.target
-After=profile-setup.service net.profile-setup.service cups.service pkg.service
+After=profile-setup.service net.profile-setup.service cups.service pkg.service tsinit.target
 ConditionPathIsReadWrite=/etc
 
 [Service]
@@ -13,4 +13,4 @@ ExecStart=/etc/init.d/cups-init
 SyslogIdentifier=thinstation
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=tsinit.target

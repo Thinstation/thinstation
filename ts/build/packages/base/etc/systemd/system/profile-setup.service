@@ -1,9 +1,7 @@
 [Unit]
 Description=ThinStation Profile Setup
 ConditionPathIsReadWrite=/etc
-After=persistent-files.service
-Before=systemd-vconsole-setup.service
-DefaultDependencies=no
+After=tsinit.target
 
 [Service]
 Type=oneshot
@@ -13,4 +11,4 @@ ExecStart=/etc/init.d/profile-setup
 SyslogIdentifier=thinstation
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=tsinit.target

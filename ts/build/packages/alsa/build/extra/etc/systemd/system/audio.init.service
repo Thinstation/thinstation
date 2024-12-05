@@ -2,7 +2,7 @@
 Description=Configure Audio Settings
 DefaultDependencies=no
 Conflicts=shutdown.target
-After=profile-setup.service net.profile-setup.service pkg.service
+After=profile-setup.service net.profile-setup.service pkg.service tsinit.target
 After=alsa-restore.service
 Before=session-setup.service
 ConditionPathIsReadWrite=/etc
@@ -15,4 +15,4 @@ ExecStart=/etc/init.d/audio
 SyslogIdentifier=thinstation
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=tsinit.target

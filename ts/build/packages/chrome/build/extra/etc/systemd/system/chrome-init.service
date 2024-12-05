@@ -2,8 +2,8 @@
 Description=Configure Chrome Settings
 DefaultDependencies=no
 Conflicts=shutdown.target
-After=profile-setup.service net.profile-setup.service pkg.service
-Before=session-setup.service display-manager.service
+After=profile-setup.service net.profile-setup.service pkg.service tsinit.target
+Before=session-setup.service
 ConditionPathIsReadWrite=/etc
 
 [Service]
@@ -14,4 +14,4 @@ ExecStart=/etc/init.d/chrome-init
 SyslogIdentifier=thinstation
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=tsinit.target

@@ -1,7 +1,6 @@
 [Unit]
 Description=ThinStation thinlinc-init
-After=profile-setup.service pkg.service
-Before=display-manager.service
+After=profile-setup.service pkg.service tsinit.target
 ConditionPathIsReadWrite=/etc
 
 [Service]
@@ -12,4 +11,4 @@ ExecStart=/etc/init.d/thinlinc-init init
 SyslogIdentifier=thinstation
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=tsinit.target

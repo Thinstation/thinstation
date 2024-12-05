@@ -8,6 +8,7 @@ BACKUP_DIR="/var/prstnt"
 mapfile -t main_files < <(grep -Ev '^\s*#|^\s*$' /etc/persistent-files.conf)
 FILES+=("${main_files[@]}")
 
+# Source additional persistent files lists
 if [ -d "/etc/persistent-files.d" ]; then
 	for file in /etc/persistent-files.d/*; do
 		if [ -f "$file" ]; then
@@ -21,23 +22,52 @@ fi
 FILES=($(printf "%s\n" "${FILES[@]}" | sort -u))
 
 monitor_files() {
-    # Temporarily set IFS to newline to avoid splitting on spaces
-    IFS=$'\n'
-
-    # Monitor files for changes
-    inotifywait -m -e modify,create "${FILES[@]}" | while read -r line; do
-        # Use awk to split the last field (event) from the rest (file path)
-        filepath=$(echo "$line" | awk '{$NF=""; print $0}' | sed 's/[[:space:]]*$//')
-        event=$(echo "$line" | awk '{print $NF}')
-
-        echo "Detected $event on $filepath. Running backup..."
-
-        # Pass only the file path to the backup_file function
-        backup_file "$filepath"
+    # Extract the directories to monitor from the FILES array
+    declare -A DIRS
+    for file in "${FILES[@]}"; do
+        dir=$(dirname "$file")
+        DIRS["$dir"]=1
     done
 
-    # Unset IFS to restore it to default behavior
-    unset IFS
+    # Convert the associative array keys (directories) into a list
+    DIR_LIST=("${!DIRS[@]}")
+
+    echo "Monitoring directories: ${DIR_LIST[*]}"
+
+    # Monitor directories for changes (non-recursive)
+    inotifywait -m -e modify,create,delete "${DIR_LIST[@]}" | while read -r directory event filename; do
+        filepath="${directory}${filename}"
+
+        # Check if the file is in the FILES array
+        if [[ " ${FILES[*]} " == *" $filepath "* ]]; then
+            case "$event" in
+                MODIFY|MODIFY,ISDIR|CLOSE_WRITE,CLOSE)
+                    echo "Detected $event on $filepath. Running backup..."
+                    backup_file "$filepath"
+                    ;;
+                CREATE|CREATE,ISDIR)
+                    echo "Detected $event on $filepath. Creating and backing up..."
+                    touch "$filepath"
+                    backup_file "$filepath"
+                    ;;
+                DELETE|DELETE,ISDIR)
+                    echo "Detected $event on $filepath. Deleting backup..."
+                    local BACKUP_FILE="${BACKUP_DIR}/${filepath}"
+                    if [ -f "$BACKUP_FILE" ]; then
+                        rm -f "$BACKUP_FILE"
+                        echo "Backup deleted for $filepath"
+                    else
+                        echo "No backup exists for $filepath"
+                    fi
+                    ;;
+                *)
+                    echo "Unhandled event $event on $filepath"
+                    ;;
+            esac
+        else
+            echo "Ignored event $event on $filepath"
+        fi
+    done
 }
 
 
@@ -72,9 +102,6 @@ restore_files() {
         if [ -f "${BACKUP_FILE}" ]; then
             # Restore file if we have a backup
             cp -a "${BACKUP_FILE}" "${FILE}"
-	elif [ ! -f "${FILE}" ]; then
-            # Create file if we don't so that monitoroing does not fail
-            touch "${FILE}"
         fi
     done
 }

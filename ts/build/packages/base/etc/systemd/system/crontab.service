@@ -1,8 +1,7 @@
 [Unit]
 Description=ThinStation Crontab Initialize
-After=fastboot.service
 Before=crond.service
-ConditionPathIsReadWrite=/etc
+After=tsinit.target
 
 [Service]
 Type=oneshot
@@ -12,4 +11,4 @@ ExecStart=/etc/init.d/crontab
 SyslogIdentifier=thinstation
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=tsinit.target

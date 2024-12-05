@@ -8,7 +8,7 @@ mount -t devtmpfs none /dev
 # Parse machine_id from /proc/cmdline
 if [ -e /proc/cmdline ]; then
     MACHINE_ID=$(awk -F'machine_id=' '{if (NF>1) print $2}' /proc/cmdline | awk '{print $1}')
-    if [ -n "$MACHINE_ID" ]; then
+    if [ -n "$MACHINE_ID" ] && [ "$MACHINE_ID" != "10000000000000000000000000000001" ]; then
         echo "$MACHINE_ID" > /etc/machine-id
         chmod 0444 /etc/machine-id
     fi

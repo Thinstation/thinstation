@@ -1,7 +1,8 @@
 [Unit]
 Description=Monitor/Backup/Restore system critical files
 DefaultDependencies=no
-After=var-prstnt.mount
+After=var-prstnt.mount session-setup.service tsinit.target
+Before=display-manager.service
 ConditionPathIsMountPoint=/var/prstnt
 ConditionPathExists=/etc/persistent-files.conf
 
@@ -13,4 +14,4 @@ Restart=always
 RestartSec=10
 
 [Install]
-WantedBy=local-fs.target
+WantedBy=multi-user.target
