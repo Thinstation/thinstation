@@ -104,7 +104,10 @@ backup_file() {
         # Use `cp -a` to copy directories recursively while preserving attributes
         cp -a "${SOURCE_PATH}/." "${BACKUP_PATH}/"
     elif [ -f "${SOURCE_PATH}" ]; then
-        cp -a "${SOURCE_PATH}" "${BACKUP_PATH}"
+        # Check if the source and destination files differ
+        if ! cmp -s "${SOURCE_PATH}" "${BACKUP_PATH}"; then
+            cp -a "${SOURCE_PATH}" "${BACKUP_PATH}"
+        fi
     fi
 }
 
