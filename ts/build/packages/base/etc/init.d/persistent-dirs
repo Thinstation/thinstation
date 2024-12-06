@@ -6,8 +6,8 @@ BACKUP_DIR="/var/prstnt"
 # Array of directories to check and manage
 # Source the main persistent directories list
 if [ -f /etc/persistent-dirs.conf ]; then
-	mapfile -t main_dirs < <(grep -Ev '^\s*#|^\s*$' /etc/persistent-dirs.conf)
-	DIRS+=("${main_dirs[@]}")
+    mapfile -t main_dirs < <(grep -Ev '^\s*#|^\s*$' /etc/persistent-dirs.conf)
+    DIRS+=("${main_dirs[@]}")
 fi
 
 # Source additional persistent directories lists
@@ -50,7 +50,7 @@ monitor_dirs() {
     echo "Monitoring directories: ${DIRS[*]}"
 
     # Monitor directories for changes (recursive)
-    inotifywait -m -r -e modify,create,delete "${DIRS[@]}" | while read -r directory event filename; do
+    inotifywait -m -r -e modify,create,delete,moved_to,moved_from "${DIRS[@]}" | while read -r directory event filename; do
         filepath="${directory}${filename}"
 
         # Check if the event occurred in a directory we are managing
@@ -80,6 +80,24 @@ monitor_dirs() {
                             echo "No backup exists for $filepath"
                         fi
                         ;;
+                    MOVED_FROM)
+                        local BACKUP_PATH="${BACKUP_DIR}${filepath}"
+                        if [ -e "$BACKUP_PATH" ]; then
+                            rm -rf "$BACKUP_PATH"
+                            echo "Backup deleted for $filepath"
+                        else
+                            echo "No backup exists for $filepath"
+                        fi
+                        ;;
+                    MOVED_TO)
+                        echo "Detected $event on $filepath. Completing rename or move..."
+                        if [ -d "$filepath" ]; then
+                            mkdir -p "$filepath"
+                        else
+                            touch "$filepath"
+                        fi
+                        backup_file "$filepath"
+                        ;;
                     *)
                         echo "Unhandled event $event on $filepath"
                         ;;
@@ -104,10 +122,7 @@ backup_file() {
         # Use `cp -a` to copy directories recursively while preserving attributes
         cp -a "${SOURCE_PATH}/." "${BACKUP_PATH}/"
     elif [ -f "${SOURCE_PATH}" ]; then
-        # Check if the source and destination files differ
-        if ! cmp -s "${SOURCE_PATH}" "${BACKUP_PATH}"; then
-            cp -a "${SOURCE_PATH}" "${BACKUP_PATH}"
-        fi
+        cp -a "${SOURCE_PATH}" "${BACKUP_PATH}"
     fi
 }
 

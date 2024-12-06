@@ -1,7 +1,6 @@
 #!/bin/bash
 
 export NMAP_TIMEOUT=15
-export NFTABLES_BACKUP="/tmp/nftables_backup"
 export CONFIG_FILE="/root/dnsmasq.conf"
 export DNSMASQ_CONFIG_FILE=/etc/dnsmasq.conf
 
@@ -199,13 +198,9 @@ EOF
 }
 
 enable_dnsmasq() {
-	# Step 1: Save the current nftables configuration
-	nft list ruleset > "$NFTABLES_BACKUP"
-	echo "nftables configuration saved to $NFTABLES_BACKUP"
-
 	# Writing dnsmasq configuration
 	echo "Writing dnsmasq configuration to $CONFIG_FILE..."
-	cat > $DNSMASQ_CONFIG_FILE <<EOF
+	cat << EOF > $DNSMASQ_CONFIG_FILE
 interface=$LAN_INTERFACE
 bind-interfaces
 dhcp-range=$DHCP_START_1.$DHCP_START_2.$DHCP_START_3.$DHCP_START_4,$DHCP_END_1.$DHCP_END_2.$DHCP_END_3.$DHCP_END_4,12h
@@ -231,22 +226,19 @@ EOF
 		nmcli con del $interface
 	done
 	fi
-	nmcli con add type ethernet con-name $LAN_INTERFACE ifname $LAN_INTERFACE
-	nmcli con mod "$LAN_INTERFACE" ipv4.addresses ${LAN_IP_1}.${LAN_IP_2}.${LAN_IP_3}.${LAN_IP_4}/$LAN_NETMASK
-	nmcli con mod "$LAN_INTERFACE" ipv4.gateway ${LAN_IP_1}.${LAN_IP_2}.${LAN_IP_3}.${LAN_IP_4}
-	nmcli con mod "$LAN_INTERFACE" ipv4.method manual
+	nmcli con add type ethernet con-name $LAN_INTERFACE \
+		ifname $LAN_INTERFACE \
+		ipv4.addresses ${LAN_IP_1}.${LAN_IP_2}.${LAN_IP_3}.${LAN_IP_4}/$LAN_NETMASK \
+		ipv4.gateway ${LAN_IP_1}.${LAN_IP_2}.${LAN_IP_3}.${LAN_IP_4} \
+		ipv4.method manual
+	find /etc/NetworkManager/system-connections -type f -empty -exec rm {} \;
 	nmcli con up "$LAN_INTERFACE"
+
+cat << EOF > /etc/nftables/nftables.d/dnsmasq.conf
 
 	# Enable IPv4 and IPv6 forwarding
 	echo 1 > /proc/sys/net/ipv4/ip_forward
 	echo 1 > /proc/sys/net/ipv6/conf/all/forwarding
-
-	# Flush existing ruleset
-	nft flush ruleset
-
-	# Define variables for interfaces
-	WAN_INTERFACE="your_wan_interface"
-	LAN_INTERFACE="your_lan_interface"
 
 	# Create NAT table and chain (IPv4 NAT only)
 	nft add table inet nat
@@ -268,25 +260,20 @@ EOF
 
 	# Allow IPv6 Neighbor Discovery (NDP)
 	nft add rule inet filter forward ip6 nexthdr icmpv6 icmpv6 type { nd-neighbor-solicit, nd-neighbor-advert, nd-router-advert } accept
+EOF
 
 	# Start dnsmasq
+	systemctl restart nftables
 	systemctl start dnsmasq
 }
 
 disable_dnsmasq()
 {
 	systemctl stop dnsmasq
+	rm /etc/nftables/nftables.d/dnsmasq.conf
 
 	nmcli con down $LAN_INTERFACE
-	nmcli con del $LAN_INTERFACE
-
-	# Flush existing ruleset
-	nft flush ruleset
-
-	echo 0 > /proc/sys/net/ipv4/ip_forward
-	echo 0 > /proc/sys/net/ipv6/conf/all/forwarding
-
-	nft -f "$NFTABLES_BACKUP"
+	systemctl restart nftables
 }
 
 status_dnsmasq()
@@ -359,11 +346,8 @@ set_main_dialog()
 		</frame>
 		<hbox>
 			<button>
-				<label>Save Config</label>
-				<action>bash -c "save_config"</action>
-			</button>
-			<button>
 				<label>Enable</label>
+				<action>bash -c "save_config"</action>
 				<action>bash -c "enable_dnsmasq"</action>
 				<action function="Refresh">dnsmasq_status</action>
 			</button>
@@ -390,7 +374,7 @@ export -f save_config enable_dnsmasq disable_dnsmasq status_dnsmasq
 # Main execution
 read_config
 status=$(bash -c status_dnsmasq)
-if [ "$status" != "DNSMasq: active" ]; then
+if [ "$status" != "DNSMasq: active" ] || [ -z "$LAN_INTERFACE" ] || [ -z "$WAN_INTERFACE" ]; then
 	scan_dhcp_servers
 else
 	lan_interfaces[0]=$LAN_INTERFACE

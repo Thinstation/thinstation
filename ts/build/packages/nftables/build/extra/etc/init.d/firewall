@@ -2,6 +2,10 @@
 
 . `dirname $0`/common
 
+nft flush ruleset
+echo 0 > /proc/sys/net/ipv4/ip_forward
+echo 0 > /proc/sys/net/ipv6/conf/all/forwarding
+
 # Create table and chains for dual-stack (IPv4 and IPv6)
 nft add table inet filter
 

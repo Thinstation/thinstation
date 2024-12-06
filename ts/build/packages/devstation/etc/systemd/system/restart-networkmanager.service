@@ -1,0 +1,15 @@
+[Unit]
+Description=Restart NetworkManager After Clearing State
+After=persistent-dirs.service
+Requires=persistent-dirs.service
+ConditionPathExists=/var/prstnt/etc/NetworkManager
+
+[Service]
+Type=oneshot
+ExecStartPre=/bin/systemctl stop NetworkManager
+ExecStartPre=/bin/rm -rf /run/NetworkManager
+ExecStart=/bin/systemctl start NetworkManager
+ExecStartPost=nm-online -s -q
+
+[Install]
+WantedBy=multi-user.target
