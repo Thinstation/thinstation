@@ -101,7 +101,8 @@ backup_file() {
 
     # Copy the file or directory if it exists
     if [ -d "${SOURCE_PATH}" ]; then
-        rsync -a --delete "${SOURCE_PATH}/" "${BACKUP_PATH}/"
+        # Use `cp -a` to copy directories recursively while preserving attributes
+        cp -a "${SOURCE_PATH}/." "${BACKUP_PATH}/"
     elif [ -f "${SOURCE_PATH}" ]; then
         cp -a "${SOURCE_PATH}" "${BACKUP_PATH}"
     fi
@@ -112,8 +113,11 @@ restore_dirs() {
         local BACKUP_PATH="${BACKUP_DIR}${DIR}"
 
         if [ -d "${BACKUP_PATH}" ]; then
-            # Restore directory or files from the backup
-            rsync -a "${BACKUP_PATH}/" "${DIR}/"
+            # Ensure the directory structure exists in the target directory
+            mkdir -p "${DIR}"
+
+            # Restore directory or files from the backup using `cp -a`
+            cp -a "${BACKUP_PATH}/." "${DIR}/"
         fi
     done
 }
