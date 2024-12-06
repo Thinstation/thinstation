@@ -5,32 +5,51 @@ BACKUP_DIR="/var/prstnt"
 
 # Array of files to check and manage
 # Source the main persistent files list
-mapfile -t main_files < <(grep -Ev '^\s*#|^\s*$' /etc/persistent-files.conf)
-FILES+=("${main_files[@]}")
+if [ -f /etc/persistent-files.conf ]; then
+    mapfile -t main_files < <(grep -Ev '^\s*#|^\s*$' /etc/persistent-files.conf)
+    FILES+=("${main_files[@]}")
+fi
 
 # Source additional persistent files lists
 if [ -d "/etc/persistent-files.d" ]; then
-	for file in /etc/persistent-files.d/*; do
-		if [ -f "$file" ]; then
-			mapfile -t extra_files < <(grep -Ev '^\s*#|^\s*$' "$file")
-			FILES+=("${extra_files[@]}")
-		fi
-	done
+    for file in /etc/persistent-files.d/*; do
+        if [ -f "$file" ]; then
+            mapfile -t extra_files < <(grep -Ev '^\s*#|^\s*$' "$file")
+            FILES+=("${extra_files[@]}")
+        fi
+    done
 fi
 
 # Remove duplicates from FILES (optional)
 FILES=($(printf "%s\n" "${FILES[@]}" | sort -u))
 
-monitor_files() {
-    # Extract the directories to monitor from the FILES array
+validate_dirs() {
+    local valid_dirs=()
     declare -A DIRS
+
+    # Extract directories from FILES and check if they exist
     for file in "${FILES[@]}"; do
         dir=$(dirname "$file")
-        DIRS["$dir"]=1
+        if [ -d "$dir" ]; then
+            DIRS["$dir"]=1
+        else
+            echo "Warning: Directory $dir does not exist. Skipping."
+        fi
     done
 
-    # Convert the associative array keys (directories) into a list
-    DIR_LIST=("${!DIRS[@]}")
+    # Update DIRS array with only valid directories
+    valid_dirs=("${!DIRS[@]}")
+    echo "${valid_dirs[@]}"
+}
+
+monitor_files() {
+    # Validate directories and update the list to monitor
+    DIR_LIST=($(validate_dirs))
+
+    if [ ${#DIR_LIST[@]} -eq 0 ]; then
+        echo "No valid directories to monitor. Exiting."
+        exit 0
+    fi
 
     echo "Monitoring directories: ${DIR_LIST[*]}"
 
@@ -41,7 +60,7 @@ monitor_files() {
         # Check if the file is in the FILES array
         if [[ " ${FILES[*]} " == *" $filepath "* ]]; then
             case "$event" in
-                MODIFY|MODIFY,ISDIR|CLOSE_WRITE,CLOSE)
+                MODIFY|CLOSE_WRITE,CLOSE)
                     echo "Detected $event on $filepath. Running backup..."
                     backup_file "$filepath"
                     ;;
@@ -70,7 +89,6 @@ monitor_files() {
     done
 }
 
-
 backup_file() {
     local SOURCE_FILE="${1}"
 
@@ -96,8 +114,8 @@ backup_files() {
 restore_files() {
     for FILE in "${FILES[@]}"; do
         local BACKUP_FILE="${BACKUP_DIR}/${FILE}"
-	# Ensure the directory structure exists in the target directory
-	mkdir -p "$(dirname "${FILE}")"
+        # Ensure the directory structure exists in the target directory
+        mkdir -p "$(dirname "${FILE}")"
 
         if [ -f "${BACKUP_FILE}" ]; then
             # Restore file if we have a backup
@@ -124,7 +142,7 @@ firstrun() {
         # Update Admin user name and password hash
         local ustring="$(grep -Ev '^root' "${BACKUP_DIR}/firstrun")"
         local userc="$(echo "${ustring}" | cut -d ':' -f1)"
-	local user="$(convert_to_username "${userc}")"
+        local user="$(convert_to_username "${userc}")"
         local pass="$(echo "${ustring}" | cut -d ':' -f2)"
 
         /sbin/groupmod -n "${user}" tsuser
@@ -153,6 +171,7 @@ case $1 in
         monitor_files
         ;;
     *)
+        echo "Usage: $0 {backup|restore|monitor}"
         exit 0
         ;;
 esac

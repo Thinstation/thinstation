@@ -1,0 +1,137 @@
+#!/bin/bash
+
+# Directory where directories will be copied and linked
+BACKUP_DIR="/var/prstnt"
+
+# Array of directories to check and manage
+# Source the main persistent directories list
+if [ -f /etc/persistent-dirs.conf ]; then
+	mapfile -t main_dirs < <(grep -Ev '^\s*#|^\s*$' /etc/persistent-dirs.conf)
+	DIRS+=("${main_dirs[@]}")
+fi
+
+# Source additional persistent directories lists
+if [ -d "/etc/persistent-dirs.d" ]; then
+    for file in /etc/persistent-dirs.d/*; do
+        if [ -f "$file" ]; then
+            mapfile -t extra_dirs < <(grep -Ev '^\s*#|^\s*$' "$file")
+            DIRS+=("${extra_dirs[@]}")
+        fi
+    done
+fi
+
+# Remove duplicates from DIRS (optional)
+DIRS=($(printf "%s\n" "${DIRS[@]}" | sort -u))
+
+validate_dirs() {
+    # Remove directories that don't exist and print a warning
+    local valid_dirs=()
+    for dir in "${DIRS[@]}"; do
+        if [ -d "$dir" ]; then
+            valid_dirs+=("$dir")
+        else
+            echo "Warning: Directory $dir does not exist. Skipping."
+        fi
+    done
+
+    # Update the DIRS array with only valid directories
+    DIRS=("${valid_dirs[@]}")
+}
+
+monitor_dirs() {
+    # Validate directories before monitoring
+    validate_dirs
+
+    if [ ${#DIRS[@]} -eq 0 ]; then
+        echo "No valid directories to monitor. Exiting."
+        exit 0
+    fi
+
+    echo "Monitoring directories: ${DIRS[*]}"
+
+    # Monitor directories for changes (recursive)
+    inotifywait -m -r -e modify,create,delete "${DIRS[@]}" | while read -r directory event filename; do
+        filepath="${directory}${filename}"
+
+        # Check if the event occurred in a directory we are managing
+        for dir in "${DIRS[@]}"; do
+            if [[ "$directory" == "$dir"* ]]; then
+                case "$event" in
+                    MODIFY|CLOSE_WRITE,CLOSE)
+                        echo "Detected $event on $filepath. Backing up file..."
+                        backup_file "$filepath"
+                        ;;
+                    CREATE|CREATE,ISDIR)
+                        echo "Detected $event on $filepath. Creating and backing up..."
+                        if [ -d "$filepath" ]; then
+                            mkdir -p "$filepath"
+                        else
+                            touch "$filepath"
+                        fi
+                        backup_file "$filepath"
+                        ;;
+                    DELETE|DELETE,ISDIR)
+                        echo "Detected $event on $filepath. Deleting backup..."
+                        local BACKUP_PATH="${BACKUP_DIR}${filepath}"
+                        if [ -e "$BACKUP_PATH" ]; then
+                            rm -rf "$BACKUP_PATH"
+                            echo "Backup deleted for $filepath"
+                        else
+                            echo "No backup exists for $filepath"
+                        fi
+                        ;;
+                    *)
+                        echo "Unhandled event $event on $filepath"
+                        ;;
+                esac
+                break
+            fi
+        done
+    done
+}
+
+backup_file() {
+    local SOURCE_PATH="${1}"
+
+    # Construct the backup destination path
+    local BACKUP_PATH="${BACKUP_DIR}${SOURCE_PATH}"
+
+    # Ensure the directory structure exists in the backup directory
+    mkdir -p "$(dirname "${BACKUP_PATH}")"
+
+    # Copy the file or directory if it exists
+    if [ -d "${SOURCE_PATH}" ]; then
+        rsync -a --delete "${SOURCE_PATH}/" "${BACKUP_PATH}/"
+    elif [ -f "${SOURCE_PATH}" ]; then
+        cp -a "${SOURCE_PATH}" "${BACKUP_PATH}"
+    fi
+}
+
+restore_dirs() {
+    for DIR in "${DIRS[@]}"; do
+        local BACKUP_PATH="${BACKUP_DIR}${DIR}"
+
+        if [ -d "${BACKUP_PATH}" ]; then
+            # Restore directory or files from the backup
+            rsync -a "${BACKUP_PATH}/" "${DIR}/"
+        fi
+    done
+}
+
+case $1 in
+    backup)
+        for DIR in "${DIRS[@]}"; do
+            backup_file "${DIR}"
+        done
+        ;;
+    restore)
+        restore_dirs
+        ;;
+    monitor)
+        monitor_dirs
+        ;;
+    *)
+        echo "Usage: $0 {backup|restore|monitor}"
+        exit 0
+        ;;
+esac
