@@ -9,4 +9,5 @@ ThinStation development has transitioned to a new repository to improve maintain
 
 [https://www.github.com/thinstation/thinstation-ng](https://www.github.com/thinstation/thinstation-ng)
 
-Legacy branches such as 5.6, 6.2 and 6.3 will remain availabe here.
+Legacy branches such as 5.6, 6.2 and 6.3 will remain availabe here and are selectable from the branch dropdown.
+If you wish to checkout out a legacy branch, please use the -b and --depth 1 options for git with this repo.
