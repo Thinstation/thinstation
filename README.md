@@ -8,3 +8,5 @@ ThinStation development has transitioned to a new repository to improve maintain
 **Please use the new repository for the latest updates and contributions:**
 
 [https://www.github.com/thinstation/thinstation-ng](https://www.github.com/thinstation/thinstation-ng)
+
+Legacy branches such as 5.6, 6.2 and 6.3 will remain availabe here.
